@@ -6,6 +6,8 @@ import type { SectionCardProps } from './types';
 const { Text } = Typography;
 
 export const SectionCard: React.FC<SectionCardProps> = ({
+  id,
+  sectionKey,
   title,
   extra,
   children,
@@ -17,9 +19,12 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   bodyStyle,
   className,
 }) => {
-  const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState(defaultCollapsed);
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] =
+    useState(defaultCollapsed);
   const isControlled = controlledCollapsed !== undefined;
-  const isCollapsed = isControlled ? controlledCollapsed : uncontrolledCollapsed;
+  const isCollapsed = isControlled
+    ? controlledCollapsed
+    : uncontrolledCollapsed;
 
   const handleToggle = () => {
     if (!collapsible) return;
@@ -55,7 +60,9 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         {title}
       </Text>
       {collapsible && (
-        <span style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', marginLeft: 2 }}>
+        <span
+          style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', marginLeft: 2 }}
+        >
           {isCollapsed ? <RightOutlined /> : <DownOutlined />}
         </span>
       )}
@@ -64,6 +71,8 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 
   return (
     <Card
+      id={id || (sectionKey ? `section-${sectionKey}` : undefined)}
+      data-section-key={sectionKey}
       size="small"
       title={titleNode}
       extra={

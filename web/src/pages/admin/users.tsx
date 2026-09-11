@@ -32,11 +32,17 @@ export default function UsersPanel() {
   const [searchParams, setSearchParams] = useState<{ keyword?: string }>({});
 
   useEffect(() => {
-    adminServiceListRoles().then((response) => setRoles(unwrapList(response)));
-    adminServiceListOrganizations().then((response) =>
-      setOrganizations(unwrapList(response)),
-    );
-  }, []);
+    // 角色与组织数据源按权限分流：普通组织管理员只加载当前组织的 ListRoles，
+    // 全组织列表仅限具备全局组织读取权限的管理员，避免进入用户页即触发预期外 403。
+    if (access.canReadRoles) {
+      adminServiceListRoles().then((response) => setRoles(unwrapList(response)));
+    }
+    if (access.canReadOrganizations) {
+      adminServiceListOrganizations().then((response) =>
+        setOrganizations(unwrapList(response)),
+      );
+    }
+  }, [access.canReadRoles, access.canReadOrganizations]);
 
   const openCreate = () => {
     setEditing(undefined);
@@ -139,6 +145,8 @@ export default function UsersPanel() {
         organizations={organizations}
         canReadAllUserMemberships={access.canReadAllUserMemberships}
         canManageUserMemberships={access.canManageUserMemberships}
+        canAuthorizeWeComUsers={access.canAuthorizeWeComUsers}
+        canAuthorizeDingTalkUsers={access.canAuthorizeDingTalkUsers}
         currentUserId={initialState?.currentUser?.id}
         defaultOrganizationId={
           initialState?.currentUser?.currentOrganization?.id

@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "检查公共组件兼容、订单模板接入与页面组件边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "检查本地新建选项、远程结果去重和表单派生字段一致性"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "检查枚举、字段名、API 请求和生成物边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "检查测试有效性、最小验证及最终前端门禁"}

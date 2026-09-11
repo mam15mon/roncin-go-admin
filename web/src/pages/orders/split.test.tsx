@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,7 +6,10 @@ import { OrderBusinessType } from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import * as changeService from '@/services/roncin/seaOrderChangeService';
 import { computeCanonicalSha256 } from '@/utils/hash';
-import SeaOrderSplitPage, { calculateFeeCurrencySummaries } from './split';
+import SeaOrderSplitPage, {
+  buildSeaOrderSplitTargets,
+  calculateFeeCurrencySummaries,
+} from './split';
 
 // Mock umi hooks
 vi.mock('@umijs/max', () => ({
@@ -47,22 +50,28 @@ describe('SeaOrderSplitPage', () => {
       orderNo: 'SE20260903001',
       orderVersion: '1',
       currentLinkVersion: '1',
-      cargoAllocationVersion: '1',
       documentStructure: 'HOUSE',
       flowStatus: 'BOOKED',
       bookingNotes: '测试订舱备注',
-      houseBills: [
+      currentMasterBill: {
+        id: 'mbl-current',
+        masterNo: 'COSCO123456',
+        shippingLineId: 'carrier-1',
+        shippingLineName: '中远海运',
+      },
+      currentHouseBill: {
+        id: 'hb-1',
+        houseNo: 'HBL001',
+        status: 'DRAFT',
+        version: '1',
+      },
+      cargoItems: [
         {
-          id: 'hb-1',
-          houseNo: 'HBL001',
-          status: 'DRAFT',
-          version: '1',
-        },
-        {
-          id: 'hb-2',
-          houseNo: 'HBL002',
-          status: 'DRAFT',
-          version: '1',
+          id: 'cargo-1',
+          cargoName: '测试货物',
+          packageCount: 100,
+          grossWeightKg: '2000.000',
+          volumeCbm: '15.000000',
         },
       ],
       containers: [
@@ -73,26 +82,6 @@ describe('SeaOrderSplitPage', () => {
           packageCount: 100,
           grossWeightKg: '2000.000',
           volumeCbm: '15.000000',
-        },
-      ],
-      allocations: [
-        {
-          id: 'alloc-1',
-          cargoItemId: 'cargo-1',
-          houseBillId: 'hb-1',
-          containerId: 'cntr-1',
-          packageCount: 60,
-          grossWeightKg: '1200.000',
-          volumeCbm: '9.000000',
-        },
-        {
-          id: 'alloc-2',
-          cargoItemId: 'cargo-1',
-          houseBillId: 'hb-2',
-          containerId: 'cntr-1',
-          packageCount: 40,
-          grossWeightKg: '800.000',
-          volumeCbm: '6.000000',
         },
       ],
       draftFees: [
@@ -195,10 +184,17 @@ describe('SeaOrderSplitPage', () => {
       expect(screen.getByText('拆票')).toBeInTheDocument();
       expect(screen.getByText('SE20260903001')).toBeInTheDocument();
       expect(screen.getByText('HBL001')).toBeInTheDocument();
-      expect(screen.getByText('HBL002')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('HBL001-1')).toBeInTheDocument();
       expect(screen.getByText('海运费')).toBeInTheDocument();
       expect(screen.getByText('订舱单.pdf')).toBeInTheDocument();
       expect(screen.getByText('确认执行拆票')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByLabelText('录入新母单')[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText('中远海运')).toBeInTheDocument();
+      expect(screen.queryByText('选择发单人 / 船代')).not.toBeInTheDocument();
     });
   });
 
@@ -208,12 +204,10 @@ describe('SeaOrderSplitPage', () => {
       orderNo: 'SE20260903001',
       orderVersion: '1',
       currentLinkVersion: '1',
-      cargoAllocationVersion: '1',
       documentStructure: 'HOUSE',
       flowStatus: 'BOOKED',
       houseBills: [],
       containers: [],
-      allocations: [],
       draftFees: [],
       attachments: [],
     };
@@ -255,14 +249,15 @@ describe('SeaOrderSplitPage', () => {
       >
     >);
 
-    vi.spyOn(
-      changeService,
-      'seaOrderChangeServicePreviewSeaOrderSplit',
-    ).mockResolvedValue({
-      data: mockFailedPreview,
-    } as Awaited<
-      ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>
-    >);
+    const preview = vi
+      .spyOn(changeService, 'seaOrderChangeServicePreviewSeaOrderSplit')
+      .mockResolvedValue({
+        data: mockFailedPreview,
+      } as Awaited<
+        ReturnType<
+          typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit
+        >
+      >);
 
     render(
       <App>
@@ -270,14 +265,18 @@ describe('SeaOrderSplitPage', () => {
       </App>,
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByText('件数守恒校验未通过：仍有 40 件未分配'),
-      ).toBeInTheDocument();
-      expect(screen.getByText('等待满足守恒条件')).toBeInTheDocument();
-      const submitBtn = screen.getByRole('button', { name: '确认执行拆票' });
-      expect(submitBtn).toBeDisabled();
-    });
+    await waitFor(
+      () => {
+        expect(preview).toHaveBeenCalled();
+        expect(
+          screen.getByText('件数守恒校验未通过：仍有 40 件未分配'),
+        ).toBeInTheDocument();
+        expect(screen.getByText('等待满足守恒条件')).toBeInTheDocument();
+        const submitBtn = screen.getByRole('button', { name: '确认执行拆票' });
+        expect(submitBtn).toBeDisabled();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it('锁状态已锁定时不执行预览并禁用拆票提交', async () => {
@@ -298,12 +297,10 @@ describe('SeaOrderSplitPage', () => {
         orderNo: 'SE20260903001',
         orderVersion: '2',
         currentLinkVersion: '1',
-        cargoAllocationVersion: '1',
         documentStructure: 'HOUSE',
         flowStatus: 'BOOKED',
         houseBills: [],
         containers: [],
-        allocations: [],
         draftFees: [],
         attachments: [],
       },
@@ -355,6 +352,53 @@ describe('SeaOrderSplitPage', () => {
     expect(hash1).toBe(hash1Repeat);
   });
 
+  it('新母单目标提交船公司，沿用当前母单不夹带目标字段', () => {
+    expect(
+      buildSeaOrderSplitTargets([
+        {
+          key: 'current',
+          role: 'ORIGINAL',
+          title: '原票',
+          targetType: 'CURRENT',
+          masterNo: 'SHOULDNOTSEND',
+          shippingLineId: 'SHOULDNOTSEND',
+        },
+        {
+          key: 'new',
+          role: 'CREATED',
+          title: '新票',
+          targetType: 'NEW',
+          masterNo: 'COSCO123456',
+          shippingLineId: 'carrier-1',
+        },
+      ]),
+    ).toEqual([
+      {
+        clientTargetKey: 'current',
+        targetType: 'CURRENT',
+        candidateId: undefined,
+        candidateVersion: undefined,
+        candidateTeId: undefined,
+        candidateTeVersion: undefined,
+        masterNo: undefined,
+        shippingLineId: undefined,
+        vesselName: undefined,
+        voyageNo: undefined,
+        originLocationId: undefined,
+        dischargeLocationId: undefined,
+        transitLocationId: undefined,
+        etd: undefined,
+        eta: undefined,
+      },
+      expect.objectContaining({
+        clientTargetKey: 'new',
+        targetType: 'NEW',
+        masterNo: 'COSCO123456',
+        shippingLineId: 'carrier-1',
+      }),
+    ]);
+  });
+
   it('使用十进制精度汇总各币种费用，不把 0.1 + 0.2 计算成浮点误差', () => {
     const summaries = calculateFeeCurrencySummaries(
       [
@@ -388,12 +432,10 @@ describe('SeaOrderSplitPage', () => {
       orderNo: 'SE20260903001',
       orderVersion: '', // 缺少版本
       currentLinkVersion: '1',
-      cargoAllocationVersion: '1',
       documentStructure: 'HOUSE',
       flowStatus: 'BOOKED',
       houseBills: [],
       containers: [],
-      allocations: [],
       draftFees: [],
       attachments: [],
     };

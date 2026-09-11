@@ -1,10 +1,9 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Select } from 'antd';
+import { App, Card, Form, Select, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FinanceBillStatus } from '@/enums.generated';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
@@ -13,13 +12,19 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import {
+  FinanceBillStatus,
+  FinanceOrganizationPurpose,
+} from '@/enums.generated';
+import {
   settlementServiceBatchAssignFinanceBillTags,
   settlementServiceBatchRemoveFinanceBillTags,
   settlementServiceCancelBill,
   settlementServiceConfirmBill,
   settlementServiceGetBill,
   settlementServiceListBills,
+  settlementServiceListFinanceBillTagAssignmentOptions,
   settlementServiceListFinanceBillTagOptions,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
@@ -41,10 +46,18 @@ export default function FinanceBillsPage() {
   >([]);
   const [tagOptionsLoading, setTagOptionsLoading] = useState(false);
   const [tagFilterIds, setTagFilterIds] = useState<string[]>();
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
   const tagFilterRequestRef = useRef(0);
 
   const loadTagFilterOptions = useCallback(
     async (keyword?: string, selectedIds: string[] = []) => {
+      if (!organizationId) {
+        setTagOptions([]);
+        return;
+      }
       const requestSequence = ++tagFilterRequestRef.current;
       setTagOptionsLoading(true);
       try {
@@ -52,6 +65,7 @@ export default function FinanceBillsPage() {
           page: 1,
           pageSize: 50,
           keyword: keyword?.trim() || undefined,
+          organizationId,
         });
         if (requestSequence !== tagFilterRequestRef.current) return;
         setTagOptions((current) => {
@@ -74,12 +88,18 @@ export default function FinanceBillsPage() {
         }
       }
     },
-    [],
+    [organizationId],
   );
 
   useEffect(() => {
-    void loadTagFilterOptions();
+    if (organizationId) void loadTagFilterOptions();
   }, [loadTagFilterOptions]);
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_READ,
+    }).then((response) => setOrganizationOptions(response.data ?? []));
+  }, []);
 
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -95,11 +115,19 @@ export default function FinanceBillsPage() {
   // 统计指标
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
-    receivableBase: 0,
-    payableBase: 0,
-    unverifiedBase: 0,
-    baseCurrency: '',
+    amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
   });
+
+  const formatBaseCurrencyAmounts = (
+    field:
+      | 'receivableBaseAmount'
+      | 'payableBaseAmount'
+      | 'unverifiedBaseAmount'
+      | 'overdueReceivableBaseAmount',
+  ) =>
+    metricStats.amountsByBaseCurrency
+      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .join(' / ') || '-';
 
   const [searchParams, setSearchParams] = useState<{
     keyword?: string;
@@ -108,6 +136,9 @@ export default function FinanceBillsPage() {
     settlementPartyId?: string;
     currency?: string;
     billDateRange?: [Dayjs, Dayjs];
+    dueDateRange?: [Dayjs, Dayjs];
+    onlyUnsettled?: string;
+    onlyOverdue?: string;
   }>({});
 
   const filterItems: SearchFilterFieldItem[] = [
@@ -133,8 +164,14 @@ export default function FinanceBillsPage() {
       placeholder: '全部状态',
       options: [
         { label: '草稿', value: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT },
-        { label: '已确认', value: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED },
-        { label: '已取消', value: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED },
+        {
+          label: '已确认',
+          value: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
+        },
+        {
+          label: '已取消',
+          value: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
+        },
       ],
     },
     {
@@ -142,6 +179,26 @@ export default function FinanceBillsPage() {
       label: '账单日期',
       type: 'date-range',
       placeholder: ['开始日期', '结束日期'],
+    },
+    {
+      name: 'dueDateRange',
+      label: '到期日期',
+      type: 'date-range',
+      placeholder: ['到期开始', '到期结束'],
+    },
+    {
+      name: 'onlyUnsettled',
+      label: '结清状态',
+      type: 'select',
+      placeholder: '全部',
+      options: [{ label: '仅看未结清（已确认）', value: 'true' }],
+    },
+    {
+      name: 'onlyOverdue',
+      label: '逾期状态',
+      type: 'select',
+      placeholder: '全部',
+      options: [{ label: '仅看已逾期', value: 'true' }],
     },
     {
       name: 'settlementPartyId',
@@ -172,6 +229,9 @@ export default function FinanceBillsPage() {
       billDate: bill.billDate ? dayjs(bill.billDate) : dayjs(),
       paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
+      settlementAccountId: bill.settlementAccountId,
+      estimatedInvoiceCurrency: bill.estimatedInvoiceCurrency || bill.currency,
+      estimatedInvoiceRate: bill.estimatedInvoiceRate,
     });
     setEditOpen(true);
   };
@@ -204,6 +264,10 @@ export default function FinanceBillsPage() {
           billDate: values.billDate.format('YYYY-MM-DD'),
           paymentTermsDays: values.paymentTermsDays,
           note: values.note?.trim() || undefined,
+          settlementAccountId: values.settlementAccountId,
+          estimatedInvoiceCurrency:
+            values.estimatedInvoiceCurrency || undefined,
+          estimatedInvoiceRate: values.estimatedInvoiceRate || undefined,
         },
       );
       message.success('账单已成功更新并自动刷新汇率快照');
@@ -230,7 +294,7 @@ export default function FinanceBillsPage() {
   const cancelBill = (bill: API.FinanceBill) => {
     billActions.confirm(
       bill,
-      '取消账单并释放关联费用？',
+      `取消 ${bill.organizationName || '所属公司未标识'} 的账单并释放关联费用？`,
       async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelBill(
           { id },
@@ -257,26 +321,34 @@ export default function FinanceBillsPage() {
     {
       key: 'rec-bills',
       title: '应收账单折本币',
-      value: metricStats.receivableBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-bills',
       title: '应付账单折本币',
-      value: metricStats.payableBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'unv-bills',
       title: '未核销总额折本币',
-      value: metricStats.unverifiedBase,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
-      valueColor: metricStats.unverifiedBase > 0 ? '#cf1322' : '#52c41a',
+      value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
+      valueColor: metricStats.amountsByBaseCurrency.some(
+        (item) => Number(item.unverifiedBaseAmount ?? 0) > 0,
+      )
+        ? '#cf1322'
+        : '#52c41a',
+    },
+    {
+      key: 'overdue-bills',
+      title: '逾期应收折本币',
+      value: formatBaseCurrencyAmounts('overdueReceivableBaseAmount'),
+      valueColor: metricStats.amountsByBaseCurrency.some(
+        (item) => Number(item.overdueReceivableBaseAmount ?? 0) > 0,
+      )
+        ? '#cf1322'
+        : '#52c41a',
     },
   ];
 
@@ -290,30 +362,74 @@ export default function FinanceBillsPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 12 }}>
-        <span style={{ marginRight: 8 }}>标签筛选</span>
-        <Select
-          mode="multiple"
-          allowClear
-          showSearch={{
-            filterOption: false,
-            onSearch: (keyword) =>
-              void loadTagFilterOptions(keyword, tagFilterIds),
-          }}
-          loading={tagOptionsLoading}
-          style={{ minWidth: 320 }}
-          placeholder="命中任一标签即返回"
-          options={tagOptions}
-          value={tagFilterIds}
-          onChange={(value) => {
-            setTagFilterIds(value.length ? value : undefined);
-            actionRef.current?.reload();
-          }}
-        />
-      </div>
+      <Card
+        size="small"
+        style={{
+          marginBottom: 12,
+          borderRadius: 8,
+          border: '1px solid #f0f0f0',
+          backgroundColor: '#ffffff',
+        }}
+        styles={{ body: { padding: '10px 16px' } }}
+      >
+        <Space size={16} align="center" wrap>
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              所属公司：
+            </span>
+            <Select
+              allowClear
+              style={{ minWidth: 220 }}
+              placeholder="请选择所属公司"
+              options={organizationOptions.map((item) => ({
+                value: item.id,
+                label: item.name ?? item.code ?? item.id,
+              }))}
+              value={organizationId}
+              onChange={(value) => {
+                // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
+                tagFilterRequestRef.current += 1;
+                setTagOptionsLoading(false);
+                setOrganizationId(value);
+                setTagFilterIds(undefined);
+                setTagOptions([]);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              标签筛选：
+            </span>
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch={{
+                filterOption: false,
+                onSearch: (keyword) =>
+                  void loadTagFilterOptions(keyword, tagFilterIds),
+              }}
+              disabled={!organizationId}
+              loading={tagOptionsLoading}
+              style={{ minWidth: 280 }}
+              placeholder={
+                organizationId ? '命中任一标签即返回' : '请先选择所属公司'
+              }
+              options={tagOptions}
+              value={tagFilterIds}
+              onChange={(value) => {
+                setTagFilterIds(value.length ? value : undefined);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
+        </Space>
+      </Card>
 
       <FinanceLedgerTemplate<API.FinanceBill>
-        headerTitle="账单管理台账"
+        pageTitle="账单管理"
+        pageSubTitle="集中管理与跟踪海运出口及各业务线收付账单、开票与结算流转状态"
+        headerTitle="账单列表"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
@@ -342,13 +458,23 @@ export default function FinanceBillsPage() {
           access.canCreateFinanceBills ? '批量创建账单' : undefined
         }
         batchActions={
-          access.canUpdateFinanceBills
+          access.canUpdateFinanceBills && organizationId
             ? [
                 {
                   key: 'manage-tags',
                   label: '添加/移除标签',
                   onClick: (_keys: React.Key[], rows: API.FinanceBill[]) => {
-                    if (!rows.length) return;
+                    if (!organizationId) {
+                      message.warning('请先选择所属公司后再维护账单标签');
+                      return;
+                    }
+                    if (
+                      !rows.length ||
+                      rows.some((row) => row.organizationId !== organizationId)
+                    ) {
+                      message.warning('只能维护当前所属公司的账单标签');
+                      return;
+                    }
                     setTagBillIds(
                       rows.map((row) => row.id ?? '').filter(Boolean),
                     );
@@ -372,6 +498,12 @@ export default function FinanceBillsPage() {
           const billDateTo = searchParams.billDateRange?.[1]
             ? searchParams.billDateRange[1].format('YYYY-MM-DD')
             : undefined;
+          const dueDateFrom = searchParams.dueDateRange?.[0]
+            ? searchParams.dueDateRange[0].format('YYYY-MM-DD')
+            : undefined;
+          const dueDateTo = searchParams.dueDateRange?.[1]
+            ? searchParams.dueDateRange[1].format('YYYY-MM-DD')
+            : undefined;
 
           const response = await settlementServiceListBills({
             page: params.current,
@@ -383,16 +515,20 @@ export default function FinanceBillsPage() {
             currency: searchParams.currency || undefined,
             billDateFrom,
             billDateTo,
+            dueDateFrom,
+            dueDateTo,
+            onlyUnsettled:
+              searchParams.onlyUnsettled === 'true' ? true : undefined,
+            onlyOverdue: searchParams.onlyOverdue === 'true' ? true : undefined,
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
+            organizationId,
           });
 
           const page = unwrapPage(response);
           setMetricStats({
             totalCount: page.total,
-            receivableBase: Number(response.summary?.receivableBaseAmount || 0),
-            payableBase: Number(response.summary?.payableBaseAmount || 0),
-            unverifiedBase: Number(response.summary?.unverifiedBaseAmount || 0),
-            baseCurrency: response.summary?.baseCurrency || '',
+            amountsByBaseCurrency:
+              response.summary?.amountsByBaseCurrency ?? [],
           });
 
           return { ...toTableRequest(response), total: page.total };
@@ -400,6 +536,7 @@ export default function FinanceBillsPage() {
       />
 
       <BillEditModal
+        key={editing?.id}
         open={editOpen}
         editing={editing}
         form={form}
@@ -424,8 +561,17 @@ export default function FinanceBillsPage() {
         open={tagModalOpen}
         targetCount={tagBillIds.length}
         existingTags={tagExisting}
-        canQuickCreate={Boolean(access?.canCreateEnterpriseResources)}
-        loadOptions={settlementServiceListFinanceBillTagOptions}
+        // 跨组织财务标签写入不支持在此快捷新建，避免新标签误归当前工作区。
+        canQuickCreate={false}
+        loadOptions={(params) => {
+          if (!organizationId) {
+            return Promise.resolve({ tags: [], total: '0' });
+          }
+          return settlementServiceListFinanceBillTagAssignmentOptions({
+            ...params,
+            organizationId,
+          });
+        }}
         onSubmit={async (mode, tagIds) => {
           if (mode === 'assign') {
             await settlementServiceBatchAssignFinanceBillTags({

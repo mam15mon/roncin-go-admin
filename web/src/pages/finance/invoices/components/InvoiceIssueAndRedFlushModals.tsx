@@ -1,10 +1,12 @@
 import { DatePicker, Form, type FormInstance, Input, Modal } from 'antd';
 import React from 'react';
+import { invoiceIssueActionText, invoiceIssueDateLabel } from './invoiceConstants';
 
 interface InvoiceIssueModalProps {
   open: boolean;
   submitting: boolean;
   issueForm: FormInstance;
+  issueTarget?: API.FinanceInvoice;
   onCancel: () => void;
   onOk: () => Promise<void>;
 }
@@ -13,12 +15,14 @@ export function InvoiceIssueModal({
   open,
   submitting,
   issueForm,
+  issueTarget,
   onCancel,
   onOk,
 }: InvoiceIssueModalProps) {
+  const issueDateLabel = invoiceIssueDateLabel(issueTarget?.direction);
   return (
     <Modal
-      title="确认开具发票"
+      title={`${invoiceIssueActionText(issueTarget?.direction)} ${issueTarget?.organizationName || '所属公司未标识'} 的发票`}
       open={open}
       confirmLoading={submitting}
       onCancel={onCancel}
@@ -34,8 +38,8 @@ export function InvoiceIssueModal({
         </Form.Item>
         <Form.Item
           name="invoiceDate"
-          label="开票日期"
-          rules={[{ required: true, message: '请选择开票日期' }]}
+          label={issueDateLabel}
+          rules={[{ required: true, message: `请选择${issueDateLabel}` }]}
         >
           <DatePicker />
         </Form.Item>
@@ -63,7 +67,7 @@ export function InvoiceRedFlushModal({
 }: InvoiceRedFlushModalProps) {
   return (
     <Modal
-      title={`红冲发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
+      title={`红冲 ${redFlushTarget?.organizationName || '所属公司未标识'} 的发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
       open={open}
       confirmLoading={submitting}
       okButtonProps={{ danger: true }}

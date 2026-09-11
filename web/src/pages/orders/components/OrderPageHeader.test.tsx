@@ -38,13 +38,13 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="create"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         subTitle="填写业务委托与配舱信息"
       />,
     );
 
-    // 面包屑上级链接
-    const rootLink = screen.getByText('订单管理');
-    expect(rootLink).toHaveAttribute('href', '/orders');
+    // 面包屑上级链接（移除非实体菜单“订单管理”）
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
 
     const menuLink = screen.getByText('海运出口');
     expect(menuLink).toHaveAttribute('href', '/orders/sea-export');
@@ -64,12 +64,13 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="detail"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',
@@ -86,12 +87,13 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="fees"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',
@@ -115,12 +117,13 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="split"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
       />,
     );
 
-    expect(screen.getByText('订单管理')).toHaveAttribute('href', '/orders');
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toHaveAttribute(
       'href',
       '/orders/sea-export',
@@ -141,6 +144,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="fees"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-pending-1"
         orderNo={undefined}
       />,
@@ -159,6 +163,7 @@ describe('OrderPageHeader', () => {
       <OrderPageHeader
         page="detail"
         orderKind="sea-export"
+        navigationTitle="海运出口"
         orderId="ord-123"
         orderNo="SE2026082600004"
         tags={<span data-testid="test-tag">已锁定</span>}

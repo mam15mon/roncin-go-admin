@@ -78,6 +78,8 @@ function isEnumValue(value, code, name) {
 
 const cookie = await login();
 const { request, raw } = createClient(cookie);
+const me = await request('/api/v1/auth/me');
+assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 const [customers, rules] = await Promise.all([
   request('/api/v1/partners?page=1&pageSize=200&role=1&enabled=true'),
   request('/api/v1/master-data/number-rules'),
@@ -143,17 +145,31 @@ assert(
   '验收供应商创建失败或未启用供应商角色',
 );
 
+// 海运出口订单必须选择船公司并提供主单信息（047b3e79 起为强约束）。
+const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+  method: 'POST',
+  body: JSON.stringify({
+    scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
+    nameZh: `验收船公司${stamp}`,
+    nameEn: `Acceptance Carrier ${stamp}`,
+    countryCode: 'CN',
+  }),
+});
+const shippingLine = shippingLineResponse.data;
+assert(shippingLine?.id, '验收船公司创建失败');
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
     customerId: customer.id,
+    shippingLineId: shippingLine.id,
+    seaMasterBill: { masterNo: `ACCMB${stamp}` },
+    seaDocument: { documentStructure: 2 }, // SEA_DOCUMENT_STRUCTURE_DIRECT 直单
     businessType: 1,
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
     shipmentMode: 1,
-    loadingTerms: 'CFS-CFS',
     goodsDescription: '应付费用自动验收货物',
     totalPackages: 1,
     totalGrossWeightKg: 100,
@@ -293,15 +309,57 @@ assert(
   '应付费用台账未正确区分委托单位与供应商结算单位',
 );
 
+// 账单必须固化结算账户快照：为供应商创建本位币应付结算账户（币种与费用本位币一致）。
+const accountResponse = await request(`/api/v1/partners/${supplier.id}/accounts`, {
+  method: 'POST',
+  body: JSON.stringify({
+    partnerId: supplier.id,
+    account: {
+      name: `验收应付账户${stamp}`,
+      accountHolder: supplierName,
+      currency: options.baseCurrency,
+      bankName: '验收银行',
+      accountNo: `ACP${stamp}`,
+      usage: 2, // PARTNER_ACCOUNT_USAGE_PAYABLE
+      isDefaultPayable: true,
+      enabled: true,
+    },
+  }),
+});
+const settlementAccount = accountResponse.data;
+assert(settlementAccount?.id, '验收应付结算账户创建失败');
+
+const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
+  method: 'POST',
+  body: JSON.stringify({
+    feeIds: [confirmedFee.id],
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+  }),
+});
+assert(initialPreview.data?.length === 1, '单笔应付费用应只生成一个预览分组');
+assert(
+  initialPreview.data[0].configurationComplete !== true,
+  '初次预览未配置日期与账户时应为待补齐状态',
+);
+
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
   body: JSON.stringify({
     feeIds: [confirmedFee.id],
-    groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+    groupConfigs: [
+      {
+        groupKey: initialPreview.data[0].groupKey,
+        billDate: today,
+        settlementAccountId: settlementAccount.id,
+      },
+    ],
   }),
 });
-assert(preview.previewToken?.length === 64, '应付账单预览缺少有效快照令牌');
-assert(preview.data?.length === 1, '单笔应付费用应只生成一个预览分组');
+assert(preview.previewToken, '应付账单配置后预览未签发创建令牌');
+assert(preview.data?.length === 1, '配置后预览分组数不为 1');
 const previewGroup = preview.data[0];
 assert(previewGroup.direction === 'PAYABLE', '应付账单预览方向错误');
 assert(previewGroup.settlementPartyId === supplier.id, '应付账单预览结算单位错误');
@@ -310,7 +368,8 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
   body: JSON.stringify({
     feeIds: [confirmedFee.id],
-    groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
     previewToken: preview.previewToken,
     idempotencyKey: `acc-ap-batch-${stamp}`,
     groups: [
@@ -319,6 +378,7 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
         statementTitle: supplierName,
         billDate: today,
         paymentTermsDays: 30,
+        settlementAccountId: settlementAccount.id,
         note: '应付账单端到端自动验收',
       },
     ],
@@ -348,6 +408,7 @@ assert(confirmedBill.direction === 'PAYABLE', '确认账单时应付方向丢失
 const wrongCashflowResponse = await request('/api/v1/finance/cashflows', {
   method: 'POST',
   body: JSON.stringify({
+    organizationId: me.data.currentOrganization.id,
     direction: 'RECEIVABLE',
     settlementPartyId: supplier.id,
     currency: confirmedBill.currency,
@@ -406,6 +467,7 @@ await request(`/api/v1/finance/cashflows/${confirmedWrongCashflow.id}/cancel`, {
 const cashflowResponse = await request('/api/v1/finance/cashflows', {
   method: 'POST',
   body: JSON.stringify({
+    organizationId: me.data.currentOrganization.id,
     direction: 'PAYABLE',
     settlementPartyId: supplier.id,
     currency: confirmedBill.currency,

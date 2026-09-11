@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -47,6 +48,8 @@ type FeeLedgerFilter struct {
 
 type FeeLedgerItem struct {
 	Fee               *OrderFee
+	OrganizationID    uuid.UUID
+	OrganizationName  string
 	OrderNo           string
 	Business          string
 	CustomerID        uuid.UUID
@@ -56,17 +59,20 @@ type FeeLedgerItem struct {
 	FinanceLocked     bool
 }
 
-func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount decimal.Decimal) FeeLedgerFinancialProgress {
+// ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。
+// settledAmount 是「有效结清金额」：有效核销分摊（allocation active 且核销单 ACTIVE）
+// 加有效对冲分摊（allocation active 且对冲单 CONFIRMED）；对外状态枚举保持既有契约不变。
+func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, settledAmount decimal.Decimal) FeeLedgerFinancialProgress {
 	if !hasBill {
 		return FeeLedgerUnbilled
 	}
-	if verifiedAmount.LessThanOrEqual(decimal.Zero) {
+	if settledAmount.LessThanOrEqual(decimal.Zero) {
 		if invoiced {
 			return FeeLedgerInvoicedUnverified
 		}
 		return FeeLedgerUnverifiedUninvoiced
 	}
-	if verifiedAmount.LessThan(billAmount) {
+	if settledAmount.LessThan(billAmount) {
 		if invoiced {
 			return FeeLedgerInvoicedPartiallyVerified
 		}
@@ -79,11 +85,13 @@ func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verif
 }
 
 type FeeLedgerSummary struct {
-	ActiveCount          int64
-	ReceivableBaseAmount decimal.Decimal
-	PayableBaseAmount    decimal.Decimal
-	ProfitBaseAmount     decimal.Decimal
-	BaseCurrency         string
+	ActiveCount           int64
+	AmountsByBaseCurrency []FeeLedgerBaseCurrencyAmount
+}
+
+type FeeLedgerBaseCurrencyAmount struct {
+	BaseCurrency                                              string
+	ReceivableBaseAmount, PayableBaseAmount, ProfitBaseAmount decimal.Decimal
 }
 
 type FeeLedgerResult struct {
@@ -92,25 +100,102 @@ type FeeLedgerResult struct {
 	Summary FeeLedgerSummary
 }
 
+type FeeLedgerOrderDetail struct {
+	OrderID, OrderNo, Business, CustomerName string
+	OrganizationID                           uuid.UUID
+	OrganizationName                         string
+	Items                                    []*FeeLedgerItem
+	AmountsByBaseCurrency                    []FeeLedgerBaseCurrencyAmount
+}
+
 type SettlementRepo interface {
-	ListFeeLedger(ctx context.Context, organizationID uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error)
+	ListFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error)
+	GetFeeLedgerOrderDetail(context.Context, []uuid.UUID, uuid.UUID) (*FeeLedgerOrderDetail, error)
+	ResolveFeeLedgerOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error)
+	ListFinanceOrganizations(context.Context, []uuid.UUID, string) ([]*FinanceOrganizationOption, error)
+	ListFinanceSettlementParties(context.Context, uuid.UUID, string, int, int) ([]*FinanceSettlementPartyOption, int64, error)
+}
+
+func (uc *SettlementUsecase) ResolveFeeLedgerOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error) {
+	if !validFinanceOrganizationIDs(organizationIDs) || len(feeIDs) == 0 {
+		return uuid.Nil, ErrFinanceLedgerInvalidArgument
+	}
+	return uc.repo.ResolveFeeLedgerOrganization(ctx, organizationIDs, feeIDs)
+}
+
+func (uc *SettlementUsecase) GetFeeLedgerOrderDetail(ctx context.Context, organizationIDs []uuid.UUID, orderID uuid.UUID) (*FeeLedgerOrderDetail, error) {
+	if !validFinanceOrganizationIDs(organizationIDs) || orderID == uuid.Nil {
+		return nil, ErrFinanceLedgerInvalidArgument
+	}
+	return uc.repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, orderID)
+}
+
+type FinanceOrganizationOption struct {
+	ID                       uuid.UUID
+	Code, Name, BaseCurrency string
+}
+
+type FinanceSettlementPartyOption struct {
+	ID, Code, Name string
+}
+
+func validFinanceOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+		if _, exists := seen[organizationID]; exists {
+			return false
+		}
+		seen[organizationID] = struct{}{}
+	}
+	return true
 }
 
 type SettlementUsecase struct {
 	repo SettlementRepo
 }
 
+func (uc *SettlementUsecase) ListFinanceOrganizations(ctx context.Context, organizationIDs []uuid.UUID, keyword string) ([]*FinanceOrganizationOption, error) {
+	if len(organizationIDs) == 0 || utf8.RuneCountInString(strings.TrimSpace(keyword)) > 100 {
+		return nil, ErrFinanceLedgerInvalidArgument
+	}
+	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return nil, ErrFinanceLedgerInvalidArgument
+		}
+		if _, exists := seen[organizationID]; exists {
+			return nil, ErrFinanceLedgerInvalidArgument
+		}
+		seen[organizationID] = struct{}{}
+	}
+	return uc.repo.ListFinanceOrganizations(ctx, organizationIDs, strings.TrimSpace(keyword))
+}
+
+func (uc *SettlementUsecase) ListFinanceSettlementParties(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*FinanceSettlementPartyOption, int64, error) {
+	keyword = strings.TrimSpace(keyword)
+	if organizationID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
+		return nil, 0, ErrFinanceLedgerInvalidArgument
+	}
+	return uc.repo.ListFinanceSettlementParties(ctx, organizationID, keyword, page, pageSize)
+}
+
 func NewSettlementUsecase(repo SettlementRepo) *SettlementUsecase {
 	return &SettlementUsecase{repo: repo}
 }
 
-func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error) {
+func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.BusinessType = strings.ToUpper(strings.TrimSpace(filter.BusinessType))
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
 	filter.BillNo = strings.TrimSpace(filter.BillNo)
 	filter.FinancialProgress = FeeLedgerFinancialProgress(strings.ToUpper(strings.TrimSpace(string(filter.FinancialProgress))))
-	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 || len([]rune(filter.BillNo)) > 64 {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 || len([]rune(filter.BillNo)) > 64 {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.CustomerID != nil && *filter.CustomerID == uuid.Nil {
@@ -142,7 +227,7 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 	if filter.ExpenseDateFrom != "" && filter.ExpenseDateTo != "" && filter.ExpenseDateFrom > filter.ExpenseDateTo {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
-	return uc.repo.ListFeeLedger(ctx, organizationID, filter)
+	return uc.repo.ListFeeLedger(ctx, organizationIDs, filter)
 }
 
 // IsFeeLedgerFinancialProgress 判断费用台账的账单、开票与核销综合进度是否合法。

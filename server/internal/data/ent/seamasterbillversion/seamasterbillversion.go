@@ -26,38 +26,14 @@ const (
 	FieldVersionNo = "version_no"
 	// FieldSourceEntityVersion holds the string denoting the source_entity_version field in the database.
 	FieldSourceEntityVersion = "source_entity_version"
-	// FieldIssuerPartnerID holds the string denoting the issuer_partner_id field in the database.
-	FieldIssuerPartnerID = "issuer_partner_id"
-	// FieldTransportExecutionID holds the string denoting the transport_execution_id field in the database.
-	FieldTransportExecutionID = "transport_execution_id"
+	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
+	FieldShippingLineID = "shipping_line_id"
 	// FieldMasterNo holds the string denoting the master_no field in the database.
 	FieldMasterNo = "master_no"
 	// FieldNormalizedMasterNo holds the string denoting the normalized_master_no field in the database.
 	FieldNormalizedMasterNo = "normalized_master_no"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldVesselVoyageSnapshot holds the string denoting the vessel_voyage_snapshot field in the database.
-	FieldVesselVoyageSnapshot = "vessel_voyage_snapshot"
-	// FieldEtdSnapshot holds the string denoting the etd_snapshot field in the database.
-	FieldEtdSnapshot = "etd_snapshot"
-	// FieldEtaSnapshot holds the string denoting the eta_snapshot field in the database.
-	FieldEtaSnapshot = "eta_snapshot"
-	// FieldCarrierID holds the string denoting the carrier_id field in the database.
-	FieldCarrierID = "carrier_id"
-	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
-	FieldOriginLocationID = "origin_location_id"
-	// FieldDischargeLocationID holds the string denoting the discharge_location_id field in the database.
-	FieldDischargeLocationID = "discharge_location_id"
-	// FieldTransitLocationID holds the string denoting the transit_location_id field in the database.
-	FieldTransitLocationID = "transit_location_id"
-	// FieldVesselName holds the string denoting the vessel_name field in the database.
-	FieldVesselName = "vessel_name"
-	// FieldVoyageNo holds the string denoting the voyage_no field in the database.
-	FieldVoyageNo = "voyage_no"
-	// FieldEtd holds the string denoting the etd field in the database.
-	FieldEtd = "etd"
-	// FieldEta holds the string denoting the eta field in the database.
-	FieldEta = "eta"
 	// FieldContentHash holds the string denoting the content_hash field in the database.
 	FieldContentHash = "content_hash"
 	// FieldSource holds the string denoting the source field in the database.
@@ -70,6 +46,14 @@ const (
 	FieldIdempotencyKey = "idempotency_key"
 	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
 	FieldRequestFingerprint = "request_fingerprint"
+	// FieldConfirmedByParty holds the string denoting the confirmed_by_party field in the database.
+	FieldConfirmedByParty = "confirmed_by_party"
+	// FieldConfirmedAt holds the string denoting the confirmed_at field in the database.
+	FieldConfirmedAt = "confirmed_at"
+	// FieldConfirmationNote holds the string denoting the confirmation_note field in the database.
+	FieldConfirmationNote = "confirmation_note"
+	// FieldConfirmationAttachmentID holds the string denoting the confirmation_attachment_id field in the database.
+	FieldConfirmationAttachmentID = "confirmation_attachment_id"
 	// FieldShipperText holds the string denoting the shipper_text field in the database.
 	FieldShipperText = "shipper_text"
 	// FieldConsigneeText holds the string denoting the consignee_text field in the database.
@@ -104,12 +88,12 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeMasterBill holds the string denoting the master_bill edge name in mutations.
 	EdgeMasterBill = "master_bill"
-	// EdgeIssuerPartner holds the string denoting the issuer_partner edge name in mutations.
-	EdgeIssuerPartner = "issuer_partner"
-	// EdgeTransportExecution holds the string denoting the transport_execution edge name in mutations.
-	EdgeTransportExecution = "transport_execution"
+	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
+	EdgeShippingLine = "shipping_line"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
+	// EdgeConfirmationAttachment holds the string denoting the confirmation_attachment edge name in mutations.
+	EdgeConfirmationAttachment = "confirmation_attachment"
 	// EdgeLockRecords holds the string denoting the lock_records edge name in mutations.
 	EdgeLockRecords = "lock_records"
 	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
@@ -132,20 +116,13 @@ const (
 	MasterBillInverseTable = "sea_master_bills"
 	// MasterBillColumn is the table column denoting the master_bill relation/edge.
 	MasterBillColumn = "master_bill_id"
-	// IssuerPartnerTable is the table that holds the issuer_partner relation/edge.
-	IssuerPartnerTable = "sea_master_bill_versions"
-	// IssuerPartnerInverseTable is the table name for the Partner entity.
-	// It exists in this package in order to avoid circular dependency with the "partner" package.
-	IssuerPartnerInverseTable = "partners"
-	// IssuerPartnerColumn is the table column denoting the issuer_partner relation/edge.
-	IssuerPartnerColumn = "issuer_partner_id"
-	// TransportExecutionTable is the table that holds the transport_execution relation/edge.
-	TransportExecutionTable = "sea_master_bill_versions"
-	// TransportExecutionInverseTable is the table name for the SeaTransportExecution entity.
-	// It exists in this package in order to avoid circular dependency with the "seatransportexecution" package.
-	TransportExecutionInverseTable = "sea_transport_executions"
-	// TransportExecutionColumn is the table column denoting the transport_execution relation/edge.
-	TransportExecutionColumn = "transport_execution_id"
+	// ShippingLineTable is the table that holds the shipping_line relation/edge.
+	ShippingLineTable = "sea_master_bill_versions"
+	// ShippingLineInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLineInverseTable = "shipping_lines"
+	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
+	ShippingLineColumn = "shipping_line_id"
 	// CreatorTable is the table that holds the creator relation/edge.
 	CreatorTable = "sea_master_bill_versions"
 	// CreatorInverseTable is the table name for the User entity.
@@ -153,6 +130,13 @@ const (
 	CreatorInverseTable = "users"
 	// CreatorColumn is the table column denoting the creator relation/edge.
 	CreatorColumn = "created_by"
+	// ConfirmationAttachmentTable is the table that holds the confirmation_attachment relation/edge.
+	ConfirmationAttachmentTable = "sea_master_bill_versions"
+	// ConfirmationAttachmentInverseTable is the table name for the OrderAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachment" package.
+	ConfirmationAttachmentInverseTable = "order_attachments"
+	// ConfirmationAttachmentColumn is the table column denoting the confirmation_attachment relation/edge.
+	ConfirmationAttachmentColumn = "confirmation_attachment_id"
 	// LockRecordsTable is the table that holds the lock_records relation/edge.
 	LockRecordsTable = "order_lock_records"
 	// LockRecordsInverseTable is the table name for the OrderLockRecord entity.
@@ -184,28 +168,20 @@ var Columns = []string{
 	FieldMasterBillID,
 	FieldVersionNo,
 	FieldSourceEntityVersion,
-	FieldIssuerPartnerID,
-	FieldTransportExecutionID,
+	FieldShippingLineID,
 	FieldMasterNo,
 	FieldNormalizedMasterNo,
 	FieldStatus,
-	FieldVesselVoyageSnapshot,
-	FieldEtdSnapshot,
-	FieldEtaSnapshot,
-	FieldCarrierID,
-	FieldOriginLocationID,
-	FieldDischargeLocationID,
-	FieldTransitLocationID,
-	FieldVesselName,
-	FieldVoyageNo,
-	FieldEtd,
-	FieldEta,
 	FieldContentHash,
 	FieldSource,
 	FieldReason,
 	FieldCreatedBy,
 	FieldIdempotencyKey,
 	FieldRequestFingerprint,
+	FieldConfirmedByParty,
+	FieldConfirmedAt,
+	FieldConfirmationNote,
+	FieldConfirmationAttachmentID,
 	FieldShipperText,
 	FieldConsigneeText,
 	FieldNotifyPartyText,
@@ -240,20 +216,6 @@ var (
 	MasterNoValidator func(string) error
 	// NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
 	NormalizedMasterNoValidator func(string) error
-	// VesselVoyageSnapshotValidator is a validator for the "vessel_voyage_snapshot" field. It is called by the builders before save.
-	VesselVoyageSnapshotValidator func(string) error
-	// EtdSnapshotValidator is a validator for the "etd_snapshot" field. It is called by the builders before save.
-	EtdSnapshotValidator func(string) error
-	// EtaSnapshotValidator is a validator for the "eta_snapshot" field. It is called by the builders before save.
-	EtaSnapshotValidator func(string) error
-	// DefaultVesselName holds the default value on creation for the "vessel_name" field.
-	DefaultVesselName string
-	// VesselNameValidator is a validator for the "vessel_name" field. It is called by the builders before save.
-	VesselNameValidator func(string) error
-	// DefaultVoyageNo holds the default value on creation for the "voyage_no" field.
-	DefaultVoyageNo string
-	// VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
-	VoyageNoValidator func(string) error
 	// ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
 	ContentHashValidator func(string) error
 	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
@@ -262,6 +224,10 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	RequestFingerprintValidator func(string) error
+	// ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	ConfirmedByPartyValidator func(string) error
+	// ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	ConfirmationNoteValidator func(string) error
 	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	PackageCountValidator func(int) error
 	// PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
@@ -314,7 +280,6 @@ type Source string
 const (
 	SourceORDER_LOCK Source = "ORDER_LOCK"
 	SourceAMENDMENT  Source = "AMENDMENT"
-	SourceSWITCH     Source = "SWITCH"
 	SourceVOID       Source = "VOID"
 )
 
@@ -325,7 +290,7 @@ func (s Source) String() string {
 // SourceValidator is a validator for the "source" field enum values. It is called by the builders before save.
 func SourceValidator(s Source) error {
 	switch s {
-	case SourceORDER_LOCK, SourceAMENDMENT, SourceSWITCH, SourceVOID:
+	case SourceORDER_LOCK, SourceAMENDMENT, SourceVOID:
 		return nil
 	default:
 		return fmt.Errorf("seamasterbillversion: invalid enum value for source field: %q", s)
@@ -365,14 +330,9 @@ func BySourceEntityVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceEntityVersion, opts...).ToFunc()
 }
 
-// ByIssuerPartnerID orders the results by the issuer_partner_id field.
-func ByIssuerPartnerID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIssuerPartnerID, opts...).ToFunc()
-}
-
-// ByTransportExecutionID orders the results by the transport_execution_id field.
-func ByTransportExecutionID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTransportExecutionID, opts...).ToFunc()
+// ByShippingLineID orders the results by the shipping_line_id field.
+func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
 // ByMasterNo orders the results by the master_no field.
@@ -388,61 +348,6 @@ func ByNormalizedMasterNo(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByVesselVoyageSnapshot orders the results by the vessel_voyage_snapshot field.
-func ByVesselVoyageSnapshot(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldVesselVoyageSnapshot, opts...).ToFunc()
-}
-
-// ByEtdSnapshot orders the results by the etd_snapshot field.
-func ByEtdSnapshot(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEtdSnapshot, opts...).ToFunc()
-}
-
-// ByEtaSnapshot orders the results by the eta_snapshot field.
-func ByEtaSnapshot(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEtaSnapshot, opts...).ToFunc()
-}
-
-// ByCarrierID orders the results by the carrier_id field.
-func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
-}
-
-// ByOriginLocationID orders the results by the origin_location_id field.
-func ByOriginLocationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOriginLocationID, opts...).ToFunc()
-}
-
-// ByDischargeLocationID orders the results by the discharge_location_id field.
-func ByDischargeLocationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDischargeLocationID, opts...).ToFunc()
-}
-
-// ByTransitLocationID orders the results by the transit_location_id field.
-func ByTransitLocationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTransitLocationID, opts...).ToFunc()
-}
-
-// ByVesselName orders the results by the vessel_name field.
-func ByVesselName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldVesselName, opts...).ToFunc()
-}
-
-// ByVoyageNo orders the results by the voyage_no field.
-func ByVoyageNo(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldVoyageNo, opts...).ToFunc()
-}
-
-// ByEtd orders the results by the etd field.
-func ByEtd(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEtd, opts...).ToFunc()
-}
-
-// ByEta orders the results by the eta field.
-func ByEta(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEta, opts...).ToFunc()
 }
 
 // ByContentHash orders the results by the content_hash field.
@@ -473,6 +378,26 @@ func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
 // ByRequestFingerprint orders the results by the request_fingerprint field.
 func ByRequestFingerprint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequestFingerprint, opts...).ToFunc()
+}
+
+// ByConfirmedByParty orders the results by the confirmed_by_party field.
+func ByConfirmedByParty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedByParty, opts...).ToFunc()
+}
+
+// ByConfirmedAt orders the results by the confirmed_at field.
+func ByConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedAt, opts...).ToFunc()
+}
+
+// ByConfirmationNote orders the results by the confirmation_note field.
+func ByConfirmationNote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationNote, opts...).ToFunc()
+}
+
+// ByConfirmationAttachmentID orders the results by the confirmation_attachment_id field.
+func ByConfirmationAttachmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationAttachmentID, opts...).ToFunc()
 }
 
 // ByShipperText orders the results by the shipper_text field.
@@ -564,17 +489,10 @@ func ByMasterBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByIssuerPartnerField orders the results by issuer_partner field.
-func ByIssuerPartnerField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByShippingLineField orders the results by shipping_line field.
+func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newIssuerPartnerStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByTransportExecutionField orders the results by transport_execution field.
-func ByTransportExecutionField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTransportExecutionStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -582,6 +500,13 @@ func ByTransportExecutionField(field string, opts ...sql.OrderTermOption) OrderO
 func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByConfirmationAttachmentField orders the results by confirmation_attachment field.
+func ByConfirmationAttachmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmationAttachmentStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -640,18 +565,11 @@ func newMasterBillStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, MasterBillTable, MasterBillColumn),
 	)
 }
-func newIssuerPartnerStep() *sqlgraph.Step {
+func newShippingLineStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(IssuerPartnerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, IssuerPartnerTable, IssuerPartnerColumn),
-	)
-}
-func newTransportExecutionStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TransportExecutionInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, TransportExecutionTable, TransportExecutionColumn),
+		sqlgraph.To(ShippingLineInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 	)
 }
 func newCreatorStep() *sqlgraph.Step {
@@ -659,6 +577,13 @@ func newCreatorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CreatorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
+	)
+}
+func newConfirmationAttachmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmationAttachmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
 	)
 }
 func newLockRecordsStep() *sqlgraph.Step {

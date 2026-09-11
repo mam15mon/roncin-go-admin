@@ -43,8 +43,8 @@ const (
 	EdgeMemberships = "memberships"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
-	// EdgeRoleOrderOrganizationAccesses holds the string denoting the role_order_organization_accesses edge name in mutations.
-	EdgeRoleOrderOrganizationAccesses = "role_order_organization_accesses"
+	// EdgeRoleOrganizationAccesses holds the string denoting the role_organization_accesses edge name in mutations.
+	EdgeRoleOrganizationAccesses = "role_organization_accesses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// EdgePartners holds the string denoting the partners edge name in mutations.
@@ -85,8 +85,6 @@ const (
 	EdgeOrderCargoItems = "order_cargo_items"
 	// EdgeOrderContainers holds the string denoting the order_containers edge name in mutations.
 	EdgeOrderContainers = "order_containers"
-	// EdgeSeaCargoAllocations holds the string denoting the sea_cargo_allocations edge name in mutations.
-	EdgeSeaCargoAllocations = "sea_cargo_allocations"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -103,6 +101,8 @@ const (
 	EdgeFinanceCashflows = "finance_cashflows"
 	// EdgeFinanceVerifications holds the string denoting the finance_verifications edge name in mutations.
 	EdgeFinanceVerifications = "finance_verifications"
+	// EdgeFinanceNettings holds the string denoting the finance_nettings edge name in mutations.
+	EdgeFinanceNettings = "finance_nettings"
 	// EdgeFinanceCommissions holds the string denoting the finance_commissions edge name in mutations.
 	EdgeFinanceCommissions = "finance_commissions"
 	// EdgeFinanceCommissionLines holds the string denoting the finance_commission_lines edge name in mutations.
@@ -153,8 +153,14 @@ const (
 	EdgeDingtalkApprovalDispatches = "dingtalk_approval_dispatches"
 	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
 	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
-	// EdgeSeaHouseBillSwitchEvents holds the string denoting the sea_house_bill_switch_events edge name in mutations.
-	EdgeSeaHouseBillSwitchEvents = "sea_house_bill_switch_events"
+	// EdgeSeaTransportExecutionVersions holds the string denoting the sea_transport_execution_versions edge name in mutations.
+	EdgeSeaTransportExecutionVersions = "sea_transport_execution_versions"
+	// EdgeSeaDocumentModeChangeEvents holds the string denoting the sea_document_mode_change_events edge name in mutations.
+	EdgeSeaDocumentModeChangeEvents = "sea_document_mode_change_events"
+	// EdgeSeaSharedContainers holds the string denoting the sea_shared_containers edge name in mutations.
+	EdgeSeaSharedContainers = "sea_shared_containers"
+	// EdgeSeaSharedContainerAllocations holds the string denoting the sea_shared_container_allocations edge name in mutations.
+	EdgeSeaSharedContainerAllocations = "sea_shared_container_allocations"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -179,13 +185,13 @@ const (
 	RolesInverseTable = "roles"
 	// RolesColumn is the table column denoting the roles relation/edge.
 	RolesColumn = "organization_id"
-	// RoleOrderOrganizationAccessesTable is the table that holds the role_order_organization_accesses relation/edge.
-	RoleOrderOrganizationAccessesTable = "role_order_organization_accesses"
-	// RoleOrderOrganizationAccessesInverseTable is the table name for the RoleOrderOrganizationAccess entity.
-	// It exists in this package in order to avoid circular dependency with the "roleorderorganizationaccess" package.
-	RoleOrderOrganizationAccessesInverseTable = "role_order_organization_accesses"
-	// RoleOrderOrganizationAccessesColumn is the table column denoting the role_order_organization_accesses relation/edge.
-	RoleOrderOrganizationAccessesColumn = "organization_id"
+	// RoleOrganizationAccessesTable is the table that holds the role_organization_accesses relation/edge.
+	RoleOrganizationAccessesTable = "role_organization_accesses"
+	// RoleOrganizationAccessesInverseTable is the table name for the RoleOrganizationAccess entity.
+	// It exists in this package in order to avoid circular dependency with the "roleorganizationaccess" package.
+	RoleOrganizationAccessesInverseTable = "role_organization_accesses"
+	// RoleOrganizationAccessesColumn is the table column denoting the role_organization_accesses relation/edge.
+	RoleOrganizationAccessesColumn = "organization_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -326,13 +332,6 @@ const (
 	OrderContainersInverseTable = "order_containers"
 	// OrderContainersColumn is the table column denoting the order_containers relation/edge.
 	OrderContainersColumn = "organization_id"
-	// SeaCargoAllocationsTable is the table that holds the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsInverseTable is the table name for the SeaCargoAllocation entity.
-	// It exists in this package in order to avoid circular dependency with the "seacargoallocation" package.
-	SeaCargoAllocationsInverseTable = "sea_cargo_allocations"
-	// SeaCargoAllocationsColumn is the table column denoting the sea_cargo_allocations relation/edge.
-	SeaCargoAllocationsColumn = "organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -389,6 +388,13 @@ const (
 	FinanceVerificationsInverseTable = "finance_verifications"
 	// FinanceVerificationsColumn is the table column denoting the finance_verifications relation/edge.
 	FinanceVerificationsColumn = "organization_id"
+	// FinanceNettingsTable is the table that holds the finance_nettings relation/edge.
+	FinanceNettingsTable = "finance_nettings"
+	// FinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	FinanceNettingsInverseTable = "finance_nettings"
+	// FinanceNettingsColumn is the table column denoting the finance_nettings relation/edge.
+	FinanceNettingsColumn = "organization_id"
 	// FinanceCommissionsTable is the table that holds the finance_commissions relation/edge.
 	FinanceCommissionsTable = "finance_commissions"
 	// FinanceCommissionsInverseTable is the table name for the FinanceCommission entity.
@@ -564,13 +570,34 @@ const (
 	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
 	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
 	SeaDocumentVoidEventsColumn = "organization_id"
-	// SeaHouseBillSwitchEventsTable is the table that holds the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	SeaHouseBillSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// SeaHouseBillSwitchEventsColumn is the table column denoting the sea_house_bill_switch_events relation/edge.
-	SeaHouseBillSwitchEventsColumn = "organization_id"
+	// SeaTransportExecutionVersionsTable is the table that holds the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	SeaTransportExecutionVersionsInverseTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsColumn is the table column denoting the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsColumn = "organization_id"
+	// SeaDocumentModeChangeEventsTable is the table that holds the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	SeaDocumentModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsColumn is the table column denoting the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsColumn = "organization_id"
+	// SeaSharedContainersTable is the table that holds the sea_shared_containers relation/edge.
+	SeaSharedContainersTable = "sea_shared_containers"
+	// SeaSharedContainersInverseTable is the table name for the SeaSharedContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainer" package.
+	SeaSharedContainersInverseTable = "sea_shared_containers"
+	// SeaSharedContainersColumn is the table column denoting the sea_shared_containers relation/edge.
+	SeaSharedContainersColumn = "organization_id"
+	// SeaSharedContainerAllocationsTable is the table that holds the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsInverseTable is the table name for the SeaSharedContainerAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainerallocation" package.
+	SeaSharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
+	// SeaSharedContainerAllocationsColumn is the table column denoting the sea_shared_container_allocations relation/edge.
+	SeaSharedContainerAllocationsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -751,17 +778,17 @@ func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByRoleOrderOrganizationAccessesCount orders the results by role_order_organization_accesses count.
-func ByRoleOrderOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByRoleOrganizationAccessesCount orders the results by role_organization_accesses count.
+func ByRoleOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRoleOrderOrganizationAccessesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newRoleOrganizationAccessesStep(), opts...)
 	}
 }
 
-// ByRoleOrderOrganizationAccesses orders the results by role_order_organization_accesses terms.
-func ByRoleOrderOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByRoleOrganizationAccesses orders the results by role_organization_accesses terms.
+func ByRoleOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRoleOrderOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newRoleOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1045,20 +1072,6 @@ func ByOrderContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// BySeaCargoAllocationsCount orders the results by sea_cargo_allocations count.
-func BySeaCargoAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaCargoAllocationsStep(), opts...)
-	}
-}
-
-// BySeaCargoAllocations orders the results by sea_cargo_allocations terms.
-func BySeaCargoAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaCargoAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByOrderPersonnelCount orders the results by order_personnel count.
 func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1168,6 +1181,20 @@ func ByFinanceVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
 func ByFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newFinanceVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinanceNettingsCount orders the results by finance_nettings count.
+func ByFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByFinanceNettings orders the results by finance_nettings terms.
+func ByFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1521,17 +1548,59 @@ func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
-// BySeaHouseBillSwitchEventsCount orders the results by sea_house_bill_switch_events count.
-func BySeaHouseBillSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySeaTransportExecutionVersionsCount orders the results by sea_transport_execution_versions count.
+func BySeaTransportExecutionVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionVersionsStep(), opts...)
 	}
 }
 
-// BySeaHouseBillSwitchEvents orders the results by sea_house_bill_switch_events terms.
-func BySeaHouseBillSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySeaTransportExecutionVersions orders the results by sea_transport_execution_versions terms.
+func BySeaTransportExecutionVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentModeChangeEventsCount orders the results by sea_document_mode_change_events count.
+func BySeaDocumentModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentModeChangeEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentModeChangeEvents orders the results by sea_document_mode_change_events terms.
+func BySeaDocumentModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaSharedContainersCount orders the results by sea_shared_containers count.
+func BySeaSharedContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaSharedContainersStep(), opts...)
+	}
+}
+
+// BySeaSharedContainers orders the results by sea_shared_containers terms.
+func BySeaSharedContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaSharedContainerAllocationsCount orders the results by sea_shared_container_allocations count.
+func BySeaSharedContainerAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaSharedContainerAllocationsStep(), opts...)
+	}
+}
+
+// BySeaSharedContainerAllocations orders the results by sea_shared_container_allocations terms.
+func BySeaSharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newParentStep() *sqlgraph.Step {
@@ -1562,11 +1631,11 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
 	)
 }
-func newRoleOrderOrganizationAccessesStep() *sqlgraph.Step {
+func newRoleOrganizationAccessesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RoleOrderOrganizationAccessesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RoleOrderOrganizationAccessesTable, RoleOrderOrganizationAccessesColumn),
+		sqlgraph.To(RoleOrganizationAccessesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RoleOrganizationAccessesTable, RoleOrganizationAccessesColumn),
 	)
 }
 func newSessionsStep() *sqlgraph.Step {
@@ -1709,13 +1778,6 @@ func newOrderContainersStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderContainersTable, OrderContainersColumn),
 	)
 }
-func newSeaCargoAllocationsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaCargoAllocationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
-	)
-}
 func newOrderPersonnelStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1770,6 +1832,13 @@ func newFinanceVerificationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceVerificationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceVerificationsTable, FinanceVerificationsColumn),
+	)
+}
+func newFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceNettingsTable, FinanceNettingsColumn),
 	)
 }
 func newFinanceCommissionsStep() *sqlgraph.Step {
@@ -1947,10 +2016,31 @@ func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
 	)
 }
-func newSeaHouseBillSwitchEventsStep() *sqlgraph.Step {
+func newSeaTransportExecutionVersionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaHouseBillSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
+		sqlgraph.To(SeaTransportExecutionVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+	)
+}
+func newSeaDocumentModeChangeEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
+	)
+}
+func newSeaSharedContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaSharedContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainersTable, SeaSharedContainersColumn),
+	)
+}
+func newSeaSharedContainerAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaSharedContainerAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
 	)
 }

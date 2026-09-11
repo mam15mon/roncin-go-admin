@@ -11,10 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaTransportExecutionCreate is the builder for creating a SeaTransportExecution entity.
@@ -58,17 +61,9 @@ func (_c *SeaTransportExecutionCreate) SetOrganizationID(v uuid.UUID) *SeaTransp
 	return _c
 }
 
-// SetCarrierID sets the "carrier_id" field.
-func (_c *SeaTransportExecutionCreate) SetCarrierID(v uuid.UUID) *SeaTransportExecutionCreate {
-	_c.mutation.SetCarrierID(v)
-	return _c
-}
-
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_c *SeaTransportExecutionCreate) SetNillableCarrierID(v *uuid.UUID) *SeaTransportExecutionCreate {
-	if v != nil {
-		_c.SetCarrierID(*v)
-	}
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_c *SeaTransportExecutionCreate) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.SetShippingLineID(v)
 	return _c
 }
 
@@ -170,6 +165,20 @@ func (_c *SeaTransportExecutionCreate) SetNillableEta(v *time.Time) *SeaTranspor
 	return _c
 }
 
+// SetCurrentVersionID sets the "current_version_id" field.
+func (_c *SeaTransportExecutionCreate) SetCurrentVersionID(v uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.SetCurrentVersionID(v)
+	return _c
+}
+
+// SetNillableCurrentVersionID sets the "current_version_id" field if the given value is not nil.
+func (_c *SeaTransportExecutionCreate) SetNillableCurrentVersionID(v *uuid.UUID) *SeaTransportExecutionCreate {
+	if v != nil {
+		_c.SetCurrentVersionID(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *SeaTransportExecutionCreate) SetVersion(v uint64) *SeaTransportExecutionCreate {
 	_c.mutation.SetVersion(v)
@@ -203,34 +212,74 @@ func (_c *SeaTransportExecutionCreate) SetOrganization(v *Organization) *SeaTran
 	return _c.SetOrganizationID(v.ID)
 }
 
-// AddMasterBillIDs adds the "master_bills" edge to the SeaMasterBill entity by IDs.
-func (_c *SeaTransportExecutionCreate) AddMasterBillIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
-	_c.mutation.AddMasterBillIDs(ids...)
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_c *SeaTransportExecutionCreate) SetShippingLine(v *ShippingLine) *SeaTransportExecutionCreate {
+	return _c.SetShippingLineID(v.ID)
+}
+
+// AddOrderLinkIDs adds the "order_links" edge to the SeaMasterBillOrderLink entity by IDs.
+func (_c *SeaTransportExecutionCreate) AddOrderLinkIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.AddOrderLinkIDs(ids...)
 	return _c
 }
 
-// AddMasterBills adds the "master_bills" edges to the SeaMasterBill entity.
-func (_c *SeaTransportExecutionCreate) AddMasterBills(v ...*SeaMasterBill) *SeaTransportExecutionCreate {
+// AddOrderLinks adds the "order_links" edges to the SeaMasterBillOrderLink entity.
+func (_c *SeaTransportExecutionCreate) AddOrderLinks(v ...*SeaMasterBillOrderLink) *SeaTransportExecutionCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddMasterBillIDs(ids...)
+	return _c.AddOrderLinkIDs(ids...)
 }
 
-// AddMasterBillVersionIDs adds the "master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (_c *SeaTransportExecutionCreate) AddMasterBillVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
-	_c.mutation.AddMasterBillVersionIDs(ids...)
+// SetCurrentVersion sets the "current_version" edge to the SeaTransportExecutionVersion entity.
+func (_c *SeaTransportExecutionCreate) SetCurrentVersion(v *SeaTransportExecutionVersion) *SeaTransportExecutionCreate {
+	return _c.SetCurrentVersionID(v.ID)
+}
+
+// AddVersionIDs adds the "versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *SeaTransportExecutionCreate) AddVersionIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.AddVersionIDs(ids...)
 	return _c
 }
 
-// AddMasterBillVersions adds the "master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_c *SeaTransportExecutionCreate) AddMasterBillVersions(v ...*SeaMasterBillVersion) *SeaTransportExecutionCreate {
+// AddVersions adds the "versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *SeaTransportExecutionCreate) AddVersions(v ...*SeaTransportExecutionVersion) *SeaTransportExecutionCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddMasterBillVersionIDs(ids...)
+	return _c.AddVersionIDs(ids...)
+}
+
+// AddSharedContainerIDs adds the "shared_containers" edge to the SeaSharedContainer entity by IDs.
+func (_c *SeaTransportExecutionCreate) AddSharedContainerIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.AddSharedContainerIDs(ids...)
+	return _c
+}
+
+// AddSharedContainers adds the "shared_containers" edges to the SeaSharedContainer entity.
+func (_c *SeaTransportExecutionCreate) AddSharedContainers(v ...*SeaSharedContainer) *SeaTransportExecutionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSharedContainerIDs(ids...)
+}
+
+// AddLockRecordIDs adds the "lock_records" edge to the OrderLockRecord entity by IDs.
+func (_c *SeaTransportExecutionCreate) AddLockRecordIDs(ids ...uuid.UUID) *SeaTransportExecutionCreate {
+	_c.mutation.AddLockRecordIDs(ids...)
+	return _c
+}
+
+// AddLockRecords adds the "lock_records" edges to the OrderLockRecord entity.
+func (_c *SeaTransportExecutionCreate) AddLockRecords(v ...*OrderLockRecord) *SeaTransportExecutionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLockRecordIDs(ids...)
 }
 
 // Mutation returns the SeaTransportExecutionMutation object of the builder.
@@ -305,6 +354,9 @@ func (_c *SeaTransportExecutionCreate) check() error {
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "SeaTransportExecution.organization_id"`)}
 	}
+	if _, ok := _c.mutation.ShippingLineID(); !ok {
+		return &ValidationError{Name: "shipping_line_id", err: errors.New(`ent: missing required field "SeaTransportExecution.shipping_line_id"`)}
+	}
 	if _, ok := _c.mutation.VesselName(); !ok {
 		return &ValidationError{Name: "vessel_name", err: errors.New(`ent: missing required field "SeaTransportExecution.vessel_name"`)}
 	}
@@ -326,6 +378,9 @@ func (_c *SeaTransportExecutionCreate) check() error {
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "SeaTransportExecution.organization"`)}
+	}
+	if len(_c.mutation.ShippingLineIDs()) == 0 {
+		return &ValidationError{Name: "shipping_line", err: errors.New(`ent: missing required edge "SeaTransportExecution.shipping_line"`)}
 	}
 	return nil
 }
@@ -369,10 +424,6 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(seatransportexecution.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := _c.mutation.CarrierID(); ok {
-		_spec.SetField(seatransportexecution.FieldCarrierID, field.TypeUUID, value)
-		_node.CarrierID = &value
 	}
 	if value, ok := _c.mutation.OriginLocationID(); ok {
 		_spec.SetField(seatransportexecution.FieldOriginLocationID, field.TypeUUID, value)
@@ -423,15 +474,32 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 		_node.OrganizationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.MasterBillsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ShippingLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatransportexecution.ShippingLineTable,
+			Columns: []string{seatransportexecution.ShippingLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ShippingLineID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderLinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seatransportexecution.MasterBillsTable,
-			Columns: []string{seatransportexecution.MasterBillsColumn},
+			Table:   seatransportexecution.OrderLinksTable,
+			Columns: []string{seatransportexecution.OrderLinksColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -439,15 +507,64 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.MasterBillVersionsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CurrentVersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   seatransportexecution.CurrentVersionTable,
+			Columns: []string{seatransportexecution.CurrentVersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CurrentVersionID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.VersionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seatransportexecution.MasterBillVersionsTable,
-			Columns: []string{seatransportexecution.MasterBillVersionsColumn},
+			Table:   seatransportexecution.VersionsTable,
+			Columns: []string{seatransportexecution.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SharedContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.SharedContainersTable,
+			Columns: []string{seatransportexecution.SharedContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seatransportexecution.LockRecordsTable,
+			Columns: []string{seatransportexecution.LockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

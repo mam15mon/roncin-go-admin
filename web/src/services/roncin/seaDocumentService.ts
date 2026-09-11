@@ -63,29 +63,7 @@ export async function seaDocumentServicePreviewSeaDocumentAmendment(
   );
 }
 
-/** CancelSeaOrderDirect 取消直单标记，回到未确定状态。 POST /api/v1/orders/${param0}/sea-documents/cancel-direct */
-export async function seaDocumentServiceCancelSeaOrderDirect(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceCancelSeaOrderDirectParams,
-  body: API.CancelSeaOrderDirectRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.CancelSeaOrderDirectResponse>(
-    `/api/v1/orders/${param0}/sea-documents/cancel-direct`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。 GET /api/v1/orders/${param0}/sea-documents/events */
+/** ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。 GET /api/v1/orders/${param0}/sea-documents/events */
 export async function seaDocumentServiceListSeaDocumentEvents(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SeaDocumentServiceListSeaDocumentEventsParams,
@@ -99,72 +77,6 @@ export async function seaDocumentServiceListSeaDocumentEvents(
       params: {
         ...queryParams,
       },
-      ...(options || {}),
-    }
-  );
-}
-
-/** ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。 POST /api/v1/orders/${param0}/sea-documents/house-bill-switches */
-export async function seaDocumentServiceExecuteSeaHouseBillSwitch(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceExecuteSeaHouseBillSwitchParams,
-  body: API.ExecuteSeaHouseBillSwitchRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.ExecuteSeaHouseBillSwitchResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bill-switches`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。 POST /api/v1/orders/${param0}/sea-documents/house-bill-switches/preview */
-export async function seaDocumentServicePreviewSeaHouseBillSwitch(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServicePreviewSeaHouseBillSwitchParams,
-  body: API.PreviewSeaHouseBillSwitchRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.PreviewSeaHouseBillSwitchResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bill-switches/preview`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** AddSeaHouseBill 添加海运分单（HBL）。 POST /api/v1/orders/${param0}/sea-documents/house-bills */
-export async function seaDocumentServiceAddSeaHouseBill(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceAddSeaHouseBillParams,
-  body: API.AddSeaHouseBillRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.AddSeaHouseBillResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bills`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
       ...(options || {}),
     }
   );
@@ -192,25 +104,6 @@ export async function seaDocumentServiceUpdateSeaHouseBill(
   );
 }
 
-/** RemoveSeaHouseBill 移除海运分单。 DELETE /api/v1/orders/${param0}/sea-documents/house-bills/${param1} */
-export async function seaDocumentServiceRemoveSeaHouseBill(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceRemoveSeaHouseBillParams,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.RemoveSeaHouseBillResponse>(
-    `/api/v1/orders/${param0}/sea-documents/house-bills/${param1}`,
-    {
-      method: "DELETE",
-      params: {
-        ...queryParams,
-      },
-      ...(options || {}),
-    }
-  );
-}
-
 /** ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。 GET /api/v1/orders/${param0}/sea-documents/house-bills/${param1}/versions */
 export async function seaDocumentServiceListSeaHouseBillVersions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -225,28 +118,6 @@ export async function seaDocumentServiceListSeaHouseBillVersions(
       params: {
         ...queryParams,
       },
-      ...(options || {}),
-    }
-  );
-}
-
-/** MarkSeaOrderDirect 明确标记海运订单为直单。 POST /api/v1/orders/${param0}/sea-documents/mark-direct */
-export async function seaDocumentServiceMarkSeaOrderDirect(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SeaDocumentServiceMarkSeaOrderDirectParams,
-  body: API.MarkSeaOrderDirectRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.MarkSeaOrderDirectResponse>(
-    `/api/v1/orders/${param0}/sea-documents/mark-direct`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
       ...(options || {}),
     }
   );
@@ -288,6 +159,50 @@ export async function seaDocumentServiceListSeaMasterBillVersions(
       params: {
         ...queryParams,
       },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。 POST /api/v1/orders/${param0}/sea-documents/mode-change */
+export async function seaDocumentServiceExecuteChangeSeaDocumentMode(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SeaDocumentServiceExecuteChangeSeaDocumentModeParams,
+  body: API.ExecuteChangeSeaDocumentModeRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ExecuteChangeSeaDocumentModeResponse>(
+    `/api/v1/orders/${param0}/sea-documents/mode-change`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。 POST /api/v1/orders/${param0}/sea-documents/mode-change/preview */
+export async function seaDocumentServicePreviewChangeSeaDocumentMode(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SeaDocumentServicePreviewChangeSeaDocumentModeParams,
+  body: API.PreviewChangeSeaDocumentModeRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.PreviewChangeSeaDocumentModeResponse>(
+    `/api/v1/orders/${param0}/sea-documents/mode-change/preview`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
       ...(options || {}),
     }
   );

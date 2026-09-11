@@ -1,0 +1,33 @@
+{
+  "id": "cleanup-order-draft-defenses",
+  "name": "cleanup-order-draft-defenses",
+  "title": "清理订单草稿冗余防御代码",
+  "description": "在组织工作区建立后清理订单模板与详情页中冗余的草稿防御代码",
+  "status": "completed",
+  "dev_type": "refactor",
+  "scope": "web/order-draft",
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-09",
+  "completedAt": "2026-09-09",
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "web/src/components/ui/order-template/OrderFormTemplate.tsx",
+    "web/src/pages/orders/detail.tsx",
+    "web/src/components/ui/order-template/OrderFormTemplate.test.tsx",
+    "web/src/pages/orders/detail-change-actions.test.tsx",
+    "web/src/pages/orders/detail-draft-lifecycle.test.tsx",
+    ".trellis/spec/web/frontend/state-management.md"
+  ],
+  "notes": "在工作区 keyed remount 建立后，精简 OrderFormTemplate 与 detail 中的冗余草稿防御逻辑",
+  "meta": {}
+}

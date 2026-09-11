@@ -40,6 +40,8 @@ export interface FinanceBatchActionItem<T = any> {
 export interface FinanceLedgerTemplateProps<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
 > {
+  pageTitle?: string;
+  pageSubTitle?: string;
   headerTitle?: string;
   columns: ProColumns<T>[];
   rowKey?: string;
@@ -98,5 +100,3 @@ export interface FinanceLedgerTemplateProps<
   // 自定义嵌入式搜索筛选栏插槽（置于顶部指标统计卡与表格台账之间）
   customSearch?: ReactNode;
 }
-
-

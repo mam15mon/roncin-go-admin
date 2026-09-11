@@ -2636,14 +2636,14 @@ func (*ListRolesRequest) Descriptor() ([]byte, []int) {
 }
 
 type CreateRoleRequest struct {
-	state                     protoimpl.MessageState     `protogen:"open.v1"`
-	Code                      string                     `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Name                      string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope                 DataScope                  `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
-	PermissionKeys            []string                   `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
-	OrderOrganizationAccesses []*OrderOrganizationAccess `protobuf:"bytes,5,rep,name=order_organization_accesses,json=orderOrganizationAccesses,proto3" json:"order_organization_accesses,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Code                 string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name                 string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	DataScope            DataScope              `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
+	PermissionKeys       []string               `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
+	OrganizationAccesses []*OrganizationAccess  `protobuf:"bytes,5,rep,name=organization_accesses,json=organizationAccesses,proto3" json:"organization_accesses,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CreateRoleRequest) Reset() {
@@ -2704,23 +2704,23 @@ func (x *CreateRoleRequest) GetPermissionKeys() []string {
 	return nil
 }
 
-func (x *CreateRoleRequest) GetOrderOrganizationAccesses() []*OrderOrganizationAccess {
+func (x *CreateRoleRequest) GetOrganizationAccesses() []*OrganizationAccess {
 	if x != nil {
-		return x.OrderOrganizationAccesses
+		return x.OrganizationAccesses
 	}
 	return nil
 }
 
 type UpdateRoleRequest struct {
-	state                     protoimpl.MessageState     `protogen:"open.v1"`
-	Id                        string                     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name                      string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope                 DataScope                  `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
-	Enabled                   bool                       `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	PermissionKeys            []string                   `protobuf:"bytes,5,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
-	OrderOrganizationAccesses []*OrderOrganizationAccess `protobuf:"bytes,6,rep,name=order_organization_accesses,json=orderOrganizationAccesses,proto3" json:"order_organization_accesses,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	DataScope            DataScope              `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
+	Enabled              bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	PermissionKeys       []string               `protobuf:"bytes,5,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
+	OrganizationAccesses []*OrganizationAccess  `protobuf:"bytes,6,rep,name=organization_accesses,json=organizationAccesses,proto3" json:"organization_accesses,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *UpdateRoleRequest) Reset() {
@@ -2788,14 +2788,14 @@ func (x *UpdateRoleRequest) GetPermissionKeys() []string {
 	return nil
 }
 
-func (x *UpdateRoleRequest) GetOrderOrganizationAccesses() []*OrderOrganizationAccess {
+func (x *UpdateRoleRequest) GetOrganizationAccesses() []*OrganizationAccess {
 	if x != nil {
-		return x.OrderOrganizationAccesses
+		return x.OrganizationAccesses
 	}
 	return nil
 }
 
-type OrderOrganizationAccess struct {
+type OrganizationAccess struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	OrganizationId string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Writable       bool                   `protobuf:"varint,2,opt,name=writable,proto3" json:"writable,omitempty"`
@@ -2803,20 +2803,20 @@ type OrderOrganizationAccess struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *OrderOrganizationAccess) Reset() {
-	*x = OrderOrganizationAccess{}
+func (x *OrganizationAccess) Reset() {
+	*x = OrganizationAccess{}
 	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderOrganizationAccess) String() string {
+func (x *OrganizationAccess) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderOrganizationAccess) ProtoMessage() {}
+func (*OrganizationAccess) ProtoMessage() {}
 
-func (x *OrderOrganizationAccess) ProtoReflect() protoreflect.Message {
+func (x *OrganizationAccess) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2828,19 +2828,19 @@ func (x *OrderOrganizationAccess) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderOrganizationAccess.ProtoReflect.Descriptor instead.
-func (*OrderOrganizationAccess) Descriptor() ([]byte, []int) {
+// Deprecated: Use OrganizationAccess.ProtoReflect.Descriptor instead.
+func (*OrganizationAccess) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{35}
 }
 
-func (x *OrderOrganizationAccess) GetOrganizationId() string {
+func (x *OrganizationAccess) GetOrganizationId() string {
 	if x != nil {
 		return x.OrganizationId
 	}
 	return ""
 }
 
-func (x *OrderOrganizationAccess) GetWritable() bool {
+func (x *OrganizationAccess) GetWritable() bool {
 	if x != nil {
 		return x.Writable
 	}
@@ -2848,19 +2848,19 @@ func (x *OrderOrganizationAccess) GetWritable() bool {
 }
 
 type AdminRole struct {
-	state                     protoimpl.MessageState     `protogen:"open.v1"`
-	Id                        string                     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId            string                     `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Code                      string                     `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Name                      string                     `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope                 DataScope                  `protobuf:"varint,5,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
-	Enabled                   bool                       `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	PermissionKeys            []string                   `protobuf:"bytes,7,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
-	CreatedAt                 string                     `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt                 string                     `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	OrderOrganizationAccesses []*OrderOrganizationAccess `protobuf:"bytes,10,rep,name=order_organization_accesses,json=orderOrganizationAccesses,proto3" json:"order_organization_accesses,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId       string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Code                 string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Name                 string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	DataScope            DataScope              `protobuf:"varint,5,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
+	Enabled              bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	PermissionKeys       []string               `protobuf:"bytes,7,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
+	CreatedAt            string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OrganizationAccesses []*OrganizationAccess  `protobuf:"bytes,10,rep,name=organization_accesses,json=organizationAccesses,proto3" json:"organization_accesses,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *AdminRole) Reset() {
@@ -2956,9 +2956,9 @@ func (x *AdminRole) GetUpdatedAt() string {
 	return ""
 }
 
-func (x *AdminRole) GetOrderOrganizationAccesses() []*OrderOrganizationAccess {
+func (x *AdminRole) GetOrganizationAccesses() []*OrganizationAccess {
 	if x != nil {
-		return x.OrderOrganizationAccesses
+		return x.OrganizationAccesses
 	}
 	return nil
 }
@@ -4025,25 +4025,25 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminUserR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x12\n" +
-	"\x10ListRolesRequest\"\x8a\x02\n" +
+	"\x10ListRolesRequest\"\xfa\x01\n" +
 	"\x11CreateRoleRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x127\n" +
 	"\n" +
 	"data_scope\x18\x03 \x01(\x0e2\x13.admin.v1.DataScopeB\x03\xe0A\x02R\tdataScope\x12'\n" +
-	"\x0fpermission_keys\x18\x04 \x03(\tR\x0epermissionKeys\x12a\n" +
-	"\x1border_organization_accesses\x18\x05 \x03(\v2!.admin.v1.OrderOrganizationAccessR\x19orderOrganizationAccesses\"\xa0\x02\n" +
+	"\x0fpermission_keys\x18\x04 \x03(\tR\x0epermissionKeys\x12Q\n" +
+	"\x15organization_accesses\x18\x05 \x03(\v2\x1c.admin.v1.OrganizationAccessR\x14organizationAccesses\"\x90\x02\n" +
 	"\x11UpdateRoleRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x127\n" +
 	"\n" +
 	"data_scope\x18\x03 \x01(\x0e2\x13.admin.v1.DataScopeB\x03\xe0A\x02R\tdataScope\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x12'\n" +
-	"\x0fpermission_keys\x18\x05 \x03(\tR\x0epermissionKeys\x12a\n" +
-	"\x1border_organization_accesses\x18\x06 \x03(\v2!.admin.v1.OrderOrganizationAccessR\x19orderOrganizationAccesses\"c\n" +
-	"\x17OrderOrganizationAccess\x12,\n" +
+	"\x0fpermission_keys\x18\x05 \x03(\tR\x0epermissionKeys\x12Q\n" +
+	"\x15organization_accesses\x18\x06 \x03(\v2\x1c.admin.v1.OrganizationAccessR\x14organizationAccesses\"^\n" +
+	"\x12OrganizationAccess\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1a\n" +
-	"\bwritable\x18\x02 \x01(\bR\bwritable\"\x84\x03\n" +
+	"\bwritable\x18\x02 \x01(\bR\bwritable\"\xf4\x02\n" +
 	"\tAdminRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
@@ -4056,9 +4056,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt\x12a\n" +
-	"\x1border_organization_accesses\x18\n" +
-	" \x03(\v2!.admin.v1.OrderOrganizationAccessR\x19orderOrganizationAccesses\"\x9f\x01\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\x12Q\n" +
+	"\x15organization_accesses\x18\n" +
+	" \x03(\v2\x1c.admin.v1.OrganizationAccessR\x14organizationAccesses\"\x9f\x01\n" +
 	"\x11ListRolesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -4244,7 +4244,7 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*ListRolesRequest)(nil),              // 35: admin.v1.ListRolesRequest
 	(*CreateRoleRequest)(nil),             // 36: admin.v1.CreateRoleRequest
 	(*UpdateRoleRequest)(nil),             // 37: admin.v1.UpdateRoleRequest
-	(*OrderOrganizationAccess)(nil),       // 38: admin.v1.OrderOrganizationAccess
+	(*OrganizationAccess)(nil),            // 38: admin.v1.OrganizationAccess
 	(*AdminRole)(nil),                     // 39: admin.v1.AdminRole
 	(*ListRolesResponse)(nil),             // 40: admin.v1.ListRolesResponse
 	(*ListOrganizationRolesResponse)(nil), // 41: admin.v1.ListOrganizationRolesResponse
@@ -4275,11 +4275,11 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	23, // 13: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
 	23, // 14: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
 	0,  // 15: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	38, // 16: admin.v1.CreateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	38, // 16: admin.v1.CreateRoleRequest.organization_accesses:type_name -> admin.v1.OrganizationAccess
 	0,  // 17: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	38, // 18: admin.v1.UpdateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	38, // 18: admin.v1.UpdateRoleRequest.organization_accesses:type_name -> admin.v1.OrganizationAccess
 	0,  // 19: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	38, // 20: admin.v1.AdminRole.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	38, // 20: admin.v1.AdminRole.organization_accesses:type_name -> admin.v1.OrganizationAccess
 	39, // 21: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
 	39, // 22: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
 	39, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole

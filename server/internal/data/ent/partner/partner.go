@@ -40,6 +40,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeAccounts holds the string denoting the accounts edge name in mutations.
+	EdgeAccounts = "accounts"
 	// EdgeContacts holds the string denoting the contacts edge name in mutations.
 	EdgeContacts = "contacts"
 	// EdgeAliases holds the string denoting the aliases edge name in mutations.
@@ -68,14 +70,14 @@ const (
 	EdgeFinanceCashflows = "finance_cashflows"
 	// EdgeFinanceVerifications holds the string denoting the finance_verifications edge name in mutations.
 	EdgeFinanceVerifications = "finance_verifications"
+	// EdgeFinanceNettings holds the string denoting the finance_nettings edge name in mutations.
+	EdgeFinanceNettings = "finance_nettings"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
 	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
 	// EdgeSeaOrderReassignments holds the string denoting the sea_order_reassignments edge name in mutations.
 	EdgeSeaOrderReassignments = "sea_order_reassignments"
-	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
-	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
 	// EdgeSeaHouseBillVersions holds the string denoting the sea_house_bill_versions edge name in mutations.
 	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
 	// Table holds the table name of the partner in the database.
@@ -94,6 +96,13 @@ const (
 	RolesInverseTable = "partner_roles"
 	// RolesColumn is the table column denoting the roles relation/edge.
 	RolesColumn = "partner_id"
+	// AccountsTable is the table that holds the accounts relation/edge.
+	AccountsTable = "partner_accounts"
+	// AccountsInverseTable is the table name for the PartnerAccount entity.
+	// It exists in this package in order to avoid circular dependency with the "partneraccount" package.
+	AccountsInverseTable = "partner_accounts"
+	// AccountsColumn is the table column denoting the accounts relation/edge.
+	AccountsColumn = "partner_id"
 	// ContactsTable is the table that holds the contacts relation/edge.
 	ContactsTable = "partner_contacts"
 	// ContactsInverseTable is the table name for the PartnerContact entity.
@@ -192,6 +201,13 @@ const (
 	FinanceVerificationsInverseTable = "finance_verifications"
 	// FinanceVerificationsColumn is the table column denoting the finance_verifications relation/edge.
 	FinanceVerificationsColumn = "settlement_party_id"
+	// FinanceNettingsTable is the table that holds the finance_nettings relation/edge.
+	FinanceNettingsTable = "finance_nettings"
+	// FinanceNettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	FinanceNettingsInverseTable = "finance_nettings"
+	// FinanceNettingsColumn is the table column denoting the finance_nettings relation/edge.
+	FinanceNettingsColumn = "settlement_party_id"
 	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsTable = "order_commission_attributions"
 	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
@@ -213,13 +229,6 @@ const (
 	SeaOrderReassignmentsInverseTable = "sea_order_reassignment_events"
 	// SeaOrderReassignmentsColumn is the table column denoting the sea_order_reassignments relation/edge.
 	SeaOrderReassignmentsColumn = "responsible_partner_id"
-	// SeaMasterBillVersionsTable is the table that holds the sea_master_bill_versions relation/edge.
-	SeaMasterBillVersionsTable = "sea_master_bill_versions"
-	// SeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
-	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
-	SeaMasterBillVersionsInverseTable = "sea_master_bill_versions"
-	// SeaMasterBillVersionsColumn is the table column denoting the sea_master_bill_versions relation/edge.
-	SeaMasterBillVersionsColumn = "issuer_partner_id"
 	// SeaHouseBillVersionsTable is the table that holds the sea_house_bill_versions relation/edge.
 	SeaHouseBillVersionsTable = "sea_house_bill_versions"
 	// SeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
@@ -361,6 +370,20 @@ func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
 func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAccountsCount orders the results by accounts count.
+func ByAccountsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccountsStep(), opts...)
+	}
+}
+
+// ByAccounts orders the results by accounts terms.
+func ByAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -553,6 +576,20 @@ func ByFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 	}
 }
 
+// ByFinanceNettingsCount orders the results by finance_nettings count.
+func ByFinanceNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceNettingsStep(), opts...)
+	}
+}
+
+// ByFinanceNettings orders the results by finance_nettings terms.
+func ByFinanceNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
 func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -595,20 +632,6 @@ func BySeaOrderReassignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
-// BySeaMasterBillVersionsCount orders the results by sea_master_bill_versions count.
-func BySeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillVersionsStep(), opts...)
-	}
-}
-
-// BySeaMasterBillVersions orders the results by sea_master_bill_versions terms.
-func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // BySeaHouseBillVersionsCount orders the results by sea_house_bill_versions count.
 func BySeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -634,6 +657,13 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RolesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+	)
+}
+func newAccountsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccountsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccountsTable, AccountsColumn),
 	)
 }
 func newContactsStep() *sqlgraph.Step {
@@ -734,6 +764,13 @@ func newFinanceVerificationsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceVerificationsTable, FinanceVerificationsColumn),
 	)
 }
+func newFinanceNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceNettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceNettingsTable, FinanceNettingsColumn),
+	)
+}
 func newOrderCommissionAttributionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -753,13 +790,6 @@ func newSeaOrderReassignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaOrderReassignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentsTable, SeaOrderReassignmentsColumn),
-	)
-}
-func newSeaMasterBillVersionsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeaMasterBillVersionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
 	)
 }
 func newSeaHouseBillVersionsStep() *sqlgraph.Step {

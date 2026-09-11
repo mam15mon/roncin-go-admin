@@ -217,27 +217,21 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		t.Fatalf("创建客户角色失败: %v", err)
 	}
 
-	carrier, err := data.db.Partner.Create().
+	carrier, err := data.db.ShippingLine.Create().
 		SetOrganizationID(org.ID).
-		SetCode("CARR-" + suffix).
-		SetLegalName("马士基航运-" + suffix).
-		SetNormalizedName("马士基航运-" + suffix).
+		SetScacCode("MSKZ").
+		SetNameZh("马士基航运-" + suffix).
+		SetNameEn("Maersk-" + suffix).
+		SetCountryCode("DK").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建船东失败: %v", err)
 	}
-	if _, err = data.db.PartnerRole.Create().
-		SetPartnerID(carrier.ID).
-		SetRoleType(partnerroleent.RoleTypeCarrier).
-		SetEnabled(true).
-		Save(ctx); err != nil {
-		t.Fatalf("创建船东角色失败: %v", err)
-	}
-
 	// 7. 创建海运运输执行与主单 MBL
 	etd := time.Now().Add(24 * time.Hour).UTC().Truncate(time.Microsecond)
 	eta := time.Now().Add(7 * 24 * time.Hour).UTC().Truncate(time.Microsecond)
-	routeCarrierID := carrier.ID
+	routeShippingLineID := carrier.ID
 	routeOriginID := uuid.New()
 	routeDischargeID := uuid.New()
 	routeTransitID := uuid.New()
@@ -267,7 +261,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 	exec, err := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
-		SetCarrierID(routeCarrierID).
+		SetShippingLineID(routeShippingLineID).
 		SetOriginLocationID(routeOriginID).
 		SetDischargeLocationID(routeDischargeID).
 		SetTransitLocationID(routeTransitID).
@@ -287,8 +281,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).
-		SetIssuerPartnerID(carrier.ID).
-		SetTransportExecutionID(exec.ID).
+		SetShippingLineID(carrier.ID).
 		SetStatus(seamasterbillent.StatusDRAFT).
 		SetPackageCount(pkgCount).
 		SetGrossWeightKg(gw).
@@ -304,6 +297,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-" + suffix + "-A").
 		SetCustomerID(customer.ID).
+		SetShippingLineID(routeShippingLineID).
+		SetOriginLocationID(routeOriginID).
+		SetDischargeLocationID(routeDischargeID).
+		SetTransitLocationID(routeTransitID).
+		SetVesselVoyage("MAERSK MC-KINNEY MOLLER / 2609W").
+		SetEtd(etd.Format(time.RFC3339Nano)).
+		SetEta(eta.Format(time.RFC3339Nano)).
 		SetBusinessType(orderent.BusinessTypeSE).
 		SetTradeDirection(orderent.TradeDirectionExport).
 		SetTradeTerm(orderent.TradeTermFOB).
@@ -323,9 +323,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetOrderID(orderA.ID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(exec.ID).
 		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-		SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-		SetCargoAllocationVersion(1).
 		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 		SetVersion(1).
 		Save(ctx)
@@ -351,23 +350,31 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	// 构造 Principals
 	rolePrincipal := &biz.Principal{
-		UserID:           roleUser.ID,
-		DisplayName:      roleUser.DisplayName,
-		IsBootstrapAdmin: false,
-		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"business.order.se.lock", "business.order.se.update"},
+		UserID:            roleUser.ID,
+		DisplayName:       roleUser.DisplayName,
+		IsBootstrapAdmin:  false,
+		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		RoleGrants: []biz.RoleGrant{{
+			RoleID:      seLockRole.ID,
+			RoleCode:    seLockRole.Code,
+			DataScope:   biz.DataScopeOrganization,
+			Permissions: map[string]struct{}{"business.order.se.lock": {}, "business.order.se.update": {}},
+		}},
 	}
 
 	normalPrincipal := &biz.Principal{
-		UserID:           normalUser.ID,
-		DisplayName:      normalUser.DisplayName,
-		IsBootstrapAdmin: false,
-		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"business.order.se.update"},
-		RoleScopes:       []biz.RoleScope{{RoleCode: normalRole.Code, DataScope: biz.DataScopeOrganization}},
-		RolePermissions: map[string]map[string]struct{}{
-			normalRole.Code: {"business.order.se.update": {}},
-		},
+		UserID:            normalUser.ID,
+		DisplayName:       normalUser.DisplayName,
+		IsBootstrapAdmin:  false,
+		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		RoleGrants: []biz.RoleGrant{{
+			RoleID:      normalRole.ID,
+			RoleCode:    normalRole.Code,
+			DataScope:   biz.DataScopeOrganization,
+			Permissions: map[string]struct{}{"business.order.se.update": {}},
+		}},
 	}
 
 	adminPrincipal := &biz.Principal{
@@ -375,7 +382,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		DisplayName:      adminUser.DisplayName,
 		IsBootstrapAdmin: true,
 		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		Permissions:      []string{"*"},
 	}
 
 	orderLockRepo := NewOrderLockRepo(data, &conf.Security{Dingtalk: &conf.Security_DingTalk{
@@ -394,6 +400,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			SetOrganizationID(org.ID).
 			SetOrderNo(orderNo).
 			SetCustomerID(customer.ID).
+			SetShippingLineID(routeShippingLineID).
+			SetOriginLocationID(routeOriginID).
+			SetDischargeLocationID(routeDischargeID).
+			SetTransitLocationID(routeTransitID).
+			SetVesselVoyage("MAERSK MC-KINNEY MOLLER / 2609W").
+			SetEtd(etd.Format(time.RFC3339Nano)).
+			SetEta(eta.Format(time.RFC3339Nano)).
 			SetBusinessType(orderent.BusinessTypeSE).
 			SetTradeDirection(orderent.TradeDirectionExport).
 			SetTradeTerm(orderent.TradeTermFOB).
@@ -410,14 +423,17 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		return o
 	}
 
-	linkMBL := func(orderID uuid.UUID, mblID uuid.UUID, docStruct seamasterbillorderlinkent.DocumentStructure) *ent.SeaMasterBillOrderLink {
+	linkMBL := func(orderID uuid.UUID, mblID uuid.UUID, docStruct seamasterbillorderlinkent.DocumentStructure, customExecID ...uuid.UUID) *ent.SeaMasterBillOrderLink {
+		eID := exec.ID
+		if len(customExecID) > 0 && customExecID[0] != uuid.Nil {
+			eID = customExecID[0]
+		}
 		link, err := data.db.SeaMasterBillOrderLink.Create().
 			SetOrganizationID(org.ID).
 			SetOrderID(orderID).
 			SetMasterBillID(mblID).
+			SetTransportExecutionID(eID).
 			SetDocumentStructure(docStruct).
-			SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-			SetCargoAllocationVersion(1).
 			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 			SetVersion(1).
 			Save(ctx)
@@ -675,17 +691,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if mblVer.VersionNo != 1 || mblVer.ContentHash == "" {
 			t.Fatalf("MBL 版本字段异常: version_no=%d, hash=%s", mblVer.VersionNo, mblVer.ContentHash)
 		}
-		if mblVer.VesselVoyageSnapshot == nil || *mblVer.VesselVoyageSnapshot != "MAERSK MC-KINNEY MOLLER 2609W" {
-			t.Errorf("MBL 船名航次快照异常: %v", mblVer.VesselVoyageSnapshot)
-		}
-		if mblVer.CarrierID == nil || *mblVer.CarrierID != routeCarrierID ||
-			mblVer.OriginLocationID == nil || *mblVer.OriginLocationID != routeOriginID ||
-			mblVer.DischargeLocationID == nil || *mblVer.DischargeLocationID != routeDischargeID ||
-			mblVer.TransitLocationID == nil || *mblVer.TransitLocationID != routeTransitID ||
-			mblVer.Etd == nil || !mblVer.Etd.Equal(etd) || mblVer.Eta == nil || !mblVer.Eta.Equal(eta) {
-			t.Fatalf("MBL 权威航程快照不完整: %#v", mblVer)
-		}
-
 		// 检查 HBL 版本与快照
 		dbHbl, err := data.db.SeaHouseBill.Get(ctx, hblA.ID)
 		if err != nil {
@@ -715,6 +720,26 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		if record.MasterBillVersionID == nil || *record.MasterBillVersionID != mblVer.ID {
 			t.Errorf("锁定事实记录中的 MBL 版本 ID 不匹配")
+		}
+		if record.TransportExecutionID == nil || *record.TransportExecutionID != exec.ID {
+			t.Errorf("锁定事实记录中的 TE ID 不匹配")
+		}
+		if record.TransportExecutionVersionID == nil {
+			t.Fatal("锁定事实记录中的 TE 版本 ID 未设置")
+		}
+		teVer, err := data.db.SeaTransportExecutionVersion.Get(ctx, *record.TransportExecutionVersionID)
+		if err != nil {
+			t.Fatalf("读取 TE 版本失败: %v", err)
+		}
+		if teVer.VesselName != "MAERSK MC-KINNEY MOLLER" || teVer.VoyageNo != "2609W" {
+			t.Errorf("TE 船名航次快照异常: %s %s", teVer.VesselName, teVer.VoyageNo)
+		}
+		if teVer.ShippingLineID != routeShippingLineID ||
+			teVer.OriginLocationID == nil || *teVer.OriginLocationID != routeOriginID ||
+			teVer.DischargeLocationID == nil || *teVer.DischargeLocationID != routeDischargeID ||
+			teVer.TransitLocationID == nil || *teVer.TransitLocationID != routeTransitID ||
+			teVer.Etd == nil || !teVer.Etd.Equal(etd) || teVer.Eta == nil || !teVer.Eta.Equal(eta) {
+			t.Fatalf("TE 权威航程快照不完整: %#v", teVer)
 		}
 		if len(record.Edges.HouseBillSnapshots) != 1 {
 			t.Fatalf("期望 1 条 HBL 快照关联，实际得到: %d", len(record.Edges.HouseBillSnapshots))
@@ -833,9 +858,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			SetOrganizationID(org.ID).
 			SetOrderID(orderB.ID).
 			SetMasterBillID(mbl.ID).
+			SetTransportExecutionID(exec.ID).
 			SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
-			SetCargoAllocationStatus(seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED).
-			SetCargoAllocationVersion(1).
 			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 			SetVersion(1).
 			Save(ctx)
@@ -876,7 +900,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipmentType,
-				CarrierID:           &routeCarrierID,
+				ShippingLineID:      &routeShippingLineID,
 				OriginLocationID:    &routeOriginID,
 				DischargeLocationID: &routeDischargeID,
 				TransitLocationID:   &routeTransitID,
@@ -885,7 +909,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				ETA:                 eta.Format(time.RFC3339Nano),
 				SeaMasterBillInput: &biz.SeaMasterBillInput{
 					MasterNo:                 mbl.MasterNo,
-					IssuerPartnerID:          carrier.ID,
 					ExpectedCandidateVersion: &expectedMBLVersion,
 				},
 			}
@@ -1093,6 +1116,14 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			TradeTerm:           biz.OrderTradeFOB,
 			PaymentTerm:         biz.OrderPaymentPrepaid,
 			ShipmentType:        &shipType,
+			ShippingLineID:      &routeShippingLineID,
+			OriginLocationID:    &routeOriginID,
+			DischargeLocationID: &routeDischargeID,
+			TransitLocationID:   &routeTransitID,
+			VesselVoyage:        "MAERSK MC-KINNEY MOLLER / 2609W",
+			ETD:                 etd.Format(time.RFC3339Nano),
+			ETA:                 eta.Format(time.RFC3339Nano),
+			SeaMasterBillInput:  &biz.SeaMasterBillInput{MasterNo: mbl.MasterNo},
 		}, auditUpdate)
 		if err != nil {
 			t.Fatalf("解锁后更新订单草稿失败: %v", err)
@@ -1288,6 +1319,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 		execD, err := data.db.SeaTransportExecution.Create().
 			SetOrganizationID(org.ID).
+			SetShippingLineID(routeShippingLineID).
 			SetVesselName("VESSEL D").
 			SetVoyageNo("VOY D").
 			Save(ctx)
@@ -1296,8 +1328,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 		mblD, err := data.db.SeaMasterBill.Create().
 			SetOrganizationID(org.ID).
-			SetIssuerPartnerID(carrier.ID).
-			SetTransportExecutionID(execD.ID).
+			SetShippingLineID(routeShippingLineID).
 			SetMasterNo("MBL-D-" + suffix).
 			SetNormalizedMasterNo("MBL-D-" + suffix).
 			SetStatus(seamasterbillent.StatusDRAFT).
@@ -1308,7 +1339,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 
 		orderD := createSEOrder("SE-" + suffix + "-D")
-		linkMBL(orderD.ID, mblD.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
+		linkMBL(orderD.ID, mblD.ID, seamasterbillorderlinkent.DocumentStructureHOUSE, execD.ID)
 		hblD := createHBL(orderD.ID, mblD.ID, "HBL-D-"+suffix)
 
 		auditD := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
@@ -1405,6 +1436,14 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				TradeTerm:           biz.OrderTradeFOB,
 				PaymentTerm:         biz.OrderPaymentPrepaid,
 				ShipmentType:        &shipType,
+				ShippingLineID:      &routeShippingLineID,
+				OriginLocationID:    &routeOriginID,
+				DischargeLocationID: &routeDischargeID,
+				TransitLocationID:   &routeTransitID,
+				VesselVoyage:        "MAERSK MC-KINNEY MOLLER / 2609W",
+				ETD:                 etd.Format(time.RFC3339Nano),
+				ETA:                 eta.Format(time.RFC3339Nano),
+				SeaMasterBillInput:  &biz.SeaMasterBillInput{MasterNo: mbl.MasterNo},
 			}, audit)
 		}()
 

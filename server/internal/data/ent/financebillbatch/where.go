@@ -436,6 +436,26 @@ func SplitByTaxRateNEQ(v bool) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(sql.FieldNEQ(FieldSplitByTaxRate, v))
 }
 
+// GroupingModeEQ applies the EQ predicate on the "grouping_mode" field.
+func GroupingModeEQ(v GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldEQ(FieldGroupingMode, v))
+}
+
+// GroupingModeNEQ applies the NEQ predicate on the "grouping_mode" field.
+func GroupingModeNEQ(v GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldNEQ(FieldGroupingMode, v))
+}
+
+// GroupingModeIn applies the In predicate on the "grouping_mode" field.
+func GroupingModeIn(vs ...GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldIn(FieldGroupingMode, vs...))
+}
+
+// GroupingModeNotIn applies the NotIn predicate on the "grouping_mode" field.
+func GroupingModeNotIn(vs ...GroupingMode) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(sql.FieldNotIn(FieldGroupingMode, vs...))
+}
+
 // FeeCountEQ applies the EQ predicate on the "fee_count" field.
 func FeeCountEQ(v int) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(sql.FieldEQ(FieldFeeCount, v))
@@ -727,6 +747,29 @@ func HasBills() predicate.FinanceBillBatch {
 func HasBillsWith(preds ...predicate.FinanceBill) predicate.FinanceBillBatch {
 	return predicate.FinanceBillBatch(func(s *sql.Selector) {
 		step := newBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNettings applies the HasEdge predicate on the "nettings" edge.
+func HasNettings() predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NettingsTable, NettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNettingsWith applies the HasEdge predicate on the "nettings" edge with a given conditions (other predicates).
+func HasNettingsWith(preds ...predicate.FinanceNetting) predicate.FinanceBillBatch {
+	return predicate.FinanceBillBatch(func(s *sql.Selector) {
+		step := newNettingsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

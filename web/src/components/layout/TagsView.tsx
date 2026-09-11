@@ -11,12 +11,14 @@ import {
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { history, useLocation } from '@umijs/max';
+import { history, useLocation, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EllipsisTooltip } from '@/components/ui';
+import { clearTabDrafts, getFormDraftScope } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
+import { confirmIfTabsDirty } from './tabCloseGuard';
 
 export interface TagItem {
   key: string;
@@ -95,6 +97,11 @@ function getRouteIcon(path: string) {
  */
 export const TagsView: React.FC = () => {
   const location = useLocation();
+  const { initialState } = useModel('@@initialState');
+  const draftScope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    initialState?.currentUser?.currentOrganization?.id,
+  );
   const currentPath = location.pathname;
   const fullPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
   const currentTabKey = resolveTabKey(currentPath);
@@ -207,16 +214,28 @@ export const TagsView: React.FC = () => {
     history.push(tag.path);
   };
 
-  const handleClose = (e: React.MouseEvent, tag: TagItem) => {
-    e.stopPropagation();
-    if (!tag.closable) return;
-
+  const executeCloseTag = (tag: TagItem) => {
+    clearTabDrafts(tag.key, draftScope);
     const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
     setTags((prev) => prev.filter((t) => t.key !== tag.key));
 
     if (nextPath && nextPath !== fullPath) {
       history.push(nextPath);
     }
+  };
+
+  const handleClose = (e: React.MouseEvent, tag: TagItem) => {
+    e.stopPropagation();
+    if (!tag.closable) return;
+
+    confirmIfTabsDirty(
+      [tag.key],
+      () => {
+        executeCloseTag(tag);
+      },
+      undefined,
+      draftScope,
+    );
   };
 
   // 右键快捷菜单逻辑
@@ -247,11 +266,14 @@ export const TagsView: React.FC = () => {
         label: '关闭标签页',
         disabled: !tag.closable,
         onClick: () => {
-          const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
-          setTags((prev) => prev.filter((t) => t.key !== tag.key));
-          if (nextPath && nextPath !== fullPath) {
-            history.push(nextPath);
-          }
+          confirmIfTabsDirty(
+            [tag.key],
+            () => {
+              executeCloseTag(tag);
+            },
+            undefined,
+            draftScope,
+          );
         },
       },
       {
@@ -260,13 +282,26 @@ export const TagsView: React.FC = () => {
         label: '关闭其他标签页',
         disabled: !hasOther,
         onClick: () => {
-          if (tag.key === '/welcome') {
-            setTags([FIXED_TAB]);
-            history.push('/welcome');
-          } else {
-            setTags([FIXED_TAB, tag]);
-            history.push(tag.path);
-          }
+          const closingTags = tags.filter(
+            (t) => t.key !== FIXED_TAB.key && t.key !== tag.key,
+          );
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
+              if (tag.key === '/welcome') {
+                setTags([FIXED_TAB]);
+                history.push('/welcome');
+              } else {
+                setTags([FIXED_TAB, tag]);
+                history.push(tag.path);
+              }
+            },
+            undefined,
+            draftScope,
+          );
         },
       },
       {
@@ -275,11 +310,24 @@ export const TagsView: React.FC = () => {
         label: '关闭右侧标签页',
         disabled: !hasRight,
         onClick: () => {
-          setTags((prev) => prev.slice(0, currentIndex + 1));
-          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
-          if (currentIndex < activeIndex) {
-            history.push(tag.path);
-          }
+          const closingTags = tags.slice(currentIndex + 1);
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
+              setTags((prev) => prev.slice(0, currentIndex + 1));
+              const activeIndex = tags.findIndex(
+                (t) => t.key === currentTabKey,
+              );
+              if (currentIndex < activeIndex) {
+                history.push(tag.path);
+              }
+            },
+            undefined,
+            draftScope,
+          );
         },
       },
       {
@@ -288,11 +336,24 @@ export const TagsView: React.FC = () => {
         label: '关闭左侧标签页',
         disabled: !hasLeft,
         onClick: () => {
-          setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
-          const activeIndex = tags.findIndex((t) => t.key === currentTabKey);
-          if (activeIndex > 0 && activeIndex < currentIndex) {
-            history.push(tag.path);
-          }
+          const closingTags = tags.slice(1, currentIndex);
+          confirmIfTabsDirty(
+            closingTags.map((t) => t.key),
+            () => {
+              for (const t of closingTags) {
+                clearTabDrafts(t.key, draftScope);
+              }
+              setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
+              const activeIndex = tags.findIndex(
+                (t) => t.key === currentTabKey,
+              );
+              if (activeIndex > 0 && activeIndex < currentIndex) {
+                history.push(tag.path);
+              }
+            },
+            undefined,
+            draftScope,
+          );
         },
       },
     ];
@@ -304,8 +365,7 @@ export const TagsView: React.FC = () => {
         {tags.map((tag, index) => {
           const isActive = currentTabKey === tag.key;
           const isNextActive =
-            index < tags.length - 1 &&
-            currentTabKey === tags[index + 1].key;
+            index < tags.length - 1 && currentTabKey === tags[index + 1].key;
 
           return (
             <Dropdown

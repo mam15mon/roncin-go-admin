@@ -53,30 +53,54 @@ export const BILLED_FEE_FIELD_OPTIONS = [
 export function CustomSettingsPanel() {
   const access = useAccess();
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
+  const [loadingRate, setLoadingRate] = useState(false);
+  const [loadingPolicy, setLoadingPolicy] = useState(false);
   const [savingRate, setSavingRate] = useState(false);
   const [savingPolicy, setSavingPolicy] = useState(false);
-  const [rateSetting, setRateSetting] = useState<API.ExchangeRateCustomSetting>();
-  const [billedFeePolicy, setBilledFeePolicy] = useState<API.BilledFeeEditPolicy>();
+  const [rateSetting, setRateSetting] =
+    useState<API.ExchangeRateCustomSetting>();
+  const [billedFeePolicy, setBilledFeePolicy] =
+    useState<API.BilledFeeEditPolicy>();
+  const [canUpdateBilledFeePolicy, setCanUpdateBilledFeePolicy] =
+    useState(false);
 
-  const loadAllSettings = useCallback(async () => {
-    setLoading(true);
+  const loadRateSetting = useCallback(async () => {
+    setLoadingRate(true);
     try {
-      const [rateRes, policyRes] = await Promise.all([
-        exchangeRateServiceGetExchangeRateCustomSetting(),
-        settlementServiceGetBilledFeeEditPolicy(),
-      ]);
-      if (!rateRes.data || !policyRes.data) {
+      const rateRes = await exchangeRateServiceGetExchangeRateCustomSetting();
+      if (!rateRes.data) {
         throw new Error('自定义设置响应不完整');
       }
       setRateSetting(rateRes.data);
-      setBilledFeePolicy(policyRes.data);
     } catch (e: any) {
-      message.error(e.message || '获取自定义设置失败');
+      message.error(e.message || '获取汇率设置失败');
     } finally {
-      setLoading(false);
+      setLoadingRate(false);
     }
   }, [message]);
+
+  const loadBilledFeePolicy = useCallback(async () => {
+    setLoadingPolicy(true);
+    try {
+      const policyRes = await settlementServiceGetBilledFeeEditPolicy();
+      if (!policyRes.data) {
+        throw new Error('自定义设置响应不完整');
+      }
+      setBilledFeePolicy(policyRes.data);
+      setCanUpdateBilledFeePolicy(Boolean(policyRes.canUpdate));
+    } catch (e: any) {
+      setBilledFeePolicy(undefined);
+      setCanUpdateBilledFeePolicy(false);
+      message.error(e.message || '当前公司无此设置权限');
+    } finally {
+      setLoadingPolicy(false);
+    }
+  }, [message]);
+
+  const loadAllSettings = useCallback(() => {
+    void loadRateSetting();
+    void loadBilledFeePolicy();
+  }, [loadBilledFeePolicy, loadRateSetting]);
 
   useEffect(() => {
     loadAllSettings();
@@ -86,10 +110,12 @@ export function CustomSettingsPanel() {
   const handleToggleRateInheritance = async (checked: boolean) => {
     setSavingRate(true);
     try {
-      const response = await exchangeRateServiceUpdateExchangeRateCustomSetting({
-        inheritBaseCurrencyRate: checked,
-        expectedVersion: rateSetting?.version ?? '0',
-      });
+      const response = await exchangeRateServiceUpdateExchangeRateCustomSetting(
+        {
+          inheritBaseCurrencyRate: checked,
+          expectedVersion: rateSetting?.version ?? '0',
+        },
+      );
       setRateSetting(response.data);
       message.success(
         checked
@@ -98,12 +124,7 @@ export function CustomSettingsPanel() {
       );
     } catch (e: any) {
       message.error(e.message || '更新汇率设置失败，请刷新重试');
-      try {
-        const res = await exchangeRateServiceGetExchangeRateCustomSetting();
-        if (res.data) setRateSetting(res.data);
-      } catch (reloadError: any) {
-        message.error(reloadError.message || '重新加载汇率设置失败');
-      }
+      await loadRateSetting();
     } finally {
       setSavingRate(false);
     }
@@ -126,12 +147,7 @@ export function CustomSettingsPanel() {
       );
     } catch (e: any) {
       message.error(e.message || '更新账单费用修改策略失败，请刷新重试');
-      try {
-        const res = await settlementServiceGetBilledFeeEditPolicy();
-        if (res.data) setBilledFeePolicy(res.data);
-      } catch (reloadError: any) {
-        message.error(reloadError.message || '重新加载账单费用策略失败');
-      }
+      await loadBilledFeePolicy();
     } finally {
       setSavingPolicy(false);
     }
@@ -150,19 +166,14 @@ export function CustomSettingsPanel() {
       message.success('已更新允许修改的费用字段');
     } catch (e: any) {
       message.error(e.message || '更新可修改字段失败，请刷新重试');
-      try {
-        const res = await settlementServiceGetBilledFeeEditPolicy();
-        if (res.data) setBilledFeePolicy(res.data);
-      } catch (reloadError: any) {
-        message.error(reloadError.message || '重新加载账单费用策略失败');
-      }
+      await loadBilledFeePolicy();
     } finally {
       setSavingPolicy(false);
     }
   };
 
   return (
-    <Spin spinning={loading}>
+    <Spin spinning={loadingRate || loadingPolicy}>
       <Space vertical size={12} style={{ width: '100%' }}>
         {/* 1. 财务汇率设置 */}
         <SectionCard
@@ -173,7 +184,7 @@ export function CustomSettingsPanel() {
               size="small"
               icon={<ReloadOutlined />}
               onClick={loadAllSettings}
-              loading={loading}
+              loading={loadingRate || loadingPolicy}
             >
               刷新
             </Button>
@@ -191,8 +202,13 @@ export function CustomSettingsPanel() {
               <Col xs={24} md={18}>
                 <Space vertical size={6} style={{ width: '100%' }}>
                   <Space align="center" size={8} wrap>
-                    <DollarOutlined style={{ fontSize: 16, color: '#1677ff' }} />
-                    <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
+                    <DollarOutlined
+                      style={{ fontSize: 16, color: '#1677ff' }}
+                    />
+                    <Text
+                      strong
+                      style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}
+                    >
                       专用汇率未配置时继承折本币汇率
                     </Text>
                     {rateSetting?.inheritBaseCurrencyRate ? (
@@ -210,7 +226,9 @@ export function CustomSettingsPanel() {
                   {rateSetting?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       最近修改时间：{formatDate(rateSetting.updatedAt)}
-                      {rateSetting.updatedBy ? `（操作人：${rateSetting.updatedBy}）` : ''}
+                      {rateSetting.updatedBy
+                        ? `（操作人：${rateSetting.updatedBy}）`
+                        : ''}
                     </Text>
                   )}
                 </Space>
@@ -221,7 +239,7 @@ export function CustomSettingsPanel() {
                   unCheckedChildren="已关闭"
                   checked={Boolean(rateSetting?.inheritBaseCurrencyRate)}
                   loading={savingRate}
-                  disabled={!access.canUpdateExchangeRates || loading}
+                  disabled={!access.canUpdateExchangeRates || loadingRate}
                   onChange={handleToggleRateInheritance}
                   style={{ minWidth: 70 }}
                 />
@@ -244,8 +262,13 @@ export function CustomSettingsPanel() {
               <Col xs={24} md={18}>
                 <Space vertical size={6} style={{ width: '100%' }}>
                   <Space align="center" size={8} wrap>
-                    <FileTextOutlined style={{ fontSize: 16, color: '#1677ff' }} />
-                    <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
+                    <FileTextOutlined
+                      style={{ fontSize: 16, color: '#1677ff' }}
+                    />
+                    <Text
+                      strong
+                      style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}
+                    >
                       账单创建后允许修改费用
                     </Text>
                     {billedFeePolicy?.enabled ? (
@@ -263,7 +286,9 @@ export function CustomSettingsPanel() {
                   {billedFeePolicy?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       最近修改时间：{formatDate(billedFeePolicy.updatedAt)}
-                      {billedFeePolicy.updatedBy ? `（操作人：${billedFeePolicy.updatedBy}）` : ''}
+                      {billedFeePolicy.updatedBy
+                        ? `（操作人：${billedFeePolicy.updatedBy}）`
+                        : ''}
                     </Text>
                   )}
                 </Space>
@@ -274,7 +299,7 @@ export function CustomSettingsPanel() {
                   unCheckedChildren="已关闭"
                   checked={Boolean(billedFeePolicy?.enabled)}
                   loading={savingPolicy}
-                  disabled={!access.canUpdateFinanceBills || loading}
+                  disabled={!canUpdateBilledFeePolicy || loadingPolicy}
                   onChange={handleToggleBilledFeePolicy}
                   style={{ minWidth: 70 }}
                 />
@@ -300,11 +325,13 @@ export function CustomSettingsPanel() {
                   value={billedFeePolicy?.editableFields ?? []}
                   disabled={
                     !billedFeePolicy?.enabled ||
-                    !access.canUpdateFinanceBills ||
+                    !canUpdateBilledFeePolicy ||
                     savingPolicy ||
-                    loading
+                    loadingPolicy
                   }
-                  onChange={(values) => handleChangeEditableFields(values as number[])}
+                  onChange={(values) =>
+                    handleChangeEditableFields(values as number[])
+                  }
                 />
               </div>
             </div>

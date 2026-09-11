@@ -9,6 +9,12 @@ export interface OrderFormTemplateSection {
   content: ReactNode;
 }
 
+/** 模板对外暴露的显式动作；草稿与脏状态生命周期由模板独占管理。 */
+export interface OrderFormTemplateActions<T> {
+  /** 清当前草稿、重置 Form store、可选回填指定值并清除脏状态。 */
+  resetTo: (values?: Partial<T>) => void;
+}
+
 export interface OrderFormTemplateProps<T> {
   /** 主数据加载态；为 true 时渲染加载占位。 */
   loading?: boolean;
@@ -36,4 +42,22 @@ export interface OrderFormTemplateProps<T> {
   resetText?: string;
   /** 底部额外操作栏插槽 */
   footer?: ReactNode;
+  /** 稳定菜单页签 Key；只有显式提供时才注册页签关闭守卫。 */
+  tabKey?: string;
+  /** 规范化的业务路径，作为草稿键的一部分；缺少任一草稿身份输入时不读写持久草稿。 */
+  draftPathname?: string;
+  /** 用户与组织组成的草稿命名空间；缺失时不持久化草稿。 */
+  draftScope?: string;
+  /** 接收模板显式动作（如 resetTo）的外部引用。 */
+  actionsRef?: React.MutableRefObject<OrderFormTemplateActions<T> | undefined>;
+  /** 是否启用页签关闭拦截提示，默认为 true */
+  enableCloseGuard?: boolean;
+  /** 自定义关闭提示文案，默认："修改的信息尚未保存，您确定要离开吗？" */
+  closeGuardMessage?: string;
+  /** 表单值变动回调 */
+  onValuesChange?: (changedValues: any, allValues: T) => void;
+  /** 表单重置回调 */
+  onReset?: () => void;
+  /** 是否显示右侧楼层导航与错误定位微标，默认为 true */
+  showAnchorNav?: boolean;
 }

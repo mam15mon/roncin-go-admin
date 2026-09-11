@@ -49,31 +49,18 @@ func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Or
 	return nil
 }
 
-func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) {
-	if id == uuid.Nil {
+// FindAuthorized 在仓储查询中同时限制订单 ID、业务类型和组织范围，供传输鉴权
+// 定位订单锚点使用。它不加载详情扩展数据，避免鉴权路径扩大查询范围。
+func (uc *OrderUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []OrderOrganizationScope) (*Order, error) {
+	if id == uuid.Nil || !validOrderOrganizationScopes(scopes) {
 		return nil, ErrOrderNotFound
 	}
-	order, err := uc.repo.Find(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, order.OrganizationID, order); err != nil {
-		return nil, err
-	}
-	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, order.OrganizationID, order); err != nil {
-		return nil, err
-	}
-	return order, nil
+	return uc.repo.FindAuthorized(ctx, id, scopes)
 }
 
-func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
-	if len(organizationIDs) == 0 || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
+func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScope, options OrderListOptions) (*OrderList, error) {
+	if !validOrderOrganizationScopes(scopes) || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
 		return nil, ErrOrderInvalidArgument
-	}
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return nil, ErrOrderInvalidArgument
-		}
 	}
 	for _, businessType := range options.BusinessTypes {
 		if !businessType.Valid() {
@@ -93,14 +80,14 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	result, err := uc.repo.List(ctx, organizationIDs, options)
+	result, err := uc.repo.List(ctx, scopes, options)
 	if err != nil {
 		return nil, err
 	}
 	if err := attachOrderTags(ctx, uc.tagRepo, result.Items...); err != nil {
 		return nil, err
 	}
-	for _, organizationID := range organizationIDs {
+	for _, organizationID := range orderOrganizationIDs(scopes) {
 		organizationOrders := make([]*Order, 0, len(result.Items))
 		for _, order := range result.Items {
 			if order.OrganizationID == organizationID {
@@ -115,6 +102,33 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 		}
 	}
 	return result, nil
+}
+
+func validOrderOrganizationScopes(scopes []OrderOrganizationScope) bool {
+	if len(scopes) == 0 {
+		return false
+	}
+	for _, scope := range scopes {
+		if !scope.BusinessType.Valid() || len(scope.OrganizationIDs) == 0 {
+			return false
+		}
+		for _, organizationID := range scope.OrganizationIDs {
+			if organizationID == uuid.Nil {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func orderOrganizationIDs(scopes []OrderOrganizationScope) []uuid.UUID {
+	unique := make(map[uuid.UUID]struct{})
+	for _, scope := range scopes {
+		for _, organizationID := range scope.OrganizationIDs {
+			unique[organizationID] = struct{}{}
+		}
+	}
+	return sortedOrganizationIDs(unique)
 }
 
 func attachSeaMasterBillSummaries(ctx context.Context, repo SeaMasterBillRepo, organizationID uuid.UUID, orders ...*Order) error {
@@ -186,15 +200,22 @@ func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organiza
 	return uc.repo.ListConsolidationSummaries(ctx, organizationID, orderID)
 }
 
-func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
-	if organizationID == uuid.Nil || issuerPartnerID == uuid.Nil {
+func (uc *OrderUsecase) ListSameBatchOrders(ctx context.Context, organizationID, orderID uuid.UUID) ([]*SameBatchOrderSummary, error) {
+	if organizationID == uuid.Nil || orderID == uuid.Nil {
+		return nil, ErrOrderInvalidArgument
+	}
+	return uc.repo.ListSameBatchOrders(ctx, organizationID, orderID)
+}
+
+func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
+	if organizationID == uuid.Nil || shippingLineID == uuid.Nil {
 		return nil, ErrSeaMasterBillInvalidArgument
 	}
 	normalizedNo, err := ValidateAndNormalizeSeaMasterNo(masterNo)
 	if err != nil {
 		return nil, err
 	}
-	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, issuerPartnerID, normalizedNo, voyage)
+	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, shippingLineID, normalizedNo, voyage)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
@@ -267,7 +288,7 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 }
 
 func normalizeOrder(input *Order, creating bool) (*Order, error) {
-	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || !input.TradeTerm.Valid() || !input.PaymentTerm.Valid() {
+	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || (input.TradeTerm != "" && !input.TradeTerm.Valid()) || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
 	if input.BusinessType != OrderBusinessSE || input.TradeDirection != OrderTradeExport {
@@ -287,7 +308,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.HazardClass = strings.TrimSpace(output.HazardClass)
 	output.FactoryName = strings.TrimSpace(output.FactoryName)
 	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
-	output.LoadingTerms = strings.TrimSpace(output.LoadingTerms)
 	output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
 	output.ReceivedAt = strings.TrimSpace(output.ReceivedAt)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
@@ -301,6 +321,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.TotalPackageUnit = strings.TrimSpace(output.TotalPackageUnit)
 	output.SpecialRequirements = strings.TrimSpace(output.SpecialRequirements)
 	output.OrderDate = strings.TrimSpace(output.OrderDate)
+	output.BookingNo = strings.TrimSpace(output.BookingNo)
 	output.Notes = strings.TrimSpace(output.Notes)
 	output.BookingNotes = strings.TrimSpace(output.BookingNotes)
 	output.AllocationNotes = strings.TrimSpace(output.AllocationNotes)
@@ -308,7 +329,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.BookingNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
@@ -378,31 +399,40 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, err
 	}
 	if output.BusinessType == OrderBusinessSE {
-		if creating {
-			if output.SeaMasterBillInput == nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
-			}
+		if output.ShippingLineID == nil || *output.ShippingLineID == uuid.Nil {
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择船公司")
+		}
+		contentOnlyUpdate := !creating && output.SeaMasterBillInput == nil &&
+			output.SeaDocumentInput != nil && output.SeaDocumentInput.MasterBillContent != nil
+		if output.SeaMasterBillInput == nil && !contentOnlyUpdate {
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
+		}
+		if output.SeaMasterBillInput != nil {
+			masterBillInput := *output.SeaMasterBillInput
+			output.SeaMasterBillInput = &masterBillInput
 			normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
 			if err != nil {
 				return nil, err
 			}
-			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择主单签发方")
-			}
 			output.SeaMasterBillInput.MasterNo = normalizedMasterNo
-		} else if output.SeaMasterBillInput != nil {
-			if output.SeaMasterBillInput.MasterNo != "" {
-				normalizedMasterNo, err := ValidateAndNormalizeSeaMasterNo(output.SeaMasterBillInput.MasterNo)
-				if err != nil {
-					return nil, err
+			if creating {
+				candidateIDSet := output.SeaMasterBillInput.CandidateID != nil && *output.SeaMasterBillInput.CandidateID != uuid.Nil
+				candidateTEProvided := output.SeaMasterBillInput.CandidateTEID != nil
+				candidateTEIDSet := candidateTEProvided && *output.SeaMasterBillInput.CandidateTEID != uuid.Nil
+				if candidateIDSet {
+					if output.SeaMasterBillInput.ExpectedCandidateVersion == nil || *output.SeaMasterBillInput.ExpectedCandidateVersion == 0 ||
+						!candidateTEIDSet || output.SeaMasterBillInput.ExpectedCandidateTEVersion == nil || *output.SeaMasterBillInput.ExpectedCandidateTEVersion == 0 {
+						return nil, ErrSeaMasterBillInvalidArgument
+					}
+				} else if output.SeaMasterBillInput.ExpectedCandidateVersion != nil || candidateTEProvided || output.SeaMasterBillInput.ExpectedCandidateTEVersion != nil {
+					return nil, ErrSeaMasterBillInvalidArgument
 				}
-				output.SeaMasterBillInput.MasterNo = normalizedMasterNo
-			}
-			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
-				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "主单签发方不能为空")
 			}
 		}
 
+		if creating && output.SeaDocumentInput == nil {
+			return nil, ErrSeaDocumentStructureInvalid
+		}
 		if output.SeaDocumentInput != nil {
 			validatedDoc, err := ValidateSeaOrderDocumentInput(output.SeaDocumentInput, creating)
 			if err != nil {

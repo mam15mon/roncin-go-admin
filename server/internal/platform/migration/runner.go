@@ -17,18 +17,18 @@ const advisoryLockKey int64 = 7_266_246_125_832_581_107
 
 var migrationNamePattern = regexp.MustCompile(`^\d{14}_[a-z0-9_]+\.sql$`)
 
-// compatibleChecksums 仅登记经过审阅的历史迁移修复。修复后的文件用于新环境，
-// 已执行旧版本的环境仍可继续前进；未登记的任何校验和差异仍然立即失败。
-var compatibleChecksums = map[string]map[string]struct{}{
-	"20260824043000_global_exchange_rates": {
-		"d50b2a09d9b4d640285f3abb43d2d9ed05e7c701a1296363b7ab3c333cc6617c": {},
-	},
-	"20260826150000_order_fee_finance_foundation": {
-		"eec00e191b2ff7429c7469316f2b2cbc3cd77f7c98ecb2fb6373b53c4c96989a": {},
-	},
-	"20260829003000_dingtalk_user_authorized_notification": {
-		"ae50fc1578484e1ba96f67fcaee9b088fc2e0d1e579f4fe2088c35ff8aedbd1c": {},
-	},
+// Options 控制迁移执行行为。
+type Options struct {
+	// AllowChecksumRepair 允许把已执行迁移的记录校验和重录为当前文件校验和。
+	// 仅用于开发环境自愈：迁移文件在应用到本地库之后又被修改时，重录记录即可
+	// 继续前进。生产迁移（pnpm run migrate:server）不开启该选项，差异仍立即
+	// 失败。重录只更新迁移记录，不会补执行文件修改对应的 DDL。
+	AllowChecksumRepair bool
+	// PostStep 在迁移锁释放前执行，用于保证依赖最新 Schema 的发版必要步骤
+	// 不会与其他迁移进程并发。
+	PostStep func(*sql.Conn) error
+	// ChecksumRepaired 在每次重录校验和后回调，供调用方输出提示。
+	ChecksumRepaired func(version, oldChecksum, newChecksum string)
 }
 
 type file struct {
@@ -40,12 +40,17 @@ type file struct {
 
 // Apply 校验并顺序执行尚未应用的 PostgreSQL 迁移。
 func Apply(ctx context.Context, db *sql.DB, dir string) error {
-	return ApplyWithPostStep(ctx, db, dir, nil)
+	return ApplyWithOptions(ctx, db, dir, Options{})
 }
 
 // ApplyWithPostStep 在迁移锁释放前执行 postStep，用于保证依赖最新 Schema 的发版
 // 必要步骤不会与其他迁移进程并发。
 func ApplyWithPostStep(ctx context.Context, db *sql.DB, dir string, postStep func(*sql.Conn) error) error {
+	return ApplyWithOptions(ctx, db, dir, Options{PostStep: postStep})
+}
+
+// ApplyWithOptions 按选项校验并顺序执行尚未应用的 PostgreSQL 迁移。
+func ApplyWithOptions(ctx context.Context, db *sql.DB, dir string, opts Options) error {
 	files, err := readFiles(dir)
 	if err != nil {
 		return err
@@ -72,13 +77,19 @@ func ApplyWithPostStep(ctx context.Context, db *sql.DB, dir string, postStep fun
 		local[migration.version] = migration
 	}
 	latestApplied := ""
-	for version, checksum := range applied {
+	for _, version := range sortedVersions(applied) {
+		checksum := applied[version]
 		migration, ok := local[version]
 		if !ok {
 			return fmt.Errorf("数据库中存在本地缺失的迁移版本 %s", version)
 		}
-		if checksum != migration.checksum && !isCompatibleChecksum(version, checksum) {
-			return fmt.Errorf("迁移 %s 已执行但校验和不一致", migration.name)
+		if checksum != migration.checksum {
+			if !opts.AllowChecksumRepair {
+				return fmt.Errorf("迁移 %s 已执行但校验和不一致，开发环境可运行 pnpm run migrate:dev 重录校验和后继续", migration.name)
+			}
+			if err := repairChecksum(ctx, conn, migration, checksum, opts); err != nil {
+				return err
+			}
 		}
 		if version > latestApplied {
 			latestApplied = version
@@ -95,21 +106,42 @@ func ApplyWithPostStep(ctx context.Context, db *sql.DB, dir string, postStep fun
 			return err
 		}
 	}
-	if postStep != nil {
-		if err := postStep(conn); err != nil {
+	if opts.PostStep != nil {
+		if err := opts.PostStep(conn); err != nil {
 			return fmt.Errorf("执行迁移后步骤: %w", err)
 		}
 	}
 	return nil
 }
 
-func isCompatibleChecksum(version, checksum string) bool {
-	checksums, ok := compatibleChecksums[version]
-	if !ok {
-		return false
+func sortedVersions(applied map[string]string) []string {
+	versions := make([]string, 0, len(applied))
+	for version := range applied {
+		versions = append(versions, version)
 	}
-	_, ok = checksums[checksum]
-	return ok
+	sort.Strings(versions)
+	return versions
+}
+
+func repairChecksum(ctx context.Context, conn *sql.Conn, migration file, oldChecksum string, opts Options) error {
+	result, err := conn.ExecContext(ctx,
+		`UPDATE "schema_migrations" SET "checksum" = $1 WHERE "version" = $2 AND "checksum" = $3`,
+		migration.checksum, migration.version, oldChecksum,
+	)
+	if err != nil {
+		return fmt.Errorf("重录迁移 %s 校验和: %w", migration.name, err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("确认重录迁移 %s 校验和: %w", migration.name, err)
+	}
+	if affected == 0 {
+		return fmt.Errorf("重录迁移 %s 校验和失败：迁移记录已被并发修改", migration.name)
+	}
+	if opts.ChecksumRepaired != nil {
+		opts.ChecksumRepaired(migration.version, oldChecksum, migration.checksum)
+	}
+	return nil
 }
 
 func readFiles(dir string) ([]file, error) {

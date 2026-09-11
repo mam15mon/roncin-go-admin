@@ -11,13 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -66,15 +66,9 @@ func (_c *SeaMasterBillVersionCreate) SetSourceEntityVersion(v uint64) *SeaMaste
 	return _c
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (_c *SeaMasterBillVersionCreate) SetIssuerPartnerID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetIssuerPartnerID(v)
-	return _c
-}
-
-// SetTransportExecutionID sets the "transport_execution_id" field.
-func (_c *SeaMasterBillVersionCreate) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetTransportExecutionID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_c *SeaMasterBillVersionCreate) SetShippingLineID(v uuid.UUID) *SeaMasterBillVersionCreate {
+	_c.mutation.SetShippingLineID(v)
 	return _c
 }
 
@@ -93,160 +87,6 @@ func (_c *SeaMasterBillVersionCreate) SetNormalizedMasterNo(v string) *SeaMaster
 // SetStatus sets the "status" field.
 func (_c *SeaMasterBillVersionCreate) SetStatus(v seamasterbillversion.Status) *SeaMasterBillVersionCreate {
 	_c.mutation.SetStatus(v)
-	return _c
-}
-
-// SetVesselVoyageSnapshot sets the "vessel_voyage_snapshot" field.
-func (_c *SeaMasterBillVersionCreate) SetVesselVoyageSnapshot(v string) *SeaMasterBillVersionCreate {
-	_c.mutation.SetVesselVoyageSnapshot(v)
-	return _c
-}
-
-// SetNillableVesselVoyageSnapshot sets the "vessel_voyage_snapshot" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableVesselVoyageSnapshot(v *string) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetVesselVoyageSnapshot(*v)
-	}
-	return _c
-}
-
-// SetEtdSnapshot sets the "etd_snapshot" field.
-func (_c *SeaMasterBillVersionCreate) SetEtdSnapshot(v string) *SeaMasterBillVersionCreate {
-	_c.mutation.SetEtdSnapshot(v)
-	return _c
-}
-
-// SetNillableEtdSnapshot sets the "etd_snapshot" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableEtdSnapshot(v *string) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetEtdSnapshot(*v)
-	}
-	return _c
-}
-
-// SetEtaSnapshot sets the "eta_snapshot" field.
-func (_c *SeaMasterBillVersionCreate) SetEtaSnapshot(v string) *SeaMasterBillVersionCreate {
-	_c.mutation.SetEtaSnapshot(v)
-	return _c
-}
-
-// SetNillableEtaSnapshot sets the "eta_snapshot" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableEtaSnapshot(v *string) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetEtaSnapshot(*v)
-	}
-	return _c
-}
-
-// SetCarrierID sets the "carrier_id" field.
-func (_c *SeaMasterBillVersionCreate) SetCarrierID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetCarrierID(v)
-	return _c
-}
-
-// SetNillableCarrierID sets the "carrier_id" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableCarrierID(v *uuid.UUID) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetCarrierID(*v)
-	}
-	return _c
-}
-
-// SetOriginLocationID sets the "origin_location_id" field.
-func (_c *SeaMasterBillVersionCreate) SetOriginLocationID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetOriginLocationID(v)
-	return _c
-}
-
-// SetNillableOriginLocationID sets the "origin_location_id" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableOriginLocationID(v *uuid.UUID) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetOriginLocationID(*v)
-	}
-	return _c
-}
-
-// SetDischargeLocationID sets the "discharge_location_id" field.
-func (_c *SeaMasterBillVersionCreate) SetDischargeLocationID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetDischargeLocationID(v)
-	return _c
-}
-
-// SetNillableDischargeLocationID sets the "discharge_location_id" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableDischargeLocationID(v *uuid.UUID) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetDischargeLocationID(*v)
-	}
-	return _c
-}
-
-// SetTransitLocationID sets the "transit_location_id" field.
-func (_c *SeaMasterBillVersionCreate) SetTransitLocationID(v uuid.UUID) *SeaMasterBillVersionCreate {
-	_c.mutation.SetTransitLocationID(v)
-	return _c
-}
-
-// SetNillableTransitLocationID sets the "transit_location_id" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableTransitLocationID(v *uuid.UUID) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetTransitLocationID(*v)
-	}
-	return _c
-}
-
-// SetVesselName sets the "vessel_name" field.
-func (_c *SeaMasterBillVersionCreate) SetVesselName(v string) *SeaMasterBillVersionCreate {
-	_c.mutation.SetVesselName(v)
-	return _c
-}
-
-// SetNillableVesselName sets the "vessel_name" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableVesselName(v *string) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetVesselName(*v)
-	}
-	return _c
-}
-
-// SetVoyageNo sets the "voyage_no" field.
-func (_c *SeaMasterBillVersionCreate) SetVoyageNo(v string) *SeaMasterBillVersionCreate {
-	_c.mutation.SetVoyageNo(v)
-	return _c
-}
-
-// SetNillableVoyageNo sets the "voyage_no" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableVoyageNo(v *string) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetVoyageNo(*v)
-	}
-	return _c
-}
-
-// SetEtd sets the "etd" field.
-func (_c *SeaMasterBillVersionCreate) SetEtd(v time.Time) *SeaMasterBillVersionCreate {
-	_c.mutation.SetEtd(v)
-	return _c
-}
-
-// SetNillableEtd sets the "etd" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableEtd(v *time.Time) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetEtd(*v)
-	}
-	return _c
-}
-
-// SetEta sets the "eta" field.
-func (_c *SeaMasterBillVersionCreate) SetEta(v time.Time) *SeaMasterBillVersionCreate {
-	_c.mutation.SetEta(v)
-	return _c
-}
-
-// SetNillableEta sets the "eta" field if the given value is not nil.
-func (_c *SeaMasterBillVersionCreate) SetNillableEta(v *time.Time) *SeaMasterBillVersionCreate {
-	if v != nil {
-		_c.SetEta(*v)
-	}
 	return _c
 }
 
@@ -314,6 +154,62 @@ func (_c *SeaMasterBillVersionCreate) SetRequestFingerprint(v string) *SeaMaster
 func (_c *SeaMasterBillVersionCreate) SetNillableRequestFingerprint(v *string) *SeaMasterBillVersionCreate {
 	if v != nil {
 		_c.SetRequestFingerprint(*v)
+	}
+	return _c
+}
+
+// SetConfirmedByParty sets the "confirmed_by_party" field.
+func (_c *SeaMasterBillVersionCreate) SetConfirmedByParty(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetConfirmedByParty(v)
+	return _c
+}
+
+// SetNillableConfirmedByParty sets the "confirmed_by_party" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableConfirmedByParty(v *string) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmedByParty(*v)
+	}
+	return _c
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (_c *SeaMasterBillVersionCreate) SetConfirmedAt(v time.Time) *SeaMasterBillVersionCreate {
+	_c.mutation.SetConfirmedAt(v)
+	return _c
+}
+
+// SetNillableConfirmedAt sets the "confirmed_at" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableConfirmedAt(v *time.Time) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmedAt(*v)
+	}
+	return _c
+}
+
+// SetConfirmationNote sets the "confirmation_note" field.
+func (_c *SeaMasterBillVersionCreate) SetConfirmationNote(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetConfirmationNote(v)
+	return _c
+}
+
+// SetNillableConfirmationNote sets the "confirmation_note" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableConfirmationNote(v *string) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmationNote(*v)
+	}
+	return _c
+}
+
+// SetConfirmationAttachmentID sets the "confirmation_attachment_id" field.
+func (_c *SeaMasterBillVersionCreate) SetConfirmationAttachmentID(v uuid.UUID) *SeaMasterBillVersionCreate {
+	_c.mutation.SetConfirmationAttachmentID(v)
+	return _c
+}
+
+// SetNillableConfirmationAttachmentID sets the "confirmation_attachment_id" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableConfirmationAttachmentID(v *uuid.UUID) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetConfirmationAttachmentID(*v)
 	}
 	return _c
 }
@@ -552,14 +448,9 @@ func (_c *SeaMasterBillVersionCreate) SetMasterBill(v *SeaMasterBill) *SeaMaster
 	return _c.SetMasterBillID(v.ID)
 }
 
-// SetIssuerPartner sets the "issuer_partner" edge to the Partner entity.
-func (_c *SeaMasterBillVersionCreate) SetIssuerPartner(v *Partner) *SeaMasterBillVersionCreate {
-	return _c.SetIssuerPartnerID(v.ID)
-}
-
-// SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
-func (_c *SeaMasterBillVersionCreate) SetTransportExecution(v *SeaTransportExecution) *SeaMasterBillVersionCreate {
-	return _c.SetTransportExecutionID(v.ID)
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_c *SeaMasterBillVersionCreate) SetShippingLine(v *ShippingLine) *SeaMasterBillVersionCreate {
+	return _c.SetShippingLineID(v.ID)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -579,6 +470,11 @@ func (_c *SeaMasterBillVersionCreate) SetNillableCreatorID(id *uuid.UUID) *SeaMa
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *SeaMasterBillVersionCreate) SetCreator(v *User) *SeaMasterBillVersionCreate {
 	return _c.SetCreatorID(v.ID)
+}
+
+// SetConfirmationAttachment sets the "confirmation_attachment" edge to the OrderAttachment entity.
+func (_c *SeaMasterBillVersionCreate) SetConfirmationAttachment(v *OrderAttachment) *SeaMasterBillVersionCreate {
+	return _c.SetConfirmationAttachmentID(v.ID)
 }
 
 // AddLockRecordIDs adds the "lock_records" edge to the OrderLockRecord entity by IDs.
@@ -665,14 +561,6 @@ func (_c *SeaMasterBillVersionCreate) defaults() {
 		v := seamasterbillversion.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
-	if _, ok := _c.mutation.VesselName(); !ok {
-		v := seamasterbillversion.DefaultVesselName
-		_c.mutation.SetVesselName(v)
-	}
-	if _, ok := _c.mutation.VoyageNo(); !ok {
-		v := seamasterbillversion.DefaultVoyageNo
-		_c.mutation.SetVoyageNo(v)
-	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := seamasterbillversion.DefaultID()
 		_c.mutation.SetID(v)
@@ -696,11 +584,8 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if _, ok := _c.mutation.SourceEntityVersion(); !ok {
 		return &ValidationError{Name: "source_entity_version", err: errors.New(`ent: missing required field "SeaMasterBillVersion.source_entity_version"`)}
 	}
-	if _, ok := _c.mutation.IssuerPartnerID(); !ok {
-		return &ValidationError{Name: "issuer_partner_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.issuer_partner_id"`)}
-	}
-	if _, ok := _c.mutation.TransportExecutionID(); !ok {
-		return &ValidationError{Name: "transport_execution_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.transport_execution_id"`)}
+	if _, ok := _c.mutation.ShippingLineID(); !ok {
+		return &ValidationError{Name: "shipping_line_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.shipping_line_id"`)}
 	}
 	if _, ok := _c.mutation.MasterNo(); !ok {
 		return &ValidationError{Name: "master_no", err: errors.New(`ent: missing required field "SeaMasterBillVersion.master_no"`)}
@@ -724,37 +609,6 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if v, ok := _c.mutation.Status(); ok {
 		if err := seamasterbillversion.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.status": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.VesselVoyageSnapshot(); ok {
-		if err := seamasterbillversion.VesselVoyageSnapshotValidator(v); err != nil {
-			return &ValidationError{Name: "vessel_voyage_snapshot", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.vessel_voyage_snapshot": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.EtdSnapshot(); ok {
-		if err := seamasterbillversion.EtdSnapshotValidator(v); err != nil {
-			return &ValidationError{Name: "etd_snapshot", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.etd_snapshot": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.EtaSnapshot(); ok {
-		if err := seamasterbillversion.EtaSnapshotValidator(v); err != nil {
-			return &ValidationError{Name: "eta_snapshot", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.eta_snapshot": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.VesselName(); !ok {
-		return &ValidationError{Name: "vessel_name", err: errors.New(`ent: missing required field "SeaMasterBillVersion.vessel_name"`)}
-	}
-	if v, ok := _c.mutation.VesselName(); ok {
-		if err := seamasterbillversion.VesselNameValidator(v); err != nil {
-			return &ValidationError{Name: "vessel_name", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.vessel_name": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.VoyageNo(); !ok {
-		return &ValidationError{Name: "voyage_no", err: errors.New(`ent: missing required field "SeaMasterBillVersion.voyage_no"`)}
-	}
-	if v, ok := _c.mutation.VoyageNo(); ok {
-		if err := seamasterbillversion.VoyageNoValidator(v); err != nil {
-			return &ValidationError{Name: "voyage_no", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.voyage_no": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.ContentHash(); !ok {
@@ -786,6 +640,16 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if v, ok := _c.mutation.RequestFingerprint(); ok {
 		if err := seamasterbillversion.RequestFingerprintValidator(v); err != nil {
 			return &ValidationError{Name: "request_fingerprint", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.request_fingerprint": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ConfirmedByParty(); ok {
+		if err := seamasterbillversion.ConfirmedByPartyValidator(v); err != nil {
+			return &ValidationError{Name: "confirmed_by_party", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.confirmed_by_party": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ConfirmationNote(); ok {
+		if err := seamasterbillversion.ConfirmationNoteValidator(v); err != nil {
+			return &ValidationError{Name: "confirmation_note", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.confirmation_note": %w`, err)}
 		}
 	}
 	if v, ok := _c.mutation.PackageCount(); ok {
@@ -834,11 +698,8 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if len(_c.mutation.MasterBillIDs()) == 0 {
 		return &ValidationError{Name: "master_bill", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.master_bill"`)}
 	}
-	if len(_c.mutation.IssuerPartnerIDs()) == 0 {
-		return &ValidationError{Name: "issuer_partner", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.issuer_partner"`)}
-	}
-	if len(_c.mutation.TransportExecutionIDs()) == 0 {
-		return &ValidationError{Name: "transport_execution", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.transport_execution"`)}
+	if len(_c.mutation.ShippingLineIDs()) == 0 {
+		return &ValidationError{Name: "shipping_line", err: errors.New(`ent: missing required edge "SeaMasterBillVersion.shipping_line"`)}
 	}
 	return nil
 }
@@ -899,50 +760,6 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_spec.SetField(seamasterbillversion.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
-	if value, ok := _c.mutation.VesselVoyageSnapshot(); ok {
-		_spec.SetField(seamasterbillversion.FieldVesselVoyageSnapshot, field.TypeString, value)
-		_node.VesselVoyageSnapshot = &value
-	}
-	if value, ok := _c.mutation.EtdSnapshot(); ok {
-		_spec.SetField(seamasterbillversion.FieldEtdSnapshot, field.TypeString, value)
-		_node.EtdSnapshot = &value
-	}
-	if value, ok := _c.mutation.EtaSnapshot(); ok {
-		_spec.SetField(seamasterbillversion.FieldEtaSnapshot, field.TypeString, value)
-		_node.EtaSnapshot = &value
-	}
-	if value, ok := _c.mutation.CarrierID(); ok {
-		_spec.SetField(seamasterbillversion.FieldCarrierID, field.TypeUUID, value)
-		_node.CarrierID = &value
-	}
-	if value, ok := _c.mutation.OriginLocationID(); ok {
-		_spec.SetField(seamasterbillversion.FieldOriginLocationID, field.TypeUUID, value)
-		_node.OriginLocationID = &value
-	}
-	if value, ok := _c.mutation.DischargeLocationID(); ok {
-		_spec.SetField(seamasterbillversion.FieldDischargeLocationID, field.TypeUUID, value)
-		_node.DischargeLocationID = &value
-	}
-	if value, ok := _c.mutation.TransitLocationID(); ok {
-		_spec.SetField(seamasterbillversion.FieldTransitLocationID, field.TypeUUID, value)
-		_node.TransitLocationID = &value
-	}
-	if value, ok := _c.mutation.VesselName(); ok {
-		_spec.SetField(seamasterbillversion.FieldVesselName, field.TypeString, value)
-		_node.VesselName = value
-	}
-	if value, ok := _c.mutation.VoyageNo(); ok {
-		_spec.SetField(seamasterbillversion.FieldVoyageNo, field.TypeString, value)
-		_node.VoyageNo = value
-	}
-	if value, ok := _c.mutation.Etd(); ok {
-		_spec.SetField(seamasterbillversion.FieldEtd, field.TypeTime, value)
-		_node.Etd = &value
-	}
-	if value, ok := _c.mutation.Eta(); ok {
-		_spec.SetField(seamasterbillversion.FieldEta, field.TypeTime, value)
-		_node.Eta = &value
-	}
 	if value, ok := _c.mutation.ContentHash(); ok {
 		_spec.SetField(seamasterbillversion.FieldContentHash, field.TypeString, value)
 		_node.ContentHash = value
@@ -962,6 +779,18 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 	if value, ok := _c.mutation.RequestFingerprint(); ok {
 		_spec.SetField(seamasterbillversion.FieldRequestFingerprint, field.TypeString, value)
 		_node.RequestFingerprint = &value
+	}
+	if value, ok := _c.mutation.ConfirmedByParty(); ok {
+		_spec.SetField(seamasterbillversion.FieldConfirmedByParty, field.TypeString, value)
+		_node.ConfirmedByParty = &value
+	}
+	if value, ok := _c.mutation.ConfirmedAt(); ok {
+		_spec.SetField(seamasterbillversion.FieldConfirmedAt, field.TypeTime, value)
+		_node.ConfirmedAt = &value
+	}
+	if value, ok := _c.mutation.ConfirmationNote(); ok {
+		_spec.SetField(seamasterbillversion.FieldConfirmationNote, field.TypeString, value)
+		_node.ConfirmationNote = &value
 	}
 	if value, ok := _c.mutation.ShipperText(); ok {
 		_spec.SetField(seamasterbillversion.FieldShipperText, field.TypeString, value)
@@ -1057,38 +886,21 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_node.MasterBillID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.IssuerPartnerIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ShippingLineIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbillversion.IssuerPartnerTable,
-			Columns: []string{seamasterbillversion.IssuerPartnerColumn},
+			Table:   seamasterbillversion.ShippingLineTable,
+			Columns: []string{seamasterbillversion.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.IssuerPartnerID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.TransportExecutionIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   seamasterbillversion.TransportExecutionTable,
-			Columns: []string{seamasterbillversion.TransportExecutionColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.TransportExecutionID = nodes[0]
+		_node.ShippingLineID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
@@ -1106,6 +918,23 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CreatedBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmationAttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seamasterbillversion.ConfirmationAttachmentTable,
+			Columns: []string{seamasterbillversion.ConfirmationAttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ConfirmationAttachmentID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.LockRecordsIDs(); len(nodes) > 0 {

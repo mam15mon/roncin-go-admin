@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
 	"github.com/google/uuid"
@@ -17,6 +18,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	input, err := orderFromCreateRequest(request)
 	if err != nil {
 		return nil, err
+	}
+	if !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderCreate, true) {
+		return nil, biz.ErrPermissionDenied
 	}
 	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, input)
 	if err != nil {
@@ -111,7 +115,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
-	carrierID, err := parseOptionalUUIDPointer(request.CarrierId)
+	shippingLineID, err := parseOptionalUUIDPointer(request.ShippingLineId)
 	if err != nil {
 		return nil, err
 	}
@@ -164,12 +168,12 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		return nil, err
 	}
 	return &biz.Order{
-		CustomerID: customerID,
-		CarrierID:  carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
-		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
+		CustomerID:     customerID,
+		ShippingLineID: shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
+		CustomerReferenceNo: request.GetCustomerReferenceNo(), BookingNo: request.GetBookingNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
-		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
+		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(),
 		DeclarationCutoffAt: request.GetDeclarationCutoffAt(), ReceivedAt: request.GetReceivedAt(),
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
@@ -209,8 +213,8 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.PaymentTerm != nil {
 		output.PaymentTerm = orderPaymentTermFromAPI(request.GetPaymentTerm())
 	}
-	if request.CarrierId != nil {
-		output.CarrierID, err = parseOptionalUUID(request.GetCarrierId())
+	if request.ShippingLineId != nil {
+		output.ShippingLineID, err = parseOptionalUUID(request.GetShippingLineId())
 		if err != nil {
 			return nil, err
 		}
@@ -235,6 +239,9 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.CustomerReferenceNo != nil {
 		output.CustomerReferenceNo = request.GetCustomerReferenceNo()
+	}
+	if request.BookingNo != nil {
+		output.BookingNo = request.GetBookingNo()
 	}
 	if request.InternalReferenceNo != nil {
 		output.InternalReferenceNo = request.GetInternalReferenceNo()
@@ -265,9 +272,6 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.CargoReadyAt != nil {
 		output.CargoReadyAt = request.GetCargoReadyAt()
-	}
-	if request.LoadingTerms != nil {
-		output.LoadingTerms = request.GetLoadingTerms()
 	}
 	if request.DeclarationCutoffAt != nil {
 		output.DeclarationCutoffAt = request.GetDeclarationCutoffAt()

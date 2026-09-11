@@ -1,16 +1,30 @@
-import { ProForm } from '@ant-design/pro-components';
+import { ProForm, ProFormText } from '@ant-design/pro-components';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { App } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
-import { getSeaTemplateSections } from './sea-template';
-import {
-  splitSeaVesselVoyage,
-  SeaAssociatedHouseBillsField,
-} from './components/sea/SeaTransportSection';
 import { SeaDocumentStructure } from '@/enums.generated';
+import * as orderService from '@/services/roncin/orderService';
+import {
+  SeaAssociatedHouseBillsField,
+  SeaMasterBillFields,
+  splitSeaVesselVoyage,
+} from './components/sea/SeaTransportSection';
+import { getSeaTemplateSections } from './sea-template';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOrder: () => true,
+    canCreatePartners: true,
+  }),
+  useModel: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user-1',
+        currentOrganization: { id: 'org-1', name: '测试组织' },
+      },
+    },
+  }),
 }));
 
 describe('海运订单新增模板', () => {
@@ -29,6 +43,89 @@ describe('海运订单新增模板', () => {
     });
   });
 
+  it('候选匹配使用 ShippingLine 作为唯一船公司身份', async () => {
+    const matchCandidate = vi
+      .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')
+      .mockResolvedValue({ matched: false });
+
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          shippingLineId: 'carrier-1',
+          seaMasterBillMasterNo: 'COSCO123456',
+        }}
+      >
+        <ProFormText name="shippingLineId" hidden />
+        <SeaMasterBillFields />
+      </ProForm>,
+    );
+
+    await waitFor(
+      () => {
+        expect(matchCandidate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            masterNo: 'COSCO123456',
+            shippingLineId: 'carrier-1',
+          }),
+        );
+      },
+      { timeout: 2_000 },
+    );
+  });
+
+  it('共享主单关联多票时回填当前船公司名称并同时禁止修改船公司和 MBL 主单号', async () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      searchLocations: vi.fn().mockResolvedValue([]),
+      currencyOptions: [],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+      isDetail: true,
+    });
+
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          shippingLineId: 'carrier-1',
+          seaMasterBillMasterNo: 'COSCO123456',
+          seaMasterBill: {
+            masterNo: 'COSCO123456',
+            shippingLineId: 'carrier-1',
+            shippingLineName: '中远海运 / COSCO SHIPPING (COSU)',
+            memberCount: 2,
+          },
+        }}
+      >
+        {sections.map((section) => (
+          <div key={section.key}>{section.content}</div>
+        ))}
+      </ProForm>,
+    );
+
+    const carrierItem = screen.getByText('船公司').closest('.ant-form-item');
+    expect(carrierItem?.querySelector('input')).toBeDisabled();
+    await waitFor(() => {
+      expect(
+        screen.getByText('中远海运 / COSCO SHIPPING (COSU)'),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByPlaceholderText('请输入主单号 (仅大写字母与数字)'),
+    ).toBeDisabled();
+  });
+
   it('按配舱、提单、货物顺序生成海运业务区块', () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
@@ -38,7 +135,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [{ label: '20GP', value: 'spec-20gp' }],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -58,20 +155,29 @@ describe('海运订单新增模板', () => {
     ]);
 
     render(
-      <ProForm submitter={false}>
-        {sections.map((section) => (
-          <div key={section.key} data-testid={`section-${section.key}`}>
-            {section.content}
-          </div>
-        ))}
-      </ProForm>,
+      <App>
+        <ProForm submitter={false}>
+          {sections.map((section) => (
+            <div key={section.key} data-testid={`section-${section.key}`}>
+              {section.content}
+            </div>
+          ))}
+        </ProForm>
+      </App>,
     );
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('MBL 主单号');
-    expect(transportSection).toHaveTextContent('实际签发/承运主体');
+    expect(transportSection).not.toHaveTextContent('实际签发/承运主体');
+    expect(transportSection).not.toHaveTextContent('主单签发方');
     expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
-    expect(screen.getByRole('button', { name: /添加首张分单/ })).toBeTruthy();
+    expect(
+      screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('radio', { name: /DIRECT（直接交付 MBL）/ }),
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
     expect(
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),
     ).toBeTruthy();
@@ -79,9 +185,12 @@ describe('海运订单新增模板', () => {
     const cargoSection = screen.getByTestId('section-cargoInfo');
     expect(cargoSection).not.toHaveTextContent('主单号');
     expect(cargoSection).not.toHaveTextContent('分单号');
+
+    const carrierLabel = screen.getByText('船公司').closest('label');
+    expect(carrierLabel).toHaveClass('ant-form-item-required');
   });
 
-  it('从未确定状态添加首张及多张分单', async () => {
+  it('单证模式显式选择：HOUSE 只录入一张 HBL，DIRECT 不携带 HBL', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -90,7 +199,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -101,33 +210,40 @@ describe('海运订单新增模板', () => {
     });
 
     render(
-      <ProForm submitter={false}>
-        {sections.map((section) => (
-          <div key={section.key} data-testid={`section-${section.key}`}>
-            {section.content}
-          </div>
-        ))}
-      </ProForm>,
+      <App>
+        <ProForm submitter={false}>
+          {sections.map((section) => (
+            <div key={section.key} data-testid={`section-${section.key}`}>
+              {section.content}
+            </div>
+          ))}
+        </ProForm>
+      </App>,
     );
 
     expect(screen.queryAllByPlaceholderText('请输入分单号')).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    const addFirstHouseBtn = screen.getByRole('button', {
-      name: /添加首张分单/,
-    });
-    fireEvent.click(addFirstHouseBtn);
+    // 切换为 HOUSE 模式，只录入一张当前 HBL
+    const houseRadio = screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ });
+    fireEvent.click(houseRadio);
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
+      expect(screen.getAllByText('签发主体')).toHaveLength(1);
     });
+    // 不存在添加第二张 HBL 的入口
+    expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    const addHouseBtn = screen.getByRole('button', {
-      name: /添加分单 \(HBL\)/,
+    // 切换为 DIRECT 模式，不携带 HBL
+    const directRadio = screen.getByRole('radio', {
+      name: /DIRECT（直接交付 MBL）/,
     });
-    fireEvent.click(addHouseBtn);
+    fireEvent.click(directRadio);
 
     await waitFor(() => {
-      expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(2);
+      expect(screen.queryAllByPlaceholderText('请输入分单号')).toHaveLength(0);
     });
   }, 30_000);
 
@@ -140,7 +256,7 @@ describe('海运订单新增模板', () => {
       currencyOptions: [],
       containerSpecOptions: [{ label: '40HQ', value: 'spec-40hq' }],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -186,7 +302,7 @@ describe('海运订单新增模板', () => {
       ],
       containerSpecOptions: [],
       searchCustomers: vi.fn().mockResolvedValue([]),
-      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
       searchBookingAgents: vi.fn().mockResolvedValue([]),
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
@@ -199,9 +315,7 @@ describe('海运订单新增模板', () => {
     const basicInfo = sections.find((s) => s.key === 'basicInfo');
     render(
       <ProForm submitter={false}>
-        <div data-testid="section-basicInfo">
-          {basicInfo?.content}
-        </div>
+        <div data-testid="section-basicInfo">{basicInfo?.content}</div>
       </ProForm>,
     );
 
@@ -212,6 +326,42 @@ describe('海运订单新增模板', () => {
     expect(currencySelects.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('基本信息中企业内部编号显示在订舱号之前', () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      searchLocations: vi.fn().mockResolvedValue([]),
+      currencyOptions: [],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchShippingLines: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+    });
+
+    const basicInfo = sections.find((s) => s.key === 'basicInfo');
+    render(
+      <ProForm submitter={false}>
+        <div data-testid="section-basicInfo">{basicInfo?.content}</div>
+      </ProForm>,
+    );
+
+    const internalRefLabel = screen.getByText('企业内部编号');
+    const bookingNoLabel = screen.getByText('订舱号');
+    expect(internalRefLabel).toBeInTheDocument();
+    expect(bookingNoLabel).toBeInTheDocument();
+    expect(
+      internalRefLabel.compareDocumentPosition(bookingNoLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   describe('配舱信息关联分单号只读展示', () => {
     it('尚未建立分单时显示“暂未录入分单号”', () => {
       render(
@@ -219,8 +369,7 @@ describe('海运订单新增模板', () => {
           submitter={false}
           initialValues={{
             seaDocumentStructure:
-              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-            seaHouseBills: [],
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
           }}
         >
           <SeaAssociatedHouseBillsField />
@@ -250,18 +399,14 @@ describe('海运订单新增模板', () => {
       expect(screen.queryByRole('textbox')).toBeNull();
     });
 
-    it('录入多张分单时全部以标签形式展示且不可就地编辑', () => {
+    it('录入当前订单的唯一分单时以标签形式展示且不可就地编辑', () => {
       render(
         <ProForm
           submitter={false}
           initialValues={{
             seaDocumentStructure:
               SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-            seaHouseBills: [
-              { houseNo: 'HBL-001' },
-              { houseNo: 'HBL-002' },
-              { houseNo: 'HBL-003' },
-            ],
+            seaHouseBill: { houseNo: 'HBL-001' },
           }}
         >
           <SeaAssociatedHouseBillsField />
@@ -269,8 +414,6 @@ describe('海运订单新增模板', () => {
       );
 
       expect(screen.getByText('HBL-001')).toBeTruthy();
-      expect(screen.getByText('HBL-002')).toBeTruthy();
-      expect(screen.getByText('HBL-003')).toBeTruthy();
       expect(screen.queryByRole('textbox')).toBeNull();
     });
 
@@ -282,7 +425,7 @@ describe('海运订单新增模板', () => {
             seaDocumentSummary: {
               documentStructure:
                 SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-              houseNos: ['HBL-HIST-1', 'HBL-HIST-2'],
+              houseNo: 'HBL-HIST-1',
             },
           }}
         >
@@ -291,7 +434,6 @@ describe('海运订单新增模板', () => {
       );
 
       expect(screen.getByText('HBL-HIST-1')).toBeTruthy();
-      expect(screen.getByText('HBL-HIST-2')).toBeTruthy();
       expect(screen.queryByRole('textbox')).toBeNull();
     });
   });

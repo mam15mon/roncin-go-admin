@@ -7,6 +7,7 @@ import {
   Col,
   Form,
   Input,
+  Select,
   Space,
   Tag,
   Tooltip,
@@ -18,7 +19,6 @@ import React, { useEffect, useState } from 'react';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
-import { searchPartnerOptions } from '@/utils/options';
 import { containerOwnershipOptions } from '../../../common';
 import {
   OrderContainerRequestFields,
@@ -52,24 +52,25 @@ export function splitSeaVesselVoyage(value?: string) {
 export function SeaMasterBillFields({
   disabled = false,
   isDetail = false,
-  searchIssuers,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
-  searchIssuers?: (keyword?: string) => Promise<SelectOption[]>;
 }) {
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
-  const issuerPartnerId = Form.useWatch('seaMasterBillIssuerPartnerId', form);
   const candidateId = Form.useWatch('seaMasterBillCandidateId', form);
-  const existingMbl = Form.useWatch('seaMasterBill', form) as
+  const candidateTeId = Form.useWatch('seaMasterBillCandidateTeId', form);
+  const existingMbl = Form.useWatch('seaMasterBill', {
+    form,
+    preserve: true,
+  }) as
     | API.SeaMasterBillSummary
     | undefined;
 
   const originLocationId = Form.useWatch('originLocationId', form);
   const dischargeLocationId = Form.useWatch('dischargeLocationId', form);
   const transitLocationId = Form.useWatch('transitLocationId', form);
-  const carrierId = Form.useWatch('carrierId', form);
+  const shippingLineId = Form.useWatch('shippingLineId', form);
   const vesselVoyage = Form.useWatch('vesselVoyage', form);
   const etd = Form.useWatch('etd', form);
   const eta = Form.useWatch('eta', form);
@@ -90,13 +91,13 @@ export function SeaMasterBillFields({
     !!existingMbl &&
     (existingMbl.memberCount ?? 0) <= 1 &&
     ((masterNo && masterNo !== existingMbl.masterNo) ||
-      (issuerPartnerId && issuerPartnerId !== existingMbl.issuerPartnerId));
+      (shippingLineId && shippingLineId !== existingMbl.shippingLineId));
 
   useEffect(() => {
     const rawMasterNo = masterNo || '';
-    const partnerId = issuerPartnerId;
+    const selectedShippingLineId = shippingLineId;
 
-    if (!rawMasterNo || !partnerId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
+    if (!rawMasterNo || !selectedShippingLineId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
       setCandidate(null);
       setConflicts([]);
       setCandidateMatched(false);
@@ -105,12 +106,12 @@ export function SeaMasterBillFields({
       return;
     }
 
-    // 若详情页未变更主单号与签发方，无需展示候选关联
+    // 若详情页未变更主单号与船公司，无需展示候选关联
     if (
       isDetail &&
       existingMbl &&
       existingMbl.masterNo === rawMasterNo &&
-      existingMbl.issuerPartnerId === partnerId
+      existingMbl.shippingLineId === selectedShippingLineId
     ) {
       setCandidate(null);
       setConflicts([]);
@@ -122,6 +123,8 @@ export function SeaMasterBillFields({
 
     const currentMblVersion = isDetail ? existingMbl?.version : undefined;
     form?.setFieldValue('seaMasterBillCandidateId', undefined);
+    form?.setFieldValue('seaMasterBillCandidateTeId', undefined);
+    form?.setFieldValue('seaMasterBillExpectedCandidateTeVersion', undefined);
     form?.setFieldValue(
       'seaMasterBillExpectedCandidateVersion',
       currentMblVersion,
@@ -140,11 +143,10 @@ export function SeaMasterBillFields({
         const { vesselName, voyageNo } = splitSeaVesselVoyage(vesselVoyage);
         const resp = await orderServiceMatchSeaMasterBillCandidate({
           masterNo: rawMasterNo,
-          issuerPartnerId: partnerId,
+          shippingLineId: selectedShippingLineId,
           originLocationId: originLocationId || undefined,
           dischargeLocationId: dischargeLocationId || undefined,
           transitLocationId: transitLocationId || undefined,
-          carrierId: carrierId || undefined,
           vesselName,
           voyageNo,
           etd: etdStr,
@@ -156,6 +158,17 @@ export function SeaMasterBillFields({
           setCandidate(resp.candidate);
           setConflicts(resp.conflicts || []);
           setCandidateMatched(true);
+          const availableExecutions = resp.candidate.transportExecutions ?? [];
+          if (availableExecutions.length === 1) {
+            form?.setFieldValue(
+              'seaMasterBillCandidateTeId',
+              availableExecutions[0].id,
+            );
+            form?.setFieldValue(
+              'seaMasterBillExpectedCandidateTeVersion',
+              availableExecutions[0].version,
+            );
+          }
         } else {
           setCandidate(null);
           setConflicts([]);
@@ -185,11 +198,10 @@ export function SeaMasterBillFields({
     };
   }, [
     masterNo,
-    issuerPartnerId,
     originLocationId,
     dischargeLocationId,
     transitLocationId,
-    carrierId,
+    shippingLineId,
     vesselVoyage,
     etd,
     eta,
@@ -198,7 +210,10 @@ export function SeaMasterBillFields({
     form,
   ]);
 
-  const isConfirmed = !!candidateId;
+  const isConfirmed = !!candidateId && !!candidateTeId;
+  const selectedCandidateTe = candidate?.transportExecutions?.find(
+    (item) => item.id === candidateTeId,
+  );
 
   return (
     <>
@@ -206,6 +221,12 @@ export function SeaMasterBillFields({
         <Input type="hidden" />
       </Form.Item>
       <Form.Item name="seaMasterBillExpectedCandidateVersion" hidden>
+        <Input type="hidden" />
+      </Form.Item>
+      <Form.Item name="seaMasterBillCandidateTeId" hidden>
+        <Input type="hidden" />
+      </Form.Item>
+      <Form.Item name="seaMasterBillExpectedCandidateTeVersion" hidden>
         <Input type="hidden" />
       </Form.Item>
 
@@ -217,7 +238,7 @@ export function SeaMasterBillFields({
           disabled={disabled || isMultiMemberLocked}
           tooltip={
             isMultiMemberLocked
-              ? '该主单已关联多票订单，禁止直接在此修改主单号或签发主体'
+              ? '该主单已关联多票订单，禁止直接在此修改主单号或船公司'
               : undefined
           }
           rules={[
@@ -257,37 +278,16 @@ export function SeaMasterBillFields({
         />
       </Col>
 
-      <Col className="col-5">
-        <ProFormSearchableSelect
-          name="seaMasterBillIssuerPartnerId"
-          label="实际签发/承运主体"
-          placeholder="请选择主单签发方"
-          disabled={disabled || isMultiMemberLocked}
-          tooltip={
-            isMultiMemberLocked
-              ? '该主单已关联多票订单，禁止直接在此修改主单号或签发主体'
-              : undefined
-          }
-          rules={[{ required: true, message: '请选择主单签发/承运主体' }]}
-          request={async ({ keyWords }) => {
-            if (searchIssuers) {
-              return searchIssuers(keyWords);
-            }
-            return searchPartnerOptions(keyWords);
-          }}
-        />
-      </Col>
-
       {isSingleMemberCorrection && (
         <Col className="col-5">
           <ProFormText
             name="seaMasterBillCorrectionReason"
             label="主单更正原因"
-            placeholder="请输入主单号/签发方更正原因"
+            placeholder="请输入主单号/船公司更正原因"
             rules={[
               {
                 required: true,
-                message: '单票修改主单号或签发方必须填写更正原因',
+                message: '单票修改主单号或船公司必须填写更正原因',
               },
             ]}
           />
@@ -316,13 +316,17 @@ export function SeaMasterBillFields({
                 }}
               >
                 <span style={{ fontWeight: 600, color: '#389e0d' }}>
-                  🔍 匹配到已有共享 MBL：{candidate.masterNo} (签发方:{' '}
-                  {candidate.issuerPartnerName} | 版本: v{candidate.version} |
-                  成员: {candidate.memberCount} 票)
+                  🔍 匹配到已有共享 MBL：{candidate.masterNo} (船公司:{' '}
+                  {candidate.shippingLineName || '-'} | 版本: v
+                  {candidate.version} | 成员: {candidate.memberCount} 票)
                 </span>
                 <Checkbox
                   checked={isConfirmed}
-                  disabled={conflicts.length > 0 || isSingleMemberCorrection}
+                  disabled={
+                    conflicts.length > 0 ||
+                    isSingleMemberCorrection ||
+                    !candidateTeId
+                  }
                   onChange={(e) => {
                     if (e.target.checked) {
                       form?.setFieldValue(
@@ -357,24 +361,43 @@ export function SeaMasterBillFields({
                 </Checkbox>
               </div>
 
-              {candidate.transportExecution && (
+              <Select
+                value={candidateTeId}
+                placeholder="请选择本票关联的实际航次"
+                options={(candidate.transportExecutions ?? []).map((te) => ({
+                  value: te.id,
+                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
+                }))}
+                onChange={(value) => {
+                  const te = candidate.transportExecutions?.find(
+                    (item) => item.id === value,
+                  );
+                  form?.setFieldValue('seaMasterBillCandidateTeId', value);
+                  form?.setFieldValue(
+                    'seaMasterBillExpectedCandidateTeVersion',
+                    te?.version,
+                  );
+                }}
+              />
+
+              {selectedCandidateTe && (
                 <div style={{ fontSize: 13, color: '#595959' }}>
                   <span>运输执行：</span>
                   <span>
-                    船名航次: {candidate.transportExecution.vesselName || '-'} /{' '}
-                    {candidate.transportExecution.voyageNo || '-'} |{' '}
+                    船名航次: {selectedCandidateTe.vesselName || '-'} /{' '}
+                    {selectedCandidateTe.voyageNo || '-'} |{' '}
                   </span>
                   <span>
                     起运港:{' '}
-                    {candidate.transportExecution.originLocationName || '-'} |{' '}
+                    {selectedCandidateTe.originLocationName || '-'} |{' '}
                   </span>
                   <span>
                     卸货港:{' '}
-                    {candidate.transportExecution.dischargeLocationName || '-'}{' '}
+                    {selectedCandidateTe.dischargeLocationName || '-'}{' '}
                     |{' '}
                   </span>
-                  <span>ETD: {candidate.transportExecution.etd || '-'} | </span>
-                  <span>ETA: {candidate.transportExecution.eta || '-'}</span>
+                  <span>ETD: {selectedCandidateTe.etd || '-'} | </span>
+                  <span>ETA: {selectedCandidateTe.eta || '-'}</span>
                 </div>
               )}
 
@@ -423,9 +446,9 @@ export function SeaMasterBillFields({
 
 export function SeaAssociatedHouseBillsField() {
   const form = Form.useFormInstance();
-  const watchedHouseBills = (Form.useWatch('seaHouseBills', form) ??
-    form?.getFieldValue('seaHouseBills')) as
-    | Array<{ houseNo?: string }>
+  const watchedHouseBill = (Form.useWatch('seaHouseBill', form) ??
+    form?.getFieldValue('seaHouseBill')) as
+    | { houseNo?: string }
     | undefined;
   const watchedStructure = (Form.useWatch('seaDocumentStructure', form) ??
     form?.getFieldValue('seaDocumentStructure')) as
@@ -436,23 +459,8 @@ export function SeaAssociatedHouseBillsField() {
     | API.SeaOrderDocumentSummary
     | undefined;
 
-  let houseNos: string[] = [];
-  if (
-    watchedHouseBills &&
-    Array.isArray(watchedHouseBills) &&
-    watchedHouseBills.length > 0
-  ) {
-    houseNos = watchedHouseBills
-      .map((hb) => hb?.houseNo?.trim())
-      .filter((no): no is string => !!no);
-  } else if (
-    watchedDocSummary?.houseNos &&
-    watchedDocSummary.houseNos.length > 0
-  ) {
-    houseNos = watchedDocSummary.houseNos
-      .map((no) => no?.trim())
-      .filter((no): no is string => !!no);
-  }
+  const houseNo =
+    watchedHouseBill?.houseNo?.trim() || watchedDocSummary?.houseNo?.trim();
 
   const structure = watchedStructure ?? watchedDocSummary?.documentStructure;
   const isDirect =
@@ -481,12 +489,10 @@ export function SeaAssociatedHouseBillsField() {
             <Tag color="success" style={{ margin: 0 }}>
               直单，无HBL
             </Tag>
-          ) : houseNos.length > 0 ? (
-            houseNos.map((hblNo) => (
-              <Tag key={hblNo} color="processing" style={{ margin: 0 }}>
-                {hblNo}
-              </Tag>
-            ))
+          ) : houseNo ? (
+            <Tag color="processing" style={{ margin: 0 }}>
+              {houseNo}
+            </Tag>
           ) : (
             <Typography.Text type="secondary" style={{ fontSize: 13 }}>
               暂未录入分单号
@@ -609,7 +615,6 @@ export function buildSeaTransportSection(props: TemplateProps) {
     locationOptions,
     searchLocations,
     containerSpecOptions,
-    searchIssuers,
     isDetail,
   } = props;
 
@@ -618,11 +623,8 @@ export function buildSeaTransportSection(props: TemplateProps) {
     title: '配舱信息',
     content: (
       <>
-        {/* 第 1 行：海运出口共享 MBL 主单号与实际签发主体 */}
-        <SeaMasterBillFields
-          isDetail={isDetail}
-          searchIssuers={searchIssuers}
-        />
+        {/* 第 1 行：海运出口共享 MBL 主单号；签发方由船公司自动派生 */}
+        <SeaMasterBillFields isDetail={isDetail} />
 
         {/* 第 2 行：箱型箱量；HBL 只在独立“提单信息”区块维护 */}
         <SeaContainerPlanFields options={containerSpecOptions} />

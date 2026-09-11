@@ -1,100 +1,203 @@
-import { PlusOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import {
-  AutoComplete,
-  Button,
+  Alert,
   Card,
   Col,
   DatePicker,
-  Divider,
+  Descriptions,
   Form,
   Input,
   InputNumber,
   Row,
+  Select,
   Space,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd';
-import React from 'react';
+import type { NamePath } from 'antd/es/form/interface';
+import React, { useEffect, useRef, useState } from 'react';
+import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
+import { unwrapList } from '@/utils/api';
+import { getCurrencyOptions, type SelectOption } from '@/utils/options';
 
 const { Text } = Typography;
 
 type BillGroupCardProps = {
   group: API.BillBatchPreviewGroup;
-  index: number;
-  invoiceProfilesMap: Record<string, API.PartnerInvoiceProfile[]>;
+  organizationId: string;
+  sessionIdentity: string;
   feeColumns: ProColumns<API.FeeLedgerItem>[];
   directionText: (dir?: string) => string;
-  onOpenQuickAddProfile: (
-    index: number,
-    partnerId?: string,
-    partnerName?: string,
-  ) => void;
+  onConfigurationChange: () => void;
 };
+
+type SettlementAccountSelectProps = Pick<
+  BillGroupCardProps,
+  'group' | 'organizationId' | 'sessionIdentity' | 'onConfigurationChange'
+>;
+
+function settlementAccountLabel(account: API.FinanceSettlementAccountOption) {
+  const identity = account.name || account.accountHolder || '未命名账户';
+  const bank = account.bankName || '-';
+  const suffix = account.accountNo ? ` · ${account.accountNo}` : '';
+  return `${identity}｜${bank}${suffix}｜${account.currency || '-'}`;
+}
+
+/** 每个叶子以完整身份和单调序号隔离候选，旧请求不能回填新叶子。 */
+function SettlementAccountSelect({
+  group,
+  organizationId,
+  sessionIdentity,
+  onConfigurationChange,
+}: SettlementAccountSelectProps) {
+  const form = Form.useFormInstance();
+  const [loaded, setLoaded] = useState<{
+    identity: string;
+    options: API.FinanceSettlementAccountOption[];
+  }>();
+  const [loading, setLoading] = useState(false);
+  const requestSequenceRef = useRef(0);
+  const groupKey = group.groupKey || '';
+  const finalCurrency = group.currency || '';
+  const groupField = (field: 'settlementAccountId'): NamePath => [
+    'groups',
+    groupKey,
+    field,
+  ];
+  const identity = [
+    sessionIdentity,
+    organizationId,
+    groupKey,
+    group.settlementPartyId || '',
+    group.direction || '',
+    finalCurrency || '',
+  ].join(':');
+  const visibleOptions = loaded?.identity === identity ? loaded.options : [];
+
+  useEffect(() => {
+    const requestSequence = ++requestSequenceRef.current;
+    const requestIdentity = identity;
+    setLoaded(undefined);
+    if (
+      !organizationId ||
+      !groupKey ||
+      !group.settlementPartyId ||
+      !group.direction ||
+      !finalCurrency
+    ) {
+      setLoading(false);
+      return undefined;
+    }
+    setLoading(true);
+    void settlementServiceListBillSettlementAccountCandidates({
+      organizationId,
+      settlementPartyId: group.settlementPartyId,
+      direction: group.direction,
+      currency: finalCurrency,
+    })
+      .then((response) => {
+        if (
+          requestSequence !== requestSequenceRef.current ||
+          requestIdentity !== identity
+        ) {
+          return;
+        }
+        const accounts = unwrapList(response);
+        setLoaded({ identity: requestIdentity, options: accounts });
+        const selected = form.getFieldValue(groupField('settlementAccountId'));
+        if (selected && accounts.some((account) => account.id === selected)) {
+          return;
+        }
+        const defaultAccount = accounts.find((account) => account.isDefault);
+        if (defaultAccount?.id) {
+          form.setFieldValue(
+            groupField('settlementAccountId'),
+            defaultAccount.id,
+          );
+          onConfigurationChange();
+        }
+      })
+      .catch(() => {
+        if (
+          requestSequence === requestSequenceRef.current &&
+          requestIdentity === identity
+        ) {
+          setLoaded({ identity: requestIdentity, options: [] });
+        }
+      })
+      .finally(() => {
+        if (
+          requestSequence === requestSequenceRef.current &&
+          requestIdentity === identity
+        ) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      requestSequenceRef.current += 1;
+    };
+  }, [
+    form,
+    group.direction,
+    group.settlementPartyId,
+    groupKey,
+    identity,
+    onConfigurationChange,
+    organizationId,
+  ]);
+
+  return (
+    <Form.Item
+      name={groupField('settlementAccountId')}
+      label="结算账户"
+      rules={[{ required: true, message: '请选择结算账户' }]}
+    >
+      <Select
+        allowClear
+        loading={loading}
+        placeholder="请选择与账单方向、最终币种一致的启用账户"
+        options={visibleOptions.map((account) => ({
+          value: account.id,
+          label: settlementAccountLabel(account),
+        }))}
+      />
+    </Form.Item>
+  );
+}
 
 export default function BillGroupCard({
   group,
-  index,
-  invoiceProfilesMap,
+  organizationId,
+  sessionIdentity,
   feeColumns,
   directionText,
-  onOpenQuickAddProfile,
+  onConfigurationChange,
 }: BillGroupCardProps) {
-  const profileOptions = (() => {
-    const profiles = (
-      invoiceProfilesMap[group.settlementPartyId || ''] || []
-    ).filter((p) => p.enabled !== false);
-    const list = profiles.map((p) => ({
-      value: p.invoiceTitle || '',
-      label: (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontWeight: 500 }}>{p.invoiceTitle}</span>
-          <Space size="small">
-            {p.isDefault && (
-              <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
-                默认
-              </Tag>
-            )}
-            {p.taxpayerIdentificationNo && (
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                税号: {p.taxpayerIdentificationNo}
-              </Text>
-            )}
-          </Space>
-        </div>
-      ),
-    }));
-    if (!list.some((opt) => opt.value === group.settlementPartyName)) {
-      list.unshift({
-        value: group.settlementPartyName || '',
-        label: <span>{group.settlementPartyName}（结算单位全称）</span>,
+  const groupKey = group.groupKey || '';
+  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCurrencyOptions()
+      .then((options) => {
+        if (!cancelled) setCurrencyOptions(options);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrencyOptions([]);
       });
-    }
-    return list;
-  })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <Card
-      key={group.groupKey}
       size="small"
-      style={{
-        marginBottom: 16,
-        border: '1px solid #e8e8e8',
-        borderRadius: 6,
-      }}
+      style={{ marginBottom: 16, border: '1px solid #e8e8e8', borderRadius: 6 }}
       title={
         <Space wrap>
-          <Tag
-            color={group.direction === 'RECEIVABLE' ? 'green' : 'volcano'}
-          >
+          <Tag color={group.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
             {directionText(group.direction)}
           </Tag>
           <span style={{ fontWeight: 600 }}>{group.settlementPartyName}</span>
@@ -107,104 +210,53 @@ export default function BillGroupCard({
       }
       extra={
         <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
-          {group.totalAmount} {group.currency}
+          {group.totalAmount} {group.currency || '未配置币种'}
         </Text>
       }
     >
+      {!group.configurationComplete && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          title="该叶子尚未形成可创建快照"
+          description={
+            group.isTemporaryBillDate
+              ? '请确认账单日期和结算账户；服务端将按正式账单日期重新解析账单币种至组织本位币的汇率。'
+              : '请补齐结算账户或服务端要求的汇率配置后重新预览。'
+          }
+        />
+      )}
       <Row gutter={16} style={{ marginBottom: 8 }}>
         <Col xs={24} md={8}>
           <Form.Item
-            name={['groups', index, 'statementTitle']}
-            label={
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                }}
-              >
-                <span>对账抬头</span>
-                <Tooltip title="为该结算单位新增开票抬头并自动选中">
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    style={{
-                      padding: 0,
-                      height: 'auto',
-                      fontSize: 12,
-                      fontWeight: 'normal',
-                    }}
-                    onClick={() =>
-                      onOpenQuickAddProfile(
-                        index,
-                        group.settlementPartyId,
-                        group.settlementPartyName,
-                      )
-                    }
-                  >
-                    新增抬头
-                  </Button>
-                </Tooltip>
-              </div>
-            }
+            name={['groups', groupKey, 'statementTitle'] as NamePath}
+            label="对账抬头"
             rules={[
-              {
-                required: true,
-                whitespace: true,
-                message: '请输入对账抬头',
-              },
+              { required: true, whitespace: true, message: '请输入对账抬头' },
               { max: 200, message: '对账抬头不能超过 200 字' },
             ]}
           >
-            <AutoComplete
-              options={profileOptions}
-              popupRender={(menu) => (
-                <>
-                  {menu}
-                  <Divider style={{ margin: '4px 0' }} />
-                  <div
-                    style={{
-                      padding: '6px 12px',
-                      cursor: 'pointer',
-                      color: '#1677ff',
-                      fontSize: 12,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      background: '#f6faff',
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onOpenQuickAddProfile(
-                        index,
-                        group.settlementPartyId,
-                        group.settlementPartyName,
-                      );
-                    }}
-                  >
-                    <PlusOutlined /> 为【{group.settlementPartyName}】新增开票抬头
-                  </div>
-                </>
-              )}
-              placeholder="输入或下拉选择对账抬头"
-            />
+            <Input placeholder="默认使用结算单位名称，可编辑" />
           </Form.Item>
         </Col>
         <Col xs={24} md={5}>
           <Form.Item
-            name={['groups', index, 'billDate']}
+            name={['groups', groupKey, 'billDate'] as NamePath}
             label="账单日期"
             rules={[{ required: true, message: '请选择账单日期' }]}
           >
             <DatePicker allowClear={false} style={{ width: '100%' }} />
           </Form.Item>
         </Col>
-        <Col xs={24} md={4}>
+        <Col xs={24} md={5}>
+          <Form.Item label="账单币种">
+            <Input disabled value={group.currency || '-'} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={3}>
           <Form.Item
-            name={['groups', index, 'paymentTermsDays']}
+            name={['groups', groupKey, 'paymentTermsDays'] as NamePath}
             label="账期（天）"
           >
             <InputNumber
@@ -216,16 +268,121 @@ export default function BillGroupCard({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={7}>
+        <Col xs={24} md={3}>
           <Form.Item
-            name={['groups', index, 'note']}
+            name={['groups', groupKey, 'note'] as NamePath}
             label="备注"
             rules={[{ max: 500, message: '备注不能超过 500 字' }]}
           >
-            <Input maxLength={500} placeholder="选填，账单备注" />
+            <Input maxLength={500} placeholder="选填" />
           </Form.Item>
         </Col>
+        <Col xs={24} md={12}>
+          <SettlementAccountSelect
+            group={group}
+            organizationId={organizationId}
+            sessionIdentity={sessionIdentity}
+            onConfigurationChange={onConfigurationChange}
+          />
+        </Col>
       </Row>
+      <Descriptions
+        bordered
+        size="small"
+        column={3}
+        style={{ marginBottom: 16 }}
+      >
+        <Descriptions.Item label="账单金额">
+          {group.totalAmount || '-'} {group.currency || '-'}
+        </Descriptions.Item>
+        <Descriptions.Item label="组织本位币金额">
+          {group.isTemporaryBillDate
+            ? '选择账单日期后计算'
+            : `${group.baseCurrencyAmount || '服务端未提供'} ${group.baseCurrency || ''}`.trim()}
+        </Descriptions.Item>
+        <Descriptions.Item label="预计开票币种">
+          {group.estimatedInvoiceCurrency || '服务端未提供'}
+        </Descriptions.Item>
+        <Descriptions.Item label="预计开票汇率">
+          {group.estimatedInvoiceRate || '服务端未提供'}
+        </Descriptions.Item>
+        <Descriptions.Item label="预计开票金额">
+          {group.estimatedInvoiceAmount || '服务端未提供'}
+        </Descriptions.Item>
+      </Descriptions>
+      <Card
+        size="small"
+        title="预计开票配置（仅用于预计，不改变固定账单币种）"
+        style={{ marginBottom: 16 }}
+      >
+        <Row gutter={16}>
+          <Col xs={24} md={8}>
+            <Form.Item
+              name={['groups', groupKey, 'estimatedInvoiceCurrency']}
+              label="预计开票币种"
+            >
+              <Select
+                allowClear
+                placeholder="默认使用账单币种，可调整"
+                options={currencyOptions}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={8}>
+            <Form.Item
+              name={['groups', groupKey, 'estimatedInvoiceRate']}
+              label="预计开票汇率"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator: async (_, rate) => {
+                    const currency = getFieldValue([
+                      'groups',
+                      groupKey,
+                      'estimatedInvoiceCurrency',
+                    ]);
+                    const normalizedRate = rate?.trim();
+                    if (!currency) {
+                      if (normalizedRate) {
+                        throw new Error(
+                          '填写预计开票汇率时必须选择预计开票币种',
+                        );
+                      }
+                      return;
+                    }
+                    if (currency !== group.currency && !normalizedRate) {
+                      throw new Error(
+                        '预计开票币种与账单币种不同时必须填写预计开票汇率',
+                      );
+                    }
+                    if (normalizedRate) {
+                      const num = Number(normalizedRate);
+                      if (Number.isNaN(num) || num <= 0) {
+                        throw new Error('预计开票汇率必须为大于 0 的有效数字');
+                      }
+                    }
+                    if (
+                      currency === group.currency &&
+                      normalizedRate &&
+                      Number(normalizedRate) !== 1
+                    ) {
+                      throw new Error(
+                        '预计开票币种与账单币种相同时，汇率必须为 1',
+                      );
+                    }
+                  },
+                }),
+              ]}
+            >
+              <Input placeholder="服务端按预计口径计算，可调整" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={8}>
+            <Text type="secondary">
+              预计金额由服务端预览返回；实际开票将以开票日期独立重新确定。
+            </Text>
+          </Col>
+        </Row>
+      </Card>
       <ProTable<API.FeeLedgerItem>
         rowKey="id"
         size="small"

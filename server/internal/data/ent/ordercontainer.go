@@ -56,11 +56,9 @@ type OrderContainerEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
-	// CargoAllocations holds the value of the cargo_allocations edge.
-	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -83,15 +81,6 @@ func (e OrderContainerEdges) OrderOrErr() (*Order, error) {
 		return nil, &NotFoundError{label: order.Label}
 	}
 	return nil, &NotLoadedError{edge: "order"}
-}
-
-// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
-// was not loaded in eager-loading.
-func (e OrderContainerEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
-	if e.loadedTypes[2] {
-		return e.CargoAllocations, nil
-	}
-	return nil, &NotLoadedError{edge: "cargo_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -223,11 +212,6 @@ func (_m *OrderContainer) QueryOrganization() *OrganizationQuery {
 // QueryOrder queries the "order" edge of the OrderContainer entity.
 func (_m *OrderContainer) QueryOrder() *OrderQuery {
 	return NewOrderContainerClient(_m.config).QueryOrder(_m)
-}
-
-// QueryCargoAllocations queries the "cargo_allocations" edge of the OrderContainer entity.
-func (_m *OrderContainer) QueryCargoAllocations() *SeaCargoAllocationQuery {
-	return NewOrderContainerClient(_m.config).QueryCargoAllocations(_m)
 }
 
 // Update returns a builder for updating this OrderContainer.

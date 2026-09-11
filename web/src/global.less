@@ -48,7 +48,7 @@ body,
   font-family:
     AlibabaSans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  background-color: #f0f2f5;
+  background-color: #f5f7fa;
   color: rgba(0, 0, 0, 0.88);
 }
 
@@ -58,7 +58,7 @@ body,
 
 .ant-layout {
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background-color: #f5f7fa;
 }
 
 // ----------------------------------------
@@ -718,7 +718,7 @@ body,
 // ----------------------------------------
 .roncin-layout-main {
   flex: 1;
-  background: #f0f2f5;
+  background: #f5f7fa;
   padding: 10px 12px;
   min-width: 0;
 }
@@ -763,6 +763,145 @@ body,
   z-index: 18;
   background: #ffffff;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+// PageHeaderShell 现代双层纯白高密度吸顶页头
+.roncin-page-header-shell {
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &.roncin-page-header-has-breadcrumbs {
+    padding: 8px 16px 10px 16px;
+  }
+
+  // 1. 顶层面包屑行
+  .roncin-page-header-breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    line-height: 18px;
+    font-size: 12px;
+    margin-bottom: 2px;
+
+    .roncin-page-header-crumb-link {
+      display: inline-flex;
+      align-items: center;
+      color: rgba(0, 0, 0, 0.45);
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+      &:hover {
+        color: #1677ff;
+        background: #e6f4ff;
+      }
+    }
+
+    .roncin-page-header-crumb-btn {
+      padding: 1px 4px !important;
+      height: auto !important;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45) !important;
+      line-height: inherit;
+      border-radius: 3px;
+      transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+      &:hover {
+        color: #1677ff !important;
+        background: #e6f4ff !important;
+      }
+    }
+
+    .roncin-page-header-crumb-text {
+      color: rgba(0, 0, 0, 0.45);
+      padding: 1px 2px;
+    }
+
+    .roncin-page-header-crumb-sep {
+      color: rgba(0, 0, 0, 0.25);
+      font-size: 11px;
+      margin: 0 3px;
+      user-select: none;
+    }
+
+    .roncin-page-header-crumb-current {
+      color: rgba(0, 0, 0, 0.65);
+      padding: 1px 4px;
+      font-weight: 400;
+    }
+  }
+
+  // 2. 底层主体行
+  .roncin-page-header-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 32px;
+
+    .roncin-page-header-title-area {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+
+      .roncin-page-header-back-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        padding: 0 !important;
+        border-radius: 4px;
+        color: rgba(0, 0, 0, 0.65);
+        transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+        &:hover {
+          color: #1677ff !important;
+          background: rgba(0, 0, 0, 0.05) !important;
+        }
+
+        &:active {
+          background: rgba(0, 0, 0, 0.08) !important;
+        }
+      }
+
+      .roncin-page-header-heading-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.88);
+        line-height: 24px;
+      }
+
+      .roncin-page-header-tags {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .roncin-page-header-subtitle {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.45);
+        line-height: 20px;
+      }
+    }
+
+    .roncin-page-header-extra {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
 }
 
 // Card 紧凑高密度与清晰边框
@@ -1152,4 +1291,26 @@ ol {
   z-index: 2 !important;
 }
 
+// ----------------------------------------
+// 长表单校验错误精准定位呼吸高亮动效
+// ----------------------------------------
+@keyframes roncin-form-error-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7);
+    background-color: rgba(255, 77, 79, 0.1);
+  }
+  40% {
+    box-shadow: 0 0 0 8px rgba(255, 77, 79, 0);
+    background-color: rgba(255, 77, 79, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+    background-color: transparent;
+  }
+}
 
+.roncin-form-error-pulse {
+  animation: roncin-form-error-pulse 1.4s ease-in-out 2;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

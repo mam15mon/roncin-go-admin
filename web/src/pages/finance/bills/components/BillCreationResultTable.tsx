@@ -1,6 +1,6 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { history, useAccess } from '@umijs/max';
-import { Button, Descriptions, Empty, Result, Space, Table, Tag } from 'antd';
+import { Alert, Button, Descriptions, Empty, Result, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { FinanceBillStatus } from '@/enums.generated';
 
@@ -27,7 +27,7 @@ export default function BillCreationResultTable({
         status="success"
         icon={<CheckCircleOutlined />}
         title={`批次 ${result.batchNo || ''} 生成成功`}
-        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单，当前${result.bills?.every((bill) => bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED) ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
+        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单${result.nettings?.length ? `和 ${result.nettings.length} 张对冲结算单` : ''}，当前${result.bills?.every((bill) => bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED) ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
         extra={
           <Space wrap>
             {access.canConfirmFinanceBills &&
@@ -49,6 +49,11 @@ export default function BillCreationResultTable({
             <Button onClick={() => history.push('/finance/verifications')}>
               前往核销管理
             </Button>
+            {result.nettings?.length ? (
+              <Button onClick={() => history.push('/finance/nettings')}>
+                前往对冲管理
+              </Button>
+            ) : null}
           </Space>
         }
       />
@@ -106,6 +111,55 @@ export default function BillCreationResultTable({
           { title: '到期日', dataIndex: 'dueDate', width: 120 },
         ]}
       />
+      {result.nettings?.length ? (
+        <>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginTop: 16, marginBottom: 8 }}
+            title="对冲结算单初始为草稿；请先确认本批账单，再在对冲管理中确认对冲单，抵销才会占用账单余额。"
+          />
+          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>
+            对冲结算单
+          </div>
+          <Table<API.FinanceNetting>
+            rowKey="id"
+            size="small"
+            bordered
+            pagination={false}
+            dataSource={result.nettings}
+            columns={[
+              { title: '对冲单号', dataIndex: 'nettingNo', width: 180 },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                width: 90,
+                render: () => <Tag color="gold">草稿</Tag>,
+              },
+              { title: '结算单位', dataIndex: 'settlementPartyName' },
+              { title: '币种', dataIndex: 'currency', width: 80 },
+              {
+                title: '抵销金额',
+                align: 'right',
+                render: (_, row) =>
+                  `${row.amount} ${row.currency}`,
+              },
+              {
+                title: '本币抵销额',
+                align: 'right',
+                render: (_, row) =>
+                  `${row.baseCurrencyAmount} ${row.baseCurrency}`,
+              },
+              {
+                title: '分摊数',
+                align: 'center',
+                width: 80,
+                render: (_, row) => row.allocations?.length || 0,
+              },
+            ]}
+          />
+        </>
+      ) : null}
     </>
   );
 }

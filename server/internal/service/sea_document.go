@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -40,88 +39,6 @@ func (s *SeaDocumentService) GetSeaOrderDocuments(ctx context.Context, req *v1.G
 
 	return ok(ctx, &v1.GetSeaOrderDocumentsResponse{
 		Data: seaOrderDocumentsToAPI(docs),
-	}), nil
-}
-
-func (s *SeaDocumentService) MarkSeaOrderDirect(ctx context.Context, req *v1.MarkSeaOrderDirectRequest) (*v1.MarkSeaOrderDirectResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaHouseBillInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	docs, err := s.usecase.MarkSeaOrderDirect(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedLinkVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.MarkSeaOrderDirectResponse{
-		Data: seaOrderDocumentsToAPI(docs),
-	}), nil
-}
-
-func (s *SeaDocumentService) CancelSeaOrderDirect(ctx context.Context, req *v1.CancelSeaOrderDirectRequest) (*v1.CancelSeaOrderDirectResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaHouseBillInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	docs, err := s.usecase.CancelSeaOrderDirect(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedLinkVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.CancelSeaOrderDirectResponse{
-		Data: seaOrderDocumentsToAPI(docs),
-	}), nil
-}
-
-func (s *SeaDocumentService) AddSeaHouseBill(ctx context.Context, req *v1.AddSeaHouseBillRequest) (*v1.AddSeaHouseBillResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaHouseBillInvalidArgument
-	}
-	input, err := seaHouseBillInputFromAPI(req.GetHouseBill())
-	if err != nil {
-		return nil, err
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	hb, err := s.usecase.AddSeaHouseBill(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedLinkVersion(), input, audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.AddSeaHouseBillResponse{
-		Data: seaHouseBillToAPI(hb),
 	}), nil
 }
 
@@ -159,39 +76,6 @@ func (s *SeaDocumentService) UpdateSeaHouseBill(ctx context.Context, req *v1.Upd
 	}), nil
 }
 
-func (s *SeaDocumentService) RemoveSeaHouseBill(ctx context.Context, req *v1.RemoveSeaHouseBillRequest) (*v1.RemoveSeaHouseBillResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaHouseBillInvalidArgument
-	}
-	if req.GetRemoveRelatedReleasePods() && !principal.HasPermissionInScope(
-		access.OrderPermission(access.OrderBusinessSE, access.OrderReleasePodDelete),
-		biz.DataScopeOrganization,
-	) {
-		return nil, biz.ErrPermissionDenied
-	}
-	hbID, err := uuid.Parse(req.GetId())
-	if err != nil {
-		return nil, biz.ErrSeaHouseBillInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	if err := s.usecase.RemoveSeaHouseBill(ctx, principal.Organization.ID, principal.UserID, orderID, hbID, req.GetExpectedVersion(), req.GetExpectedLinkVersion(), req.GetReturnToUndetermined(), req.GetRemoveRelatedReleasePods(), audit); err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.RemoveSeaHouseBillResponse{}), nil
-}
-
 func (s *SeaDocumentService) UpdateSeaMasterBillContent(ctx context.Context, req *v1.UpdateSeaMasterBillContentRequest) (*v1.UpdateSeaMasterBillContentResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
@@ -221,8 +105,6 @@ func (s *SeaDocumentService) UpdateSeaMasterBillContent(ctx context.Context, req
 
 func seaDocumentStructureToAPI(s biz.SeaDocumentStructure) v1.SeaDocumentStructure {
 	switch s {
-	case biz.SeaDocumentStructureUndetermined:
-		return v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNDETERMINED
 	case biz.SeaDocumentStructureDirect:
 		return v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT
 	case biz.SeaDocumentStructureHouse:
@@ -234,8 +116,6 @@ func seaDocumentStructureToAPI(s biz.SeaDocumentStructure) v1.SeaDocumentStructu
 
 func seaDocumentStructureFromAPI(s v1.SeaDocumentStructure) biz.SeaDocumentStructure {
 	switch s {
-	case v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNDETERMINED:
-		return biz.SeaDocumentStructureUndetermined
 	case v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT:
 		return biz.SeaDocumentStructureDirect
 	case v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_HOUSE:
@@ -247,18 +127,12 @@ func seaDocumentStructureFromAPI(s v1.SeaDocumentStructure) biz.SeaDocumentStruc
 
 func seaDocumentActionToAPI(a biz.SeaDocumentAction) v1.SeaDocumentAction {
 	switch a {
-	case biz.SeaDocumentActionMarkDirect:
-		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_MARK_DIRECT
-	case biz.SeaDocumentActionCancelDirect:
-		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_CANCEL_DIRECT
-	case biz.SeaDocumentActionAddHouseBill:
-		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL
 	case biz.SeaDocumentActionUpdateHouseBill:
 		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL
-	case biz.SeaDocumentActionRemoveHouseBill:
-		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL
 	case biz.SeaDocumentActionUpdateMasterBillContent:
 		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT
+	case biz.SeaDocumentActionChangeMode:
+		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_CHANGE_MODE
 	default:
 		return v1.SeaDocumentAction_SEA_DOCUMENT_ACTION_UNSPECIFIED
 	}
@@ -300,8 +174,6 @@ func seaHouseBillStatusToAPI(s biz.SeaHouseBillStatus) v1.SeaHouseBillStatus {
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_RELEASED
 	case biz.SeaHouseBillStatusVoided:
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_VOIDED
-	case biz.SeaHouseBillStatusReplaced:
-		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_REPLACED
 	default:
 		return v1.SeaHouseBillStatus_SEA_HOUSE_BILL_STATUS_UNSPECIFIED
 	}
@@ -436,9 +308,9 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 	if m == nil {
 		return nil
 	}
-	var partnerName *string
-	if m.IssuerPartnerName != "" {
-		partnerName = &m.IssuerPartnerName
+	var shippingLineName *string
+	if m.ShippingLineName != "" {
+		shippingLineName = &m.ShippingLineName
 	}
 	var currentVersionID *string
 	if m.CurrentVersionID != nil {
@@ -448,8 +320,8 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 	return &v1.SeaMasterBillDetail{
 		Id:                    m.ID.String(),
 		MasterNo:              m.MasterNo,
-		IssuerPartnerId:       m.IssuerPartnerID.String(),
-		IssuerPartnerName:     partnerName,
+		ShippingLineId:        m.ShippingLineID.String(),
+		ShippingLineName:      shippingLineName,
 		Status:                m.Status,
 		Version:               m.Version,
 		Content:               seaBillContentToAPI(m.Content),
@@ -463,20 +335,19 @@ func seaOrderDocumentsToAPI(d *biz.SeaOrderDocuments) *v1.SeaOrderDocuments {
 	if d == nil {
 		return nil
 	}
-	hbs := make([]*v1.SeaHouseBill, 0, len(d.HouseBills))
-	for _, hb := range d.HouseBills {
-		hbs = append(hbs, seaHouseBillToAPI(hb))
-	}
 	actions := make([]v1.SeaDocumentAction, 0, len(d.AllowedActions))
 	for _, a := range d.AllowedActions {
 		actions = append(actions, seaDocumentActionToAPI(a))
 	}
-	return &v1.SeaOrderDocuments{
+	res := &v1.SeaOrderDocuments{
 		OrderId:           d.OrderID.String(),
 		DocumentStructure: seaDocumentStructureToAPI(d.DocumentStructure),
 		LinkVersion:       d.LinkVersion,
 		MasterBill:        seaMasterBillDetailToAPI(d.MasterBill),
-		HouseBills:        hbs,
 		AllowedActions:    actions,
 	}
+	if d.HouseBill != nil {
+		res.HouseBill = seaHouseBillToAPI(d.HouseBill)
+	}
+	return res
 }

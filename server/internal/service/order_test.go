@@ -45,26 +45,49 @@ func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
 	}
 }
 
-func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
+func TestOrderOrganizationScopesKeepBusinessTypeAndOrganizationPaired(t *testing.T) {
+	currentOrganizationID := uuid.New()
+	beijingOrganizationID := uuid.New()
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
-	siCreate := access.OrderPermission(access.OrderBusinessSI, access.OrderCreate)
 	principal := &biz.Principal{
-		Permissions: []string{seRead, aiRead, siCreate},
-		RoleScopes: []biz.RoleScope{
-			{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
-			{RoleCode: "self", DataScope: biz.DataScopeSelf},
-		},
-		RolePermissions: map[string]map[string]struct{}{
-			"operator": {seRead: {}, siCreate: {}},
-			"self":     {aiRead: {}},
+		Organization:      biz.Organization{ID: currentOrganizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}, {ID: beijingOrganizationID}},
+		RoleGrants: []biz.RoleGrant{
+			{RoleID: uuid.New(), RoleCode: "se-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{seRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingOrganizationID}}},
+			{RoleID: uuid.New(), RoleCode: "ai-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{aiRead: {}}},
 		},
 	}
 
-	got := readableOrderBusinessTypes(principal)
-	want := []biz.OrderBusinessType{biz.OrderBusinessSE}
-	if !slices.Equal(got, want) {
-		t.Fatalf("readableOrderBusinessTypes() = %v, want %v", got, want)
+	scopes, err := orderOrganizationScopesForOperation(principal, access.OrderRead, false, "")
+	if err != nil {
+		t.Fatalf("orderOrganizationScopesForOperation() error = %v", err)
+	}
+	if len(scopes) != 2 || scopes[0].BusinessType != biz.OrderBusinessSE || len(scopes[0].OrganizationIDs) != 2 || !slices.Contains(scopes[0].OrganizationIDs, currentOrganizationID) || !slices.Contains(scopes[0].OrganizationIDs, beijingOrganizationID) || scopes[1].BusinessType != biz.OrderBusinessAI || !slices.Equal(scopes[1].OrganizationIDs, []uuid.UUID{currentOrganizationID}) {
+		t.Fatalf("order scopes = %#v", scopes)
+	}
+}
+
+func TestCanModifyOrderUsesBusinessTypeSpecificUpdateScope(t *testing.T) {
+	tianjinID := uuid.New()
+	beijingID := uuid.New()
+	orderRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
+	orderUpdate := access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)
+	principal := &biz.Principal{
+		Organization:      biz.Organization{ID: tianjinID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: tianjinID}, {ID: beijingID}},
+		RoleGrants: []biz.RoleGrant{
+			{RoleID: uuid.New(), RoleCode: "order-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID}}},
+			{RoleID: uuid.New(), RoleCode: "order-editor", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderUpdate: {}}},
+			{RoleID: uuid.New(), RoleCode: "finance-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{"finance.bill.read": {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID, Writable: true}}},
+		},
+	}
+
+	if !canModifyOrder(principal, &biz.Order{BusinessType: biz.OrderBusinessSE, OrganizationID: tianjinID}) {
+		t.Fatal("当前组织的订单 update 权限应允许修改")
+	}
+	if canModifyOrder(principal, &biz.Order{BusinessType: biz.OrderBusinessSE, OrganizationID: beijingID}) {
+		t.Fatal("订单 read 的北京范围或财务角色范围不得授予订单 update")
 	}
 }
 
@@ -85,34 +108,34 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	hazardClass := "3"
 	factoryName := "测试工厂"
 	cargoReadyAt := "2026-08-23T12:00:00+08:00"
-	loadingTerms := "CY-CY"
 	receivedAt := "2026-08-23T10:00:00+08:00"
 	declarationCutoffAt := "2026-08-22T16:00:00+08:00"
 	shipperShortName := "华东发货人"
 	consigneeShortName := "美西收货人"
+	tradeTerm := v1.TradeTerm_TRADE_TERM_FOB
 
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
 		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
-		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
+		TradeTerm: &tradeTerm, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		CustomerReferenceNo: &referenceNo, ForeignAgentId: &foreignAgentIDString,
 		ContractNo: &contractNo, CargoValue: &cargoValue, CargoCurrency: &cargoCurrency,
 		InternalReferenceNo: &internalReferenceNo, ShippingAgentId: &shippingAgentIDString,
 		InsurancePremium: &insurancePremium, InsuranceCurrency: &insuranceCurrency,
 		UnNumber: &unNumber, HazardClass: &hazardClass, FactoryName: &factoryName,
-		CargoReadyAt: &cargoReadyAt, LoadingTerms: &loadingTerms,
+		CargoReadyAt:        &cargoReadyAt,
 		DeclarationCutoffAt: &declarationCutoffAt, ReceivedAt: &receivedAt,
 		ShipperShortName: &shipperShortName, ConsigneeShortName: &consigneeShortName,
 	})
 	if err != nil {
 		t.Fatalf("orderFromCreateRequest() error = %v", err)
 	}
-	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.LoadingTerms != loadingTerms || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt || order.ShipperShortName != shipperShortName || order.ConsigneeShortName != consigneeShortName {
+	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt || order.ShipperShortName != shipperShortName || order.ConsigneeShortName != consigneeShortName {
 		t.Fatalf("converted order business fields = %#v", order)
 	}
 
 	apiOrder := orderToAPI(order)
-	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetLoadingTerms() != loadingTerms || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt || apiOrder.GetShipperShortName() != shipperShortName || apiOrder.GetConsigneeShortName() != consigneeShortName {
+	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt || apiOrder.GetShipperShortName() != shipperShortName || apiOrder.GetConsigneeShortName() != consigneeShortName {
 		t.Fatalf("orderToAPI() business fields = %#v", apiOrder)
 	}
 }
@@ -123,7 +146,7 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
 		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
-		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
+		PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		ShippingDocuments: []*v1.OrderShippingDocumentInput{
 			{HouseNo: "HBL-001"},
 			{HouseNo: "HBL-002"},
@@ -158,18 +181,18 @@ func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 }
 
 func TestSeaTransportExecutionToAPIOmitsUnsetUUIDs(t *testing.T) {
-	item := &biz.SeaTransportExecution{ID: uuid.New()}
+	shippingLineID := uuid.New()
+	item := &biz.SeaTransportExecution{ID: uuid.New(), ShippingLineID: shippingLineID}
 	output := seaTransportExecutionToAPI(item)
-	if output.CarrierId != nil || output.OriginLocationId != nil || output.DischargeLocationId != nil {
+	if output.GetShippingLineId() != shippingLineID.String() || output.OriginLocationId != nil || output.DischargeLocationId != nil {
 		t.Fatalf("未设置的运输执行 UUID 不应输出全零值: %#v", output)
 	}
 
-	carrierID, originID, dischargeID := uuid.New(), uuid.New(), uuid.New()
-	item.CarrierID = carrierID
+	originID, dischargeID := uuid.New(), uuid.New()
 	item.OriginLocationID = originID
 	item.DischargeLocationID = dischargeID
 	output = seaTransportExecutionToAPI(item)
-	if output.GetCarrierId() != carrierID.String() || output.GetOriginLocationId() != originID.String() || output.GetDischargeLocationId() != dischargeID.String() {
+	if output.GetShippingLineId() != shippingLineID.String() || output.GetOriginLocationId() != originID.String() || output.GetDischargeLocationId() != dischargeID.String() {
 		t.Fatalf("已设置的运输执行 UUID 转换错误: %#v", output)
 	}
 }

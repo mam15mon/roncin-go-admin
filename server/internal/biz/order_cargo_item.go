@@ -6,7 +6,14 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrOrderCargoItemNotFound        = errors.NotFound("ORDER_CARGO_ITEM_NOT_FOUND", "订单货物明细不存在")
+	ErrOrderCargoItemInvalidArgument = errors.BadRequest("ORDER_CARGO_ITEM_INVALID_ARGUMENT", "订单货物明细参数不合法")
+	ErrOrderCargoItemConflict        = errors.Conflict("ORDER_STATUS_CONFLICT", "货物明细已被更新，请刷新后重试")
 )
 
 type OrderCargoItem struct {
@@ -119,15 +126,15 @@ func normalizeOrderCargoItem(input *OrderCargoItem) (*OrderCargoItem, error) {
 	if input.PackageCount < 1 {
 		return nil, ErrOrderCargoItemInvalidArgument
 	}
-	if _, err := ValidateFloatWeight(input.GrossWeightKg, "毛重"); err != nil {
+	if !validatePositiveFiniteQuantity(input.GrossWeightKg) {
 		return nil, ErrOrderCargoItemInvalidArgument
 	}
-	if _, err := ValidateFloatVolume(input.VolumeCbm, "体积"); err != nil {
+	if !validatePositiveFiniteQuantity(input.VolumeCbm) {
 		return nil, ErrOrderCargoItemInvalidArgument
 	}
 	var netWeight *float64
 	if input.NetWeightKg != nil {
-		if _, err := ValidateFloatWeight(*input.NetWeightKg, "净重"); err != nil {
+		if !validatePositiveFiniteQuantity(*input.NetWeightKg) {
 			return nil, ErrOrderCargoItemInvalidArgument
 		}
 		v := *input.NetWeightKg

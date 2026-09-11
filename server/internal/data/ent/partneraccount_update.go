@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -36,30 +36,44 @@ func (_u *PartnerAccountUpdate) SetUpdatedAt(v time.Time) *PartnerAccountUpdate 
 	return _u
 }
 
-// SetPartnerRoleID sets the "partner_role_id" field.
-func (_u *PartnerAccountUpdate) SetPartnerRoleID(v uuid.UUID) *PartnerAccountUpdate {
-	_u.mutation.SetPartnerRoleID(v)
+// SetPartnerID sets the "partner_id" field.
+func (_u *PartnerAccountUpdate) SetPartnerID(v uuid.UUID) *PartnerAccountUpdate {
+	_u.mutation.SetPartnerID(v)
 	return _u
 }
 
-// SetNillablePartnerRoleID sets the "partner_role_id" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillablePartnerRoleID(v *uuid.UUID) *PartnerAccountUpdate {
+// SetNillablePartnerID sets the "partner_id" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillablePartnerID(v *uuid.UUID) *PartnerAccountUpdate {
 	if v != nil {
-		_u.SetPartnerRoleID(*v)
+		_u.SetPartnerID(*v)
 	}
 	return _u
 }
 
-// SetAccountType sets the "account_type" field.
-func (_u *PartnerAccountUpdate) SetAccountType(v partneraccount.AccountType) *PartnerAccountUpdate {
-	_u.mutation.SetAccountType(v)
+// SetName sets the "name" field.
+func (_u *PartnerAccountUpdate) SetName(v string) *PartnerAccountUpdate {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableAccountType sets the "account_type" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableAccountType(v *partneraccount.AccountType) *PartnerAccountUpdate {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableName(v *string) *PartnerAccountUpdate {
 	if v != nil {
-		_u.SetAccountType(*v)
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetAccountHolder sets the "account_holder" field.
+func (_u *PartnerAccountUpdate) SetAccountHolder(v string) *PartnerAccountUpdate {
+	_u.mutation.SetAccountHolder(v)
+	return _u
+}
+
+// SetNillableAccountHolder sets the "account_holder" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableAccountHolder(v *string) *PartnerAccountUpdate {
+	if v != nil {
+		_u.SetAccountHolder(*v)
 	}
 	return _u
 }
@@ -92,29 +106,17 @@ func (_u *PartnerAccountUpdate) SetNillableBankName(v *string) *PartnerAccountUp
 	return _u
 }
 
-// ClearBankName clears the value of the "bank_name" field.
-func (_u *PartnerAccountUpdate) ClearBankName() *PartnerAccountUpdate {
-	_u.mutation.ClearBankName()
+// SetAccountNo sets the "account_no" field.
+func (_u *PartnerAccountUpdate) SetAccountNo(v string) *PartnerAccountUpdate {
+	_u.mutation.SetAccountNo(v)
 	return _u
 }
 
-// SetBankAccount sets the "bank_account" field.
-func (_u *PartnerAccountUpdate) SetBankAccount(v string) *PartnerAccountUpdate {
-	_u.mutation.SetBankAccount(v)
-	return _u
-}
-
-// SetNillableBankAccount sets the "bank_account" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableBankAccount(v *string) *PartnerAccountUpdate {
+// SetNillableAccountNo sets the "account_no" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableAccountNo(v *string) *PartnerAccountUpdate {
 	if v != nil {
-		_u.SetBankAccount(*v)
+		_u.SetAccountNo(*v)
 	}
-	return _u
-}
-
-// ClearBankAccount clears the value of the "bank_account" field.
-func (_u *PartnerAccountUpdate) ClearBankAccount() *PartnerAccountUpdate {
-	_u.mutation.ClearBankAccount()
 	return _u
 }
 
@@ -138,30 +140,58 @@ func (_u *PartnerAccountUpdate) ClearSwiftCode() *PartnerAccountUpdate {
 	return _u
 }
 
-// SetIsDefault sets the "is_default" field.
-func (_u *PartnerAccountUpdate) SetIsDefault(v bool) *PartnerAccountUpdate {
-	_u.mutation.SetIsDefault(v)
+// SetUsage sets the "usage" field.
+func (_u *PartnerAccountUpdate) SetUsage(v partneraccount.Usage) *PartnerAccountUpdate {
+	_u.mutation.SetUsage(v)
 	return _u
 }
 
-// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableIsDefault(v *bool) *PartnerAccountUpdate {
+// SetNillableUsage sets the "usage" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableUsage(v *partneraccount.Usage) *PartnerAccountUpdate {
 	if v != nil {
-		_u.SetIsDefault(*v)
+		_u.SetUsage(*v)
 	}
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *PartnerAccountUpdate) SetStatus(v partneraccount.Status) *PartnerAccountUpdate {
-	_u.mutation.SetStatus(v)
+// SetIsDefaultReceivable sets the "is_default_receivable" field.
+func (_u *PartnerAccountUpdate) SetIsDefaultReceivable(v bool) *PartnerAccountUpdate {
+	_u.mutation.SetIsDefaultReceivable(v)
 	return _u
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableStatus(v *partneraccount.Status) *PartnerAccountUpdate {
+// SetNillableIsDefaultReceivable sets the "is_default_receivable" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableIsDefaultReceivable(v *bool) *PartnerAccountUpdate {
 	if v != nil {
-		_u.SetStatus(*v)
+		_u.SetIsDefaultReceivable(*v)
+	}
+	return _u
+}
+
+// SetIsDefaultPayable sets the "is_default_payable" field.
+func (_u *PartnerAccountUpdate) SetIsDefaultPayable(v bool) *PartnerAccountUpdate {
+	_u.mutation.SetIsDefaultPayable(v)
+	return _u
+}
+
+// SetNillableIsDefaultPayable sets the "is_default_payable" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableIsDefaultPayable(v *bool) *PartnerAccountUpdate {
+	if v != nil {
+		_u.SetIsDefaultPayable(*v)
+	}
+	return _u
+}
+
+// SetEnabled sets the "enabled" field.
+func (_u *PartnerAccountUpdate) SetEnabled(v bool) *PartnerAccountUpdate {
+	_u.mutation.SetEnabled(v)
+	return _u
+}
+
+// SetNillableEnabled sets the "enabled" field if the given value is not nil.
+func (_u *PartnerAccountUpdate) SetNillableEnabled(v *bool) *PartnerAccountUpdate {
+	if v != nil {
+		_u.SetEnabled(*v)
 	}
 	return _u
 }
@@ -186,9 +216,9 @@ func (_u *PartnerAccountUpdate) ClearRemark() *PartnerAccountUpdate {
 	return _u
 }
 
-// SetPartnerRole sets the "partner_role" edge to the PartnerRole entity.
-func (_u *PartnerAccountUpdate) SetPartnerRole(v *PartnerRole) *PartnerAccountUpdate {
-	return _u.SetPartnerRoleID(v.ID)
+// SetPartner sets the "partner" edge to the Partner entity.
+func (_u *PartnerAccountUpdate) SetPartner(v *Partner) *PartnerAccountUpdate {
+	return _u.SetPartnerID(v.ID)
 }
 
 // Mutation returns the PartnerAccountMutation object of the builder.
@@ -196,9 +226,9 @@ func (_u *PartnerAccountUpdate) Mutation() *PartnerAccountMutation {
 	return _u.mutation
 }
 
-// ClearPartnerRole clears the "partner_role" edge to the PartnerRole entity.
-func (_u *PartnerAccountUpdate) ClearPartnerRole() *PartnerAccountUpdate {
-	_u.mutation.ClearPartnerRole()
+// ClearPartner clears the "partner" edge to the Partner entity.
+func (_u *PartnerAccountUpdate) ClearPartner() *PartnerAccountUpdate {
+	_u.mutation.ClearPartner()
 	return _u
 }
 
@@ -240,9 +270,14 @@ func (_u *PartnerAccountUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerAccountUpdate) check() error {
-	if v, ok := _u.mutation.AccountType(); ok {
-		if err := partneraccount.AccountTypeValidator(v); err != nil {
-			return &ValidationError{Name: "account_type", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_type": %w`, err)}
+	if v, ok := _u.mutation.Name(); ok {
+		if err := partneraccount.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AccountHolder(); ok {
+		if err := partneraccount.AccountHolderValidator(v); err != nil {
+			return &ValidationError{Name: "account_holder", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_holder": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Currency(); ok {
@@ -255,9 +290,9 @@ func (_u *PartnerAccountUpdate) check() error {
 			return &ValidationError{Name: "bank_name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.BankAccount(); ok {
-		if err := partneraccount.BankAccountValidator(v); err != nil {
-			return &ValidationError{Name: "bank_account", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_account": %w`, err)}
+	if v, ok := _u.mutation.AccountNo(); ok {
+		if err := partneraccount.AccountNoValidator(v); err != nil {
+			return &ValidationError{Name: "account_no", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_no": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.SwiftCode(); ok {
@@ -265,9 +300,9 @@ func (_u *PartnerAccountUpdate) check() error {
 			return &ValidationError{Name: "swift_code", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.swift_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := partneraccount.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.status": %w`, err)}
+	if v, ok := _u.mutation.Usage(); ok {
+		if err := partneraccount.UsageValidator(v); err != nil {
+			return &ValidationError{Name: "usage", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.usage": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Remark(); ok {
@@ -275,8 +310,8 @@ func (_u *PartnerAccountUpdate) check() error {
 			return &ValidationError{Name: "remark", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.remark": %w`, err)}
 		}
 	}
-	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PartnerAccount.partner_role"`)
+	if _u.mutation.PartnerCleared() && len(_u.mutation.PartnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "PartnerAccount.partner"`)
 	}
 	return nil
 }
@@ -296,8 +331,11 @@ func (_u *PartnerAccountUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partneraccount.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.AccountType(); ok {
-		_spec.SetField(partneraccount.FieldAccountType, field.TypeEnum, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(partneraccount.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AccountHolder(); ok {
+		_spec.SetField(partneraccount.FieldAccountHolder, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(partneraccount.FieldCurrency, field.TypeString, value)
@@ -305,14 +343,8 @@ func (_u *PartnerAccountUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.BankName(); ok {
 		_spec.SetField(partneraccount.FieldBankName, field.TypeString, value)
 	}
-	if _u.mutation.BankNameCleared() {
-		_spec.ClearField(partneraccount.FieldBankName, field.TypeString)
-	}
-	if value, ok := _u.mutation.BankAccount(); ok {
-		_spec.SetField(partneraccount.FieldBankAccount, field.TypeString, value)
-	}
-	if _u.mutation.BankAccountCleared() {
-		_spec.ClearField(partneraccount.FieldBankAccount, field.TypeString)
+	if value, ok := _u.mutation.AccountNo(); ok {
+		_spec.SetField(partneraccount.FieldAccountNo, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.SwiftCode(); ok {
 		_spec.SetField(partneraccount.FieldSwiftCode, field.TypeString, value)
@@ -320,11 +352,17 @@ func (_u *PartnerAccountUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.SwiftCodeCleared() {
 		_spec.ClearField(partneraccount.FieldSwiftCode, field.TypeString)
 	}
-	if value, ok := _u.mutation.IsDefault(); ok {
-		_spec.SetField(partneraccount.FieldIsDefault, field.TypeBool, value)
+	if value, ok := _u.mutation.Usage(); ok {
+		_spec.SetField(partneraccount.FieldUsage, field.TypeEnum, value)
 	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(partneraccount.FieldStatus, field.TypeEnum, value)
+	if value, ok := _u.mutation.IsDefaultReceivable(); ok {
+		_spec.SetField(partneraccount.FieldIsDefaultReceivable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsDefaultPayable(); ok {
+		_spec.SetField(partneraccount.FieldIsDefaultPayable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Enabled(); ok {
+		_spec.SetField(partneraccount.FieldEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(partneraccount.FieldRemark, field.TypeString, value)
@@ -332,28 +370,28 @@ func (_u *PartnerAccountUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(partneraccount.FieldRemark, field.TypeString)
 	}
-	if _u.mutation.PartnerRoleCleared() {
+	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   partneraccount.PartnerRoleTable,
-			Columns: []string{partneraccount.PartnerRoleColumn},
+			Table:   partneraccount.PartnerTable,
+			Columns: []string{partneraccount.PartnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.PartnerRoleIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   partneraccount.PartnerRoleTable,
-			Columns: []string{partneraccount.PartnerRoleColumn},
+			Table:   partneraccount.PartnerTable,
+			Columns: []string{partneraccount.PartnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -387,30 +425,44 @@ func (_u *PartnerAccountUpdateOne) SetUpdatedAt(v time.Time) *PartnerAccountUpda
 	return _u
 }
 
-// SetPartnerRoleID sets the "partner_role_id" field.
-func (_u *PartnerAccountUpdateOne) SetPartnerRoleID(v uuid.UUID) *PartnerAccountUpdateOne {
-	_u.mutation.SetPartnerRoleID(v)
+// SetPartnerID sets the "partner_id" field.
+func (_u *PartnerAccountUpdateOne) SetPartnerID(v uuid.UUID) *PartnerAccountUpdateOne {
+	_u.mutation.SetPartnerID(v)
 	return _u
 }
 
-// SetNillablePartnerRoleID sets the "partner_role_id" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillablePartnerRoleID(v *uuid.UUID) *PartnerAccountUpdateOne {
+// SetNillablePartnerID sets the "partner_id" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillablePartnerID(v *uuid.UUID) *PartnerAccountUpdateOne {
 	if v != nil {
-		_u.SetPartnerRoleID(*v)
+		_u.SetPartnerID(*v)
 	}
 	return _u
 }
 
-// SetAccountType sets the "account_type" field.
-func (_u *PartnerAccountUpdateOne) SetAccountType(v partneraccount.AccountType) *PartnerAccountUpdateOne {
-	_u.mutation.SetAccountType(v)
+// SetName sets the "name" field.
+func (_u *PartnerAccountUpdateOne) SetName(v string) *PartnerAccountUpdateOne {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableAccountType sets the "account_type" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableAccountType(v *partneraccount.AccountType) *PartnerAccountUpdateOne {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableName(v *string) *PartnerAccountUpdateOne {
 	if v != nil {
-		_u.SetAccountType(*v)
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetAccountHolder sets the "account_holder" field.
+func (_u *PartnerAccountUpdateOne) SetAccountHolder(v string) *PartnerAccountUpdateOne {
+	_u.mutation.SetAccountHolder(v)
+	return _u
+}
+
+// SetNillableAccountHolder sets the "account_holder" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableAccountHolder(v *string) *PartnerAccountUpdateOne {
+	if v != nil {
+		_u.SetAccountHolder(*v)
 	}
 	return _u
 }
@@ -443,29 +495,17 @@ func (_u *PartnerAccountUpdateOne) SetNillableBankName(v *string) *PartnerAccoun
 	return _u
 }
 
-// ClearBankName clears the value of the "bank_name" field.
-func (_u *PartnerAccountUpdateOne) ClearBankName() *PartnerAccountUpdateOne {
-	_u.mutation.ClearBankName()
+// SetAccountNo sets the "account_no" field.
+func (_u *PartnerAccountUpdateOne) SetAccountNo(v string) *PartnerAccountUpdateOne {
+	_u.mutation.SetAccountNo(v)
 	return _u
 }
 
-// SetBankAccount sets the "bank_account" field.
-func (_u *PartnerAccountUpdateOne) SetBankAccount(v string) *PartnerAccountUpdateOne {
-	_u.mutation.SetBankAccount(v)
-	return _u
-}
-
-// SetNillableBankAccount sets the "bank_account" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableBankAccount(v *string) *PartnerAccountUpdateOne {
+// SetNillableAccountNo sets the "account_no" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableAccountNo(v *string) *PartnerAccountUpdateOne {
 	if v != nil {
-		_u.SetBankAccount(*v)
+		_u.SetAccountNo(*v)
 	}
-	return _u
-}
-
-// ClearBankAccount clears the value of the "bank_account" field.
-func (_u *PartnerAccountUpdateOne) ClearBankAccount() *PartnerAccountUpdateOne {
-	_u.mutation.ClearBankAccount()
 	return _u
 }
 
@@ -489,30 +529,58 @@ func (_u *PartnerAccountUpdateOne) ClearSwiftCode() *PartnerAccountUpdateOne {
 	return _u
 }
 
-// SetIsDefault sets the "is_default" field.
-func (_u *PartnerAccountUpdateOne) SetIsDefault(v bool) *PartnerAccountUpdateOne {
-	_u.mutation.SetIsDefault(v)
+// SetUsage sets the "usage" field.
+func (_u *PartnerAccountUpdateOne) SetUsage(v partneraccount.Usage) *PartnerAccountUpdateOne {
+	_u.mutation.SetUsage(v)
 	return _u
 }
 
-// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableIsDefault(v *bool) *PartnerAccountUpdateOne {
+// SetNillableUsage sets the "usage" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableUsage(v *partneraccount.Usage) *PartnerAccountUpdateOne {
 	if v != nil {
-		_u.SetIsDefault(*v)
+		_u.SetUsage(*v)
 	}
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *PartnerAccountUpdateOne) SetStatus(v partneraccount.Status) *PartnerAccountUpdateOne {
-	_u.mutation.SetStatus(v)
+// SetIsDefaultReceivable sets the "is_default_receivable" field.
+func (_u *PartnerAccountUpdateOne) SetIsDefaultReceivable(v bool) *PartnerAccountUpdateOne {
+	_u.mutation.SetIsDefaultReceivable(v)
 	return _u
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableStatus(v *partneraccount.Status) *PartnerAccountUpdateOne {
+// SetNillableIsDefaultReceivable sets the "is_default_receivable" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableIsDefaultReceivable(v *bool) *PartnerAccountUpdateOne {
 	if v != nil {
-		_u.SetStatus(*v)
+		_u.SetIsDefaultReceivable(*v)
+	}
+	return _u
+}
+
+// SetIsDefaultPayable sets the "is_default_payable" field.
+func (_u *PartnerAccountUpdateOne) SetIsDefaultPayable(v bool) *PartnerAccountUpdateOne {
+	_u.mutation.SetIsDefaultPayable(v)
+	return _u
+}
+
+// SetNillableIsDefaultPayable sets the "is_default_payable" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableIsDefaultPayable(v *bool) *PartnerAccountUpdateOne {
+	if v != nil {
+		_u.SetIsDefaultPayable(*v)
+	}
+	return _u
+}
+
+// SetEnabled sets the "enabled" field.
+func (_u *PartnerAccountUpdateOne) SetEnabled(v bool) *PartnerAccountUpdateOne {
+	_u.mutation.SetEnabled(v)
+	return _u
+}
+
+// SetNillableEnabled sets the "enabled" field if the given value is not nil.
+func (_u *PartnerAccountUpdateOne) SetNillableEnabled(v *bool) *PartnerAccountUpdateOne {
+	if v != nil {
+		_u.SetEnabled(*v)
 	}
 	return _u
 }
@@ -537,9 +605,9 @@ func (_u *PartnerAccountUpdateOne) ClearRemark() *PartnerAccountUpdateOne {
 	return _u
 }
 
-// SetPartnerRole sets the "partner_role" edge to the PartnerRole entity.
-func (_u *PartnerAccountUpdateOne) SetPartnerRole(v *PartnerRole) *PartnerAccountUpdateOne {
-	return _u.SetPartnerRoleID(v.ID)
+// SetPartner sets the "partner" edge to the Partner entity.
+func (_u *PartnerAccountUpdateOne) SetPartner(v *Partner) *PartnerAccountUpdateOne {
+	return _u.SetPartnerID(v.ID)
 }
 
 // Mutation returns the PartnerAccountMutation object of the builder.
@@ -547,9 +615,9 @@ func (_u *PartnerAccountUpdateOne) Mutation() *PartnerAccountMutation {
 	return _u.mutation
 }
 
-// ClearPartnerRole clears the "partner_role" edge to the PartnerRole entity.
-func (_u *PartnerAccountUpdateOne) ClearPartnerRole() *PartnerAccountUpdateOne {
-	_u.mutation.ClearPartnerRole()
+// ClearPartner clears the "partner" edge to the Partner entity.
+func (_u *PartnerAccountUpdateOne) ClearPartner() *PartnerAccountUpdateOne {
+	_u.mutation.ClearPartner()
 	return _u
 }
 
@@ -604,9 +672,14 @@ func (_u *PartnerAccountUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerAccountUpdateOne) check() error {
-	if v, ok := _u.mutation.AccountType(); ok {
-		if err := partneraccount.AccountTypeValidator(v); err != nil {
-			return &ValidationError{Name: "account_type", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_type": %w`, err)}
+	if v, ok := _u.mutation.Name(); ok {
+		if err := partneraccount.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AccountHolder(); ok {
+		if err := partneraccount.AccountHolderValidator(v); err != nil {
+			return &ValidationError{Name: "account_holder", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_holder": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Currency(); ok {
@@ -619,9 +692,9 @@ func (_u *PartnerAccountUpdateOne) check() error {
 			return &ValidationError{Name: "bank_name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.BankAccount(); ok {
-		if err := partneraccount.BankAccountValidator(v); err != nil {
-			return &ValidationError{Name: "bank_account", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_account": %w`, err)}
+	if v, ok := _u.mutation.AccountNo(); ok {
+		if err := partneraccount.AccountNoValidator(v); err != nil {
+			return &ValidationError{Name: "account_no", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.account_no": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.SwiftCode(); ok {
@@ -629,9 +702,9 @@ func (_u *PartnerAccountUpdateOne) check() error {
 			return &ValidationError{Name: "swift_code", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.swift_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := partneraccount.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.status": %w`, err)}
+	if v, ok := _u.mutation.Usage(); ok {
+		if err := partneraccount.UsageValidator(v); err != nil {
+			return &ValidationError{Name: "usage", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.usage": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Remark(); ok {
@@ -639,8 +712,8 @@ func (_u *PartnerAccountUpdateOne) check() error {
 			return &ValidationError{Name: "remark", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.remark": %w`, err)}
 		}
 	}
-	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PartnerAccount.partner_role"`)
+	if _u.mutation.PartnerCleared() && len(_u.mutation.PartnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "PartnerAccount.partner"`)
 	}
 	return nil
 }
@@ -677,8 +750,11 @@ func (_u *PartnerAccountUpdateOne) sqlSave(ctx context.Context) (_node *PartnerA
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partneraccount.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.AccountType(); ok {
-		_spec.SetField(partneraccount.FieldAccountType, field.TypeEnum, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(partneraccount.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AccountHolder(); ok {
+		_spec.SetField(partneraccount.FieldAccountHolder, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(partneraccount.FieldCurrency, field.TypeString, value)
@@ -686,14 +762,8 @@ func (_u *PartnerAccountUpdateOne) sqlSave(ctx context.Context) (_node *PartnerA
 	if value, ok := _u.mutation.BankName(); ok {
 		_spec.SetField(partneraccount.FieldBankName, field.TypeString, value)
 	}
-	if _u.mutation.BankNameCleared() {
-		_spec.ClearField(partneraccount.FieldBankName, field.TypeString)
-	}
-	if value, ok := _u.mutation.BankAccount(); ok {
-		_spec.SetField(partneraccount.FieldBankAccount, field.TypeString, value)
-	}
-	if _u.mutation.BankAccountCleared() {
-		_spec.ClearField(partneraccount.FieldBankAccount, field.TypeString)
+	if value, ok := _u.mutation.AccountNo(); ok {
+		_spec.SetField(partneraccount.FieldAccountNo, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.SwiftCode(); ok {
 		_spec.SetField(partneraccount.FieldSwiftCode, field.TypeString, value)
@@ -701,11 +771,17 @@ func (_u *PartnerAccountUpdateOne) sqlSave(ctx context.Context) (_node *PartnerA
 	if _u.mutation.SwiftCodeCleared() {
 		_spec.ClearField(partneraccount.FieldSwiftCode, field.TypeString)
 	}
-	if value, ok := _u.mutation.IsDefault(); ok {
-		_spec.SetField(partneraccount.FieldIsDefault, field.TypeBool, value)
+	if value, ok := _u.mutation.Usage(); ok {
+		_spec.SetField(partneraccount.FieldUsage, field.TypeEnum, value)
 	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(partneraccount.FieldStatus, field.TypeEnum, value)
+	if value, ok := _u.mutation.IsDefaultReceivable(); ok {
+		_spec.SetField(partneraccount.FieldIsDefaultReceivable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsDefaultPayable(); ok {
+		_spec.SetField(partneraccount.FieldIsDefaultPayable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Enabled(); ok {
+		_spec.SetField(partneraccount.FieldEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(partneraccount.FieldRemark, field.TypeString, value)
@@ -713,28 +789,28 @@ func (_u *PartnerAccountUpdateOne) sqlSave(ctx context.Context) (_node *PartnerA
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(partneraccount.FieldRemark, field.TypeString)
 	}
-	if _u.mutation.PartnerRoleCleared() {
+	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   partneraccount.PartnerRoleTable,
-			Columns: []string{partneraccount.PartnerRoleColumn},
+			Table:   partneraccount.PartnerTable,
+			Columns: []string{partneraccount.PartnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.PartnerRoleIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   partneraccount.PartnerRoleTable,
-			Columns: []string{partneraccount.PartnerRoleColumn},
+			Table:   partneraccount.PartnerTable,
+			Columns: []string{partneraccount.PartnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

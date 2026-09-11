@@ -21,19 +21,32 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
-func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order) error {
+func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order, currentShippingLineID *uuid.UUID) error {
 	if err := validatePartnerRole(ctx, tx, organizationID, input.CustomerID, partnerroleent.RoleTypeCustomer); err != nil {
 		if errors.Is(err, biz.ErrOrderInvalidArgument) {
 			return biz.ErrOrderCustomerInvalid
 		}
 		return err
 	}
-	if input.CarrierID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.CarrierID, partnerroleent.RoleTypeCarrier); err != nil {
+	if input.ShippingLineID != nil {
+		predicates := []predicate.ShippingLine{
+			shippinglineent.IDEQ(*input.ShippingLineID),
+			shippinglineent.OrganizationIDEQ(organizationID),
+		}
+		if currentShippingLineID == nil || *currentShippingLineID != *input.ShippingLineID {
+			predicates = append(predicates, shippinglineent.EnabledEQ(true))
+		}
+		exists, err := tx.ShippingLine.Query().Where(predicates...).ForShare().Exist(ctx)
+		if err != nil {
 			return err
+		}
+		if !exists {
+			return biz.ErrOrderInvalidArgument
 		}
 	}
 	if input.BookingAgentID != nil {

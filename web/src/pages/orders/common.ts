@@ -1,9 +1,13 @@
 import {
   masterDataServiceListAirports,
   masterDataServiceListItems,
-  masterDataServiceListOptions,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
+import {
+  getCachedAirports,
+  getCachedPorts,
+  getMasterDataOptions,
+} from '@/utils/order-options-cache';
 import {
   businessTypeMeta,
   makeValueEnum,
@@ -24,6 +28,8 @@ import {
 } from '@/enums.generated';
 import { unwrapList } from '@/utils/api';
 import { getCurrencies, searchPartnerOptions } from '@/utils/options';
+import type { OrderTransportMode } from './order-kinds/types';
+import type { SelectOption } from './templates';
 
 export const businessTypeOptions = [
   {
@@ -99,16 +105,6 @@ export const shipmentModeOptions = [
     value: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
   },
   { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
-];
-
-export const loadingTermsOptions = [
-  { label: 'CY-CY', value: 'CY-CY' },
-  { label: 'CY-CFS', value: 'CY-CFS' },
-  { label: 'CFS-CY', value: 'CFS-CY' },
-  { label: 'CFS-CFS', value: 'CFS-CFS' },
-  { label: 'DOOR-CY', value: 'DOOR-CY' },
-  { label: 'CY-DOOR', value: 'CY-DOOR' },
-  { label: 'DOOR-DOOR', value: 'DOOR-DOOR' },
 ];
 
 export const seaServiceTypes = [
@@ -190,44 +186,7 @@ export const PARTNER_ROLES = {
   CUSTOMER: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
   SUPPLIER: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
   FOREIGN_AGENT: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
-  CARRIER: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
 } as const;
-
-export type OrderKind = 'sea-export';
-
-export interface OrderKindConfig {
-  kind: OrderKind;
-  businessType: number;
-  tradeDirection: number;
-  title: string;
-  navigationTitle: string;
-  category: 'sea' | 'air';
-}
-
-export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
-  'sea-export': {
-    kind: 'sea-export',
-    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
-    title: '海运出口订单',
-    navigationTitle: '海运出口',
-    category: 'sea',
-  },
-};
-
-export function parseOrderKind(
-  pathnameOrKind?: string,
-): OrderKindConfig | undefined {
-  if (!pathnameOrKind) return undefined;
-  if (ORDER_KIND_CONFIGS[pathnameOrKind]) {
-    return ORDER_KIND_CONFIGS[pathnameOrKind];
-  }
-  const match = pathnameOrKind.match(/\/orders\/([^/]+)/);
-  if (match && ORDER_KIND_CONFIGS[match[1]]) {
-    return ORDER_KIND_CONFIGS[match[1]];
-  }
-  return undefined;
-}
 
 export async function searchPartnersByRole(
   role: number,
@@ -236,10 +195,36 @@ export async function searchPartnersByRole(
   return searchPartnerOptions(keyword, { role, enabled: true });
 }
 
+/** 陆运/铁路的地点与站点主数据尚未开放；共享代码必须显式关闭，不得静默落入 sea/air 实现。 */
+export function isUnimplementedTransportMode(
+  transportMode: OrderTransportMode,
+): boolean {
+  return transportMode === 'land' || transportMode === 'rail';
+}
+
+function assertTransportStationsSupported(
+  transportMode: OrderTransportMode,
+): asserts transportMode is 'sea' | 'air' {
+  switch (transportMode) {
+    case 'sea':
+    case 'air':
+      return;
+    case 'land':
+    case 'rail':
+      throw new Error('陆运与铁路订单的地点主数据尚未开放');
+    default: {
+      // 新运输方式加入 OrderTransportMode 时未更新本分发会在此编译报错。
+      const unsupported: never = transportMode;
+      throw new Error(`未支持的运输方式：${String(unsupported)}`);
+    }
+  }
+}
+
 export async function searchOrderLocations(
-  category: 'sea' | 'air',
+  transportMode: OrderTransportMode,
   keyword?: string,
 ): Promise<{ label: string; value: string }[]> {
+  assertTransportStationsSupported(transportMode);
   const [regionsResponse, transportResponse] = await Promise.all([
     masterDataServiceListItems({
       kind: MASTER_DATA_KINDS.REGION,
@@ -248,7 +233,7 @@ export async function searchOrderLocations(
       page: 1,
       pageSize: 50,
     }),
-    category === 'sea'
+    transportMode === 'sea'
       ? masterDataServiceListPorts({ keyword, enabled: true, page: 1, pageSize: 50 })
       : masterDataServiceListAirports({ keyword, enabled: true, page: 1, pageSize: 50 }),
   ]);
@@ -257,7 +242,7 @@ export async function searchOrderLocations(
     value: item.id ?? '',
   }));
   const transportLocations =
-    category === 'sea'
+    transportMode === 'sea'
       ? (transportResponse.data as API.Port[] | undefined)?.map((item) => ({
           label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
           value: item.id ?? '',
@@ -269,18 +254,22 @@ export async function searchOrderLocations(
   return [...regions, ...transportLocations].filter((item) => item.value !== '');
 }
 
-export async function fetchOrderMasterData() {
-  const [optionsResponse, portsResponse, airportsResponse, currencies] =
-    await Promise.all([
-      masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
-      masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
-      getCurrencies(),
-    ]);
+export async function fetchOrderMasterData(
+  organizationId: string,
+  transportMode: OrderTransportMode,
+) {
+  assertTransportStationsSupported(transportMode);
+  const shouldLoadPorts = transportMode === 'sea';
+  const shouldLoadAirports = transportMode === 'air';
 
-  const masterOptions = unwrapList(optionsResponse);
-  const ports = unwrapList(portsResponse);
-  const airports = unwrapList(airportsResponse);
+  const [masterOptions, ports, airports, currencies] = await Promise.all([
+    getMasterDataOptions(organizationId),
+    shouldLoadPorts ? getCachedPorts(organizationId) : Promise.resolve([]),
+    shouldLoadAirports
+      ? getCachedAirports(organizationId)
+      : Promise.resolve([]),
+    getCurrencies(),
+  ]);
   const serviceTypeOptions = masterOptions
     .filter(
       (item) =>
@@ -351,4 +340,15 @@ export async function fetchOrderMasterData() {
     airLocationOptions,
     currencyOptions,
   };
+}
+
+/** 按运输方式穷尽选择地点候选项；land/rail 显式抛错，不会静默进入机场分支。 */
+export function resolveOrderLocationOptions(
+  transportMode: OrderTransportMode,
+  masterData: Awaited<ReturnType<typeof fetchOrderMasterData>>,
+): SelectOption[] {
+  assertTransportStationsSupported(transportMode);
+  return transportMode === 'sea'
+    ? masterData.seaLocationOptions
+    : masterData.airLocationOptions;
 }

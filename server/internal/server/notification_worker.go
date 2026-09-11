@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	notificationPollInterval  = 2 * time.Second
-	notificationLeaseDuration = 30 * time.Second
-	notificationSendTimeout   = 15 * time.Second
+	notificationInitialPollInterval = 2 * time.Second
+	notificationLeaseDuration       = 30 * time.Second
+	notificationSendTimeout         = 15 * time.Second
 )
 
 // NotificationWorker 通过 Kratos Server 生命周期消费通知发件箱。
@@ -39,6 +39,7 @@ func (w *NotificationWorker) Start(context.Context) error {
 		return nil
 	}
 	w.logger.Info("notification worker started", slog.String("channel", "DINGTALK"))
+	backoff := newWorkerPollBackoff(notificationInitialPollInterval, backgroundWorkerMaxPollInterval)
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -52,16 +53,11 @@ func (w *NotificationWorker) Start(context.Context) error {
 			w.logger.Error("process notification", slog.String("channel", "DINGTALK"), slog.Any("error", err))
 		}
 		if err == nil {
+			backoff.Reset()
 			continue
 		}
-		timer := time.NewTimer(notificationPollInterval)
-		select {
-		case <-w.ctx.Done():
-			if !timer.Stop() {
-				<-timer.C
-			}
+		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
 			return nil
-		case <-timer.C:
 		}
 	}
 }

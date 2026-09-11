@@ -5,7 +5,10 @@ import { Result } from 'antd';
 import React from 'react';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
 import { HeaderTitle } from '@/components/layout/HeaderTitle';
-import { TagsView } from '@/components/layout/TagsView';
+import {
+  getOrganizationWorkspaceKey,
+  OrganizationWorkspace,
+} from '@/components/layout/OrganizationWorkspace';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
@@ -82,6 +85,9 @@ export async function getInitialState(): Promise<InitialState> {
 }
 
 export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
+  menu: {
+    locale: false,
+  },
   menuHeaderRender: (logo, title) => (
     <Link
       to="/welcome"
@@ -135,11 +141,14 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   },
   unAccessible: <Result status="403" title="403" subTitle="无权访问此页面" />,
   childrenRender: (children) => (
-    <div className="roncin-layout-wrapper">
+    <>
       <AppFeedbackBridge />
-      <TagsView />
-      <div className="roncin-layout-main">{children}</div>
-    </div>
+      <OrganizationWorkspace
+        key={getOrganizationWorkspaceKey(initialState?.currentUser)}
+      >
+        {children}
+      </OrganizationWorkspace>
+    </>
   ),
   ...initialState?.settings,
 });

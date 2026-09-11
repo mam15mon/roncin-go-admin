@@ -7,13 +7,14 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
-import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
+import { CurrencyAmountInput, ProFormSearchableSelect } from '@/components/ui';
+import { PartnerRoleType } from '@/enums.generated';
 import {
-  loadingTermsOptions,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../../../common';
+import PartnerQuickAddSelect from '../../../components/PartnerQuickAddSelect';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 import type { SelectOption, TemplateProps } from '../../types';
 
@@ -37,11 +38,7 @@ export function TooltipInput(props: any) {
   );
 }
 
-export function SeaServiceTypeFields({
-  options,
-}: {
-  options: SelectOption[];
-}) {
+export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
   const shipmentMode = Form.useWatch('shipmentMode');
   const policy = resolveSeaOrderFormPolicy({ shipmentMode });
   const recommendedCodes = new Set(policy.recommendedServiceCodes);
@@ -53,7 +50,9 @@ export function SeaServiceTypeFields({
         label="服务类型"
         options={options.map((option) => ({
           label: (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
               <span>{option.label}</span>
               {option.code && recommendedCodes.has(option.code) && (
                 <Tag
@@ -73,13 +72,69 @@ export function SeaServiceTypeFields({
   );
 }
 
+function SeaCarrierField({
+  isDetail,
+  readonly,
+  searchShippingLines,
+}: {
+  isDetail?: boolean;
+  readonly?: boolean;
+  searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
+}) {
+  const form = Form.useFormInstance();
+  const existingMbl = Form.useWatch('seaMasterBill', {
+    form,
+    preserve: true,
+  }) as API.SeaMasterBillSummary | undefined;
+  const isMultiMemberLocked =
+    isDetail && !!existingMbl && (existingMbl.memberCount ?? 0) > 1;
+  const currentShippingLineOption = existingMbl?.shippingLineId
+    ? {
+        label: existingMbl.shippingLineName || existingMbl.shippingLineId,
+        value: existingMbl.shippingLineId,
+      }
+    : undefined;
+
+  return (
+    <ProFormSearchableSelect
+      name="shippingLineId"
+      label="船公司"
+      placeholder="请选择"
+      options={currentShippingLineOption ? [currentShippingLineOption] : []}
+      disabled={readonly || isMultiMemberLocked}
+      tooltip={
+        isMultiMemberLocked
+          ? '该主单已关联多票订单，禁止从单票页面修改船公司'
+          : undefined
+      }
+      rules={[{ required: true, message: '请选择船公司' }]}
+      request={
+        readonly || isMultiMemberLocked
+          ? undefined
+          : async ({ keyWords }: { keyWords?: string }) => {
+              const options = await searchShippingLines(keyWords);
+              if (
+                !currentShippingLineOption ||
+                options.some(
+                  (option) => option.value === currentShippingLineOption.value,
+                )
+              ) {
+                return options;
+              }
+              return [currentShippingLineOption, ...options];
+            }
+      }
+    />
+  );
+}
+
 export function buildSeaBaseInfoSection(props: TemplateProps) {
   const {
     serviceTypeOptions,
     cargoCategoryOptions,
     currencyOptions,
     searchCustomers,
-    searchCarriers,
+    searchShippingLines,
     searchBookingAgents,
     searchForeignAgents,
     searchShippingAgents,
@@ -134,20 +189,15 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
         <Col span={24}>
           <Row gutter={16} align="middle">
             <Col className="col-5">
-              <ProFormSearchableSelect
+              <PartnerQuickAddSelect
                 name="customerId"
-                label="委托单位"
-                rules={[{ required: true, message: '请选择客户单位' }]}
-                fieldProps={{
-                  placeholder: '请选择',
-                  onChange: (_: any, option: any) =>
-                    setCustomerCode(
-                      (option as SelectOption | undefined)?.code,
-                    ),
-                }}
-                request={async ({ keyWords }: { keyWords?: string }) =>
-                  searchCustomers(keyWords)
-                }
+                displayName="委托单位"
+                role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+                createRoute="/partners/customers/create"
+                searchPartners={searchCustomers}
+                required
+                disabled={props.readonly}
+                onPartnerChange={(option) => setCustomerCode(option?.code)}
               />
             </Col>
             <Col className="col-5">
@@ -179,7 +229,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           />
         </Col>
 
-        {/* 第 5 行：一行 5 列（客户业务编号、企业内部编号、贸易条款、订舱代理、国外代理） */}
+        {/* 第 5 行：客户业务编号、企业内部编号、订舱号及业务属性 */}
         <Col className="col-5">
           <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
             <Form.Item noStyle name="customerReferenceNo">
@@ -223,32 +273,38 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
         <Col className="col-5">
+          <Form.Item label="订舱号" style={{ marginInline: 8 }}>
+            <Form.Item noStyle name="bookingNo">
+              <TooltipInput placeholder="请输入" maxLength={100} />
+            </Form.Item>
+          </Form.Item>
+        </Col>
+        <Col className="col-5">
           <ProFormSearchableSelect
             name="tradeTerm"
             label="贸易条款"
-            rules={[{ required: true, message: '请选择贸易条款' }]}
             options={tradeTermOptions}
             placeholder="请选择"
           />
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
+          <PartnerQuickAddSelect
             name="bookingAgentId"
-            label="订舱代理"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchBookingAgents(keyWords)
-            }
+            displayName="订舱代理"
+            role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
+            createRoute="/partners/suppliers/create"
+            searchPartners={searchBookingAgents}
+            disabled={props.readonly}
           />
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
+          <PartnerQuickAddSelect
             name="foreignAgentId"
-            label="国外代理"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchForeignAgents(keyWords)
-            }
+            displayName="国外代理"
+            role={PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT}
+            createRoute="/partners/foreign-agents/create"
+            searchPartners={searchForeignAgents}
+            disabled={props.readonly}
           />
         </Col>
 
@@ -261,13 +317,10 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           </Form.Item>
         </Col>
         <Col className="col-5">
-          <ProFormSearchableSelect
-            name="carrierId"
-            label="船公司"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchCarriers(keyWords)
-            }
+          <SeaCarrierField
+            isDetail={props.isDetail}
+            readonly={props.readonly}
+            searchShippingLines={searchShippingLines}
           />
         </Col>
         <Col className="col-5">
@@ -282,109 +335,34 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
         </Col>
         <Col className="col-5">
           <Form.Item label="货值" style={{ marginInline: 8 }}>
-            <Form.Item
-              noStyle
-              name="cargoValue"
-              dependencies={['cargoCurrency']}
-              rules={[
-                ({ getFieldValue }) => ({
-                  validator: async (_, value) => {
-                    if (!value && !getFieldValue('cargoCurrency')) return;
-                    if (!value) throw new Error('请输入货值');
-                    if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                      throw new Error('请输入正确的货值，最多 4 位小数');
-                    }
-                  },
-                }),
-              ]}
-            >
-              <TooltipInput
-                placeholder="金额"
-                maxLength={23}
-                suffix={
-                  <span onMouseDown={(e) => e.stopPropagation()}>
-                    <Form.Item
-                      noStyle
-                      name="cargoCurrency"
-                      dependencies={['cargoValue']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('cargoValue') || value) return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <SearchableSelect
-                        popupMatchSelectWidth={false}
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
-                  </span>
-                }
-              />
-            </Form.Item>
+            <CurrencyAmountInput
+              currencyName="cargoCurrency"
+              amountName="cargoValue"
+              currencyOptions={currencyOptions}
+              disabled={props.readonly}
+              amountPlaceholder="金额"
+              amountRuleMessage="请输入正确的货值，最多 4 位小数"
+              emptyAmountMessage="请输入货值"
+              emptyCurrencyMessage="请选择币种"
+            />
           </Form.Item>
         </Col>
         <Col className="col-5">
           <Form.Item label="保费" style={{ marginInline: 8 }}>
-            <Form.Item
-              noStyle
-              name="insurancePremium"
-              dependencies={['insuranceCurrency']}
-              rules={[
-                ({ getFieldValue }) => ({
-                  validator: async (_, value) => {
-                    if (!value && !getFieldValue('insuranceCurrency')) return;
-                    if (!value) throw new Error('请输入保费');
-                    if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                      throw new Error('请输入正确的保费，最多 4 位小数');
-                    }
-                  },
-                }),
-              ]}
-            >
-              <TooltipInput
-                placeholder="金额"
-                maxLength={23}
-                suffix={
-                  <span onMouseDown={(e) => e.stopPropagation()}>
-                    <Form.Item
-                      noStyle
-                      name="insuranceCurrency"
-                      dependencies={['insurancePremium']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('insurancePremium') || value)
-                              return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <SearchableSelect
-                        popupMatchSelectWidth={false}
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
-                  </span>
-                }
-              />
-            </Form.Item>
+            <CurrencyAmountInput
+              currencyName="insuranceCurrency"
+              amountName="insurancePremium"
+              currencyOptions={currencyOptions}
+              disabled={props.readonly}
+              amountPlaceholder="金额"
+              amountRuleMessage="请输入正确的保费，最多 4 位小数"
+              emptyAmountMessage="请输入保费"
+              emptyCurrencyMessage="请选择币种"
+            />
           </Form.Item>
         </Col>
 
-        {/* 第 7 行：危险品、运输条款与合规时间 */}
+        {/* 第 7 行：危险品与合规时间（运输条款在提单信息区块维护） */}
         <Col className="col-5">
           <Form.Item
             label="UN NO."
@@ -408,14 +386,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
           >
             <TooltipInput placeholder="类别" maxLength={16} />
           </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name="loadingTerms"
-            label="运输条款"
-            options={loadingTermsOptions}
-            placeholder="请选择 CY / CFS / DOOR 条款"
-          />
         </Col>
         <Col className="col-5">
           <ProFormDateTimePicker

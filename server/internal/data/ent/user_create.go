@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
@@ -36,13 +37,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -495,6 +497,51 @@ func (_c *UserCreate) AddReversedFinanceVerifications(v ...*FinanceVerification)
 	return _c.AddReversedFinanceVerificationIDs(ids...)
 }
 
+// AddConfirmedFinanceNettingIDs adds the "confirmed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddConfirmedFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddConfirmedFinanceNettings adds the "confirmed_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddConfirmedFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedFinanceNettingIDs(ids...)
+}
+
+// AddCancelledFinanceNettingIDs adds the "cancelled_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddCancelledFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCancelledFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddCancelledFinanceNettings adds the "cancelled_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddCancelledFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCancelledFinanceNettingIDs(ids...)
+}
+
+// AddReversedFinanceNettingIDs adds the "reversed_finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *UserCreate) AddReversedFinanceNettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddReversedFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddReversedFinanceNettings adds the "reversed_finance_nettings" edges to the FinanceNetting entity.
+func (_c *UserCreate) AddReversedFinanceNettings(v ...*FinanceNetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReversedFinanceNettingIDs(ids...)
+}
+
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
 func (_c *UserCreate) AddFinanceCommissionIDs(ids ...uuid.UUID) *UserCreate {
 	_c.mutation.AddFinanceCommissionIDs(ids...)
@@ -735,21 +782,6 @@ func (_c *UserCreate) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceA
 	return _c.AddEnterpriseResourceAssignmentIDs(ids...)
 }
 
-// AddConfirmedSeaCargoAllocationLinkIDs adds the "confirmed_sea_cargo_allocation_links" edge to the SeaMasterBillOrderLink entity by IDs.
-func (_c *UserCreate) AddConfirmedSeaCargoAllocationLinkIDs(ids ...uuid.UUID) *UserCreate {
-	_c.mutation.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
-	return _c
-}
-
-// AddConfirmedSeaCargoAllocationLinks adds the "confirmed_sea_cargo_allocation_links" edges to the SeaMasterBillOrderLink entity.
-func (_c *UserCreate) AddConfirmedSeaCargoAllocationLinks(v ...*SeaMasterBillOrderLink) *UserCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddConfirmedSeaCargoAllocationLinkIDs(ids...)
-}
-
 // AddCreatedSeaOrderSplitEventIDs adds the "created_sea_order_split_events" edge to the SeaOrderSplitEvent entity by IDs.
 func (_c *UserCreate) AddCreatedSeaOrderSplitEventIDs(ids ...uuid.UUID) *UserCreate {
 	_c.mutation.AddCreatedSeaOrderSplitEventIDs(ids...)
@@ -945,19 +977,49 @@ func (_c *UserCreate) AddCreatedSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent
 	return _c.AddCreatedSeaDocumentVoidEventIDs(ids...)
 }
 
-// AddCreatedSeaHouseBillSwitchEventIDs adds the "created_sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_c *UserCreate) AddCreatedSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *UserCreate {
-	_c.mutation.AddCreatedSeaHouseBillSwitchEventIDs(ids...)
+// AddCreatedSeaTransportExecutionVersionIDs adds the "created_sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *UserCreate) AddCreatedSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaTransportExecutionVersionIDs(ids...)
 	return _c
 }
 
-// AddCreatedSeaHouseBillSwitchEvents adds the "created_sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_c *UserCreate) AddCreatedSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *UserCreate {
+// AddCreatedSeaTransportExecutionVersions adds the "created_sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *UserCreate) AddCreatedSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *UserCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddCreatedSeaHouseBillSwitchEventIDs(ids...)
+	return _c.AddCreatedSeaTransportExecutionVersionIDs(ids...)
+}
+
+// AddCreatedSeaDocumentModeChangeEventIDs adds the "created_sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *UserCreate) AddCreatedSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedSeaDocumentModeChangeEventIDs(ids...)
+	return _c
+}
+
+// AddCreatedSeaDocumentModeChangeEvents adds the "created_sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *UserCreate) AddCreatedSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddConfirmedSeaSharedContainerIDs adds the "confirmed_sea_shared_containers" edge to the SeaSharedContainer entity by IDs.
+func (_c *UserCreate) AddConfirmedSeaSharedContainerIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedSeaSharedContainerIDs(ids...)
+	return _c
+}
+
+// AddConfirmedSeaSharedContainers adds the "confirmed_sea_shared_containers" edges to the SeaSharedContainer entity.
+func (_c *UserCreate) AddConfirmedSeaSharedContainers(v ...*SeaSharedContainer) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedSeaSharedContainerIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1433,6 +1495,54 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.ConfirmedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceNettingsTable,
+			Columns: []string{user.ConfirmedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceNettingsTable,
+			Columns: []string{user.CancelledFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReversedFinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceNettingsTable,
+			Columns: []string{user.ReversedFinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.FinanceCommissionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1689,22 +1799,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.ConfirmedSeaCargoAllocationLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.ConfirmedSeaCargoAllocationLinksTable,
-			Columns: []string{user.ConfirmedSeaCargoAllocationLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.CreatedSeaOrderSplitEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1913,15 +2007,47 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.CreatedSeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CreatedSeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CreatedSeaHouseBillSwitchEventsTable,
-			Columns: []string{user.CreatedSeaHouseBillSwitchEventsColumn},
+			Table:   user.CreatedSeaTransportExecutionVersionsTable,
+			Columns: []string{user.CreatedSeaTransportExecutionVersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedSeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedSeaDocumentModeChangeEventsTable,
+			Columns: []string{user.CreatedSeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedSeaSharedContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedSeaSharedContainersTable,
+			Columns: []string{user.ConfirmedSeaSharedContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainer.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

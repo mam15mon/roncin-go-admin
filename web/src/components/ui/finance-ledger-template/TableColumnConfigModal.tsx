@@ -18,20 +18,18 @@ import {
   Tag,
 } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FieldConfigCard } from './FieldConfigCard';
-import {
-  ALL_153_FINANCE_FIELDS,
-  getDefaultColumnPreferences,
-  getDefaultRowColors,
-  type FinanceFieldMeta,
-} from './fields-meta';
-import RowColorSettings, {
-  type RowColorsConfig,
-} from './RowColorSettings';
 import {
   settlementServiceResetFeeLedgerPreference,
   settlementServiceUpdateFeeLedgerPreference,
 } from '@/services/roncin/settlementService';
+import { FieldConfigCard } from './FieldConfigCard';
+import {
+  ALL_153_FINANCE_FIELDS,
+  type FinanceFieldMeta,
+  getDefaultColumnPreferences,
+  getDefaultRowColors,
+} from './fields-meta';
+import RowColorSettings, { type RowColorsConfig } from './RowColorSettings';
 
 export interface TableColumnConfigModalProps {
   open: boolean;
@@ -318,10 +316,12 @@ export function TableColumnConfigModal({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const columnsPayload: API.FeeLedgerColumnPreference[] = fieldList.map((f) => ({
-        fieldKey: f.key,
-        visible: Boolean(columnMap.get(f.key)),
-      }));
+      const columnsPayload: API.FeeLedgerColumnPreference[] = fieldList.map(
+        (f) => ({
+          fieldKey: f.key,
+          visible: Boolean(columnMap.get(f.key)),
+        }),
+      );
 
       const body: API.UpdateFeeLedgerPreferenceRequest = {
         columns: columnsPayload,
@@ -372,12 +372,7 @@ export function TableColumnConfigModal({
         <Button key="cancel" onClick={onClose}>
           取消
         </Button>,
-        <Button
-          key="save"
-          type="primary"
-          loading={saving}
-          onClick={handleSave}
-        >
+        <Button key="save" type="primary" loading={saving} onClick={handleSave}>
           确定并保存配置
         </Button>,
       ]}

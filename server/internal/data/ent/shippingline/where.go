@@ -857,6 +857,121 @@ func HasContainerPrefixesWith(preds ...predicate.ShippingLineContainerPrefix) pr
 	})
 }
 
+// HasOrders applies the HasEdge predicate on the "orders" edge.
+func HasOrders() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrdersWith applies the HasEdge predicate on the "orders" edge with a given conditions (other predicates).
+func HasOrdersWith(preds ...predicate.Order) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newOrdersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaTransportExecutions applies the HasEdge predicate on the "sea_transport_executions" edge.
+func HasSeaTransportExecutions() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionsTable, SeaTransportExecutionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaTransportExecutionsWith applies the HasEdge predicate on the "sea_transport_executions" edge with a given conditions (other predicates).
+func HasSeaTransportExecutionsWith(preds ...predicate.SeaTransportExecution) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newSeaTransportExecutionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaTransportExecutionVersions applies the HasEdge predicate on the "sea_transport_execution_versions" edge.
+func HasSeaTransportExecutionVersions() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaTransportExecutionVersionsWith applies the HasEdge predicate on the "sea_transport_execution_versions" edge with a given conditions (other predicates).
+func HasSeaTransportExecutionVersionsWith(preds ...predicate.SeaTransportExecutionVersion) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newSeaTransportExecutionVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaMasterBills applies the HasEdge predicate on the "sea_master_bills" edge.
+func HasSeaMasterBills() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillsTable, SeaMasterBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaMasterBillsWith applies the HasEdge predicate on the "sea_master_bills" edge with a given conditions (other predicates).
+func HasSeaMasterBillsWith(preds ...predicate.SeaMasterBill) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newSeaMasterBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaMasterBillVersions applies the HasEdge predicate on the "sea_master_bill_versions" edge.
+func HasSeaMasterBillVersions() predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaMasterBillVersionsWith applies the HasEdge predicate on the "sea_master_bill_versions" edge with a given conditions (other predicates).
+func HasSeaMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.ShippingLine {
+	return predicate.ShippingLine(func(s *sql.Selector) {
+		step := newSeaMasterBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ShippingLine) predicate.ShippingLine {
 	return predicate.ShippingLine(sql.AndPredicates(predicates...))

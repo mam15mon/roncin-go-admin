@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 )
 
 // PartnerAccount is the model entity for the PartnerAccount schema.
@@ -23,22 +23,28 @@ type PartnerAccount struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// PartnerRoleID holds the value of the "partner_role_id" field.
-	PartnerRoleID uuid.UUID `json:"partner_role_id,omitempty"`
-	// AccountType holds the value of the "account_type" field.
-	AccountType partneraccount.AccountType `json:"account_type,omitempty"`
+	// PartnerID holds the value of the "partner_id" field.
+	PartnerID uuid.UUID `json:"partner_id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// AccountHolder holds the value of the "account_holder" field.
+	AccountHolder string `json:"account_holder,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// BankName holds the value of the "bank_name" field.
 	BankName string `json:"bank_name,omitempty"`
-	// BankAccount holds the value of the "bank_account" field.
-	BankAccount string `json:"bank_account,omitempty"`
+	// AccountNo holds the value of the "account_no" field.
+	AccountNo string `json:"account_no,omitempty"`
 	// SwiftCode holds the value of the "swift_code" field.
 	SwiftCode string `json:"swift_code,omitempty"`
-	// IsDefault holds the value of the "is_default" field.
-	IsDefault bool `json:"is_default,omitempty"`
-	// Status holds the value of the "status" field.
-	Status partneraccount.Status `json:"status,omitempty"`
+	// Usage holds the value of the "usage" field.
+	Usage partneraccount.Usage `json:"usage,omitempty"`
+	// IsDefaultReceivable holds the value of the "is_default_receivable" field.
+	IsDefaultReceivable bool `json:"is_default_receivable,omitempty"`
+	// IsDefaultPayable holds the value of the "is_default_payable" field.
+	IsDefaultPayable bool `json:"is_default_payable,omitempty"`
+	// Enabled holds the value of the "enabled" field.
+	Enabled bool `json:"enabled,omitempty"`
 	// Remark holds the value of the "remark" field.
 	Remark string `json:"remark,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -49,22 +55,22 @@ type PartnerAccount struct {
 
 // PartnerAccountEdges holds the relations/edges for other nodes in the graph.
 type PartnerAccountEdges struct {
-	// PartnerRole holds the value of the partner_role edge.
-	PartnerRole *PartnerRole `json:"partner_role,omitempty"`
+	// Partner holds the value of the partner edge.
+	Partner *Partner `json:"partner,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// PartnerRoleOrErr returns the PartnerRole value or an error if the edge
+// PartnerOrErr returns the Partner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PartnerAccountEdges) PartnerRoleOrErr() (*PartnerRole, error) {
-	if e.PartnerRole != nil {
-		return e.PartnerRole, nil
+func (e PartnerAccountEdges) PartnerOrErr() (*Partner, error) {
+	if e.Partner != nil {
+		return e.Partner, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: partnerrole.Label}
+		return nil, &NotFoundError{label: partner.Label}
 	}
-	return nil, &NotLoadedError{edge: "partner_role"}
+	return nil, &NotLoadedError{edge: "partner"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -72,13 +78,13 @@ func (*PartnerAccount) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case partneraccount.FieldIsDefault:
+		case partneraccount.FieldIsDefaultReceivable, partneraccount.FieldIsDefaultPayable, partneraccount.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case partneraccount.FieldAccountType, partneraccount.FieldCurrency, partneraccount.FieldBankName, partneraccount.FieldBankAccount, partneraccount.FieldSwiftCode, partneraccount.FieldStatus, partneraccount.FieldRemark:
+		case partneraccount.FieldName, partneraccount.FieldAccountHolder, partneraccount.FieldCurrency, partneraccount.FieldBankName, partneraccount.FieldAccountNo, partneraccount.FieldSwiftCode, partneraccount.FieldUsage, partneraccount.FieldRemark:
 			values[i] = new(sql.NullString)
 		case partneraccount.FieldCreatedAt, partneraccount.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case partneraccount.FieldID, partneraccount.FieldPartnerRoleID:
+		case partneraccount.FieldID, partneraccount.FieldPartnerID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -113,17 +119,23 @@ func (_m *PartnerAccount) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case partneraccount.FieldPartnerRoleID:
+		case partneraccount.FieldPartnerID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field partner_role_id", values[i])
+				return fmt.Errorf("unexpected type %T for field partner_id", values[i])
 			} else if value != nil {
-				_m.PartnerRoleID = *value
+				_m.PartnerID = *value
 			}
-		case partneraccount.FieldAccountType:
+		case partneraccount.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field account_type", values[i])
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				_m.AccountType = partneraccount.AccountType(value.String)
+				_m.Name = value.String
+			}
+		case partneraccount.FieldAccountHolder:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field account_holder", values[i])
+			} else if value.Valid {
+				_m.AccountHolder = value.String
 			}
 		case partneraccount.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -137,11 +149,11 @@ func (_m *PartnerAccount) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.BankName = value.String
 			}
-		case partneraccount.FieldBankAccount:
+		case partneraccount.FieldAccountNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field bank_account", values[i])
+				return fmt.Errorf("unexpected type %T for field account_no", values[i])
 			} else if value.Valid {
-				_m.BankAccount = value.String
+				_m.AccountNo = value.String
 			}
 		case partneraccount.FieldSwiftCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -149,17 +161,29 @@ func (_m *PartnerAccount) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SwiftCode = value.String
 			}
-		case partneraccount.FieldIsDefault:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_default", values[i])
-			} else if value.Valid {
-				_m.IsDefault = value.Bool
-			}
-		case partneraccount.FieldStatus:
+		case partneraccount.FieldUsage:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
+				return fmt.Errorf("unexpected type %T for field usage", values[i])
 			} else if value.Valid {
-				_m.Status = partneraccount.Status(value.String)
+				_m.Usage = partneraccount.Usage(value.String)
+			}
+		case partneraccount.FieldIsDefaultReceivable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_default_receivable", values[i])
+			} else if value.Valid {
+				_m.IsDefaultReceivable = value.Bool
+			}
+		case partneraccount.FieldIsDefaultPayable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_default_payable", values[i])
+			} else if value.Valid {
+				_m.IsDefaultPayable = value.Bool
+			}
+		case partneraccount.FieldEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enabled", values[i])
+			} else if value.Valid {
+				_m.Enabled = value.Bool
 			}
 		case partneraccount.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -180,9 +204,9 @@ func (_m *PartnerAccount) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryPartnerRole queries the "partner_role" edge of the PartnerAccount entity.
-func (_m *PartnerAccount) QueryPartnerRole() *PartnerRoleQuery {
-	return NewPartnerAccountClient(_m.config).QueryPartnerRole(_m)
+// QueryPartner queries the "partner" edge of the PartnerAccount entity.
+func (_m *PartnerAccount) QueryPartner() *PartnerQuery {
+	return NewPartnerAccountClient(_m.config).QueryPartner(_m)
 }
 
 // Update returns a builder for updating this PartnerAccount.
@@ -214,11 +238,14 @@ func (_m *PartnerAccount) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("partner_role_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.PartnerRoleID))
+	builder.WriteString("partner_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PartnerID))
 	builder.WriteString(", ")
-	builder.WriteString("account_type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.AccountType))
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("account_holder=")
+	builder.WriteString(_m.AccountHolder)
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
@@ -226,17 +253,23 @@ func (_m *PartnerAccount) String() string {
 	builder.WriteString("bank_name=")
 	builder.WriteString(_m.BankName)
 	builder.WriteString(", ")
-	builder.WriteString("bank_account=")
-	builder.WriteString(_m.BankAccount)
+	builder.WriteString("account_no=")
+	builder.WriteString(_m.AccountNo)
 	builder.WriteString(", ")
 	builder.WriteString("swift_code=")
 	builder.WriteString(_m.SwiftCode)
 	builder.WriteString(", ")
-	builder.WriteString("is_default=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsDefault))
+	builder.WriteString("usage=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Usage))
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString("is_default_receivable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDefaultReceivable))
+	builder.WriteString(", ")
+	builder.WriteString("is_default_payable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDefaultPayable))
+	builder.WriteString(", ")
+	builder.WriteString("enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)

@@ -38,58 +38,60 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderQuery is the builder for querying Order entities.
 type OrderQuery struct {
 	config
-	ctx                              *QueryContext
-	order                            []order.OrderOption
-	inters                           []Interceptor
-	predicates                       []predicate.Order
-	withOrganization                 *OrganizationQuery
-	withCustomer                     *PartnerQuery
-	withLifecycleEvents              *OrderLifecycleEventQuery
-	withServiceTypes                 *OrderServiceTypeQuery
-	withCargoCategories              *OrderCargoCategoryQuery
-	withMilestones                   *OrderMilestoneQuery
-	withAttachments                  *OrderAttachmentQuery
-	withPersonnel                    *OrderPersonnelQuery
-	withContainers                   *OrderContainerQuery
-	withContainerRequests            *OrderContainerRequestQuery
-	withCargoItems                   *OrderCargoItemQuery
-	withShippingDocuments            *OrderShippingDocumentQuery
-	withReleasePods                  *OrderReleasePodQuery
-	withAbnormalCases                *OrderAbnormalCaseQuery
-	withFees                         *OrderFeeQuery
-	withFinanceBillLines             *FinanceBillLineQuery
-	withFinanceCommissionLines       *FinanceCommissionLineQuery
-	withFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
-	withCommissionAttributions       *OrderCommissionAttributionQuery
-	withEnterpriseTagLinks           *OrderEnterpriseTagQuery
-	withSeaMasterBillLinks           *SeaMasterBillOrderLinkQuery
-	withSeaHouseBills                *SeaHouseBillQuery
-	withSeaCargoAllocations          *SeaCargoAllocationQuery
-	withSeaOrderSplitEvents          *SeaOrderSplitEventQuery
-	withSeaOrderSplitResults         *SeaOrderSplitResultQuery
-	withSeaOrderReassignmentEvents   *SeaOrderReassignmentEventQuery
-	withLockedByUser                 *UserQuery
-	withLockRecords                  *OrderLockRecordQuery
-	withUnlockRequests               *OrderUnlockRequestQuery
-	withSeaHouseBillVersions         *SeaHouseBillVersionQuery
-	withSeaDocumentVoidEvents        *SeaDocumentVoidEventQuery
-	withSeaHouseBillSwitchEvents     *SeaHouseBillSwitchEventQuery
-	modifiers                        []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []order.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.Order
+	withOrganization                  *OrganizationQuery
+	withCustomer                      *PartnerQuery
+	withShippingLine                  *ShippingLineQuery
+	withLifecycleEvents               *OrderLifecycleEventQuery
+	withServiceTypes                  *OrderServiceTypeQuery
+	withCargoCategories               *OrderCargoCategoryQuery
+	withMilestones                    *OrderMilestoneQuery
+	withAttachments                   *OrderAttachmentQuery
+	withPersonnel                     *OrderPersonnelQuery
+	withContainers                    *OrderContainerQuery
+	withContainerRequests             *OrderContainerRequestQuery
+	withCargoItems                    *OrderCargoItemQuery
+	withShippingDocuments             *OrderShippingDocumentQuery
+	withReleasePods                   *OrderReleasePodQuery
+	withAbnormalCases                 *OrderAbnormalCaseQuery
+	withFees                          *OrderFeeQuery
+	withFinanceBillLines              *FinanceBillLineQuery
+	withFinanceCommissionLines        *FinanceCommissionLineQuery
+	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
+	withCommissionAttributions        *OrderCommissionAttributionQuery
+	withEnterpriseTagLinks            *OrderEnterpriseTagQuery
+	withSeaMasterBillLinks            *SeaMasterBillOrderLinkQuery
+	withSeaHouseBills                 *SeaHouseBillQuery
+	withSeaDocumentModeChangeEvents   *SeaDocumentModeChangeEventQuery
+	withSeaSharedContainerAllocations *SeaSharedContainerAllocationQuery
+	withSeaOrderSplitEvents           *SeaOrderSplitEventQuery
+	withSeaOrderSplitResults          *SeaOrderSplitResultQuery
+	withSeaOrderReassignmentEvents    *SeaOrderReassignmentEventQuery
+	withLockedByUser                  *UserQuery
+	withLockRecords                   *OrderLockRecordQuery
+	withUnlockRequests                *OrderUnlockRequestQuery
+	withSeaHouseBillVersions          *SeaHouseBillVersionQuery
+	withSeaDocumentVoidEvents         *SeaDocumentVoidEventQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -163,6 +165,28 @@ func (_q *OrderQuery) QueryCustomer() *PartnerQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, order.CustomerTable, order.CustomerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShippingLine chains the current query on the "shipping_line" edge.
+func (_q *OrderQuery) QueryShippingLine() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.ShippingLineTable, order.ShippingLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -610,9 +634,9 @@ func (_q *OrderQuery) QuerySeaHouseBills() *SeaHouseBillQuery {
 	return query
 }
 
-// QuerySeaCargoAllocations chains the current query on the "sea_cargo_allocations" edge.
-func (_q *OrderQuery) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+// QuerySeaDocumentModeChangeEvents chains the current query on the "sea_document_mode_change_events" edge.
+func (_q *OrderQuery) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -623,8 +647,30 @@ func (_q *OrderQuery) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaCargoAllocationsTable, order.SeaCargoAllocationsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaDocumentModeChangeEventsTable, order.SeaDocumentModeChangeEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainerAllocations chains the current query on the "sea_shared_container_allocations" edge.
+func (_q *OrderQuery) QuerySeaSharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaSharedContainerAllocationsTable, order.SeaSharedContainerAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -801,28 +847,6 @@ func (_q *OrderQuery) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaDocumentVoidEventsTable, order.SeaDocumentVoidEventsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QuerySeaHouseBillSwitchEvents chains the current query on the "sea_house_bill_switch_events" edge.
-func (_q *OrderQuery) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaHouseBillSwitchEventsTable, order.SeaHouseBillSwitchEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1017,43 +1041,44 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		return nil
 	}
 	return &OrderQuery{
-		config:                           _q.config,
-		ctx:                              _q.ctx.Clone(),
-		order:                            append([]order.OrderOption{}, _q.order...),
-		inters:                           append([]Interceptor{}, _q.inters...),
-		predicates:                       append([]predicate.Order{}, _q.predicates...),
-		withOrganization:                 _q.withOrganization.Clone(),
-		withCustomer:                     _q.withCustomer.Clone(),
-		withLifecycleEvents:              _q.withLifecycleEvents.Clone(),
-		withServiceTypes:                 _q.withServiceTypes.Clone(),
-		withCargoCategories:              _q.withCargoCategories.Clone(),
-		withMilestones:                   _q.withMilestones.Clone(),
-		withAttachments:                  _q.withAttachments.Clone(),
-		withPersonnel:                    _q.withPersonnel.Clone(),
-		withContainers:                   _q.withContainers.Clone(),
-		withContainerRequests:            _q.withContainerRequests.Clone(),
-		withCargoItems:                   _q.withCargoItems.Clone(),
-		withShippingDocuments:            _q.withShippingDocuments.Clone(),
-		withReleasePods:                  _q.withReleasePods.Clone(),
-		withAbnormalCases:                _q.withAbnormalCases.Clone(),
-		withFees:                         _q.withFees.Clone(),
-		withFinanceBillLines:             _q.withFinanceBillLines.Clone(),
-		withFinanceCommissionLines:       _q.withFinanceCommissionLines.Clone(),
-		withFinanceCommissionAdjustments: _q.withFinanceCommissionAdjustments.Clone(),
-		withCommissionAttributions:       _q.withCommissionAttributions.Clone(),
-		withEnterpriseTagLinks:           _q.withEnterpriseTagLinks.Clone(),
-		withSeaMasterBillLinks:           _q.withSeaMasterBillLinks.Clone(),
-		withSeaHouseBills:                _q.withSeaHouseBills.Clone(),
-		withSeaCargoAllocations:          _q.withSeaCargoAllocations.Clone(),
-		withSeaOrderSplitEvents:          _q.withSeaOrderSplitEvents.Clone(),
-		withSeaOrderSplitResults:         _q.withSeaOrderSplitResults.Clone(),
-		withSeaOrderReassignmentEvents:   _q.withSeaOrderReassignmentEvents.Clone(),
-		withLockedByUser:                 _q.withLockedByUser.Clone(),
-		withLockRecords:                  _q.withLockRecords.Clone(),
-		withUnlockRequests:               _q.withUnlockRequests.Clone(),
-		withSeaHouseBillVersions:         _q.withSeaHouseBillVersions.Clone(),
-		withSeaDocumentVoidEvents:        _q.withSeaDocumentVoidEvents.Clone(),
-		withSeaHouseBillSwitchEvents:     _q.withSeaHouseBillSwitchEvents.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]order.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.Order{}, _q.predicates...),
+		withOrganization:                  _q.withOrganization.Clone(),
+		withCustomer:                      _q.withCustomer.Clone(),
+		withShippingLine:                  _q.withShippingLine.Clone(),
+		withLifecycleEvents:               _q.withLifecycleEvents.Clone(),
+		withServiceTypes:                  _q.withServiceTypes.Clone(),
+		withCargoCategories:               _q.withCargoCategories.Clone(),
+		withMilestones:                    _q.withMilestones.Clone(),
+		withAttachments:                   _q.withAttachments.Clone(),
+		withPersonnel:                     _q.withPersonnel.Clone(),
+		withContainers:                    _q.withContainers.Clone(),
+		withContainerRequests:             _q.withContainerRequests.Clone(),
+		withCargoItems:                    _q.withCargoItems.Clone(),
+		withShippingDocuments:             _q.withShippingDocuments.Clone(),
+		withReleasePods:                   _q.withReleasePods.Clone(),
+		withAbnormalCases:                 _q.withAbnormalCases.Clone(),
+		withFees:                          _q.withFees.Clone(),
+		withFinanceBillLines:              _q.withFinanceBillLines.Clone(),
+		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
+		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
+		withCommissionAttributions:        _q.withCommissionAttributions.Clone(),
+		withEnterpriseTagLinks:            _q.withEnterpriseTagLinks.Clone(),
+		withSeaMasterBillLinks:            _q.withSeaMasterBillLinks.Clone(),
+		withSeaHouseBills:                 _q.withSeaHouseBills.Clone(),
+		withSeaDocumentModeChangeEvents:   _q.withSeaDocumentModeChangeEvents.Clone(),
+		withSeaSharedContainerAllocations: _q.withSeaSharedContainerAllocations.Clone(),
+		withSeaOrderSplitEvents:           _q.withSeaOrderSplitEvents.Clone(),
+		withSeaOrderSplitResults:          _q.withSeaOrderSplitResults.Clone(),
+		withSeaOrderReassignmentEvents:    _q.withSeaOrderReassignmentEvents.Clone(),
+		withLockedByUser:                  _q.withLockedByUser.Clone(),
+		withLockRecords:                   _q.withLockRecords.Clone(),
+		withUnlockRequests:                _q.withUnlockRequests.Clone(),
+		withSeaHouseBillVersions:          _q.withSeaHouseBillVersions.Clone(),
+		withSeaDocumentVoidEvents:         _q.withSeaDocumentVoidEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1079,6 +1104,17 @@ func (_q *OrderQuery) WithCustomer(opts ...func(*PartnerQuery)) *OrderQuery {
 		opt(query)
 	}
 	_q.withCustomer = query
+	return _q
+}
+
+// WithShippingLine tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithShippingLine(opts ...func(*ShippingLineQuery)) *OrderQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withShippingLine = query
 	return _q
 }
 
@@ -1302,14 +1338,25 @@ func (_q *OrderQuery) WithSeaHouseBills(opts ...func(*SeaHouseBillQuery)) *Order
 	return _q
 }
 
-// WithSeaCargoAllocations tells the query-builder to eager-load the nodes that are connected to
-// the "sea_cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithSeaCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *OrderQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+// WithSeaDocumentModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_document_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithSeaDocumentModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *OrderQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withSeaCargoAllocations = query
+	_q.withSeaDocumentModeChangeEvents = query
+	return _q
+}
+
+// WithSeaSharedContainerAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "sea_shared_container_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithSeaSharedContainerAllocations(opts ...func(*SeaSharedContainerAllocationQuery)) *OrderQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaSharedContainerAllocations = query
 	return _q
 }
 
@@ -1401,17 +1448,6 @@ func (_q *OrderQuery) WithSeaDocumentVoidEvents(opts ...func(*SeaDocumentVoidEve
 	return _q
 }
 
-// WithSeaHouseBillSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "sea_house_bill_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithSeaHouseBillSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *OrderQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withSeaHouseBillSwitchEvents = query
-	return _q
-}
-
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1490,9 +1526,10 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [32]bool{
+		loadedTypes = [33]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
+			_q.withShippingLine != nil,
 			_q.withLifecycleEvents != nil,
 			_q.withServiceTypes != nil,
 			_q.withCargoCategories != nil,
@@ -1513,7 +1550,8 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withEnterpriseTagLinks != nil,
 			_q.withSeaMasterBillLinks != nil,
 			_q.withSeaHouseBills != nil,
-			_q.withSeaCargoAllocations != nil,
+			_q.withSeaDocumentModeChangeEvents != nil,
+			_q.withSeaSharedContainerAllocations != nil,
 			_q.withSeaOrderSplitEvents != nil,
 			_q.withSeaOrderSplitResults != nil,
 			_q.withSeaOrderReassignmentEvents != nil,
@@ -1522,7 +1560,6 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withUnlockRequests != nil,
 			_q.withSeaHouseBillVersions != nil,
 			_q.withSeaDocumentVoidEvents != nil,
-			_q.withSeaHouseBillSwitchEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1555,6 +1592,12 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	if query := _q.withCustomer; query != nil {
 		if err := _q.loadCustomer(ctx, query, nodes, nil,
 			func(n *Order, e *Partner) { n.Edges.Customer = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withShippingLine; query != nil {
+		if err := _q.loadShippingLine(ctx, query, nodes, nil,
+			func(n *Order, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1712,11 +1755,20 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			return nil, err
 		}
 	}
-	if query := _q.withSeaCargoAllocations; query != nil {
-		if err := _q.loadSeaCargoAllocations(ctx, query, nodes,
-			func(n *Order) { n.Edges.SeaCargoAllocations = []*SeaCargoAllocation{} },
-			func(n *Order, e *SeaCargoAllocation) {
-				n.Edges.SeaCargoAllocations = append(n.Edges.SeaCargoAllocations, e)
+	if query := _q.withSeaDocumentModeChangeEvents; query != nil {
+		if err := _q.loadSeaDocumentModeChangeEvents(ctx, query, nodes,
+			func(n *Order) { n.Edges.SeaDocumentModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *Order, e *SeaDocumentModeChangeEvent) {
+				n.Edges.SeaDocumentModeChangeEvents = append(n.Edges.SeaDocumentModeChangeEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaSharedContainerAllocations; query != nil {
+		if err := _q.loadSeaSharedContainerAllocations(ctx, query, nodes,
+			func(n *Order) { n.Edges.SeaSharedContainerAllocations = []*SeaSharedContainerAllocation{} },
+			func(n *Order, e *SeaSharedContainerAllocation) {
+				n.Edges.SeaSharedContainerAllocations = append(n.Edges.SeaSharedContainerAllocations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1786,15 +1838,6 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			return nil, err
 		}
 	}
-	if query := _q.withSeaHouseBillSwitchEvents; query != nil {
-		if err := _q.loadSeaHouseBillSwitchEvents(ctx, query, nodes,
-			func(n *Order) { n.Edges.SeaHouseBillSwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *Order, e *SeaHouseBillSwitchEvent) {
-				n.Edges.SeaHouseBillSwitchEvents = append(n.Edges.SeaHouseBillSwitchEvents, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
@@ -1849,6 +1892,38 @@ func (_q *OrderQuery) loadCustomer(ctx context.Context, query *PartnerQuery, nod
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "customer_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderQuery) loadShippingLine(ctx context.Context, query *ShippingLineQuery, nodes []*Order, init func(*Order), assign func(*Order, *ShippingLine)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Order)
+	for i := range nodes {
+		if nodes[i].ShippingLineID == nil {
+			continue
+		}
+		fk := *nodes[i].ShippingLineID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(shippingline.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -2456,7 +2531,7 @@ func (_q *OrderQuery) loadSeaHouseBills(ctx context.Context, query *SeaHouseBill
 	}
 	return nil
 }
-func (_q *OrderQuery) loadSeaCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*Order, init func(*Order), assign func(*Order, *SeaCargoAllocation)) error {
+func (_q *OrderQuery) loadSeaDocumentModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*Order, init func(*Order), assign func(*Order, *SeaDocumentModeChangeEvent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Order)
 	for i := range nodes {
@@ -2467,10 +2542,40 @@ func (_q *OrderQuery) loadSeaCargoAllocations(ctx context.Context, query *SeaCar
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seacargoallocation.FieldOrderID)
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldOrderID)
 	}
-	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(order.SeaCargoAllocationsColumn), fks...))
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.SeaDocumentModeChangeEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadSeaSharedContainerAllocations(ctx context.Context, query *SeaSharedContainerAllocationQuery, nodes []*Order, init func(*Order), assign func(*Order, *SeaSharedContainerAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seasharedcontainerallocation.FieldOrderID)
+	}
+	query.Where(predicate.SeaSharedContainerAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.SeaSharedContainerAllocationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -2728,36 +2833,6 @@ func (_q *OrderQuery) loadSeaDocumentVoidEvents(ctx context.Context, query *SeaD
 	}
 	return nil
 }
-func (_q *OrderQuery) loadSeaHouseBillSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*Order, init func(*Order), assign func(*Order, *SeaHouseBillSwitchEvent)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Order)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldOrderID)
-	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(order.SeaHouseBillSwitchEventsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrderID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 
 func (_q *OrderQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -2792,6 +2867,9 @@ func (_q *OrderQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCustomer != nil {
 			_spec.Node.AddColumnOnce(order.FieldCustomerID)
+		}
+		if _q.withShippingLine != nil {
+			_spec.Node.AddColumnOnce(order.FieldShippingLineID)
 		}
 		if _q.withLockedByUser != nil {
 			_spec.Node.AddColumnOnce(order.FieldLockedBy)

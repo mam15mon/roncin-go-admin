@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -56,11 +57,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -68,7 +68,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
@@ -85,7 +88,7 @@ type OrganizationQuery struct {
 	withChildren                      *OrganizationQuery
 	withMemberships                   *MembershipQuery
 	withRoles                         *RoleQuery
-	withRoleOrderOrganizationAccesses *RoleOrderOrganizationAccessQuery
+	withRoleOrganizationAccesses      *RoleOrganizationAccessQuery
 	withSessions                      *SessionQuery
 	withPartners                      *PartnerQuery
 	withPartnerAssignments            *PartnerAssignmentQuery
@@ -106,7 +109,6 @@ type OrganizationQuery struct {
 	withIssuedSeaHouseBills           *SeaHouseBillQuery
 	withOrderCargoItems               *OrderCargoItemQuery
 	withOrderContainers               *OrderContainerQuery
-	withSeaCargoAllocations           *SeaCargoAllocationQuery
 	withOrderPersonnel                *OrderPersonnelQuery
 	withBackgroundTasks               *BackgroundTaskQuery
 	withFinanceBills                  *FinanceBillQuery
@@ -115,6 +117,7 @@ type OrganizationQuery struct {
 	withFinanceInvoices               *FinanceInvoiceQuery
 	withFinanceCashflows              *FinanceCashflowQuery
 	withFinanceVerifications          *FinanceVerificationQuery
+	withFinanceNettings               *FinanceNettingQuery
 	withFinanceCommissions            *FinanceCommissionQuery
 	withFinanceCommissionLines        *FinanceCommissionLineQuery
 	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
@@ -140,7 +143,10 @@ type OrganizationQuery struct {
 	withIssuedSeaHouseBillVersions    *SeaHouseBillVersionQuery
 	withDingtalkApprovalDispatches    *DingTalkApprovalDispatchQuery
 	withSeaDocumentVoidEvents         *SeaDocumentVoidEventQuery
-	withSeaHouseBillSwitchEvents      *SeaHouseBillSwitchEventQuery
+	withSeaTransportExecutionVersions *SeaTransportExecutionVersionQuery
+	withSeaDocumentModeChangeEvents   *SeaDocumentModeChangeEventQuery
+	withSeaSharedContainers           *SeaSharedContainerQuery
+	withSeaSharedContainerAllocations *SeaSharedContainerAllocationQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -266,9 +272,9 @@ func (_q *OrganizationQuery) QueryRoles() *RoleQuery {
 	return query
 }
 
-// QueryRoleOrderOrganizationAccesses chains the current query on the "role_order_organization_accesses" edge.
-func (_q *OrganizationQuery) QueryRoleOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: _q.config}).Query()
+// QueryRoleOrganizationAccesses chains the current query on the "role_organization_accesses" edge.
+func (_q *OrganizationQuery) QueryRoleOrganizationAccesses() *RoleOrganizationAccessQuery {
+	query := (&RoleOrganizationAccessClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -279,8 +285,8 @@ func (_q *OrganizationQuery) QueryRoleOrderOrganizationAccesses() *RoleOrderOrga
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrderOrganizationAccessesTable, organization.RoleOrderOrganizationAccessesColumn),
+			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrganizationAccessesTable, organization.RoleOrganizationAccessesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -728,28 +734,6 @@ func (_q *OrganizationQuery) QueryOrderContainers() *OrderContainerQuery {
 	return query
 }
 
-// QuerySeaCargoAllocations chains the current query on the "sea_cargo_allocations" edge.
-func (_q *OrganizationQuery) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaCargoAllocationsTable, organization.SeaCargoAllocationsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryOrderPersonnel chains the current query on the "order_personnel" edge.
 func (_q *OrganizationQuery) QueryOrderPersonnel() *OrderPersonnelQuery {
 	query := (&OrderPersonnelClient{config: _q.config}).Query()
@@ -919,6 +903,28 @@ func (_q *OrganizationQuery) QueryFinanceVerifications() *FinanceVerificationQue
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceVerificationsTable, organization.FinanceVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceNettings chains the current query on the "finance_nettings" edge.
+func (_q *OrganizationQuery) QueryFinanceNettings() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceNettingsTable, organization.FinanceNettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1476,9 +1482,9 @@ func (_q *OrganizationQuery) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQ
 	return query
 }
 
-// QuerySeaHouseBillSwitchEvents chains the current query on the "sea_house_bill_switch_events" edge.
-func (_q *OrganizationQuery) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// QuerySeaTransportExecutionVersions chains the current query on the "sea_transport_execution_versions" edge.
+func (_q *OrganizationQuery) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -1489,8 +1495,74 @@ func (_q *OrganizationQuery) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitch
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillSwitchEventsTable, organization.SeaHouseBillSwitchEventsColumn),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaTransportExecutionVersionsTable, organization.SeaTransportExecutionVersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentModeChangeEvents chains the current query on the "sea_document_mode_change_events" edge.
+func (_q *OrganizationQuery) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaDocumentModeChangeEventsTable, organization.SeaDocumentModeChangeEventsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainers chains the current query on the "sea_shared_containers" edge.
+func (_q *OrganizationQuery) QuerySeaSharedContainers() *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaSharedContainersTable, organization.SeaSharedContainersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainerAllocations chains the current query on the "sea_shared_container_allocations" edge.
+func (_q *OrganizationQuery) QuerySeaSharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaSharedContainerAllocationsTable, organization.SeaSharedContainerAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1694,7 +1766,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withChildren:                      _q.withChildren.Clone(),
 		withMemberships:                   _q.withMemberships.Clone(),
 		withRoles:                         _q.withRoles.Clone(),
-		withRoleOrderOrganizationAccesses: _q.withRoleOrderOrganizationAccesses.Clone(),
+		withRoleOrganizationAccesses:      _q.withRoleOrganizationAccesses.Clone(),
 		withSessions:                      _q.withSessions.Clone(),
 		withPartners:                      _q.withPartners.Clone(),
 		withPartnerAssignments:            _q.withPartnerAssignments.Clone(),
@@ -1715,7 +1787,6 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withIssuedSeaHouseBills:           _q.withIssuedSeaHouseBills.Clone(),
 		withOrderCargoItems:               _q.withOrderCargoItems.Clone(),
 		withOrderContainers:               _q.withOrderContainers.Clone(),
-		withSeaCargoAllocations:           _q.withSeaCargoAllocations.Clone(),
 		withOrderPersonnel:                _q.withOrderPersonnel.Clone(),
 		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		withFinanceBills:                  _q.withFinanceBills.Clone(),
@@ -1724,6 +1795,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceInvoices:               _q.withFinanceInvoices.Clone(),
 		withFinanceCashflows:              _q.withFinanceCashflows.Clone(),
 		withFinanceVerifications:          _q.withFinanceVerifications.Clone(),
+		withFinanceNettings:               _q.withFinanceNettings.Clone(),
 		withFinanceCommissions:            _q.withFinanceCommissions.Clone(),
 		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
 		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
@@ -1749,7 +1821,10 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withIssuedSeaHouseBillVersions:    _q.withIssuedSeaHouseBillVersions.Clone(),
 		withDingtalkApprovalDispatches:    _q.withDingtalkApprovalDispatches.Clone(),
 		withSeaDocumentVoidEvents:         _q.withSeaDocumentVoidEvents.Clone(),
-		withSeaHouseBillSwitchEvents:      _q.withSeaHouseBillSwitchEvents.Clone(),
+		withSeaTransportExecutionVersions: _q.withSeaTransportExecutionVersions.Clone(),
+		withSeaDocumentModeChangeEvents:   _q.withSeaDocumentModeChangeEvents.Clone(),
+		withSeaSharedContainers:           _q.withSeaSharedContainers.Clone(),
+		withSeaSharedContainerAllocations: _q.withSeaSharedContainerAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1800,14 +1875,14 @@ func (_q *OrganizationQuery) WithRoles(opts ...func(*RoleQuery)) *OrganizationQu
 	return _q
 }
 
-// WithRoleOrderOrganizationAccesses tells the query-builder to eager-load the nodes that are connected to
-// the "role_order_organization_accesses" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithRoleOrderOrganizationAccesses(opts ...func(*RoleOrderOrganizationAccessQuery)) *OrganizationQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: _q.config}).Query()
+// WithRoleOrganizationAccesses tells the query-builder to eager-load the nodes that are connected to
+// the "role_organization_accesses" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithRoleOrganizationAccesses(opts ...func(*RoleOrganizationAccessQuery)) *OrganizationQuery {
+	query := (&RoleOrganizationAccessClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withRoleOrderOrganizationAccesses = query
+	_q.withRoleOrganizationAccesses = query
 	return _q
 }
 
@@ -2031,17 +2106,6 @@ func (_q *OrganizationQuery) WithOrderContainers(opts ...func(*OrderContainerQue
 	return _q
 }
 
-// WithSeaCargoAllocations tells the query-builder to eager-load the nodes that are connected to
-// the "sea_cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithSeaCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *OrganizationQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withSeaCargoAllocations = query
-	return _q
-}
-
 // WithOrderPersonnel tells the query-builder to eager-load the nodes that are connected to
 // the "order_personnel" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithOrderPersonnel(opts ...func(*OrderPersonnelQuery)) *OrganizationQuery {
@@ -2127,6 +2191,17 @@ func (_q *OrganizationQuery) WithFinanceVerifications(opts ...func(*FinanceVerif
 		opt(query)
 	}
 	_q.withFinanceVerifications = query
+	return _q
+}
+
+// WithFinanceNettings tells the query-builder to eager-load the nodes that are connected to
+// the "finance_nettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceNettings(opts ...func(*FinanceNettingQuery)) *OrganizationQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceNettings = query
 	return _q
 }
 
@@ -2405,14 +2480,47 @@ func (_q *OrganizationQuery) WithSeaDocumentVoidEvents(opts ...func(*SeaDocument
 	return _q
 }
 
-// WithSeaHouseBillSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "sea_house_bill_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithSeaHouseBillSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *OrganizationQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// WithSeaTransportExecutionVersions tells the query-builder to eager-load the nodes that are connected to
+// the "sea_transport_execution_versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaTransportExecutionVersions(opts ...func(*SeaTransportExecutionVersionQuery)) *OrganizationQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withSeaHouseBillSwitchEvents = query
+	_q.withSeaTransportExecutionVersions = query
+	return _q
+}
+
+// WithSeaDocumentModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "sea_document_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaDocumentModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *OrganizationQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaDocumentModeChangeEvents = query
+	return _q
+}
+
+// WithSeaSharedContainers tells the query-builder to eager-load the nodes that are connected to
+// the "sea_shared_containers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaSharedContainers(opts ...func(*SeaSharedContainerQuery)) *OrganizationQuery {
+	query := (&SeaSharedContainerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaSharedContainers = query
+	return _q
+}
+
+// WithSeaSharedContainerAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "sea_shared_container_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaSharedContainerAllocations(opts ...func(*SeaSharedContainerAllocationQuery)) *OrganizationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaSharedContainerAllocations = query
 	return _q
 }
 
@@ -2494,12 +2602,12 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [60]bool{
+		loadedTypes = [63]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
 			_q.withRoles != nil,
-			_q.withRoleOrderOrganizationAccesses != nil,
+			_q.withRoleOrganizationAccesses != nil,
 			_q.withSessions != nil,
 			_q.withPartners != nil,
 			_q.withPartnerAssignments != nil,
@@ -2520,7 +2628,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withIssuedSeaHouseBills != nil,
 			_q.withOrderCargoItems != nil,
 			_q.withOrderContainers != nil,
-			_q.withSeaCargoAllocations != nil,
 			_q.withOrderPersonnel != nil,
 			_q.withBackgroundTasks != nil,
 			_q.withFinanceBills != nil,
@@ -2529,6 +2636,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceInvoices != nil,
 			_q.withFinanceCashflows != nil,
 			_q.withFinanceVerifications != nil,
+			_q.withFinanceNettings != nil,
 			_q.withFinanceCommissions != nil,
 			_q.withFinanceCommissionLines != nil,
 			_q.withFinanceCommissionAdjustments != nil,
@@ -2554,7 +2662,10 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withIssuedSeaHouseBillVersions != nil,
 			_q.withDingtalkApprovalDispatches != nil,
 			_q.withSeaDocumentVoidEvents != nil,
-			_q.withSeaHouseBillSwitchEvents != nil,
+			_q.withSeaTransportExecutionVersions != nil,
+			_q.withSeaDocumentModeChangeEvents != nil,
+			_q.withSeaSharedContainers != nil,
+			_q.withSeaSharedContainerAllocations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2605,11 +2716,11 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			return nil, err
 		}
 	}
-	if query := _q.withRoleOrderOrganizationAccesses; query != nil {
-		if err := _q.loadRoleOrderOrganizationAccesses(ctx, query, nodes,
-			func(n *Organization) { n.Edges.RoleOrderOrganizationAccesses = []*RoleOrderOrganizationAccess{} },
-			func(n *Organization, e *RoleOrderOrganizationAccess) {
-				n.Edges.RoleOrderOrganizationAccesses = append(n.Edges.RoleOrderOrganizationAccesses, e)
+	if query := _q.withRoleOrganizationAccesses; query != nil {
+		if err := _q.loadRoleOrganizationAccesses(ctx, query, nodes,
+			func(n *Organization) { n.Edges.RoleOrganizationAccesses = []*RoleOrganizationAccess{} },
+			func(n *Organization, e *RoleOrganizationAccess) {
+				n.Edges.RoleOrganizationAccesses = append(n.Edges.RoleOrganizationAccesses, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2762,15 +2873,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			return nil, err
 		}
 	}
-	if query := _q.withSeaCargoAllocations; query != nil {
-		if err := _q.loadSeaCargoAllocations(ctx, query, nodes,
-			func(n *Organization) { n.Edges.SeaCargoAllocations = []*SeaCargoAllocation{} },
-			func(n *Organization, e *SeaCargoAllocation) {
-				n.Edges.SeaCargoAllocations = append(n.Edges.SeaCargoAllocations, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withOrderPersonnel; query != nil {
 		if err := _q.loadOrderPersonnel(ctx, query, nodes,
 			func(n *Organization) { n.Edges.OrderPersonnel = []*OrderPersonnel{} },
@@ -2832,6 +2934,13 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization, e *FinanceVerification) {
 				n.Edges.FinanceVerifications = append(n.Edges.FinanceVerifications, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceNettings; query != nil {
+		if err := _q.loadFinanceNettings(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceNettings = []*FinanceNetting{} },
+			func(n *Organization, e *FinanceNetting) { n.Edges.FinanceNettings = append(n.Edges.FinanceNettings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -3060,11 +3169,38 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			return nil, err
 		}
 	}
-	if query := _q.withSeaHouseBillSwitchEvents; query != nil {
-		if err := _q.loadSeaHouseBillSwitchEvents(ctx, query, nodes,
-			func(n *Organization) { n.Edges.SeaHouseBillSwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *Organization, e *SeaHouseBillSwitchEvent) {
-				n.Edges.SeaHouseBillSwitchEvents = append(n.Edges.SeaHouseBillSwitchEvents, e)
+	if query := _q.withSeaTransportExecutionVersions; query != nil {
+		if err := _q.loadSeaTransportExecutionVersions(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaTransportExecutionVersions = []*SeaTransportExecutionVersion{} },
+			func(n *Organization, e *SeaTransportExecutionVersion) {
+				n.Edges.SeaTransportExecutionVersions = append(n.Edges.SeaTransportExecutionVersions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaDocumentModeChangeEvents; query != nil {
+		if err := _q.loadSeaDocumentModeChangeEvents(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaDocumentModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *Organization, e *SeaDocumentModeChangeEvent) {
+				n.Edges.SeaDocumentModeChangeEvents = append(n.Edges.SeaDocumentModeChangeEvents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaSharedContainers; query != nil {
+		if err := _q.loadSeaSharedContainers(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaSharedContainers = []*SeaSharedContainer{} },
+			func(n *Organization, e *SeaSharedContainer) {
+				n.Edges.SeaSharedContainers = append(n.Edges.SeaSharedContainers, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaSharedContainerAllocations; query != nil {
+		if err := _q.loadSeaSharedContainerAllocations(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaSharedContainerAllocations = []*SeaSharedContainerAllocation{} },
+			func(n *Organization, e *SeaSharedContainerAllocation) {
+				n.Edges.SeaSharedContainerAllocations = append(n.Edges.SeaSharedContainerAllocations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -3197,7 +3333,7 @@ func (_q *OrganizationQuery) loadRoles(ctx context.Context, query *RoleQuery, no
 	}
 	return nil
 }
-func (_q *OrganizationQuery) loadRoleOrderOrganizationAccesses(ctx context.Context, query *RoleOrderOrganizationAccessQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RoleOrderOrganizationAccess)) error {
+func (_q *OrganizationQuery) loadRoleOrganizationAccesses(ctx context.Context, query *RoleOrganizationAccessQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RoleOrganizationAccess)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Organization)
 	for i := range nodes {
@@ -3208,10 +3344,10 @@ func (_q *OrganizationQuery) loadRoleOrderOrganizationAccesses(ctx context.Conte
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(roleorderorganizationaccess.FieldOrganizationID)
+		query.ctx.AppendFieldOnce(roleorganizationaccess.FieldOrganizationID)
 	}
-	query.Where(predicate.RoleOrderOrganizationAccess(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.RoleOrderOrganizationAccessesColumn), fks...))
+	query.Where(predicate.RoleOrganizationAccess(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.RoleOrganizationAccessesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -3830,36 +3966,6 @@ func (_q *OrganizationQuery) loadOrderContainers(ctx context.Context, query *Ord
 	}
 	return nil
 }
-func (_q *OrganizationQuery) loadSeaCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaCargoAllocation)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Organization)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seacargoallocation.FieldOrganizationID)
-	}
-	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.SeaCargoAllocationsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrganizationID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (_q *OrganizationQuery) loadOrderPersonnel(ctx context.Context, query *OrderPersonnelQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderPersonnel)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Organization)
@@ -4085,6 +4191,36 @@ func (_q *OrganizationQuery) loadFinanceVerifications(ctx context.Context, query
 	}
 	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceNettings(ctx context.Context, query *FinanceNettingQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceNetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenetting.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceNetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceNettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -4853,7 +4989,7 @@ func (_q *OrganizationQuery) loadSeaDocumentVoidEvents(ctx context.Context, quer
 	}
 	return nil
 }
-func (_q *OrganizationQuery) loadSeaHouseBillSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBillSwitchEvent)) error {
+func (_q *OrganizationQuery) loadSeaTransportExecutionVersions(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaTransportExecutionVersion)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Organization)
 	for i := range nodes {
@@ -4864,10 +5000,100 @@ func (_q *OrganizationQuery) loadSeaHouseBillSwitchEvents(ctx context.Context, q
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldOrganizationID)
+		query.ctx.AppendFieldOnce(seatransportexecutionversion.FieldOrganizationID)
 	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.SeaHouseBillSwitchEventsColumn), fks...))
+	query.Where(predicate.SeaTransportExecutionVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaTransportExecutionVersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaDocumentModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaDocumentModeChangeEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaDocumentModeChangeEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaSharedContainers(ctx context.Context, query *SeaSharedContainerQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaSharedContainer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seasharedcontainer.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaSharedContainer(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaSharedContainersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaSharedContainerAllocations(ctx context.Context, query *SeaSharedContainerAllocationQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaSharedContainerAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seasharedcontainerallocation.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaSharedContainerAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaSharedContainerAllocationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

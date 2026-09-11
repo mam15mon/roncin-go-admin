@@ -16,7 +16,13 @@ type financeCashflowRepoStub struct {
 func (*financeCashflowRepoStub) List(context.Context, uuid.UUID, FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
 	return nil, nil
 }
+func (*financeCashflowRepoStub) ListScoped(context.Context, []uuid.UUID, FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
+	return nil, nil
+}
 func (*financeCashflowRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error) {
+	return nil, nil
+}
+func (*financeCashflowRepoStub) GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error) {
 	return nil, nil
 }
 func (s *financeCashflowRepoStub) GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceCashflow, error) {

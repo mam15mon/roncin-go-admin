@@ -18,12 +18,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 )
 
 // SeaHouseBillUpdate is the builder for updating SeaHouseBill entities.
@@ -590,19 +590,19 @@ func (_u *SeaHouseBillUpdate) SetIssuerPartner(v *Partner) *SeaHouseBillUpdate {
 	return _u.SetIssuerPartnerID(v.ID)
 }
 
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_u *SeaHouseBillUpdate) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.AddCargoAllocationIDs(ids...)
+// AddSharedContainerAllocationIDs adds the "shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_u *SeaHouseBillUpdate) AddSharedContainerAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.AddSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *SeaHouseBillUpdate) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdate {
+// AddSharedContainerAllocations adds the "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *SeaHouseBillUpdate) AddSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddCargoAllocationIDs(ids...)
+	return _u.AddSharedContainerAllocationIDs(ids...)
 }
 
 // SetCurrentVersion sets the "current_version" edge to the SeaHouseBillVersion entity.
@@ -655,34 +655,34 @@ func (_u *SeaHouseBillUpdate) AddVoidEvents(v ...*SeaDocumentVoidEvent) *SeaHous
 	return _u.AddVoidEventIDs(ids...)
 }
 
-// AddOldSwitchEventIDs adds the "old_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaHouseBillUpdate) AddOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.AddOldSwitchEventIDs(ids...)
+// AddPreviousModeChangeEventIDs adds the "previous_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *SeaHouseBillUpdate) AddPreviousModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.AddPreviousModeChangeEventIDs(ids...)
 	return _u
 }
 
-// AddOldSwitchEvents adds the "old_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdate) AddOldSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdate {
+// AddPreviousModeChangeEvents adds the "previous_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdate) AddPreviousModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddOldSwitchEventIDs(ids...)
+	return _u.AddPreviousModeChangeEventIDs(ids...)
 }
 
-// AddNewSwitchEventIDs adds the "new_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaHouseBillUpdate) AddNewSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.AddNewSwitchEventIDs(ids...)
+// AddTargetModeChangeEventIDs adds the "target_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *SeaHouseBillUpdate) AddTargetModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.AddTargetModeChangeEventIDs(ids...)
 	return _u
 }
 
-// AddNewSwitchEvents adds the "new_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdate) AddNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdate {
+// AddTargetModeChangeEvents adds the "target_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdate) AddTargetModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddNewSwitchEventIDs(ids...)
+	return _u.AddTargetModeChangeEventIDs(ids...)
 }
 
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
@@ -735,25 +735,25 @@ func (_u *SeaHouseBillUpdate) ClearIssuerPartner() *SeaHouseBillUpdate {
 	return _u
 }
 
-// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *SeaHouseBillUpdate) ClearCargoAllocations() *SeaHouseBillUpdate {
-	_u.mutation.ClearCargoAllocations()
+// ClearSharedContainerAllocations clears all "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *SeaHouseBillUpdate) ClearSharedContainerAllocations() *SeaHouseBillUpdate {
+	_u.mutation.ClearSharedContainerAllocations()
 	return _u
 }
 
-// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
-func (_u *SeaHouseBillUpdate) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.RemoveCargoAllocationIDs(ids...)
+// RemoveSharedContainerAllocationIDs removes the "shared_container_allocations" edge to SeaSharedContainerAllocation entities by IDs.
+func (_u *SeaHouseBillUpdate) RemoveSharedContainerAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.RemoveSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
-func (_u *SeaHouseBillUpdate) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdate {
+// RemoveSharedContainerAllocations removes "shared_container_allocations" edges to SeaSharedContainerAllocation entities.
+func (_u *SeaHouseBillUpdate) RemoveSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveCargoAllocationIDs(ids...)
+	return _u.RemoveSharedContainerAllocationIDs(ids...)
 }
 
 // ClearCurrentVersion clears the "current_version" edge to the SeaHouseBillVersion entity.
@@ -825,46 +825,46 @@ func (_u *SeaHouseBillUpdate) RemoveVoidEvents(v ...*SeaDocumentVoidEvent) *SeaH
 	return _u.RemoveVoidEventIDs(ids...)
 }
 
-// ClearOldSwitchEvents clears all "old_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdate) ClearOldSwitchEvents() *SeaHouseBillUpdate {
-	_u.mutation.ClearOldSwitchEvents()
+// ClearPreviousModeChangeEvents clears all "previous_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdate) ClearPreviousModeChangeEvents() *SeaHouseBillUpdate {
+	_u.mutation.ClearPreviousModeChangeEvents()
 	return _u
 }
 
-// RemoveOldSwitchEventIDs removes the "old_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaHouseBillUpdate) RemoveOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.RemoveOldSwitchEventIDs(ids...)
+// RemovePreviousModeChangeEventIDs removes the "previous_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *SeaHouseBillUpdate) RemovePreviousModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.RemovePreviousModeChangeEventIDs(ids...)
 	return _u
 }
 
-// RemoveOldSwitchEvents removes "old_switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaHouseBillUpdate) RemoveOldSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdate {
+// RemovePreviousModeChangeEvents removes "previous_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *SeaHouseBillUpdate) RemovePreviousModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveOldSwitchEventIDs(ids...)
+	return _u.RemovePreviousModeChangeEventIDs(ids...)
 }
 
-// ClearNewSwitchEvents clears all "new_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdate) ClearNewSwitchEvents() *SeaHouseBillUpdate {
-	_u.mutation.ClearNewSwitchEvents()
+// ClearTargetModeChangeEvents clears all "target_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdate) ClearTargetModeChangeEvents() *SeaHouseBillUpdate {
+	_u.mutation.ClearTargetModeChangeEvents()
 	return _u
 }
 
-// RemoveNewSwitchEventIDs removes the "new_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaHouseBillUpdate) RemoveNewSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
-	_u.mutation.RemoveNewSwitchEventIDs(ids...)
+// RemoveTargetModeChangeEventIDs removes the "target_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *SeaHouseBillUpdate) RemoveTargetModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdate {
+	_u.mutation.RemoveTargetModeChangeEventIDs(ids...)
 	return _u
 }
 
-// RemoveNewSwitchEvents removes "new_switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaHouseBillUpdate) RemoveNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdate {
+// RemoveTargetModeChangeEvents removes "target_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *SeaHouseBillUpdate) RemoveTargetModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveNewSwitchEventIDs(ids...)
+	return _u.RemoveTargetModeChangeEventIDs(ids...)
 }
 
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
@@ -1286,28 +1286,28 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.CargoAllocationsCleared() {
+	if _u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+	if nodes := _u.mutation.RemovedSharedContainerAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1315,15 +1315,15 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SharedContainerAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1495,28 +1495,28 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.OldSwitchEventsCleared() {
+	if _u.mutation.PreviousModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedOldSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.OldSwitchEventsCleared() {
+	if nodes := _u.mutation.RemovedPreviousModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.PreviousModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1524,15 +1524,15 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.OldSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PreviousModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1540,28 +1540,28 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.NewSwitchEventsCleared() {
+	if _u.mutation.TargetModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedNewSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.NewSwitchEventsCleared() {
+	if nodes := _u.mutation.RemovedTargetModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.TargetModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1569,15 +1569,15 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.NewSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.TargetModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2201,19 +2201,19 @@ func (_u *SeaHouseBillUpdateOne) SetIssuerPartner(v *Partner) *SeaHouseBillUpdat
 	return _u.SetIssuerPartnerID(v.ID)
 }
 
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_u *SeaHouseBillUpdateOne) AddCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.AddCargoAllocationIDs(ids...)
+// AddSharedContainerAllocationIDs adds the "shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_u *SeaHouseBillUpdateOne) AddSharedContainerAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.AddSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *SeaHouseBillUpdateOne) AddCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdateOne {
+// AddSharedContainerAllocations adds the "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *SeaHouseBillUpdateOne) AddSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddCargoAllocationIDs(ids...)
+	return _u.AddSharedContainerAllocationIDs(ids...)
 }
 
 // SetCurrentVersion sets the "current_version" edge to the SeaHouseBillVersion entity.
@@ -2266,34 +2266,34 @@ func (_u *SeaHouseBillUpdateOne) AddVoidEvents(v ...*SeaDocumentVoidEvent) *SeaH
 	return _u.AddVoidEventIDs(ids...)
 }
 
-// AddOldSwitchEventIDs adds the "old_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaHouseBillUpdateOne) AddOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.AddOldSwitchEventIDs(ids...)
+// AddPreviousModeChangeEventIDs adds the "previous_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *SeaHouseBillUpdateOne) AddPreviousModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.AddPreviousModeChangeEventIDs(ids...)
 	return _u
 }
 
-// AddOldSwitchEvents adds the "old_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdateOne) AddOldSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdateOne {
+// AddPreviousModeChangeEvents adds the "previous_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdateOne) AddPreviousModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddOldSwitchEventIDs(ids...)
+	return _u.AddPreviousModeChangeEventIDs(ids...)
 }
 
-// AddNewSwitchEventIDs adds the "new_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaHouseBillUpdateOne) AddNewSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.AddNewSwitchEventIDs(ids...)
+// AddTargetModeChangeEventIDs adds the "target_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_u *SeaHouseBillUpdateOne) AddTargetModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.AddTargetModeChangeEventIDs(ids...)
 	return _u
 }
 
-// AddNewSwitchEvents adds the "new_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdateOne) AddNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdateOne {
+// AddTargetModeChangeEvents adds the "target_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdateOne) AddTargetModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddNewSwitchEventIDs(ids...)
+	return _u.AddTargetModeChangeEventIDs(ids...)
 }
 
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
@@ -2346,25 +2346,25 @@ func (_u *SeaHouseBillUpdateOne) ClearIssuerPartner() *SeaHouseBillUpdateOne {
 	return _u
 }
 
-// ClearCargoAllocations clears all "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_u *SeaHouseBillUpdateOne) ClearCargoAllocations() *SeaHouseBillUpdateOne {
-	_u.mutation.ClearCargoAllocations()
+// ClearSharedContainerAllocations clears all "shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_u *SeaHouseBillUpdateOne) ClearSharedContainerAllocations() *SeaHouseBillUpdateOne {
+	_u.mutation.ClearSharedContainerAllocations()
 	return _u
 }
 
-// RemoveCargoAllocationIDs removes the "cargo_allocations" edge to SeaCargoAllocation entities by IDs.
-func (_u *SeaHouseBillUpdateOne) RemoveCargoAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.RemoveCargoAllocationIDs(ids...)
+// RemoveSharedContainerAllocationIDs removes the "shared_container_allocations" edge to SeaSharedContainerAllocation entities by IDs.
+func (_u *SeaHouseBillUpdateOne) RemoveSharedContainerAllocationIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.RemoveSharedContainerAllocationIDs(ids...)
 	return _u
 }
 
-// RemoveCargoAllocations removes "cargo_allocations" edges to SeaCargoAllocation entities.
-func (_u *SeaHouseBillUpdateOne) RemoveCargoAllocations(v ...*SeaCargoAllocation) *SeaHouseBillUpdateOne {
+// RemoveSharedContainerAllocations removes "shared_container_allocations" edges to SeaSharedContainerAllocation entities.
+func (_u *SeaHouseBillUpdateOne) RemoveSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveCargoAllocationIDs(ids...)
+	return _u.RemoveSharedContainerAllocationIDs(ids...)
 }
 
 // ClearCurrentVersion clears the "current_version" edge to the SeaHouseBillVersion entity.
@@ -2436,46 +2436,46 @@ func (_u *SeaHouseBillUpdateOne) RemoveVoidEvents(v ...*SeaDocumentVoidEvent) *S
 	return _u.RemoveVoidEventIDs(ids...)
 }
 
-// ClearOldSwitchEvents clears all "old_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdateOne) ClearOldSwitchEvents() *SeaHouseBillUpdateOne {
-	_u.mutation.ClearOldSwitchEvents()
+// ClearPreviousModeChangeEvents clears all "previous_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdateOne) ClearPreviousModeChangeEvents() *SeaHouseBillUpdateOne {
+	_u.mutation.ClearPreviousModeChangeEvents()
 	return _u
 }
 
-// RemoveOldSwitchEventIDs removes the "old_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaHouseBillUpdateOne) RemoveOldSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.RemoveOldSwitchEventIDs(ids...)
+// RemovePreviousModeChangeEventIDs removes the "previous_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *SeaHouseBillUpdateOne) RemovePreviousModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.RemovePreviousModeChangeEventIDs(ids...)
 	return _u
 }
 
-// RemoveOldSwitchEvents removes "old_switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaHouseBillUpdateOne) RemoveOldSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdateOne {
+// RemovePreviousModeChangeEvents removes "previous_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *SeaHouseBillUpdateOne) RemovePreviousModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveOldSwitchEventIDs(ids...)
+	return _u.RemovePreviousModeChangeEventIDs(ids...)
 }
 
-// ClearNewSwitchEvents clears all "new_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaHouseBillUpdateOne) ClearNewSwitchEvents() *SeaHouseBillUpdateOne {
-	_u.mutation.ClearNewSwitchEvents()
+// ClearTargetModeChangeEvents clears all "target_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_u *SeaHouseBillUpdateOne) ClearTargetModeChangeEvents() *SeaHouseBillUpdateOne {
+	_u.mutation.ClearTargetModeChangeEvents()
 	return _u
 }
 
-// RemoveNewSwitchEventIDs removes the "new_switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaHouseBillUpdateOne) RemoveNewSwitchEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
-	_u.mutation.RemoveNewSwitchEventIDs(ids...)
+// RemoveTargetModeChangeEventIDs removes the "target_mode_change_events" edge to SeaDocumentModeChangeEvent entities by IDs.
+func (_u *SeaHouseBillUpdateOne) RemoveTargetModeChangeEventIDs(ids ...uuid.UUID) *SeaHouseBillUpdateOne {
+	_u.mutation.RemoveTargetModeChangeEventIDs(ids...)
 	return _u
 }
 
-// RemoveNewSwitchEvents removes "new_switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaHouseBillUpdateOne) RemoveNewSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaHouseBillUpdateOne {
+// RemoveTargetModeChangeEvents removes "target_mode_change_events" edges to SeaDocumentModeChangeEvent entities.
+func (_u *SeaHouseBillUpdateOne) RemoveTargetModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *SeaHouseBillUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveNewSwitchEventIDs(ids...)
+	return _u.RemoveTargetModeChangeEventIDs(ids...)
 }
 
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
@@ -2927,28 +2927,28 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.CargoAllocationsCleared() {
+	if _u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedCargoAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CargoAllocationsCleared() {
+	if nodes := _u.mutation.RemovedSharedContainerAllocationsIDs(); len(nodes) > 0 && !_u.mutation.SharedContainerAllocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2956,15 +2956,15 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SharedContainerAllocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.CargoAllocationsTable,
-			Columns: []string{seahousebill.CargoAllocationsColumn},
+			Table:   seahousebill.SharedContainerAllocationsTable,
+			Columns: []string{seahousebill.SharedContainerAllocationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3136,28 +3136,28 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.OldSwitchEventsCleared() {
+	if _u.mutation.PreviousModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedOldSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.OldSwitchEventsCleared() {
+	if nodes := _u.mutation.RemovedPreviousModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.PreviousModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3165,15 +3165,15 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.OldSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PreviousModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.OldSwitchEventsTable,
-			Columns: []string{seahousebill.OldSwitchEventsColumn},
+			Table:   seahousebill.PreviousModeChangeEventsTable,
+			Columns: []string{seahousebill.PreviousModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3181,28 +3181,28 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.NewSwitchEventsCleared() {
+	if _u.mutation.TargetModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedNewSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.NewSwitchEventsCleared() {
+	if nodes := _u.mutation.RemovedTargetModeChangeEventsIDs(); len(nodes) > 0 && !_u.mutation.TargetModeChangeEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3210,15 +3210,15 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.NewSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.TargetModeChangeEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   seahousebill.NewSwitchEventsTable,
-			Columns: []string{seahousebill.NewSwitchEventsColumn},
+			Table:   seahousebill.TargetModeChangeEventsTable,
+			Columns: []string{seahousebill.TargetModeChangeEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

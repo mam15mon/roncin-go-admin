@@ -35,6 +35,18 @@ const (
 	EdgeAsset = "asset"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
+	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
+	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
+	// EdgeSeaHouseBillVersions holds the string denoting the sea_house_bill_versions edge name in mutations.
+	EdgeSeaHouseBillVersions = "sea_house_bill_versions"
+	// EdgeSeaOrderReassignmentEvents holds the string denoting the sea_order_reassignment_events edge name in mutations.
+	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
+	// EdgeSeaDocumentVoidEvents holds the string denoting the sea_document_void_events edge name in mutations.
+	EdgeSeaDocumentVoidEvents = "sea_document_void_events"
+	// EdgeSeaDocumentModeChangeEvents holds the string denoting the sea_document_mode_change_events edge name in mutations.
+	EdgeSeaDocumentModeChangeEvents = "sea_document_mode_change_events"
+	// EdgeSeaTransportExecutionVersions holds the string denoting the sea_transport_execution_versions edge name in mutations.
+	EdgeSeaTransportExecutionVersions = "sea_transport_execution_versions"
 	// Table holds the table name of the orderattachment in the database.
 	Table = "order_attachments"
 	// OrderTable is the table that holds the order relation/edge.
@@ -58,6 +70,48 @@ const (
 	CreatorInverseTable = "users"
 	// CreatorColumn is the table column denoting the creator relation/edge.
 	CreatorColumn = "created_by"
+	// SeaMasterBillVersionsTable is the table that holds the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	SeaMasterBillVersionsInverseTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsColumn is the table column denoting the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsColumn = "confirmation_attachment_id"
+	// SeaHouseBillVersionsTable is the table that holds the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsInverseTable is the table name for the SeaHouseBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebillversion" package.
+	SeaHouseBillVersionsInverseTable = "sea_house_bill_versions"
+	// SeaHouseBillVersionsColumn is the table column denoting the sea_house_bill_versions relation/edge.
+	SeaHouseBillVersionsColumn = "confirmation_attachment_id"
+	// SeaOrderReassignmentEventsTable is the table that holds the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsInverseTable is the table name for the SeaOrderReassignmentEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seaorderreassignmentevent" package.
+	SeaOrderReassignmentEventsInverseTable = "sea_order_reassignment_events"
+	// SeaOrderReassignmentEventsColumn is the table column denoting the sea_order_reassignment_events relation/edge.
+	SeaOrderReassignmentEventsColumn = "confirmation_attachment_id"
+	// SeaDocumentVoidEventsTable is the table that holds the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsInverseTable is the table name for the SeaDocumentVoidEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentvoidevent" package.
+	SeaDocumentVoidEventsInverseTable = "sea_document_void_events"
+	// SeaDocumentVoidEventsColumn is the table column denoting the sea_document_void_events relation/edge.
+	SeaDocumentVoidEventsColumn = "confirmation_attachment_id"
+	// SeaDocumentModeChangeEventsTable is the table that holds the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	SeaDocumentModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// SeaDocumentModeChangeEventsColumn is the table column denoting the sea_document_mode_change_events relation/edge.
+	SeaDocumentModeChangeEventsColumn = "confirmation_attachment_id"
+	// SeaTransportExecutionVersionsTable is the table that holds the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	SeaTransportExecutionVersionsInverseTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsColumn is the table column denoting the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsColumn = "confirmation_attachment_id"
 )
 
 // Columns holds all SQL columns for orderattachment fields.
@@ -160,6 +214,90 @@ func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// BySeaMasterBillVersionsCount orders the results by sea_master_bill_versions count.
+func BySeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaMasterBillVersions orders the results by sea_master_bill_versions terms.
+func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaHouseBillVersionsCount orders the results by sea_house_bill_versions count.
+func BySeaHouseBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaHouseBillVersions orders the results by sea_house_bill_versions terms.
+func BySeaHouseBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaOrderReassignmentEventsCount orders the results by sea_order_reassignment_events count.
+func BySeaOrderReassignmentEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaOrderReassignmentEventsStep(), opts...)
+	}
+}
+
+// BySeaOrderReassignmentEvents orders the results by sea_order_reassignment_events terms.
+func BySeaOrderReassignmentEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaOrderReassignmentEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentVoidEventsCount orders the results by sea_document_void_events count.
+func BySeaDocumentVoidEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentVoidEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentVoidEvents orders the results by sea_document_void_events terms.
+func BySeaDocumentVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentVoidEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaDocumentModeChangeEventsCount orders the results by sea_document_mode_change_events count.
+func BySeaDocumentModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaDocumentModeChangeEventsStep(), opts...)
+	}
+}
+
+// BySeaDocumentModeChangeEvents orders the results by sea_document_mode_change_events terms.
+func BySeaDocumentModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaDocumentModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaTransportExecutionVersionsCount orders the results by sea_transport_execution_versions count.
+func BySeaTransportExecutionVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionVersionsStep(), opts...)
+	}
+}
+
+// BySeaTransportExecutionVersions orders the results by sea_transport_execution_versions terms.
+func BySeaTransportExecutionVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -179,5 +317,47 @@ func newCreatorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CreatorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
+	)
+}
+func newSeaMasterBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
+	)
+}
+func newSeaHouseBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+	)
+}
+func newSeaOrderReassignmentEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaOrderReassignmentEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
+	)
+}
+func newSeaDocumentVoidEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentVoidEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
+	)
+}
+func newSeaDocumentModeChangeEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaDocumentModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
+	)
+}
+func newSeaTransportExecutionVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaTransportExecutionVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
 	)
 }

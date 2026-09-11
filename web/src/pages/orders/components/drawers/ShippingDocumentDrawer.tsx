@@ -14,7 +14,8 @@ import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
-import { shippingDocumentStatusValueEnum } from '../../common';
+import { isUnimplementedTransportMode, shippingDocumentStatusValueEnum } from '../../common';
+import type { OrderTransportMode } from '../../order-kinds/types';
 import {
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   formatHouseReleaseType,
@@ -34,7 +35,7 @@ export type ShippingDocumentDrawerRef = {
 
 type ShippingDocumentDrawerProps = {
   canManage: boolean;
-  category: string;
+  transportMode: OrderTransportMode;
 };
 
 type ShippingDocumentFormValues = {
@@ -46,7 +47,7 @@ type ShippingDocumentFormValues = {
 const ShippingDocumentDrawer = forwardRef<
   ShippingDocumentDrawerRef,
   ShippingDocumentDrawerProps
->(function ShippingDocumentDrawer({ canManage, category }, ref) {
+>(function ShippingDocumentDrawer({ canManage, transportMode }, ref) {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
@@ -261,7 +262,16 @@ const ShippingDocumentDrawer = forwardRef<
         onClose={() => setDrawerOpen(false)}
         width={960}
       >
-        {category === 'sea' && (
+        {isUnimplementedTransportMode(transportMode) && (
+          <Alert
+            type="warning"
+            showIcon
+            message="陆运与铁路订单的分单管理尚未开放"
+          />
+        )}
+
+        {!isUnimplementedTransportMode(transportMode) &&
+          transportMode === 'sea' && (
           <Alert
             type="info"
             showIcon
@@ -269,19 +279,13 @@ const ShippingDocumentDrawer = forwardRef<
               <span>
                 当前订单关联海运主单 (MBL)：
                 <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>
-                {order?.seaMasterBill?.issuerPartnerName && (
-                  <span>
-                    {' '}
-                    (实际签发主体: {order.seaMasterBill.issuerPartnerName})
-                  </span>
-                )}
               </span>
             }
             style={{ marginBottom: 16 }}
           />
         )}
 
-        {order?.id && (
+        {order?.id && !isUnimplementedTransportMode(transportMode) && (
           <ProTable<API.OrderShippingDocument>
             actionRef={actionRef}
             rowKey="id"
@@ -314,7 +318,7 @@ const ShippingDocumentDrawer = forwardRef<
 
       <ModalForm<ShippingDocumentFormValues>
         title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}
-        open={modalOpen}
+        open={modalOpen && !isUnimplementedTransportMode(transportMode)}
         formRef={formRef}
         initialValues={
           editingShippingDocument
@@ -373,7 +377,7 @@ const ShippingDocumentDrawer = forwardRef<
           placeholder="请输入分单号"
           rules={[{ required: true, message: '请输入分单号' }]}
         />
-        {category === 'sea' ? (
+        {transportMode === 'sea' ? (
           <ProFormSearchableSelect
             name="releaseType"
             label="分单签放方式"

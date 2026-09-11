@@ -140,6 +140,16 @@ export const FinanceVerificationStatus = {
 
 export type FinanceVerificationStatus = (typeof FinanceVerificationStatus)[keyof typeof FinanceVerificationStatus];
 
+export const FinanceNettingStatus = {
+  FINANCE_NETTING_STATUS_UNSPECIFIED: 0,
+  FINANCE_NETTING_STATUS_DRAFT: 1,
+  FINANCE_NETTING_STATUS_CONFIRMED: 2,
+  FINANCE_NETTING_STATUS_CANCELLED: 3,
+  FINANCE_NETTING_STATUS_REVERSED: 4,
+} as const;
+
+export type FinanceNettingStatus = (typeof FinanceNettingStatus)[keyof typeof FinanceNettingStatus];
+
 export const FinanceCommissionStatus = {
   FINANCE_COMMISSION_STATUS_UNSPECIFIED: 0,
   FINANCE_COMMISSION_STATUS_DRAFT: 1,
@@ -174,6 +184,32 @@ export const BilledFeeEditableField = {
 } as const;
 
 export type BilledFeeEditableField = (typeof BilledFeeEditableField)[keyof typeof BilledFeeEditableField];
+
+export const BillGroupingMode = {
+  BILL_GROUPING_MODE_UNSPECIFIED: 0,
+  BILL_GROUPING_MODE_NORMAL: 1,
+  BILL_GROUPING_MODE_NETTING: 2,
+} as const;
+
+export type BillGroupingMode = (typeof BillGroupingMode)[keyof typeof BillGroupingMode];
+
+export const FinanceOrganizationPurpose = {
+  FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED: 0,
+  FINANCE_ORGANIZATION_PURPOSE_BILL_READ: 1,
+  FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ: 2,
+  FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ: 3,
+  FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE: 4,
+  FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ: 5,
+  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ: 6,
+  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE: 7,
+  FINANCE_ORGANIZATION_PURPOSE_FEE_READ: 8,
+  FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE: 9,
+  FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE: 10,
+  FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE: 11,
+  FINANCE_ORGANIZATION_PURPOSE_NETTING_READ: 12,
+} as const;
+
+export type FinanceOrganizationPurpose = (typeof FinanceOrganizationPurpose)[keyof typeof FinanceOrganizationPurpose];
 
 export const MasterDataImportMode = {
   MASTER_DATA_IMPORT_MODE_UNSPECIFIED: 0,
@@ -211,6 +247,7 @@ export const DocumentType = {
   DOCUMENT_TYPE_FREIGHT_RATE: 12,
   DOCUMENT_TYPE_COMMISSION: 13,
   DOCUMENT_TYPE_BILL_BATCH: 14,
+  DOCUMENT_TYPE_NETTING: 15,
 } as const;
 
 export type DocumentType = (typeof DocumentType)[keyof typeof DocumentType];
@@ -322,6 +359,7 @@ export const OrderReferenceType = {
   ORDER_REFERENCE_TYPE_UNSPECIFIED: 0,
   ORDER_REFERENCE_TYPE_CUSTOMER: 1,
   ORDER_REFERENCE_TYPE_INTERNAL: 2,
+  ORDER_REFERENCE_TYPE_BOOKING: 3,
 } as const;
 
 export type OrderReferenceType = (typeof OrderReferenceType)[keyof typeof OrderReferenceType];
@@ -331,6 +369,8 @@ export const OrderNumberFilterType = {
   ORDER_NUMBER_FILTER_TYPE_ORDER: 1,
   ORDER_NUMBER_FILTER_TYPE_MASTER: 2,
   ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER: 3,
+  ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE: 4,
+  ORDER_NUMBER_FILTER_TYPE_BOOKING: 5,
 } as const;
 
 export type OrderNumberFilterType = (typeof OrderNumberFilterType)[keyof typeof OrderNumberFilterType];
@@ -447,28 +487,16 @@ export const OrderShippingDocumentStatus = {
 
 export type OrderShippingDocumentStatus = (typeof OrderShippingDocumentStatus)[keyof typeof OrderShippingDocumentStatus];
 
-export const SeaCargoAllocationStatus = {
-  SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED: 0,
-  SEA_CARGO_ALLOCATION_STATUS_DRAFT: 1,
-  SEA_CARGO_ALLOCATION_STATUS_CONFIRMED: 2,
+export const SeaSharedContainerStatus = {
+  SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED: 0,
+  SEA_SHARED_CONTAINER_STATUS_DRAFT: 1,
+  SEA_SHARED_CONTAINER_STATUS_CONFIRMED: 2,
 } as const;
 
-export type SeaCargoAllocationStatus = (typeof SeaCargoAllocationStatus)[keyof typeof SeaCargoAllocationStatus];
-
-export const SeaCargoAllocationAction = {
-  SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED: 0,
-  SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT: 1,
-  SEA_CARGO_ALLOCATION_ACTION_CONFIRM: 2,
-  SEA_CARGO_ALLOCATION_ACTION_WITHDRAW: 3,
-  SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY: 4,
-  SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY: 5,
-} as const;
-
-export type SeaCargoAllocationAction = (typeof SeaCargoAllocationAction)[keyof typeof SeaCargoAllocationAction];
+export type SeaSharedContainerStatus = (typeof SeaSharedContainerStatus)[keyof typeof SeaSharedContainerStatus];
 
 export const SeaDocumentStructure = {
   SEA_DOCUMENT_STRUCTURE_UNSPECIFIED: 0,
-  SEA_DOCUMENT_STRUCTURE_UNDETERMINED: 1,
   SEA_DOCUMENT_STRUCTURE_DIRECT: 2,
   SEA_DOCUMENT_STRUCTURE_HOUSE: 3,
 } as const;
@@ -490,19 +518,15 @@ export const SeaHouseBillStatus = {
   SEA_HOUSE_BILL_STATUS_CONFIRMED: 2,
   SEA_HOUSE_BILL_STATUS_RELEASED: 3,
   SEA_HOUSE_BILL_STATUS_VOIDED: 4,
-  SEA_HOUSE_BILL_STATUS_REPLACED: 5,
 } as const;
 
 export type SeaHouseBillStatus = (typeof SeaHouseBillStatus)[keyof typeof SeaHouseBillStatus];
 
 export const SeaDocumentAction = {
   SEA_DOCUMENT_ACTION_UNSPECIFIED: 0,
-  SEA_DOCUMENT_ACTION_MARK_DIRECT: 1,
-  SEA_DOCUMENT_ACTION_CANCEL_DIRECT: 2,
-  SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL: 3,
   SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL: 4,
-  SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL: 5,
   SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT: 6,
+  SEA_DOCUMENT_ACTION_CHANGE_MODE: 7,
 } as const;
 
 export type SeaDocumentAction = (typeof SeaDocumentAction)[keyof typeof SeaDocumentAction];
@@ -519,8 +543,8 @@ export const SeaDocumentVersionSource = {
   SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED: 0,
   SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK: 1,
   SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT: 2,
-  SEA_DOCUMENT_VERSION_SOURCE_SWITCH: 3,
   SEA_DOCUMENT_VERSION_SOURCE_VOID: 4,
+  SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE: 5,
 } as const;
 
 export type SeaDocumentVersionSource = (typeof SeaDocumentVersionSource)[keyof typeof SeaDocumentVersionSource];
@@ -529,7 +553,7 @@ export const SeaDocumentEventType = {
   SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED: 0,
   SEA_DOCUMENT_EVENT_TYPE_AMENDMENT: 1,
   SEA_DOCUMENT_EVENT_TYPE_VOID: 2,
-  SEA_DOCUMENT_EVENT_TYPE_SWITCH: 3,
+  SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE: 4,
 } as const;
 
 export type SeaDocumentEventType = (typeof SeaDocumentEventType)[keyof typeof SeaDocumentEventType];
@@ -539,7 +563,6 @@ export const PartnerRoleType = {
   PARTNER_ROLE_TYPE_CUSTOMER: 1,
   PARTNER_ROLE_TYPE_SUPPLIER: 2,
   PARTNER_ROLE_TYPE_FOREIGN_AGENT: 3,
-  PARTNER_ROLE_TYPE_CARRIER: 4,
 } as const;
 
 export type PartnerRoleType = (typeof PartnerRoleType)[keyof typeof PartnerRoleType];
@@ -598,13 +621,14 @@ export const PartnerShippingPresetType = {
 
 export type PartnerShippingPresetType = (typeof PartnerShippingPresetType)[keyof typeof PartnerShippingPresetType];
 
-export const PartnerAccountStatus = {
-  PARTNER_ACCOUNT_STATUS_UNSPECIFIED: 0,
-  PARTNER_ACCOUNT_STATUS_ACTIVE: 1,
-  PARTNER_ACCOUNT_STATUS_INACTIVE: 2,
+export const PartnerAccountUsage = {
+  PARTNER_ACCOUNT_USAGE_UNSPECIFIED: 0,
+  PARTNER_ACCOUNT_USAGE_RECEIVABLE: 1,
+  PARTNER_ACCOUNT_USAGE_PAYABLE: 2,
+  PARTNER_ACCOUNT_USAGE_BOTH: 3,
 } as const;
 
-export type PartnerAccountStatus = (typeof PartnerAccountStatus)[keyof typeof PartnerAccountStatus];
+export type PartnerAccountUsage = (typeof PartnerAccountUsage)[keyof typeof PartnerAccountUsage];
 
 export const PartnerContractStatus = {
   PARTNER_CONTRACT_STATUS_UNSPECIFIED: 0,

@@ -34,7 +34,7 @@ service SeaDocumentService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/versions/{version_id}"};
   }
 
-  // ListSeaDocumentEvents 分页读取改单、作废与 Switch 历史。
+  // ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。
   rpc ListSeaDocumentEvents(ListSeaDocumentEventsRequest) returns (ListSeaDocumentEventsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents/events"};
@@ -76,47 +76,20 @@ service SeaDocumentService {
     };
   }
 
-  // PreviewSeaHouseBillSwitch 预览 HBL Switch 的新旧差异与影响。
-  rpc PreviewSeaHouseBillSwitch(PreviewSeaHouseBillSwitchRequest) returns (PreviewSeaHouseBillSwitchResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches/preview"
-      body: "*"
-    };
-  }
-
-  // ExecuteSeaHouseBillSwitch 在同订单和当前 MBL 下建立真实替代 HBL。
-  rpc ExecuteSeaHouseBillSwitch(ExecuteSeaHouseBillSwitchRequest) returns (ExecuteSeaHouseBillSwitchResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "switch" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/house-bill-switches"
-      body: "*"
-    };
-  }
-
-  // MarkSeaOrderDirect 明确标记海运订单为直单。
-  rpc MarkSeaOrderDirect(MarkSeaOrderDirectRequest) returns (MarkSeaOrderDirectResponse) {
+  // PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。
+  rpc PreviewChangeSeaDocumentMode(PreviewChangeSeaDocumentModeRequest) returns (PreviewChangeSeaDocumentModeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/mark-direct"
+      post: "/api/v1/orders/{order_id}/sea-documents/mode-change/preview"
       body: "*"
     };
   }
 
-  // CancelSeaOrderDirect 取消直单标记，回到未确定状态。
-  rpc CancelSeaOrderDirect(CancelSeaOrderDirectRequest) returns (CancelSeaOrderDirectResponse) {
+  // ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。
+  rpc ExecuteChangeSeaDocumentMode(ExecuteChangeSeaDocumentModeRequest) returns (ExecuteChangeSeaDocumentModeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/cancel-direct"
-      body: "*"
-    };
-  }
-
-  // AddSeaHouseBill 添加海运分单（HBL）。
-  rpc AddSeaHouseBill(AddSeaHouseBillRequest) returns (AddSeaHouseBillResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/sea-documents/house-bills"
+      post: "/api/v1/orders/{order_id}/sea-documents/mode-change"
       body: "*"
     };
   }
@@ -130,12 +103,6 @@ service SeaDocumentService {
     };
   }
 
-  // RemoveSeaHouseBill 移除海运分单。
-  rpc RemoveSeaHouseBill(RemoveSeaHouseBillRequest) returns (RemoveSeaHouseBillResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}"};
-  }
-
   // UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
   rpc UpdateSeaMasterBillContent(UpdateSeaMasterBillContentRequest) returns (UpdateSeaMasterBillContentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
@@ -146,10 +113,11 @@ service SeaDocumentService {
   }
 }
 
-// SeaDocumentStructure 海运单证结构三态。
+// SeaDocumentStructure 海运单证结构两态。
 enum SeaDocumentStructure {
   SEA_DOCUMENT_STRUCTURE_UNSPECIFIED = 0;
-  SEA_DOCUMENT_STRUCTURE_UNDETERMINED = 1;
+  reserved 1;
+  reserved "SEA_DOCUMENT_STRUCTURE_UNDETERMINED";
   SEA_DOCUMENT_STRUCTURE_DIRECT = 2;
   SEA_DOCUMENT_STRUCTURE_HOUSE = 3;
 }
@@ -169,18 +137,18 @@ enum SeaHouseBillStatus {
   SEA_HOUSE_BILL_STATUS_CONFIRMED = 2;
   SEA_HOUSE_BILL_STATUS_RELEASED = 3;
   SEA_HOUSE_BILL_STATUS_VOIDED = 4;
-  SEA_HOUSE_BILL_STATUS_REPLACED = 5;
+  reserved 5;
+  reserved "SEA_HOUSE_BILL_STATUS_REPLACED";
 }
 
 // SeaDocumentAction 单证操作动作枚举。
 enum SeaDocumentAction {
   SEA_DOCUMENT_ACTION_UNSPECIFIED = 0;
-  SEA_DOCUMENT_ACTION_MARK_DIRECT = 1;
-  SEA_DOCUMENT_ACTION_CANCEL_DIRECT = 2;
-  SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL = 3;
+  reserved 1, 2, 3, 5;
+  reserved "SEA_DOCUMENT_ACTION_MARK_DIRECT", "SEA_DOCUMENT_ACTION_CANCEL_DIRECT", "SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL", "SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL";
   SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL = 4;
-  SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL = 5;
   SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT = 6;
+  SEA_DOCUMENT_ACTION_CHANGE_MODE = 7;
 }
 
 // SeaDocumentType 区分共享 MBL 与订单内真实 HBL。
@@ -195,8 +163,10 @@ enum SeaDocumentVersionSource {
   SEA_DOCUMENT_VERSION_SOURCE_UNSPECIFIED = 0;
   SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK = 1;
   SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT = 2;
-  SEA_DOCUMENT_VERSION_SOURCE_SWITCH = 3;
+  reserved 3;
+  reserved "SEA_DOCUMENT_VERSION_SOURCE_SWITCH";
   SEA_DOCUMENT_VERSION_SOURCE_VOID = 4;
+  SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE = 5;
 }
 
 // SeaDocumentEventType 低频单证历史事件类型。
@@ -204,7 +174,9 @@ enum SeaDocumentEventType {
   SEA_DOCUMENT_EVENT_TYPE_UNSPECIFIED = 0;
   SEA_DOCUMENT_EVENT_TYPE_AMENDMENT = 1;
   SEA_DOCUMENT_EVENT_TYPE_VOID = 2;
-  SEA_DOCUMENT_EVENT_TYPE_SWITCH = 3;
+  reserved 3;
+  reserved "SEA_DOCUMENT_EVENT_TYPE_SWITCH";
+  SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE = 4;
 }
 
 // SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。
@@ -263,8 +235,8 @@ message SeaHouseBillInput {
 message SeaMasterBillDetail {
   string id = 1;
   string master_no = 2;
-  string issuer_partner_id = 3;
-  optional string issuer_partner_name = 4;
+  string shipping_line_id = 3;
+  optional string shipping_line_name = 4;
   string status = 5;
   uint64 version = 6;
   SeaBillContent content = 7;
@@ -277,8 +249,9 @@ message SeaMasterBillDetail {
 message SeaOrderDocumentSummary {
   SeaDocumentStructure document_structure = 1;
   uint64 link_version = 2;
-  int32 house_bill_count = 3;
-  repeated string house_nos = 4;
+  reserved 3, 4;
+  reserved "house_bill_count", "house_nos";
+  optional string house_no = 5;
 }
 
 // SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
@@ -287,7 +260,9 @@ message SeaOrderDocumentInput {
   optional uint64 expected_link_version = 2;
   optional uint64 expected_mbl_version = 3;
   optional SeaBillContent master_bill_content = 4;
-  repeated SeaHouseBillInput house_bills = 5;
+  reserved 5;
+  reserved "house_bills";
+  optional SeaHouseBillInput house_bill = 6;
 }
 
 // SeaOrderDocuments 聚合单证响应。
@@ -296,8 +271,10 @@ message SeaOrderDocuments {
   SeaDocumentStructure document_structure = 2;
   uint64 link_version = 3;
   optional SeaMasterBillDetail master_bill = 4;
-  repeated SeaHouseBill house_bills = 5;
+  reserved 5;
+  reserved "house_bills";
   repeated SeaDocumentAction allowed_actions = 6;
+  optional SeaHouseBill house_bill = 7;
 }
 
 // GetSeaOrderDocumentsRequest 获取海运单证聚合信息请求。
@@ -314,49 +291,69 @@ message GetSeaOrderDocumentsResponse {
   string trace_id = 5;
 }
 
-// MarkSeaOrderDirectRequest 标记直单请求。
-message MarkSeaOrderDirectRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
+// SeaExternalConfirmationInput 外部确认输入。
+message SeaExternalConfirmationInput {
+  string confirmed_by_party = 1 [(google.api.field_behavior) = REQUIRED];
+  string confirmed_at = 2 [(google.api.field_behavior) = REQUIRED];
+  string confirmation_note = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string confirmation_attachment_id = 4;
 }
 
-// MarkSeaOrderDirectResponse 标记直单响应。
-message MarkSeaOrderDirectResponse {
+// SeaExternalConfirmationSummary 外部确认摘要。
+message SeaExternalConfirmationSummary {
+  string confirmed_by_party = 1;
+  string confirmed_at = 2;
+  string confirmation_note = 3;
+  optional string confirmation_attachment_id = 4;
+  optional string confirmation_attachment_name = 5;
+}
+
+// PreviewChangeSeaDocumentModeRequest 预览模式切换请求。
+message PreviewChangeSeaDocumentModeRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  SeaDocumentStructure target_mode = 2 [(google.api.field_behavior) = REQUIRED];
+  optional SeaHouseBillInput new_house_bill = 3;
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// PreviewChangeSeaDocumentModeResponse 预览模式切换响应。
+message PreviewChangeSeaDocumentModeResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaDocumentModeChangePreview data = 4;
+  string trace_id = 5;
+}
+
+// SeaDocumentModeChangePreview 模式切换预览数据。
+message SeaDocumentModeChangePreview {
+  SeaDocumentStructure previous_mode = 1;
+  SeaDocumentStructure target_mode = 2;
+  repeated SeaDocumentFieldDifference differences = 3;
+  repeated SeaDocumentDownstreamImpact impacts = 4;
+  bool executable = 5;
+}
+
+// ExecuteChangeSeaDocumentModeRequest 执行模式切换请求。
+message ExecuteChangeSeaDocumentModeRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 3 [(google.api.field_behavior) = REQUIRED];
+  optional uint64 expected_house_bill_version = 4;
+  optional string expected_current_version_id = 5;
+  SeaDocumentStructure target_mode = 6 [(google.api.field_behavior) = REQUIRED];
+  optional SeaHouseBillInput new_house_bill = 7;
+  string reason = 8 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 9 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 10 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ExecuteChangeSeaDocumentModeResponse 执行模式切换响应。
+message ExecuteChangeSeaDocumentModeResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
   SeaOrderDocuments data = 4;
-  string trace_id = 5;
-}
-
-// CancelSeaOrderDirectRequest 取消直单标记请求。
-message CancelSeaOrderDirectRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-// CancelSeaOrderDirectResponse 取消直单标记响应。
-message CancelSeaOrderDirectResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaOrderDocuments data = 4;
-  string trace_id = 5;
-}
-
-// AddSeaHouseBillRequest 添加分单请求。
-message AddSeaHouseBillRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
-  SeaHouseBillInput house_bill = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-// AddSeaHouseBillResponse 添加分单响应。
-message AddSeaHouseBillResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaHouseBill data = 4;
   string trace_id = 5;
 }
 
@@ -376,24 +373,6 @@ message UpdateSeaHouseBillResponse {
   string message = 3;
   SeaHouseBill data = 4;
   string trace_id = 5;
-}
-
-// RemoveSeaHouseBillRequest 移除分单请求。
-message RemoveSeaHouseBillRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_link_version = 4 [(google.api.field_behavior) = REQUIRED];
-  optional bool return_to_undetermined = 5;
-  optional bool remove_related_release_pods = 6;
-}
-
-// RemoveSeaHouseBillResponse 移除分单响应。
-message RemoveSeaHouseBillResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  string trace_id = 4;
 }
 
 // UpdateSeaMasterBillContentRequest 更新共享 MBL 内容请求。
@@ -438,6 +417,9 @@ message SeaDocumentVersion {
   SeaBillContent content = 22;
   optional string created_by = 23;
   string created_at = 24;
+  optional string shipping_line_id = 25;
+  optional string shipping_line_name = 26;
+  optional SeaExternalConfirmationSummary confirmation = 27;
 }
 
 message SeaDocumentFieldDifference {
@@ -456,6 +438,8 @@ message SeaDocumentDownstreamImpact {
 }
 
 message SeaDocumentEvent {
+  reserved 8 to 13, 16;
+  reserved "old_house_bill_id", "old_house_no", "new_house_bill_id", "new_house_no", "chain_id", "sequence", "surrender_info";
   string id = 1;
   SeaDocumentEventType event_type = 2;
   SeaDocumentType document_type = 3;
@@ -463,17 +447,13 @@ message SeaDocumentEvent {
   optional string document_no = 5;
   optional string previous_version_id = 6;
   optional string result_version_id = 7;
-  optional string old_house_bill_id = 8;
-  optional string old_house_no = 9;
-  optional string new_house_bill_id = 10;
-  optional string new_house_no = 11;
-  optional string chain_id = 12;
-  optional int32 sequence = 13;
   string reason = 14;
   optional string impact_summary = 15;
-  optional string surrender_info = 16;
   optional string created_by = 17;
   string created_at = 18;
+  optional SeaDocumentStructure previous_mode = 19;
+  optional SeaDocumentStructure target_mode = 20;
+  optional SeaExternalConfirmationSummary confirmation = 21;
 }
 
 message SeaDocumentAmendmentInput {
@@ -489,13 +469,6 @@ message SeaDocumentAmendmentPreview {
 }
 
 message SeaDocumentVoidPreview {
-  SeaDocumentVersion base_version = 1;
-  repeated SeaDocumentFieldDifference differences = 2;
-  repeated SeaDocumentDownstreamImpact impacts = 3;
-  bool executable = 4;
-}
-
-message SeaHouseBillSwitchPreview {
   SeaDocumentVersion base_version = 1;
   repeated SeaDocumentFieldDifference differences = 2;
   repeated SeaDocumentDownstreamImpact impacts = 3;
@@ -591,6 +564,7 @@ message ExecuteSeaDocumentAmendmentRequest {
   string reason = 7 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
   SeaDocumentAmendmentInput input = 9 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 10 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ExecuteSeaDocumentAmendmentResponse {
@@ -628,6 +602,7 @@ message ExecuteSeaDocumentVoidRequest {
   string expected_current_version_id = 6 [(google.api.field_behavior) = REQUIRED];
   string reason = 7 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 9 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ExecuteSeaDocumentVoidResponse {
@@ -636,44 +611,4 @@ message ExecuteSeaDocumentVoidResponse {
   string message = 3;
   SeaDocumentEvent data = 4;
   string trace_id = 5;
-}
-
-message PreviewSeaHouseBillSwitchRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
-  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
-  string reason = 6 [(google.api.field_behavior) = REQUIRED];
-  optional string surrender_info = 7;
-  SeaHouseBillInput new_house_bill = 8 [(google.api.field_behavior) = REQUIRED];
-}
-
-message PreviewSeaHouseBillSwitchResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaHouseBillSwitchPreview data = 4;
-  string trace_id = 5;
-}
-
-message ExecuteSeaHouseBillSwitchRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string old_house_bill_id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_house_bill_version = 4 [(google.api.field_behavior) = REQUIRED];
-  string expected_current_version_id = 5 [(google.api.field_behavior) = REQUIRED];
-  string reason = 6 [(google.api.field_behavior) = REQUIRED];
-  optional string surrender_info = 7;
-  string idempotency_key = 8 [(google.api.field_behavior) = REQUIRED];
-  SeaHouseBillInput new_house_bill = 9 [(google.api.field_behavior) = REQUIRED];
-}
-
-message ExecuteSeaHouseBillSwitchResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  SeaDocumentEvent data = 4;
-  SeaHouseBill new_house_bill = 5;
-  string trace_id = 6;
 }

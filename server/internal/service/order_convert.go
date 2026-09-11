@@ -13,20 +13,21 @@ import (
 func orderToAPI(item *biz.Order) *v1.Order {
 	result := &v1.Order{
 		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
-		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
+		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: optionalTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
 		FlowStatus: orderFlowStatusToAPI(item.FlowStatus), TerminationStatus: orderTerminationStatusToAPI(item.TerminationStatus), TerminationType: orderTerminationTypeToAPI(item.TerminationType),
 		TerminationReason: stringPtrIfNotEmpty(item.TerminationReason), TerminatedAt: timePtrToString(item.TerminatedAt), TerminatedBy: uuidStringPtr(item.TerminatedBy),
 		ClosureStatus: orderClosureStatusToAPI(item.ClosureStatus), ClosureReason: stringPtrIfNotEmpty(item.ClosureReason), ClosedAt: timePtrToString(item.ClosedAt), ClosedBy: uuidStringPtr(item.ClosedBy),
 		Version: item.Version, HasActiveException: item.HasActiveException, ActiveExceptionCount: int32(item.ActiveExceptionCount), AllowedActions: orderAllowedActionsToAPI(item.AllowedActions), AllowedTargetFlowStatuses: orderFlowStatusesToAPI(item.AllowedTargetFlowStatuses()),
 		ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
-		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
+		ShippingLineId: uuidStringPtr(item.ShippingLineID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
 		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
-		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt), LoadingTerms: stringPtrIfNotEmpty(item.LoadingTerms),
+		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt),
 		DeclarationCutoffAt: stringPtrIfNotEmpty(item.DeclarationCutoffAt), ReceivedAt: stringPtrIfNotEmpty(item.ReceivedAt),
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
 		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
+		BookingNo:        stringPtrIfNotEmpty(item.BookingNo),
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
@@ -52,12 +53,14 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		result.SeaDocumentLinkVersion = item.SeaDocumentLinkVersion
 	}
 	if item.SeaDocumentSummary != nil {
-		result.SeaDocumentSummary = &v1.SeaOrderDocumentSummary{
+		summary := &v1.SeaOrderDocumentSummary{
 			DocumentStructure: seaDocumentStructureToAPI(item.SeaDocumentSummary.DocumentStructure),
 			LinkVersion:       item.SeaDocumentSummary.LinkVersion,
-			HouseBillCount:    int32(item.SeaDocumentSummary.HouseBillCount),
-			HouseNos:          item.SeaDocumentSummary.HouseNos,
 		}
+		if item.SeaDocumentSummary.HouseNo != "" {
+			summary.HouseNo = &item.SeaDocumentSummary.HouseNo
+		}
+		result.SeaDocumentSummary = summary
 	}
 	return result
 }
@@ -222,26 +225,25 @@ func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBill
 		return nil
 	}
 	res := &v1.SeaMasterBillSummary{
-		MasterBillId:          item.MasterBillID.String(),
-		MasterNo:              item.MasterNo,
-		IssuerPartnerId:       item.IssuerPartnerID.String(),
-		IssuerPartnerName:     stringPtrIfNotEmpty(item.IssuerPartnerName),
-		TransportExecutionId:  item.TransportExecutionID.String(),
-		CarrierId:             uuidStringPtr(item.CarrierID),
-		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
-		OriginLocationId:      uuidStringPtr(item.OriginLocationID),
-		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
-		DischargeLocationId:   uuidStringPtr(item.DischargeLocationID),
-		DischargeLocationName: stringPtrIfNotEmpty(item.DischargeLocationName),
-		TransitLocationId:     uuidStringPtr(item.TransitLocationID),
-		TransitLocationName:   stringPtrIfNotEmpty(item.TransitLocationName),
-		VesselName:            item.VesselName,
-		VoyageNo:              item.VoyageNo,
-		Etd:                   stringPtrIfNotEmpty(item.ETD),
-		Eta:                   stringPtrIfNotEmpty(item.ETA),
-		Status:                item.Status,
-		Version:               item.Version,
-		MemberCount:           int32(item.MemberCount),
+		MasterBillId:              item.MasterBillID.String(),
+		MasterNo:                  item.MasterNo,
+		ShippingLineId:            item.ShippingLineID.String(),
+		ShippingLineName:          stringPtrIfNotEmpty(item.ShippingLineName),
+		TransportExecutionId:      item.TransportExecutionID.String(),
+		TransportExecutionVersion: item.TransportExecutionVersion,
+		OriginLocationId:          uuidStringPtr(item.OriginLocationID),
+		OriginLocationName:        stringPtrIfNotEmpty(item.OriginLocationName),
+		DischargeLocationId:       uuidStringPtr(item.DischargeLocationID),
+		DischargeLocationName:     stringPtrIfNotEmpty(item.DischargeLocationName),
+		TransitLocationId:         uuidStringPtr(item.TransitLocationID),
+		TransitLocationName:       stringPtrIfNotEmpty(item.TransitLocationName),
+		VesselName:                item.VesselName,
+		VoyageNo:                  item.VoyageNo,
+		Etd:                       stringPtrIfNotEmpty(item.ETD),
+		Eta:                       stringPtrIfNotEmpty(item.ETA),
+		Status:                    item.Status,
+		Version:                   item.Version,
+		MemberCount:               int32(item.MemberCount),
 	}
 	return res
 }
@@ -252,8 +254,8 @@ func seaTransportExecutionToAPI(item *biz.SeaTransportExecution) *v1.SeaTranspor
 	}
 	res := &v1.SeaTransportExecution{
 		Id:                    item.ID.String(),
-		CarrierId:             uuidStringPtr(&item.CarrierID),
-		CarrierName:           stringPtrIfNotEmpty(item.CarrierName),
+		ShippingLineId:        item.ShippingLineID.String(),
+		ShippingLineName:      stringPtrIfNotEmpty(item.ShippingLineName),
 		OriginLocationId:      uuidStringPtr(&item.OriginLocationID),
 		OriginLocationName:    stringPtrIfNotEmpty(item.OriginLocationName),
 		DischargeLocationId:   uuidStringPtr(&item.DischargeLocationID),
@@ -278,13 +280,15 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 		return nil
 	}
 	res := &v1.SeaMasterBillCandidate{
-		Id:                 item.ID.String(),
-		Version:            item.Version,
-		MasterNo:           item.MasterNo,
-		IssuerPartnerId:    item.IssuerPartnerID.String(),
-		IssuerPartnerName:  stringPtrIfNotEmpty(item.IssuerPartnerName),
-		TransportExecution: seaTransportExecutionToAPI(item.TransportExecution),
-		MemberCount:        int32(item.MemberCount),
+		Id:               item.ID.String(),
+		Version:          item.Version,
+		MasterNo:         item.MasterNo,
+		ShippingLineId:   item.ShippingLineID.String(),
+		ShippingLineName: stringPtrIfNotEmpty(item.ShippingLineName),
+		MemberCount:      int32(item.MemberCount),
+	}
+	for _, execution := range item.TransportExecutions {
+		res.TransportExecutions = append(res.TransportExecutions, seaTransportExecutionToAPI(execution))
 	}
 	for _, m := range item.Members {
 		res.Members = append(res.Members, &v1.SeaMasterBillMemberSummary{
@@ -300,15 +304,11 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 	if input == nil {
 		return nil, nil
 	}
-	issuerPartnerID, err := uuid.Parse(input.GetIssuerPartnerId())
-	if err != nil {
-		return nil, biz.ErrSeaMasterBillInvalidArgument
-	}
 	res := &biz.SeaMasterBillInput{
-		MasterNo:                 input.GetMasterNo(),
-		IssuerPartnerID:          issuerPartnerID,
-		CorrectionReason:         input.GetCorrectionReason(),
-		ExpectedCandidateVersion: input.ExpectedCandidateVersion,
+		MasterNo:                   input.GetMasterNo(),
+		CorrectionReason:           input.GetCorrectionReason(),
+		ExpectedCandidateVersion:   input.ExpectedCandidateVersion,
+		ExpectedCandidateTEVersion: input.ExpectedCandidateTeVersion,
 	}
 	if input.CandidateId != nil && strings.TrimSpace(*input.CandidateId) != "" {
 		cid, err := uuid.Parse(strings.TrimSpace(*input.CandidateId))
@@ -316,6 +316,13 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 			return nil, biz.ErrSeaMasterBillInvalidArgument
 		}
 		res.CandidateID = &cid
+	}
+	if input.CandidateTeId != nil && strings.TrimSpace(*input.CandidateTeId) != "" {
+		cid, err := uuid.Parse(strings.TrimSpace(*input.CandidateTeId))
+		if err != nil {
+			return nil, biz.ErrSeaMasterBillInvalidArgument
+		}
+		res.CandidateTEID = &cid
 	}
 	return res, nil
 }
@@ -333,22 +340,19 @@ func seaOrderDocumentInputFromAPI(input *v1.SeaOrderDocumentInput) (*biz.SeaOrde
 	if input.MasterBillContent != nil {
 		masterBillContent = seaBillContentFromAPI(input.MasterBillContent)
 	}
-	var hbs []*biz.SeaHouseBillInput
-	if input.HouseBills != nil {
-		hbs = make([]*biz.SeaHouseBillInput, 0, len(input.HouseBills))
-		for _, hb := range input.HouseBills {
-			h, err := seaHouseBillInputFromAPI(hb)
-			if err != nil {
-				return nil, err
-			}
-			hbs = append(hbs, h)
+	var hb *biz.SeaHouseBillInput
+	if input.HouseBill != nil {
+		h, err := seaHouseBillInputFromAPI(input.HouseBill)
+		if err != nil {
+			return nil, err
 		}
+		hb = h
 	}
 	return &biz.SeaOrderDocumentInput{
 		DocumentStructure:   structure,
 		ExpectedLinkVersion: input.ExpectedLinkVersion,
 		ExpectedMblVersion:  input.ExpectedMblVersion,
 		MasterBillContent:   masterBillContent,
-		HouseBills:          hbs,
+		HouseBill:           hb,
 	}, nil
 }

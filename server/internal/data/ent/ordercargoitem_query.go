@@ -18,20 +18,20 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 )
 
 // OrderCargoItemQuery is the builder for querying OrderCargoItem entities.
 type OrderCargoItemQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []ordercargoitem.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.OrderCargoItem
-	withOrganization     *OrganizationQuery
-	withOrder            *OrderQuery
-	withCargoAllocations *SeaCargoAllocationQuery
-	modifiers            []func(*sql.Selector)
+	ctx                            *QueryContext
+	order                          []ordercargoitem.OrderOption
+	inters                         []Interceptor
+	predicates                     []predicate.OrderCargoItem
+	withOrganization               *OrganizationQuery
+	withOrder                      *OrderQuery
+	withSharedContainerAllocations *SeaSharedContainerAllocationQuery
+	modifiers                      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -112,9 +112,9 @@ func (_q *OrderCargoItemQuery) QueryOrder() *OrderQuery {
 	return query
 }
 
-// QueryCargoAllocations chains the current query on the "cargo_allocations" edge.
-func (_q *OrderCargoItemQuery) QueryCargoAllocations() *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+// QuerySharedContainerAllocations chains the current query on the "shared_container_allocations" edge.
+func (_q *OrderCargoItemQuery) QuerySharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -125,8 +125,8 @@ func (_q *OrderCargoItemQuery) QueryCargoAllocations() *SeaCargoAllocationQuery 
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(ordercargoitem.Table, ordercargoitem.FieldID, selector),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ordercargoitem.CargoAllocationsTable, ordercargoitem.CargoAllocationsColumn),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ordercargoitem.SharedContainerAllocationsTable, ordercargoitem.SharedContainerAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -321,14 +321,14 @@ func (_q *OrderCargoItemQuery) Clone() *OrderCargoItemQuery {
 		return nil
 	}
 	return &OrderCargoItemQuery{
-		config:               _q.config,
-		ctx:                  _q.ctx.Clone(),
-		order:                append([]ordercargoitem.OrderOption{}, _q.order...),
-		inters:               append([]Interceptor{}, _q.inters...),
-		predicates:           append([]predicate.OrderCargoItem{}, _q.predicates...),
-		withOrganization:     _q.withOrganization.Clone(),
-		withOrder:            _q.withOrder.Clone(),
-		withCargoAllocations: _q.withCargoAllocations.Clone(),
+		config:                         _q.config,
+		ctx:                            _q.ctx.Clone(),
+		order:                          append([]ordercargoitem.OrderOption{}, _q.order...),
+		inters:                         append([]Interceptor{}, _q.inters...),
+		predicates:                     append([]predicate.OrderCargoItem{}, _q.predicates...),
+		withOrganization:               _q.withOrganization.Clone(),
+		withOrder:                      _q.withOrder.Clone(),
+		withSharedContainerAllocations: _q.withSharedContainerAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -357,14 +357,14 @@ func (_q *OrderCargoItemQuery) WithOrder(opts ...func(*OrderQuery)) *OrderCargoI
 	return _q
 }
 
-// WithCargoAllocations tells the query-builder to eager-load the nodes that are connected to
-// the "cargo_allocations" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderCargoItemQuery) WithCargoAllocations(opts ...func(*SeaCargoAllocationQuery)) *OrderCargoItemQuery {
-	query := (&SeaCargoAllocationClient{config: _q.config}).Query()
+// WithSharedContainerAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "shared_container_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderCargoItemQuery) WithSharedContainerAllocations(opts ...func(*SeaSharedContainerAllocationQuery)) *OrderCargoItemQuery {
+	query := (&SeaSharedContainerAllocationClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withCargoAllocations = query
+	_q.withSharedContainerAllocations = query
 	return _q
 }
 
@@ -449,7 +449,7 @@ func (_q *OrderCargoItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
-			_q.withCargoAllocations != nil,
+			_q.withSharedContainerAllocations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -485,11 +485,11 @@ func (_q *OrderCargoItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
-	if query := _q.withCargoAllocations; query != nil {
-		if err := _q.loadCargoAllocations(ctx, query, nodes,
-			func(n *OrderCargoItem) { n.Edges.CargoAllocations = []*SeaCargoAllocation{} },
-			func(n *OrderCargoItem, e *SeaCargoAllocation) {
-				n.Edges.CargoAllocations = append(n.Edges.CargoAllocations, e)
+	if query := _q.withSharedContainerAllocations; query != nil {
+		if err := _q.loadSharedContainerAllocations(ctx, query, nodes,
+			func(n *OrderCargoItem) { n.Edges.SharedContainerAllocations = []*SeaSharedContainerAllocation{} },
+			func(n *OrderCargoItem, e *SeaSharedContainerAllocation) {
+				n.Edges.SharedContainerAllocations = append(n.Edges.SharedContainerAllocations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -555,7 +555,7 @@ func (_q *OrderCargoItemQuery) loadOrder(ctx context.Context, query *OrderQuery,
 	}
 	return nil
 }
-func (_q *OrderCargoItemQuery) loadCargoAllocations(ctx context.Context, query *SeaCargoAllocationQuery, nodes []*OrderCargoItem, init func(*OrderCargoItem), assign func(*OrderCargoItem, *SeaCargoAllocation)) error {
+func (_q *OrderCargoItemQuery) loadSharedContainerAllocations(ctx context.Context, query *SeaSharedContainerAllocationQuery, nodes []*OrderCargoItem, init func(*OrderCargoItem), assign func(*OrderCargoItem, *SeaSharedContainerAllocation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*OrderCargoItem)
 	for i := range nodes {
@@ -566,10 +566,10 @@ func (_q *OrderCargoItemQuery) loadCargoAllocations(ctx context.Context, query *
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seacargoallocation.FieldCargoItemID)
+		query.ctx.AppendFieldOnce(seasharedcontainerallocation.FieldCargoItemID)
 	}
-	query.Where(predicate.SeaCargoAllocation(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(ordercargoitem.CargoAllocationsColumn), fks...))
+	query.Where(predicate.SeaSharedContainerAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(ordercargoitem.SharedContainerAllocationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -12,7 +12,6 @@ import {
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import {
   App,
   Button,
@@ -29,6 +28,7 @@ import {
 } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import React from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
@@ -42,11 +42,11 @@ import {
   isPermissionGroupNode,
 } from './permissionTree';
 import {
-  type OrderOrganizationAccess,
+  dataScopeOptions,
+  type OrganizationAccess,
   type PermissionLeafNode,
   type PermissionTreeNode,
   type RoleFormValues,
-  dataScopeOptions,
 } from './roleConstants';
 
 const { Text } = Typography;
@@ -64,9 +64,9 @@ interface RoleFormModalProps {
   permissionNameByKey: Record<string, string>;
   selectedPermissionKeys: string[];
   setSelectedPermissionKeys: (keys: string[]) => void;
-  orderOrganizationAccesses: OrderOrganizationAccess[];
-  setOrderOrganizationAccesses: React.Dispatch<
-    React.SetStateAction<OrderOrganizationAccess[]>
+  organizationAccesses: OrganizationAccess[];
+  setOrganizationAccesses: React.Dispatch<
+    React.SetStateAction<OrganizationAccess[]>
   >;
   expandedKeys: React.Key[];
   setExpandedKeys: (keys: React.Key[]) => void;
@@ -90,8 +90,8 @@ export default function RoleFormModal({
   permissionNameByKey,
   selectedPermissionKeys,
   setSelectedPermissionKeys,
-  orderOrganizationAccesses,
-  setOrderOrganizationAccesses,
+  organizationAccesses,
+  setOrganizationAccesses,
   expandedKeys,
   setExpandedKeys,
   autoExpandParent,
@@ -172,7 +172,7 @@ export default function RoleFormModal({
                 dataScope: values.dataScope ?? 2,
                 enabled: values.enabled ?? true,
                 permissionKeys: selectedPermissionKeys,
-                orderOrganizationAccesses,
+                organizationAccesses,
               },
             );
             message.success('角色已成功更新');
@@ -183,7 +183,7 @@ export default function RoleFormModal({
               name: values.name?.trim() ?? '',
               dataScope: values.dataScope ?? 2,
               permissionKeys: selectedPermissionKeys,
-              orderOrganizationAccesses,
+              organizationAccesses,
             });
             message.success('角色已成功创建');
           }
@@ -239,25 +239,23 @@ export default function RoleFormModal({
           padding: 12,
         }}
       >
-        <Text strong>跨公司订单范围</Text>
+        <Text strong>可访问组织</Text>
         <div style={{ marginTop: 8 }}>
           <Text type="secondary">
-            指定公司订单默认仅查看；勾选可修改后，仍需同时拥有对应的订单操作权限。
+            指定组织默认仅查看；勾选可修改后，仍需同时拥有对应的业务操作权限。
           </Text>
         </div>
         <div style={{ marginTop: 12 }}>
-          <Text>可查看的公司</Text>
+          <Text>可查看的组织</Text>
           <Select
             allowClear
             mode="multiple"
             options={companyOptions}
-            placeholder="不选择时仅可访问当前公司订单"
+            placeholder="不选择时仅可访问当前组织"
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={orderOrganizationAccesses.map(
-              (access) => access.organizationId,
-            )}
+            value={organizationAccesses.map((access) => access.organizationId)}
             onChange={(organizationIds: string[]) => {
-              setOrderOrganizationAccesses((previous) =>
+              setOrganizationAccesses((previous) =>
                 organizationIds.map((organizationId) => ({
                   organizationId,
                   writable:
@@ -270,28 +268,26 @@ export default function RoleFormModal({
           />
         </div>
         <div style={{ marginTop: 12 }}>
-          <Text>其中允许修改的公司</Text>
+          <Text>其中允许修改的组织</Text>
           <Select
             allowClear
             mode="multiple"
             options={companyOptions.filter((option) =>
-              orderOrganizationAccesses.some(
+              organizationAccesses.some(
                 (access) => access.organizationId === option.value,
               ),
             )}
-            placeholder="不选择时跨公司订单均为仅查看"
+            placeholder="不选择时跨组织均为仅查看"
             style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={orderOrganizationAccesses
+            value={organizationAccesses
               .filter((access) => access.writable)
               .map((access) => access.organizationId)}
             onChange={(organizationIds: string[]) => {
               const writableOrganizationIDs = new Set(organizationIds);
-              setOrderOrganizationAccesses((previous) =>
+              setOrganizationAccesses((previous) =>
                 previous.map((access) => ({
                   ...access,
-                  writable: writableOrganizationIDs.has(
-                    access.organizationId,
-                  ),
+                  writable: writableOrganizationIDs.has(access.organizationId),
                 })),
               );
             }}
@@ -310,10 +306,7 @@ export default function RoleFormModal({
           }}
         >
           <Space size={8}>
-            <Text
-              strong
-              style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}
-            >
+            <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
               功能权限配置
             </Text>
             <Tag color="blue" variant="filled">
@@ -362,9 +355,7 @@ export default function RoleFormModal({
         >
           <Input
             placeholder="搜索权限名称、权限码或说明..."
-            prefix={
-              <SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
-            }
+            prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
             allowClear
             size="small"
             value={permissionKeyword}
@@ -429,8 +420,7 @@ export default function RoleFormModal({
                           style={{
                             fontSize: 11,
                             fontWeight: 400,
-                            color:
-                              checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
+                            color: checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
                           }}
                         >
                           ({checkedInGroup}/{groupLeafKeys.length})
@@ -524,9 +514,7 @@ export default function RoleFormModal({
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
-                  permissionKeyword
-                    ? '未找到匹配的权限项'
-                    : '暂无可用权限'
+                  permissionKeyword ? '未找到匹配的权限项' : '暂无可用权限'
                 }
                 style={{ margin: '20px 0' }}
               />

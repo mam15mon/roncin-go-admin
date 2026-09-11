@@ -14,6 +14,7 @@ import (
 var (
 	createTablePattern = regexp.MustCompile(`(?i)CREATE\s+TABLE\s+"([^"]+)"`)
 	dropTablePattern   = regexp.MustCompile(`(?i)DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?"([^"]+)"`)
+	renameTablePattern = regexp.MustCompile(`(?i)ALTER\s+TABLE\s+"([^"]+)"\s+RENAME\s+TO\s+"([^"]+)"`)
 	referencePattern   = regexp.MustCompile(`(?i)REFERENCES\s+"([^"]+)"`)
 )
 
@@ -35,6 +36,17 @@ func TestMigrationManifestCoversEntSchema(t *testing.T) {
 			if match := dropTablePattern.FindStringSubmatch(statement); match != nil {
 				delete(created, match[1])
 				delete(seen, match[1])
+				continue
+			}
+			if match := renameTablePattern.FindStringSubmatch(statement); match != nil {
+				count, ok := created[match[1]]
+				if !ok {
+					t.Fatalf("迁移 %s 重命名了尚未创建的表 %s", filepath.Base(file), match[1])
+				}
+				delete(created, match[1])
+				delete(seen, match[1])
+				created[match[2]] += count
+				seen[match[2]] = true
 				continue
 			}
 			if match := createTablePattern.FindStringSubmatch(statement); match != nil {

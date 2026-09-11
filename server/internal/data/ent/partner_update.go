@@ -16,12 +16,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
@@ -33,7 +35,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 )
 
@@ -184,6 +185,21 @@ func (_u *PartnerUpdate) AddRoles(v ...*PartnerRole) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddRoleIDs(ids...)
+}
+
+// AddAccountIDs adds the "accounts" edge to the PartnerAccount entity by IDs.
+func (_u *PartnerUpdate) AddAccountIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddAccountIDs(ids...)
+	return _u
+}
+
+// AddAccounts adds the "accounts" edges to the PartnerAccount entity.
+func (_u *PartnerUpdate) AddAccounts(v ...*PartnerAccount) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccountIDs(ids...)
 }
 
 // AddContactIDs adds the "contacts" edge to the PartnerContact entity by IDs.
@@ -400,6 +416,21 @@ func (_u *PartnerUpdate) AddFinanceVerifications(v ...*FinanceVerification) *Par
 	return _u.AddFinanceVerificationIDs(ids...)
 }
 
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *PartnerUpdate) AddFinanceNettingIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_u *PartnerUpdate) AddFinanceNettings(v ...*FinanceNetting) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceNettingIDs(ids...)
+}
+
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
 func (_u *PartnerUpdate) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *PartnerUpdate {
 	_u.mutation.AddOrderCommissionAttributionIDs(ids...)
@@ -443,21 +474,6 @@ func (_u *PartnerUpdate) AddSeaOrderReassignments(v ...*SeaOrderReassignmentEven
 		ids[i] = v[i].ID
 	}
 	return _u.AddSeaOrderReassignmentIDs(ids...)
-}
-
-// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (_u *PartnerUpdate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdate {
-	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSeaMasterBillVersionIDs(ids...)
 }
 
 // AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
@@ -505,6 +521,27 @@ func (_u *PartnerUpdate) RemoveRoles(v ...*PartnerRole) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRoleIDs(ids...)
+}
+
+// ClearAccounts clears all "accounts" edges to the PartnerAccount entity.
+func (_u *PartnerUpdate) ClearAccounts() *PartnerUpdate {
+	_u.mutation.ClearAccounts()
+	return _u
+}
+
+// RemoveAccountIDs removes the "accounts" edge to PartnerAccount entities by IDs.
+func (_u *PartnerUpdate) RemoveAccountIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveAccountIDs(ids...)
+	return _u
+}
+
+// RemoveAccounts removes "accounts" edges to PartnerAccount entities.
+func (_u *PartnerUpdate) RemoveAccounts(v ...*PartnerAccount) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccountIDs(ids...)
 }
 
 // ClearContacts clears all "contacts" edges to the PartnerContact entity.
@@ -786,6 +823,27 @@ func (_u *PartnerUpdate) RemoveFinanceVerifications(v ...*FinanceVerification) *
 	return _u.RemoveFinanceVerificationIDs(ids...)
 }
 
+// ClearFinanceNettings clears all "finance_nettings" edges to the FinanceNetting entity.
+func (_u *PartnerUpdate) ClearFinanceNettings() *PartnerUpdate {
+	_u.mutation.ClearFinanceNettings()
+	return _u
+}
+
+// RemoveFinanceNettingIDs removes the "finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *PartnerUpdate) RemoveFinanceNettingIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceNettings removes "finance_nettings" edges to FinanceNetting entities.
+func (_u *PartnerUpdate) RemoveFinanceNettings(v ...*FinanceNetting) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceNettingIDs(ids...)
+}
+
 // ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
 func (_u *PartnerUpdate) ClearOrderCommissionAttributions() *PartnerUpdate {
 	_u.mutation.ClearOrderCommissionAttributions()
@@ -847,27 +905,6 @@ func (_u *PartnerUpdate) RemoveSeaOrderReassignments(v ...*SeaOrderReassignmentE
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentIDs(ids...)
-}
-
-// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdate) ClearSeaMasterBillVersions() *PartnerUpdate {
-	_u.mutation.ClearSeaMasterBillVersions()
-	return _u
-}
-
-// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
-func (_u *PartnerUpdate) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdate {
-	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
-func (_u *PartnerUpdate) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSeaMasterBillVersionIDs(ids...)
 }
 
 // ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
@@ -1067,6 +1104,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1688,6 +1770,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderCommissionAttributionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1816,51 +1943,6 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2067,6 +2149,21 @@ func (_u *PartnerUpdateOne) AddRoles(v ...*PartnerRole) *PartnerUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddRoleIDs(ids...)
+}
+
+// AddAccountIDs adds the "accounts" edge to the PartnerAccount entity by IDs.
+func (_u *PartnerUpdateOne) AddAccountIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddAccountIDs(ids...)
+	return _u
+}
+
+// AddAccounts adds the "accounts" edges to the PartnerAccount entity.
+func (_u *PartnerUpdateOne) AddAccounts(v ...*PartnerAccount) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccountIDs(ids...)
 }
 
 // AddContactIDs adds the "contacts" edge to the PartnerContact entity by IDs.
@@ -2283,6 +2380,21 @@ func (_u *PartnerUpdateOne) AddFinanceVerifications(v ...*FinanceVerification) *
 	return _u.AddFinanceVerificationIDs(ids...)
 }
 
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_u *PartnerUpdateOne) AddFinanceNettingIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddFinanceNettingIDs(ids...)
+	return _u
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_u *PartnerUpdateOne) AddFinanceNettings(v ...*FinanceNetting) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceNettingIDs(ids...)
+}
+
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
 func (_u *PartnerUpdateOne) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddOrderCommissionAttributionIDs(ids...)
@@ -2326,21 +2438,6 @@ func (_u *PartnerUpdateOne) AddSeaOrderReassignments(v ...*SeaOrderReassignmentE
 		ids[i] = v[i].ID
 	}
 	return _u.AddSeaOrderReassignmentIDs(ids...)
-}
-
-// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
-func (_u *PartnerUpdateOne) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
-	_u.mutation.AddSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdateOne) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSeaMasterBillVersionIDs(ids...)
 }
 
 // AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
@@ -2388,6 +2485,27 @@ func (_u *PartnerUpdateOne) RemoveRoles(v ...*PartnerRole) *PartnerUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRoleIDs(ids...)
+}
+
+// ClearAccounts clears all "accounts" edges to the PartnerAccount entity.
+func (_u *PartnerUpdateOne) ClearAccounts() *PartnerUpdateOne {
+	_u.mutation.ClearAccounts()
+	return _u
+}
+
+// RemoveAccountIDs removes the "accounts" edge to PartnerAccount entities by IDs.
+func (_u *PartnerUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveAccountIDs(ids...)
+	return _u
+}
+
+// RemoveAccounts removes "accounts" edges to PartnerAccount entities.
+func (_u *PartnerUpdateOne) RemoveAccounts(v ...*PartnerAccount) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccountIDs(ids...)
 }
 
 // ClearContacts clears all "contacts" edges to the PartnerContact entity.
@@ -2669,6 +2787,27 @@ func (_u *PartnerUpdateOne) RemoveFinanceVerifications(v ...*FinanceVerification
 	return _u.RemoveFinanceVerificationIDs(ids...)
 }
 
+// ClearFinanceNettings clears all "finance_nettings" edges to the FinanceNetting entity.
+func (_u *PartnerUpdateOne) ClearFinanceNettings() *PartnerUpdateOne {
+	_u.mutation.ClearFinanceNettings()
+	return _u
+}
+
+// RemoveFinanceNettingIDs removes the "finance_nettings" edge to FinanceNetting entities by IDs.
+func (_u *PartnerUpdateOne) RemoveFinanceNettingIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveFinanceNettingIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceNettings removes "finance_nettings" edges to FinanceNetting entities.
+func (_u *PartnerUpdateOne) RemoveFinanceNettings(v ...*FinanceNetting) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceNettingIDs(ids...)
+}
+
 // ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
 func (_u *PartnerUpdateOne) ClearOrderCommissionAttributions() *PartnerUpdateOne {
 	_u.mutation.ClearOrderCommissionAttributions()
@@ -2730,27 +2869,6 @@ func (_u *PartnerUpdateOne) RemoveSeaOrderReassignments(v ...*SeaOrderReassignme
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaOrderReassignmentIDs(ids...)
-}
-
-// ClearSeaMasterBillVersions clears all "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
-func (_u *PartnerUpdateOne) ClearSeaMasterBillVersions() *PartnerUpdateOne {
-	_u.mutation.ClearSeaMasterBillVersions()
-	return _u
-}
-
-// RemoveSeaMasterBillVersionIDs removes the "sea_master_bill_versions" edge to SeaMasterBillVersion entities by IDs.
-func (_u *PartnerUpdateOne) RemoveSeaMasterBillVersionIDs(ids ...uuid.UUID) *PartnerUpdateOne {
-	_u.mutation.RemoveSeaMasterBillVersionIDs(ids...)
-	return _u
-}
-
-// RemoveSeaMasterBillVersions removes "sea_master_bill_versions" edges to SeaMasterBillVersion entities.
-func (_u *PartnerUpdateOne) RemoveSeaMasterBillVersions(v ...*SeaMasterBillVersion) *PartnerUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSeaMasterBillVersionIDs(ids...)
 }
 
 // ClearSeaHouseBillVersions clears all "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
@@ -2980,6 +3098,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AccountsTable,
+			Columns: []string{partner.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3601,6 +3764,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceNettingsIDs(); len(nodes) > 0 && !_u.mutation.FinanceNettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceNettingsTable,
+			Columns: []string{partner.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderCommissionAttributionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -3729,51 +3937,6 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSeaMasterBillVersionsIDs(); len(nodes) > 0 && !_u.mutation.SeaMasterBillVersionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partner.SeaMasterBillVersionsTable,
-			Columns: []string{partner.SeaMasterBillVersionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

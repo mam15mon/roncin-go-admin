@@ -2,10 +2,10 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
+import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import OrderDetailPage from './detail';
 import OrderFeesPage from './fees';
-import { orderServiceGetOrder } from '@/services/roncin/orderService';
-import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 
 const mockPush = vi.fn();
 let mockParams = { kind: 'sea-export', id: 'ord-1' };
@@ -21,12 +21,17 @@ vi.mock('@umijs/max', () => ({
   }),
   useModel: () => ({
     initialState: {
-      currentUser: { id: 'user-1' },
+      currentUser: {
+        id: 'user-1',
+        displayName: '测试用户',
+        currentOrganization: { id: 'org-1', name: '总公司' },
+      },
     },
   }),
   history: {
     push: (path: string) => mockPush(path),
   },
+  request: vi.fn(),
   Link: ({ to, children, ...rest }: any) => (
     <a href={to} {...rest}>
       {children}
@@ -40,6 +45,7 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceCheckOrderReference: vi.fn(),
   orderServiceCreateOrder: vi.fn(),
   orderServiceUpdateOrder: vi.fn(),
+  orderServiceListSameBatchOrders: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -101,7 +107,8 @@ const mockUseOrderLockState = vi.fn((_orderId?: string) => ({
 }));
 
 vi.mock('./use-order-lock-state', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./use-order-lock-state')>();
+  const actual =
+    await importOriginal<typeof import('./use-order-lock-state')>();
   return {
     ...actual,
     useOrderLockState: (orderId?: string) => mockUseOrderLockState(orderId),
@@ -152,7 +159,9 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     expect(screen.getByText('业务类型不存在')).toBeInTheDocument();
     expect(
-      screen.getByText('未知的业务类型路径 "unknown-freight"，请选择有效业务入口。'),
+      screen.getByText(
+        '未知的业务类型路径 "unknown-freight"，请选择有效业务入口。',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('返回海运出口订单')).toBeInTheDocument();
 
@@ -172,7 +181,9 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     expect(screen.getByText('业务类型不存在')).toBeInTheDocument();
     expect(
-      screen.getByText('未知的业务类型路径 "invalid-air"，请选择有效业务入口。'),
+      screen.getByText(
+        '未知的业务类型路径 "invalid-air"，请选择有效业务入口。',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('返回海运出口订单')).toBeInTheDocument();
 
@@ -201,9 +212,11 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     // 1. 加载中状态
     expect(screen.getByText('正在加载订单详情...')).toBeInTheDocument();
-    expect(screen.getByText('订单管理')).toBeInTheDocument();
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /返回列表/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /返回列表/ }),
+    ).toBeInTheDocument();
 
     // 2. 订单不存在（空结果）
     resolveOrder({ data: undefined });
@@ -212,7 +225,9 @@ describe('订单模块面包屑与异常路由校验', () => {
     });
 
     // 验证：OrderPageHeader 的“返回列表”存在，但卡片内部无重复的“返回订单列表”按钮
-    expect(screen.getByRole('button', { name: /返回列表/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /返回列表/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('返回订单列表')).not.toBeInTheDocument();
   });
 
@@ -235,9 +250,11 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     // 1. 加载中状态
     expect(screen.getByText('正在加载费用工作台...')).toBeInTheDocument();
-    expect(screen.getByText('订单管理')).toBeInTheDocument();
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /返回订单详情/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /返回订单详情/ }),
+    ).toBeInTheDocument();
 
     // 2. 订单不存在（空结果）
     resolveOrder({ data: undefined });
@@ -246,7 +263,9 @@ describe('订单模块面包屑与异常路由校验', () => {
     });
 
     // 验证：保留页头返回按钮，卡片内部无重复返回按钮
-    expect(screen.getByRole('button', { name: /返回订单详情/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /返回订单详情/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('返回订单列表')).not.toBeInTheDocument();
   });
 
@@ -270,8 +289,10 @@ describe('订单模块面包屑与异常路由校验', () => {
       expect(screen.getAllByText('SE20260905001').length).toBeGreaterThan(0);
     });
 
-    expect(screen.getByText('订单管理')).toBeInTheDocument();
+    expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /返回列表/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /返回列表/ }),
+    ).toBeInTheDocument();
   });
 });

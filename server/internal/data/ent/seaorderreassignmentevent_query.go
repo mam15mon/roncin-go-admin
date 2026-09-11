@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -27,19 +28,20 @@ import (
 // SeaOrderReassignmentEventQuery is the builder for querying SeaOrderReassignmentEvent entities.
 type SeaOrderReassignmentEventQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []seaorderreassignmentevent.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.SeaOrderReassignmentEvent
-	withOrganization       *OrganizationQuery
-	withOrder              *OrderQuery
-	withSplitEvent         *SeaOrderSplitEventQuery
-	withSplitResult        *SeaOrderSplitResultQuery
-	withPreviousMasterBill *SeaMasterBillQuery
-	withTargetMasterBill   *SeaMasterBillQuery
-	withResponsiblePartner *PartnerQuery
-	withCreator            *UserQuery
-	modifiers              []func(*sql.Selector)
+	ctx                        *QueryContext
+	order                      []seaorderreassignmentevent.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.SeaOrderReassignmentEvent
+	withOrganization           *OrganizationQuery
+	withOrder                  *OrderQuery
+	withSplitEvent             *SeaOrderSplitEventQuery
+	withSplitResult            *SeaOrderSplitResultQuery
+	withPreviousMasterBill     *SeaMasterBillQuery
+	withTargetMasterBill       *SeaMasterBillQuery
+	withResponsiblePartner     *PartnerQuery
+	withCreator                *UserQuery
+	withConfirmationAttachment *OrderAttachmentQuery
+	modifiers                  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -252,6 +254,28 @@ func (_q *SeaOrderReassignmentEventQuery) QueryCreator() *UserQuery {
 	return query
 }
 
+// QueryConfirmationAttachment chains the current query on the "confirmation_attachment" edge.
+func (_q *SeaOrderReassignmentEventQuery) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seaorderreassignmentevent.ConfirmationAttachmentTable, seaorderreassignmentevent.ConfirmationAttachmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first SeaOrderReassignmentEvent entity from the query.
 // Returns a *NotFoundError when no SeaOrderReassignmentEvent was found.
 func (_q *SeaOrderReassignmentEventQuery) First(ctx context.Context) (*SeaOrderReassignmentEvent, error) {
@@ -439,19 +463,20 @@ func (_q *SeaOrderReassignmentEventQuery) Clone() *SeaOrderReassignmentEventQuer
 		return nil
 	}
 	return &SeaOrderReassignmentEventQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]seaorderreassignmentevent.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.SeaOrderReassignmentEvent{}, _q.predicates...),
-		withOrganization:       _q.withOrganization.Clone(),
-		withOrder:              _q.withOrder.Clone(),
-		withSplitEvent:         _q.withSplitEvent.Clone(),
-		withSplitResult:        _q.withSplitResult.Clone(),
-		withPreviousMasterBill: _q.withPreviousMasterBill.Clone(),
-		withTargetMasterBill:   _q.withTargetMasterBill.Clone(),
-		withResponsiblePartner: _q.withResponsiblePartner.Clone(),
-		withCreator:            _q.withCreator.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]seaorderreassignmentevent.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.SeaOrderReassignmentEvent{}, _q.predicates...),
+		withOrganization:           _q.withOrganization.Clone(),
+		withOrder:                  _q.withOrder.Clone(),
+		withSplitEvent:             _q.withSplitEvent.Clone(),
+		withSplitResult:            _q.withSplitResult.Clone(),
+		withPreviousMasterBill:     _q.withPreviousMasterBill.Clone(),
+		withTargetMasterBill:       _q.withTargetMasterBill.Clone(),
+		withResponsiblePartner:     _q.withResponsiblePartner.Clone(),
+		withCreator:                _q.withCreator.Clone(),
+		withConfirmationAttachment: _q.withConfirmationAttachment.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -546,6 +571,17 @@ func (_q *SeaOrderReassignmentEventQuery) WithCreator(opts ...func(*UserQuery)) 
 	return _q
 }
 
+// WithConfirmationAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "confirmation_attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaOrderReassignmentEventQuery) WithConfirmationAttachment(opts ...func(*OrderAttachmentQuery)) *SeaOrderReassignmentEventQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmationAttachment = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -624,7 +660,7 @@ func (_q *SeaOrderReassignmentEventQuery) sqlAll(ctx context.Context, hooks ...q
 	var (
 		nodes       = []*SeaOrderReassignmentEvent{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withSplitEvent != nil,
@@ -633,6 +669,7 @@ func (_q *SeaOrderReassignmentEventQuery) sqlAll(ctx context.Context, hooks ...q
 			_q.withTargetMasterBill != nil,
 			_q.withResponsiblePartner != nil,
 			_q.withCreator != nil,
+			_q.withConfirmationAttachment != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -701,6 +738,12 @@ func (_q *SeaOrderReassignmentEventQuery) sqlAll(ctx context.Context, hooks ...q
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
 			func(n *SeaOrderReassignmentEvent, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmationAttachment; query != nil {
+		if err := _q.loadConfirmationAttachment(ctx, query, nodes, nil,
+			func(n *SeaOrderReassignmentEvent, e *OrderAttachment) { n.Edges.ConfirmationAttachment = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -951,6 +994,38 @@ func (_q *SeaOrderReassignmentEventQuery) loadCreator(ctx context.Context, query
 	}
 	return nil
 }
+func (_q *SeaOrderReassignmentEventQuery) loadConfirmationAttachment(ctx context.Context, query *OrderAttachmentQuery, nodes []*SeaOrderReassignmentEvent, init func(*SeaOrderReassignmentEvent), assign func(*SeaOrderReassignmentEvent, *OrderAttachment)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaOrderReassignmentEvent)
+	for i := range nodes {
+		if nodes[i].ConfirmationAttachmentID == nil {
+			continue
+		}
+		fk := *nodes[i].ConfirmationAttachmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderattachment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "confirmation_attachment_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *SeaOrderReassignmentEventQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -1003,6 +1078,9 @@ func (_q *SeaOrderReassignmentEventQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(seaorderreassignmentevent.FieldCreatedBy)
+		}
+		if _q.withConfirmationAttachment != nil {
+			_spec.Node.AddColumnOnce(seaorderreassignmentevent.FieldConfirmationAttachmentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

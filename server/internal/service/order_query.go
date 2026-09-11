@@ -17,7 +17,7 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	issuerPartnerID, err := uuid.Parse(request.GetIssuerPartnerId())
+	shippingLineID, err := uuid.Parse(request.GetShippingLineId())
 	if err != nil {
 		return nil, biz.ErrSeaMasterBillInvalidArgument
 	}
@@ -31,17 +31,11 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 		return nil, err
 	}
 	orderVoyage := &biz.SeaTransportExecution{
-		VesselName: strings.TrimSpace(request.GetVesselName()),
-		VoyageNo:   strings.TrimSpace(request.GetVoyageNo()),
-		ETD:        etd,
-		ETA:        eta,
-	}
-	carrierID, err := parseOptionalUUIDPointer(request.CarrierId)
-	if err != nil {
-		return nil, biz.ErrSeaMasterBillInvalidArgument
-	}
-	if carrierID != nil {
-		orderVoyage.CarrierID = *carrierID
+		ShippingLineID: shippingLineID,
+		VesselName:     strings.TrimSpace(request.GetVesselName()),
+		VoyageNo:       strings.TrimSpace(request.GetVoyageNo()),
+		ETD:            etd,
+		ETA:            eta,
 	}
 	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
 	if err != nil {
@@ -65,7 +59,7 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 		orderVoyage.TransitLocationID = transitLocationID
 	}
 
-	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, issuerPartnerID, request.GetMasterNo(), orderVoyage)
+	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, shippingLineID, request.GetMasterNo(), orderVoyage)
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +134,13 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	}
 	if request.BusinessType != nil {
 		options.BusinessType = orderBusinessTypeFromAPI(request.GetBusinessType())
-	} else {
-		options.BusinessTypes = readableOrderBusinessTypes(principal)
+	}
+	orderScopes, err := orderOrganizationScopesForOperation(principal, access.OrderRead, false, options.BusinessType)
+	if err != nil {
+		return nil, err
+	}
+	if options.BusinessType == "" {
+		options.BusinessTypes = orderBusinessTypesFromScopes(orderScopes)
 	}
 	if request.GetCustomerId() != "" {
 		value, parseErr := uuid.Parse(request.GetCustomerId())
@@ -158,6 +157,10 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 			options.NumberType = biz.OrderNumberFilterMaster
 		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER:
 			options.NumberType = biz.OrderNumberFilterConsolidatedMaster
+		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE:
+			options.NumberType = biz.OrderNumberFilterCustomerReference
+		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_BOOKING:
+			options.NumberType = biz.OrderNumberFilterBooking
 		default:
 			return nil, biz.ErrOrderInvalidArgument
 		}
@@ -186,7 +189,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if options.DestinationLocationID, err = listOptionalUUID(request.GetDestinationLocationId()); err != nil {
 		return nil, err
 	}
-	if options.CarrierID, err = listOptionalUUID(request.GetCarrierId()); err != nil {
+	if options.ShippingLineID, err = listOptionalUUID(request.GetShippingLineId()); err != nil {
 		return nil, err
 	}
 	options.ConsigneeShortName = request.GetConsigneeShortName()
@@ -216,14 +219,14 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		value := request.GetIsShared()
 		options.IsShared = &value
 	}
-	result, err := s.usecase.List(ctx, principal.OrderOrganizationIDs(), options)
+	result, err := s.usecase.List(ctx, orderScopes, options)
 	if err != nil {
 		return nil, err
 	}
 	data := make([]*v1.Order, 0, len(result.Items))
 	for _, item := range result.Items {
 		output := orderToAPI(item)
-		output.CanModify = principal.CanAccessOrderOrganization(item.OrganizationID, true)
+		output.CanModify = canModifyOrder(principal, item)
 		data = append(data, output)
 	}
 	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
@@ -279,20 +282,104 @@ func orderPersonnelFilterFromAPI(userID, organizationID string) (biz.OrderPerson
 	return biz.OrderPersonnelFilter{UserID: user, OrganizationID: organization}, nil
 }
 
-func readableOrderBusinessTypes(principal *biz.Principal) []biz.OrderBusinessType {
-	types := []struct {
-		access access.OrderBusinessType
-		biz    biz.OrderBusinessType
-	}{
-		{access: access.OrderBusinessSE, biz: biz.OrderBusinessSE},
+func orderOrganizationScopesForOperation(principal *biz.Principal, operation access.OrderOperation, writable bool, onlyBusinessType biz.OrderBusinessType) ([]biz.OrderOrganizationScope, error) {
+	if principal == nil {
+		return nil, biz.ErrPermissionDenied
 	}
-	result := make([]biz.OrderBusinessType, 0, len(types))
-	for _, businessType := range types {
-		if principal.HasPermissionInScope(access.OrderPermission(businessType.access, access.OrderRead), biz.DataScopeOrganization) {
-			result = append(result, businessType.biz)
+	scopes := make([]biz.OrderOrganizationScope, 0, len(access.OrderBusinessTypes()))
+	for _, accessBusinessType := range access.OrderBusinessTypes() {
+		businessType, ok := orderBusinessTypeFromAccess(accessBusinessType)
+		if !ok || onlyBusinessType != "" && businessType != onlyBusinessType {
+			continue
 		}
+		permission := access.OrderPermission(accessBusinessType, operation)
+		if permission == "" {
+			continue
+		}
+		permissionScope, err := principal.ResolvePermissionOrganizationScope(permission)
+		if err != nil {
+			continue
+		}
+		organizationIDs := permissionScope.ReadableOrganizationIDs
+		if writable {
+			organizationIDs = permissionScope.WritableOrganizationIDs
+		}
+		if len(organizationIDs) == 0 {
+			continue
+		}
+		scopes = append(scopes, biz.OrderOrganizationScope{BusinessType: businessType, OrganizationIDs: organizationIDs})
+	}
+	if len(scopes) == 0 {
+		return nil, biz.ErrPermissionDenied
+	}
+	return scopes, nil
+}
+
+func orderBusinessTypesFromScopes(scopes []biz.OrderOrganizationScope) []biz.OrderBusinessType {
+	result := make([]biz.OrderBusinessType, 0, len(scopes))
+	for _, scope := range scopes {
+		result = append(result, scope.BusinessType)
 	}
 	return result
+}
+
+func canModifyOrder(principal *biz.Principal, order *biz.Order) bool {
+	if order == nil {
+		return false
+	}
+	accessBusinessType, ok := orderBusinessTypeToAccess(order.BusinessType)
+	if !ok {
+		return false
+	}
+	permission := access.OrderPermission(accessBusinessType, access.OrderUpdate)
+	return permission != "" && principal.CanAccessOrganizationForPermission(permission, order.OrganizationID, true)
+}
+
+func canOperateOrderInCurrentOrganization(principal *biz.Principal, businessType biz.OrderBusinessType, operation access.OrderOperation, writable bool) bool {
+	accessBusinessType, ok := orderBusinessTypeToAccess(businessType)
+	if !ok || principal == nil {
+		return false
+	}
+	permission := access.OrderPermission(accessBusinessType, operation)
+	return permission != "" && principal.CanAccessOrganizationForPermission(permission, principal.Organization.ID, writable)
+}
+
+func orderBusinessTypeFromAccess(value access.OrderBusinessType) (biz.OrderBusinessType, bool) {
+	switch value {
+	case access.OrderBusinessSE:
+		return biz.OrderBusinessSE, true
+	case access.OrderBusinessSI:
+		return biz.OrderBusinessSI, true
+	case access.OrderBusinessAE:
+		return biz.OrderBusinessAE, true
+	case access.OrderBusinessAI:
+		return biz.OrderBusinessAI, true
+	case access.OrderBusinessLand:
+		return biz.OrderBusinessLand, true
+	case access.OrderBusinessRail:
+		return biz.OrderBusinessRail, true
+	default:
+		return "", false
+	}
+}
+
+func orderBusinessTypeToAccess(value biz.OrderBusinessType) (access.OrderBusinessType, bool) {
+	switch value {
+	case biz.OrderBusinessSE:
+		return access.OrderBusinessSE, true
+	case biz.OrderBusinessSI:
+		return access.OrderBusinessSI, true
+	case biz.OrderBusinessAE:
+		return access.OrderBusinessAE, true
+	case biz.OrderBusinessAI:
+		return access.OrderBusinessAI, true
+	case biz.OrderBusinessLand:
+		return access.OrderBusinessLand, true
+	case biz.OrderBusinessRail:
+		return access.OrderBusinessRail, true
+	default:
+		return "", false
+	}
 }
 
 func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.CheckOrderReferenceResponse, error) {
@@ -311,6 +398,8 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 		check.CustomerID = &customerID
 	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_INTERNAL:
 		check.ReferenceType = biz.OrderReferenceInternal
+	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_BOOKING:
+		check.ReferenceType = biz.OrderReferenceBooking
 	default:
 		return nil, biz.ErrOrderInvalidArgument
 	}
@@ -389,4 +478,44 @@ func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.
 
 func cargoMeasurementToAPI(value biz.OrderCargoMeasurement) *v1.OrderCargoMeasurement {
 	return &v1.OrderCargoMeasurement{Packages: int32(value.Packages), GrossWeightKg: value.GrossWeightKg, VolumeCbm: value.VolumeCbm}
+}
+
+func (s *OrderService) ListSameBatchOrders(ctx context.Context, request *v1.ListSameBatchOrdersRequest) (*v1.ListSameBatchOrdersResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderInvalidArgument
+	}
+	items, err := s.usecase.ListSameBatchOrders(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.SameBatchOrderSummary, 0, len(items))
+	for _, item := range items {
+		summary := &v1.SameBatchOrderSummary{
+			OrderId:      item.OrderID.String(),
+			OrderNo:      item.OrderNo,
+			FlowStatus:   orderFlowStatusToAPI(item.FlowStatus),
+			MatchSources: item.MatchSources,
+			CreatedAt:    item.CreatedAt.UTC().Format(timeFormatRFC3339),
+		}
+		if item.CustomerID != nil {
+			summary.CustomerId = stringPtrIfNotEmpty(item.CustomerID.String())
+		}
+		summary.CustomerReferenceNo = stringPtrIfNotEmpty(item.CustomerReferenceNo)
+		summary.BookingNo = stringPtrIfNotEmpty(item.BookingNo)
+		summary.MasterNo = stringPtrIfNotEmpty(item.MasterNo)
+		summary.HouseNo = stringPtrIfNotEmpty(item.HouseNo)
+		if item.TotalPackages != nil {
+			val := int32(*item.TotalPackages)
+			summary.TotalPackages = &val
+		}
+		summary.TotalGrossWeightKg = item.TotalGrossWeightKg
+		summary.TotalVolumeCbm = item.TotalVolumeCbm
+		data = append(data, summary)
+	}
+	return okList(ctx, &v1.ListSameBatchOrdersResponse{Data: data}), nil
 }

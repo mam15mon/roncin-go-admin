@@ -36,8 +36,8 @@ const (
 	EdgePermissions = "permissions"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
-	// EdgeOrderOrganizationAccesses holds the string denoting the order_organization_accesses edge name in mutations.
-	EdgeOrderOrganizationAccesses = "order_organization_accesses"
+	// EdgeOrganizationAccesses holds the string denoting the organization_accesses edge name in mutations.
+	EdgeOrganizationAccesses = "organization_accesses"
 	// EdgeOrderUnlockApproverCandidates holds the string denoting the order_unlock_approver_candidates edge name in mutations.
 	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
 	// Table holds the table name of the role in the database.
@@ -61,13 +61,13 @@ const (
 	AssignmentsInverseTable = "role_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "role_id"
-	// OrderOrganizationAccessesTable is the table that holds the order_organization_accesses relation/edge.
-	OrderOrganizationAccessesTable = "role_order_organization_accesses"
-	// OrderOrganizationAccessesInverseTable is the table name for the RoleOrderOrganizationAccess entity.
-	// It exists in this package in order to avoid circular dependency with the "roleorderorganizationaccess" package.
-	OrderOrganizationAccessesInverseTable = "role_order_organization_accesses"
-	// OrderOrganizationAccessesColumn is the table column denoting the order_organization_accesses relation/edge.
-	OrderOrganizationAccessesColumn = "role_id"
+	// OrganizationAccessesTable is the table that holds the organization_accesses relation/edge.
+	OrganizationAccessesTable = "role_organization_accesses"
+	// OrganizationAccessesInverseTable is the table name for the RoleOrganizationAccess entity.
+	// It exists in this package in order to avoid circular dependency with the "roleorganizationaccess" package.
+	OrganizationAccessesInverseTable = "role_organization_accesses"
+	// OrganizationAccessesColumn is the table column denoting the organization_accesses relation/edge.
+	OrganizationAccessesColumn = "role_id"
 	// OrderUnlockApproverCandidatesTable is the table that holds the order_unlock_approver_candidates relation/edge.
 	OrderUnlockApproverCandidatesTable = "order_unlock_approver_candidates"
 	// OrderUnlockApproverCandidatesInverseTable is the table name for the OrderUnlockApproverCandidate entity.
@@ -228,17 +228,17 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByOrderOrganizationAccessesCount orders the results by order_organization_accesses count.
-func ByOrderOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByOrganizationAccessesCount orders the results by organization_accesses count.
+func ByOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrderOrganizationAccessesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newOrganizationAccessesStep(), opts...)
 	}
 }
 
-// ByOrderOrganizationAccesses orders the results by order_organization_accesses terms.
-func ByOrderOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByOrganizationAccesses orders the results by organization_accesses terms.
+func ByOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrderOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -276,11 +276,11 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
 	)
 }
-func newOrderOrganizationAccessesStep() *sqlgraph.Step {
+func newOrganizationAccessesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrderOrganizationAccessesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OrderOrganizationAccessesTable, OrderOrganizationAccessesColumn),
+		sqlgraph.To(OrganizationAccessesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrganizationAccessesTable, OrganizationAccessesColumn),
 	)
 }
 func newOrderUnlockApproverCandidatesStep() *sqlgraph.Step {

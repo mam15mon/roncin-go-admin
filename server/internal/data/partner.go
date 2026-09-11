@@ -17,6 +17,7 @@ import (
 	partnerprofileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -28,15 +29,35 @@ type partnerRepo struct{ data *Data }
 func NewPartnerRepo(data *Data) biz.PartnerRepo { return &partnerRepo{data: data} }
 
 func (r *partnerRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.Partner, error) {
-	item, err := withPartnerEdges(r.data.db.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID))).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := withPartnerEdges(client.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrPartnerNotFound, nil)
 	}
 	return partnerToBiz(item), nil
 }
 
-func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.PartnerListOptions) (*biz.PartnerList, error) {
-	query := r.data.db.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID))
+func (r *partnerRepo) FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*biz.Partner, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := withPartnerEdges(client.Partner.Query().Where(partnerent.IDEQ(id), partnerOrganizationScopePredicate(organizationIDs))).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrPartnerNotFound, nil)
+	}
+	return partnerToBiz(item), nil
+}
+
+func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, options biz.PartnerListOptions) (*biz.PartnerList, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.Partner.Query().Where(partnerOrganizationScopePredicate(organizationIDs))
 	if options.Keyword != "" {
 		query.Where(partnerent.Or(
 			partnerent.CodeContainsFold(options.Keyword),
@@ -68,8 +89,16 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 	}, options.Page, options.PageSize, infalliblePageConverter(partnerToBiz))
 }
 
+func partnerOrganizationScopePredicate(organizationIDs []uuid.UUID) entpredicate.Partner {
+	return partnerent.OrganizationIDIn(organizationIDs...)
+}
+
 func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.PartnerAssignmentOption], error) {
-	organizations, err := r.data.db.Organization.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	organizations, err := client.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
 		All(ctx)
 	if err != nil {
@@ -85,7 +114,7 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	query := r.data.db.Membership.Query().Where(
+	query := client.Membership.Query().Where(
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
 		membershipent.HasUserWith(userent.EnabledEQ(true)),
@@ -111,14 +140,18 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 }
 
 func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*biz.PartnerAuditLogList, error) {
-	partnerExists, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Exist(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	partnerExists, err := client.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !partnerExists {
 		return nil, biz.ErrPartnerNotFound
 	}
-	query := r.data.db.AuditLog.Query().Where(
+	query := client.AuditLog.Query().Where(
 		auditlogent.OrganizationIDEQ(organizationID),
 		auditlogent.ResourceTypeEQ("partner"),
 		auditlogent.ResourceIDEQ(partnerID.String()),
@@ -143,7 +176,7 @@ func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partner
 	}
 	displayNames := make(map[uuid.UUID]string, len(userIDs))
 	if len(userIDs) > 0 {
-		users, err := r.data.db.User.Query().Where(userent.IDIn(userIDs...)).All(ctx)
+		users, err := client.User.Query().Where(userent.IDIn(userIDs...)).All(ctx)
 		if err != nil {
 			return nil, err
 		}

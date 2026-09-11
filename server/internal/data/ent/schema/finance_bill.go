@@ -3,6 +3,8 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -24,6 +26,16 @@ func (FinanceBill) Fields() []ent.Field {
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "CANCELLED").Default("DRAFT"),
 		field.UUID("settlement_party_id", uuid.Nil).Immutable(),
 		field.String("settlement_party_name").NotEmpty().MaxLen(200).Immutable(),
+		field.UUID("settlement_account_id", uuid.Nil),
+		field.String("settlement_account_name").NotEmpty().MaxLen(200),
+		field.String("settlement_account_holder").NotEmpty().MaxLen(200),
+		field.String("settlement_bank_name").NotEmpty().MaxLen(200),
+		field.String("settlement_bank_account").NotEmpty().MaxLen(100),
+		field.String("settlement_account_currency").NotEmpty().MinLen(3).MaxLen(3),
+		field.String("settlement_swift_code").Optional().MaxLen(32),
+		field.String("estimated_invoice_currency").Optional().Nillable().MinLen(3).MaxLen(3),
+		field.String("estimated_invoice_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
+		field.String("estimated_invoice_amount").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
@@ -59,6 +71,7 @@ func (FinanceBill) Edges() []ent.Edge {
 		edge.To("lines", FinanceBillLine.Type),
 		edge.To("invoice_links", FinanceInvoiceBill.Type),
 		edge.To("verification_allocations", FinanceVerificationAllocation.Type),
+		edge.To("netting_allocations", FinanceNettingAllocation.Type),
 		edge.To("enterprise_tag_links", FinanceBillEnterpriseTag.Type),
 	}
 }
@@ -69,6 +82,13 @@ func (FinanceBill) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "bill_date"),
 		index.Fields("settlement_party_id", "direction", "currency"),
+		index.Fields("settlement_account_id"),
 		index.Fields("batch_id"),
 	}
+}
+
+func (FinanceBill) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"finance_bills_estimated_invoice_snapshot_check": "(estimated_invoice_currency IS NULL AND estimated_invoice_rate IS NULL AND estimated_invoice_amount IS NULL) OR (estimated_invoice_currency IS NOT NULL AND estimated_invoice_rate IS NOT NULL AND estimated_invoice_amount IS NOT NULL AND estimated_invoice_rate > 0 AND estimated_invoice_amount >= 0)",
+	})}
 }

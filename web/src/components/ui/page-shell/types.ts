@@ -25,6 +25,10 @@ export interface PageHeaderShellProps {
 export interface SectionCardProps {
   /** 区块唯一标识 */
   key?: string;
+  /** 区块 DOM id，用于楼层锚点定位，如 section-basicInfo */
+  id?: string;
+  /** 区块业务标识 key，用于分节错误统计与折叠控制 */
+  sectionKey?: string;
   /** 区块标题 */
   title: ReactNode;
   /** 区块右上角额外操作 */

@@ -35,13 +35,17 @@ type commissionRepo struct{ data *Data }
 func NewCommissionRepo(data *Data) biz.CommissionRepo { return &commissionRepo{data: data} }
 
 func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.CommissionEmployeeOption], error) {
+	return r.ListEmployeesScoped(ctx, []uuid.UUID{org}, options)
+}
+
+func (r *commissionRepo) ListEmployeesScoped(ctx context.Context, organizationIDs []uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.CommissionEmployeeOption], error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	predicates := []predicate.User{
 		user.EnabledEQ(true),
-		user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true)),
+		user.HasMembershipsWith(membership.OrganizationIDIn(organizationIDs...), membership.EnabledEQ(true)),
 	}
 	if options.Keyword != "" {
 		predicates = append(predicates, user.Or(
@@ -144,11 +148,14 @@ func commissionCandidateEmployeePredicates(org uuid.UUID, source *commissionCalc
 }
 
 func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
+	return r.ListRulesScoped(ctx, []uuid.UUID{org}, f)
+}
+func (r *commissionRepo) ListRulesScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	p := []predicate.FinanceCommissionRule{rule.OrganizationIDEQ(org)}
+	p := []predicate.FinanceCommissionRule{rule.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
 		p = append(p, rule.NameContainsFold(f.Keyword))
 	}
@@ -158,7 +165,7 @@ func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.Com
 	if f.Enabled != nil {
 		p = append(p, rule.EnabledEQ(*f.Enabled))
 	}
-	q := client.FinanceCommissionRule.Query().Where(p...)
+	q := client.FinanceCommissionRule.Query().WithOrganization().Where(p...)
 	total, err := q.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -177,6 +184,18 @@ func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.Com
 	}
 	return result, nil
 }
+
+func (r *commissionRepo) GetRuleScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCommissionRule, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommissionRule.Query().Where(rule.IDEQ(id), rule.OrganizationIDIn(organizationIDs...)).WithOrganization().Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrCommissionRuleNotFound, nil)
+	}
+	return commissionRuleToBiz(x)
+}
 func (r *commissionRepo) CreateRule(ctx context.Context, org uuid.UUID, item *biz.FinanceCommissionRule, audit *biz.AuditEvent) (*biz.FinanceCommissionRule, error) {
 	var x *ent.FinanceCommissionRule
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -189,7 +208,7 @@ func (r *commissionRepo) CreateRule(ctx context.Context, org uuid.UUID, item *bi
 	}); err != nil {
 		return nil, err
 	}
-	return commissionRuleToBiz(x)
+	return r.GetRuleScoped(ctx, []uuid.UUID{org}, x.ID)
 }
 func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.UpdateCommissionRuleInput, audit *biz.AuditEvent) (*biz.FinanceCommissionRule, error) {
 	var updated *ent.FinanceCommissionRule
@@ -225,12 +244,15 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 	}); err != nil {
 		return nil, err
 	}
-	return commissionRuleToBiz(updated)
+	return r.GetRuleScoped(ctx, []uuid.UUID{org}, updated.ID)
 }
 
 // commissionListPredicates 构造提成列表筛选谓词，列表与导出复用同一实现。
 func commissionListPredicates(org uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
-	p := []predicate.FinanceCommission{commission.OrganizationIDEQ(org)}
+	return commissionListPredicatesScoped([]uuid.UUID{org}, f)
+}
+func commissionListPredicatesScoped(organizationIDs []uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
+	p := []predicate.FinanceCommission{commission.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
 		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword), commission.RuleNameContainsFold(f.Keyword)))
 	}
@@ -247,16 +269,19 @@ func commissionListPredicates(org uuid.UUID, f biz.CommissionFilter) []predicate
 }
 
 func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
+	return r.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+func (r *commissionRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	q := client.FinanceCommission.Query().Where(commissionListPredicates(org, f)...)
+	q := client.FinanceCommission.Query().Where(commissionListPredicatesScoped(organizationIDs, f)...)
 	total, err := q.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	xs, err := q.WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
+	xs, err := q.WithOrganization().WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
 	}).Order(commission.ByCommissionDate(entsql.OrderDesc()), commission.ByCreatedAt(entsql.OrderDesc()), commission.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
@@ -275,11 +300,15 @@ func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.Commissi
 
 // Count 按列表同一谓词统计提成总数，供导出上限门禁使用。
 func (r *commissionRepo) Count(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) (int64, error) {
+	return r.CountScoped(ctx, []uuid.UUID{org}, f)
+}
+
+func (r *commissionRepo) CountScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionFilter) (int64, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return 0, err
 	}
-	total, err := client.FinanceCommission.Query().Where(commissionListPredicates(org, f)...).Count(ctx)
+	total, err := client.FinanceCommission.Query().Where(commissionListPredicatesScoped(organizationIDs, f)...).Count(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -290,11 +319,15 @@ func (r *commissionRepo) Count(ctx context.Context, org uuid.UUID, f biz.Commiss
 // id DESC）分页读取一批提成；调整单随行加载，保证 CNY 调整与有效金额的
 // 动态口径与列表一致。
 func (r *commissionRepo) ExportBatch(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) ([]*biz.FinanceCommission, error) {
+	return r.ExportBatchScoped(ctx, []uuid.UUID{org}, f)
+}
+
+func (r *commissionRepo) ExportBatchScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionFilter) ([]*biz.FinanceCommission, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	xs, err := client.FinanceCommission.Query().Where(commissionListPredicates(org, f)...).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
+	xs, err := client.FinanceCommission.Query().Where(commissionListPredicatesScoped(organizationIDs, f)...).WithOrganization().WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
 	}).Order(commission.ByCommissionDate(entsql.OrderDesc()), commission.ByCreatedAt(entsql.OrderDesc()), commission.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
@@ -326,7 +359,7 @@ func (r *commissionRepo) GetByKey(ctx context.Context, org uuid.UUID, key string
 	if err != nil {
 		return nil, err
 	}
-	x, err := client.FinanceCommission.Query().Where(commission.OrganizationIDEQ(org), commission.IdempotencyKeyEQ(key)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
+	x, err := client.FinanceCommission.Query().Where(commission.OrganizationIDEQ(org), commission.IdempotencyKeyEQ(key)).WithOrganization().WithLines(func(q *ent.FinanceCommissionLineQuery) {
 		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
@@ -703,7 +736,13 @@ func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.Finan
 		}
 		// 原始 CNY 提成金额依赖锁内计算出的提成金额，按 biz 纯函数固化到快照。
 		snapshot.ApplyCommissionAmount(calculation.CommissionAmount)
-		hasActive, err := tx.FinanceCommission.Query().Where(commission.VerificationIDEQ(c.VerificationID), commission.EmployeeIDEQ(c.EmployeeID), commission.RuleIDEQ(c.RuleID), commission.StatusNEQ(commission.StatusCANCELLED)).Exist(ctx)
+		hasActive, err := tx.FinanceCommission.Query().Where(
+			commission.OrganizationIDEQ(org),
+			commission.VerificationIDEQ(c.VerificationID),
+			commission.EmployeeIDEQ(c.EmployeeID),
+			commission.PersonnelRoleEQ(string(calculation.PersonnelRole)),
+			commission.StatusNEQ(commission.StatusCANCELLED),
+		).Exist(ctx)
 		if err != nil {
 			return err
 		}
@@ -818,11 +857,14 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 }
 
 func (r *commissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCommission, error) {
+	return r.GetScoped(ctx, []uuid.UUID{org}, id)
+}
+func (r *commissionRepo) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCommission, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	x, err := client.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
+	x, err := client.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDIn(organizationIDs...)).WithOrganization().WithLines(func(q *ent.FinanceCommissionLineQuery) {
 		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
@@ -902,7 +944,10 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	if x.Edges.Organization != nil {
+		result.OrganizationName = x.Edges.Organization.Name
+	}
 	if x.RuleID != nil {
 		result.RuleID = *x.RuleID
 	}
@@ -955,12 +1000,24 @@ func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-	x, err := client.FinanceCommissionAdjustment.Query().Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
+	x, err := client.FinanceCommissionAdjustment.Query().WithOrganization().Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
+	}
+	return commissionAdjustmentToBiz(x)
+}
+
+func (r *commissionRepo) GetAdjustmentScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCommissionAdjustment, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDIn(organizationIDs...)).WithOrganization().Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
 	}
 	return commissionAdjustmentToBiz(x)
 }
@@ -1087,15 +1144,19 @@ func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.Finance
 	if err != nil {
 		return nil, err
 	}
-	return &biz.FinanceCommissionAdjustment{
+	result := &biz.FinanceCommissionAdjustment{
 		ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID,
 		AdjustmentNo: x.AdjustmentNo, IdempotencyKey: x.IdempotencyKey, CommissionNo: x.CommissionNo,
 		OrderNo: x.OrderNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName,
 		Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), SourceVerificationID: x.SourceVerificationID, Status: biz.CommissionStatus(x.Status),
 		BaseCurrency: x.BaseCurrency, Amount: amount, Reason: x.Reason, Note: x.Note, Version: x.Version,
-		ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt,
+		ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy,
 		CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt,
-	}, nil
+	}
+	if x.Edges.Organization != nil {
+		result.OrganizationName = x.Edges.Organization.Name
+	}
+	return result, nil
 }
 
 func commissionRuleToBiz(x *ent.FinanceCommissionRule) (*biz.FinanceCommissionRule, error) {
@@ -1103,7 +1164,11 @@ func commissionRuleToBiz(x *ent.FinanceCommissionRule) (*biz.FinanceCommissionRu
 	if err != nil {
 		return nil, err
 	}
-	return &biz.FinanceCommissionRule{ID: x.ID, OrganizationID: x.OrganizationID, Name: x.Name, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), RatePercent: rate, EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
+	result := &biz.FinanceCommissionRule{ID: x.ID, OrganizationID: x.OrganizationID, Name: x.Name, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), RatePercent: rate, EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	if x.Edges.Organization != nil {
+		result.OrganizationName = x.Edges.Organization.Name
+	}
+	return result, nil
 }
 
 var _ biz.CommissionRepo = (*commissionRepo)(nil)

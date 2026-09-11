@@ -17,11 +17,10 @@ export interface TemplateProps {
   currencyOptions: SelectOption[];
   containerSpecOptions: SelectOption[];
   searchCustomers: (keyword?: string) => Promise<SelectOption[]>;
-  searchCarriers: (keyword?: string) => Promise<SelectOption[]>;
+  searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
   searchBookingAgents: (keyword?: string) => Promise<SelectOption[]>;
   searchForeignAgents: (keyword?: string) => Promise<SelectOption[]>;
   searchShippingAgents: (keyword?: string) => Promise<SelectOption[]>;
-  searchIssuers?: (keyword?: string) => Promise<SelectOption[]>;
   setCustomerCode: (code?: string) => void;
   checkCustomerReferenceNo: () => Promise<void>;
   checkInternalReferenceNo: () => Promise<void>;

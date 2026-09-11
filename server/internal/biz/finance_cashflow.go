@@ -30,6 +30,7 @@ const (
 type FinanceCashflow struct {
 	ID, OrganizationID, SettlementPartyID                    uuid.UUID
 	FlowNo, IdempotencyKey                                   string
+	OrganizationName                                         string
 	Direction                                                OrderFeeDirection
 	Status                                                   FinanceCashflowStatus
 	SettlementPartyName, Currency                            string
@@ -52,6 +53,9 @@ type FinanceCashflowFilter struct {
 	Status            FinanceCashflowStatus
 	SettlementPartyID *uuid.UUID
 	Currency          string
+	// OnlyUnverified 是仅供仓储内部使用的过滤条件（核销候选）：由数据库按
+	// 「流水金额 > 有效核销分摊合计」在分页前过滤，不进入公共 API 契约。
+	OnlyUnverified bool
 }
 type FinanceCashflowListResult struct {
 	Items   []*FinanceCashflow
@@ -59,10 +63,7 @@ type FinanceCashflowListResult struct {
 	Summary FinanceCashflowSummary
 }
 type FinanceCashflowSummary struct {
-	ReceivableBaseAmount decimal.Decimal
-	PayableBaseAmount    decimal.Decimal
-	UnverifiedBaseAmount decimal.Decimal
-	BaseCurrency         string
+	AmountsByBaseCurrency []FinanceBaseCurrencyAmount
 }
 type CreateFinanceCashflowInput struct {
 	Direction                                                OrderFeeDirection
@@ -76,7 +77,9 @@ type CreateFinanceCashflowInput struct {
 }
 type FinanceCashflowRepo interface {
 	List(context.Context, uuid.UUID, FinanceCashflowFilter) (*FinanceCashflowListResult, error)
+	ListScoped(context.Context, []uuid.UUID, FinanceCashflowFilter) (*FinanceCashflowListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
+	GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceCashflow, error)
 	ResolveParty(context.Context, uuid.UUID, uuid.UUID) (string, error)
 	Create(context.Context, *FinanceCashflow, *AuditEvent) (*FinanceCashflow, error)
@@ -92,18 +95,43 @@ func NewFinanceCashflowUsecase(repo FinanceCashflowRepo, exchangeRate *ExchangeR
 	return &FinanceCashflowUsecase{repo: repo, exchangeRate: exchangeRate}
 }
 func (uc *FinanceCashflowUsecase) List(ctx context.Context, org uuid.UUID, f FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
+	return uc.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+
+func (uc *FinanceCashflowUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	f.Currency = strings.ToUpper(strings.TrimSpace(f.Currency))
-	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) || (f.SettlementPartyID != nil && *f.SettlementPartyID == uuid.Nil) || (f.Currency != "" && !financeBillCurrencyPattern.MatchString(f.Currency)) {
+	if !validFinanceCashflowOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) || (f.SettlementPartyID != nil && *f.SettlementPartyID == uuid.Nil) || (f.Currency != "" && !financeBillCurrencyPattern.MatchString(f.Currency)) {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
-	return uc.repo.List(ctx, org, f)
+	return uc.repo.ListScoped(ctx, organizationIDs, f)
 }
 func (uc *FinanceCashflowUsecase) Get(ctx context.Context, org, id uuid.UUID) (*FinanceCashflow, error) {
-	if org == uuid.Nil || id == uuid.Nil {
+	return uc.GetScoped(ctx, []uuid.UUID{org}, id)
+}
+
+func (uc *FinanceCashflowUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCashflow, error) {
+	if !validFinanceCashflowOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
-	return uc.repo.Get(ctx, org, id)
+	return uc.repo.GetScoped(ctx, organizationIDs, id)
+}
+
+func validFinanceCashflowOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+		if _, exists := seen[organizationID]; exists {
+			return false
+		}
+		seen[organizationID] = struct{}{}
+	}
+	return true
 }
 func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateFinanceCashflowInput, canOverrideExchangeRate bool) (*FinanceCashflow, error) {
 	in.Currency = strings.ToUpper(strings.TrimSpace(in.Currency))

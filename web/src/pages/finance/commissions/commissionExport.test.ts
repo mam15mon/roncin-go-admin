@@ -65,6 +65,7 @@ describe('提成 CSV', () => {
   it('输出 BOM、CRLF、固定表头并转义特殊字符', () => {
     const content = serializeCommissionCsv([
       {
+        organizationName: '华北公司',
         commissionNo: '=危险编号',
         status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
         verificationNo: '+危险核销',
@@ -86,14 +87,15 @@ describe('提成 CSV', () => {
     ]);
 
     expect(content).not.toBeNull();
-    expect(content?.startsWith('\uFEFF提成编号,状态,核销编号,归属日期')).toBe(
-      true,
-    );
+    expect(
+      content?.startsWith('\uFEFF所属公司,提成编号,状态,核销编号,归属日期'),
+    ).toBe(true);
     expect(content).toContain('\r\n');
     expect(content).toContain("'=危险编号");
     expect(content).toContain("'+危险核销");
     expect(content).toContain("'-危险员工");
     expect(content).toContain("'@危险币种");
+    expect(content).toContain('华北公司');
     expect(content).toContain('"规则,""甲""\r\n第二行"');
     expect(content).toContain(',-2.5000,');
     expect(content).toContain(',-10.00000000,-20.00000000,');

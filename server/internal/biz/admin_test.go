@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -522,32 +523,38 @@ func TestCheckPrivilegeEscalation(t *testing.T) {
 	readOnlyOrganizationID := uuid.New()
 	writableOrganizationID := uuid.New()
 	profile := &AdminPrivilegeProfile{
-		Permissions: map[string]DataScope{
-			"system.user.update": DataScopeOrganization,
-		},
-		OrderOrganizationAccesses: map[uuid.UUID]bool{
-			readOnlyOrganizationID: false,
-			writableOrganizationID: true,
-		},
+		RoleProfiles: []AdminRoleProfile{{
+			Code:           "user_manager",
+			DataScope:      DataScopeOrganization,
+			PermissionKeys: []string{"system.user.update"},
+			OrganizationAccesses: []OrganizationAccess{
+				{OrganizationID: readOnlyOrganizationID},
+				{OrganizationID: writableOrganizationID, Writable: true},
+			},
+		}},
 	}
 	tests := []struct {
 		name           string
 		profile        *AdminPrivilegeProfile
 		scope          DataScope
 		permissions    []string
-		accesses       []OrderOrganizationAccess
+		accesses       []OrganizationAccess
 		administrator  bool
 		wantEscalation bool
 	}{
-		{name: "允许权限与数据范围子集", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		{name: "允许权限与数据范围子集", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
 		{name: "拒绝未知操作者", scope: DataScopeOrganization, permissions: []string{"system.user.update"}, wantEscalation: true},
 		{name: "拒绝管理员角色", profile: profile, scope: DataScopeOrganization, administrator: true, wantEscalation: true},
 		{name: "拒绝额外权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.role.update"}, wantEscalation: true},
 		{name: "拒绝更大数据范围", profile: profile, scope: DataScopeAll, permissions: []string{"system.user.update"}, wantEscalation: true},
-		{name: "拒绝额外组织访问", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: uuid.New()}}, wantEscalation: true},
-		{name: "拒绝提升组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}, wantEscalation: true},
-		{name: "允许已有组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: writableOrganizationID, Writable: true}}},
-		{name: "管理员允许完整授权", profile: &AdminPrivilegeProfile{IsSuperAdmin: true}, scope: DataScopeAll, permissions: []string{"system.role.update"}, accesses: []OrderOrganizationAccess{{OrganizationID: uuid.New(), Writable: true}}, administrator: true},
+		{name: "拒绝额外组织访问", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: uuid.New()}}, wantEscalation: true},
+		{name: "拒绝提升组织写权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}, wantEscalation: true},
+		{name: "允许已有组织写权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: writableOrganizationID, Writable: true}}},
+		{name: "拒绝借用其他角色的组织访问", profile: &AdminPrivilegeProfile{RoleProfiles: []AdminRoleProfile{
+			{Code: "user_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.update"}},
+			{Code: "finance_viewer", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.finance.bill.read"}, OrganizationAccesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		}}, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}, wantEscalation: true},
+		{name: "管理员允许完整授权", profile: &AdminPrivilegeProfile{IsSuperAdmin: true}, scope: DataScopeAll, permissions: []string{"system.role.update"}, accesses: []OrganizationAccess{{OrganizationID: uuid.New(), Writable: true}}, administrator: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -565,18 +572,24 @@ func TestCheckPrivilegeEscalation(t *testing.T) {
 func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
 	readOnlyOrganizationID := uuid.New()
 	repo := &adminRepoStub{actorRoleProfiles: []*AdminRoleProfile{
-		{Code: "viewer", DataScope: DataScopeSelf, PermissionKeys: []string{"system.user.read"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
-		{Code: "manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.read", "system.user.update"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}},
+		{Code: "viewer", DataScope: DataScopeSelf, PermissionKeys: []string{"system.user.read"}, OrganizationAccesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		{Code: "manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.read", "system.user.update"}, OrganizationAccesses: []OrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}},
 	}}
 	profile, err := NewAdminUsecase(repo).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
 	if err != nil {
 		t.Fatalf("getActorPrivilegeProfile() error = %v", err)
 	}
-	if profile.Permissions["system.user.read"] != DataScopeOrganization || profile.Permissions["system.user.update"] != DataScopeOrganization {
-		t.Fatalf("permissions = %#v", profile.Permissions)
+	if len(profile.RoleProfiles) != 2 {
+		t.Fatalf("role profiles = %#v", profile.RoleProfiles)
 	}
-	if !profile.OrderOrganizationAccesses[readOnlyOrganizationID] {
-		t.Fatalf("order organization accesses = %#v", profile.OrderOrganizationAccesses)
+	if profile.RoleProfiles[0].Code != "viewer" || profile.RoleProfiles[1].Code != "manager" {
+		t.Fatalf("role profiles lost their source identity: %#v", profile.RoleProfiles)
+	}
+	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.update"); len(got) != 1 || got[0].Code != "manager" {
+		t.Fatalf("matching roles = %#v", got)
+	}
+	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.read"); len(got) != 2 {
+		t.Fatalf("matching roles = %#v", got)
 	}
 }
 
@@ -697,19 +710,12 @@ func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
 
 func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
 	principal := &Principal{
-		Permissions: []string{"system.user.manage"},
-		RoleScopes:  []RoleScope{{RoleCode: "viewer", DataScope: DataScopeSelf}},
-		RolePermissions: map[string]map[string]struct{}{
-			"viewer": {"system.user.manage": {}},
-		},
+		RoleGrants: []RoleGrant{roleGrant("viewer", DataScopeSelf, []string{"system.user.manage"}, nil)},
 	}
 	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("self-scoped role unexpectedly passed organization authorization")
 	}
-	principal.RoleScopes = []RoleScope{{RoleCode: "manager", DataScope: DataScopeOrganization}}
-	principal.RolePermissions = map[string]map[string]struct{}{
-		"manager": {"system.user.manage": {}},
-	}
+	principal.RoleGrants = []RoleGrant{roleGrant("manager", DataScopeOrganization, []string{"system.user.manage"}, nil)}
 	if !principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("organization-scoped role was denied organization authorization")
 	}
@@ -717,46 +723,43 @@ func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
 		t.Fatal("organization-scoped role unexpectedly passed global authorization")
 	}
 
-	principal.Permissions = []string{"system.platform.access", "system.user.manage"}
-	principal.RoleScopes = []RoleScope{
-		{RoleCode: "platform", DataScope: DataScopeAll},
-		{RoleCode: "operator", DataScope: DataScopeSelf},
-	}
-	principal.RolePermissions = map[string]map[string]struct{}{
-		"platform": {"system.platform.access": {}},
-		"operator": {"system.user.manage": {}},
+	principal.RoleGrants = []RoleGrant{
+		roleGrant("platform", DataScopeAll, []string{"system.platform.access"}, nil),
+		roleGrant("operator", DataScopeSelf, []string{"system.user.manage"}, nil),
 	}
 	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
 		t.Fatal("permission from a self-scoped role was incorrectly widened by another role")
 	}
 }
 
-func TestPrincipalOrderOrganizationAccess(t *testing.T) {
+func TestPrincipalOrganizationAccess(t *testing.T) {
 	currentOrganizationID := uuid.New()
 	readOnlyOrganizationID := uuid.New()
 	writableOrganizationID := uuid.New()
 	principal := &Principal{
-		Organization: Organization{ID: currentOrganizationID},
-		OrderOrganizationAccesses: []OrderOrganizationAccess{
+		Organization:      Organization{ID: currentOrganizationID},
+		OrganizationNodes: scopeNodes(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID),
+		RoleGrants: []RoleGrant{roleGrant("operator", DataScopeOrganization, []string{"permission"}, []OrganizationAccess{
 			{OrganizationID: readOnlyOrganizationID},
 			{OrganizationID: writableOrganizationID, Writable: true},
-		},
+		})},
 	}
 
-	if !principal.CanAccessOrderOrganization(currentOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", currentOrganizationID, true) {
 		t.Fatal("current organization must retain write access")
 	}
-	if !principal.CanAccessOrderOrganization(readOnlyOrganizationID, false) || principal.CanAccessOrderOrganization(readOnlyOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", readOnlyOrganizationID, false) || principal.CanAccessOrganizationForPermission("permission", readOnlyOrganizationID, true) {
 		t.Fatal("read-only organization access was not enforced")
 	}
-	if !principal.CanAccessOrderOrganization(writableOrganizationID, true) {
+	if !principal.CanAccessOrganizationForPermission("permission", writableOrganizationID, true) {
 		t.Fatal("writable organization access was denied")
 	}
-	if principal.CanAccessOrderOrganization(uuid.New(), false) {
+	if principal.CanAccessOrganizationForPermission("permission", uuid.New(), false) {
 		t.Fatal("unassigned organization was accessible")
 	}
-	if got := principal.OrderOrganizationIDs(); len(got) != 3 || got[0] != currentOrganizationID {
-		t.Fatalf("OrderOrganizationIDs() = %#v", got)
+	scope, err := principal.ResolvePermissionOrganizationScope("permission")
+	if err != nil || !slices.Equal(scope.ReadableOrganizationIDs, sortedIDs(currentOrganizationID, readOnlyOrganizationID, writableOrganizationID)) {
+		t.Fatalf("ResolvePermissionOrganizationScope() = %#v, %v", scope, err)
 	}
 }
 

@@ -219,8 +219,8 @@ func ValidateSeaOrderDocumentInput(input *SeaOrderDocumentInput, isCreate bool) 
 	}
 
 	if !isCreate {
-		if input.HouseBills != nil && len(input.HouseBills) > 0 {
-			return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单集合变更，请使用专用单证命令")
+		if input.HouseBill != nil {
+			return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单变更，请使用专用单证命令")
 		}
 		if input.DocumentStructure != nil && input.ExpectedLinkVersion == nil {
 			return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改单证结构必须提供 expected_link_version")
@@ -239,38 +239,30 @@ func ValidateSeaOrderDocumentInput(input *SeaOrderDocumentInput, isCreate bool) 
 		}
 	}
 
-	var validatedHBs []*SeaHouseBillInput
-	if input.HouseBills != nil {
-		validatedHBs = make([]*SeaHouseBillInput, 0, len(input.HouseBills))
-		for _, hb := range input.HouseBills {
-			if hb == nil {
-				return nil, errors.BadRequest("SEA_HOUSE_BILL_INVALID_ARGUMENT", "分单项不能为空")
-			}
-			vhb, err := ValidateSeaHouseBillInput(hb)
-			if err != nil {
-				return nil, err
-			}
-			validatedHBs = append(validatedHBs, vhb)
+	var validatedHB *SeaHouseBillInput
+	if input.HouseBill != nil {
+		vhb, err := ValidateSeaHouseBillInput(input.HouseBill)
+		if err != nil {
+			return nil, err
 		}
+		validatedHB = vhb
 	}
 
 	if isCreate {
-		hasHBLs := len(validatedHBs) > 0
-		if input.DocumentStructure != nil {
-			switch *input.DocumentStructure {
-			case SeaDocumentStructureDirect:
-				if hasHBLs {
-					return nil, ErrSeaDocumentDirectAddHBLBlocked
-				}
-			case SeaDocumentStructureHouse:
-				if !hasHBLs {
-					return nil, errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须至少包含一张分单")
-				}
-			case SeaDocumentStructureUndetermined:
-				// ok
-			default:
-				return nil, ErrSeaDocumentStructureInvalid
+		if input.DocumentStructure == nil {
+			return nil, errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "海运出口订单单证模式必填")
+		}
+		switch *input.DocumentStructure {
+		case SeaDocumentStructureDirect:
+			if validatedHB != nil {
+				return nil, errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "DIRECT 直单下不得包含分单")
 			}
+		case SeaDocumentStructureHouse:
+			if validatedHB == nil || strings.TrimSpace(validatedHB.HouseNo) == "" {
+				return nil, errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须提供唯一分单")
+			}
+		default:
+			return nil, ErrSeaDocumentStructureInvalid
 		}
 	}
 
@@ -279,20 +271,19 @@ func ValidateSeaOrderDocumentInput(input *SeaOrderDocumentInput, isCreate bool) 
 		ExpectedLinkVersion: input.ExpectedLinkVersion,
 		ExpectedMblVersion:  input.ExpectedMblVersion,
 		MasterBillContent:   validatedMblContent,
-		HouseBills:          validatedHBs,
+		HouseBill:           validatedHB,
 	}, nil
 }
 
 type SeaDocumentStructure string
 
 const (
-	SeaDocumentStructureUndetermined SeaDocumentStructure = "UNDETERMINED"
-	SeaDocumentStructureDirect       SeaDocumentStructure = "DIRECT"
-	SeaDocumentStructureHouse        SeaDocumentStructure = "HOUSE"
+	SeaDocumentStructureDirect SeaDocumentStructure = "DIRECT"
+	SeaDocumentStructureHouse  SeaDocumentStructure = "HOUSE"
 )
 
 func (s SeaDocumentStructure) Valid() bool {
-	return s == SeaDocumentStructureUndetermined || s == SeaDocumentStructureDirect || s == SeaDocumentStructureHouse
+	return s == SeaDocumentStructureDirect || s == SeaDocumentStructureHouse
 }
 
 type SeaHouseBillIssuerSource string
@@ -314,7 +305,6 @@ const (
 	SeaHouseBillStatusConfirmed SeaHouseBillStatus = "CONFIRMED"
 	SeaHouseBillStatusReleased  SeaHouseBillStatus = "RELEASED"
 	SeaHouseBillStatusVoided    SeaHouseBillStatus = "VOIDED"
-	SeaHouseBillStatusReplaced  SeaHouseBillStatus = "REPLACED"
 )
 
 func (s SeaHouseBillStatus) Valid() bool {
@@ -324,12 +314,9 @@ func (s SeaHouseBillStatus) Valid() bool {
 type SeaDocumentAction string
 
 const (
-	SeaDocumentActionMarkDirect              SeaDocumentAction = "MARK_DIRECT"
-	SeaDocumentActionCancelDirect            SeaDocumentAction = "CANCEL_DIRECT"
-	SeaDocumentActionAddHouseBill            SeaDocumentAction = "ADD_HOUSE_BILL"
 	SeaDocumentActionUpdateHouseBill         SeaDocumentAction = "UPDATE_HOUSE_BILL"
-	SeaDocumentActionRemoveHouseBill         SeaDocumentAction = "REMOVE_HOUSE_BILL"
 	SeaDocumentActionUpdateMasterBillContent SeaDocumentAction = "UPDATE_MASTER_BILL_CONTENT"
+	SeaDocumentActionChangeMode              SeaDocumentAction = "CHANGE_MODE"
 )
 
 // SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。
@@ -389,8 +376,8 @@ type SeaHouseBillInput struct {
 type SeaMasterBillDetail struct {
 	ID                    uuid.UUID
 	MasterNo              string
-	IssuerPartnerID       uuid.UUID
-	IssuerPartnerName     string
+	ShippingLineID        uuid.UUID
+	ShippingLineName      string
 	Status                string
 	Version               uint64
 	CurrentVersionID      *uuid.UUID
@@ -403,8 +390,7 @@ type SeaMasterBillDetail struct {
 type SeaOrderDocumentSummary struct {
 	DocumentStructure SeaDocumentStructure
 	LinkVersion       uint64
-	HouseBillCount    int
-	HouseNos          []string
+	HouseNo           string
 }
 
 // SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
@@ -413,7 +399,7 @@ type SeaOrderDocumentInput struct {
 	ExpectedLinkVersion *uint64
 	ExpectedMblVersion  *uint64
 	MasterBillContent   *SeaBillContent
-	HouseBills          []*SeaHouseBillInput
+	HouseBill           *SeaHouseBillInput
 }
 
 // SeaOrderDocuments 聚合单证响应。
@@ -422,18 +408,14 @@ type SeaOrderDocuments struct {
 	DocumentStructure SeaDocumentStructure
 	LinkVersion       uint64
 	MasterBill        *SeaMasterBillDetail
-	HouseBills        []*SeaHouseBill
+	HouseBill         *SeaHouseBill
 	AllowedActions    []SeaDocumentAction
 }
 
 type SeaDocumentRepo interface {
 	GetSeaOrderDocuments(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderDocuments, error)
 	GetSummariesByOrderIDs(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*SeaOrderDocumentSummary, error)
-	MarkSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
-	CancelSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error)
-	AddSeaHouseBill(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
 	UpdateSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error)
-	RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error
 	UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error)
 }
 
@@ -461,40 +443,6 @@ func (uc *SeaDocumentUsecase) GetSeaOrderDocuments(ctx context.Context, organiza
 	return uc.repo.GetSeaOrderDocuments(ctx, organizationID, orderID)
 }
 
-func (uc *SeaDocumentUsecase) MarkSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
-		return nil, ErrSeaHouseBillInvalidArgument
-	}
-	if err := validateAuditEvent(audit, organizationID, actorID); err != nil {
-		return nil, err
-	}
-	return uc.repo.MarkSeaOrderDirect(ctx, organizationID, actorID, orderID, expectedLinkVersion, audit)
-}
-
-func (uc *SeaDocumentUsecase) CancelSeaOrderDirect(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, audit *AuditEvent) (*SeaOrderDocuments, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
-		return nil, ErrSeaHouseBillInvalidArgument
-	}
-	if err := validateAuditEvent(audit, organizationID, actorID); err != nil {
-		return nil, err
-	}
-	return uc.repo.CancelSeaOrderDirect(ctx, organizationID, actorID, orderID, expectedLinkVersion, audit)
-}
-
-func (uc *SeaDocumentUsecase) AddSeaHouseBill(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
-		return nil, ErrSeaHouseBillInvalidArgument
-	}
-	if err := validateAuditEvent(audit, organizationID, actorID); err != nil {
-		return nil, err
-	}
-	validatedInput, err := ValidateSeaHouseBillInput(input)
-	if err != nil {
-		return nil, err
-	}
-	return uc.repo.AddSeaHouseBill(ctx, organizationID, actorID, orderID, expectedLinkVersion, validatedInput, audit)
-}
-
 func (uc *SeaDocumentUsecase) UpdateSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, input *SeaHouseBillInput, audit *AuditEvent) (*SeaHouseBill, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || houseBillID == uuid.Nil {
 		return nil, ErrSeaHouseBillInvalidArgument
@@ -507,16 +455,6 @@ func (uc *SeaDocumentUsecase) UpdateSeaHouseBill(ctx context.Context, organizati
 		return nil, err
 	}
 	return uc.repo.UpdateSeaHouseBill(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, validatedInput, audit)
-}
-
-func (uc *SeaDocumentUsecase) RemoveSeaHouseBill(ctx context.Context, organizationID, actorID, orderID, houseBillID uuid.UUID, expectedVersion, expectedLinkVersion uint64, returnToUndetermined, removeRelatedReleasePods bool, audit *AuditEvent) error {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || houseBillID == uuid.Nil {
-		return ErrSeaHouseBillInvalidArgument
-	}
-	if err := validateAuditEvent(audit, organizationID, actorID); err != nil {
-		return err
-	}
-	return uc.repo.RemoveSeaHouseBill(ctx, organizationID, actorID, orderID, houseBillID, expectedVersion, expectedLinkVersion, returnToUndetermined, removeRelatedReleasePods, audit)
 }
 
 func (uc *SeaDocumentUsecase) UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *SeaBillContent, audit *AuditEvent) (*SeaMasterBillDetail, error) {

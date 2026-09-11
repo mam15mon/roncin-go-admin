@@ -10,11 +10,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -33,38 +33,14 @@ type SeaMasterBillVersion struct {
 	VersionNo uint64 `json:"version_no,omitempty"`
 	// SourceEntityVersion holds the value of the "source_entity_version" field.
 	SourceEntityVersion uint64 `json:"source_entity_version,omitempty"`
-	// IssuerPartnerID holds the value of the "issuer_partner_id" field.
-	IssuerPartnerID uuid.UUID `json:"issuer_partner_id,omitempty"`
-	// TransportExecutionID holds the value of the "transport_execution_id" field.
-	TransportExecutionID uuid.UUID `json:"transport_execution_id,omitempty"`
+	// ShippingLineID holds the value of the "shipping_line_id" field.
+	ShippingLineID uuid.UUID `json:"shipping_line_id,omitempty"`
 	// MasterNo holds the value of the "master_no" field.
 	MasterNo string `json:"master_no,omitempty"`
 	// NormalizedMasterNo holds the value of the "normalized_master_no" field.
 	NormalizedMasterNo string `json:"normalized_master_no,omitempty"`
 	// Status holds the value of the "status" field.
 	Status seamasterbillversion.Status `json:"status,omitempty"`
-	// VesselVoyageSnapshot holds the value of the "vessel_voyage_snapshot" field.
-	VesselVoyageSnapshot *string `json:"vessel_voyage_snapshot,omitempty"`
-	// EtdSnapshot holds the value of the "etd_snapshot" field.
-	EtdSnapshot *string `json:"etd_snapshot,omitempty"`
-	// EtaSnapshot holds the value of the "eta_snapshot" field.
-	EtaSnapshot *string `json:"eta_snapshot,omitempty"`
-	// CarrierID holds the value of the "carrier_id" field.
-	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
-	// OriginLocationID holds the value of the "origin_location_id" field.
-	OriginLocationID *uuid.UUID `json:"origin_location_id,omitempty"`
-	// DischargeLocationID holds the value of the "discharge_location_id" field.
-	DischargeLocationID *uuid.UUID `json:"discharge_location_id,omitempty"`
-	// TransitLocationID holds the value of the "transit_location_id" field.
-	TransitLocationID *uuid.UUID `json:"transit_location_id,omitempty"`
-	// VesselName holds the value of the "vessel_name" field.
-	VesselName string `json:"vessel_name,omitempty"`
-	// VoyageNo holds the value of the "voyage_no" field.
-	VoyageNo string `json:"voyage_no,omitempty"`
-	// Etd holds the value of the "etd" field.
-	Etd *time.Time `json:"etd,omitempty"`
-	// Eta holds the value of the "eta" field.
-	Eta *time.Time `json:"eta,omitempty"`
 	// ContentHash holds the value of the "content_hash" field.
 	ContentHash string `json:"content_hash,omitempty"`
 	// Source holds the value of the "source" field.
@@ -77,6 +53,14 @@ type SeaMasterBillVersion struct {
 	IdempotencyKey *string `json:"idempotency_key,omitempty"`
 	// RequestFingerprint holds the value of the "request_fingerprint" field.
 	RequestFingerprint *string `json:"request_fingerprint,omitempty"`
+	// ConfirmedByParty holds the value of the "confirmed_by_party" field.
+	ConfirmedByParty *string `json:"confirmed_by_party,omitempty"`
+	// ConfirmedAt holds the value of the "confirmed_at" field.
+	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
+	// ConfirmationNote holds the value of the "confirmation_note" field.
+	ConfirmationNote *string `json:"confirmation_note,omitempty"`
+	// ConfirmationAttachmentID holds the value of the "confirmation_attachment_id" field.
+	ConfirmationAttachmentID *uuid.UUID `json:"confirmation_attachment_id,omitempty"`
 	// ShipperText holds the value of the "shipper_text" field.
 	ShipperText *string `json:"shipper_text,omitempty"`
 	// ConsigneeText holds the value of the "consignee_text" field.
@@ -119,12 +103,12 @@ type SeaMasterBillVersionEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// MasterBill holds the value of the master_bill edge.
 	MasterBill *SeaMasterBill `json:"master_bill,omitempty"`
-	// IssuerPartner holds the value of the issuer_partner edge.
-	IssuerPartner *Partner `json:"issuer_partner,omitempty"`
-	// TransportExecution holds the value of the transport_execution edge.
-	TransportExecution *SeaTransportExecution `json:"transport_execution,omitempty"`
+	// ShippingLine holds the value of the shipping_line edge.
+	ShippingLine *ShippingLine `json:"shipping_line,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// ConfirmationAttachment holds the value of the confirmation_attachment edge.
+	ConfirmationAttachment *OrderAttachment `json:"confirmation_attachment,omitempty"`
 	// LockRecords holds the value of the lock_records edge.
 	LockRecords []*OrderLockRecord `json:"lock_records,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
@@ -158,26 +142,15 @@ func (e SeaMasterBillVersionEdges) MasterBillOrErr() (*SeaMasterBill, error) {
 	return nil, &NotLoadedError{edge: "master_bill"}
 }
 
-// IssuerPartnerOrErr returns the IssuerPartner value or an error if the edge
+// ShippingLineOrErr returns the ShippingLine value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SeaMasterBillVersionEdges) IssuerPartnerOrErr() (*Partner, error) {
-	if e.IssuerPartner != nil {
-		return e.IssuerPartner, nil
+func (e SeaMasterBillVersionEdges) ShippingLineOrErr() (*ShippingLine, error) {
+	if e.ShippingLine != nil {
+		return e.ShippingLine, nil
 	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: partner.Label}
+		return nil, &NotFoundError{label: shippingline.Label}
 	}
-	return nil, &NotLoadedError{edge: "issuer_partner"}
-}
-
-// TransportExecutionOrErr returns the TransportExecution value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e SeaMasterBillVersionEdges) TransportExecutionOrErr() (*SeaTransportExecution, error) {
-	if e.TransportExecution != nil {
-		return e.TransportExecution, nil
-	} else if e.loadedTypes[3] {
-		return nil, &NotFoundError{label: seatransportexecution.Label}
-	}
-	return nil, &NotLoadedError{edge: "transport_execution"}
+	return nil, &NotLoadedError{edge: "shipping_line"}
 }
 
 // CreatorOrErr returns the Creator value or an error if the edge
@@ -185,10 +158,21 @@ func (e SeaMasterBillVersionEdges) TransportExecutionOrErr() (*SeaTransportExecu
 func (e SeaMasterBillVersionEdges) CreatorOrErr() (*User, error) {
 	if e.Creator != nil {
 		return e.Creator, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "creator"}
+}
+
+// ConfirmationAttachmentOrErr returns the ConfirmationAttachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaMasterBillVersionEdges) ConfirmationAttachmentOrErr() (*OrderAttachment, error) {
+	if e.ConfirmationAttachment != nil {
+		return e.ConfirmationAttachment, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: orderattachment.Label}
+	}
+	return nil, &NotLoadedError{edge: "confirmation_attachment"}
 }
 
 // LockRecordsOrErr returns the LockRecords value or an error if the edge
@@ -223,17 +207,17 @@ func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seamasterbillversion.FieldCarrierID, seamasterbillversion.FieldOriginLocationID, seamasterbillversion.FieldDischargeLocationID, seamasterbillversion.FieldTransitLocationID, seamasterbillversion.FieldCreatedBy:
+		case seamasterbillversion.FieldCreatedBy, seamasterbillversion.FieldConfirmationAttachmentID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seamasterbillversion.FieldGrossWeightKg, seamasterbillversion.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case seamasterbillversion.FieldVersionNo, seamasterbillversion.FieldSourceEntityVersion, seamasterbillversion.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldVesselVoyageSnapshot, seamasterbillversion.FieldEtdSnapshot, seamasterbillversion.FieldEtaSnapshot, seamasterbillversion.FieldVesselName, seamasterbillversion.FieldVoyageNo, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldIdempotencyKey, seamasterbillversion.FieldRequestFingerprint, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses:
+		case seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldIdempotencyKey, seamasterbillversion.FieldRequestFingerprint, seamasterbillversion.FieldConfirmedByParty, seamasterbillversion.FieldConfirmationNote, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses:
 			values[i] = new(sql.NullString)
-		case seamasterbillversion.FieldCreatedAt, seamasterbillversion.FieldEtd, seamasterbillversion.FieldEta:
+		case seamasterbillversion.FieldCreatedAt, seamasterbillversion.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
-		case seamasterbillversion.FieldID, seamasterbillversion.FieldOrganizationID, seamasterbillversion.FieldMasterBillID, seamasterbillversion.FieldIssuerPartnerID, seamasterbillversion.FieldTransportExecutionID:
+		case seamasterbillversion.FieldID, seamasterbillversion.FieldOrganizationID, seamasterbillversion.FieldMasterBillID, seamasterbillversion.FieldShippingLineID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -286,17 +270,11 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.SourceEntityVersion = uint64(value.Int64)
 			}
-		case seamasterbillversion.FieldIssuerPartnerID:
+		case seamasterbillversion.FieldShippingLineID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field issuer_partner_id", values[i])
+				return fmt.Errorf("unexpected type %T for field shipping_line_id", values[i])
 			} else if value != nil {
-				_m.IssuerPartnerID = *value
-			}
-		case seamasterbillversion.FieldTransportExecutionID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field transport_execution_id", values[i])
-			} else if value != nil {
-				_m.TransportExecutionID = *value
+				_m.ShippingLineID = *value
 			}
 		case seamasterbillversion.FieldMasterNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -315,81 +293,6 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				_m.Status = seamasterbillversion.Status(value.String)
-			}
-		case seamasterbillversion.FieldVesselVoyageSnapshot:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field vessel_voyage_snapshot", values[i])
-			} else if value.Valid {
-				_m.VesselVoyageSnapshot = new(string)
-				*_m.VesselVoyageSnapshot = value.String
-			}
-		case seamasterbillversion.FieldEtdSnapshot:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field etd_snapshot", values[i])
-			} else if value.Valid {
-				_m.EtdSnapshot = new(string)
-				*_m.EtdSnapshot = value.String
-			}
-		case seamasterbillversion.FieldEtaSnapshot:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field eta_snapshot", values[i])
-			} else if value.Valid {
-				_m.EtaSnapshot = new(string)
-				*_m.EtaSnapshot = value.String
-			}
-		case seamasterbillversion.FieldCarrierID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field carrier_id", values[i])
-			} else if value.Valid {
-				_m.CarrierID = new(uuid.UUID)
-				*_m.CarrierID = *value.S.(*uuid.UUID)
-			}
-		case seamasterbillversion.FieldOriginLocationID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field origin_location_id", values[i])
-			} else if value.Valid {
-				_m.OriginLocationID = new(uuid.UUID)
-				*_m.OriginLocationID = *value.S.(*uuid.UUID)
-			}
-		case seamasterbillversion.FieldDischargeLocationID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field discharge_location_id", values[i])
-			} else if value.Valid {
-				_m.DischargeLocationID = new(uuid.UUID)
-				*_m.DischargeLocationID = *value.S.(*uuid.UUID)
-			}
-		case seamasterbillversion.FieldTransitLocationID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field transit_location_id", values[i])
-			} else if value.Valid {
-				_m.TransitLocationID = new(uuid.UUID)
-				*_m.TransitLocationID = *value.S.(*uuid.UUID)
-			}
-		case seamasterbillversion.FieldVesselName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field vessel_name", values[i])
-			} else if value.Valid {
-				_m.VesselName = value.String
-			}
-		case seamasterbillversion.FieldVoyageNo:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field voyage_no", values[i])
-			} else if value.Valid {
-				_m.VoyageNo = value.String
-			}
-		case seamasterbillversion.FieldEtd:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field etd", values[i])
-			} else if value.Valid {
-				_m.Etd = new(time.Time)
-				*_m.Etd = value.Time
-			}
-		case seamasterbillversion.FieldEta:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field eta", values[i])
-			} else if value.Valid {
-				_m.Eta = new(time.Time)
-				*_m.Eta = value.Time
 			}
 		case seamasterbillversion.FieldContentHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -430,6 +333,34 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.RequestFingerprint = new(string)
 				*_m.RequestFingerprint = value.String
+			}
+		case seamasterbillversion.FieldConfirmedByParty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_by_party", values[i])
+			} else if value.Valid {
+				_m.ConfirmedByParty = new(string)
+				*_m.ConfirmedByParty = value.String
+			}
+		case seamasterbillversion.FieldConfirmedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_at", values[i])
+			} else if value.Valid {
+				_m.ConfirmedAt = new(time.Time)
+				*_m.ConfirmedAt = value.Time
+			}
+		case seamasterbillversion.FieldConfirmationNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_note", values[i])
+			} else if value.Valid {
+				_m.ConfirmationNote = new(string)
+				*_m.ConfirmationNote = value.String
+			}
+		case seamasterbillversion.FieldConfirmationAttachmentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_attachment_id", values[i])
+			} else if value.Valid {
+				_m.ConfirmationAttachmentID = new(uuid.UUID)
+				*_m.ConfirmationAttachmentID = *value.S.(*uuid.UUID)
 			}
 		case seamasterbillversion.FieldShipperText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -559,19 +490,19 @@ func (_m *SeaMasterBillVersion) QueryMasterBill() *SeaMasterBillQuery {
 	return NewSeaMasterBillVersionClient(_m.config).QueryMasterBill(_m)
 }
 
-// QueryIssuerPartner queries the "issuer_partner" edge of the SeaMasterBillVersion entity.
-func (_m *SeaMasterBillVersion) QueryIssuerPartner() *PartnerQuery {
-	return NewSeaMasterBillVersionClient(_m.config).QueryIssuerPartner(_m)
-}
-
-// QueryTransportExecution queries the "transport_execution" edge of the SeaMasterBillVersion entity.
-func (_m *SeaMasterBillVersion) QueryTransportExecution() *SeaTransportExecutionQuery {
-	return NewSeaMasterBillVersionClient(_m.config).QueryTransportExecution(_m)
+// QueryShippingLine queries the "shipping_line" edge of the SeaMasterBillVersion entity.
+func (_m *SeaMasterBillVersion) QueryShippingLine() *ShippingLineQuery {
+	return NewSeaMasterBillVersionClient(_m.config).QueryShippingLine(_m)
 }
 
 // QueryCreator queries the "creator" edge of the SeaMasterBillVersion entity.
 func (_m *SeaMasterBillVersion) QueryCreator() *UserQuery {
 	return NewSeaMasterBillVersionClient(_m.config).QueryCreator(_m)
+}
+
+// QueryConfirmationAttachment queries the "confirmation_attachment" edge of the SeaMasterBillVersion entity.
+func (_m *SeaMasterBillVersion) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	return NewSeaMasterBillVersionClient(_m.config).QueryConfirmationAttachment(_m)
 }
 
 // QueryLockRecords queries the "lock_records" edge of the SeaMasterBillVersion entity.
@@ -627,11 +558,8 @@ func (_m *SeaMasterBillVersion) String() string {
 	builder.WriteString("source_entity_version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SourceEntityVersion))
 	builder.WriteString(", ")
-	builder.WriteString("issuer_partner_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IssuerPartnerID))
-	builder.WriteString(", ")
-	builder.WriteString("transport_execution_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TransportExecutionID))
+	builder.WriteString("shipping_line_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShippingLineID))
 	builder.WriteString(", ")
 	builder.WriteString("master_no=")
 	builder.WriteString(_m.MasterNo)
@@ -641,57 +569,6 @@ func (_m *SeaMasterBillVersion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
-	builder.WriteString(", ")
-	if v := _m.VesselVoyageSnapshot; v != nil {
-		builder.WriteString("vessel_voyage_snapshot=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.EtdSnapshot; v != nil {
-		builder.WriteString("etd_snapshot=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.EtaSnapshot; v != nil {
-		builder.WriteString("eta_snapshot=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.CarrierID; v != nil {
-		builder.WriteString("carrier_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.OriginLocationID; v != nil {
-		builder.WriteString("origin_location_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.DischargeLocationID; v != nil {
-		builder.WriteString("discharge_location_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.TransitLocationID; v != nil {
-		builder.WriteString("transit_location_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("vessel_name=")
-	builder.WriteString(_m.VesselName)
-	builder.WriteString(", ")
-	builder.WriteString("voyage_no=")
-	builder.WriteString(_m.VoyageNo)
-	builder.WriteString(", ")
-	if v := _m.Etd; v != nil {
-		builder.WriteString("etd=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	if v := _m.Eta; v != nil {
-		builder.WriteString("eta=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
 	builder.WriteString(", ")
 	builder.WriteString("content_hash=")
 	builder.WriteString(_m.ContentHash)
@@ -717,6 +594,26 @@ func (_m *SeaMasterBillVersion) String() string {
 	if v := _m.RequestFingerprint; v != nil {
 		builder.WriteString("request_fingerprint=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmedByParty; v != nil {
+		builder.WriteString("confirmed_by_party=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmedAt; v != nil {
+		builder.WriteString("confirmed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmationNote; v != nil {
+		builder.WriteString("confirmation_note=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConfirmationAttachmentID; v != nil {
+		builder.WriteString("confirmation_attachment_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	if v := _m.ShipperText; v != nil {

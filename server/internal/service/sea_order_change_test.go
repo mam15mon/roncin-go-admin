@@ -61,6 +61,12 @@ func (m *mockSeaOrderChangeRepoForService) GetReassignmentEventByIdempotencyKey(
 func (m *mockSeaOrderChangeRepoForService) GetReassignmentEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*biz.SeaOrderReassignmentEvent, error) {
 	return m.reasEvt, nil
 }
+func (m *mockSeaOrderChangeRepoForService) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *biz.SeaTransportExecutionUpdateCommand) (*biz.SeaTransportExecutionUpdatePreview, error) {
+	return nil, nil
+}
+func (m *mockSeaOrderChangeRepoForService) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.SeaTransportExecutionUpdateCommand, audit *biz.AuditEvent) (*biz.SeaTransportExecutionUpdateResult, error) {
+	return nil, nil
+}
 
 type mockTransactorForService struct{}
 
@@ -72,6 +78,10 @@ func strPtr(s string) *string {
 	return &s
 }
 
+func u64Ptr(v uint64) *uint64 {
+	return &v
+}
+
 func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 	orgID := uuid.New()
 	actorID := uuid.New()
@@ -80,6 +90,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 	feeID := uuid.New()
 	eventID := uuid.New()
 	transportExecutionID := uuid.New()
+	shippingLineID := uuid.New()
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actorID, Organization: biz.Organization{ID: orgID}})
 
 	mockRepo := &mockSeaOrderChangeRepoForService{
@@ -96,6 +107,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 			CurrentMasterBill: &biz.SeaMasterBillSummary{
 				MasterBillID:              uuid.New(),
 				MasterNo:                  "MBL001",
+				ShippingLineID:            shippingLineID,
 				TransportExecutionID:      transportExecutionID,
 				TransportExecutionVersion: 7,
 			},
@@ -219,6 +231,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		},
 		Results: []*v1.SeaOrderSplitResultInput{
 			{ClientResultKey: "res-origin", ResultRole: "ORIGINAL", ClientTargetKey: "res-origin"},
+			{ClientResultKey: "res-new-1", ResultRole: "CREATED", ClientTargetKey: "res-origin"},
 		},
 	})
 	if err != nil {
@@ -263,7 +276,7 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{
 			OrderVersion:      1,
 			LinkVersion:       1,
-			AllocationVersion: 1,
+			CurrentHblVersion: u64Ptr(1),
 		},
 	})
 	if err != nil {
@@ -277,8 +290,9 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 	reasPreviewResp, err := svc.PreviewSeaOrderReassignment(ctx, &v1.PreviewSeaOrderReassignmentRequest{
 		OrderId: orderID.String(),
 		Target: &v1.SeaOrderReassignmentTargetInput{
-			TargetType: "NEW",
-			MasterNo:   strPtr("MBL888"),
+			TargetType:     "NEW",
+			MasterNo:       strPtr("MBL888"),
+			ShippingLineId: strPtr(shippingLineID.String()),
 		},
 	})
 	if err != nil {
@@ -298,8 +312,9 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		ExpectedOrderVersion: 0,
 		ExpectedLinkVersion:  1,
 		Target: &v1.SeaOrderReassignmentTargetInput{
-			TargetType: "NEW",
-			MasterNo:   strPtr("MBL888"),
+			TargetType:     "NEW",
+			MasterNo:       strPtr("MBL888"),
+			ShippingLineId: strPtr(shippingLineID.String()),
 		},
 	})
 	if err == nil {
@@ -316,8 +331,14 @@ func TestSeaOrderChangeService_MappingsAndEndpoints(t *testing.T) {
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
 		Target: &v1.SeaOrderReassignmentTargetInput{
-			TargetType: "NEW",
-			MasterNo:   strPtr("MBL888"),
+			TargetType:     "NEW",
+			MasterNo:       strPtr("MBL888"),
+			ShippingLineId: strPtr(shippingLineID.String()),
+		},
+		Confirmation: &v1.SeaExternalConfirmationInput{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      "2026-09-07T12:00:00Z",
+			ConfirmationNote: "船公司跳港确认",
 		},
 	})
 	if err != nil {
@@ -376,7 +397,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 			{ClientResultKey: "original", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "new"},
 		},
-		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 	})
 	if err != biz.ErrPermissionDenied {
 		t.Fatalf("组合拆票缺少整体改配权限应被拒绝，实际错误: %v", err)
@@ -386,11 +407,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 	ctx = biz.WithPrincipal(context.Background(), &biz.Principal{
 		UserID:       actorID,
 		Organization: biz.Organization{ID: orgID},
-		Permissions:  []string{permission},
-		RoleScopes:   []biz.RoleScope{{RoleCode: "operator", DataScope: biz.DataScopeSelf}},
-		RolePermissions: map[string]map[string]struct{}{
-			"operator": {permission: {}},
-		},
+		RoleGrants:   []biz.RoleGrant{{RoleID: uuid.New(), RoleCode: "operator", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{permission: {}}}},
 	})
 	_, err = svc.ExecuteSeaOrderSplit(ctx, &v1.ExecuteSeaOrderSplitRequest{
 		OrderId:            orderID.String(),
@@ -404,7 +421,7 @@ func TestSeaOrderChangeService_ExecuteSplitRequiresReassignPermission(t *testing
 			{ClientResultKey: "original", ResultRole: biz.ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: biz.ResultRoleCreated, ClientTargetKey: "new"},
 		},
-		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 	})
 	if err != biz.ErrPermissionDenied {
 		t.Fatalf("组合拆票的整体改配权限必须具备组织范围，实际错误: %v", err)
@@ -430,14 +447,13 @@ func TestSeaOrderChangeService_CandidateTargetMappingKeepsAllIdentifiersAndVersi
 				CandidateVersion:   &candidateVersion,
 				CandidateTeId:      strPtr(candidateTEID.String()),
 				CandidateTeVersion: &candidateTEVersion,
-				IssuerPartnerId:    strPtr(issuerID.String()),
+				ShippingLineId:     strPtr(issuerID.String()),
 			},
 		},
 		nil,
 		&v1.SeaOrderSplitExpectedVersions{
 			OrderVersion:         1,
 			LinkVersion:          2,
-			AllocationVersion:    3,
 			CandidateMblVersions: map[string]uint64{candidateID.String(): candidateVersion},
 			CandidateTeVersions:  map[string]uint64{candidateTEID.String(): candidateTEVersion},
 		},
@@ -466,7 +482,7 @@ func TestSeaOrderChangeService_CandidateTargetMappingKeepsAllIdentifiersAndVersi
 		CandidateVersion:   &candidateVersion,
 		CandidateTeId:      strPtr(candidateTEID.String()),
 		CandidateTeVersion: &candidateTEVersion,
-		IssuerPartnerId:    strPtr(issuerID.String()),
+		ShippingLineId:     strPtr(issuerID.String()),
 	})
 	if err != nil {
 		t.Fatalf("mapReassignTarget error: %v", err)
@@ -594,7 +610,7 @@ func TestSeaOrderChangeService_MalformedSplitRequestsBlocked(t *testing.T) {
 				RequestFingerprint: "fp-" + uuid.NewString(),
 				Targets:            tc.targets,
 				Results:            tc.results,
-				ExpectedVersions:   &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+				ExpectedVersions:   &v1.SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1},
 			})
 			if eErr != biz.ErrSeaOrderSplitInvalidArgument {
 				t.Fatalf("ExecuteSeaOrderSplit expected ErrSeaOrderSplitInvalidArgument, got %v", eErr)
@@ -687,13 +703,13 @@ func TestSeaOrderChangeService_ReassignmentTargetTypeAndFieldValidation(t *testi
 				CandidateVersion:   u64(2),
 				CandidateTeId:      &candTEID,
 				CandidateTeVersion: u64(3),
-				IssuerPartnerId:    &issuerID,
+				ShippingLineId:     &issuerID,
 			},
 			expectedCandidateMBL: u64(2),
 			expectedCandidateTE:  u64(3),
 		},
 		{
-			name: "CANDIDATE缺失IssuerPartnerId被阻断",
+			name: "CANDIDATE缺失ShippingLineId被阻断",
 			target: &v1.SeaOrderReassignmentTargetInput{
 				TargetType:         "CANDIDATE",
 				CandidateId:        &candMBLID,
@@ -711,7 +727,7 @@ func TestSeaOrderChangeService_ReassignmentTargetTypeAndFieldValidation(t *testi
 				CandidateId:      &candMBLID,
 				CandidateVersion: u64(2),
 				CandidateTeId:    &candTEID,
-				IssuerPartnerId:  &issuerID,
+				ShippingLineId:   &issuerID,
 			},
 			expectedCandidateMBL: u64(2),
 			expectedCandidateTE:  u64(3),

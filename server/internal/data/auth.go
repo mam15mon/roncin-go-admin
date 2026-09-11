@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -322,32 +323,45 @@ func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) 
 }
 
 func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID uuid.UUID) (*biz.Principal, error) {
-	account, err := r.data.db.User.Query().Where(user.IDEQ(userID), user.EnabledEQ(true)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.User.Query().Where(user.IDEQ(userID), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
-	memberships, err := r.data.db.Membership.Query().
+	nodes, err := client.Organization.Query().
+		Select(organization.FieldID, organization.FieldParentID, organization.FieldBaseCurrency, organization.FieldEnabled).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	memberships, err := client.Membership.Query().
 		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
-			query.WithRole(func(roleQuery *ent.RoleQuery) { roleQuery.WithPermissions().WithOrderOrganizationAccesses() })
+			query.WithRole(func(roleQuery *ent.RoleQuery) {
+				roleQuery.Where(roleent.EnabledEQ(true)).WithPermissions().WithOrganizationAccesses()
+			})
 		}).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	organizations := make([]biz.Organization, 0, len(memberships))
-	permissionSet := make(map[string]struct{})
-	rolePermissions := make(map[string]map[string]struct{})
-	roleScopes := make([]biz.RoleScope, 0)
-	orderOrganizationAccesses := make(map[uuid.UUID]bool)
+	roleGrants := make([]biz.RoleGrant, 0)
+	organizationsByID := make(map[uuid.UUID]*ent.Organization, len(nodes))
+	for _, node := range nodes {
+		organizationsByID[node.ID] = node
+	}
 	var current *biz.Organization
 	for _, member := range memberships {
 		org, edgeErr := member.Edges.OrganizationOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		baseCurrency, currencyErr := resolveOrganizationBaseCurrency(ctx, r.data.db.Organization, org)
+		baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(org, organizationsByID)
 		if currencyErr != nil {
 			return nil, currencyErr
 		}
@@ -359,37 +373,75 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		current = &organizationView
 		for _, assignment := range member.Edges.RoleAssignments {
 			role, roleErr := assignment.Edges.RoleOrErr()
-			if roleErr != nil || !role.Enabled {
+			if roleErr != nil {
 				continue
 			}
-			roleScopes = append(roleScopes, biz.RoleScope{RoleCode: role.Code, DataScope: biz.DataScope(role.DataScope)})
-			rolePermissionSet := make(map[string]struct{}, len(role.Edges.Permissions))
-			for _, permission := range role.Edges.Permissions {
-				permissionSet[permission.Key] = struct{}{}
-				rolePermissionSet[permission.Key] = struct{}{}
+			grant, enabled := roleGrantFromEntRole(role)
+			if !enabled {
+				continue
 			}
-			rolePermissions[role.Code] = rolePermissionSet
-			for _, access := range role.Edges.OrderOrganizationAccesses {
-				orderOrganizationAccesses[access.OrganizationID] = orderOrganizationAccesses[access.OrganizationID] || access.Writable
-			}
+			roleGrants = append(roleGrants, grant)
 		}
 	}
 	if current == nil {
 		return nil, biz.ErrOrganizationForbidden
 	}
 	sort.Slice(organizations, func(i, j int) bool { return organizations[i].Code < organizations[j].Code })
-	permissions := make([]string, 0, len(permissionSet))
-	for key := range permissionSet {
-		permissions = append(permissions, key)
+	sort.Slice(roleGrants, func(i, j int) bool {
+		if roleGrants[i].RoleID == roleGrants[j].RoleID {
+			return roleGrants[i].RoleCode < roleGrants[j].RoleCode
+		}
+		return roleGrants[i].RoleID.String() < roleGrants[j].RoleID.String()
+	})
+	organizationNodes := make([]biz.OrganizationScopeNode, 0, len(nodes))
+	for _, node := range nodes {
+		organizationNodes = append(organizationNodes, biz.OrganizationScopeNode{ID: node.ID, ParentID: node.ParentID, Disabled: !node.Enabled})
 	}
-	sort.Strings(permissions)
-	sort.Slice(roleScopes, func(i, j int) bool { return roleScopes[i].RoleCode < roleScopes[j].RoleCode })
-	accesses := make([]biz.OrderOrganizationAccess, 0, len(orderOrganizationAccesses))
-	for organizationID, writable := range orderOrganizationAccesses {
-		accesses = append(accesses, biz.OrderOrganizationAccess{OrganizationID: organizationID, Writable: writable})
+	sort.Slice(organizationNodes, func(i, j int) bool {
+		return organizationNodes[i].ID.String() < organizationNodes[j].ID.String()
+	})
+	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, RoleGrants: roleGrants, OrganizationNodes: organizationNodes}, nil
+}
+
+func resolvePrincipalOrganizationBaseCurrency(item *ent.Organization, organizationsByID map[uuid.UUID]*ent.Organization) (string, error) {
+	seen := make(map[uuid.UUID]struct{})
+	for current := item; current != nil; {
+		if _, visited := seen[current.ID]; visited {
+			return "", biz.ErrAdminOrganizationCurrency
+		}
+		seen[current.ID] = struct{}{}
+		if current.BaseCurrency != nil {
+			return *current.BaseCurrency, nil
+		}
+		if current.ParentID == nil {
+			return "", biz.ErrAdminOrganizationCurrency
+		}
+		current = organizationsByID[*current.ParentID]
 	}
-	sort.Slice(accesses, func(i, j int) bool { return accesses[i].OrganizationID.String() < accesses[j].OrganizationID.String() })
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
+	return "", biz.ErrAdminOrganizationCurrency
+}
+
+func roleGrantFromEntRole(role *ent.Role) (biz.RoleGrant, bool) {
+	if role == nil || !role.Enabled {
+		return biz.RoleGrant{}, false
+	}
+	grant := biz.RoleGrant{
+		RoleID:               role.ID,
+		RoleCode:             role.Code,
+		DataScope:            biz.DataScope(role.DataScope),
+		Permissions:          make(map[string]struct{}, len(role.Edges.Permissions)),
+		OrganizationAccesses: make([]biz.OrganizationAccess, 0, len(role.Edges.OrganizationAccesses)),
+	}
+	for _, permission := range role.Edges.Permissions {
+		grant.Permissions[permission.Key] = struct{}{}
+	}
+	for _, access := range role.Edges.OrganizationAccesses {
+		grant.OrganizationAccesses = append(grant.OrganizationAccesses, biz.OrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
+	}
+	sort.Slice(grant.OrganizationAccesses, func(i, j int) bool {
+		return grant.OrganizationAccesses[i].OrganizationID.String() < grant.OrganizationAccesses[j].OrganizationID.String()
+	})
+	return grant, true
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearLoginFailureKey string, audit *biz.AuditEvent) error {

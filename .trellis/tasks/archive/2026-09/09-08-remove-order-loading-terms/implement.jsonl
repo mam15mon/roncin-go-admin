@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "契约变更分层边界、事务与迁移规范"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "OpenAPI 生成物边界与重新生成流程"}

@@ -4,12 +4,10 @@ import {
   DownOutlined,
   FileDoneOutlined,
   SaveOutlined,
-  ScissorOutlined,
-  SwapOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import { Button, Dropdown, type MenuProps, Tooltip } from 'antd';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { DocumentDetailLayout } from '@/components/ui/document-detail-layout';
 import {
   OrderAllowedAction,
@@ -18,23 +16,18 @@ import {
 } from '@/enums.generated';
 import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
 import OrderPageHeader from '../OrderPageHeader';
-import type { OrderKind } from '../../common';
 
 type OrderDetailHeaderProps = {
   kind: string;
+  navigationTitle: string;
   orderId: string;
-  configTitle: string;
   order: API.Order;
   saving: boolean;
   canManageFee: boolean;
   canCreatePod: boolean;
   canCreateAbnormal: boolean;
-  canSplit?: boolean;
-  canReassign?: boolean;
-  splitDisabled?: boolean;
-  splitBlockedReasons?: string[];
-  reassignDisabled?: boolean;
-  reassignBlockedReasons?: string[];
+  /** 类型专属头部动作插槽（如拆票、改配），由订单类型详情扩展提供。 */
+  businessActions?: ReactNode;
   moreMenuItems: MenuProps['items'];
   hasAction: (action: number) => boolean;
   onSave: () => void;
@@ -42,8 +35,6 @@ type OrderDetailHeaderProps = {
   onConfirmClosure: (targetStatus: number) => void;
   onOpenReleasePod: () => void;
   onOpenAbnormalCase: () => void;
-  onOpenSplit?: () => void;
-  onOpenReassign?: () => void;
   lockState: API.OrderLockStateData | null;
   lockStateLoading: boolean;
   lockStateError: Error | null;
@@ -55,19 +46,14 @@ type OrderDetailHeaderProps = {
 
 export default function OrderDetailHeader({
   kind,
+  navigationTitle,
   orderId,
-  configTitle: _configTitle,
   order,
   saving,
   canManageFee,
   canCreatePod,
   canCreateAbnormal,
-  canSplit,
-  canReassign,
-  splitDisabled,
-  splitBlockedReasons,
-  reassignDisabled,
-  reassignBlockedReasons,
+  businessActions,
   moreMenuItems,
   hasAction,
   onSave,
@@ -75,8 +61,6 @@ export default function OrderDetailHeader({
   onConfirmClosure,
   onOpenReleasePod,
   onOpenAbnormalCase,
-  onOpenSplit,
-  onOpenReassign,
   lockState,
   lockStateLoading,
   lockStateError,
@@ -89,7 +73,8 @@ export default function OrderDetailHeader({
     <>
       <OrderPageHeader
         page="detail"
-        orderKind={kind as OrderKind}
+        orderKind={kind}
+        navigationTitle={navigationTitle}
         orderId={orderId}
         orderNo={order?.orderNo}
         tags={
@@ -101,7 +86,6 @@ export default function OrderDetailHeader({
         }
       />
       <DocumentDetailLayout
-        breadcrumbs={[]}
         actions={
         <>
           <OrderLockControl
@@ -243,57 +227,8 @@ export default function OrderDetailHeader({
             </Tooltip>
           )}
 
-          {/* 拆票 */}
-          {canSplit && (
-            <Tooltip
-              title={
-                businessWritesDisabled
-                  ? businessWriteBlockedReason
-                  : splitDisabled &&
-                      splitBlockedReasons &&
-                      splitBlockedReasons.length > 0
-                    ? splitBlockedReasons.join('；')
-                    : undefined
-              }
-            >
-              <span>
-                <Button
-                  style={{ color: '#722ed1', borderColor: '#722ed1' }}
-                  icon={<ScissorOutlined />}
-                  disabled={splitDisabled || businessWritesDisabled}
-                  onClick={onOpenSplit}
-                >
-                  拆票
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-
-          {/* 改配 */}
-          {canReassign && (
-            <Tooltip
-              title={
-                businessWritesDisabled
-                  ? businessWriteBlockedReason
-                  : reassignDisabled &&
-                      reassignBlockedReasons &&
-                      reassignBlockedReasons.length > 0
-                    ? reassignBlockedReasons.join('；')
-                    : undefined
-              }
-            >
-              <span>
-                <Button
-                  style={{ color: '#fa8c16', borderColor: '#fa8c16' }}
-                  icon={<SwapOutlined />}
-                  disabled={reassignDisabled || businessWritesDisabled}
-                  onClick={onOpenReassign}
-                >
-                  改配
-                </Button>
-              </span>
-            </Tooltip>
-          )}
+          {/* 类型专属动作（由订单类型详情扩展贡献，如拆票、改配） */}
+          {businessActions}
 
           {/* 更多操作 */}
           <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>

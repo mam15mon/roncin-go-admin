@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -159,21 +158,6 @@ func (_u *PartnerRoleUpdate) SetPartner(v *Partner) *PartnerRoleUpdate {
 	return _u.SetPartnerID(v.ID)
 }
 
-// AddAccountIDs adds the "accounts" edge to the PartnerAccount entity by IDs.
-func (_u *PartnerRoleUpdate) AddAccountIDs(ids ...uuid.UUID) *PartnerRoleUpdate {
-	_u.mutation.AddAccountIDs(ids...)
-	return _u
-}
-
-// AddAccounts adds the "accounts" edges to the PartnerAccount entity.
-func (_u *PartnerRoleUpdate) AddAccounts(v ...*PartnerAccount) *PartnerRoleUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAccountIDs(ids...)
-}
-
 // AddSettlementRuleIDs adds the "settlement_rules" edge to the PartnerSettlementRule entity by IDs.
 func (_u *PartnerRoleUpdate) AddSettlementRuleIDs(ids ...uuid.UUID) *PartnerRoleUpdate {
 	_u.mutation.AddSettlementRuleIDs(ids...)
@@ -198,27 +182,6 @@ func (_u *PartnerRoleUpdate) Mutation() *PartnerRoleMutation {
 func (_u *PartnerRoleUpdate) ClearPartner() *PartnerRoleUpdate {
 	_u.mutation.ClearPartner()
 	return _u
-}
-
-// ClearAccounts clears all "accounts" edges to the PartnerAccount entity.
-func (_u *PartnerRoleUpdate) ClearAccounts() *PartnerRoleUpdate {
-	_u.mutation.ClearAccounts()
-	return _u
-}
-
-// RemoveAccountIDs removes the "accounts" edge to PartnerAccount entities by IDs.
-func (_u *PartnerRoleUpdate) RemoveAccountIDs(ids ...uuid.UUID) *PartnerRoleUpdate {
-	_u.mutation.RemoveAccountIDs(ids...)
-	return _u
-}
-
-// RemoveAccounts removes "accounts" edges to PartnerAccount entities.
-func (_u *PartnerRoleUpdate) RemoveAccounts(v ...*PartnerAccount) *PartnerRoleUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAccountIDs(ids...)
 }
 
 // ClearSettlementRules clears all "settlement_rules" edges to the PartnerSettlementRule entity.
@@ -360,51 +323,6 @@ func (_u *PartnerRoleUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AccountsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AccountsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -604,21 +522,6 @@ func (_u *PartnerRoleUpdateOne) SetPartner(v *Partner) *PartnerRoleUpdateOne {
 	return _u.SetPartnerID(v.ID)
 }
 
-// AddAccountIDs adds the "accounts" edge to the PartnerAccount entity by IDs.
-func (_u *PartnerRoleUpdateOne) AddAccountIDs(ids ...uuid.UUID) *PartnerRoleUpdateOne {
-	_u.mutation.AddAccountIDs(ids...)
-	return _u
-}
-
-// AddAccounts adds the "accounts" edges to the PartnerAccount entity.
-func (_u *PartnerRoleUpdateOne) AddAccounts(v ...*PartnerAccount) *PartnerRoleUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAccountIDs(ids...)
-}
-
 // AddSettlementRuleIDs adds the "settlement_rules" edge to the PartnerSettlementRule entity by IDs.
 func (_u *PartnerRoleUpdateOne) AddSettlementRuleIDs(ids ...uuid.UUID) *PartnerRoleUpdateOne {
 	_u.mutation.AddSettlementRuleIDs(ids...)
@@ -643,27 +546,6 @@ func (_u *PartnerRoleUpdateOne) Mutation() *PartnerRoleMutation {
 func (_u *PartnerRoleUpdateOne) ClearPartner() *PartnerRoleUpdateOne {
 	_u.mutation.ClearPartner()
 	return _u
-}
-
-// ClearAccounts clears all "accounts" edges to the PartnerAccount entity.
-func (_u *PartnerRoleUpdateOne) ClearAccounts() *PartnerRoleUpdateOne {
-	_u.mutation.ClearAccounts()
-	return _u
-}
-
-// RemoveAccountIDs removes the "accounts" edge to PartnerAccount entities by IDs.
-func (_u *PartnerRoleUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *PartnerRoleUpdateOne {
-	_u.mutation.RemoveAccountIDs(ids...)
-	return _u
-}
-
-// RemoveAccounts removes "accounts" edges to PartnerAccount entities.
-func (_u *PartnerRoleUpdateOne) RemoveAccounts(v ...*PartnerAccount) *PartnerRoleUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAccountIDs(ids...)
 }
 
 // ClearSettlementRules clears all "settlement_rules" edges to the PartnerSettlementRule entity.
@@ -835,51 +717,6 @@ func (_u *PartnerRoleUpdateOne) sqlSave(ctx context.Context) (_node *PartnerRole
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AccountsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !_u.mutation.AccountsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AccountsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   partnerrole.AccountsTable,
-			Columns: []string{partnerrole.AccountsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

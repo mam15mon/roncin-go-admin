@@ -21,8 +21,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
-	// FieldCarrierID holds the string denoting the carrier_id field in the database.
-	FieldCarrierID = "carrier_id"
+	// FieldShippingLineID holds the string denoting the shipping_line_id field in the database.
+	FieldShippingLineID = "shipping_line_id"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
 	FieldOriginLocationID = "origin_location_id"
 	// FieldDischargeLocationID holds the string denoting the discharge_location_id field in the database.
@@ -37,14 +37,24 @@ const (
 	FieldEtd = "etd"
 	// FieldEta holds the string denoting the eta field in the database.
 	FieldEta = "eta"
+	// FieldCurrentVersionID holds the string denoting the current_version_id field in the database.
+	FieldCurrentVersionID = "current_version_id"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
-	// EdgeMasterBills holds the string denoting the master_bills edge name in mutations.
-	EdgeMasterBills = "master_bills"
-	// EdgeMasterBillVersions holds the string denoting the master_bill_versions edge name in mutations.
-	EdgeMasterBillVersions = "master_bill_versions"
+	// EdgeShippingLine holds the string denoting the shipping_line edge name in mutations.
+	EdgeShippingLine = "shipping_line"
+	// EdgeOrderLinks holds the string denoting the order_links edge name in mutations.
+	EdgeOrderLinks = "order_links"
+	// EdgeCurrentVersion holds the string denoting the current_version edge name in mutations.
+	EdgeCurrentVersion = "current_version"
+	// EdgeVersions holds the string denoting the versions edge name in mutations.
+	EdgeVersions = "versions"
+	// EdgeSharedContainers holds the string denoting the shared_containers edge name in mutations.
+	EdgeSharedContainers = "shared_containers"
+	// EdgeLockRecords holds the string denoting the lock_records edge name in mutations.
+	EdgeLockRecords = "lock_records"
 	// Table holds the table name of the seatransportexecution in the database.
 	Table = "sea_transport_executions"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -54,20 +64,48 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
-	// MasterBillsTable is the table that holds the master_bills relation/edge.
-	MasterBillsTable = "sea_master_bills"
-	// MasterBillsInverseTable is the table name for the SeaMasterBill entity.
-	// It exists in this package in order to avoid circular dependency with the "seamasterbill" package.
-	MasterBillsInverseTable = "sea_master_bills"
-	// MasterBillsColumn is the table column denoting the master_bills relation/edge.
-	MasterBillsColumn = "transport_execution_id"
-	// MasterBillVersionsTable is the table that holds the master_bill_versions relation/edge.
-	MasterBillVersionsTable = "sea_master_bill_versions"
-	// MasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
-	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
-	MasterBillVersionsInverseTable = "sea_master_bill_versions"
-	// MasterBillVersionsColumn is the table column denoting the master_bill_versions relation/edge.
-	MasterBillVersionsColumn = "transport_execution_id"
+	// ShippingLineTable is the table that holds the shipping_line relation/edge.
+	ShippingLineTable = "sea_transport_executions"
+	// ShippingLineInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLineInverseTable = "shipping_lines"
+	// ShippingLineColumn is the table column denoting the shipping_line relation/edge.
+	ShippingLineColumn = "shipping_line_id"
+	// OrderLinksTable is the table that holds the order_links relation/edge.
+	OrderLinksTable = "sea_master_bill_order_links"
+	// OrderLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillorderlink" package.
+	OrderLinksInverseTable = "sea_master_bill_order_links"
+	// OrderLinksColumn is the table column denoting the order_links relation/edge.
+	OrderLinksColumn = "transport_execution_id"
+	// CurrentVersionTable is the table that holds the current_version relation/edge.
+	CurrentVersionTable = "sea_transport_executions"
+	// CurrentVersionInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	CurrentVersionInverseTable = "sea_transport_execution_versions"
+	// CurrentVersionColumn is the table column denoting the current_version relation/edge.
+	CurrentVersionColumn = "current_version_id"
+	// VersionsTable is the table that holds the versions relation/edge.
+	VersionsTable = "sea_transport_execution_versions"
+	// VersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	VersionsInverseTable = "sea_transport_execution_versions"
+	// VersionsColumn is the table column denoting the versions relation/edge.
+	VersionsColumn = "transport_execution_id"
+	// SharedContainersTable is the table that holds the shared_containers relation/edge.
+	SharedContainersTable = "sea_shared_containers"
+	// SharedContainersInverseTable is the table name for the SeaSharedContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "seasharedcontainer" package.
+	SharedContainersInverseTable = "sea_shared_containers"
+	// SharedContainersColumn is the table column denoting the shared_containers relation/edge.
+	SharedContainersColumn = "transport_execution_id"
+	// LockRecordsTable is the table that holds the lock_records relation/edge.
+	LockRecordsTable = "order_lock_records"
+	// LockRecordsInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	LockRecordsInverseTable = "order_lock_records"
+	// LockRecordsColumn is the table column denoting the lock_records relation/edge.
+	LockRecordsColumn = "transport_execution_id"
 )
 
 // Columns holds all SQL columns for seatransportexecution fields.
@@ -76,7 +114,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrganizationID,
-	FieldCarrierID,
+	FieldShippingLineID,
 	FieldOriginLocationID,
 	FieldDischargeLocationID,
 	FieldTransitLocationID,
@@ -84,6 +122,7 @@ var Columns = []string{
 	FieldVoyageNo,
 	FieldEtd,
 	FieldEta,
+	FieldCurrentVersionID,
 	FieldVersion,
 }
 
@@ -141,9 +180,9 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
 }
 
-// ByCarrierID orders the results by the carrier_id field.
-func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
+// ByShippingLineID orders the results by the shipping_line_id field.
+func ByShippingLineID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingLineID, opts...).ToFunc()
 }
 
 // ByOriginLocationID orders the results by the origin_location_id field.
@@ -181,6 +220,11 @@ func ByEta(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEta, opts...).ToFunc()
 }
 
+// ByCurrentVersionID orders the results by the current_version_id field.
+func ByCurrentVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentVersionID, opts...).ToFunc()
+}
+
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
@@ -193,31 +237,73 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
-// ByMasterBillsCount orders the results by master_bills count.
-func ByMasterBillsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByShippingLineField orders the results by shipping_line field.
+func ByShippingLineField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMasterBillsStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newShippingLineStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByMasterBills orders the results by master_bills terms.
-func ByMasterBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByOrderLinksCount orders the results by order_links count.
+func ByOrderLinksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMasterBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborsCount(s, newOrderLinksStep(), opts...)
 	}
 }
 
-// ByMasterBillVersionsCount orders the results by master_bill_versions count.
-func ByMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByOrderLinks orders the results by order_links terms.
+func ByOrderLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMasterBillVersionsStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newOrderLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByMasterBillVersions orders the results by master_bill_versions terms.
-func ByMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByCurrentVersionField orders the results by current_version field.
+func ByCurrentVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newCurrentVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByVersionsCount orders the results by versions count.
+func ByVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVersionsStep(), opts...)
+	}
+}
+
+// ByVersions orders the results by versions terms.
+func ByVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySharedContainersCount orders the results by shared_containers count.
+func BySharedContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSharedContainersStep(), opts...)
+	}
+}
+
+// BySharedContainers orders the results by shared_containers terms.
+func BySharedContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSharedContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLockRecordsCount orders the results by lock_records count.
+func ByLockRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLockRecordsStep(), opts...)
+	}
+}
+
+// ByLockRecords orders the results by lock_records terms.
+func ByLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLockRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -227,17 +313,45 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
 	)
 }
-func newMasterBillsStep() *sqlgraph.Step {
+func newShippingLineStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MasterBillsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MasterBillsTable, MasterBillsColumn),
+		sqlgraph.To(ShippingLineInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
 	)
 }
-func newMasterBillVersionsStep() *sqlgraph.Step {
+func newOrderLinksStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MasterBillVersionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MasterBillVersionsTable, MasterBillVersionsColumn),
+		sqlgraph.To(OrderLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderLinksTable, OrderLinksColumn),
+	)
+}
+func newCurrentVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CurrentVersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CurrentVersionTable, CurrentVersionColumn),
+	)
+}
+func newVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+	)
+}
+func newSharedContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SharedContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SharedContainersTable, SharedContainersColumn),
+	)
+}
+func newLockRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LockRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LockRecordsTable, LockRecordsColumn),
 	)
 }

@@ -7,34 +7,44 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Space, Tag } from 'antd';
+import { App, Card, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
-import { FinanceInvoiceStatus } from '@/enums.generated';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
 } from '@/components/ui';
+import {
+  FinanceInvoiceStatus,
+  FinanceOrganizationPurpose,
+} from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
-import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
   settlementServiceGetInvoice,
   settlementServiceIssueInvoice,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
-import { makeVersionActions } from '@/utils/versionActions';
+import InvoiceCancelModal from './components/InvoiceCancelModal';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
 import {
   InvoiceIssueModal,
   InvoiceRedFlushModal,
 } from './components/InvoiceIssueAndRedFlushModals';
-import { invoiceStates } from './components/invoiceConstants';
+import {
+  invoiceCancelSuccessText,
+  invoiceIssueActionText,
+  invoiceStates,
+  invoiceStateText,
+  invoiceVoidSuccessText,
+  isReceivableInvoice,
+} from './components/invoiceConstants';
 
 type CreateValues = {
   invoiceProfileId: string;
@@ -47,71 +57,46 @@ type RedFlushValues = {
   redInvoiceDate: Dayjs;
   reason: string;
 };
+type CancelValues = { reason: string };
 
 export default function FinanceInvoicesPage() {
   const access = useAccess();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [createForm] = Form.useForm<CreateValues>();
   const [issueForm] = Form.useForm<IssueValues>();
   const [redFlushForm] = Form.useForm<RedFlushValues>();
+  const [cancelForm] = Form.useForm<CancelValues>();
   const [createOpen, setCreateOpen] = useState(false);
   const [issueTarget, setIssueTarget] = useState<API.FinanceInvoice>();
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
+  const [cancelTarget, setCancelTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
-  const [availableProfiles, setAvailableProfiles] = useState<
-    API.PartnerInvoiceProfile[]
-  >([]);
-  const [selectedProfile, setSelectedProfile] =
-    useState<API.PartnerInvoiceProfile>();
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+  useEffect(() => {
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
+    }).then((response) => setOrganizationOptions(response.data ?? []));
+  }, []);
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
-    receivableTotal: 0,
-    payableTotal: 0,
     issuedCount: 0,
-    baseCurrency: '',
+    amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
   });
+  const formatBaseCurrencyAmounts = (
+    field: 'receivableBaseAmount' | 'payableBaseAmount',
+  ) =>
+    metricStats.amountsByBaseCurrency
+      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .join(' / ') || '-';
   const reload = () => actionRef.current?.reload();
-  const invoiceActions = makeVersionActions<API.FinanceInvoice>({
-    modal,
-    message,
-  });
-
-  const loadSelectedProfiles = async (partnerId?: string) => {
-    if (!partnerId) {
-      setAvailableProfiles([]);
-      setSelectedProfile(undefined);
-      createForm.setFieldValue('invoiceProfileId', undefined);
-      return;
-    }
-    try {
-      const response = await partnerServiceListPartnerInvoiceProfiles(
-        { partnerId },
-        { skipErrorHandler: true },
-      );
-      const profiles = unwrapList(response).filter((item) => item.enabled);
-      setAvailableProfiles(profiles);
-      const selected = profiles.find((item) => item.isDefault) || profiles[0];
-      setSelectedProfile(selected);
-      createForm.setFieldValue('invoiceProfileId', selected?.id);
-      if (selected?.defaultInvoiceType) {
-        createForm.setFieldValue('invoiceType', selected.defaultInvoiceType);
-      }
-      if (!selected) {
-        message.warning(
-          '该结算单位尚未配置可用开票抬头，请先到往来单位档案维护',
-        );
-      }
-    } catch (rawError: any) {
-      setAvailableProfiles([]);
-      setSelectedProfile(undefined);
-      createForm.setFieldValue('invoiceProfileId', undefined);
-      message.error(rawError.message || '加载开票抬头失败');
-    }
-  };
 
   const showDetail = async (row: API.FinanceInvoice) => {
     if (!row.id) return;
@@ -166,34 +151,55 @@ export default function FinanceInvoicesPage() {
           invoiceDate: values.invoiceDate.format('YYYY-MM-DD'),
         },
       );
-      message.success('发票已确认开具');
+      message.success(
+        isReceivableInvoice(issueTarget.direction)
+          ? '发票已确认开具'
+          : '发票已确认收票',
+      );
       setIssueTarget(undefined);
       reload();
     } catch (error: any) {
-      message.error(error.message || '确认开具失败');
+      message.error(
+        error.message ||
+          (isReceivableInvoice(issueTarget.direction)
+            ? '确认开具失败'
+            : '确认收票失败'),
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const cancelInvoice = (row: API.FinanceInvoice) => {
-    invoiceActions.confirm(
-      row,
-      '取消开票记录并释放账单？',
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceCancelInvoice(
-          { id },
-          { id, expectedVersion, reason },
-        );
-        message.success('开票记录已取消，账单已释放');
-        reload();
-      },
-      {
-        danger: true,
-        placeholder: '请输入取消原因（必填）',
-        requiredMessage: '请输入取消原因',
-      },
-    );
+  const cancelInvoice = async () => {
+    if (!cancelTarget?.id || !cancelTarget.version) return;
+    const issued =
+      cancelTarget.status ===
+      FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED;
+    const values = await cancelForm.validateFields();
+    setSubmitting(true);
+    try {
+      await settlementServiceCancelInvoice(
+        { id: cancelTarget.id },
+        {
+          id: cancelTarget.id,
+          expectedVersion: cancelTarget.version,
+          reason: values.reason,
+        },
+      );
+      message.success(
+        issued
+          ? invoiceVoidSuccessText(cancelTarget.direction)
+          : invoiceCancelSuccessText(cancelTarget.direction),
+      );
+      setCancelTarget(undefined);
+      reload();
+    } catch (error: any) {
+      message.error(
+        error.message || (issued ? '作废发票失败' : '取消开票记录失败'),
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const redFlushInvoice = async () => {
@@ -222,6 +228,13 @@ export default function FinanceInvoicesPage() {
   };
 
   const columns: ProColumns<API.FinanceInvoice>[] = [
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
     {
       title: '关键词',
       dataIndex: 'keyword',
@@ -253,13 +266,24 @@ export default function FinanceInvoicesPage() {
       width: 90,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        Object.entries(invoiceStates).map(([k, v]) => [k, { text: v.text }]),
+        Object.entries(invoiceStates).map(([k, v]) => [
+          k,
+          {
+            text:
+              Number(k) === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
+                ? '已开具 / 已收票'
+                : v.text,
+          },
+        ]),
       ),
       render: (_, r) => {
-        const v = invoiceStates[
-          r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
-        ];
-        return <Tag color={v?.color}>{v?.text}</Tag>;
+        const v =
+          invoiceStates[
+            r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
+          ];
+        return (
+          <Tag color={v?.color}>{invoiceStateText(r.status, r.direction)}</Tag>
+        );
       },
     },
     {
@@ -296,7 +320,8 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) => {
         if (!r.exchangeRate) {
-          return r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
+          return r.status ===
+            FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
             <span style={{ color: '#8c8c8c' }}>开票时确定</span>
           ) : (
             '-'
@@ -378,16 +403,19 @@ export default function FinanceInvoicesPage() {
               issueForm.setFieldsValue({ invoiceDate: dayjs() });
             }}
           >
-            <CheckOutlined /> 确认开具
+            <CheckOutlined /> {invoiceIssueActionText(r.direction)}
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
-        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_CANCELLED &&
-        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_RED_FLUSHED ? (
+        (r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ||
+          r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED) ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}
-            onClick={() => cancelInvoice(r)}
+            onClick={() => {
+              cancelForm.resetFields();
+              setCancelTarget(r);
+            }}
           >
             <CloseCircleOutlined />{' '}
             {r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
@@ -422,22 +450,18 @@ export default function FinanceInvoicesPage() {
     {
       key: 'rec-invoices',
       title: '销项发票金额',
-      value: metricStats.receivableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-invoices',
       title: '进项发票金额',
-      value: metricStats.payableTotal,
-      precision: 2,
-      suffix: metricStats.baseCurrency || '-',
+      value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'issued-count',
-      title: '已正式开具',
+      title: '已开具 / 已收票',
       value: metricStats.issuedCount,
       suffix: '笔',
       valueColor: '#52c41a',
@@ -446,8 +470,40 @@ export default function FinanceInvoicesPage() {
 
   return (
     <>
+      <Card
+        size="small"
+        style={{
+          marginBottom: 12,
+          borderRadius: 8,
+          border: '1px solid #f0f0f0',
+          backgroundColor: '#ffffff',
+        }}
+        styles={{ body: { padding: '10px 16px' } }}
+      >
+        <Space size={8} align="center">
+          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+            所属公司：
+          </span>
+          <Select
+            allowClear
+            placeholder="请选择所属公司"
+            style={{ minWidth: 220 }}
+            value={organizationId}
+            options={organizationOptions.map((item) => ({
+              value: item.id,
+              label: item.name ?? item.code ?? item.id,
+            }))}
+            onChange={(value) => {
+              setOrganizationId(value);
+              actionRef.current?.reload();
+            }}
+          />
+        </Space>
+      </Card>
       <FinanceLedgerTemplate<API.FinanceInvoice>
-        headerTitle="发票明细管理"
+        pageTitle="开票记录"
+        pageSubTitle="开票明细登记、税号发票核对及作废/红冲跟踪"
+        headerTitle="发票明细列表"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
@@ -459,8 +515,6 @@ export default function FinanceInvoicesPage() {
         onPrimaryAction={() => {
           setSelectedIDs([]);
           setSelectedBills([]);
-          setAvailableProfiles([]);
-          setSelectedProfile(undefined);
           createForm.resetFields();
           setCreateOpen(true);
         }}
@@ -471,14 +525,13 @@ export default function FinanceInvoicesPage() {
             keyword: p.keyword,
             direction: p.direction,
             status: p.status ? Number(p.status) : undefined,
+            organizationId,
           });
           const page = unwrapPage(r);
           setMetricStats({
             totalCount: page.total,
-            receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
-            payableTotal: Number(r.summary?.payableBaseAmount || 0),
             issuedCount: Number(r.summary?.issuedCount || 0),
-            baseCurrency: r.summary?.baseCurrency || '',
+            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
           });
           return { ...toTableRequest(r), total: page.total };
         }}
@@ -493,10 +546,6 @@ export default function FinanceInvoicesPage() {
         selectedIDs={selectedIDs}
         setSelectedIDs={setSelectedIDs}
         setSelectedBills={setSelectedBills}
-        availableProfiles={availableProfiles}
-        selectedProfile={selectedProfile}
-        setSelectedProfile={setSelectedProfile}
-        loadSelectedProfiles={loadSelectedProfiles}
         onOk={createInvoice}
       />
 
@@ -504,6 +553,7 @@ export default function FinanceInvoicesPage() {
         open={Boolean(issueTarget)}
         submitting={submitting}
         issueForm={issueForm}
+        issueTarget={issueTarget}
         onCancel={() => setIssueTarget(undefined)}
         onOk={issueInvoice}
       />
@@ -515,6 +565,15 @@ export default function FinanceInvoicesPage() {
         redFlushForm={redFlushForm}
         onCancel={() => setRedFlushTarget(undefined)}
         onOk={redFlushInvoice}
+      />
+
+      <InvoiceCancelModal
+        open={Boolean(cancelTarget)}
+        submitting={submitting}
+        cancelForm={cancelForm}
+        cancelTarget={cancelTarget}
+        onCancel={() => setCancelTarget(undefined)}
+        onOk={cancelInvoice}
       />
 
       <InvoiceDetailDrawer

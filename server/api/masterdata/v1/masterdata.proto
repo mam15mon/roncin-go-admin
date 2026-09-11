@@ -176,6 +176,7 @@ enum DocumentType {
   DOCUMENT_TYPE_FREIGHT_RATE = 12;
   DOCUMENT_TYPE_COMMISSION = 13;
   DOCUMENT_TYPE_BILL_BATCH = 14;
+  DOCUMENT_TYPE_NETTING = 15;
 }
 
 enum DateFormat {
@@ -499,8 +500,8 @@ message Airline {
   string organization_id = 2;
   string iata_code = 3;
   optional string icao_code = 4;
-  string awb_prefix = 5;
-  string name_zh = 6;
+  optional string awb_prefix = 5;
+  optional string name_zh = 6;
   string name_en = 7;
   string country_code = 8;
   bool cargo_only = 9;
@@ -509,13 +510,15 @@ message Airline {
   bool enabled = 12;
   string created_at = 13;
   string updated_at = 14;
+  optional string source_version = 15;
+  optional string source_hash = 16;
 }
 
 message CreateAirlineRequest {
   string iata_code = 1 [(google.api.field_behavior) = REQUIRED];
   optional string icao_code = 2;
-  string awb_prefix = 3 [(google.api.field_behavior) = REQUIRED];
-  string name_zh = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string awb_prefix = 3;
+  optional string name_zh = 4;
   string name_en = 5 [(google.api.field_behavior) = REQUIRED];
   string country_code = 6 [(google.api.field_behavior) = REQUIRED];
   bool cargo_only = 7;
@@ -526,8 +529,8 @@ message CreateAirlineRequest {
 message UpdateAirlineRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   optional string icao_code = 2;
-  string awb_prefix = 3 [(google.api.field_behavior) = REQUIRED];
-  string name_zh = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string awb_prefix = 3;
+  optional string name_zh = 4;
   string name_en = 5 [(google.api.field_behavior) = REQUIRED];
   string country_code = 6 [(google.api.field_behavior) = REQUIRED];
   bool cargo_only = 7;

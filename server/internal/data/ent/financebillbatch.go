@@ -36,6 +36,8 @@ type FinanceBillBatch struct {
 	SplitByOrder bool `json:"split_by_order,omitempty"`
 	// SplitByTaxRate holds the value of the "split_by_tax_rate" field.
 	SplitByTaxRate bool `json:"split_by_tax_rate,omitempty"`
+	// GroupingMode holds the value of the "grouping_mode" field.
+	GroupingMode financebillbatch.GroupingMode `json:"grouping_mode,omitempty"`
 	// FeeCount holds the value of the "fee_count" field.
 	FeeCount int `json:"fee_count,omitempty"`
 	// BillCount holds the value of the "bill_count" field.
@@ -60,9 +62,11 @@ type FinanceBillBatchEdges struct {
 	Creator *User `json:"creator,omitempty"`
 	// Bills holds the value of the bills edge.
 	Bills []*FinanceBill `json:"bills,omitempty"`
+	// Nettings holds the value of the nettings edge.
+	Nettings []*FinanceNetting `json:"nettings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -96,6 +100,15 @@ func (e FinanceBillBatchEdges) BillsOrErr() ([]*FinanceBill, error) {
 	return nil, &NotLoadedError{edge: "bills"}
 }
 
+// NettingsOrErr returns the Nettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillBatchEdges) NettingsOrErr() ([]*FinanceNetting, error) {
+	if e.loadedTypes[3] {
+		return e.Nettings, nil
+	}
+	return nil, &NotLoadedError{edge: "nettings"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FinanceBillBatch) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -105,7 +118,7 @@ func (*FinanceBillBatch) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case financebillbatch.FieldFeeCount, financebillbatch.FieldBillCount:
 			values[i] = new(sql.NullInt64)
-		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldTotalBaseAmount, financebillbatch.FieldBaseCurrency:
+		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldGroupingMode, financebillbatch.FieldTotalBaseAmount, financebillbatch.FieldBaseCurrency:
 			values[i] = new(sql.NullString)
 		case financebillbatch.FieldCreatedAt, financebillbatch.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -180,6 +193,12 @@ func (_m *FinanceBillBatch) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SplitByTaxRate = value.Bool
 			}
+		case financebillbatch.FieldGroupingMode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field grouping_mode", values[i])
+			} else if value.Valid {
+				_m.GroupingMode = financebillbatch.GroupingMode(value.String)
+			}
 		case financebillbatch.FieldFeeCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field fee_count", values[i])
@@ -238,6 +257,11 @@ func (_m *FinanceBillBatch) QueryBills() *FinanceBillQuery {
 	return NewFinanceBillBatchClient(_m.config).QueryBills(_m)
 }
 
+// QueryNettings queries the "nettings" edge of the FinanceBillBatch entity.
+func (_m *FinanceBillBatch) QueryNettings() *FinanceNettingQuery {
+	return NewFinanceBillBatchClient(_m.config).QueryNettings(_m)
+}
+
 // Update returns a builder for updating this FinanceBillBatch.
 // Note that you need to call FinanceBillBatch.Unwrap() before calling this method if this FinanceBillBatch
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -284,6 +308,9 @@ func (_m *FinanceBillBatch) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("split_by_tax_rate=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SplitByTaxRate))
+	builder.WriteString(", ")
+	builder.WriteString("grouping_mode=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GroupingMode))
 	builder.WriteString(", ")
 	builder.WriteString("fee_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.FeeCount))

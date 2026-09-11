@@ -1,0 +1,10 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"复核一活动 Link、唯一当前 HBL、ShippingLine 一致、ReleasePod 历史外键和固定锁序"}
+{"file":".trellis/spec/server/backend/sea-document-change-history.md","reason":"复核不可变历史、Preview/Execute、幂等并发、Switch 完整删除和下游事实不漂移"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"复核锁定时 MBL/TE/HBL 三类版本快照及共享成员锁后重验"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核迁移 preflight、Ent 生成、共享事务、组织隔离、条件唯一和 decimal 守恒"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核 Go 测试、Vet、生成幂等、真实 PostgreSQL 集成测试和提交门禁"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核前端测试、Lint、TypeScript、生成客户端和失败关闭交互"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"复核删除/新增 Proto 字段后的生成类型消费者已完整迁移，无 any 或兼容补丁"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"复核模式切换、外部确认、版本校验和共享箱没有复制平行业务规则"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"逐入口核对 DB→Data→Biz→Service→Web 数据流和所有旧 Switch/多 HBL 消费者"}
+{"file":".trellis/tasks/09-07-simplify-sea-order-house-bill-model/research/current-model-audit.md","reason":"对照已确认现状、迁移前提和工作区边界检查无遗留旧关系或用户文件混入"}

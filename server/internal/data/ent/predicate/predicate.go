@@ -123,6 +123,12 @@ type FinanceInvoiceBill func(*sql.Selector)
 // FinanceInvoiceLine is the predicate function for financeinvoiceline builders.
 type FinanceInvoiceLine func(*sql.Selector)
 
+// FinanceNetting is the predicate function for financenetting builders.
+type FinanceNetting func(*sql.Selector)
+
+// FinanceNettingAllocation is the predicate function for financenettingallocation builders.
+type FinanceNettingAllocation func(*sql.Selector)
+
 // FinanceVerification is the predicate function for financeverification builders.
 type FinanceVerification func(*sql.Selector)
 
@@ -264,20 +270,17 @@ type Role func(*sql.Selector)
 // RoleAssignment is the predicate function for roleassignment builders.
 type RoleAssignment func(*sql.Selector)
 
-// RoleOrderOrganizationAccess is the predicate function for roleorderorganizationaccess builders.
-type RoleOrderOrganizationAccess func(*sql.Selector)
+// RoleOrganizationAccess is the predicate function for roleorganizationaccess builders.
+type RoleOrganizationAccess func(*sql.Selector)
 
-// SeaCargoAllocation is the predicate function for seacargoallocation builders.
-type SeaCargoAllocation func(*sql.Selector)
+// SeaDocumentModeChangeEvent is the predicate function for seadocumentmodechangeevent builders.
+type SeaDocumentModeChangeEvent func(*sql.Selector)
 
 // SeaDocumentVoidEvent is the predicate function for seadocumentvoidevent builders.
 type SeaDocumentVoidEvent func(*sql.Selector)
 
 // SeaHouseBill is the predicate function for seahousebill builders.
 type SeaHouseBill func(*sql.Selector)
-
-// SeaHouseBillSwitchEvent is the predicate function for seahousebillswitchevent builders.
-type SeaHouseBillSwitchEvent func(*sql.Selector)
 
 // SeaHouseBillVersion is the predicate function for seahousebillversion builders.
 type SeaHouseBillVersion func(*sql.Selector)
@@ -300,8 +303,17 @@ type SeaOrderSplitEvent func(*sql.Selector)
 // SeaOrderSplitResult is the predicate function for seaordersplitresult builders.
 type SeaOrderSplitResult func(*sql.Selector)
 
+// SeaSharedContainer is the predicate function for seasharedcontainer builders.
+type SeaSharedContainer func(*sql.Selector)
+
+// SeaSharedContainerAllocation is the predicate function for seasharedcontainerallocation builders.
+type SeaSharedContainerAllocation func(*sql.Selector)
+
 // SeaTransportExecution is the predicate function for seatransportexecution builders.
 type SeaTransportExecution func(*sql.Selector)
+
+// SeaTransportExecutionVersion is the predicate function for seatransportexecutionversion builders.
+type SeaTransportExecutionVersion func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)

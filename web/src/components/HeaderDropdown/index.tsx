@@ -35,6 +35,8 @@ export type HeaderDropdownProps = {
 
 const HeaderDropdown: React.FC<HeaderDropdownProps> = ({
   overlayClassName: cls,
+  dropdownRender,
+  popupRender,
   ...restProps
 }) => {
   const { styles } = useStyles();
@@ -43,6 +45,7 @@ const HeaderDropdown: React.FC<HeaderDropdownProps> = ({
       classNames={{
         root: clsx(styles.dropdown, cls),
       }}
+      popupRender={popupRender ?? dropdownRender}
       {...restProps}
     />
   );

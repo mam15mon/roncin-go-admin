@@ -21,19 +21,19 @@ var (
 )
 
 type AdminRole struct {
-	ID                        uuid.UUID
-	OrganizationID            uuid.UUID
-	Code                      string
-	Name                      string
-	DataScope                 DataScope
-	Enabled                   bool
-	PermissionKeys            []string
-	OrderOrganizationAccesses []OrderOrganizationAccess
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
+	ID                   uuid.UUID
+	OrganizationID       uuid.UUID
+	Code                 string
+	Name                 string
+	DataScope            DataScope
+	Enabled              bool
+	PermissionKeys       []string
+	OrganizationAccesses []OrganizationAccess
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
-type OrderOrganizationAccess struct {
+type OrganizationAccess struct {
 	OrganizationID uuid.UUID
 	Writable       bool
 }
@@ -46,17 +46,19 @@ type AdminPermission struct {
 	Requires    []string
 }
 type AdminPrivilegeProfile struct {
-	IsSuperAdmin              bool
-	Permissions               map[string]DataScope
-	OrderOrganizationAccesses map[uuid.UUID]bool
+	IsSuperAdmin bool
+	// RoleProfiles 保留权限与组织访问项的角色来源关系。角色管理中的提权校验
+	// 必须与运行时组织范围解析一致，不能把一个角色的权限和另一个角色的
+	// 追加组织访问拼成新的授权能力。
+	RoleProfiles []AdminRoleProfile
 }
 
 type AdminRoleProfile struct {
-	ID                        uuid.UUID
-	Code                      string
-	DataScope                 DataScope
-	PermissionKeys            []string
-	OrderOrganizationAccesses []OrderOrganizationAccess
+	ID                   uuid.UUID
+	Code                 string
+	DataScope            DataScope
+	PermissionKeys       []string
+	OrganizationAccesses []OrganizationAccess
 }
 
 func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganizationID, actorID, targetOrganizationID uuid.UUID, roleIDs []uuid.UUID) error {
@@ -75,7 +77,7 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 		return err
 	}
 	for _, roleProfile := range roleProfiles {
-		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.OrderOrganizationAccesses, roleProfile.Code == "administrator"); err != nil {
+		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.OrganizationAccesses, roleProfile.Code == "administrator"); err != nil {
 			return err
 		}
 	}
@@ -88,8 +90,7 @@ func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizati
 		return nil, err
 	}
 	profile := &AdminPrivilegeProfile{
-		Permissions:               make(map[string]DataScope),
-		OrderOrganizationAccesses: make(map[uuid.UUID]bool),
+		RoleProfiles: make([]AdminRoleProfile, 0, len(roles)),
 	}
 	for _, role := range roles {
 		if role == nil {
@@ -98,20 +99,12 @@ func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizati
 		if role.Code == "administrator" {
 			profile.IsSuperAdmin = true
 		}
-		for _, key := range role.PermissionKeys {
-			currentScope, exists := profile.Permissions[key]
-			if !exists || role.DataScope.rank() > currentScope.rank() {
-				profile.Permissions[key] = role.DataScope
-			}
-		}
-		for _, access := range role.OrderOrganizationAccesses {
-			profile.OrderOrganizationAccesses[access.OrganizationID] = profile.OrderOrganizationAccesses[access.OrganizationID] || access.Writable
-		}
+		profile.RoleProfiles = append(profile.RoleProfiles, *role)
 	}
 	return profile, nil
 }
 
-func checkPrivilegeEscalation(profile *AdminPrivilegeProfile, targetDataScope DataScope, permissionKeys []string, accesses []OrderOrganizationAccess, isAdministratorRole bool) error {
+func checkPrivilegeEscalation(profile *AdminPrivilegeProfile, targetDataScope DataScope, permissionKeys []string, accesses []OrganizationAccess, isAdministratorRole bool) error {
 	if profile == nil {
 		return ErrAdminPrivilegeEscalation
 	}
@@ -121,25 +114,53 @@ func checkPrivilegeEscalation(profile *AdminPrivilegeProfile, targetDataScope Da
 	if isAdministratorRole {
 		return ErrAdminPrivilegeEscalation
 	}
+	// 组织访问本身不授予任何业务能力；空权限角色保留为无效配置，后续新增
+	// 权限时会在本函数按该权限的来源角色重新校验范围。
 	for _, key := range permissionKeys {
-		scope, ok := profile.Permissions[key]
-		if !ok {
+		matchingRoles := actorRolesWithPermission(profile.RoleProfiles, key)
+		if len(matchingRoles) == 0 || !anyRoleHasDataScope(matchingRoles, targetDataScope) {
 			return ErrAdminPrivilegeEscalation
 		}
-		if targetDataScope.rank() > scope.rank() {
-			return ErrAdminPrivilegeEscalation
-		}
-	}
-	for _, access := range accesses {
-		writable, ok := profile.OrderOrganizationAccesses[access.OrganizationID]
-		if !ok {
-			return ErrAdminPrivilegeEscalation
-		}
-		if access.Writable && !writable {
-			return ErrAdminPrivilegeEscalation
+		for _, access := range accesses {
+			if !anyRoleGrantsOrganizationAccess(matchingRoles, access) {
+				return ErrAdminPrivilegeEscalation
+			}
 		}
 	}
 	return nil
+}
+
+func actorRolesWithPermission(roles []AdminRoleProfile, permission string) []AdminRoleProfile {
+	matching := make([]AdminRoleProfile, 0, len(roles))
+	for _, role := range roles {
+		for _, key := range role.PermissionKeys {
+			if key == permission {
+				matching = append(matching, role)
+				break
+			}
+		}
+	}
+	return matching
+}
+
+func anyRoleHasDataScope(roles []AdminRoleProfile, target DataScope) bool {
+	for _, role := range roles {
+		if role.DataScope.rank() >= target.rank() {
+			return true
+		}
+	}
+	return false
+}
+
+func anyRoleGrantsOrganizationAccess(roles []AdminRoleProfile, target OrganizationAccess) bool {
+	for _, role := range roles {
+		for _, access := range role.OrganizationAccesses {
+			if access.OrganizationID == target.OrganizationID && (!target.Writable || access.Writable) {
+				return true
+			}
+		}
+	}
+	return false
 }
 func (uc *AdminUsecase) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*AdminRole, error) {
 	if organizationID == uuid.Nil {
@@ -163,7 +184,7 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 		}
 		normalized.Code = generated
 	}
-	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
+	if err := uc.validateOrganizationAccesses(ctx, organizationID, normalized.OrganizationAccesses); err != nil {
 		return nil, err
 	}
 	profile, err := uc.getActorPrivilegeProfile(ctx, organizationID, actorID)
@@ -171,7 +192,7 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 		return nil, err
 	}
 	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	return uc.repo.CreateRole(ctx, organizationID, normalized, granted, adminAuditEvent(ctx, actorID, nil, "admin.role.create", normalized.Code))
@@ -185,7 +206,7 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
+	if err := uc.validateOrganizationAccesses(ctx, organizationID, normalized.OrganizationAccesses); err != nil {
 		return nil, err
 	}
 	currentRole, err := uc.repo.GetRole(ctx, organizationID, id)
@@ -200,7 +221,7 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 		return nil, ErrAdminPrivilegeEscalation
 	}
 	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	return uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted, adminAuditEvent(ctx, actorID, &id, "admin.role.update", currentRole.Code))
@@ -237,7 +258,7 @@ func generateRoleCode() (string, error) {
 	return "role_" + string(out), nil
 }
 
-func (uc *AdminUsecase) validateOrderOrganizationAccesses(ctx context.Context, sourceOrganizationID uuid.UUID, accesses []OrderOrganizationAccess) error {
+func (uc *AdminUsecase) validateOrganizationAccesses(ctx context.Context, sourceOrganizationID uuid.UUID, accesses []OrganizationAccess) error {
 	seen := make(map[uuid.UUID]struct{}, len(accesses))
 	for _, access := range accesses {
 		if access.OrganizationID == uuid.Nil || access.OrganizationID == sourceOrganizationID {

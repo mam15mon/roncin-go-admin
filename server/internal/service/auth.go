@@ -200,9 +200,9 @@ func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	for _, organization := range principal.Organizations {
 		organizations = append(organizations, &v1.Organization{Id: organization.ID.String(), Code: organization.Code, Name: organization.Name, BaseCurrency: organization.BaseCurrency})
 	}
-	roleScopes := make([]*v1.RoleScope, 0, len(principal.RoleScopes))
-	for _, roleScope := range principal.RoleScopes {
+	roleScopes := make([]*v1.RoleScope, 0, len(principal.RoleGrants))
+	for _, roleScope := range principal.RoleScopes() {
 		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope)})
 	}
-	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: &v1.Organization{Id: principal.Organization.ID.String(), Code: principal.Organization.Code, Name: principal.Organization.Name, BaseCurrency: principal.Organization.BaseCurrency}, Organizations: organizations, Permissions: principal.Permissions, RoleScopes: roleScopes}
+	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: &v1.Organization{Id: principal.Organization.ID.String(), Code: principal.Organization.Code, Name: principal.Organization.Name, BaseCurrency: principal.Organization.BaseCurrency}, Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes}
 }

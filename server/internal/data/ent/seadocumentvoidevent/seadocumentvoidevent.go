@@ -50,6 +50,14 @@ const (
 	FieldIdempotencyKey = "idempotency_key"
 	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
 	FieldRequestFingerprint = "request_fingerprint"
+	// FieldConfirmedByParty holds the string denoting the confirmed_by_party field in the database.
+	FieldConfirmedByParty = "confirmed_by_party"
+	// FieldConfirmedAt holds the string denoting the confirmed_at field in the database.
+	FieldConfirmedAt = "confirmed_at"
+	// FieldConfirmationNote holds the string denoting the confirmation_note field in the database.
+	FieldConfirmationNote = "confirmation_note"
+	// FieldConfirmationAttachmentID holds the string denoting the confirmation_attachment_id field in the database.
+	FieldConfirmationAttachmentID = "confirmation_attachment_id"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
@@ -68,6 +76,8 @@ const (
 	EdgePreviousHouseBillVersion = "previous_house_bill_version"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
+	// EdgeConfirmationAttachment holds the string denoting the confirmation_attachment edge name in mutations.
+	EdgeConfirmationAttachment = "confirmation_attachment"
 	// Table holds the table name of the seadocumentvoidevent in the database.
 	Table = "sea_document_void_events"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -133,6 +143,13 @@ const (
 	CreatorInverseTable = "users"
 	// CreatorColumn is the table column denoting the creator relation/edge.
 	CreatorColumn = "created_by"
+	// ConfirmationAttachmentTable is the table that holds the confirmation_attachment relation/edge.
+	ConfirmationAttachmentTable = "sea_document_void_events"
+	// ConfirmationAttachmentInverseTable is the table name for the OrderAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachment" package.
+	ConfirmationAttachmentInverseTable = "order_attachments"
+	// ConfirmationAttachmentColumn is the table column denoting the confirmation_attachment relation/edge.
+	ConfirmationAttachmentColumn = "confirmation_attachment_id"
 )
 
 // Columns holds all SQL columns for seadocumentvoidevent fields.
@@ -155,6 +172,10 @@ var Columns = []string{
 	FieldCreatedBy,
 	FieldIdempotencyKey,
 	FieldRequestFingerprint,
+	FieldConfirmedByParty,
+	FieldConfirmedAt,
+	FieldConfirmationNote,
+	FieldConfirmationAttachmentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -182,6 +203,10 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	RequestFingerprintValidator func(string) error
+	// ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	ConfirmedByPartyValidator func(string) error
+	// ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	ConfirmationNoteValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -302,6 +327,26 @@ func ByRequestFingerprint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequestFingerprint, opts...).ToFunc()
 }
 
+// ByConfirmedByParty orders the results by the confirmed_by_party field.
+func ByConfirmedByParty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedByParty, opts...).ToFunc()
+}
+
+// ByConfirmedAt orders the results by the confirmed_at field.
+func ByConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedAt, opts...).ToFunc()
+}
+
+// ByConfirmationNote orders the results by the confirmation_note field.
+func ByConfirmationNote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationNote, opts...).ToFunc()
+}
+
+// ByConfirmationAttachmentID orders the results by the confirmation_attachment_id field.
+func ByConfirmationAttachmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationAttachmentID, opts...).ToFunc()
+}
+
 // ByOrganizationField orders the results by organization field.
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -362,6 +407,13 @@ func ByPreviousHouseBillVersionField(field string, opts ...sql.OrderTermOption) 
 func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByConfirmationAttachmentField orders the results by confirmation_attachment field.
+func ByConfirmationAttachmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmationAttachmentStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -425,5 +477,12 @@ func newCreatorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CreatorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
+	)
+}
+func newConfirmationAttachmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmationAttachmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
 	)
 }

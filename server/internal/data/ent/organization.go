@@ -52,8 +52,8 @@ type OrganizationEdges struct {
 	Memberships []*Membership `json:"memberships,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
-	// RoleOrderOrganizationAccesses holds the value of the role_order_organization_accesses edge.
-	RoleOrderOrganizationAccesses []*RoleOrderOrganizationAccess `json:"role_order_organization_accesses,omitempty"`
+	// RoleOrganizationAccesses holds the value of the role_organization_accesses edge.
+	RoleOrganizationAccesses []*RoleOrganizationAccess `json:"role_organization_accesses,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Partners holds the value of the partners edge.
@@ -94,8 +94,6 @@ type OrganizationEdges struct {
 	OrderCargoItems []*OrderCargoItem `json:"order_cargo_items,omitempty"`
 	// OrderContainers holds the value of the order_containers edge.
 	OrderContainers []*OrderContainer `json:"order_containers,omitempty"`
-	// SeaCargoAllocations holds the value of the sea_cargo_allocations edge.
-	SeaCargoAllocations []*SeaCargoAllocation `json:"sea_cargo_allocations,omitempty"`
 	// OrderPersonnel holds the value of the order_personnel edge.
 	OrderPersonnel []*OrderPersonnel `json:"order_personnel,omitempty"`
 	// BackgroundTasks holds the value of the background_tasks edge.
@@ -112,6 +110,8 @@ type OrganizationEdges struct {
 	FinanceCashflows []*FinanceCashflow `json:"finance_cashflows,omitempty"`
 	// FinanceVerifications holds the value of the finance_verifications edge.
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
+	// FinanceNettings holds the value of the finance_nettings edge.
+	FinanceNettings []*FinanceNetting `json:"finance_nettings,omitempty"`
 	// FinanceCommissions holds the value of the finance_commissions edge.
 	FinanceCommissions []*FinanceCommission `json:"finance_commissions,omitempty"`
 	// FinanceCommissionLines holds the value of the finance_commission_lines edge.
@@ -162,11 +162,17 @@ type OrganizationEdges struct {
 	DingtalkApprovalDispatches []*DingTalkApprovalDispatch `json:"dingtalk_approval_dispatches,omitempty"`
 	// SeaDocumentVoidEvents holds the value of the sea_document_void_events edge.
 	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
-	// SeaHouseBillSwitchEvents holds the value of the sea_house_bill_switch_events edge.
-	SeaHouseBillSwitchEvents []*SeaHouseBillSwitchEvent `json:"sea_house_bill_switch_events,omitempty"`
+	// SeaTransportExecutionVersions holds the value of the sea_transport_execution_versions edge.
+	SeaTransportExecutionVersions []*SeaTransportExecutionVersion `json:"sea_transport_execution_versions,omitempty"`
+	// SeaDocumentModeChangeEvents holds the value of the sea_document_mode_change_events edge.
+	SeaDocumentModeChangeEvents []*SeaDocumentModeChangeEvent `json:"sea_document_mode_change_events,omitempty"`
+	// SeaSharedContainers holds the value of the sea_shared_containers edge.
+	SeaSharedContainers []*SeaSharedContainer `json:"sea_shared_containers,omitempty"`
+	// SeaSharedContainerAllocations holds the value of the sea_shared_container_allocations edge.
+	SeaSharedContainerAllocations []*SeaSharedContainerAllocation `json:"sea_shared_container_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [60]bool
+	loadedTypes [63]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -207,13 +213,13 @@ func (e OrganizationEdges) RolesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "roles"}
 }
 
-// RoleOrderOrganizationAccessesOrErr returns the RoleOrderOrganizationAccesses value or an error if the edge
+// RoleOrganizationAccessesOrErr returns the RoleOrganizationAccesses value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrganizationEdges) RoleOrderOrganizationAccessesOrErr() ([]*RoleOrderOrganizationAccess, error) {
+func (e OrganizationEdges) RoleOrganizationAccessesOrErr() ([]*RoleOrganizationAccess, error) {
 	if e.loadedTypes[4] {
-		return e.RoleOrderOrganizationAccesses, nil
+		return e.RoleOrganizationAccesses, nil
 	}
-	return nil, &NotLoadedError{edge: "role_order_organization_accesses"}
+	return nil, &NotLoadedError{edge: "role_organization_accesses"}
 }
 
 // SessionsOrErr returns the Sessions value or an error if the edge
@@ -396,19 +402,10 @@ func (e OrganizationEdges) OrderContainersOrErr() ([]*OrderContainer, error) {
 	return nil, &NotLoadedError{edge: "order_containers"}
 }
 
-// SeaCargoAllocationsOrErr returns the SeaCargoAllocations value or an error if the edge
-// was not loaded in eager-loading.
-func (e OrganizationEdges) SeaCargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
-	if e.loadedTypes[25] {
-		return e.SeaCargoAllocations, nil
-	}
-	return nil, &NotLoadedError{edge: "sea_cargo_allocations"}
-}
-
 // OrderPersonnelOrErr returns the OrderPersonnel value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderPersonnelOrErr() ([]*OrderPersonnel, error) {
-	if e.loadedTypes[26] {
+	if e.loadedTypes[25] {
 		return e.OrderPersonnel, nil
 	}
 	return nil, &NotLoadedError{edge: "order_personnel"}
@@ -417,7 +414,7 @@ func (e OrganizationEdges) OrderPersonnelOrErr() ([]*OrderPersonnel, error) {
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[27] {
+	if e.loadedTypes[26] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -426,7 +423,7 @@ func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
 // FinanceBillsOrErr returns the FinanceBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
-	if e.loadedTypes[28] {
+	if e.loadedTypes[27] {
 		return e.FinanceBills, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bills"}
@@ -435,7 +432,7 @@ func (e OrganizationEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
 // FinanceBillBatchesOrErr returns the FinanceBillBatches value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceBillBatchesOrErr() ([]*FinanceBillBatch, error) {
-	if e.loadedTypes[29] {
+	if e.loadedTypes[28] {
 		return e.FinanceBillBatches, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_batches"}
@@ -444,7 +441,7 @@ func (e OrganizationEdges) FinanceBillBatchesOrErr() ([]*FinanceBillBatch, error
 // PartnerInvoiceProfilesOrErr returns the PartnerInvoiceProfiles value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) PartnerInvoiceProfilesOrErr() ([]*PartnerInvoiceProfile, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[29] {
 		return e.PartnerInvoiceProfiles, nil
 	}
 	return nil, &NotLoadedError{edge: "partner_invoice_profiles"}
@@ -453,7 +450,7 @@ func (e OrganizationEdges) PartnerInvoiceProfilesOrErr() ([]*PartnerInvoiceProfi
 // FinanceInvoicesOrErr returns the FinanceInvoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[30] {
 		return e.FinanceInvoices, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_invoices"}
@@ -462,7 +459,7 @@ func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
 // FinanceCashflowsOrErr returns the FinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[31] {
 		return e.FinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_cashflows"}
@@ -471,10 +468,19 @@ func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
 // FinanceVerificationsOrErr returns the FinanceVerifications value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[32] {
 		return e.FinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_verifications"}
+}
+
+// FinanceNettingsOrErr returns the FinanceNettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceNettingsOrErr() ([]*FinanceNetting, error) {
+	if e.loadedTypes[33] {
+		return e.FinanceNettings, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_nettings"}
 }
 
 // FinanceCommissionsOrErr returns the FinanceCommissions value or an error if the edge
@@ -702,13 +708,40 @@ func (e OrganizationEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent
 	return nil, &NotLoadedError{edge: "sea_document_void_events"}
 }
 
-// SeaHouseBillSwitchEventsOrErr returns the SeaHouseBillSwitchEvents value or an error if the edge
+// SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrganizationEdges) SeaHouseBillSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+func (e OrganizationEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
 	if e.loadedTypes[59] {
-		return e.SeaHouseBillSwitchEvents, nil
+		return e.SeaTransportExecutionVersions, nil
 	}
-	return nil, &NotLoadedError{edge: "sea_house_bill_switch_events"}
+	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
+}
+
+// SeaDocumentModeChangeEventsOrErr returns the SeaDocumentModeChangeEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
+	if e.loadedTypes[60] {
+		return e.SeaDocumentModeChangeEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_document_mode_change_events"}
+}
+
+// SeaSharedContainersOrErr returns the SeaSharedContainers value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaSharedContainersOrErr() ([]*SeaSharedContainer, error) {
+	if e.loadedTypes[61] {
+		return e.SeaSharedContainers, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_shared_containers"}
+}
+
+// SeaSharedContainerAllocationsOrErr returns the SeaSharedContainerAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
+	if e.loadedTypes[62] {
+		return e.SeaSharedContainerAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_shared_container_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -836,9 +869,9 @@ func (_m *Organization) QueryRoles() *RoleQuery {
 	return NewOrganizationClient(_m.config).QueryRoles(_m)
 }
 
-// QueryRoleOrderOrganizationAccesses queries the "role_order_organization_accesses" edge of the Organization entity.
-func (_m *Organization) QueryRoleOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
-	return NewOrganizationClient(_m.config).QueryRoleOrderOrganizationAccesses(_m)
+// QueryRoleOrganizationAccesses queries the "role_organization_accesses" edge of the Organization entity.
+func (_m *Organization) QueryRoleOrganizationAccesses() *RoleOrganizationAccessQuery {
+	return NewOrganizationClient(_m.config).QueryRoleOrganizationAccesses(_m)
 }
 
 // QuerySessions queries the "sessions" edge of the Organization entity.
@@ -941,11 +974,6 @@ func (_m *Organization) QueryOrderContainers() *OrderContainerQuery {
 	return NewOrganizationClient(_m.config).QueryOrderContainers(_m)
 }
 
-// QuerySeaCargoAllocations queries the "sea_cargo_allocations" edge of the Organization entity.
-func (_m *Organization) QuerySeaCargoAllocations() *SeaCargoAllocationQuery {
-	return NewOrganizationClient(_m.config).QuerySeaCargoAllocations(_m)
-}
-
 // QueryOrderPersonnel queries the "order_personnel" edge of the Organization entity.
 func (_m *Organization) QueryOrderPersonnel() *OrderPersonnelQuery {
 	return NewOrganizationClient(_m.config).QueryOrderPersonnel(_m)
@@ -984,6 +1012,11 @@ func (_m *Organization) QueryFinanceCashflows() *FinanceCashflowQuery {
 // QueryFinanceVerifications queries the "finance_verifications" edge of the Organization entity.
 func (_m *Organization) QueryFinanceVerifications() *FinanceVerificationQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceVerifications(_m)
+}
+
+// QueryFinanceNettings queries the "finance_nettings" edge of the Organization entity.
+func (_m *Organization) QueryFinanceNettings() *FinanceNettingQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceNettings(_m)
 }
 
 // QueryFinanceCommissions queries the "finance_commissions" edge of the Organization entity.
@@ -1111,9 +1144,24 @@ func (_m *Organization) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery 
 	return NewOrganizationClient(_m.config).QuerySeaDocumentVoidEvents(_m)
 }
 
-// QuerySeaHouseBillSwitchEvents queries the "sea_house_bill_switch_events" edge of the Organization entity.
-func (_m *Organization) QuerySeaHouseBillSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewOrganizationClient(_m.config).QuerySeaHouseBillSwitchEvents(_m)
+// QuerySeaTransportExecutionVersions queries the "sea_transport_execution_versions" edge of the Organization entity.
+func (_m *Organization) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	return NewOrganizationClient(_m.config).QuerySeaTransportExecutionVersions(_m)
+}
+
+// QuerySeaDocumentModeChangeEvents queries the "sea_document_mode_change_events" edge of the Organization entity.
+func (_m *Organization) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewOrganizationClient(_m.config).QuerySeaDocumentModeChangeEvents(_m)
+}
+
+// QuerySeaSharedContainers queries the "sea_shared_containers" edge of the Organization entity.
+func (_m *Organization) QuerySeaSharedContainers() *SeaSharedContainerQuery {
+	return NewOrganizationClient(_m.config).QuerySeaSharedContainers(_m)
+}
+
+// QuerySeaSharedContainerAllocations queries the "sea_shared_container_allocations" edge of the Organization entity.
+func (_m *Organization) QuerySeaSharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	return NewOrganizationClient(_m.config).QuerySeaSharedContainerAllocations(_m)
 }
 
 // Update returns a builder for updating this Organization.

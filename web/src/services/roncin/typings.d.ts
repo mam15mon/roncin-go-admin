@@ -78,20 +78,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type AddSeaHouseBillRequest = {
-    orderId: string;
-    expectedLinkVersion: string;
-    houseBill: SeaHouseBillInput;
-  };
-
-  type AddSeaHouseBillResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaHouseBill;
-    traceId?: string;
-  };
-
   type AddShippingDocumentRequest = {
     orderId: string;
     houseNo: string;
@@ -167,7 +153,7 @@ declare namespace API {
     permissionKeys?: string[];
     createdAt?: string;
     updatedAt?: string;
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type AdminServiceAuthorizeDingTalkUserParams = {
@@ -289,6 +275,8 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    sourceVersion?: string;
+    sourceHash?: string;
   };
 
   type Airport = {
@@ -308,34 +296,6 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
-  };
-
-  type ApplySeaHouseBillAllocationSummaryRequest = {
-    orderId: string;
-    houseBillId: string;
-    expectedAllocationVersion: string;
-    expectedHouseBillVersion: string;
-  };
-
-  type ApplySeaHouseBillAllocationSummaryResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaHouseBill;
-    traceId?: string;
-  };
-
-  type ApplySeaOrderCargoSummaryToMasterBillRequest = {
-    orderId: string;
-    expectedMblVersion: string;
-  };
-
-  type ApplySeaOrderCargoSummaryToMasterBillResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaMasterBillDetail;
-    traceId?: string;
   };
 
   type AssignPersonnelRequest = {
@@ -457,6 +417,7 @@ declare namespace API {
   type BatchAssignFinanceFeeTagsRequest = {
     feeIds: string[];
     tagIds: string[];
+    organizationId: string;
   };
 
   type BatchAssignFinanceFeeTagsResponse = {
@@ -551,6 +512,7 @@ declare namespace API {
   type BatchRemoveFinanceFeeTagsRequest = {
     feeIds: string[];
     tagIds: string[];
+    organizationId: string;
   };
 
   type BatchRemoveFinanceFeeTagsResponse = {
@@ -580,6 +542,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BillBatchNettingPair = {
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    receivableGrossAmount?: string;
+    payableGrossAmount?: string;
+    offsetAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+  };
+
   type BillBatchPreviewGroup = {
     groupKey?: string;
     direction?: string;
@@ -595,6 +568,19 @@ declare namespace API {
     netAmount?: string;
     taxAmount?: string;
     baseCurrencyAmount?: string;
+    isTemporaryBillDate?: boolean;
+    configurationComplete?: boolean;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
+    estimatedInvoiceAmount?: string;
+  };
+
+  type BillBatchPreviewGroupConfigInput = {
+    groupKey: string;
+    billDate?: string;
+    settlementAccountId?: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type BilledFeeEditPolicy = {
@@ -615,6 +601,7 @@ declare namespace API {
   type BillGroupingPolicy = {
     splitByOrder?: boolean;
     splitByTaxRate?: boolean;
+    mode?: number;
   };
 
   type BillingUnit = {
@@ -717,16 +704,17 @@ declare namespace API {
     traceId?: string;
   };
 
-  type CancelSeaOrderDirectRequest = {
-    orderId: string;
-    expectedLinkVersion: string;
+  type CancelNettingRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
   };
 
-  type CancelSeaOrderDirectResponse = {
+  type CancelNettingResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaOrderDocuments;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -808,6 +796,8 @@ declare namespace API {
     cnyAdjustmentAmount?: string;
     effectiveCommissionAmount?: string;
     cnyEffectiveCommissionAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type CommissionFeeDetail = {
@@ -948,24 +938,41 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ConfirmSeaCargoAllocationRequest = {
-    orderId: string;
-    expectedAllocationVersion: string;
+  type ConfirmNettingRequest = {
+    id: string;
+    expectedVersion: string;
   };
 
-  type ConfirmSeaCargoAllocationResponse = {
+  type ConfirmNettingResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: FinanceNetting;
+    traceId?: string;
+  };
+
+  type ConfirmSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
+    /** 携带本次确认的分配输入，服务端在同一事务内保存并严格守恒确认，避免两步请求部分成功 */
+    allocations?: SeaSharedContainerAllocationInput[];
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
+  };
+
+  type ConfirmSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
   type CreateAirlineRequest = {
     iataCode: string;
     icaoCode?: string;
-    awbPrefix: string;
-    nameZh: string;
+    awbPrefix?: string;
+    nameZh?: string;
     nameEn: string;
     countryCode: string;
     cargoOnly?: boolean;
@@ -1007,6 +1014,9 @@ declare namespace API {
     dueDate?: string;
     paymentTermsDays?: number;
     note?: string;
+    settlementAccountId: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type CreateBillBatchRequest = {
@@ -1015,6 +1025,7 @@ declare namespace API {
     groups: CreateBillBatchGroupInput[];
     previewToken: string;
     idempotencyKey: string;
+    organizationId: string;
   };
 
   type CreateBillBatchResponse = {
@@ -1048,6 +1059,7 @@ declare namespace API {
     idempotencyKey: string;
     statementTitle?: string;
     paymentTermsDays?: number;
+    settlementAccountId: string;
   };
 
   type CreateBillResponse = {
@@ -1072,6 +1084,7 @@ declare namespace API {
     bankReferenceNo?: string;
     note?: string;
     idempotencyKey: string;
+    organizationId: string;
   };
 
   type CreateCashflowResponse = {
@@ -1118,6 +1131,7 @@ declare namespace API {
 
   type CreateCommissionRuleRequest = {
     rule: CommissionRuleInput;
+    organizationId: string;
   };
 
   type CreateCommissionRuleResponse = {
@@ -1229,6 +1243,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateNettingRequest = {
+    organizationId: string;
+    bills: NettingBillExpectedVersion[];
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
+    traceId?: string;
+  };
+
   type CreateNumberRuleRequest = {
     documentType: number;
     prefix?: string;
@@ -1249,9 +1278,9 @@ declare namespace API {
     customerId: string;
     businessType: number;
     tradeDirection: number;
-    tradeTerm: number;
+    tradeTerm?: number;
     paymentTerm: number;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;
@@ -1288,7 +1317,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     bookingNotes?: string;
     allocationNotes?: string;
@@ -1303,6 +1331,7 @@ declare namespace API {
     consigneeShortName?: string;
     seaMasterBill?: SeaMasterBillInput;
     seaDocument?: SeaOrderDocumentInput;
+    bookingNo?: string;
   };
 
   type CreateOrderResponse = {
@@ -1387,7 +1416,8 @@ declare namespace API {
   };
 
   type CreatePartnerRequest = {
-    code: string;
+    /** 客商代码；留空时由服务端按组织内唯一规则自动生成。 */
+    code?: string;
     legalName: string;
     unifiedSocialCreditCode?: string;
     registeredAddress?: string;
@@ -1455,7 +1485,7 @@ declare namespace API {
     name: string;
     dataScope: number;
     permissionKeys?: string[];
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type CreateRoleResponse = {
@@ -1463,6 +1493,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: AdminRole;
+    traceId?: string;
+  };
+
+  type CreateSeaSharedContainerRequest = {
+    input: SeaSharedContainerInput;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId: string;
+  };
+
+  type CreateSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -1578,6 +1622,13 @@ declare namespace API {
   };
 
   type DeleteEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type DeleteSeaSharedContainerResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -1900,6 +1951,27 @@ declare namespace API {
     timeStandards?: string[];
   };
 
+  type ExecuteChangeSeaDocumentModeRequest = {
+    orderId: string;
+    expectedOrderVersion: string;
+    expectedLinkVersion: string;
+    expectedHouseBillVersion?: string;
+    expectedCurrentVersionId?: string;
+    targetMode: number;
+    newHouseBill?: SeaHouseBillInput;
+    reason: string;
+    confirmation: SeaExternalConfirmationInput;
+    idempotencyKey: string;
+  };
+
+  type ExecuteChangeSeaDocumentModeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderDocuments;
+    traceId?: string;
+  };
+
   type ExecuteSeaDocumentAmendmentRequest = {
     orderId: string;
     documentType: number;
@@ -1910,6 +1982,7 @@ declare namespace API {
     reason: string;
     idempotencyKey: string;
     input: SeaDocumentAmendmentInput;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaDocumentAmendmentResponse = {
@@ -1929,6 +2002,7 @@ declare namespace API {
     expectedCurrentVersionId: string;
     reason: string;
     idempotencyKey: string;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaDocumentVoidResponse = {
@@ -1936,27 +2010,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaDocumentEvent;
-    traceId?: string;
-  };
-
-  type ExecuteSeaHouseBillSwitchRequest = {
-    orderId: string;
-    oldHouseBillId: string;
-    expectedOrderVersion: string;
-    expectedHouseBillVersion: string;
-    expectedCurrentVersionId: string;
-    reason: string;
-    surrenderInfo?: string;
-    idempotencyKey: string;
-    newHouseBill: SeaHouseBillInput;
-  };
-
-  type ExecuteSeaHouseBillSwitchResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaDocumentEvent;
-    newHouseBill?: SeaHouseBill;
     traceId?: string;
   };
 
@@ -1981,6 +2034,7 @@ declare namespace API {
     expectedLinkVersion: string;
     expectedCandidateMblVersion?: string;
     expectedCandidateTeVersion?: string;
+    confirmation: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaOrderReassignmentResponse = {
@@ -2007,6 +2061,8 @@ declare namespace API {
     targets: SeaOrderSplitTargetInput[];
     results: SeaOrderSplitResultInput[];
     expectedVersions: SeaOrderSplitExpectedVersions;
+    /** 任一结果目标不是当前母单（即产生内嵌改配）时必填 */
+    confirmation?: SeaExternalConfirmationInput;
   };
 
   type ExecuteSeaOrderSplitResponse = {
@@ -2014,6 +2070,24 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExecuteSeaOrderSplitData;
+    traceId?: string;
+  };
+
+  type ExecuteSeaTransportExecutionUpdateRequest = {
+    orderId: string;
+    expectedTransportExecutionVersion: string;
+    input: SeaTransportExecutionUpdateInput;
+    reason: string;
+    confirmation: SeaExternalConfirmationInput;
+    idempotencyKey: string;
+  };
+
+  type ExecuteSeaTransportExecutionUpdateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    transportExecution?: SeaTransportExecution;
+    versionId?: string;
     traceId?: string;
   };
 
@@ -2063,6 +2137,13 @@ declare namespace API {
     id: string;
   };
 
+  type FeeLedgerBaseCurrencyAmount = {
+    baseCurrency?: string;
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    profitBaseAmount?: string;
+  };
+
   type FeeLedgerColumnPreference = {
     fieldKey: string;
     visible?: boolean;
@@ -2101,6 +2182,19 @@ declare namespace API {
     billNo?: string;
     financeLocked?: boolean;
     tags?: BusinessTagSummary[];
+    organizationId?: string;
+    organizationName?: string;
+  };
+
+  type FeeLedgerOrderDetail = {
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    customerName?: string;
+    organizationId?: string;
+    organizationName?: string;
+    fees?: FeeLedgerItem[];
+    amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
   };
 
   type FeeLedgerPreference = {
@@ -2126,10 +2220,7 @@ declare namespace API {
 
   type FeeLedgerSummary = {
     activeCount?: string;
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    profitBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
   };
 
   type FeeSetting = {
@@ -2153,6 +2244,14 @@ declare namespace API {
     sortOrder?: number;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type FinanceBaseCurrencyAmount = {
+    baseCurrency?: string;
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    unverifiedBaseAmount?: string;
+    overdueReceivableBaseAmount?: string;
   };
 
   type FinanceBill = {
@@ -2192,6 +2291,21 @@ declare namespace API {
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
     tags?: BusinessTagSummary[];
+    organizationId?: string;
+    organizationName?: string;
+    settlementAccountId?: string;
+    settlementAccountName?: string;
+    settlementAccountHolder?: string;
+    settlementBankName?: string;
+    settlementBankAccount?: string;
+    settlementAccountCurrency?: string;
+    settlementSwiftCode?: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
+    estimatedInvoiceAmount?: string;
+    /** netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。 */
+    nettedAmount?: string;
+    overdueDays?: number;
   };
 
   type FinanceBillBatch = {
@@ -2205,6 +2319,9 @@ declare namespace API {
     baseCurrency?: string;
     bills?: FinanceBill[];
     createdAt?: string;
+    mode?: number;
+    /** nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。 */
+    nettings?: FinanceNetting[];
   };
 
   type FinanceBillLine = {
@@ -2229,10 +2346,7 @@ declare namespace API {
   };
 
   type FinanceBillSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    unverifiedBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type FinanceCashflow = {
@@ -2264,13 +2378,12 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceCashflowSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    unverifiedBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type FinanceCommission = {
@@ -2317,6 +2430,11 @@ declare namespace API {
     cnyCommissionAmount?: string;
     cnyAdjustmentAmount?: string;
     cnyEffectiveCommissionAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
+    confirmedBy?: string;
+    paidBy?: string;
+    cancelledBy?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -2343,6 +2461,11 @@ declare namespace API {
     updatedAt?: string;
     sourceType?: string;
     sourceVerificationId?: string;
+    organizationId?: string;
+    organizationName?: string;
+    confirmedBy?: string;
+    paidBy?: string;
+    cancelledBy?: string;
   };
 
   type FinanceCommissionLine = {
@@ -2386,6 +2509,8 @@ declare namespace API {
     version?: string;
     createdAt?: string;
     updatedAt?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceInvoice = {
@@ -2429,6 +2554,8 @@ declare namespace API {
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
     baseCurrencyAmount?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceInvoiceBill = {
@@ -2453,11 +2580,119 @@ declare namespace API {
     sourceLineCount?: number;
   };
 
+  type FinanceInvoiceProfileOption = {
+    id?: string;
+    invoiceTitle?: string;
+    taxpayerIdentificationNo?: string;
+    defaultInvoiceType?: string;
+    isDefault?: boolean;
+  };
+
+  type FinanceInvoiceProfilesForBill = {
+    organizationId?: string;
+    settlementPartyId?: string;
+    data?: FinanceInvoiceProfileOption[];
+  };
+
   type FinanceInvoiceSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
     issuedCount?: string;
+  };
+
+  type FinanceNetting = {
+    id?: string;
+    nettingNo?: string;
+    status?: number;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    amount?: string;
     baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    note?: string;
+    version?: string;
+    allocations?: FinanceNettingAllocation[];
+    createdAt?: string;
+    updatedAt?: string;
+    confirmedAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    reversedAt?: string;
+    reversalReason?: string;
+    organizationId?: string;
+    organizationName?: string;
+    batchId?: string;
+    batchNo?: string;
+  };
+
+  type FinanceNettingAllocation = {
+    id?: string;
+    billId?: string;
+    billNo?: string;
+    direction?: string;
+    amount?: string;
+    baseCurrencyAmount?: string;
+    active?: boolean;
+  };
+
+  type FinanceNettingBaseCurrencyAmount = {
+    baseCurrency?: string;
+    nettingBaseAmount?: string;
+  };
+
+  type FinanceNettingBillBalance = {
+    billId?: string;
+    billNo?: string;
+    billDate?: string;
+    totalAmount?: string;
+    verifiedAmount?: string;
+    nettedAmount?: string;
+    availableAmount?: string;
+    version?: string;
+  };
+
+  type FinanceNettingPreview = {
+    organizationId?: string;
+    organizationName?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    receivableBills?: FinanceNettingBillBalance[];
+    payableBills?: FinanceNettingBillBalance[];
+    receivableAvailableAmount?: string;
+    payableAvailableAmount?: string;
+    offsetAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+  };
+
+  type FinanceNettingSummary = {
+    amountsByBaseCurrency?: FinanceNettingBaseCurrencyAmount[];
+    confirmedCount?: string;
+  };
+
+  type FinanceOrganizationOption = {
+    id?: string;
+    code?: string;
+    name?: string;
+    baseCurrency?: string;
+  };
+
+  type FinanceSettlementAccountOption = {
+    id?: string;
+    name?: string;
+    accountHolder?: string;
+    bankName?: string;
+    accountNo?: string;
+    currency?: string;
+    swiftCode?: string;
+    isDefault?: boolean;
+  };
+
+  type FinanceSettlementPartyOption = {
+    id?: string;
+    code?: string;
+    name?: string;
   };
 
   type FinanceVerification = {
@@ -2485,6 +2720,8 @@ declare namespace API {
     billBaseAmount?: string;
     cashflowBaseAmount?: string;
     exchangeGainLoss?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type FinanceVerificationAllocation = {
@@ -2502,9 +2739,7 @@ declare namespace API {
   };
 
   type FinanceVerificationSummary = {
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    baseCurrency?: string;
+    amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
   type GetBackgroundTaskResponse = {
@@ -2521,6 +2756,8 @@ declare namespace API {
     message?: string;
     data?: BilledFeeEditPolicy;
     traceId?: string;
+    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。 */
+    canUpdate?: boolean;
   };
 
   type GetBillResponse = {
@@ -2591,6 +2828,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetFeeLedgerOrderDetailResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerOrderDetail;
+    traceId?: string;
+  };
+
   type GetFeeLedgerPreferenceResponse = {
     success?: boolean;
     code?: number;
@@ -2604,6 +2849,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceInvoice;
+    traceId?: string;
+  };
+
+  type GetNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
     traceId?: string;
   };
 
@@ -2636,14 +2889,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Partner;
-    traceId?: string;
-  };
-
-  type GetSeaCargoAllocationResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaCargoAllocationAggregate;
     traceId?: string;
   };
 
@@ -2684,6 +2929,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaOrderSplitContextData;
+    traceId?: string;
+  };
+
+  type GetSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -2813,6 +3066,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListBillCreationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerItem[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListBillingUnitsResponse = {
     success?: boolean;
     code?: number;
@@ -2822,6 +3084,22 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListBillSettlementAccountCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementAccountOption[];
+    traceId?: string;
+  };
+
+  type ListBillSettlementAccountUpdateCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementAccountOption[];
+    traceId?: string;
   };
 
   type ListBillsResponse = {
@@ -2874,6 +3152,15 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type ListCommissionRuleCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListCommissionRulesResponse = {
     success?: boolean;
     code?: number;
@@ -2888,6 +3175,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommission[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListCommissionVerificationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceVerification[];
     total?: string;
     traceId?: string;
   };
@@ -3004,7 +3300,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListFinanceBillTagAssignmentOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListFinanceBillTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceFeeTagAssignmentOptionsResponse = {
     tags?: BusinessTagSummary[];
     total?: string;
     traceId?: string;
@@ -3013,6 +3321,40 @@ declare namespace API {
   type ListFinanceFeeTagOptionsResponse = {
     tags?: BusinessTagSummary[];
     total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceOrganizationOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceOrganizationOption[];
+    traceId?: string;
+  };
+
+  type ListFinanceSettlementPartyOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceSettlementPartyOption[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListInvoiceCreationBillsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListInvoiceProfilesForBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoiceProfilesForBill;
     traceId?: string;
   };
 
@@ -3043,6 +3385,16 @@ declare namespace API {
     message?: string;
     data?: OrderMilestone[];
     traceId?: string;
+  };
+
+  type ListNettingsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting[];
+    total?: string;
+    traceId?: string;
+    summary?: FinanceNettingSummary;
   };
 
   type ListNumberRulesResponse = {
@@ -3258,6 +3610,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListSameBatchOrdersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SameBatchOrderSummary[];
+    traceId?: string;
+  };
+
   type ListSeaDocumentEventsResponse = {
     success?: boolean;
     code?: number;
@@ -3292,6 +3652,28 @@ declare namespace API {
     data?: SeaOrderChangeEventSummary[];
     total?: number;
     traceId?: string;
+  };
+
+  type ListSeaSharedContainerCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainerCandidateOrder[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListSeaSharedContainersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListShippingDocumentsResponse = {
@@ -3340,6 +3722,14 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListVerificationCreationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: VerificationCreationCandidates;
     traceId?: string;
   };
 
@@ -3425,19 +3815,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommission;
-    traceId?: string;
-  };
-
-  type MarkSeaOrderDirectRequest = {
-    orderId: string;
-    expectedLinkVersion: string;
-  };
-
-  type MarkSeaOrderDirectResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaOrderDocuments;
     traceId?: string;
   };
 
@@ -3567,6 +3944,11 @@ declare namespace API {
     traceId?: string;
   };
 
+  type NettingBillExpectedVersion = {
+    billId: string;
+    expectedVersion: string;
+  };
+
   type NumberRule = {
     id?: string;
     organizationId?: string;
@@ -3585,7 +3967,7 @@ declare namespace API {
     organizationId?: string;
     orderNo?: string;
     customerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     businessType?: number;
     tradeDirection?: number;
@@ -3629,7 +4011,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     organizationName?: string;
     canModify?: boolean;
@@ -3664,6 +4045,7 @@ declare namespace API {
     seaDocumentStructure?: number;
     seaDocumentLinkVersion?: string;
     seaDocumentSummary?: SeaOrderDocumentSummary;
+    bookingNo?: string;
   };
 
   type OrderAbnormalCase = {
@@ -4059,11 +4441,6 @@ declare namespace API {
     type: string;
   };
 
-  type OrderOrganizationAccess = {
-    organizationId: string;
-    writable?: boolean;
-  };
-
   type OrderPersonnel = {
     id?: string;
     orderId?: string;
@@ -4186,7 +4563,7 @@ declare namespace API {
     lockedAtTo?: string;
     originLocationId?: string;
     destinationLocationId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     consigneeShortName?: string;
     shipperShortName?: string;
     operatorId?: string;
@@ -4209,10 +4586,13 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type OrderServiceListSameBatchOrdersParams = {
+    id: string;
+  };
+
   type OrderServiceMatchSeaMasterBillCandidateParams = {
-    issuerPartnerId?: string;
+    shippingLineId?: string;
     masterNo?: string;
-    carrierId?: string;
     originLocationId?: string;
     dischargeLocationId?: string;
     transitLocationId?: string;
@@ -4338,6 +4718,11 @@ declare namespace API {
     baseCurrency?: string;
   };
 
+  type OrganizationAccess = {
+    organizationId: string;
+    writable?: boolean;
+  };
+
   type Partner = {
     id?: string;
     organizationId?: string;
@@ -4357,26 +4742,33 @@ declare namespace API {
 
   type PartnerAccount = {
     id?: string;
-    partnerRoleId?: string;
-    accountType?: string;
+    partnerId?: string;
+    name?: string;
+    accountHolder?: string;
     currency?: string;
     bankName?: string;
-    bankAccount?: string;
+    accountNo?: string;
     swiftCode?: string;
-    isDefault?: boolean;
-    status?: number;
+    usage?: number;
+    isDefaultReceivable?: boolean;
+    isDefaultPayable?: boolean;
+    enabled?: boolean;
     remark?: string;
     createdAt?: string;
     updatedAt?: string;
   };
 
   type PartnerAccountInput = {
+    name: string;
+    accountHolder: string;
     currency: string;
-    bankName?: string;
-    bankAccount?: string;
+    bankName: string;
+    accountNo: string;
     swiftCode?: string;
-    isDefault?: boolean;
-    status: number;
+    usage: number;
+    isDefaultReceivable?: boolean;
+    isDefaultPayable?: boolean;
+    enabled: boolean;
     remark?: string;
   };
 
@@ -4584,6 +4976,8 @@ declare namespace API {
   type PartnerServiceListPartnerAccountsParams = {
     partnerId: string;
     enabled?: boolean;
+    usage?: number;
+    currency?: string;
   };
 
   type PartnerServiceListPartnerAttachmentsParams = {
@@ -4775,6 +5169,8 @@ declare namespace API {
   type PreviewBillBatchRequest = {
     feeIds: string[];
     groupingPolicy: BillGroupingPolicy;
+    organizationId: string;
+    groupConfigs?: BillBatchPreviewGroupConfigInput[];
   };
 
   type PreviewBillBatchResponse = {
@@ -4783,6 +5179,23 @@ declare namespace API {
     message?: string;
     data?: BillBatchPreviewGroup[];
     previewToken?: string;
+    traceId?: string;
+    /** netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。 */
+    nettingPairs?: BillBatchNettingPair[];
+  };
+
+  type PreviewChangeSeaDocumentModeRequest = {
+    orderId: string;
+    targetMode: number;
+    newHouseBill?: SeaHouseBillInput;
+    reason: string;
+  };
+
+  type PreviewChangeSeaDocumentModeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaDocumentModeChangePreview;
     traceId?: string;
   };
 
@@ -4832,6 +5245,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewNettingRequest = {
+    organizationId: string;
+    settlementPartyId: string;
+    currency: string;
+  };
+
+  type PreviewNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNettingPreview;
+    traceId?: string;
+  };
+
   type PreviewSeaDocumentAmendmentRequest = {
     orderId: string;
     documentType: number;
@@ -4869,25 +5296,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type PreviewSeaHouseBillSwitchRequest = {
-    orderId: string;
-    oldHouseBillId: string;
-    expectedOrderVersion: string;
-    expectedHouseBillVersion: string;
-    expectedCurrentVersionId: string;
-    reason: string;
-    surrenderInfo?: string;
-    newHouseBill: SeaHouseBillInput;
-  };
-
-  type PreviewSeaHouseBillSwitchResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: SeaHouseBillSwitchPreview;
-    traceId?: string;
-  };
-
   type PreviewSeaOrderReassignmentRequest = {
     orderId: string;
     target: SeaOrderReassignmentTargetInput;
@@ -4914,6 +5322,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaOrderSplitPreviewData;
+    traceId?: string;
+  };
+
+  type PreviewSeaTransportExecutionUpdateRequest = {
+    orderId: string;
+    expectedTransportExecutionVersion: string;
+    input: SeaTransportExecutionUpdateInput;
+    reason: string;
+  };
+
+  type PreviewSeaTransportExecutionUpdateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaTransportExecutionUpdatePreviewData;
     traceId?: string;
   };
 
@@ -5029,13 +5452,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type RemoveSeaHouseBillResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
   type RemoveShippingDocumentResponse = {
     success?: boolean;
     code?: number;
@@ -5130,6 +5546,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ReverseNettingRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type ReverseNettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting;
+    traceId?: string;
+  };
+
   type ReverseVerificationRequest = {
     id: string;
     expectedVersion: string;
@@ -5149,17 +5579,35 @@ declare namespace API {
     dataScope?: string;
   };
 
-  type SaveSeaCargoAllocationDraftRequest = {
-    orderId: string;
-    expectedAllocationVersion: string;
-    allocations?: SeaCargoAllocationInput[];
+  type SameBatchOrderSummary = {
+    orderId?: string;
+    orderNo?: string;
+    customerId?: string;
+    customerReferenceNo?: string;
+    bookingNo?: string;
+    masterNo?: string;
+    houseNo?: string;
+    flowStatus?: number;
+    matchSources?: string[];
+    totalPackages?: number;
+    totalGrossWeightKg?: number;
+    totalVolumeCbm?: number;
+    createdAt?: string;
   };
 
-  type SaveSeaCargoAllocationDraftResponse = {
+  type SaveSeaSharedContainerAllocationsDraftRequest = {
+    id: string;
+    expectedVersion: string;
+    allocations?: SeaSharedContainerAllocationInput[];
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
+  };
+
+  type SaveSeaSharedContainerAllocationsDraftResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -5179,125 +5627,6 @@ declare namespace API {
     billForm?: string;
     releaseType?: string;
     clauses?: string;
-  };
-
-  type SeaCargoAllocationAggregate = {
-    orderId?: string;
-    documentStructure?: number;
-    shipmentType?: string;
-    allocationStatus?: number;
-    allocationVersion?: string;
-    confirmedAt?: string;
-    confirmedBy?: string;
-    confirmedByName?: string;
-    cargoItems?: OrderCargoItem[];
-    containers?: OrderContainer[];
-    houseBills?: SeaHouseBill[];
-    allocations?: SeaCargoAllocationItem[];
-    progress?: SeaCargoAllocationProgress;
-    allowedActions?: number[];
-  };
-
-  type SeaCargoAllocationCargoItemSummary = {
-    cargoItemId?: string;
-    cargoName?: string;
-    baselinePackageCount?: number;
-    allocatedPackageCount?: number;
-    remainingPackageCount?: number;
-    baselineGrossWeightKg?: string;
-    allocatedGrossWeightKg?: string;
-    remainingGrossWeightKg?: string;
-    baselineVolumeCbm?: string;
-    allocatedVolumeCbm?: string;
-    remainingVolumeCbm?: string;
-    status?: string;
-  };
-
-  type SeaCargoAllocationContainerSummary = {
-    containerId?: string;
-    containerNo?: string;
-    baselinePackageCount?: number;
-    allocatedPackageCount?: number;
-    remainingPackageCount?: number;
-    baselineGrossWeightKg?: string;
-    allocatedGrossWeightKg?: string;
-    remainingGrossWeightKg?: string;
-    baselineVolumeCbm?: string;
-    allocatedVolumeCbm?: string;
-    remainingVolumeCbm?: string;
-    status?: string;
-  };
-
-  type SeaCargoAllocationHouseBillSummary = {
-    houseBillId?: string;
-    houseNo?: string;
-    allocatedPackageCount?: number;
-    allocatedGrossWeightKg?: string;
-    allocatedVolumeCbm?: string;
-    orderRemainingPackageCount?: number;
-    orderRemainingGrossWeightKg?: string;
-    orderRemainingVolumeCbm?: string;
-    displayPackageCount?: number;
-    displayGrossWeightKg?: string;
-    displayVolumeCbm?: string;
-    diffPackageCount?: number;
-    diffGrossWeightKg?: string;
-    diffVolumeCbm?: string;
-    displayMatches?: boolean;
-  };
-
-  type SeaCargoAllocationInput = {
-    id?: string;
-    cargoItemId: string;
-    houseBillId: string;
-    containerId?: string;
-    packageCount: number;
-    grossWeightKg: string;
-    volumeCbm: string;
-  };
-
-  type SeaCargoAllocationItem = {
-    id?: string;
-    cargoItemId?: string;
-    houseBillId?: string;
-    containerId?: string;
-    packageCount?: number;
-    grossWeightKg?: string;
-    volumeCbm?: string;
-  };
-
-  type SeaCargoAllocationProgress = {
-    cargoSummaries?: SeaCargoAllocationCargoItemSummary[];
-    containerSummaries?: SeaCargoAllocationContainerSummary[];
-    houseBillSummaries?: SeaCargoAllocationHouseBillSummary[];
-    orderRemainingPackageCount?: number;
-    orderRemainingGrossWeightKg?: string;
-    orderRemainingVolumeCbm?: string;
-  };
-
-  type SeaCargoAllocationServiceApplySeaHouseBillAllocationSummaryParams = {
-    orderId: string;
-    houseBillId: string;
-  };
-
-  type SeaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBillParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceConfirmSeaCargoAllocationParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceGetSeaCargoAllocationParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceSaveSeaCargoAllocationDraftParams = {
-    orderId: string;
-  };
-
-  type SeaCargoAllocationServiceWithdrawSeaCargoAllocationParams = {
-    orderId: string;
   };
 
   type SeaDocumentAmendmentInput = {
@@ -5328,17 +5657,13 @@ declare namespace API {
     documentNo?: string;
     previousVersionId?: string;
     resultVersionId?: string;
-    oldHouseBillId?: string;
-    oldHouseNo?: string;
-    newHouseBillId?: string;
-    newHouseNo?: string;
-    chainId?: string;
-    sequence?: number;
     reason?: string;
     impactSummary?: string;
-    surrenderInfo?: string;
     createdBy?: string;
     createdAt?: string;
+    previousMode?: number;
+    targetMode?: number;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaDocumentFieldDifference = {
@@ -5348,11 +5673,15 @@ declare namespace API {
     afterValue?: string;
   };
 
-  type SeaDocumentServiceAddSeaHouseBillParams = {
-    orderId: string;
+  type SeaDocumentModeChangePreview = {
+    previousMode?: number;
+    targetMode?: number;
+    differences?: SeaDocumentFieldDifference[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
   };
 
-  type SeaDocumentServiceCancelSeaOrderDirectParams = {
+  type SeaDocumentServiceExecuteChangeSeaDocumentModeParams = {
     orderId: string;
   };
 
@@ -5361,10 +5690,6 @@ declare namespace API {
   };
 
   type SeaDocumentServiceExecuteSeaDocumentVoidParams = {
-    orderId: string;
-  };
-
-  type SeaDocumentServiceExecuteSeaHouseBillSwitchParams = {
     orderId: string;
   };
 
@@ -5397,7 +5722,7 @@ declare namespace API {
     pageSize?: number;
   };
 
-  type SeaDocumentServiceMarkSeaOrderDirectParams = {
+  type SeaDocumentServicePreviewChangeSeaDocumentModeParams = {
     orderId: string;
   };
 
@@ -5407,19 +5732,6 @@ declare namespace API {
 
   type SeaDocumentServicePreviewSeaDocumentVoidParams = {
     orderId: string;
-  };
-
-  type SeaDocumentServicePreviewSeaHouseBillSwitchParams = {
-    orderId: string;
-  };
-
-  type SeaDocumentServiceRemoveSeaHouseBillParams = {
-    orderId: string;
-    id: string;
-    expectedVersion?: string;
-    expectedLinkVersion?: string;
-    returnToUndetermined?: boolean;
-    removeRelatedReleasePods?: boolean;
   };
 
   type SeaDocumentServiceUpdateSeaHouseBillParams = {
@@ -5456,6 +5768,9 @@ declare namespace API {
     content?: SeaBillContent;
     createdBy?: string;
     createdAt?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaDocumentVoidPreview = {
@@ -5463,6 +5778,21 @@ declare namespace API {
     differences?: SeaDocumentFieldDifference[];
     impacts?: SeaDocumentDownstreamImpact[];
     executable?: boolean;
+  };
+
+  type SeaExternalConfirmationInput = {
+    confirmedByParty: string;
+    confirmedAt: string;
+    confirmationNote: string;
+    confirmationAttachmentId?: string;
+  };
+
+  type SeaExternalConfirmationSummary = {
+    confirmedByParty?: string;
+    confirmedAt?: string;
+    confirmationNote?: string;
+    confirmationAttachmentId?: string;
+    confirmationAttachmentName?: string;
   };
 
   type SeaHouseBill = {
@@ -5496,29 +5826,22 @@ declare namespace API {
     expectedVersion?: string;
   };
 
-  type SeaHouseBillSwitchPreview = {
-    baseVersion?: SeaDocumentVersion;
-    differences?: SeaDocumentFieldDifference[];
-    impacts?: SeaDocumentDownstreamImpact[];
-    executable?: boolean;
-  };
-
   type SeaMasterBillCandidate = {
     id?: string;
     version?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
-    transportExecution?: SeaTransportExecution;
+    shippingLineId?: string;
+    shippingLineName?: string;
     memberCount?: number;
     members?: SeaMasterBillMemberSummary[];
+    transportExecutions?: SeaTransportExecution[];
   };
 
   type SeaMasterBillDetail = {
     id?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     status?: string;
     version?: string;
     content?: SeaBillContent;
@@ -5529,10 +5852,11 @@ declare namespace API {
 
   type SeaMasterBillInput = {
     masterNo: string;
-    issuerPartnerId: string;
     candidateId?: string;
     expectedCandidateVersion?: string;
     correctionReason?: string;
+    candidateTeId?: string;
+    expectedCandidateTeVersion?: string;
   };
 
   type SeaMasterBillMemberSummary = {
@@ -5544,11 +5868,9 @@ declare namespace API {
   type SeaMasterBillSummary = {
     masterBillId?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     transportExecutionId?: string;
-    carrierId?: string;
-    carrierName?: string;
     originLocationId?: string;
     originLocationName?: string;
     dischargeLocationId?: string;
@@ -5562,6 +5884,7 @@ declare namespace API {
     status?: string;
     version?: string;
     memberCount?: number;
+    transportExecutionVersion?: string;
   };
 
   type SeaOrderChangeActionsData = {
@@ -5604,6 +5927,10 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaOrderChangeServiceExecuteSeaTransportExecutionUpdateParams = {
+    orderId: string;
+  };
+
   type SeaOrderChangeServiceGetSeaOrderChangeActionsParams = {
     orderId: string;
   };
@@ -5632,12 +5959,16 @@ declare namespace API {
     orderId: string;
   };
 
+  type SeaOrderChangeServicePreviewSeaTransportExecutionUpdateParams = {
+    orderId: string;
+  };
+
   type SeaOrderDocumentInput = {
     documentStructure?: number;
     expectedLinkVersion?: string;
     expectedMblVersion?: string;
     masterBillContent?: SeaBillContent;
-    houseBills?: SeaHouseBillInput[];
+    houseBill?: SeaHouseBillInput;
   };
 
   type SeaOrderDocuments = {
@@ -5645,15 +5976,14 @@ declare namespace API {
     documentStructure?: number;
     linkVersion?: string;
     masterBill?: SeaMasterBillDetail;
-    houseBills?: SeaHouseBill[];
     allowedActions?: number[];
+    houseBill?: SeaHouseBill;
   };
 
   type SeaOrderDocumentSummary = {
     documentStructure?: number;
     linkVersion?: string;
-    houseBillCount?: number;
-    houseNos?: string[];
+    houseNo?: string;
   };
 
   type SeaOrderReassignmentEventSummary = {
@@ -5664,6 +5994,7 @@ declare namespace API {
     responsibilityType?: string;
     responsiblePartnerName?: string;
     reason?: string;
+    confirmation?: SeaExternalConfirmationSummary;
   };
 
   type SeaOrderReassignmentPreviewData = {
@@ -5682,8 +6013,7 @@ declare namespace API {
     candidateId?: string;
     candidateVersion?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -5695,16 +6025,6 @@ declare namespace API {
     candidateTeVersion?: string;
   };
 
-  type SeaOrderSplitAllocationItem = {
-    id?: string;
-    cargoItemId?: string;
-    houseBillId?: string;
-    containerId?: string;
-    packageCount?: number;
-    grossWeightKg?: string;
-    volumeCbm?: string;
-  };
-
   type SeaOrderSplitAttachmentItem = {
     id?: string;
     assetId?: string;
@@ -5712,6 +6032,13 @@ declare namespace API {
     mimeType?: string;
     fileSize?: string;
     docType?: string;
+  };
+
+  type SeaOrderSplitCargoAllocationInput = {
+    cargoItemId: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
   };
 
   type SeaOrderSplitCargoItem = {
@@ -5756,16 +6083,16 @@ declare namespace API {
     currentLinkId?: string;
     currentLinkVersion?: string;
     documentStructure?: string;
-    cargoAllocationStatus?: string;
-    cargoAllocationVersion?: string;
     houseBills?: SeaOrderSplitHouseBillItem[];
     cargoItems?: SeaOrderSplitCargoItem[];
     containers?: SeaOrderSplitContainerItem[];
-    allocations?: SeaOrderSplitAllocationItem[];
     draftFees?: SeaOrderSplitDraftFeeItem[];
     attachments?: SeaOrderSplitAttachmentItem[];
     containerPlans?: SeaOrderSplitContainerPlanItem[];
     attachmentReferenceFingerprint?: string;
+    bookingNo?: string;
+    currentHouseBill?: SeaOrderSplitHouseBillItem;
+    sharedContainerAllocations?: SeaOrderSplitSharedContainerAllocationItem[];
   };
 
   type SeaOrderSplitCreatedOrder = {
@@ -5798,14 +6125,21 @@ declare namespace API {
   type SeaOrderSplitExpectedVersions = {
     orderVersion?: string;
     linkVersion?: string;
-    allocationVersion?: string;
-    houseBillVersions?: Record<string, any>;
     cargoItemVersions?: Record<string, any>;
     containerVersions?: Record<string, any>;
     feeVersions?: Record<string, any>;
     candidateMblVersions?: Record<string, any>;
     attachmentReferenceFingerprint?: string;
     candidateTeVersions?: Record<string, any>;
+    currentHblVersion?: string;
+    sharedContainerVersions?: Record<string, any>;
+  };
+
+  type SeaOrderSplitHouseBillInput = {
+    houseNo: string;
+    issuerSource: string;
+    issuerPartnerId?: string;
+    note?: string;
   };
 
   type SeaOrderSplitHouseBillItem = {
@@ -5818,10 +6152,8 @@ declare namespace API {
   type SeaOrderSplitMasterBillSummary = {
     id?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    issuerPartnerName?: string;
-    carrierId?: string;
-    carrierName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -5868,6 +6200,7 @@ declare namespace API {
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    houseNo?: string;
   };
 
   type SeaOrderSplitQuantitySummary = {
@@ -5883,13 +6216,16 @@ declare namespace API {
     clientResultKey: string;
     resultRole: string;
     clientTargetKey: string;
-    houseBillIds?: string[];
     draftFeeIds?: string[];
     attachmentReferenceIds?: string[];
     internalReferenceNo?: string;
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    houseBill?: SeaOrderSplitHouseBillInput;
+    cargoAllocations?: SeaOrderSplitCargoAllocationInput[];
+    containerIds?: string[];
+    sharedContainerAllocations?: SeaOrderSplitSharedContainerAllocationInput[];
   };
 
   type SeaOrderSplitResultSummaryItem = {
@@ -5902,14 +6238,33 @@ declare namespace API {
     volumeCbm?: string;
   };
 
+  type SeaOrderSplitSharedContainerAllocationInput = {
+    allocationId: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+  };
+
+  type SeaOrderSplitSharedContainerAllocationItem = {
+    allocationId?: string;
+    sharedContainerId?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    containerSpecName?: string;
+    cargoItemId?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    sharedContainerVersion?: string;
+  };
+
   type SeaOrderSplitTargetInput = {
     clientTargetKey: string;
     targetType: string;
     candidateId?: string;
     candidateVersion?: string;
     masterNo?: string;
-    issuerPartnerId?: string;
-    carrierId?: string;
+    shippingLineId?: string;
     vesselName?: string;
     voyageNo?: string;
     etd?: string;
@@ -6012,10 +6367,156 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type SeaSharedContainer = {
+    id?: string;
+    organizationId?: string;
+    transportExecutionId?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    containerSpecName?: string;
+    sealNo?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    status?: number;
+    confirmedAt?: string;
+    confirmedBy?: string;
+    confirmedByName?: string;
+    note?: string;
+    version?: string;
+    allocations?: SeaSharedContainerAllocation[];
+    progress?: SeaSharedContainerProgress;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type SeaSharedContainerAllocation = {
+    id?: string;
+    sharedContainerId?: string;
+    orderId?: string;
+    orderNo?: string;
+    houseBillId?: string;
+    houseNo?: string;
+    cargoItemId?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    orderVersion?: string;
+    linkVersion?: string;
+    houseBillVersion?: string;
+    cargoItemVersion?: string;
+  };
+
+  type SeaSharedContainerAllocationInput = {
+    orderId: string;
+    houseBillId: string;
+    cargoItemId: string;
+    packageCount: number;
+    grossWeightKg: string;
+    volumeCbm: string;
+    expectedOrderVersion: string;
+    expectedLinkVersion: string;
+    expectedHouseBillVersion: string;
+    expectedCargoItemVersion: string;
+  };
+
+  type SeaSharedContainerCandidateCargoItem = {
+    id?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    version?: string;
+  };
+
+  type SeaSharedContainerCandidateOrder = {
+    orderId?: string;
+    orderNo?: string;
+    houseBillId?: string;
+    houseNo?: string;
+    orderVersion?: string;
+    linkVersion?: string;
+    houseBillVersion?: string;
+    cargoItems?: SeaSharedContainerCandidateCargoItem[];
+  };
+
+  type SeaSharedContainerInput = {
+    transportExecutionId: string;
+    containerNo: string;
+    containerSpecId: string;
+    sealNo?: string;
+    packageCount: number;
+    grossWeightKg: string;
+    volumeCbm: string;
+    note?: string;
+  };
+
+  type SeaSharedContainerProgress = {
+    allocatedPackageCount?: number;
+    allocatedGrossWeightKg?: string;
+    allocatedVolumeCbm?: string;
+    remainingPackageCount?: number;
+    remainingGrossWeightKg?: string;
+    remainingVolumeCbm?: string;
+    containerBalanced?: boolean;
+    cargoBalanced?: boolean;
+  };
+
+  type SeaSharedContainerServiceConfirmSeaSharedContainerParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceDeleteSeaSharedContainerParams = {
+    id: string;
+    expectedVersion?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId?: string;
+  };
+
+  type SeaSharedContainerServiceGetSeaSharedContainerParams = {
+    id: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId?: string;
+  };
+
+  type SeaSharedContainerServiceListSeaSharedContainerCandidatesParams = {
+    transportExecutionId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId?: string;
+  };
+
+  type SeaSharedContainerServiceListSeaSharedContainersParams = {
+    transportExecutionId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文 */
+    orderId?: string;
+  };
+
+  type SeaSharedContainerServiceSaveSeaSharedContainerAllocationsDraftParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceUpdateSeaSharedContainerParams = {
+    id: string;
+  };
+
+  type SeaSharedContainerServiceWithdrawSeaSharedContainerParams = {
+    id: string;
+  };
+
   type SeaTransportExecution = {
     id?: string;
-    carrierId?: string;
-    carrierName?: string;
+    shippingLineId?: string;
+    shippingLineName?: string;
     originLocationId?: string;
     originLocationName?: string;
     dischargeLocationId?: string;
@@ -6027,6 +6528,25 @@ declare namespace API {
     etd?: string;
     eta?: string;
     version?: string;
+  };
+
+  type SeaTransportExecutionUpdateInput = {
+    originLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselName?: string;
+    voyageNo?: string;
+    etd?: string;
+    eta?: string;
+  };
+
+  type SeaTransportExecutionUpdatePreviewData = {
+    transportExecutionId?: string;
+    transportExecutionVersion?: string;
+    memberOrderIds?: string[];
+    differences?: VoyageDifferenceItem[];
+    impacts?: SeaDocumentDownstreamImpact[];
+    executable?: boolean;
   };
 
   type SeaVoyageConflict = {
@@ -6087,6 +6607,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelNettingParams = {
+    id: string;
+  };
+
   type SettlementServiceConfirmBillBatchParams = {
     id: string;
   };
@@ -6107,6 +6631,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceConfirmNettingParams = {
+    id: string;
+  };
+
   type SettlementServiceCreateCommissionAdjustmentParams = {
     commissionId: string;
   };
@@ -6116,6 +6644,7 @@ declare namespace API {
     status?: number;
     commissionDateFrom?: string;
     commissionDateTo?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceGetBillParams = {
@@ -6126,12 +6655,39 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceGetFeeLedgerOrderDetailParams = {
+    orderId: string;
+  };
+
   type SettlementServiceGetInvoiceParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetNettingParams = {
     id: string;
   };
 
   type SettlementServiceIssueInvoiceParams = {
     id: string;
+  };
+
+  type SettlementServiceListBillCreationCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+  };
+
+  type SettlementServiceListBillSettlementAccountCandidatesParams = {
+    organizationId?: string;
+    settlementPartyId?: string;
+    direction?: string;
+    currency?: string;
+  };
+
+  type SettlementServiceListBillSettlementAccountUpdateCandidatesParams = {
+    billId?: string;
   };
 
   type SettlementServiceListBillsParams = {
@@ -6145,6 +6701,11 @@ declare namespace API {
     billDateFrom?: string;
     billDateTo?: string;
     tagIds?: string[];
+    organizationId?: string;
+    dueDateFrom?: string;
+    dueDateTo?: string;
+    onlyUnsettled?: boolean;
+    onlyOverdue?: boolean;
   };
 
   type SettlementServiceListCashflowsParams = {
@@ -6155,6 +6716,7 @@ declare namespace API {
     status?: number;
     settlementPartyId?: string;
     currency?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionCandidatesParams = {
@@ -6163,12 +6725,22 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionEmployeesParams = {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionRuleCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    personnelRole?: string;
   };
 
   type SettlementServiceListCommissionRulesParams = {
@@ -6177,6 +6749,7 @@ declare namespace API {
     keyword?: string;
     personnelRole?: string;
     enabled?: boolean;
+    organizationId?: string;
   };
 
   type SettlementServiceListCommissionsParams = {
@@ -6186,6 +6759,14 @@ declare namespace API {
     status?: number;
     commissionDateFrom?: string;
     commissionDateTo?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionVerificationCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type SettlementServiceListFeeLedgerParams = {
@@ -6204,9 +6785,25 @@ declare namespace API {
     billNo?: string;
     financeLocked?: boolean;
     tagIds?: string[];
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceBillTagAssignmentOptionsParams = {
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type SettlementServiceListFinanceBillTagOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceFeeTagAssignmentOptionsParams = {
+    organizationId?: string;
     keyword?: string;
     page?: number;
     pageSize?: number;
@@ -6216,6 +6813,34 @@ declare namespace API {
     keyword?: string;
     page?: number;
     pageSize?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListFinanceOrganizationOptionsParams = {
+    purpose?: number;
+    keyword?: string;
+  };
+
+  type SettlementServiceListFinanceSettlementPartyOptionsParams = {
+    purpose?: number;
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SettlementServiceListInvoiceCreationBillsParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+  };
+
+  type SettlementServiceListInvoiceProfilesForBillParams = {
+    billId?: string;
   };
 
   type SettlementServiceListInvoicesParams = {
@@ -6224,6 +6849,24 @@ declare namespace API {
     keyword?: string;
     direction?: string;
     status?: number;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListNettingsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: number;
+    settlementPartyId?: string;
+    currency?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListVerificationCreationCandidatesParams = {
+    organizationId?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
   };
 
   type SettlementServiceListVerificationsParams = {
@@ -6231,6 +6874,7 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     status?: number;
+    organizationId?: string;
   };
 
   type SettlementServiceMarkCommissionAdjustmentPaidParams = {
@@ -6247,6 +6891,10 @@ declare namespace API {
 
   type SettlementServiceResetFeeLedgerPreferenceParams = {
     version?: string;
+  };
+
+  type SettlementServiceReverseNettingParams = {
+    id: string;
   };
 
   type SettlementServiceReverseVerificationParams = {
@@ -6392,8 +7040,8 @@ declare namespace API {
   type UpdateAirlineRequest = {
     id: string;
     icaoCode?: string;
-    awbPrefix: string;
-    nameZh: string;
+    awbPrefix?: string;
+    nameZh?: string;
     nameEn: string;
     countryCode: string;
     cargoOnly?: boolean;
@@ -6469,6 +7117,9 @@ declare namespace API {
     expectedVersion: string;
     statementTitle?: string;
     paymentTermsDays?: number;
+    settlementAccountId: string;
+    estimatedInvoiceCurrency?: string;
+    estimatedInvoiceRate?: string;
   };
 
   type UpdateBillResponse = {
@@ -6721,7 +7372,7 @@ declare namespace API {
     tradeDirection?: number;
     tradeTerm?: number;
     paymentTerm?: number;
-    carrierId?: string;
+    shippingLineId?: string;
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;
@@ -6758,7 +7409,6 @@ declare namespace API {
     hazardClass?: string;
     factoryName?: string;
     cargoReadyAt?: string;
-    loadingTerms?: string;
     receivedAt?: string;
     bookingNotes?: string;
     allocationNotes?: string;
@@ -6772,6 +7422,7 @@ declare namespace API {
     consigneeShortName?: string;
     seaMasterBill?: SeaMasterBillInput;
     seaDocument?: SeaOrderDocumentInput;
+    bookingNo?: string;
   };
 
   type UpdateOrderResponse = {
@@ -6951,7 +7602,7 @@ declare namespace API {
     dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
-    orderOrganizationAccesses?: OrderOrganizationAccess[];
+    organizationAccesses?: OrganizationAccess[];
   };
 
   type UpdateRoleResponse = {
@@ -6989,6 +7640,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaMasterBillDetail;
+    traceId?: string;
+  };
+
+  type UpdateSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
+    input: SeaSharedContainerInput;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
+    orderId: string;
+  };
+
+  type UpdateSeaSharedContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 
@@ -7084,6 +7751,11 @@ declare namespace API {
     amount: string;
   };
 
+  type VerificationCreationCandidates = {
+    cashflows?: FinanceCashflow[];
+    bills?: FinanceBill[];
+  };
+
   type VoyageDifferenceItem = {
     fieldName?: string;
     label?: string;
@@ -7110,16 +7782,18 @@ declare namespace API {
     traceId?: string;
   };
 
-  type WithdrawSeaCargoAllocationRequest = {
+  type WithdrawSeaSharedContainerRequest = {
+    id: string;
+    expectedVersion: string;
+    /** 授权锚点：中间件按该订单确定业务类型与组织上下文（id 始终是共享箱 ID） */
     orderId: string;
-    expectedAllocationVersion: string;
   };
 
-  type WithdrawSeaCargoAllocationResponse = {
+  type WithdrawSeaSharedContainerResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: SeaCargoAllocationAggregate;
+    data?: SeaSharedContainer;
     traceId?: string;
   };
 }

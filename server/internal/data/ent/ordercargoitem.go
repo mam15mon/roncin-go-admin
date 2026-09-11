@@ -54,8 +54,8 @@ type OrderCargoItemEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
-	// CargoAllocations holds the value of the cargo_allocations edge.
-	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
+	// SharedContainerAllocations holds the value of the shared_container_allocations edge.
+	SharedContainerAllocations []*SeaSharedContainerAllocation `json:"shared_container_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -83,13 +83,13 @@ func (e OrderCargoItemEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
-// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// SharedContainerAllocationsOrErr returns the SharedContainerAllocations value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrderCargoItemEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+func (e OrderCargoItemEdges) SharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
 	if e.loadedTypes[2] {
-		return e.CargoAllocations, nil
+		return e.SharedContainerAllocations, nil
 	}
-	return nil, &NotLoadedError{edge: "cargo_allocations"}
+	return nil, &NotLoadedError{edge: "shared_container_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -217,9 +217,9 @@ func (_m *OrderCargoItem) QueryOrder() *OrderQuery {
 	return NewOrderCargoItemClient(_m.config).QueryOrder(_m)
 }
 
-// QueryCargoAllocations queries the "cargo_allocations" edge of the OrderCargoItem entity.
-func (_m *OrderCargoItem) QueryCargoAllocations() *SeaCargoAllocationQuery {
-	return NewOrderCargoItemClient(_m.config).QueryCargoAllocations(_m)
+// QuerySharedContainerAllocations queries the "shared_container_allocations" edge of the OrderCargoItem entity.
+func (_m *OrderCargoItem) QuerySharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	return NewOrderCargoItemClient(_m.config).QuerySharedContainerAllocations(_m)
 }
 
 // Update returns a builder for updating this OrderCargoItem.

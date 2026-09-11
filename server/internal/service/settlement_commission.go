@@ -9,6 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -22,7 +23,11 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 		return nil, err
 	}
 	f := biz.CommissionFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: financeCommissionStatusFromAPI(r.Status), CommissionDateFrom: financeOptionalString(r.CommissionDateFrom), CommissionDateTo: financeOptionalString(r.CommissionDateTo)}
-	result, err := s.commissionUsecase.List(ctx, p.Organization.ID, f)
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionRead, false, r.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	result, err := s.commissionUsecase.ListScoped(ctx, organizationIDs, f)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +46,11 @@ func (s *SettlementService) ExportCommissions(ctx context.Context, r *v1.ExportC
 		return nil, principalErr
 	}
 	f := biz.CommissionFilter{Keyword: financeOptionalString(r.Keyword), Status: financeCommissionStatusFromAPI(r.Status), CommissionDateFrom: financeOptionalString(r.CommissionDateFrom), CommissionDateTo: financeOptionalString(r.CommissionDateTo)}
-	items, err := s.commissionUsecase.Export(ctx, p.Organization.ID, p.UserID, f)
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionExport, false, r.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	items, err := s.commissionUsecase.ExportScoped(ctx, organizationIDs, p.UserID, f)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +65,11 @@ func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissi
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.Get(ctx, p.Organization.ID, id)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionRead, false)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	item, err := s.commissionUsecase.GetScoped(ctx, organizationIDs, id)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +84,11 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request
 	if err != nil {
 		return nil, err
 	}
-	result, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID, biz.SelectorListOptions{
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionRead, false, request.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	result, err := s.commissionUsecase.ListEmployeesScoped(ctx, organizationIDs, biz.SelectorListOptions{
 		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
 	})
 	if err != nil {
@@ -103,8 +120,23 @@ func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.
 	if err != nil {
 		return nil, err
 	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionManage, true, r.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
+	if err != nil {
+		return nil, err
+	}
+	if verification.OrganizationID != rule.OrganizationID {
+		return nil, biz.ErrPermissionDenied
+	}
 	f := biz.CommissionCandidateFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), VerificationID: verificationID, RuleID: ruleID}
-	result, err := s.commissionUsecase.ListCandidates(ctx, p.Organization.ID, f)
+	result, err := s.commissionUsecase.ListCandidates(ctx, rule.OrganizationID, f)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +159,11 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 		return nil, err
 	}
 	f := biz.CommissionRuleFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
-	result, err := s.commissionUsecase.ListRules(ctx, p.Organization.ID, f)
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionRead, false, r.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	result, err := s.commissionUsecase.ListRulesScoped(ctx, organizationIDs, f)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +173,48 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 	}
 	return okList(ctx, &v1.ListCommissionRulesResponse{Data: data, Total: result.Total}), nil
 }
+
+// ListCommissionRuleCandidates 只为生成提成选择规则服务。候选和最终生成使用同一
+// commission.manage 可写组织范围，且服务端固定只返回已启用规则。
+func (s *SettlementService) ListCommissionRuleCandidates(ctx context.Context, r *v1.ListCommissionRuleCandidatesRequest) (*v1.ListCommissionRuleCandidatesResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	rawOrganizationID := strings.TrimSpace(r.GetOrganizationId())
+	if rawOrganizationID == "" {
+		return nil, biz.ErrCommissionRuleInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionManage, true, &rawOrganizationID)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrCommissionRuleInvalid
+	}
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionRuleInvalid)
+	if err != nil {
+		return nil, err
+	}
+	enabled := true
+	f := biz.CommissionRuleFilter{
+		Page:          page,
+		PageSize:      pageSize,
+		Keyword:       financeOptionalString(r.Keyword),
+		PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))),
+		Enabled:       &enabled,
+	}
+	result, err := s.commissionUsecase.ListRulesScoped(ctx, organizationIDs, f)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceCommissionRule, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, commissionRuleToAPI(item))
+	}
+	return okList(ctx, &v1.ListCommissionRuleCandidatesResponse{Data: data, Total: result.Total}), nil
+}
+
 func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CreateCommissionRuleResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
@@ -146,7 +224,18 @@ func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.Crea
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.CreateRule(ctx, p.Organization.ID, p.UserID, in)
+	organizationID, parseErr := uuid.Parse(strings.TrimSpace(r.GetOrganizationId()))
+	if parseErr != nil {
+		return nil, biz.ErrCommissionRuleInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if !uuidIn(organizationID, organizationIDs) {
+		return nil, biz.ErrPermissionDenied
+	}
+	item, err := s.commissionUsecase.CreateRule(ctx, organizationID, p.UserID, in)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +250,15 @@ func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.Upda
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.UpdateRule(ctx, p.Organization.ID, p.UserID, biz.UpdateCommissionRuleInput{ID: id, CreateCommissionRuleInput: in, ExpectedVersion: r.GetExpectedVersion()})
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.UpdateRule(ctx, rule.OrganizationID, p.UserID, biz.UpdateCommissionRuleInput{ID: id, CreateCommissionRuleInput: in, ExpectedVersion: r.GetExpectedVersion()})
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +278,7 @@ func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule
 	if x == nil {
 		return nil
 	}
-	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName}
 }
 func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.PreviewCommissionRequest) (*v1.PreviewCommissionResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
@@ -200,7 +297,22 @@ func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.Preview
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	item, err := s.commissionUsecase.Preview(ctx, p.Organization.ID, verificationID, employeeID, ruleID)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
+	if err != nil {
+		return nil, err
+	}
+	if verification.OrganizationID != rule.OrganizationID {
+		return nil, biz.ErrPermissionDenied
+	}
+	item, err := s.commissionUsecase.Preview(ctx, rule.OrganizationID, verificationID, employeeID, ruleID)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +335,22 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	item, err := s.commissionUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
+	if err != nil {
+		return nil, err
+	}
+	if verification.OrganizationID != rule.OrganizationID {
+		return nil, biz.ErrPermissionDenied
+	}
+	item, err := s.commissionUsecase.Create(ctx, rule.OrganizationID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +361,15 @@ func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.Confirm
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.Confirm(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	commission, err := s.commissionUsecase.GetScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.Confirm(ctx, commission.OrganizationID, p.UserID, id, r.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +380,15 @@ func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.MarkCo
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.MarkPaid(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	commission, err := s.commissionUsecase.GetScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.MarkPaid(ctx, commission.OrganizationID, p.UserID, id, r.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +399,15 @@ func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCo
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.Cancel(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	commission, err := s.commissionUsecase.GetScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.Cancel(ctx, commission.OrganizationID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +430,15 @@ func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v
 	if err != nil {
 		return nil, biz.ErrCommissionAdjustmentInvalid
 	}
-	item, err := s.commissionUsecase.CreateAdjustment(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionAdjustmentInput{
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	commission, err := s.commissionUsecase.GetScoped(ctx, organizationIDs, commissionID)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.CreateAdjustment(ctx, commission.OrganizationID, p.UserID, biz.CreateCommissionAdjustmentInput{
 		CommissionID: commissionID, OrderID: orderID, Direction: biz.CommissionAdjustmentDirection(strings.ToUpper(r.GetDirection())),
 		Amount: amount, Reason: r.GetReason(), Note: r.Note, IdempotencyKey: r.GetIdempotencyKey(),
 	})
@@ -294,7 +453,15 @@ func (s *SettlementService) ConfirmCommissionAdjustment(ctx context.Context, r *
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.ConfirmAdjustment(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	adjustment, err := s.commissionUsecase.GetAdjustmentScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.ConfirmAdjustment(ctx, adjustment.OrganizationID, p.UserID, id, r.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +473,15 @@ func (s *SettlementService) MarkCommissionAdjustmentPaid(ctx context.Context, r 
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.MarkAdjustmentPaid(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	adjustment, err := s.commissionUsecase.GetAdjustmentScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.MarkAdjustmentPaid(ctx, adjustment.OrganizationID, p.UserID, id, r.GetExpectedVersion())
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +493,15 @@ func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.CancelAdjustment(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	adjustment, err := s.commissionUsecase.GetAdjustmentScoped(ctx, organizationIDs, id)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.CancelAdjustment(ctx, adjustment.OrganizationID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +537,7 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	for _, item := range x.Adjustments {
 		adjustments = append(adjustments, commissionAdjustmentToAPI(item))
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy), PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy), CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
 }
 
 // commissionExportItemToAPI 输出导出扁平 DTO：金额字段与本位币、CNY 双口径及
@@ -363,7 +546,7 @@ func commissionExportItemToAPI(x *biz.FinanceCommission) *v1.CommissionExportIte
 	if x == nil {
 		return nil
 	}
-	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: x.VerificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: x.VerificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
 }
 
 func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCommissionAdjustment {
@@ -372,10 +555,12 @@ func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCo
 	}
 	return &v1.FinanceCommissionAdjustment{
 		Id: x.ID.String(), AdjustmentNo: x.AdjustmentNo, CommissionId: x.CommissionID.String(), CommissionNo: x.CommissionNo,
+		OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName,
 		OrderId: x.OrderID.String(), OrderNo: x.OrderNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName,
 		Direction: string(x.Direction), Status: financeCommissionStatusToAPI(x.Status), BaseCurrency: x.BaseCurrency, Amount: x.Amount.StringFixed(8),
-		Reason: x.Reason, Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt),
-		CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason,
+		Reason: x.Reason, Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy),
+		PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy),
+		CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason,
 		SourceType: string(x.SourceType), SourceVerificationId: uuidStringPtr(x.SourceVerificationID),
 		CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339),
 	}

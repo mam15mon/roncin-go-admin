@@ -23,6 +23,7 @@ const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListOrderConsolidations = "/order.v1.OrderService/ListOrderConsolidations"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
 const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
+const OperationOrderServiceListSameBatchOrders = "/order.v1.OrderService/ListSameBatchOrders"
 const OperationOrderServiceMatchSeaMasterBillCandidate = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
 const OperationOrderServiceTransitionOrderClosure = "/order.v1.OrderService/TransitionOrderClosure"
 const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/TransitionOrderStatus"
@@ -36,6 +37,7 @@ type OrderServiceHTTPServer interface {
 	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
+	ListSameBatchOrders(context.Context, *ListSameBatchOrdersRequest) (*ListSameBatchOrdersResponse, error)
 	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
 	TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
@@ -51,6 +53,7 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/order-reference-check", _OrderService_CheckOrderReference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/order-personnel-options", _OrderService_ListPersonnelOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{id}/consolidations", _OrderService_ListOrderConsolidations0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/{id}/same-batch", _OrderService_ListSameBatchOrders0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders", _OrderService_CreateOrder0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{id}", _OrderService_UpdateOrder0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
@@ -178,6 +181,28 @@ func _OrderService_ListOrderConsolidations0_HTTP_Handler(srv OrderServiceHTTPSer
 	}
 }
 
+func _OrderService_ListSameBatchOrders0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSameBatchOrdersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceListSameBatchOrders)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSameBatchOrders(ctx, req.(*ListSameBatchOrdersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSameBatchOrdersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _OrderService_CreateOrder0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateOrderRequest
@@ -292,6 +317,7 @@ type OrderServiceHTTPClient interface {
 	ListOrderConsolidations(ctx context.Context, req *ListOrderConsolidationsRequest, opts ...http.CallOption) (rsp *ListOrderConsolidationsResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
 	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
+	ListSameBatchOrders(ctx context.Context, req *ListSameBatchOrdersRequest, opts ...http.CallOption) (rsp *ListSameBatchOrdersResponse, err error)
 	MatchSeaMasterBillCandidate(ctx context.Context, req *MatchSeaMasterBillCandidateRequest, opts ...http.CallOption) (rsp *MatchSeaMasterBillCandidateResponse, err error)
 	TransitionOrderClosure(ctx context.Context, req *TransitionOrderClosureRequest, opts ...http.CallOption) (rsp *TransitionOrderClosureResponse, err error)
 	TransitionOrderStatus(ctx context.Context, req *TransitionOrderStatusRequest, opts ...http.CallOption) (rsp *TransitionOrderStatusResponse, err error)
@@ -395,6 +421,22 @@ func (c *OrderServiceHTTPClientImpl) ListPersonnelOptions(ctx context.Context, i
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderServiceListPersonnelOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) ListSameBatchOrders(ctx context.Context, in *ListSameBatchOrdersRequest, opts ...http.CallOption) (*ListSameBatchOrdersResponse, error) {
+	var out ListSameBatchOrdersResponse
+	pattern := "/api/v1/orders/{id}/same-batch"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceListSameBatchOrders),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

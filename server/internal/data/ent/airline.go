@@ -30,9 +30,9 @@ type Airline struct {
 	// IcaoCode holds the value of the "icao_code" field.
 	IcaoCode *string `json:"icao_code,omitempty"`
 	// AwbPrefix holds the value of the "awb_prefix" field.
-	AwbPrefix string `json:"awb_prefix,omitempty"`
+	AwbPrefix *string `json:"awb_prefix,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
-	NameZh string `json:"name_zh,omitempty"`
+	NameZh *string `json:"name_zh,omitempty"`
 	// NameEn holds the value of the "name_en" field.
 	NameEn string `json:"name_en,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
@@ -41,6 +41,10 @@ type Airline struct {
 	CargoOnly bool `json:"cargo_only,omitempty"`
 	// Source holds the value of the "source" field.
 	Source string `json:"source,omitempty"`
+	// SourceVersion holds the value of the "source_version" field.
+	SourceVersion *string `json:"source_version,omitempty"`
+	// SourceHash holds the value of the "source_hash" field.
+	SourceHash *string `json:"source_hash,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
 	SortOrder int `json:"sort_order,omitempty"`
 	// Enabled holds the value of the "enabled" field.
@@ -82,7 +86,7 @@ func (*Airline) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case airline.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case airline.FieldIataCode, airline.FieldIcaoCode, airline.FieldAwbPrefix, airline.FieldNameZh, airline.FieldNameEn, airline.FieldCountryCode, airline.FieldSource, airline.FieldSearchKeywords:
+		case airline.FieldIataCode, airline.FieldIcaoCode, airline.FieldAwbPrefix, airline.FieldNameZh, airline.FieldNameEn, airline.FieldCountryCode, airline.FieldSource, airline.FieldSourceVersion, airline.FieldSourceHash, airline.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case airline.FieldCreatedAt, airline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -144,13 +148,15 @@ func (_m *Airline) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field awb_prefix", values[i])
 			} else if value.Valid {
-				_m.AwbPrefix = value.String
+				_m.AwbPrefix = new(string)
+				*_m.AwbPrefix = value.String
 			}
 		case airline.FieldNameZh:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name_zh", values[i])
 			} else if value.Valid {
-				_m.NameZh = value.String
+				_m.NameZh = new(string)
+				*_m.NameZh = value.String
 			}
 		case airline.FieldNameEn:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -175,6 +181,20 @@ func (_m *Airline) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field source", values[i])
 			} else if value.Valid {
 				_m.Source = value.String
+			}
+		case airline.FieldSourceVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_version", values[i])
+			} else if value.Valid {
+				_m.SourceVersion = new(string)
+				*_m.SourceVersion = value.String
+			}
+		case airline.FieldSourceHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_hash", values[i])
+			} else if value.Valid {
+				_m.SourceHash = new(string)
+				*_m.SourceHash = value.String
 			}
 		case airline.FieldSortOrder:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -252,11 +272,15 @@ func (_m *Airline) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("awb_prefix=")
-	builder.WriteString(_m.AwbPrefix)
+	if v := _m.AwbPrefix; v != nil {
+		builder.WriteString("awb_prefix=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("name_zh=")
-	builder.WriteString(_m.NameZh)
+	if v := _m.NameZh; v != nil {
+		builder.WriteString("name_zh=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("name_en=")
 	builder.WriteString(_m.NameEn)
@@ -269,6 +293,16 @@ func (_m *Airline) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source=")
 	builder.WriteString(_m.Source)
+	builder.WriteString(", ")
+	if v := _m.SourceVersion; v != nil {
+		builder.WriteString("source_version=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SourceHash; v != nil {
+		builder.WriteString("source_hash=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("sort_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))

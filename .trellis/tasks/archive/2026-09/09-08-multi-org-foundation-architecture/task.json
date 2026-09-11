@@ -1,0 +1,51 @@
+{
+  "id": "multi-org-foundation-architecture",
+  "name": "multi-org-foundation-architecture",
+  "title": "建设多组织快速上线薄底座",
+  "description": "以组织工作区、通用异步守卫和首批核心聚合的显式组织授权支撑快速上线",
+  "status": "completed",
+  "dev_type": "refactor",
+  "scope": "web/workspace+server/organization-access",
+  "package": "server+web",
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-08",
+  "completedAt": "2026-09-09",
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "web/src/app.tsx",
+    "web/src/components/OrganizationSwitcher.tsx",
+    "web/src/components/layout/TagsView.tsx",
+    "web/src/components/layout/formDraft.ts",
+    "web/src/components/layout/tabCloseGuard.ts",
+    "web/src/hooks/useLatestAsync.ts",
+    "web/src/pages/admin/components/roles/RoleFormModal.tsx",
+    "server/api/admin/v1/admin.proto",
+    "server/internal/biz/auth.go",
+    "server/internal/biz/admin_role.go",
+    "server/internal/data/auth.go",
+    "server/internal/data/admin_role.go",
+    "server/internal/data/ent/schema/role_order_organization_access.go"
+  ],
+  "notes": "快速上线优先；复用现有用户+组织草稿隔离，不重构草稿 Context/Hook；默认不兼容历史接口、角色组织范围模型或开发数据；首批只覆盖订单、往来单位和财务账单；不建设全局 Ent 拦截器。",
+  "meta": {
+    "planning_mode": "thin_foundation",
+    "historical_compatibility": false,
+    "global_ent_interceptor": false,
+    "draft_strategy": "reuse_existing",
+    "async_guard": "shared_hook",
+    "initial_aggregates": [
+      "order",
+      "partner",
+      "finance_bill"
+    ]
+  }
+}

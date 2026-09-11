@@ -3,6 +3,8 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -22,6 +24,7 @@ func (FinanceBillBatch) Fields() []ent.Field {
 		field.String("request_hash").NotEmpty().MinLen(64).MaxLen(64).Immutable(),
 		field.Bool("split_by_order").Default(false).Immutable(),
 		field.Bool("split_by_tax_rate").Default(false).Immutable(),
+		field.Enum("grouping_mode").Values("NORMAL", "NETTING").Default("NORMAL").Immutable(),
 		field.Int("fee_count").Positive().Immutable(),
 		field.Int("bill_count").Positive().Immutable(),
 		field.String("total_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
@@ -35,6 +38,7 @@ func (FinanceBillBatch) Edges() []ent.Edge {
 		edge.From("organization", Organization.Type).Ref("finance_bill_batches").Field("organization_id").Unique().Required().Immutable(),
 		edge.From("creator", User.Type).Ref("created_finance_bill_batches").Field("created_by").Unique().Required().Immutable(),
 		edge.To("bills", FinanceBill.Type),
+		edge.To("nettings", FinanceNetting.Type),
 	}
 }
 
@@ -44,4 +48,8 @@ func (FinanceBillBatch) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "created_at"),
 	}
+}
+
+func (FinanceBillBatch) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"finance_bill_batches_grouping_mode_check": "grouping_mode IN ('NORMAL', 'NETTING')"})}
 }

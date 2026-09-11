@@ -5,15 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	seacargoallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
-	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 type orderContainerRepo struct {
@@ -113,25 +110,6 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 			return err
 		}
 
-		if order.BusinessType == orderent.BusinessTypeSE {
-			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
-			if linkErr != nil {
-				return linkErr
-			}
-			if activeLink != nil {
-				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
-					return biz.ErrSeaCargoAllocationStatusConflict
-				}
-				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
-					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
-						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
-						Save(ctx); err != nil {
-						return err
-					}
-				}
-			}
-		}
-
 		builder := tx.OrderContainer.Create().
 			SetID(input.ID).
 			SetOrganizationID(organizationID).
@@ -190,69 +168,6 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 			return err
 		}
 
-		if order.BusinessType == orderent.BusinessTypeSE {
-			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
-			if linkErr != nil {
-				return linkErr
-			}
-			if activeLink != nil {
-				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
-					return biz.ErrSeaCargoAllocationStatusConflict
-				}
-
-				// 检查草稿分配是否会超出修改后的值
-				allocs, aErr := tx.SeaCargoAllocation.Query().
-					Where(seacargoallocationent.OrganizationIDEQ(organizationID), seacargoallocationent.OrderIDEQ(orderID), seacargoallocationent.ContainerIDEQ(id)).
-					All(ctx)
-				if aErr != nil {
-					return aErr
-				}
-				var allocPkg int32
-				allocWeight := decimal.Zero
-				allocVol := decimal.Zero
-				for _, a := range allocs {
-					allocPkg += int32(a.PackageCount)
-					w, _ := decimal.NewFromString(a.GrossWeightKg)
-					v, _ := decimal.NewFromString(a.VolumeCbm)
-					allocWeight = allocWeight.Add(w)
-					allocVol = allocVol.Add(v)
-				}
-				if allocPkg > input.PackageCount {
-					excess := allocPkg - input.PackageCount
-					return biz.NewErrAllocationExceeded(
-						"container", id.String(), input.ContainerNo, "package_count",
-						fmt.Sprintf("%d", input.PackageCount), fmt.Sprintf("%d", allocPkg), fmt.Sprintf("%d", excess),
-						nil, nil, &id,
-					)
-				}
-				newWeight := decimal.NewFromFloat(input.GrossWeightKg)
-				if allocWeight.GreaterThan(newWeight) {
-					excess := allocWeight.Sub(newWeight)
-					return biz.NewErrAllocationExceeded(
-						"container", id.String(), input.ContainerNo, "gross_weight_kg",
-						newWeight.StringFixed(3), allocWeight.StringFixed(3), excess.StringFixed(3),
-						nil, nil, &id,
-					)
-				}
-				newVol := decimal.NewFromFloat(input.VolumeCbm)
-				if allocVol.GreaterThan(newVol) {
-					excess := allocVol.Sub(newVol)
-					return biz.NewErrAllocationExceeded(
-						"container", id.String(), input.ContainerNo, "volume_cbm",
-						newVol.StringFixed(6), allocVol.StringFixed(6), excess.StringFixed(6),
-						nil, nil, &id,
-					)
-				}
-
-				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
-					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
-						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
-						Save(ctx); err != nil {
-						return err
-					}
-				}
-			}
-		}
 		cItem, queryErr := tx.OrderContainer.Query().
 			Where(ordercontainerent.IDEQ(id), ordercontainerent.OrderIDEQ(orderID), ordercontainerent.OrganizationIDEQ(organizationID)).
 			ForUpdate().Only(ctx)
@@ -311,33 +226,6 @@ func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID
 			return err
 		}
 
-		if order.BusinessType == orderent.BusinessTypeSE {
-			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, orderID)
-			if linkErr != nil {
-				return linkErr
-			}
-			if activeLink != nil {
-				if activeLink.CargoAllocationStatus == seamasterbillorderlinkent.CargoAllocationStatusCONFIRMED {
-					return biz.ErrSeaCargoAllocationStatusConflict
-				}
-				hasAlloc, aErr := tx.SeaCargoAllocation.Query().
-					Where(seacargoallocationent.OrganizationIDEQ(organizationID), seacargoallocationent.OrderIDEQ(orderID), seacargoallocationent.ContainerIDEQ(id)).
-					Exist(ctx)
-				if aErr != nil {
-					return aErr
-				}
-				if hasAlloc {
-					return biz.ErrSeaCargoAllocationInvalidReference
-				}
-				if activeLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
-					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
-						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
-						Save(ctx); err != nil {
-						return err
-					}
-				}
-			}
-		}
 		item, queryErr := tx.OrderContainer.Query().
 			Where(ordercontainerent.IDEQ(id), ordercontainerent.OrderIDEQ(orderID), ordercontainerent.OrganizationIDEQ(organizationID)).
 			ForUpdate().Only(ctx)

@@ -50,7 +50,11 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 }
 
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateSetting, error) {
-	items, err := r.data.db.ExchangeRateSetting.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.ExchangeRateSetting.Query().
 		Where(exchangerateent.OrganizationIDEQ(organizationID)).
 		Order(exchangerateent.ByRateType(), exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
 	if err != nil {
@@ -335,7 +339,11 @@ func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID
 }
 
 func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...string) error {
-	count, err := r.data.db.Currency.Query().Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	count, err := client.Currency.Query().Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
 	if err != nil {
 		return err
 	}

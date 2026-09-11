@@ -32,6 +32,8 @@ interface UserFormModalProps {
   organizations: API.AdminOrganization[];
   canReadAllUserMemberships: boolean;
   canManageUserMemberships: boolean;
+  canAuthorizeWeComUsers: boolean;
+  canAuthorizeDingTalkUsers: boolean;
   currentUserId?: string;
   defaultOrganizationId?: string;
   onReload: () => void;
@@ -46,6 +48,8 @@ export default function UserFormModal({
   organizations,
   canReadAllUserMemberships,
   canManageUserMemberships,
+  canAuthorizeWeComUsers,
+  canAuthorizeDingTalkUsers,
   currentUserId,
   defaultOrganizationId,
   onReload,
@@ -58,7 +62,19 @@ export default function UserFormModal({
   const [membershipEditing, setMembershipEditing] =
     useState<API.AdminUserMembership>();
   const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
-  const pendingProvider = pendingExternalProvider(editing);
+  // 外部成员的组织授权流程（依赖 ListOrganizationRoles / ListOrganizations 的全局
+  // 权限）只对具备对应授权权限的管理员开放；普通组织管理员编辑此类成员时回到
+  // 普通流程，由服务端稳定拒绝未授权的组织启用。
+  const externalProvider = pendingExternalProvider(editing);
+  const canAuthorizeExternalProvider =
+    externalProvider === 'wecom'
+      ? canAuthorizeWeComUsers
+      : externalProvider === 'dingtalk'
+        ? canAuthorizeDingTalkUsers
+        : true;
+  const pendingProvider = canAuthorizeExternalProvider
+    ? externalProvider
+    : undefined;
 
   const loadMemberships = async (userId: string) => {
     setMembershipsLoading(true);
@@ -76,8 +92,7 @@ export default function UserFormModal({
       setMemberships([]);
       return;
     }
-    const provider = pendingExternalProvider(editing);
-    if (provider) {
+    if (pendingProvider) {
       setApprovalRoles(roles);
       setMemberships([]);
     } else if (editing.id && canReadAllUserMemberships) {

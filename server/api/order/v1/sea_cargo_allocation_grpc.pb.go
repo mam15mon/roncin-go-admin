@@ -19,308 +19,410 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SeaCargoAllocationService_GetSeaCargoAllocation_FullMethodName                 = "/order.v1.SeaCargoAllocationService/GetSeaCargoAllocation"
-	SeaCargoAllocationService_SaveSeaCargoAllocationDraft_FullMethodName           = "/order.v1.SeaCargoAllocationService/SaveSeaCargoAllocationDraft"
-	SeaCargoAllocationService_ConfirmSeaCargoAllocation_FullMethodName             = "/order.v1.SeaCargoAllocationService/ConfirmSeaCargoAllocation"
-	SeaCargoAllocationService_WithdrawSeaCargoAllocation_FullMethodName            = "/order.v1.SeaCargoAllocationService/WithdrawSeaCargoAllocation"
-	SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill_FullMethodName = "/order.v1.SeaCargoAllocationService/ApplySeaOrderCargoSummaryToMasterBill"
-	SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary_FullMethodName    = "/order.v1.SeaCargoAllocationService/ApplySeaHouseBillAllocationSummary"
+	SeaSharedContainerService_ListSeaSharedContainers_FullMethodName                = "/order.v1.SeaSharedContainerService/ListSeaSharedContainers"
+	SeaSharedContainerService_GetSeaSharedContainer_FullMethodName                  = "/order.v1.SeaSharedContainerService/GetSeaSharedContainer"
+	SeaSharedContainerService_ListSeaSharedContainerCandidates_FullMethodName       = "/order.v1.SeaSharedContainerService/ListSeaSharedContainerCandidates"
+	SeaSharedContainerService_CreateSeaSharedContainer_FullMethodName               = "/order.v1.SeaSharedContainerService/CreateSeaSharedContainer"
+	SeaSharedContainerService_UpdateSeaSharedContainer_FullMethodName               = "/order.v1.SeaSharedContainerService/UpdateSeaSharedContainer"
+	SeaSharedContainerService_DeleteSeaSharedContainer_FullMethodName               = "/order.v1.SeaSharedContainerService/DeleteSeaSharedContainer"
+	SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft_FullMethodName = "/order.v1.SeaSharedContainerService/SaveSeaSharedContainerAllocationsDraft"
+	SeaSharedContainerService_ConfirmSeaSharedContainer_FullMethodName              = "/order.v1.SeaSharedContainerService/ConfirmSeaSharedContainer"
+	SeaSharedContainerService_WithdrawSeaSharedContainer_FullMethodName             = "/order.v1.SeaSharedContainerService/WithdrawSeaSharedContainer"
 )
 
-// SeaCargoAllocationServiceClient is the client API for SeaCargoAllocationService service.
+// SeaSharedContainerServiceClient is the client API for SeaSharedContainerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// SeaCargoAllocationService 海运出口箱货定量分配服务。
-type SeaCargoAllocationServiceClient interface {
-	// GetSeaCargoAllocation 获取海运箱货分配聚合信息。
-	GetSeaCargoAllocation(ctx context.Context, in *GetSeaCargoAllocationRequest, opts ...grpc.CallOption) (*GetSeaCargoAllocationResponse, error)
-	// SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
-	SaveSeaCargoAllocationDraft(ctx context.Context, in *SaveSeaCargoAllocationDraftRequest, opts ...grpc.CallOption) (*SaveSeaCargoAllocationDraftResponse, error)
-	// ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
-	ConfirmSeaCargoAllocation(ctx context.Context, in *ConfirmSeaCargoAllocationRequest, opts ...grpc.CallOption) (*ConfirmSeaCargoAllocationResponse, error)
-	// WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
-	WithdrawSeaCargoAllocation(ctx context.Context, in *WithdrawSeaCargoAllocationRequest, opts ...grpc.CallOption) (*WithdrawSeaCargoAllocationResponse, error)
-	// ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
-	ApplySeaOrderCargoSummaryToMasterBill(ctx context.Context, in *ApplySeaOrderCargoSummaryToMasterBillRequest, opts ...grpc.CallOption) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error)
-	// ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
-	ApplySeaHouseBillAllocationSummary(ctx context.Context, in *ApplySeaHouseBillAllocationSummaryRequest, opts ...grpc.CallOption) (*ApplySeaHouseBillAllocationSummaryResponse, error)
+// SeaSharedContainerService 管理明确标记为客户拼货的跨订单共享物理箱。
+type SeaSharedContainerServiceClient interface {
+	ListSeaSharedContainers(ctx context.Context, in *ListSeaSharedContainersRequest, opts ...grpc.CallOption) (*ListSeaSharedContainersResponse, error)
+	GetSeaSharedContainer(ctx context.Context, in *GetSeaSharedContainerRequest, opts ...grpc.CallOption) (*GetSeaSharedContainerResponse, error)
+	ListSeaSharedContainerCandidates(ctx context.Context, in *ListSeaSharedContainerCandidatesRequest, opts ...grpc.CallOption) (*ListSeaSharedContainerCandidatesResponse, error)
+	CreateSeaSharedContainer(ctx context.Context, in *CreateSeaSharedContainerRequest, opts ...grpc.CallOption) (*CreateSeaSharedContainerResponse, error)
+	UpdateSeaSharedContainer(ctx context.Context, in *UpdateSeaSharedContainerRequest, opts ...grpc.CallOption) (*UpdateSeaSharedContainerResponse, error)
+	DeleteSeaSharedContainer(ctx context.Context, in *DeleteSeaSharedContainerRequest, opts ...grpc.CallOption) (*DeleteSeaSharedContainerResponse, error)
+	SaveSeaSharedContainerAllocationsDraft(ctx context.Context, in *SaveSeaSharedContainerAllocationsDraftRequest, opts ...grpc.CallOption) (*SaveSeaSharedContainerAllocationsDraftResponse, error)
+	ConfirmSeaSharedContainer(ctx context.Context, in *ConfirmSeaSharedContainerRequest, opts ...grpc.CallOption) (*ConfirmSeaSharedContainerResponse, error)
+	WithdrawSeaSharedContainer(ctx context.Context, in *WithdrawSeaSharedContainerRequest, opts ...grpc.CallOption) (*WithdrawSeaSharedContainerResponse, error)
 }
 
-type seaCargoAllocationServiceClient struct {
+type seaSharedContainerServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewSeaCargoAllocationServiceClient(cc grpc.ClientConnInterface) SeaCargoAllocationServiceClient {
-	return &seaCargoAllocationServiceClient{cc}
+func NewSeaSharedContainerServiceClient(cc grpc.ClientConnInterface) SeaSharedContainerServiceClient {
+	return &seaSharedContainerServiceClient{cc}
 }
 
-func (c *seaCargoAllocationServiceClient) GetSeaCargoAllocation(ctx context.Context, in *GetSeaCargoAllocationRequest, opts ...grpc.CallOption) (*GetSeaCargoAllocationResponse, error) {
+func (c *seaSharedContainerServiceClient) ListSeaSharedContainers(ctx context.Context, in *ListSeaSharedContainersRequest, opts ...grpc.CallOption) (*ListSeaSharedContainersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSeaCargoAllocationResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_GetSeaCargoAllocation_FullMethodName, in, out, cOpts...)
+	out := new(ListSeaSharedContainersResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_ListSeaSharedContainers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaCargoAllocationServiceClient) SaveSeaCargoAllocationDraft(ctx context.Context, in *SaveSeaCargoAllocationDraftRequest, opts ...grpc.CallOption) (*SaveSeaCargoAllocationDraftResponse, error) {
+func (c *seaSharedContainerServiceClient) GetSeaSharedContainer(ctx context.Context, in *GetSeaSharedContainerRequest, opts ...grpc.CallOption) (*GetSeaSharedContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SaveSeaCargoAllocationDraftResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_SaveSeaCargoAllocationDraft_FullMethodName, in, out, cOpts...)
+	out := new(GetSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_GetSeaSharedContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaCargoAllocationServiceClient) ConfirmSeaCargoAllocation(ctx context.Context, in *ConfirmSeaCargoAllocationRequest, opts ...grpc.CallOption) (*ConfirmSeaCargoAllocationResponse, error) {
+func (c *seaSharedContainerServiceClient) ListSeaSharedContainerCandidates(ctx context.Context, in *ListSeaSharedContainerCandidatesRequest, opts ...grpc.CallOption) (*ListSeaSharedContainerCandidatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConfirmSeaCargoAllocationResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_ConfirmSeaCargoAllocation_FullMethodName, in, out, cOpts...)
+	out := new(ListSeaSharedContainerCandidatesResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_ListSeaSharedContainerCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaCargoAllocationServiceClient) WithdrawSeaCargoAllocation(ctx context.Context, in *WithdrawSeaCargoAllocationRequest, opts ...grpc.CallOption) (*WithdrawSeaCargoAllocationResponse, error) {
+func (c *seaSharedContainerServiceClient) CreateSeaSharedContainer(ctx context.Context, in *CreateSeaSharedContainerRequest, opts ...grpc.CallOption) (*CreateSeaSharedContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WithdrawSeaCargoAllocationResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_WithdrawSeaCargoAllocation_FullMethodName, in, out, cOpts...)
+	out := new(CreateSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_CreateSeaSharedContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaCargoAllocationServiceClient) ApplySeaOrderCargoSummaryToMasterBill(ctx context.Context, in *ApplySeaOrderCargoSummaryToMasterBillRequest, opts ...grpc.CallOption) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error) {
+func (c *seaSharedContainerServiceClient) UpdateSeaSharedContainer(ctx context.Context, in *UpdateSeaSharedContainerRequest, opts ...grpc.CallOption) (*UpdateSeaSharedContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ApplySeaOrderCargoSummaryToMasterBillResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill_FullMethodName, in, out, cOpts...)
+	out := new(UpdateSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_UpdateSeaSharedContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *seaCargoAllocationServiceClient) ApplySeaHouseBillAllocationSummary(ctx context.Context, in *ApplySeaHouseBillAllocationSummaryRequest, opts ...grpc.CallOption) (*ApplySeaHouseBillAllocationSummaryResponse, error) {
+func (c *seaSharedContainerServiceClient) DeleteSeaSharedContainer(ctx context.Context, in *DeleteSeaSharedContainerRequest, opts ...grpc.CallOption) (*DeleteSeaSharedContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ApplySeaHouseBillAllocationSummaryResponse)
-	err := c.cc.Invoke(ctx, SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary_FullMethodName, in, out, cOpts...)
+	out := new(DeleteSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_DeleteSeaSharedContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// SeaCargoAllocationServiceServer is the server API for SeaCargoAllocationService service.
-// All implementations must embed UnimplementedSeaCargoAllocationServiceServer
+func (c *seaSharedContainerServiceClient) SaveSeaSharedContainerAllocationsDraft(ctx context.Context, in *SaveSeaSharedContainerAllocationsDraftRequest, opts ...grpc.CallOption) (*SaveSeaSharedContainerAllocationsDraftResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveSeaSharedContainerAllocationsDraftResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seaSharedContainerServiceClient) ConfirmSeaSharedContainer(ctx context.Context, in *ConfirmSeaSharedContainerRequest, opts ...grpc.CallOption) (*ConfirmSeaSharedContainerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_ConfirmSeaSharedContainer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seaSharedContainerServiceClient) WithdrawSeaSharedContainer(ctx context.Context, in *WithdrawSeaSharedContainerRequest, opts ...grpc.CallOption) (*WithdrawSeaSharedContainerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WithdrawSeaSharedContainerResponse)
+	err := c.cc.Invoke(ctx, SeaSharedContainerService_WithdrawSeaSharedContainer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SeaSharedContainerServiceServer is the server API for SeaSharedContainerService service.
+// All implementations must embed UnimplementedSeaSharedContainerServiceServer
 // for forward compatibility.
 //
-// SeaCargoAllocationService 海运出口箱货定量分配服务。
-type SeaCargoAllocationServiceServer interface {
-	// GetSeaCargoAllocation 获取海运箱货分配聚合信息。
-	GetSeaCargoAllocation(context.Context, *GetSeaCargoAllocationRequest) (*GetSeaCargoAllocationResponse, error)
-	// SaveSeaCargoAllocationDraft 全量替换保存箱货分配草稿。
-	SaveSeaCargoAllocationDraft(context.Context, *SaveSeaCargoAllocationDraftRequest) (*SaveSeaCargoAllocationDraftResponse, error)
-	// ConfirmSeaCargoAllocation 确认海运箱货分配（严格守恒门禁）。
-	ConfirmSeaCargoAllocation(context.Context, *ConfirmSeaCargoAllocationRequest) (*ConfirmSeaCargoAllocationResponse, error)
-	// WithdrawSeaCargoAllocation 撤回海运箱货分配确认。
-	WithdrawSeaCargoAllocation(context.Context, *WithdrawSeaCargoAllocationRequest) (*WithdrawSeaCargoAllocationResponse, error)
-	// ApplySeaOrderCargoSummaryToMasterBill DIRECT 下用操作票货物汇总填入 MBL 提单内容。
-	ApplySeaOrderCargoSummaryToMasterBill(context.Context, *ApplySeaOrderCargoSummaryToMasterBillRequest) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error)
-	// ApplySeaHouseBillAllocationSummary HOUSE 下用分配汇总填入目标 HBL 提单内容。
-	ApplySeaHouseBillAllocationSummary(context.Context, *ApplySeaHouseBillAllocationSummaryRequest) (*ApplySeaHouseBillAllocationSummaryResponse, error)
-	mustEmbedUnimplementedSeaCargoAllocationServiceServer()
+// SeaSharedContainerService 管理明确标记为客户拼货的跨订单共享物理箱。
+type SeaSharedContainerServiceServer interface {
+	ListSeaSharedContainers(context.Context, *ListSeaSharedContainersRequest) (*ListSeaSharedContainersResponse, error)
+	GetSeaSharedContainer(context.Context, *GetSeaSharedContainerRequest) (*GetSeaSharedContainerResponse, error)
+	ListSeaSharedContainerCandidates(context.Context, *ListSeaSharedContainerCandidatesRequest) (*ListSeaSharedContainerCandidatesResponse, error)
+	CreateSeaSharedContainer(context.Context, *CreateSeaSharedContainerRequest) (*CreateSeaSharedContainerResponse, error)
+	UpdateSeaSharedContainer(context.Context, *UpdateSeaSharedContainerRequest) (*UpdateSeaSharedContainerResponse, error)
+	DeleteSeaSharedContainer(context.Context, *DeleteSeaSharedContainerRequest) (*DeleteSeaSharedContainerResponse, error)
+	SaveSeaSharedContainerAllocationsDraft(context.Context, *SaveSeaSharedContainerAllocationsDraftRequest) (*SaveSeaSharedContainerAllocationsDraftResponse, error)
+	ConfirmSeaSharedContainer(context.Context, *ConfirmSeaSharedContainerRequest) (*ConfirmSeaSharedContainerResponse, error)
+	WithdrawSeaSharedContainer(context.Context, *WithdrawSeaSharedContainerRequest) (*WithdrawSeaSharedContainerResponse, error)
+	mustEmbedUnimplementedSeaSharedContainerServiceServer()
 }
 
-// UnimplementedSeaCargoAllocationServiceServer must be embedded to have
+// UnimplementedSeaSharedContainerServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedSeaCargoAllocationServiceServer struct{}
+type UnimplementedSeaSharedContainerServiceServer struct{}
 
-func (UnimplementedSeaCargoAllocationServiceServer) GetSeaCargoAllocation(context.Context, *GetSeaCargoAllocationRequest) (*GetSeaCargoAllocationResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetSeaCargoAllocation not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) ListSeaSharedContainers(context.Context, *ListSeaSharedContainersRequest) (*ListSeaSharedContainersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSeaSharedContainers not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) SaveSeaCargoAllocationDraft(context.Context, *SaveSeaCargoAllocationDraftRequest) (*SaveSeaCargoAllocationDraftResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SaveSeaCargoAllocationDraft not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) GetSeaSharedContainer(context.Context, *GetSeaSharedContainerRequest) (*GetSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSeaSharedContainer not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) ConfirmSeaCargoAllocation(context.Context, *ConfirmSeaCargoAllocationRequest) (*ConfirmSeaCargoAllocationResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ConfirmSeaCargoAllocation not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) ListSeaSharedContainerCandidates(context.Context, *ListSeaSharedContainerCandidatesRequest) (*ListSeaSharedContainerCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSeaSharedContainerCandidates not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) WithdrawSeaCargoAllocation(context.Context, *WithdrawSeaCargoAllocationRequest) (*WithdrawSeaCargoAllocationResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method WithdrawSeaCargoAllocation not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) CreateSeaSharedContainer(context.Context, *CreateSeaSharedContainerRequest) (*CreateSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSeaSharedContainer not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) ApplySeaOrderCargoSummaryToMasterBill(context.Context, *ApplySeaOrderCargoSummaryToMasterBillRequest) (*ApplySeaOrderCargoSummaryToMasterBillResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ApplySeaOrderCargoSummaryToMasterBill not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) UpdateSeaSharedContainer(context.Context, *UpdateSeaSharedContainerRequest) (*UpdateSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSeaSharedContainer not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) ApplySeaHouseBillAllocationSummary(context.Context, *ApplySeaHouseBillAllocationSummaryRequest) (*ApplySeaHouseBillAllocationSummaryResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ApplySeaHouseBillAllocationSummary not implemented")
+func (UnimplementedSeaSharedContainerServiceServer) DeleteSeaSharedContainer(context.Context, *DeleteSeaSharedContainerRequest) (*DeleteSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSeaSharedContainer not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) mustEmbedUnimplementedSeaCargoAllocationServiceServer() {
+func (UnimplementedSeaSharedContainerServiceServer) SaveSeaSharedContainerAllocationsDraft(context.Context, *SaveSeaSharedContainerAllocationsDraftRequest) (*SaveSeaSharedContainerAllocationsDraftResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveSeaSharedContainerAllocationsDraft not implemented")
 }
-func (UnimplementedSeaCargoAllocationServiceServer) testEmbeddedByValue() {}
+func (UnimplementedSeaSharedContainerServiceServer) ConfirmSeaSharedContainer(context.Context, *ConfirmSeaSharedContainerRequest) (*ConfirmSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmSeaSharedContainer not implemented")
+}
+func (UnimplementedSeaSharedContainerServiceServer) WithdrawSeaSharedContainer(context.Context, *WithdrawSeaSharedContainerRequest) (*WithdrawSeaSharedContainerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method WithdrawSeaSharedContainer not implemented")
+}
+func (UnimplementedSeaSharedContainerServiceServer) mustEmbedUnimplementedSeaSharedContainerServiceServer() {
+}
+func (UnimplementedSeaSharedContainerServiceServer) testEmbeddedByValue() {}
 
-// UnsafeSeaCargoAllocationServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to SeaCargoAllocationServiceServer will
+// UnsafeSeaSharedContainerServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SeaSharedContainerServiceServer will
 // result in compilation errors.
-type UnsafeSeaCargoAllocationServiceServer interface {
-	mustEmbedUnimplementedSeaCargoAllocationServiceServer()
+type UnsafeSeaSharedContainerServiceServer interface {
+	mustEmbedUnimplementedSeaSharedContainerServiceServer()
 }
 
-func RegisterSeaCargoAllocationServiceServer(s grpc.ServiceRegistrar, srv SeaCargoAllocationServiceServer) {
-	// If the following call panics, it indicates UnimplementedSeaCargoAllocationServiceServer was
+func RegisterSeaSharedContainerServiceServer(s grpc.ServiceRegistrar, srv SeaSharedContainerServiceServer) {
+	// If the following call panics, it indicates UnimplementedSeaSharedContainerServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&SeaCargoAllocationService_ServiceDesc, srv)
+	s.RegisterService(&SeaSharedContainerService_ServiceDesc, srv)
 }
 
-func _SeaCargoAllocationService_GetSeaCargoAllocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSeaCargoAllocationRequest)
+func _SeaSharedContainerService_ListSeaSharedContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSeaSharedContainersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).GetSeaCargoAllocation(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).ListSeaSharedContainers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_GetSeaCargoAllocation_FullMethodName,
+		FullMethod: SeaSharedContainerService_ListSeaSharedContainers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).GetSeaCargoAllocation(ctx, req.(*GetSeaCargoAllocationRequest))
+		return srv.(SeaSharedContainerServiceServer).ListSeaSharedContainers(ctx, req.(*ListSeaSharedContainersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaCargoAllocationService_SaveSeaCargoAllocationDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveSeaCargoAllocationDraftRequest)
+func _SeaSharedContainerService_GetSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSeaSharedContainerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).SaveSeaCargoAllocationDraft(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).GetSeaSharedContainer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_SaveSeaCargoAllocationDraft_FullMethodName,
+		FullMethod: SeaSharedContainerService_GetSeaSharedContainer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).SaveSeaCargoAllocationDraft(ctx, req.(*SaveSeaCargoAllocationDraftRequest))
+		return srv.(SeaSharedContainerServiceServer).GetSeaSharedContainer(ctx, req.(*GetSeaSharedContainerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaCargoAllocationService_ConfirmSeaCargoAllocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfirmSeaCargoAllocationRequest)
+func _SeaSharedContainerService_ListSeaSharedContainerCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSeaSharedContainerCandidatesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).ConfirmSeaCargoAllocation(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).ListSeaSharedContainerCandidates(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_ConfirmSeaCargoAllocation_FullMethodName,
+		FullMethod: SeaSharedContainerService_ListSeaSharedContainerCandidates_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).ConfirmSeaCargoAllocation(ctx, req.(*ConfirmSeaCargoAllocationRequest))
+		return srv.(SeaSharedContainerServiceServer).ListSeaSharedContainerCandidates(ctx, req.(*ListSeaSharedContainerCandidatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaCargoAllocationService_WithdrawSeaCargoAllocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WithdrawSeaCargoAllocationRequest)
+func _SeaSharedContainerService_CreateSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSeaSharedContainerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).WithdrawSeaCargoAllocation(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).CreateSeaSharedContainer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_WithdrawSeaCargoAllocation_FullMethodName,
+		FullMethod: SeaSharedContainerService_CreateSeaSharedContainer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).WithdrawSeaCargoAllocation(ctx, req.(*WithdrawSeaCargoAllocationRequest))
+		return srv.(SeaSharedContainerServiceServer).CreateSeaSharedContainer(ctx, req.(*CreateSeaSharedContainerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApplySeaOrderCargoSummaryToMasterBillRequest)
+func _SeaSharedContainerService_UpdateSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSeaSharedContainerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).ApplySeaOrderCargoSummaryToMasterBill(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).UpdateSeaSharedContainer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill_FullMethodName,
+		FullMethod: SeaSharedContainerService_UpdateSeaSharedContainer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).ApplySeaOrderCargoSummaryToMasterBill(ctx, req.(*ApplySeaOrderCargoSummaryToMasterBillRequest))
+		return srv.(SeaSharedContainerServiceServer).UpdateSeaSharedContainer(ctx, req.(*UpdateSeaSharedContainerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApplySeaHouseBillAllocationSummaryRequest)
+func _SeaSharedContainerService_DeleteSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSeaSharedContainerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SeaCargoAllocationServiceServer).ApplySeaHouseBillAllocationSummary(ctx, in)
+		return srv.(SeaSharedContainerServiceServer).DeleteSeaSharedContainer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary_FullMethodName,
+		FullMethod: SeaSharedContainerService_DeleteSeaSharedContainer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SeaCargoAllocationServiceServer).ApplySeaHouseBillAllocationSummary(ctx, req.(*ApplySeaHouseBillAllocationSummaryRequest))
+		return srv.(SeaSharedContainerServiceServer).DeleteSeaSharedContainer(ctx, req.(*DeleteSeaSharedContainerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// SeaCargoAllocationService_ServiceDesc is the grpc.ServiceDesc for SeaCargoAllocationService service.
+func _SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveSeaSharedContainerAllocationsDraftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeaSharedContainerServiceServer).SaveSeaSharedContainerAllocationsDraft(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeaSharedContainerServiceServer).SaveSeaSharedContainerAllocationsDraft(ctx, req.(*SaveSeaSharedContainerAllocationsDraftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SeaSharedContainerService_ConfirmSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmSeaSharedContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeaSharedContainerServiceServer).ConfirmSeaSharedContainer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeaSharedContainerService_ConfirmSeaSharedContainer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeaSharedContainerServiceServer).ConfirmSeaSharedContainer(ctx, req.(*ConfirmSeaSharedContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SeaSharedContainerService_WithdrawSeaSharedContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawSeaSharedContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeaSharedContainerServiceServer).WithdrawSeaSharedContainer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SeaSharedContainerService_WithdrawSeaSharedContainer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeaSharedContainerServiceServer).WithdrawSeaSharedContainer(ctx, req.(*WithdrawSeaSharedContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// SeaSharedContainerService_ServiceDesc is the grpc.ServiceDesc for SeaSharedContainerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var SeaCargoAllocationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "order.v1.SeaCargoAllocationService",
-	HandlerType: (*SeaCargoAllocationServiceServer)(nil),
+var SeaSharedContainerService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "order.v1.SeaSharedContainerService",
+	HandlerType: (*SeaSharedContainerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSeaCargoAllocation",
-			Handler:    _SeaCargoAllocationService_GetSeaCargoAllocation_Handler,
+			MethodName: "ListSeaSharedContainers",
+			Handler:    _SeaSharedContainerService_ListSeaSharedContainers_Handler,
 		},
 		{
-			MethodName: "SaveSeaCargoAllocationDraft",
-			Handler:    _SeaCargoAllocationService_SaveSeaCargoAllocationDraft_Handler,
+			MethodName: "GetSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_GetSeaSharedContainer_Handler,
 		},
 		{
-			MethodName: "ConfirmSeaCargoAllocation",
-			Handler:    _SeaCargoAllocationService_ConfirmSeaCargoAllocation_Handler,
+			MethodName: "ListSeaSharedContainerCandidates",
+			Handler:    _SeaSharedContainerService_ListSeaSharedContainerCandidates_Handler,
 		},
 		{
-			MethodName: "WithdrawSeaCargoAllocation",
-			Handler:    _SeaCargoAllocationService_WithdrawSeaCargoAllocation_Handler,
+			MethodName: "CreateSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_CreateSeaSharedContainer_Handler,
 		},
 		{
-			MethodName: "ApplySeaOrderCargoSummaryToMasterBill",
-			Handler:    _SeaCargoAllocationService_ApplySeaOrderCargoSummaryToMasterBill_Handler,
+			MethodName: "UpdateSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_UpdateSeaSharedContainer_Handler,
 		},
 		{
-			MethodName: "ApplySeaHouseBillAllocationSummary",
-			Handler:    _SeaCargoAllocationService_ApplySeaHouseBillAllocationSummary_Handler,
+			MethodName: "DeleteSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_DeleteSeaSharedContainer_Handler,
+		},
+		{
+			MethodName: "SaveSeaSharedContainerAllocationsDraft",
+			Handler:    _SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft_Handler,
+		},
+		{
+			MethodName: "ConfirmSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_ConfirmSeaSharedContainer_Handler,
+		},
+		{
+			MethodName: "WithdrawSeaSharedContainer",
+			Handler:    _SeaSharedContainerService_WithdrawSeaSharedContainer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

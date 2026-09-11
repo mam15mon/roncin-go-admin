@@ -9,14 +9,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	billtaglink "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoicebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
+	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
 )
@@ -29,15 +35,14 @@ type financeBillSummaryRow struct {
 	BaseAmount   string `json:"base_amount"`
 }
 
-type financeBillVerifiedSummaryRow struct {
-	Active             bool   `json:"active"`
-	VerifiedBaseAmount string `json:"verified_base_amount"`
-}
-
 func NewFinanceBillRepo(data *Data) biz.FinanceBillRepo { return &financeBillRepo{data: data} }
 
-func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceBillFilter) (*biz.FinanceBillListResult, error) {
-	predicates := []predicate.FinanceBill{financebillent.OrganizationIDEQ(organizationID)}
+func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FinanceBillFilter) (*biz.FinanceBillListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.FinanceBill{financeBillOrganizationScopePredicate(organizationIDs)}
 	if filter.Keyword != "" {
 		predicates = append(predicates, financebillent.Or(
 			financebillent.BillNoContainsFold(filter.Keyword),
@@ -63,56 +68,172 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	if filter.BillDateTo != "" {
 		predicates = append(predicates, financebillent.BillDateLTE(filter.BillDateTo))
 	}
+	if filter.DueDateFrom != "" {
+		predicates = append(predicates, financebillent.DueDateGTE(filter.DueDateFrom))
+	}
+	if filter.DueDateTo != "" {
+		predicates = append(predicates, financebillent.DueDateLTE(filter.DueDateTo))
+	}
+	if filter.OnlyUnsettled {
+		if filter.Status == "" {
+			predicates = append(predicates, financebillent.StatusEQ(financebillent.StatusCONFIRMED))
+		}
+		predicates = append(predicates, billUnsettledPredicate())
+	}
+	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")
+	if filter.OnlyOverdue {
+		predicates = append(predicates, billOverduePredicate(currentBusinessDate))
+	}
 	if len(filter.TagIDs) > 0 {
 		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
-	query := r.data.db.FinanceBill.Query().Where(predicates...)
+	query := client.FinanceBill.Query().Where(predicates...)
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
+	summaryPredicates := append([]predicate.FinanceBill{}, predicates...)
+	summaryPredicates = append(summaryPredicates, financebillent.StatusEQ(financebillent.StatusCONFIRMED))
 	summaryRows := make([]financeBillSummaryRow, 0)
-	if err := query.Clone().
+	if err := client.FinanceBill.Query().Where(summaryPredicates...).
 		GroupBy(financebillent.FieldDirection, financebillent.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(financebillent.FieldBaseCurrencyAmount), "base_amount")).
 		Scan(ctx, &summaryRows); err != nil {
 		return nil, err
 	}
-	summary := biz.FinanceBillSummary{
-		ReceivableBaseAmount: decimal.Zero,
-		PayableBaseAmount:    decimal.Zero,
-		UnverifiedBaseAmount: decimal.Zero,
-	}
+	summary := biz.FinanceBillSummary{}
+	amountsByBaseCurrency := make(map[string]*biz.FinanceBaseCurrencyAmount, len(summaryRows))
 	for _, row := range summaryRows {
-		amount, parseErr := decimalOf(row.BaseAmount)
+		value, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		summary.BaseCurrency = row.BaseCurrency
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
 		if row.Direction == string(financebillent.DirectionRECEIVABLE) {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(value)
 		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(value)
 		}
 	}
-	verifiedRows := make([]financeBillVerifiedSummaryRow, 0, 1)
-	if err := r.data.db.FinanceVerificationAllocation.Query().
-		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(predicates...)).
-		GroupBy(verificationallocationent.FieldActive).
-		Aggregate(ent.As(ent.Sum(verificationallocationent.FieldBillBaseAmount), "verified_base_amount")).
-		Scan(ctx, &verifiedRows); err != nil {
+	for _, bucket := range amountsByBaseCurrency {
+		bucket.UnverifiedBaseAmount = bucket.ReceivableBaseAmount.Add(bucket.PayableBaseAmount)
+	}
+	allocations, err := client.FinanceVerificationAllocation.Query().
+		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(summaryPredicates...)).
+		WithBill(func(query *ent.FinanceBillQuery) {
+			query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+		}).All(ctx)
+	if err != nil {
 		return nil, err
 	}
-	verifiedBaseAmount := decimal.Zero
-	if len(verifiedRows) > 0 {
-		verifiedBaseAmount, err = decimalOf(verifiedRows[0].VerifiedBaseAmount)
+	for _, allocation := range allocations {
+		amount, parseErr := decimalOf(allocation.BillBaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		bill, edgeErr := allocation.Edges.BillOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
+	}
+	nettingAllocations, err := client.FinanceNettingAllocation.Query().
+		Where(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasBillWith(summaryPredicates...)).
+		WithBill(func(query *ent.FinanceBillQuery) {
+			query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+		}).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, allocation := range nettingAllocations {
+		amount, parseErr := decimalOf(allocation.BaseCurrencyAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		bill, edgeErr := allocation.Edges.BillOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
+	}
+	overduePredicates := append([]predicate.FinanceBill{}, summaryPredicates...)
+	overduePredicates = append(overduePredicates,
+		financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
+		financebillent.DueDateNotNil(),
+		financebillent.DueDateNEQ(""),
+		financebillent.DueDateLT(currentBusinessDate),
+		billUnsettledPredicate(),
+	)
+	var overdueSummaryRows []financeBillSummaryRow
+	if err := client.FinanceBill.Query().Where(overduePredicates...).
+		GroupBy(financebillent.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(financebillent.FieldBaseCurrencyAmount), "base_amount")).
+		Scan(ctx, &overdueSummaryRows); err != nil {
+		return nil, err
+	}
+	for _, row := range overdueSummaryRows {
+		value, parseErr := decimalOf(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
+		bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Add(value)
+	}
+	if len(overdueSummaryRows) > 0 {
+		overdueAllocations, err := client.FinanceVerificationAllocation.Query().
+			Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(overduePredicates...)).
+			WithBill(func(query *ent.FinanceBillQuery) {
+				query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+			}).All(ctx)
 		if err != nil {
 			return nil, err
 		}
-	}
-	summary.UnverifiedBaseAmount = summary.ReceivableBaseAmount.Add(summary.PayableBaseAmount).Sub(verifiedBaseAmount)
+		for _, allocation := range overdueAllocations {
+			amount, parseErr := decimalOf(allocation.BillBaseAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			bill, edgeErr := allocation.Edges.BillOrErr()
+			if edgeErr != nil {
+				return nil, edgeErr
+			}
+			bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Sub(amount)
+		}
 
-	items, err := query.WithBatch().Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
+		overdueNettings, err := client.FinanceNettingAllocation.Query().
+			Where(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasBillWith(overduePredicates...)).
+			WithBill(func(query *ent.FinanceBillQuery) {
+				query.Select(financebillent.FieldID, financebillent.FieldBaseCurrency)
+			}).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, allocation := range overdueNettings {
+			amount, parseErr := decimalOf(allocation.BaseCurrencyAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			bill, edgeErr := allocation.Edges.BillOrErr()
+			if edgeErr != nil {
+				return nil, edgeErr
+			}
+			bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, bill.BaseCurrency)
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Sub(amount)
+		}
+	}
+	for _, bucket := range amountsByBaseCurrency {
+		if bucket.OverdueReceivableBaseAmount.IsNegative() {
+			bucket.OverdueReceivableBaseAmount = decimal.Zero
+		} else {
+			bucket.OverdueReceivableBaseAmount = bucket.OverdueReceivableBaseAmount.Round(8)
+		}
+	}
+	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
+
+	items, err := query.WithBatch().WithOrganization().Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
@@ -125,19 +246,22 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 		}
 		result.Items = append(result.Items, converted)
 	}
-	if err := r.enrichVerificationAmounts(ctx, result.Items); err != nil {
+	if err := r.enrichVerificationAmounts(ctx, result.Items, currentBusinessDate); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceBill, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
-		Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).Only(ctx)
+	query := client.FinanceBill.Query().WithOrganization().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs))
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForUpdate()
+	}
+	item, err := r.financeBillQueryWithLines(query).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
@@ -145,13 +269,13 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID)
 	if err != nil {
 		return nil, err
 	}
-	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}); err != nil {
+	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}, time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")); err != nil {
 		return nil, err
 	}
 	return converted, nil
 }
 
-func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills []*biz.FinanceBill) error {
+func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills []*biz.FinanceBill, currentBusinessDate string) error {
 	if len(bills) == 0 {
 		return nil
 	}
@@ -161,6 +285,7 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		ids = append(ids, bill.ID)
 		byID[bill.ID] = bill
 		bill.VerifiedAmount = decimal.Zero
+		bill.NettedAmount = decimal.Zero
 		bill.UnverifiedAmount = bill.TotalAmount
 	}
 	client, err := r.data.client(ctx)
@@ -179,12 +304,21 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		bill := byID[allocation.BillID]
 		bill.VerifiedAmount = bill.VerifiedAmount.Add(amount)
 	}
+	nettedSums, err := loadFinanceBillNettedAmounts(ctx, client, ids)
+	if err != nil {
+		return err
+	}
+	// 未核销余额 = 总额 - 有效核销 - 有效对冲；普通资金核销只处理抵销后的剩余余额。
+	// 展示侧负值钳零；SQL 侧未结清谓词（billUnsettledPredicate）以原值比较，两处口径须同步维护。
+	// currentBusinessDate 由调用方传入：列表场景与筛选谓词共用同一业务日，避免跨上海午夜的不一致。
 	for _, bill := range bills {
 		bill.VerifiedAmount = bill.VerifiedAmount.Round(8)
-		bill.UnverifiedAmount = bill.TotalAmount.Sub(bill.VerifiedAmount).Round(8)
+		bill.NettedAmount = nettedSums[bill.ID].Round(8)
+		bill.UnverifiedAmount = bill.TotalAmount.Sub(bill.VerifiedAmount).Sub(bill.NettedAmount).Round(8)
 		if bill.UnverifiedAmount.IsNegative() {
 			bill.UnverifiedAmount = decimal.Zero
 		}
+		bill.OverdueDays = biz.CalculateOverdueDays(bill.Direction, bill.Status, bill.UnverifiedAmount, bill.DueDate, currentBusinessDate)
 	}
 	return nil
 }
@@ -194,7 +328,7 @@ func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
+	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query().WithOrganization()).
 		Where(financebillent.OrganizationIDEQ(organizationID), financebillent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
@@ -206,7 +340,11 @@ func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationI
 }
 
 func (r *financeBillRepo) GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*biz.FinanceBillBatch, error) {
-	item, err := r.financeBillBatchQuery(r.data.db.FinanceBillBatch.Query()).Where(financebillbatchent.OrganizationIDEQ(organizationID), financebillbatchent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillBatchQuery(client.FinanceBillBatch.Query()).Where(financebillbatchent.OrganizationIDEQ(organizationID), financebillbatchent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	}
@@ -218,27 +356,35 @@ func (r *financeBillRepo) GetBatchByIdempotencyKey(ctx context.Context, organiza
 
 func (r *financeBillRepo) financeBillBatchQuery(query *ent.FinanceBillBatchQuery) *ent.FinanceBillBatchQuery {
 	return query.WithBills(func(query *ent.FinanceBillQuery) {
-		query.WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
+		query.WithOrganization().WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
 			lineQuery.WithOrder().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
 		}).Order(financebillent.ByCreatedAt(), financebillent.ByID())
+	}).WithNettings(func(nettingQuery *ent.FinanceNettingQuery) {
+		nettingQuery.WithAllocations(func(allocationQuery *ent.FinanceNettingAllocationQuery) {
+			allocationQuery.Order(financenettingallocationent.ByCreatedAt(), financenettingallocationent.ByID())
+		}).Order(financenettingent.ByCreatedAt(), financenettingent.ByID())
 	})
 }
 
-func (r *financeBillRepo) getBatch(ctx context.Context, organizationID, batchID uuid.UUID) (*biz.FinanceBillBatch, error) {
-	item, err := r.financeBillBatchQuery(r.data.db.FinanceBillBatch.Query()).Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *financeBillRepo) GetBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID uuid.UUID) (*biz.FinanceBillBatch, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillBatchQuery(client.FinanceBillBatch.Query()).Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
 	return financeBillBatchToBiz(item)
 }
 
-func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		_, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		batch, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
-		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDEQ(organizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
+		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
 		}
@@ -247,6 +393,9 @@ func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batc
 		}
 		now := time.Now().UTC()
 		for _, bill := range bills {
+			if bill.OrganizationID != batch.OrganizationID {
+				return biz.ErrFinanceBillBatchMismatch
+			}
 			expected, exists := expectedVersions[bill.ID]
 			if !exists {
 				return biz.ErrFinanceBillBatchMismatch
@@ -265,7 +414,11 @@ func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batc
 	}); err != nil {
 		return nil, err
 	}
-	return r.getBatch(ctx, organizationID, batchID)
+	return r.GetBatch(ctx, organizationIDs, batchID)
+}
+
+func financeBillOrganizationScopePredicate(organizationIDs []uuid.UUID) predicate.FinanceBill {
+	return financebillent.OrganizationIDIn(organizationIDs...)
 }
 
 func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery) *ent.FinanceBillQuery {
@@ -275,13 +428,21 @@ func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery)
 }
 
 func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
+	return r.LoadBillableFeesScoped(ctx, []uuid.UUID{organizationID}, feeIDs)
+}
+
+func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	items, err := client.OrderFee.Query().
-		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).
-		WithSettlementParty().WithOrder().All(ctx)
+	query := client.OrderFee.Query().
+		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDIn(organizationIDs...))).
+		WithSettlementParty().WithOrder().Order(orderfeeent.ByID())
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForUpdate()
+	}
+	items, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +456,129 @@ func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID u
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
+		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
+	}
+	return result, nil
+}
+
+func (r *financeBillRepo) ValidateBillCurrencies(ctx context.Context, currencies []string) error {
+	if len(currencies) == 0 {
+		return biz.ErrExchangeRateCurrencyInvalid
+	}
+	unique := make(map[string]struct{}, len(currencies))
+	for _, currency := range currencies {
+		unique[currency] = struct{}{}
+	}
+	codes := make([]string, 0, len(unique))
+	for currency := range unique {
+		codes = append(codes, currency)
+	}
+	sort.Strings(codes)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	query := client.Currency.Query().Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Order(currencyent.ByCode())
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	items, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(items) != len(codes) {
+		return biz.ErrExchangeRateCurrencyInvalid
+	}
+	return nil
+}
+
+func (r *financeBillRepo) HydrateBillSettlementAccounts(ctx context.Context, bills []*biz.FinanceBill) error {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	accountIDs := make([]uuid.UUID, 0, len(bills))
+	seen := make(map[uuid.UUID]struct{}, len(bills))
+	for _, bill := range bills {
+		if bill == nil || bill.SettlementAccountID == uuid.Nil || bill.OrganizationID == uuid.Nil || bill.SettlementPartyID == uuid.Nil || len(bill.Currency) != 3 {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		if _, exists := seen[bill.SettlementAccountID]; !exists {
+			seen[bill.SettlementAccountID] = struct{}{}
+			accountIDs = append(accountIDs, bill.SettlementAccountID)
+		}
+	}
+	sort.Slice(accountIDs, func(i, j int) bool { return accountIDs[i].String() < accountIDs[j].String() })
+	query := client.PartnerAccount.Query().Where(partneraccountent.IDIn(accountIDs...)).WithPartner().Order(partneraccountent.ByID())
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	accounts, err := query.All(ctx)
+	if err != nil {
+		return mapEntError(err, nil, biz.ErrFinanceBillSettlementAccountInvalid)
+	}
+	accountsByID := make(map[uuid.UUID]*ent.PartnerAccount, len(accounts))
+	for _, account := range accounts {
+		accountsByID[account.ID] = account
+	}
+	for _, bill := range bills {
+		account := accountsByID[bill.SettlementAccountID]
+		if account == nil || account.PartnerID != bill.SettlementPartyID || account.Currency != bill.Currency || !account.Enabled {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		partner, edgeErr := account.Edges.PartnerOrErr()
+		if edgeErr != nil || partner.OrganizationID != bill.OrganizationID {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		expectedUsage := partneraccountent.UsageRECEIVABLE
+		if bill.Direction == biz.OrderFeePayable {
+			expectedUsage = partneraccountent.UsagePAYABLE
+		}
+		if account.Usage != expectedUsage && account.Usage != partneraccountent.UsageBOTH {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		bill.SettlementAccountName = account.Name
+		bill.SettlementAccountHolder = account.AccountHolder
+		bill.SettlementBankName = account.BankName
+		bill.SettlementBankAccount = account.AccountNo
+		bill.SettlementAccountCurrency = account.Currency
+		bill.SettlementSwiftCode = account.SwiftCode
+	}
+	return nil
+}
+
+func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceBillCreationCandidateFilter) (*biz.FinanceBillCreationCandidateResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.OrderFee{orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(financebilllineent.ActiveEQ(true)))}
+	if filter.Keyword != "" {
+		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
+	}
+	if filter.Direction != "" {
+		predicates = append(predicates, orderfeeent.DirectionEQ(orderfeeent.Direction(filter.Direction)))
+	}
+	query := client.OrderFee.Query().Where(predicates...)
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.WithSettlementParty().WithOrder().Order(orderfeeent.ByExpenseDate(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.FinanceBillCreationCandidateResult{Items: make([]*biz.FinanceBillableFee, 0, len(items)), Total: int64(total)}
+	for _, item := range items {
+		fee, e := orderFeeToBiz(item)
+		if e != nil {
+			return nil, e
+		}
+		order, e := item.Edges.OrderOrErr()
+		if e != nil {
+			return nil, e
+		}
+		result.Items = append(result.Items, &biz.FinanceBillableFee{Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType)})
 	}
 	return result, nil
 }
@@ -328,6 +611,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		if active {
 			return biz.ErrFinanceBillFeeInvalid
 		}
+		if err = hydrateFinanceBillSettlementAccount(ctx, tx, bill); err != nil {
+			return err
+		}
 		now := time.Now().UTC()
 		billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
 		if err != nil {
@@ -342,6 +628,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 			SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
 			SetNillableBatchID(bill.BatchID).
 			SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
+			SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).
 			SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).
 			SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
 			SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
@@ -354,7 +641,8 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 				SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).
 				SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetQuantity(line.Quantity.StringFixed(4)).SetUnitPrice(line.UnitPrice.StringFixed(4)).
 				SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).
-				SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
+				SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).
+				SetActive(true))
 		}
 		if _, err = tx.FinanceBillLine.CreateBulk(builders...).Save(ctx); err != nil {
 			return mapEntError(err, nil, biz.ErrFinanceBillFeeInvalid)
@@ -373,10 +661,10 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 	if _, transactional := transactionFromContext(ctx); transactional {
 		return bill, nil
 	}
-	return r.Get(ctx, bill.OrganizationID, bill.ID)
+	return r.Get(ctx, []uuid.UUID{bill.OrganizationID}, bill.ID)
 }
 
-func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBillBatch, previewToken string, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBillBatch, _ string, audit *biz.AuditEvent, nettingAudits []*biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		feeIDs := make([]uuid.UUID, 0, batch.FeeCount)
 		expectedLines := make(map[uuid.UUID]*biz.FinanceBillLine, batch.FeeCount)
@@ -397,28 +685,11 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		if len(fees) != len(feeIDs) {
 			return biz.ErrFinanceBillFeeInvalid
 		}
-		lockedBillableFees := make([]*biz.FinanceBillableFee, 0, len(fees))
 		for _, fee := range fees {
 			line := expectedLines[fee.ID]
-			converted, convertErr := orderFeeToBiz(fee)
-			if convertErr != nil {
-				return convertErr
-			}
-			businessOrder, edgeErr := fee.Edges.OrderOrErr()
-			if edgeErr != nil {
-				return edgeErr
-			}
-			lockedBillableFees = append(lockedBillableFees, &biz.FinanceBillableFee{Fee: converted, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
-			if line == nil || fee.Status != orderfeeent.StatusCONFIRMED || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || fee.Status != orderfeeent.StatusCONFIRMED || fee.Currency != line.Currency || fee.BaseCurrency != line.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillPreviewStale
 			}
-		}
-		lockedPreview, err := biz.BuildFinanceBillBatchPreview(batch.OrganizationID, lockedBillableFees, batch.GroupingPolicy)
-		if err != nil {
-			return err
-		}
-		if lockedPreview.PreviewToken != previewToken {
-			return biz.ErrFinanceBillPreviewStale
 		}
 		active, err := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDIn(feeIDs...), financebilllineent.ActiveEQ(true)).Exist(ctx)
 		if err != nil {
@@ -426,6 +697,10 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		}
 		if active {
 			return biz.ErrFinanceBillFeeInvalid
+		}
+		// 与单张建账保持“费用 → 账户”的固定加锁顺序，避免批量与单张并发建账互相等待。
+		if err := hydrateFinanceBillSettlementAccounts(ctx, tx, batch.Bills); err != nil {
+			return err
 		}
 		now := time.Now().UTC()
 		batchRule, batchSequence, err := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeBillBatch, now)
@@ -436,7 +711,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		if err != nil {
 			return err
 		}
-		_, err = tx.FinanceBillBatch.Create().SetID(batch.ID).SetOrganizationID(batch.OrganizationID).SetBatchNo(batch.BatchNo).SetIdempotencyKey(batch.IdempotencyKey).SetRequestHash(batch.RequestHash).SetSplitByOrder(batch.GroupingPolicy.SplitByOrder).SetSplitByTaxRate(batch.GroupingPolicy.SplitByTaxRate).SetFeeCount(batch.FeeCount).SetBillCount(batch.BillCount).SetTotalBaseAmount(batch.TotalBaseAmount.StringFixed(8)).SetBaseCurrency(batch.BaseCurrency).SetCreatedBy(batch.CreatedBy).Save(ctx)
+		_, err = tx.FinanceBillBatch.Create().SetID(batch.ID).SetOrganizationID(batch.OrganizationID).SetBatchNo(batch.BatchNo).SetIdempotencyKey(batch.IdempotencyKey).SetRequestHash(batch.RequestHash).SetSplitByOrder(batch.GroupingPolicy.SplitByOrder).SetSplitByTaxRate(batch.GroupingPolicy.SplitByTaxRate).SetGroupingMode(financebillbatchent.GroupingMode(batch.GroupingPolicy.Mode)).SetFeeCount(batch.FeeCount).SetBillCount(batch.BillCount).SetTotalBaseAmount(batch.TotalBaseAmount.StringFixed(8)).SetBaseCurrency(batch.BaseCurrency).SetCreatedBy(batch.CreatedBy).Save(ctx)
 		if err != nil {
 			return mapEntError(err, nil, biz.ErrFinanceBillBatchConflict)
 		}
@@ -450,7 +725,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				return allocateErr
 			}
 			bill.BatchNo = batch.BatchNo
-			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 			if saveErr != nil {
 				return saveErr
 			}
@@ -469,6 +744,48 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		if affected != len(feeIDs) {
 			return biz.ErrFinanceBillFeeInvalid
 		}
+		billNos := make(map[uuid.UUID]string, len(batch.Bills))
+		for _, bill := range batch.Bills {
+			billNos[bill.ID] = bill.BillNo
+		}
+		for index, netting := range batch.Nettings {
+			nettingRule, nettingSequence, nettingErr := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeNetting, now)
+			if nettingErr != nil {
+				return nettingErr
+			}
+			netting.NettingNo, nettingErr = biz.FormatAllocatedNumber(now, nettingRule, nettingSequence, "")
+			if nettingErr != nil {
+				return nettingErr
+			}
+			if _, nettingErr = tx.FinanceNetting.Create().
+				SetID(netting.ID).SetOrganizationID(batch.OrganizationID).SetNettingNo(netting.NettingNo).
+				SetIdempotencyKey(netting.IdempotencyKey).SetRequestHash(batch.RequestHash).
+				SetBatchID(batch.ID).SetStatus(financenettingent.StatusDRAFT).
+				SetSettlementPartyID(netting.SettlementPartyID).SetSettlementPartyName(netting.SettlementPartyName).
+				SetCurrency(netting.Currency).SetAmount(netting.Amount.StringFixed(8)).
+				SetBaseCurrency(netting.BaseCurrency).SetBaseCurrencyAmount(netting.BaseCurrencyAmount.StringFixed(8)).
+				SetNillableNote(netting.Note).SetVersion(1).Save(ctx); nettingErr != nil {
+				return mapEntConstraint(nettingErr, "financenetting_organization_id_idempotency_key", biz.ErrFinanceNettingIdempotency)
+			}
+			allocationBuilders := make([]*ent.FinanceNettingAllocationCreate, 0, len(netting.Allocations))
+			for _, allocation := range netting.Allocations {
+				// 账单编号在仓储事务内分配；分摊快照在此固化同事务内的最终编号。
+				allocation.BillNo = billNos[allocation.BillID]
+				allocationBuilders = append(allocationBuilders, tx.FinanceNettingAllocation.Create().
+					SetID(allocation.ID).SetNettingID(netting.ID).SetBillID(allocation.BillID).SetBillNo(allocation.BillNo).
+					SetDirection(financenettingallocationent.Direction(allocation.Direction)).
+					SetAmount(allocation.Amount.StringFixed(8)).SetBaseCurrencyAmount(allocation.BaseCurrencyAmount.StringFixed(8)).
+					SetActive(false))
+			}
+			if _, nettingErr = tx.FinanceNettingAllocation.CreateBulk(allocationBuilders...).Save(ctx); nettingErr != nil {
+				return mapEntConstraint(nettingErr, "netting_allocation_pair_unique", biz.ErrFinanceNettingInvalid)
+			}
+			if index < len(nettingAudits) {
+				if auditErr := writeAudit(ctx, tx.AuditLog, nettingAudits[index]); auditErr != nil {
+					return auditErr
+				}
+			}
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
 		return nil, err
@@ -476,9 +793,9 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 	return r.GetBatchByIdempotencyKey(ctx, batch.OrganizationID, batch.IdempotencyKey)
 }
 
-func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -488,7 +805,11 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, 
 		if item.Status != financebillent.StatusDRAFT {
 			return biz.ErrFinanceBillInvalidTransition
 		}
-		update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
+		candidate := &biz.FinanceBill{OrganizationID: item.OrganizationID, SettlementPartyID: item.SettlementPartyID, Direction: biz.OrderFeeDirection(item.Direction), Currency: item.Currency, SettlementAccountID: input.SettlementAccountID}
+		if err = hydrateFinanceBillSettlementAccount(ctx, tx, candidate); err != nil {
+			return err
+		}
+		update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetSettlementAccountID(input.SettlementAccountID).SetSettlementAccountName(candidate.SettlementAccountName).SetSettlementAccountHolder(candidate.SettlementAccountHolder).SetSettlementBankName(candidate.SettlementBankName).SetSettlementBankAccount(candidate.SettlementBankAccount).SetSettlementAccountCurrency(candidate.SettlementAccountCurrency).SetSettlementSwiftCode(candidate.SettlementSwiftCode).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetTotalAmount(input.TotalAmount.StringFixed(8)).SetNetAmount(input.NetAmount.StringFixed(8)).SetTaxAmount(input.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
 		if input.ExchangeRateSettingID == nil {
 			update.ClearExchangeRateSettingID()
 		} else {
@@ -514,19 +835,47 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, 
 		} else {
 			update.SetPaymentTermsDays(*input.PaymentTermsDays)
 		}
+		if input.EstimatedInvoiceCurrency == nil || input.EstimatedInvoiceRate == nil || input.EstimatedInvoiceAmount == nil {
+			update.ClearEstimatedInvoiceCurrency().ClearEstimatedInvoiceRate().ClearEstimatedInvoiceAmount()
+		} else {
+			update.SetEstimatedInvoiceCurrency(*input.EstimatedInvoiceCurrency).SetEstimatedInvoiceRate(input.EstimatedInvoiceRate.StringFixed(8)).SetEstimatedInvoiceAmount(input.EstimatedInvoiceAmount.StringFixed(8))
+		}
 		if _, err = update.Save(ctx); err != nil {
 			return err
+		}
+		lockedLines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(input.ID), financebilllineent.ActiveEQ(true)).Order(financebilllineent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(lockedLines) != len(input.Lines) {
+			return biz.ErrFinanceBillBatchMismatch
+		}
+		byID := make(map[uuid.UUID]*biz.FinanceBillLine, len(input.Lines))
+		for _, line := range input.Lines {
+			byID[line.ID] = line
+		}
+		for _, stored := range lockedLines {
+			line := byID[stored.ID]
+			if line == nil || line.OrderFeeID != stored.OrderFeeID {
+				return biz.ErrFinanceBillBatchMismatch
+			}
+			lineUpdate := tx.FinanceBillLine.UpdateOneID(stored.ID).
+				SetUnitPrice(line.UnitPrice.StringFixed(4)).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetCurrency(line.Currency).
+				SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8))
+			if _, err = lineUpdate.Save(ctx); err != nil {
+				return err
+			}
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, input.ID)
+	return r.Get(ctx, organizationIDs, input.ID)
 }
 
-func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -544,12 +893,12 @@ func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actor
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationIDs, id)
 }
 
-func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
+func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
@@ -573,6 +922,19 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 		if verified {
 			return biz.ErrFinanceBillInvalidTransition
 		}
+		netted, err := tx.FinanceNettingAllocation.Query().Where(
+			financenettingallocationent.BillIDEQ(id),
+			financenettingallocationent.Or(
+				financenettingallocationent.ActiveEQ(true),
+				financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)),
+			),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if netted {
+			return biz.ErrFinanceBillInvalidTransition
+		}
 		lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().All(ctx)
 		if err != nil {
 			return err
@@ -584,6 +946,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 		for _, line := range lines {
 			feeIDs = append(feeIDs, line.OrderFeeID)
 		}
+		sort.Slice(feeIDs, func(i, j int) bool { return feeIDs[i].String() < feeIDs[j].String() })
 		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).ForUpdate().All(ctx)
 		if err != nil {
 			return err
@@ -614,7 +977,61 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 	}); err != nil {
 		return nil, err
 	}
-	return r.Get(ctx, organizationID, id)
+	return r.Get(ctx, organizationIDs, id)
+}
+
+// hydrateFinanceBillSettlementAccount 在账单写事务内重读账户并固化快照，不能信任请求端传来的快照。
+func hydrateFinanceBillSettlementAccount(ctx context.Context, tx *ent.Tx, bill *biz.FinanceBill) error {
+	return hydrateFinanceBillSettlementAccounts(ctx, tx, []*biz.FinanceBill{bill})
+}
+
+// hydrateFinanceBillSettlementAccounts 先按账户主键固定顺序取得共享锁，再逐账单校验账户事实。
+// 这样批量建账不会按前端分组顺序与账户默认值切换形成反序锁等待。
+func hydrateFinanceBillSettlementAccounts(ctx context.Context, tx *ent.Tx, bills []*biz.FinanceBill) error {
+	accountIDs := make([]uuid.UUID, 0, len(bills))
+	seen := make(map[uuid.UUID]struct{}, len(bills))
+	for _, bill := range bills {
+		if bill == nil || bill.SettlementAccountID == uuid.Nil || bill.OrganizationID == uuid.Nil || bill.SettlementPartyID == uuid.Nil || (bill.Direction != biz.OrderFeeReceivable && bill.Direction != biz.OrderFeePayable) || len(bill.Currency) != 3 {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		if _, exists := seen[bill.SettlementAccountID]; !exists {
+			seen[bill.SettlementAccountID] = struct{}{}
+			accountIDs = append(accountIDs, bill.SettlementAccountID)
+		}
+	}
+	sort.Slice(accountIDs, func(i, j int) bool { return accountIDs[i].String() < accountIDs[j].String() })
+	accounts, err := tx.PartnerAccount.Query().Where(partneraccountent.IDIn(accountIDs...)).WithPartner().Order(partneraccountent.ByID()).ForShare().All(ctx)
+	if err != nil {
+		return mapEntError(err, nil, biz.ErrFinanceBillSettlementAccountInvalid)
+	}
+	accountsByID := make(map[uuid.UUID]*ent.PartnerAccount, len(accounts))
+	for _, account := range accounts {
+		accountsByID[account.ID] = account
+	}
+	for _, bill := range bills {
+		account := accountsByID[bill.SettlementAccountID]
+		if account == nil || account.PartnerID != bill.SettlementPartyID || account.Currency != bill.Currency || !account.Enabled {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		partner, partnerErr := account.Edges.PartnerOrErr()
+		if partnerErr != nil || partner.OrganizationID != bill.OrganizationID {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		usage := partneraccountent.UsageRECEIVABLE
+		if bill.Direction == biz.OrderFeePayable {
+			usage = partneraccountent.UsagePAYABLE
+		}
+		if account.Usage != usage && account.Usage != partneraccountent.UsageBOTH {
+			return biz.ErrFinanceBillSettlementAccountInvalid
+		}
+		bill.SettlementAccountName = account.Name
+		bill.SettlementAccountHolder = account.AccountHolder
+		bill.SettlementBankName = account.BankName
+		bill.SettlementBankAccount = account.AccountNo
+		bill.SettlementAccountCurrency = account.Currency
+		bill.SettlementSwiftCode = account.SwiftCode
+	}
+	return nil
 }
 
 func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
@@ -638,16 +1055,34 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	if err != nil {
 		return nil, err
 	}
+	var estimatedRate, estimatedAmount *decimal.Decimal
+	if item.EstimatedInvoiceRate != nil {
+		value, parseErr := decimalOf(*item.EstimatedInvoiceRate)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		estimatedRate = &value
+	}
+	if item.EstimatedInvoiceAmount != nil {
+		value, parseErr := decimalOf(*item.EstimatedInvoiceAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		estimatedAmount = &value
+	}
 	result := &biz.FinanceBill{
 		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, BillNo: item.BillNo, IdempotencyKey: item.IdempotencyKey,
 		Direction: biz.OrderFeeDirection(item.Direction), Status: biz.FinanceBillStatus(item.Status),
-		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName,
+		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName, SettlementAccountID: item.SettlementAccountID, SettlementAccountName: item.SettlementAccountName, SettlementAccountHolder: item.SettlementAccountHolder, SettlementBankName: item.SettlementBankName, SettlementBankAccount: item.SettlementBankAccount, SettlementAccountCurrency: item.SettlementAccountCurrency, SettlementSwiftCode: item.SettlementSwiftCode, EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: estimatedRate, EstimatedInvoiceAmount: estimatedAmount,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount,
 		ExchangeRate: exchangeRate, ExchangeRateSource: string(item.ExchangeRateSource), ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingID: item.ExchangeRateSettingID,
 		BaseCurrencyAmount: baseAmount, FeeCount: item.FeeCount, BillDate: item.BillDate, StatementTitle: item.StatementTitle, PaymentTermsDays: item.PaymentTermsDays, DueDate: item.DueDate, Note: item.Note,
 		Version: item.Version, ConfirmedAt: item.ConfirmedAt, ConfirmedBy: item.ConfirmedBy, CancelledAt: item.CancelledAt,
 		CancelledBy: item.CancelledBy, CancellationReason: item.CancellationReason, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
 		Lines: make([]*biz.FinanceBillLine, 0, len(item.Edges.Lines)),
+	}
+	if organization, edgeErr := item.Edges.OrganizationOrErr(); edgeErr == nil {
+		result.OrganizationName = organization.Name
 	}
 	if batchItem, edgeErr := item.Edges.BatchOrErr(); edgeErr == nil {
 		result.BatchNo = batchItem.BatchNo
@@ -716,7 +1151,7 @@ func financeBillBatchToBiz(item *ent.FinanceBillBatch) (*biz.FinanceBillBatch, e
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceBillBatch{ID: item.ID, OrganizationID: item.OrganizationID, CreatedBy: item.CreatedBy, BatchNo: item.BatchNo, IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, GroupingPolicy: biz.FinanceBillGroupingPolicy{SplitByOrder: item.SplitByOrder, SplitByTaxRate: item.SplitByTaxRate}, FeeCount: item.FeeCount, BillCount: item.BillCount, TotalBaseAmount: totalBaseAmount, BaseCurrency: item.BaseCurrency, Bills: make([]*biz.FinanceBill, 0, len(item.Edges.Bills)), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	result := &biz.FinanceBillBatch{ID: item.ID, OrganizationID: item.OrganizationID, CreatedBy: item.CreatedBy, BatchNo: item.BatchNo, IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: string(item.GroupingMode), SplitByOrder: item.SplitByOrder, SplitByTaxRate: item.SplitByTaxRate}, FeeCount: item.FeeCount, BillCount: item.BillCount, TotalBaseAmount: totalBaseAmount, BaseCurrency: item.BaseCurrency, Bills: make([]*biz.FinanceBill, 0, len(item.Edges.Bills)), Nettings: make([]*biz.FinanceNetting, 0, len(item.Edges.Nettings)), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 	for _, billItem := range item.Edges.Bills {
 		bill, convertErr := financeBillToBiz(billItem)
 		if convertErr != nil {
@@ -724,6 +1159,14 @@ func financeBillBatchToBiz(item *ent.FinanceBillBatch) (*biz.FinanceBillBatch, e
 		}
 		bill.BatchNo = item.BatchNo
 		result.Bills = append(result.Bills, bill)
+	}
+	for _, nettingItem := range item.Edges.Nettings {
+		netting, convertErr := financeNettingToBiz(nettingItem)
+		if convertErr != nil {
+			return nil, convertErr
+		}
+		netting.BatchNo = item.BatchNo
+		result.Nettings = append(result.Nettings, netting)
 	}
 	return result, nil
 }
@@ -745,3 +1188,32 @@ func financeDecimalStringEqual(stored *string, expected *decimal.Decimal, scale 
 }
 
 var _ biz.FinanceBillRepo = (*financeBillRepo)(nil)
+
+// billUnsettledPredicate 是「未结清」的 SQL 侧定义：总额 > 有效核销 + 有效对冲（原值比较，不钳负）。
+// 展示侧的等价定义在 enrichVerificationAmounts（UnverifiedAmount 负值钳零），两处口径须同步维护。
+func billUnsettledPredicate() predicate.FinanceBill {
+	return func(selector *entsql.Selector) {
+		billID := selector.C(financebillent.FieldID)
+		totalAmount := selector.C(financebillent.FieldTotalAmount)
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			builder.WriteString("(")
+			builder.Ident(totalAmount)
+			builder.WriteString(" > (COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva WHERE fva.bill_id = ")
+			builder.Ident(billID)
+			builder.WriteString(" AND fva.active = TRUE), 0) + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna WHERE fna.bill_id = ")
+			builder.Ident(billID)
+			builder.WriteString(" AND fna.active = TRUE), 0)))")
+		}))
+	}
+}
+
+func billOverduePredicate(businessDate string) predicate.FinanceBill {
+	return financebillent.And(
+		financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
+		financebillent.StatusEQ(financebillent.StatusCONFIRMED),
+		financebillent.DueDateNotNil(),
+		financebillent.DueDateNEQ(""),
+		financebillent.DueDateLT(businessDate),
+		billUnsettledPredicate(),
+	)
+}

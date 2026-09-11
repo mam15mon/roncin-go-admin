@@ -14,33 +14,33 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // SeaMasterBillVersionQuery is the builder for querying SeaMasterBillVersion entities.
 type SeaMasterBillVersionQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []seamasterbillversion.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.SeaMasterBillVersion
-	withOrganization       *OrganizationQuery
-	withMasterBill         *SeaMasterBillQuery
-	withIssuerPartner      *PartnerQuery
-	withTransportExecution *SeaTransportExecutionQuery
-	withCreator            *UserQuery
-	withLockRecords        *OrderLockRecordQuery
-	withVoidEvents         *SeaDocumentVoidEventQuery
-	withPreviousVoidEvents *SeaDocumentVoidEventQuery
-	modifiers              []func(*sql.Selector)
+	ctx                        *QueryContext
+	order                      []seamasterbillversion.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.SeaMasterBillVersion
+	withOrganization           *OrganizationQuery
+	withMasterBill             *SeaMasterBillQuery
+	withShippingLine           *ShippingLineQuery
+	withCreator                *UserQuery
+	withConfirmationAttachment *OrderAttachmentQuery
+	withLockRecords            *OrderLockRecordQuery
+	withVoidEvents             *SeaDocumentVoidEventQuery
+	withPreviousVoidEvents     *SeaDocumentVoidEventQuery
+	modifiers                  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -121,9 +121,9 @@ func (_q *SeaMasterBillVersionQuery) QueryMasterBill() *SeaMasterBillQuery {
 	return query
 }
 
-// QueryIssuerPartner chains the current query on the "issuer_partner" edge.
-func (_q *SeaMasterBillVersionQuery) QueryIssuerPartner() *PartnerQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// QueryShippingLine chains the current query on the "shipping_line" edge.
+func (_q *SeaMasterBillVersionQuery) QueryShippingLine() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -134,30 +134,8 @@ func (_q *SeaMasterBillVersionQuery) QueryIssuerPartner() *PartnerQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
-			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.IssuerPartnerTable, seamasterbillversion.IssuerPartnerColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryTransportExecution chains the current query on the "transport_execution" edge.
-func (_q *SeaMasterBillVersionQuery) QueryTransportExecution() *SeaTransportExecutionQuery {
-	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
-			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.TransportExecutionTable, seamasterbillversion.TransportExecutionColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ShippingLineTable, seamasterbillversion.ShippingLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -180,6 +158,28 @@ func (_q *SeaMasterBillVersionQuery) QueryCreator() *UserQuery {
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.CreatorTable, seamasterbillversion.CreatorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfirmationAttachment chains the current query on the "confirmation_attachment" edge.
+func (_q *SeaMasterBillVersionQuery) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ConfirmationAttachmentTable, seamasterbillversion.ConfirmationAttachmentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -440,19 +440,19 @@ func (_q *SeaMasterBillVersionQuery) Clone() *SeaMasterBillVersionQuery {
 		return nil
 	}
 	return &SeaMasterBillVersionQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]seamasterbillversion.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.SeaMasterBillVersion{}, _q.predicates...),
-		withOrganization:       _q.withOrganization.Clone(),
-		withMasterBill:         _q.withMasterBill.Clone(),
-		withIssuerPartner:      _q.withIssuerPartner.Clone(),
-		withTransportExecution: _q.withTransportExecution.Clone(),
-		withCreator:            _q.withCreator.Clone(),
-		withLockRecords:        _q.withLockRecords.Clone(),
-		withVoidEvents:         _q.withVoidEvents.Clone(),
-		withPreviousVoidEvents: _q.withPreviousVoidEvents.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]seamasterbillversion.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.SeaMasterBillVersion{}, _q.predicates...),
+		withOrganization:           _q.withOrganization.Clone(),
+		withMasterBill:             _q.withMasterBill.Clone(),
+		withShippingLine:           _q.withShippingLine.Clone(),
+		withCreator:                _q.withCreator.Clone(),
+		withConfirmationAttachment: _q.withConfirmationAttachment.Clone(),
+		withLockRecords:            _q.withLockRecords.Clone(),
+		withVoidEvents:             _q.withVoidEvents.Clone(),
+		withPreviousVoidEvents:     _q.withPreviousVoidEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -481,25 +481,14 @@ func (_q *SeaMasterBillVersionQuery) WithMasterBill(opts ...func(*SeaMasterBillQ
 	return _q
 }
 
-// WithIssuerPartner tells the query-builder to eager-load the nodes that are connected to
-// the "issuer_partner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaMasterBillVersionQuery) WithIssuerPartner(opts ...func(*PartnerQuery)) *SeaMasterBillVersionQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// WithShippingLine tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillVersionQuery) WithShippingLine(opts ...func(*ShippingLineQuery)) *SeaMasterBillVersionQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withIssuerPartner = query
-	return _q
-}
-
-// WithTransportExecution tells the query-builder to eager-load the nodes that are connected to
-// the "transport_execution" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaMasterBillVersionQuery) WithTransportExecution(opts ...func(*SeaTransportExecutionQuery)) *SeaMasterBillVersionQuery {
-	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withTransportExecution = query
+	_q.withShippingLine = query
 	return _q
 }
 
@@ -511,6 +500,17 @@ func (_q *SeaMasterBillVersionQuery) WithCreator(opts ...func(*UserQuery)) *SeaM
 		opt(query)
 	}
 	_q.withCreator = query
+	return _q
+}
+
+// WithConfirmationAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "confirmation_attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillVersionQuery) WithConfirmationAttachment(opts ...func(*OrderAttachmentQuery)) *SeaMasterBillVersionQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmationAttachment = query
 	return _q
 }
 
@@ -628,9 +628,9 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withMasterBill != nil,
-			_q.withIssuerPartner != nil,
-			_q.withTransportExecution != nil,
+			_q.withShippingLine != nil,
 			_q.withCreator != nil,
+			_q.withConfirmationAttachment != nil,
 			_q.withLockRecords != nil,
 			_q.withVoidEvents != nil,
 			_q.withPreviousVoidEvents != nil,
@@ -669,21 +669,21 @@ func (_q *SeaMasterBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryH
 			return nil, err
 		}
 	}
-	if query := _q.withIssuerPartner; query != nil {
-		if err := _q.loadIssuerPartner(ctx, query, nodes, nil,
-			func(n *SeaMasterBillVersion, e *Partner) { n.Edges.IssuerPartner = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withTransportExecution; query != nil {
-		if err := _q.loadTransportExecution(ctx, query, nodes, nil,
-			func(n *SeaMasterBillVersion, e *SeaTransportExecution) { n.Edges.TransportExecution = e }); err != nil {
+	if query := _q.withShippingLine; query != nil {
+		if err := _q.loadShippingLine(ctx, query, nodes, nil,
+			func(n *SeaMasterBillVersion, e *ShippingLine) { n.Edges.ShippingLine = e }); err != nil {
 			return nil, err
 		}
 	}
 	if query := _q.withCreator; query != nil {
 		if err := _q.loadCreator(ctx, query, nodes, nil,
 			func(n *SeaMasterBillVersion, e *User) { n.Edges.Creator = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmationAttachment; query != nil {
+		if err := _q.loadConfirmationAttachment(ctx, query, nodes, nil,
+			func(n *SeaMasterBillVersion, e *OrderAttachment) { n.Edges.ConfirmationAttachment = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -775,11 +775,11 @@ func (_q *SeaMasterBillVersionQuery) loadMasterBill(ctx context.Context, query *
 	}
 	return nil
 }
-func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, query *PartnerQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *Partner)) error {
+func (_q *SeaMasterBillVersionQuery) loadShippingLine(ctx context.Context, query *ShippingLineQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *ShippingLine)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*SeaMasterBillVersion)
 	for i := range nodes {
-		fk := nodes[i].IssuerPartnerID
+		fk := nodes[i].ShippingLineID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -788,7 +788,7 @@ func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, quer
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(partner.IDIn(ids...))
+	query.Where(shippingline.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -796,36 +796,7 @@ func (_q *SeaMasterBillVersionQuery) loadIssuerPartner(ctx context.Context, quer
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "issuer_partner_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *SeaMasterBillVersionQuery) loadTransportExecution(ctx context.Context, query *SeaTransportExecutionQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *SeaTransportExecution)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*SeaMasterBillVersion)
-	for i := range nodes {
-		fk := nodes[i].TransportExecutionID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(seatransportexecution.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "transport_execution_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "shipping_line_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -858,6 +829,38 @@ func (_q *SeaMasterBillVersionQuery) loadCreator(ctx context.Context, query *Use
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *SeaMasterBillVersionQuery) loadConfirmationAttachment(ctx context.Context, query *OrderAttachmentQuery, nodes []*SeaMasterBillVersion, init func(*SeaMasterBillVersion), assign func(*SeaMasterBillVersion, *OrderAttachment)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaMasterBillVersion)
+	for i := range nodes {
+		if nodes[i].ConfirmationAttachmentID == nil {
+			continue
+		}
+		fk := *nodes[i].ConfirmationAttachmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderattachment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "confirmation_attachment_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -999,14 +1002,14 @@ func (_q *SeaMasterBillVersionQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withMasterBill != nil {
 			_spec.Node.AddColumnOnce(seamasterbillversion.FieldMasterBillID)
 		}
-		if _q.withIssuerPartner != nil {
-			_spec.Node.AddColumnOnce(seamasterbillversion.FieldIssuerPartnerID)
-		}
-		if _q.withTransportExecution != nil {
-			_spec.Node.AddColumnOnce(seamasterbillversion.FieldTransportExecutionID)
+		if _q.withShippingLine != nil {
+			_spec.Node.AddColumnOnce(seamasterbillversion.FieldShippingLineID)
 		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(seamasterbillversion.FieldCreatedBy)
+		}
+		if _q.withConfirmationAttachment != nil {
+			_spec.Node.AddColumnOnce(seamasterbillversion.FieldConfirmationAttachmentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

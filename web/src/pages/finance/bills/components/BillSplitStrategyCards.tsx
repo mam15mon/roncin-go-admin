@@ -1,4 +1,14 @@
-import { Alert, Card, Col, Descriptions, Row, Space, Switch, Typography } from 'antd';
+import {
+  Alert,
+  Card,
+  Col,
+  Descriptions,
+  Row,
+  Space,
+  Switch,
+  Tag,
+  Typography,
+} from 'antd';
 import React from 'react';
 
 const { Text, Title } = Typography;
@@ -25,10 +35,30 @@ export default function BillSplitStrategyCards({
         type="info"
         showIcon
         style={{ marginBottom: 20 }}
-        title="收付方向、结算单位、原币和本币始终是强制拆单维度"
-        description="不同强制维度的费用绝不会进入同一张账单。下面两个开关只控制额外拆分，不会放宽服务端的财务边界。"
+        title="普通账单按单一收付方向创建；结算单位始终是不可关闭的边界"
+        description="不同结算单位绝不会进入同一张账单。币种、税率和订单只控制额外拆分，不会放宽服务端的财务边界。"
       />
       <Row gutter={[24, 16]}>
+        <Col xs={24} lg={12}>
+          <Card size="small" title="按结算单位拆分">
+            <Space vertical>
+              <Tag color="blue">固定边界，不可关闭</Tag>
+              <Text type="secondary">
+                不同结算单位必须分别生成账单；这不是可选拆分项。
+              </Text>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card size="small" title="按币种拆分">
+            <Space vertical>
+              <Tag color="blue">固定边界，不可关闭</Tag>
+              <Text type="secondary">
+                每个普通账单叶子只包含一种费用币种，账单币种固定等于该费用币种。
+              </Text>
+            </Space>
+          </Card>
+        </Col>
         <Col xs={24} lg={12}>
           <Card size="small" title="按订单拆分">
             <Space vertical>

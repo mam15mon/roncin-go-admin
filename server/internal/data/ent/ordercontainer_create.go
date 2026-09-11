@@ -14,7 +14,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
 )
 
 // OrderContainerCreate is the builder for creating a OrderContainer entity.
@@ -158,21 +157,6 @@ func (_c *OrderContainerCreate) SetOrganization(v *Organization) *OrderContainer
 // SetOrder sets the "order" edge to the Order entity.
 func (_c *OrderContainerCreate) SetOrder(v *Order) *OrderContainerCreate {
 	return _c.SetOrderID(v.ID)
-}
-
-// AddCargoAllocationIDs adds the "cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_c *OrderContainerCreate) AddCargoAllocationIDs(ids ...uuid.UUID) *OrderContainerCreate {
-	_c.mutation.AddCargoAllocationIDs(ids...)
-	return _c
-}
-
-// AddCargoAllocations adds the "cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_c *OrderContainerCreate) AddCargoAllocations(v ...*SeaCargoAllocation) *OrderContainerCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddCargoAllocationIDs(ids...)
 }
 
 // Mutation returns the OrderContainerMutation object of the builder.
@@ -403,22 +387,6 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrderID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.CargoAllocationsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   ordercontainer.CargoAllocationsTable,
-			Columns: []string{ordercontainer.CargoAllocationsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

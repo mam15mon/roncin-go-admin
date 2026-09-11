@@ -10,16 +10,18 @@ import (
 
 type exchangeRateRepoStub struct {
 	ExchangeRateRepo
-	rateContext        *ExchangeRateContext
-	timeStandards      []*ExchangeRateTimeStandardSetting
-	resolved           *ResolvedExchangeRate
-	resolveErr         error
-	resolvedByType     map[string]*ResolvedExchangeRate
-	resolveErrByType   map[string]error
-	resolveTypes       []string
-	customSetting      *ExchangeRateCustomSetting
-	savedCustomSetting *ExchangeRateCustomSetting
-	savedExpected      uint64
+	rateContext          *ExchangeRateContext
+	timeStandards        []*ExchangeRateTimeStandardSetting
+	resolved             *ResolvedExchangeRate
+	resolveErr           error
+	resolvedByType       map[string]*ResolvedExchangeRate
+	resolveErrByType     map[string]error
+	resolvedByCurrency   map[string]*ResolvedExchangeRate
+	resolveErrByCurrency map[string]error
+	resolveTypes         []string
+	customSetting        *ExchangeRateCustomSetting
+	savedCustomSetting   *ExchangeRateCustomSetting
+	savedExpected        uint64
 }
 
 func (s *exchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*ExchangeRateContext, error) {
@@ -60,8 +62,11 @@ func (s *exchangeRateRepoStub) SaveCustomSetting(_ context.Context, setting *Exc
 	return setting, nil
 }
 
-func (s *exchangeRateRepoStub) Resolve(_ context.Context, _ uuid.UUID, rateType string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
+func (s *exchangeRateRepoStub) Resolve(_ context.Context, _ uuid.UUID, rateType string, _ OrderFeeDirection, fromCurrency, _, _ string) (*ResolvedExchangeRate, error) {
 	s.resolveTypes = append(s.resolveTypes, rateType)
+	if s.resolvedByCurrency != nil || s.resolveErrByCurrency != nil {
+		return s.resolvedByCurrency[fromCurrency], s.resolveErrByCurrency[fromCurrency]
+	}
 	if s.resolvedByType != nil || s.resolveErrByType != nil {
 		return s.resolvedByType[rateType], s.resolveErrByType[rateType]
 	}

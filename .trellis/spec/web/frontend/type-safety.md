@@ -74,3 +74,29 @@ item.kind === MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE;
 
 - TypeScript 严格模式，禁止 `any` 兜底绕过生成类型。
 - 提交前按风险运行 `pnpm --dir web tsc` 与 `pnpm --dir web biome:lint`。
+
+## 服务端布尔响应的零值省略陷阱
+
+### Convention: 判断后端 false 一律用 `!== true`，禁止 `=== false`
+
+**What**：服务端 `internal/server/jsoncodec.go` 的 protojson 未开启
+`EmitUnpopulated`，**非 optional 布尔字段为 false 时会在 JSON 响应中被整体省略**，
+前端拿到的是 `undefined` 而不是 `false`。因此对后端布尔的严格 `=== false`
+比较永远不成立，构成死分支。
+
+**Why**：proto3 标量字段默认不序列化零值。已实际踩中：`can_modify`（订单
+「已锁单」标签死分支）与 `configuration_complete`（建账工作台三处配置守卫死分支）。
+
+**Example**：
+
+```tsx
+// 错误：false 被省略成 undefined，条件永不成立
+{order.canModify === false && <Tag>已锁单</Tag>}
+
+// 正确
+{order.canModify !== true && <Tag>已锁单</Tag>}
+```
+
+**判定真值时用 truthy 即可**（`success`、`financeLocked` 等 true 才序列化的场景
+不受影响）；只有需要区分「明确 false」的分支必须用 `!== true`。新增后端响应
+布尔消费点时同步检查此规则。

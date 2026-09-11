@@ -13,7 +13,7 @@ import {
 import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface AirlineItem extends PersistedMasterDataItem {
-  awbPrefix: string;
+  awbPrefix?: string;
   icaoCode?: string;
   countryCode: string;
   countryName?: string;
@@ -24,8 +24,6 @@ const mapAirline = (item: API.Airline): AirlineItem => {
   if (
     !item.id ||
     !item.iataCode ||
-    !item.awbPrefix ||
-    !item.nameZh ||
     !item.nameEn ||
     !item.countryCode ||
     item.enabled === undefined ||
@@ -39,7 +37,7 @@ const mapAirline = (item: API.Airline): AirlineItem => {
     code: item.iataCode,
     icaoCode: item.icaoCode,
     awbPrefix: item.awbPrefix,
-    name: item.nameZh,
+    name: item.nameZh || item.nameEn,
     nameEn: item.nameEn,
     countryCode: item.countryCode,
     isCargoOnly: item.cargoOnly,
@@ -76,9 +74,9 @@ export default function AirlinesPanel() {
       masterDataServiceCreateAirline({
         iataCode: values.code.toUpperCase().trim(),
         icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-        nameZh: values.name.trim(),
+        nameZh: values.name?.trim() || undefined,
         nameEn: values.nameEn.trim(),
-        awbPrefix: values.awbPrefix.trim(),
+        awbPrefix: values.awbPrefix?.trim() || undefined,
         countryCode: values.countryCode.toUpperCase().trim(),
         cargoOnly: values.isCargoOnly === true,
         source: 'manual',
@@ -90,9 +88,9 @@ export default function AirlinesPanel() {
         {
           id,
           icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-          nameZh: values.name.trim(),
+          nameZh: values.name?.trim() || undefined,
           nameEn: values.nameEn.trim(),
-          awbPrefix: values.awbPrefix.trim(),
+          awbPrefix: values.awbPrefix?.trim() || undefined,
           countryCode: values.countryCode.toUpperCase().trim(),
           cargoOnly: values.isCargoOnly === true,
           source: record.source,
@@ -223,10 +221,9 @@ export default function AirlinesPanel() {
         {
           name: 'awbPrefix',
           label: '运单结算前缀 (3位)',
-          placeholder: '例如：999 (国航)、781 (东航)、160 (国泰)',
-          required: true,
+          placeholder: '例如：999 (国航)、112 (东航)、784 (南航)（可选）',
+          required: false,
           rules: [
-            { required: true, message: '请输入运单结算前缀' },
             { pattern: /^\d{3}$/, message: '运单前缀必须为3位纯数字' },
           ],
         },
@@ -244,8 +241,8 @@ export default function AirlinesPanel() {
         {
           name: 'name',
           label: '航司中文简称',
-          placeholder: '例如：中国国际航空、德国汉莎航空',
-          required: true,
+          placeholder: '例如：中国国际航空、德国汉莎航空（可选）',
+          required: false,
         },
         {
           name: 'nameEn',

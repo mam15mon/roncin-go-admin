@@ -1,11 +1,34 @@
 package biz
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type financeInvoiceCandidateRepoStub struct {
+	FinanceInvoiceRepo
+	organizationID  uuid.UUID
+	filter          FinanceInvoiceCreationBillFilter
+	billID          uuid.UUID
+	organizationIDs []uuid.UUID
+	err             error
+}
+
+func (s *financeInvoiceCandidateRepoStub) ListCreationBills(_ context.Context, organizationID uuid.UUID, filter FinanceInvoiceCreationBillFilter) (*FinanceInvoiceCreationBillListResult, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return &FinanceInvoiceCreationBillListResult{}, s.err
+}
+
+func (s *financeInvoiceCandidateRepoStub) ListProfilesForBill(_ context.Context, organizationIDs []uuid.UUID, billID uuid.UUID) (*FinanceInvoiceProfilesForBill, error) {
+	s.organizationIDs = append([]uuid.UUID(nil), organizationIDs...)
+	s.billID = billID
+	return &FinanceInvoiceProfilesForBill{}, s.err
+}
 
 func TestBuildFinanceInvoiceAggregatesConfirmedBills(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
@@ -39,5 +62,35 @@ func TestBuildFinanceInvoiceRejectsMixedParties(t *testing.T) {
 	_, err := buildFinanceInvoice(organizationID, bills, profile, CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceProfileID: profile.ID, InvoiceType: FinanceInvoiceNormal})
 	if err != ErrFinanceInvoiceBillMismatch {
 		t.Fatalf("混合结算单位应被拒绝，实际 %v", err)
+	}
+}
+
+func TestFinanceInvoiceCreationCandidatesValidateAndForwardScopedInputs(t *testing.T) {
+	repo := &financeInvoiceCandidateRepoStub{}
+	usecase := NewFinanceInvoiceUsecase(repo, nil, nil)
+	organizationID := uuid.New()
+	partyID := uuid.New()
+	if _, err := usecase.ListCreationBills(context.Background(), organizationID, FinanceInvoiceCreationBillFilter{
+		Page: 1, PageSize: 20, Keyword: "  客户  ", Direction: OrderFeeReceivable, SettlementPartyID: &partyID, Currency: "usd",
+	}); err != nil {
+		t.Fatalf("读取创建账单候选失败: %v", err)
+	}
+	if repo.organizationID != organizationID || repo.filter.Keyword != "客户" || repo.filter.Currency != "USD" || repo.filter.SettlementPartyID == nil || *repo.filter.SettlementPartyID != partyID {
+		t.Fatalf("候选参数未规范化转发: org=%s filter=%+v", repo.organizationID, repo.filter)
+	}
+	if _, err := usecase.ListCreationBills(context.Background(), uuid.Nil, FinanceInvoiceCreationBillFilter{Page: 1, PageSize: 20}); err != ErrFinanceInvoiceInvalidArgument {
+		t.Fatalf("空组织错误 = %v，期望 %v", err, ErrFinanceInvoiceInvalidArgument)
+	}
+	billID := uuid.New()
+	if _, err := usecase.ListProfilesForBill(context.Background(), []uuid.UUID{organizationID}, billID); err != nil {
+		t.Fatalf("读取源账单开票资料失败: %v", err)
+	}
+	if repo.billID != billID || len(repo.organizationIDs) != 1 || repo.organizationIDs[0] != organizationID {
+		t.Fatalf("资料查询未保留源账单和范围: bill=%s scope=%v", repo.billID, repo.organizationIDs)
+	}
+	databaseErr := errors.New("资料查询数据库故障")
+	repo.err = databaseErr
+	if _, err := usecase.ListProfilesForBill(context.Background(), []uuid.UUID{organizationID}, billID); !errors.Is(err, databaseErr) {
+		t.Fatalf("资料查询错误 = %v，期望原样返回 %v", err, databaseErr)
 	}
 }

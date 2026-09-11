@@ -25,16 +25,25 @@ func TestSeaDocumentChangeDTOConversions(t *testing.T) {
 	if version.GetId() != versionID.String() || version.GetDocumentType() != v1.SeaDocumentType_SEA_DOCUMENT_TYPE_HOUSE_BILL || version.GetSource() != v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT || version.GetContent().GetShipperText() != value {
 		t.Fatalf("不可变版本 DTO 映射错误: %+v", version)
 	}
-
-	oldID, newID, chainID := uuid.New(), uuid.New(), uuid.New()
-	sequence := 2
-	event := seaDocumentEventToAPI(&biz.SeaDocumentEvent{
-		ID: uuid.New(), EventType: biz.SeaDocumentEventTypeSwitch, DocumentType: biz.SeaDocumentTypeHouseBill,
-		OldHouseBillID: &oldID, NewHouseBillID: &newID, ChainID: &chainID, Sequence: &sequence,
-		Reason: "二次换单", CreatedAt: now,
+	shippingLineID := uuid.New()
+	masterVersion := seaDocumentVersionToAPI(&biz.SeaDocumentVersion{
+		ID: versionID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: documentID,
+		OrderID: orderID, MasterBillID: documentID, VersionNo: 1, SourceEntityVersion: 1,
+		DocumentNo: "MBL001", Status: "DRAFT", Source: biz.VersionSourceOrderLock,
+		ShippingLineID: &shippingLineID, ShippingLineName: "中远海运 / COSCO SHIPPING (COSU)", CreatedAt: now,
 	})
-	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_SWITCH || event.GetOldHouseBillId() != oldID.String() || event.GetNewHouseBillId() != newID.String() || event.GetSequence() != 2 {
-		t.Fatalf("Switch 事件 DTO 映射错误: %+v", event)
+	if masterVersion.GetShippingLineId() != shippingLineID.String() || masterVersion.GetShippingLineName() != "中远海运 / COSCO SHIPPING (COSU)" {
+		t.Fatalf("MBL 不可变版本船公司 DTO 映射错误: %+v", masterVersion)
+	}
+
+	previousMode, targetMode := biz.SeaDocumentStructureHouse, biz.SeaDocumentStructureDirect
+	event := seaDocumentEventToAPI(&biz.SeaDocumentEvent{
+		ID: uuid.New(), EventType: biz.SeaDocumentEventTypeModeChange, DocumentType: biz.SeaDocumentTypeHouseBill,
+		PreviousMode: &previousMode, TargetMode: &targetMode,
+		Reason: "模式切换", CreatedAt: now,
+	})
+	if event.GetEventType() != v1.SeaDocumentEventType_SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE || event.GetPreviousMode() != v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_HOUSE || event.GetTargetMode() != v1.SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_DIRECT {
+		t.Fatalf("ModeChange 事件 DTO 映射错误: %+v", event)
 	}
 }
 

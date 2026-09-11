@@ -43,7 +43,7 @@ describe('放货记录单证引用映射', () => {
   it('把真实 MBL/HBL 映射成显式类型与 ID', () => {
     const options = buildSeaReleasePodDocumentOptions({
       masterBill: { id: 'mbl-1', masterNo: 'MBL001' },
-      houseBills: [{ id: 'hbl-1', houseNo: 'HBL001' }],
+      houseBill: { id: 'hbl-1', houseNo: 'HBL001' },
     });
 
     expect(options).toEqual([

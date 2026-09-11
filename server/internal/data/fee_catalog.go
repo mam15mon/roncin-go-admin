@@ -18,7 +18,11 @@ type feeCatalogRepo struct{ data *Data }
 func NewFeeCatalogRepo(data *Data) biz.FeeCatalogRepo { return &feeCatalogRepo{data: data} }
 
 func (r *feeCatalogRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
-	return resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
 }
 
 func (r *feeCatalogRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
@@ -37,7 +41,11 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 	if err != nil {
 		return nil, err
 	}
-	query := r.data.db.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(headquartersID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(headquartersID))
 	if options.Keyword != "" {
 		query.Where(feesettingent.Or(feesettingent.FeeCodeContainsFold(options.Keyword), feesettingent.NameZhContainsFold(options.Keyword), feesettingent.NameEnContainsFold(options.Keyword), feesettingent.AliasNameContainsFold(options.Keyword), feesettingent.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -142,8 +150,12 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 }
 
 func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input *biz.FeeSetting) error {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
 	if input.ServiceTypeID != nil {
-		exists, err := r.data.db.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.ServiceTypeID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindServiceType), masterdataitement.EnabledEQ(true)).Exist(ctx)
+		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.ServiceTypeID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindServiceType), masterdataitement.EnabledEQ(true)).Exist(ctx)
 		if err != nil {
 			return err
 		}
@@ -152,7 +164,7 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 		}
 	}
 	if input.AbnormalCaseID != nil {
-		exists, err := r.data.db.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.AbnormalCaseID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase), masterdataitement.EnabledEQ(true)).Exist(ctx)
+		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.AbnormalCaseID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase), masterdataitement.EnabledEQ(true)).Exist(ctx)
 		if err != nil {
 			return err
 		}
@@ -160,15 +172,15 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 			return biz.ErrFeeCatalogReferenceInvalid
 		}
 	}
-	billingExists, err := r.data.db.BillingUnit.Query().Where(billingunitent.IDEQ(input.BillingUnitID), billingunitent.OrganizationIDEQ(input.OrganizationID), billingunitent.EnabledEQ(true)).Exist(ctx)
+	billingExists, err := client.BillingUnit.Query().Where(billingunitent.IDEQ(input.BillingUnitID), billingunitent.OrganizationIDEQ(input.OrganizationID), billingunitent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
-	taxableExists, err := r.data.db.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(input.OrganizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
+	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(input.OrganizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
-	currencyExists, err := r.data.db.Currency.Query().Where(currencyent.CodeEQ(input.DefaultCurrency), currencyent.EnabledEQ(true)).Exist(ctx)
+	currencyExists, err := client.Currency.Query().Where(currencyent.CodeEQ(input.DefaultCurrency), currencyent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -183,7 +195,11 @@ func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uu
 	if err != nil {
 		return nil, err
 	}
-	query := r.data.db.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID))
 	if options.Keyword != "" {
 		query.Where(billingunitent.Or(billingunitent.CodeContainsFold(options.Keyword), billingunitent.NameContainsFold(options.Keyword), billingunitent.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -239,7 +255,11 @@ func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	query := r.data.db.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID))
 	if options.Keyword != "" {
 		query.Where(taxableserviceent.Or(taxableserviceent.NameContainsFold(options.Keyword), taxableserviceent.ShortNameContainsFold(options.Keyword), taxableserviceent.GoodsCodeContainsFold(options.Keyword), taxableserviceent.SearchKeywordsContainsFold(options.Keyword)))
 	}

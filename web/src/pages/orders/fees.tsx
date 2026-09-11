@@ -4,6 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -23,7 +24,6 @@ import { unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
-import { parseOrderKind } from './common';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
@@ -38,6 +38,7 @@ import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import OrderPageHeader from './components/OrderPageHeader';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
 import {
@@ -52,9 +53,9 @@ export default function OrderFeesPage() {
 
   const kind = params.kind;
   const orderId = params.id;
-  const config = parseOrderKind(kind);
+  const definition = getOrderKindDefinition(kind);
 
-  const targetOrderId = config ? orderId : undefined;
+  const targetOrderId = definition ? orderId : undefined;
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
@@ -106,6 +107,7 @@ export default function OrderFeesPage() {
   const [billWorkbenchContext, setBillWorkbenchContext] = useState<{
     orderId: string;
     feeIds: string[];
+    organizationId?: string;
   }>();
   const currentBillWorkbenchContext =
     billWorkbenchContext?.orderId === targetOrderId
@@ -208,19 +210,19 @@ export default function OrderFeesPage() {
       order?.orderNo &&
       orderId &&
       order.id === orderId &&
-      config?.kind &&
+      definition?.kind &&
       typeof window !== 'undefined'
     ) {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
           detail: {
-            path: `/orders/${config.kind}/${orderId}/fees`,
+            path: `/orders/${definition.kind}/${orderId}/fees`,
             title: `${order.orderNo}_费用录入`,
           },
         }),
       );
     }
-  }, [order?.orderNo, order?.id, orderId, config?.kind]);
+  }, [order?.orderNo, order?.id, orderId, definition?.kind]);
 
   const handleOpenQuickAddFee = async () => {
     if (!ensureFeeWriteAllowed()) return;
@@ -286,9 +288,7 @@ export default function OrderFeesPage() {
       }, 0);
     } else {
       const defaultParty =
-        direction === RECEIVABLE
-          ? order?.customerId
-          : order?.bookingAgentId || order?.carrierId;
+        direction === RECEIVABLE ? order?.customerId : order?.bookingAgentId;
       setTimeout(() => {
         if (
           populationId !== feeFormPopulationIdRef.current ||
@@ -423,7 +423,7 @@ export default function OrderFeesPage() {
       onCancelFee: handleCancelFee,
     });
 
-  if (!config) {
+  if (!definition) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
         <Result
@@ -448,7 +448,8 @@ export default function OrderFeesPage() {
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="fees"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           orderId={orderId}
           orderNo={order?.orderNo}
         />
@@ -469,7 +470,8 @@ export default function OrderFeesPage() {
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="fees"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           orderId={orderId}
           orderNo={orderId}
         />
@@ -492,17 +494,25 @@ export default function OrderFeesPage() {
       : '0.0';
 
   return (
-    <div
-      style={{ padding: '0 0 40px', background: '#f5f7fa', minHeight: '100vh' }}
+    <PageContainer
+      title={false}
+      breadcrumbRender={false}
+      header={{
+        title: false,
+        breadcrumb: undefined,
+        style: { padding: 0 },
+      }}
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <OrderPageHeader
         page="fees"
-        orderKind={config.kind}
+        orderKind={definition.kind}
+        navigationTitle={definition.navigationTitle}
         orderId={orderId}
         orderNo={order.orderNo}
         tags={
           <>
-            {order.canModify === false &&
+            {order.canModify !== true &&
               order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
                 <Tag color="warning" icon={<LockOutlined />}>
                   已锁单
@@ -530,65 +540,72 @@ export default function OrderFeesPage() {
         }
       />
 
-      <div style={{ maxWidth: 1440, margin: '16px auto 0', padding: '0 24px' }}>
-        <OrderFeeHeader
-          order={order}
-          kind={config.kind}
-          orderId={orderId || ''}
-          configTitle={config.title}
-          customerName={customerName}
-          financeLocked={financeLocked}
-          financeLockReason={financeLockReason}
-          financeLockCommissionNos={financeLockCommissionNos}
-          lockWritePolicy={lockWritePolicy}
-          onRetryLockState={refreshLockState}
-          receivableSummary={receivableSummary}
-          payableSummary={payableSummary}
-          profitCny={profitCny}
-          profitRate={profitRate}
-        />
+      <OrderFeeHeader
+        order={order}
+        kind={definition.kind}
+        orderId={orderId || ''}
+        configTitle={definition.title}
+        customerName={customerName}
+        financeLocked={financeLocked}
+        financeLockReason={financeLockReason}
+        financeLockCommissionNos={financeLockCommissionNos}
+        lockWritePolicy={lockWritePolicy}
+        onRetryLockState={refreshLockState}
+        receivableSummary={receivableSummary}
+        payableSummary={payableSummary}
+        profitCny={profitCny}
+        profitRate={profitRate}
+      />
 
-        {/* 3. 费用表格工作区 */}
-        <OrderFeeTableTabs
-          orderId={orderId || ''}
-          receivableActionRef={receivableActionRef}
-          payableActionRef={payableActionRef}
-          receivableSummary={receivableSummary}
-          payableSummary={payableSummary}
-          selectedReceivableFeeIds={selectedReceivableFeeIds}
-          setSelectedReceivableFeeIds={setSelectedReceivableFeeIds}
-          selectedPayableFeeIds={selectedPayableFeeIds}
-          setSelectedPayableFeeIds={setSelectedPayableFeeIds}
-          setAllReceivableItems={setAllReceivableItems}
-          setAllPayableItems={setAllPayableItems}
-          setReceivableSummary={setReceivableSummary}
-          setPayableSummary={setPayableSummary}
-          canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
-          feeWritesDisabled={feeWritesDisabled}
-          onOpenBillWorkbench={(feeIds) => {
-            if (!orderId) return;
-            setBillWorkbenchContext({ orderId, feeIds });
-          }}
-          onOpenFeeModal={openFeeModal}
-          getTableColumns={getTableColumns}
-        />
+      {/* 3. 费用表格工作区 */}
+      <OrderFeeTableTabs
+        orderId={orderId || ''}
+        receivableActionRef={receivableActionRef}
+        payableActionRef={payableActionRef}
+        receivableSummary={receivableSummary}
+        payableSummary={payableSummary}
+        selectedReceivableFeeIds={selectedReceivableFeeIds}
+        setSelectedReceivableFeeIds={setSelectedReceivableFeeIds}
+        selectedPayableFeeIds={selectedPayableFeeIds}
+        setSelectedPayableFeeIds={setSelectedPayableFeeIds}
+        setAllReceivableItems={setAllReceivableItems}
+        setAllPayableItems={setAllPayableItems}
+        setReceivableSummary={setReceivableSummary}
+        setPayableSummary={setPayableSummary}
+        canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
+        feeWritesDisabled={feeWritesDisabled}
+        onOpenBillWorkbench={(feeIds) => {
+          if (!orderId) return;
+          if (!order.organizationId) {
+            message.warning('无法确定费用所属公司，不能创建账单');
+            return;
+          }
+          setBillWorkbenchContext({
+            orderId,
+            feeIds,
+            organizationId: order.organizationId,
+          });
+        }}
+        onOpenFeeModal={openFeeModal}
+        getTableColumns={getTableColumns}
+      />
 
-        {/* 底部双层多币种动态汇总看板 */}
-        <FinanceSummaryBoard
-          selectedRows={[...allReceivableItems, ...allPayableItems].filter(
-            (f) =>
-              Boolean(f.id) &&
-              (selectedReceivableFeeIds.includes(f.id || '') ||
-                selectedPayableFeeIds.includes(f.id || '')),
-          )}
-          allRows={[...allReceivableItems, ...allPayableItems]}
-        />
-      </div>
+      {/* 底部双层多币种动态汇总看板 */}
+      <FinanceSummaryBoard
+        selectedRows={[...allReceivableItems, ...allPayableItems].filter(
+          (f) =>
+            Boolean(f.id) &&
+            (selectedReceivableFeeIds.includes(f.id || '') ||
+              selectedPayableFeeIds.includes(f.id || '')),
+        )}
+        allRows={[...allReceivableItems, ...allPayableItems]}
+      />
 
       <BillCreationWorkbench
         key={targetOrderId}
         open={Boolean(currentBillWorkbenchContext)}
         initialFeeIds={currentBillWorkbenchContext?.feeIds ?? []}
+        initialOrganizationId={currentBillWorkbenchContext?.organizationId}
         sourceLabel={`订单 ${order.orderNo || order.id}`}
         onClose={() => setBillWorkbenchContext(undefined)}
         onCreated={() => {
@@ -678,6 +695,6 @@ export default function OrderFeesPage() {
           setQuickAddPartnerModalOpen(false);
         }}
       />
-    </div>
+    </PageContainer>
   );
 }

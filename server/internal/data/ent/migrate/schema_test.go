@@ -20,6 +20,13 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "partner_accounts",
+			table:     PartnerAccountsTable,
+			expectedChecks: map[string]string{
+				"partner_accounts_default_usage_check": "((NOT is_default_receivable OR (enabled AND usage IN ('RECEIVABLE', 'BOTH'))) AND (NOT is_default_payable OR (enabled AND usage IN ('PAYABLE', 'BOTH'))))",
+			},
+		},
+		{
 			tableName: "ding_talk_approval_dispatches",
 			table:     DingTalkApprovalDispatchesTable,
 			expectedChecks: map[string]string{
@@ -68,6 +75,13 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			table:     SeaHouseBillVersionsTable,
 			expectedChecks: map[string]string{
 				"sea_house_bill_versions_issuer_check": "((issuer_source = 'SELF_ORGANIZATION' AND issuer_organization_id IS NOT NULL AND issuer_partner_id IS NULL) OR (issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER') AND issuer_organization_id IS NULL AND issuer_partner_id IS NOT NULL))",
+			},
+		},
+		{
+			tableName: "sea_document_mode_change_events",
+			table:     SeaDocumentModeChangeEventsTable,
+			expectedChecks: map[string]string{
+				"sea_document_mode_change_events_mode_check": "previous_mode <> target_mode AND ((previous_mode = 'HOUSE' AND target_mode = 'DIRECT' AND previous_house_bill_id IS NOT NULL AND previous_house_bill_version_id IS NOT NULL AND target_house_bill_id IS NULL AND target_house_bill_version_id IS NULL) OR (previous_mode = 'DIRECT' AND target_mode = 'HOUSE' AND target_house_bill_id IS NOT NULL AND target_house_bill_version_id IS NOT NULL AND previous_house_bill_id IS NULL AND previous_house_bill_version_id IS NULL))",
 			},
 		},
 	}

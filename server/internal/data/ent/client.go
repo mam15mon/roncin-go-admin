@@ -55,6 +55,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -102,11 +104,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -114,7 +115,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -205,6 +209,10 @@ type Client struct {
 	FinanceInvoiceBill *FinanceInvoiceBillClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
+	// FinanceNetting is the client for interacting with the FinanceNetting builders.
+	FinanceNetting *FinanceNettingClient
+	// FinanceNettingAllocation is the client for interacting with the FinanceNettingAllocation builders.
+	FinanceNettingAllocation *FinanceNettingAllocationClient
 	// FinanceVerification is the client for interacting with the FinanceVerification builders.
 	FinanceVerification *FinanceVerificationClient
 	// FinanceVerificationAllocation is the client for interacting with the FinanceVerificationAllocation builders.
@@ -299,16 +307,14 @@ type Client struct {
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
-	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
-	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
-	// SeaCargoAllocation is the client for interacting with the SeaCargoAllocation builders.
-	SeaCargoAllocation *SeaCargoAllocationClient
+	// RoleOrganizationAccess is the client for interacting with the RoleOrganizationAccess builders.
+	RoleOrganizationAccess *RoleOrganizationAccessClient
+	// SeaDocumentModeChangeEvent is the client for interacting with the SeaDocumentModeChangeEvent builders.
+	SeaDocumentModeChangeEvent *SeaDocumentModeChangeEventClient
 	// SeaDocumentVoidEvent is the client for interacting with the SeaDocumentVoidEvent builders.
 	SeaDocumentVoidEvent *SeaDocumentVoidEventClient
 	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
 	SeaHouseBill *SeaHouseBillClient
-	// SeaHouseBillSwitchEvent is the client for interacting with the SeaHouseBillSwitchEvent builders.
-	SeaHouseBillSwitchEvent *SeaHouseBillSwitchEventClient
 	// SeaHouseBillVersion is the client for interacting with the SeaHouseBillVersion builders.
 	SeaHouseBillVersion *SeaHouseBillVersionClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
@@ -323,8 +329,14 @@ type Client struct {
 	SeaOrderSplitEvent *SeaOrderSplitEventClient
 	// SeaOrderSplitResult is the client for interacting with the SeaOrderSplitResult builders.
 	SeaOrderSplitResult *SeaOrderSplitResultClient
+	// SeaSharedContainer is the client for interacting with the SeaSharedContainer builders.
+	SeaSharedContainer *SeaSharedContainerClient
+	// SeaSharedContainerAllocation is the client for interacting with the SeaSharedContainerAllocation builders.
+	SeaSharedContainerAllocation *SeaSharedContainerAllocationClient
 	// SeaTransportExecution is the client for interacting with the SeaTransportExecution builders.
 	SeaTransportExecution *SeaTransportExecutionClient
+	// SeaTransportExecutionVersion is the client for interacting with the SeaTransportExecutionVersion builders.
+	SeaTransportExecutionVersion *SeaTransportExecutionVersionClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -385,6 +397,8 @@ func (c *Client) init() {
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
 	c.FinanceInvoiceLine = NewFinanceInvoiceLineClient(c.config)
+	c.FinanceNetting = NewFinanceNettingClient(c.config)
+	c.FinanceNettingAllocation = NewFinanceNettingAllocationClient(c.config)
 	c.FinanceVerification = NewFinanceVerificationClient(c.config)
 	c.FinanceVerificationAllocation = NewFinanceVerificationAllocationClient(c.config)
 	c.LoginRateLimitBucket = NewLoginRateLimitBucketClient(c.config)
@@ -432,11 +446,10 @@ func (c *Client) init() {
 	c.Port = NewPortClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
-	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
-	c.SeaCargoAllocation = NewSeaCargoAllocationClient(c.config)
+	c.RoleOrganizationAccess = NewRoleOrganizationAccessClient(c.config)
+	c.SeaDocumentModeChangeEvent = NewSeaDocumentModeChangeEventClient(c.config)
 	c.SeaDocumentVoidEvent = NewSeaDocumentVoidEventClient(c.config)
 	c.SeaHouseBill = NewSeaHouseBillClient(c.config)
-	c.SeaHouseBillSwitchEvent = NewSeaHouseBillSwitchEventClient(c.config)
 	c.SeaHouseBillVersion = NewSeaHouseBillVersionClient(c.config)
 	c.SeaMasterBill = NewSeaMasterBillClient(c.config)
 	c.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(c.config)
@@ -444,7 +457,10 @@ func (c *Client) init() {
 	c.SeaOrderReassignmentEvent = NewSeaOrderReassignmentEventClient(c.config)
 	c.SeaOrderSplitEvent = NewSeaOrderSplitEventClient(c.config)
 	c.SeaOrderSplitResult = NewSeaOrderSplitResultClient(c.config)
+	c.SeaSharedContainer = NewSeaSharedContainerClient(c.config)
+	c.SeaSharedContainerAllocation = NewSeaSharedContainerAllocationClient(c.config)
 	c.SeaTransportExecution = NewSeaTransportExecutionClient(c.config)
+	c.SeaTransportExecutionVersion = NewSeaTransportExecutionVersionClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.ShippingLine = NewShippingLineClient(c.config)
 	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
@@ -581,6 +597,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
 		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                 NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:            NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
@@ -628,11 +646,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Port:                           NewPortClient(cfg),
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
-		SeaCargoAllocation:             NewSeaCargoAllocationClient(cfg),
+		RoleOrganizationAccess:         NewRoleOrganizationAccessClient(cfg),
+		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
 		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
-		SeaHouseBillSwitchEvent:        NewSeaHouseBillSwitchEventClient(cfg),
 		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
@@ -640,7 +657,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
 		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
 		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
+		SeaSharedContainer:             NewSeaSharedContainerClient(cfg),
+		SeaSharedContainerAllocation:   NewSeaSharedContainerAllocationClient(cfg),
 		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
+		SeaTransportExecutionVersion:   NewSeaTransportExecutionVersionClient(cfg),
 		Session:                        NewSessionClient(cfg),
 		ShippingLine:                   NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
@@ -704,6 +724,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
 		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                 NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:            NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
@@ -751,11 +773,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Port:                           NewPortClient(cfg),
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
-		SeaCargoAllocation:             NewSeaCargoAllocationClient(cfg),
+		RoleOrganizationAccess:         NewRoleOrganizationAccessClient(cfg),
+		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
 		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
 		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
-		SeaHouseBillSwitchEvent:        NewSeaHouseBillSwitchEventClient(cfg),
 		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
@@ -763,7 +784,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
 		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
 		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
+		SeaSharedContainer:             NewSeaSharedContainerClient(cfg),
+		SeaSharedContainerAllocation:   NewSeaSharedContainerAllocationClient(cfg),
 		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
+		SeaTransportExecutionVersion:   NewSeaTransportExecutionVersionClient(cfg),
 		Session:                        NewSessionClient(cfg),
 		ShippingLine:                   NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
@@ -811,12 +835,13 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
 		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
 		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
@@ -824,11 +849,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaDocumentVoidEvent,
-		c.SeaHouseBill, c.SeaHouseBillSwitchEvent, c.SeaHouseBillVersion,
-		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaMasterBillVersion,
-		c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent, c.SeaOrderSplitResult,
-		c.SeaTransportExecution, c.Session, c.ShippingLine,
+		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
+		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
+		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
+		c.SeaTransportExecutionVersion, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
@@ -852,12 +878,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.ObjectStorageDeletion, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderAttachmentAsset,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderContainer, c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
 		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
 		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
@@ -865,11 +892,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
 		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.SeaCargoAllocation, c.SeaDocumentVoidEvent,
-		c.SeaHouseBill, c.SeaHouseBillSwitchEvent, c.SeaHouseBillVersion,
-		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaMasterBillVersion,
-		c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent, c.SeaOrderSplitResult,
-		c.SeaTransportExecution, c.Session, c.ShippingLine,
+		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
+		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
+		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
+		c.SeaTransportExecutionVersion, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -957,6 +985,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceInvoiceBill.mutate(ctx, m)
 	case *FinanceInvoiceLineMutation:
 		return c.FinanceInvoiceLine.mutate(ctx, m)
+	case *FinanceNettingMutation:
+		return c.FinanceNetting.mutate(ctx, m)
+	case *FinanceNettingAllocationMutation:
+		return c.FinanceNettingAllocation.mutate(ctx, m)
 	case *FinanceVerificationMutation:
 		return c.FinanceVerification.mutate(ctx, m)
 	case *FinanceVerificationAllocationMutation:
@@ -1051,16 +1083,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *RoleAssignmentMutation:
 		return c.RoleAssignment.mutate(ctx, m)
-	case *RoleOrderOrganizationAccessMutation:
-		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
-	case *SeaCargoAllocationMutation:
-		return c.SeaCargoAllocation.mutate(ctx, m)
+	case *RoleOrganizationAccessMutation:
+		return c.RoleOrganizationAccess.mutate(ctx, m)
+	case *SeaDocumentModeChangeEventMutation:
+		return c.SeaDocumentModeChangeEvent.mutate(ctx, m)
 	case *SeaDocumentVoidEventMutation:
 		return c.SeaDocumentVoidEvent.mutate(ctx, m)
 	case *SeaHouseBillMutation:
 		return c.SeaHouseBill.mutate(ctx, m)
-	case *SeaHouseBillSwitchEventMutation:
-		return c.SeaHouseBillSwitchEvent.mutate(ctx, m)
 	case *SeaHouseBillVersionMutation:
 		return c.SeaHouseBillVersion.mutate(ctx, m)
 	case *SeaMasterBillMutation:
@@ -1075,8 +1105,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SeaOrderSplitEvent.mutate(ctx, m)
 	case *SeaOrderSplitResultMutation:
 		return c.SeaOrderSplitResult.mutate(ctx, m)
+	case *SeaSharedContainerMutation:
+		return c.SeaSharedContainer.mutate(ctx, m)
+	case *SeaSharedContainerAllocationMutation:
+		return c.SeaSharedContainerAllocation.mutate(ctx, m)
 	case *SeaTransportExecutionMutation:
 		return c.SeaTransportExecution.mutate(ctx, m)
+	case *SeaTransportExecutionVersionMutation:
+		return c.SeaTransportExecutionVersion.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *ShippingLineMutation:
@@ -5461,6 +5497,22 @@ func (c *FinanceBillClient) QueryVerificationAllocations(_m *FinanceBill) *Finan
 	return query
 }
 
+// QueryNettingAllocations queries the netting_allocations edge of a FinanceBill.
+func (c *FinanceBillClient) QueryNettingAllocations(_m *FinanceBill) *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, id),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.NettingAllocationsTable, financebill.NettingAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEnterpriseTagLinks queries the enterprise_tag_links edge of a FinanceBill.
 func (c *FinanceBillClient) QueryEnterpriseTagLinks(_m *FinanceBill) *FinanceBillEnterpriseTagQuery {
 	query := (&FinanceBillEnterpriseTagClient{config: c.config}).Query()
@@ -5651,6 +5703,22 @@ func (c *FinanceBillBatchClient) QueryBills(_m *FinanceBillBatch) *FinanceBillQu
 			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, id),
 			sqlgraph.To(financebill.Table, financebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.BillsTable, financebillbatch.BillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNettings queries the nettings edge of a FinanceBillBatch.
+func (c *FinanceBillBatchClient) QueryNettings(_m *FinanceBillBatch) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillbatch.Table, financebillbatch.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebillbatch.NettingsTable, financebillbatch.NettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8047,6 +8115,416 @@ func (c *FinanceInvoiceLineClient) mutate(ctx context.Context, m *FinanceInvoice
 	}
 }
 
+// FinanceNettingClient is a client for the FinanceNetting schema.
+type FinanceNettingClient struct {
+	config
+}
+
+// NewFinanceNettingClient returns a client for the FinanceNetting from the given config.
+func NewFinanceNettingClient(c config) *FinanceNettingClient {
+	return &FinanceNettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financenetting.Hooks(f(g(h())))`.
+func (c *FinanceNettingClient) Use(hooks ...Hook) {
+	c.hooks.FinanceNetting = append(c.hooks.FinanceNetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financenetting.Intercept(f(g(h())))`.
+func (c *FinanceNettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceNetting = append(c.inters.FinanceNetting, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceNetting entity.
+func (c *FinanceNettingClient) Create() *FinanceNettingCreate {
+	mutation := newFinanceNettingMutation(c.config, OpCreate)
+	return &FinanceNettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceNetting entities.
+func (c *FinanceNettingClient) CreateBulk(builders ...*FinanceNettingCreate) *FinanceNettingCreateBulk {
+	return &FinanceNettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceNettingClient) MapCreateBulk(slice any, setFunc func(*FinanceNettingCreate, int)) *FinanceNettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceNettingCreateBulk{err: fmt.Errorf("calling to FinanceNettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceNettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceNettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceNetting.
+func (c *FinanceNettingClient) Update() *FinanceNettingUpdate {
+	mutation := newFinanceNettingMutation(c.config, OpUpdate)
+	return &FinanceNettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceNettingClient) UpdateOne(_m *FinanceNetting) *FinanceNettingUpdateOne {
+	mutation := newFinanceNettingMutation(c.config, OpUpdateOne, withFinanceNetting(_m))
+	return &FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceNettingClient) UpdateOneID(id uuid.UUID) *FinanceNettingUpdateOne {
+	mutation := newFinanceNettingMutation(c.config, OpUpdateOne, withFinanceNettingID(id))
+	return &FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceNetting.
+func (c *FinanceNettingClient) Delete() *FinanceNettingDelete {
+	mutation := newFinanceNettingMutation(c.config, OpDelete)
+	return &FinanceNettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceNettingClient) DeleteOne(_m *FinanceNetting) *FinanceNettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceNettingClient) DeleteOneID(id uuid.UUID) *FinanceNettingDeleteOne {
+	builder := c.Delete().Where(financenetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceNettingDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceNetting.
+func (c *FinanceNettingClient) Query() *FinanceNettingQuery {
+	return &FinanceNettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceNetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceNetting entity by its id.
+func (c *FinanceNettingClient) Get(ctx context.Context, id uuid.UUID) (*FinanceNetting, error) {
+	return c.Query().Where(financenetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceNettingClient) GetX(ctx context.Context, id uuid.UUID) *FinanceNetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryOrganization(_m *FinanceNetting) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.OrganizationTable, financenetting.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySettlementParty queries the settlement_party edge of a FinanceNetting.
+func (c *FinanceNettingClient) QuerySettlementParty(_m *FinanceNetting) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.SettlementPartyTable, financenetting.SettlementPartyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBatch queries the batch edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryBatch(_m *FinanceNetting) *FinanceBillBatchQuery {
+	query := (&FinanceBillBatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financebillbatch.Table, financebillbatch.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.BatchTable, financenetting.BatchColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmedByUser queries the confirmed_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryConfirmedByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.ConfirmedByUserTable, financenetting.ConfirmedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledByUser queries the cancelled_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryCancelledByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.CancelledByUserTable, financenetting.CancelledByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReversedByUser queries the reversed_by_user edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryReversedByUser(_m *FinanceNetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.ReversedByUserTable, financenetting.ReversedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAllocations queries the allocations edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryAllocations(_m *FinanceNetting) *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.AllocationsTable, financenetting.AllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceNettingClient) Hooks() []Hook {
+	return c.hooks.FinanceNetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceNettingClient) Interceptors() []Interceptor {
+	return c.inters.FinanceNetting
+}
+
+func (c *FinanceNettingClient) mutate(ctx context.Context, m *FinanceNettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceNettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceNettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceNettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceNettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceNetting mutation op: %q", m.Op())
+	}
+}
+
+// FinanceNettingAllocationClient is a client for the FinanceNettingAllocation schema.
+type FinanceNettingAllocationClient struct {
+	config
+}
+
+// NewFinanceNettingAllocationClient returns a client for the FinanceNettingAllocation from the given config.
+func NewFinanceNettingAllocationClient(c config) *FinanceNettingAllocationClient {
+	return &FinanceNettingAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financenettingallocation.Hooks(f(g(h())))`.
+func (c *FinanceNettingAllocationClient) Use(hooks ...Hook) {
+	c.hooks.FinanceNettingAllocation = append(c.hooks.FinanceNettingAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financenettingallocation.Intercept(f(g(h())))`.
+func (c *FinanceNettingAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceNettingAllocation = append(c.inters.FinanceNettingAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceNettingAllocation entity.
+func (c *FinanceNettingAllocationClient) Create() *FinanceNettingAllocationCreate {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpCreate)
+	return &FinanceNettingAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceNettingAllocation entities.
+func (c *FinanceNettingAllocationClient) CreateBulk(builders ...*FinanceNettingAllocationCreate) *FinanceNettingAllocationCreateBulk {
+	return &FinanceNettingAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceNettingAllocationClient) MapCreateBulk(slice any, setFunc func(*FinanceNettingAllocationCreate, int)) *FinanceNettingAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceNettingAllocationCreateBulk{err: fmt.Errorf("calling to FinanceNettingAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceNettingAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceNettingAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Update() *FinanceNettingAllocationUpdate {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdate)
+	return &FinanceNettingAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceNettingAllocationClient) UpdateOne(_m *FinanceNettingAllocation) *FinanceNettingAllocationUpdateOne {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdateOne, withFinanceNettingAllocation(_m))
+	return &FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceNettingAllocationClient) UpdateOneID(id uuid.UUID) *FinanceNettingAllocationUpdateOne {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpUpdateOne, withFinanceNettingAllocationID(id))
+	return &FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Delete() *FinanceNettingAllocationDelete {
+	mutation := newFinanceNettingAllocationMutation(c.config, OpDelete)
+	return &FinanceNettingAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceNettingAllocationClient) DeleteOne(_m *FinanceNettingAllocation) *FinanceNettingAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceNettingAllocationClient) DeleteOneID(id uuid.UUID) *FinanceNettingAllocationDeleteOne {
+	builder := c.Delete().Where(financenettingallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceNettingAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) Query() *FinanceNettingAllocationQuery {
+	return &FinanceNettingAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceNettingAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceNettingAllocation entity by its id.
+func (c *FinanceNettingAllocationClient) Get(ctx context.Context, id uuid.UUID) (*FinanceNettingAllocation, error) {
+	return c.Query().Where(financenettingallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceNettingAllocationClient) GetX(ctx context.Context, id uuid.UUID) *FinanceNettingAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryNetting queries the netting edge of a FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) QueryNetting(_m *FinanceNettingAllocation) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.NettingTable, financenettingallocation.NettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBill queries the bill edge of a FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) QueryBill(_m *FinanceNettingAllocation) *FinanceBillQuery {
+	query := (&FinanceBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, id),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.BillTable, financenettingallocation.BillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceNettingAllocationClient) Hooks() []Hook {
+	return c.hooks.FinanceNettingAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceNettingAllocationClient) Interceptors() []Interceptor {
+	return c.inters.FinanceNettingAllocation
+}
+
+func (c *FinanceNettingAllocationClient) mutate(ctx context.Context, m *FinanceNettingAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceNettingAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceNettingAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceNettingAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceNettingAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceNettingAllocation mutation op: %q", m.Op())
+	}
+}
+
 // FinanceVerificationClient is a client for the FinanceVerification schema.
 type FinanceVerificationClient struct {
 	config
@@ -9737,6 +10215,22 @@ func (c *OrderClient) QueryCustomer(_m *Order) *PartnerQuery {
 	return query
 }
 
+// QueryShippingLine queries the shipping_line edge of a Order.
+func (c *OrderClient) QueryShippingLine(_m *Order) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.ShippingLineTable, order.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryLifecycleEvents queries the lifecycle_events edge of a Order.
 func (c *OrderClient) QueryLifecycleEvents(_m *Order) *OrderLifecycleEventQuery {
 	query := (&OrderLifecycleEventClient{config: c.config}).Query()
@@ -10057,15 +10551,31 @@ func (c *OrderClient) QuerySeaHouseBills(_m *Order) *SeaHouseBillQuery {
 	return query
 }
 
-// QuerySeaCargoAllocations queries the sea_cargo_allocations edge of a Order.
-func (c *OrderClient) QuerySeaCargoAllocations(_m *Order) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
+// QuerySeaDocumentModeChangeEvents queries the sea_document_mode_change_events edge of a Order.
+func (c *OrderClient) QuerySeaDocumentModeChangeEvents(_m *Order) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaCargoAllocationsTable, order.SeaCargoAllocationsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaDocumentModeChangeEventsTable, order.SeaDocumentModeChangeEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainerAllocations queries the sea_shared_container_allocations edge of a Order.
+func (c *OrderClient) QuerySeaSharedContainerAllocations(_m *Order) *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaSharedContainerAllocationsTable, order.SeaSharedContainerAllocationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -10194,22 +10704,6 @@ func (c *OrderClient) QuerySeaDocumentVoidEvents(_m *Order) *SeaDocumentVoidEven
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaDocumentVoidEventsTable, order.SeaDocumentVoidEventsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySeaHouseBillSwitchEvents queries the sea_house_bill_switch_events edge of a Order.
-func (c *OrderClient) QuerySeaHouseBillSwitchEvents(_m *Order) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaHouseBillSwitchEventsTable, order.SeaHouseBillSwitchEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -10540,6 +11034,102 @@ func (c *OrderAttachmentClient) QueryCreator(_m *OrderAttachment) *UserQuery {
 			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderattachment.CreatorTable, orderattachment.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaMasterBillVersions(_m *OrderAttachment) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaMasterBillVersionsTable, orderattachment.SeaMasterBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBillVersions queries the sea_house_bill_versions edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaHouseBillVersions(_m *OrderAttachment) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaHouseBillVersionsTable, orderattachment.SeaHouseBillVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaOrderReassignmentEvents queries the sea_order_reassignment_events edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaOrderReassignmentEvents(_m *OrderAttachment) *SeaOrderReassignmentEventQuery {
+	query := (&SeaOrderReassignmentEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaOrderReassignmentEventsTable, orderattachment.SeaOrderReassignmentEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentVoidEvents queries the sea_document_void_events edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaDocumentVoidEvents(_m *OrderAttachment) *SeaDocumentVoidEventQuery {
+	query := (&SeaDocumentVoidEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaDocumentVoidEventsTable, orderattachment.SeaDocumentVoidEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentModeChangeEvents queries the sea_document_mode_change_events edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaDocumentModeChangeEvents(_m *OrderAttachment) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaDocumentModeChangeEventsTable, orderattachment.SeaDocumentModeChangeEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutionVersions queries the sea_transport_execution_versions edge of a OrderAttachment.
+func (c *OrderAttachmentClient) QuerySeaTransportExecutionVersions(_m *OrderAttachment) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderattachment.Table, orderattachment.FieldID, id),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderattachment.SeaTransportExecutionVersionsTable, orderattachment.SeaTransportExecutionVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -11042,15 +11632,15 @@ func (c *OrderCargoItemClient) QueryOrder(_m *OrderCargoItem) *OrderQuery {
 	return query
 }
 
-// QueryCargoAllocations queries the cargo_allocations edge of a OrderCargoItem.
-func (c *OrderCargoItemClient) QueryCargoAllocations(_m *OrderCargoItem) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
+// QuerySharedContainerAllocations queries the shared_container_allocations edge of a OrderCargoItem.
+func (c *OrderCargoItemClient) QuerySharedContainerAllocations(_m *OrderCargoItem) *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(ordercargoitem.Table, ordercargoitem.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ordercargoitem.CargoAllocationsTable, ordercargoitem.CargoAllocationsColumn),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ordercargoitem.SharedContainerAllocationsTable, ordercargoitem.SharedContainerAllocationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -11413,22 +12003,6 @@ func (c *OrderContainerClient) QueryOrder(_m *OrderContainer) *OrderQuery {
 			sqlgraph.From(ordercontainer.Table, ordercontainer.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ordercontainer.OrderTable, ordercontainer.OrderColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCargoAllocations queries the cargo_allocations edge of a OrderContainer.
-func (c *OrderContainerClient) QueryCargoAllocations(_m *OrderContainer) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(ordercontainer.Table, ordercontainer.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ordercontainer.CargoAllocationsTable, ordercontainer.CargoAllocationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -12760,6 +13334,38 @@ func (c *OrderLockRecordClient) QueryMasterBillVersion(_m *OrderLockRecord) *Sea
 			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
 			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.MasterBillVersionTable, orderlockrecord.MasterBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecution queries the transport_execution edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryTransportExecution(_m *OrderLockRecord) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TransportExecutionTable, orderlockrecord.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecutionVersion queries the transport_execution_version edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryTransportExecutionVersion(_m *OrderLockRecord) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TransportExecutionVersionTable, orderlockrecord.TransportExecutionVersionColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -14327,15 +14933,15 @@ func (c *OrganizationClient) QueryRoles(_m *Organization) *RoleQuery {
 	return query
 }
 
-// QueryRoleOrderOrganizationAccesses queries the role_order_organization_accesses edge of a Organization.
-func (c *OrganizationClient) QueryRoleOrderOrganizationAccesses(_m *Organization) *RoleOrderOrganizationAccessQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+// QueryRoleOrganizationAccesses queries the role_organization_accesses edge of a Organization.
+func (c *OrganizationClient) QueryRoleOrganizationAccesses(_m *Organization) *RoleOrganizationAccessQuery {
+	query := (&RoleOrganizationAccessClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrderOrganizationAccessesTable, organization.RoleOrderOrganizationAccessesColumn),
+			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrganizationAccessesTable, organization.RoleOrganizationAccessesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -14663,22 +15269,6 @@ func (c *OrganizationClient) QueryOrderContainers(_m *Organization) *OrderContai
 	return query
 }
 
-// QuerySeaCargoAllocations queries the sea_cargo_allocations edge of a Organization.
-func (c *OrganizationClient) QuerySeaCargoAllocations(_m *Organization) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaCargoAllocationsTable, organization.SeaCargoAllocationsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryOrderPersonnel queries the order_personnel edge of a Organization.
 func (c *OrganizationClient) QueryOrderPersonnel(_m *Organization) *OrderPersonnelQuery {
 	query := (&OrderPersonnelClient{config: c.config}).Query()
@@ -14800,6 +15390,22 @@ func (c *OrganizationClient) QueryFinanceVerifications(_m *Organization) *Financ
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceVerificationsTable, organization.FinanceVerificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceNettings queries the finance_nettings edge of a Organization.
+func (c *OrganizationClient) QueryFinanceNettings(_m *Organization) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceNettingsTable, organization.FinanceNettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -15207,15 +15813,63 @@ func (c *OrganizationClient) QuerySeaDocumentVoidEvents(_m *Organization) *SeaDo
 	return query
 }
 
-// QuerySeaHouseBillSwitchEvents queries the sea_house_bill_switch_events edge of a Organization.
-func (c *OrganizationClient) QuerySeaHouseBillSwitchEvents(_m *Organization) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QuerySeaTransportExecutionVersions queries the sea_transport_execution_versions edge of a Organization.
+func (c *OrganizationClient) QuerySeaTransportExecutionVersions(_m *Organization) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillSwitchEventsTable, organization.SeaHouseBillSwitchEventsColumn),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaTransportExecutionVersionsTable, organization.SeaTransportExecutionVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaDocumentModeChangeEvents queries the sea_document_mode_change_events edge of a Organization.
+func (c *OrganizationClient) QuerySeaDocumentModeChangeEvents(_m *Organization) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaDocumentModeChangeEventsTable, organization.SeaDocumentModeChangeEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainers queries the sea_shared_containers edge of a Organization.
+func (c *OrganizationClient) QuerySeaSharedContainers(_m *Organization) *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaSharedContainersTable, organization.SeaSharedContainersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaSharedContainerAllocations queries the sea_shared_container_allocations edge of a Organization.
+func (c *OrganizationClient) QuerySeaSharedContainerAllocations(_m *Organization) *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaSharedContainerAllocationsTable, organization.SeaSharedContainerAllocationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -15382,6 +16036,22 @@ func (c *PartnerClient) QueryRoles(_m *Partner) *PartnerRoleQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.RolesTable, partner.RolesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccounts queries the accounts edge of a Partner.
+func (c *PartnerClient) QueryAccounts(_m *Partner) *PartnerAccountQuery {
+	query := (&PartnerAccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AccountsTable, partner.AccountsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -15613,6 +16283,22 @@ func (c *PartnerClient) QueryFinanceVerifications(_m *Partner) *FinanceVerificat
 	return query
 }
 
+// QueryFinanceNettings queries the finance_nettings edge of a Partner.
+func (c *PartnerClient) QueryFinanceNettings(_m *Partner) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceNettingsTable, partner.FinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrderCommissionAttributions queries the order_commission_attributions edge of a Partner.
 func (c *PartnerClient) QueryOrderCommissionAttributions(_m *Partner) *OrderCommissionAttributionQuery {
 	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
@@ -15654,22 +16340,6 @@ func (c *PartnerClient) QuerySeaOrderReassignments(_m *Partner) *SeaOrderReassig
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaOrderReassignmentsTable, partner.SeaOrderReassignmentsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a Partner.
-func (c *PartnerClient) QuerySeaMasterBillVersions(_m *Partner) *SeaMasterBillVersionQuery {
-	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partner.Table, partner.FieldID, id),
-			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partner.SeaMasterBillVersionsTable, partner.SeaMasterBillVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -15827,15 +16497,15 @@ func (c *PartnerAccountClient) GetX(ctx context.Context, id uuid.UUID) *PartnerA
 	return obj
 }
 
-// QueryPartnerRole queries the partner_role edge of a PartnerAccount.
-func (c *PartnerAccountClient) QueryPartnerRole(_m *PartnerAccount) *PartnerRoleQuery {
-	query := (&PartnerRoleClient{config: c.config}).Query()
+// QueryPartner queries the partner edge of a PartnerAccount.
+func (c *PartnerAccountClient) QueryPartner(_m *PartnerAccount) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(partneraccount.Table, partneraccount.FieldID, id),
-			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, partneraccount.PartnerRoleTable, partneraccount.PartnerRoleColumn),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partneraccount.PartnerTable, partneraccount.PartnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17100,22 +17770,6 @@ func (c *PartnerRoleClient) QueryPartner(_m *PartnerRole) *PartnerQuery {
 	return query
 }
 
-// QueryAccounts queries the accounts edge of a PartnerRole.
-func (c *PartnerRoleClient) QueryAccounts(_m *PartnerRole) *PartnerAccountQuery {
-	query := (&PartnerAccountClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, id),
-			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.AccountsTable, partnerrole.AccountsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QuerySettlementRules queries the settlement_rules edge of a PartnerRole.
 func (c *PartnerRoleClient) QuerySettlementRules(_m *PartnerRole) *PartnerSettlementRuleQuery {
 	query := (&PartnerSettlementRuleClient{config: c.config}).Query()
@@ -17761,15 +18415,15 @@ func (c *RoleClient) QueryAssignments(_m *Role) *RoleAssignmentQuery {
 	return query
 }
 
-// QueryOrderOrganizationAccesses queries the order_organization_accesses edge of a Role.
-func (c *RoleClient) QueryOrderOrganizationAccesses(_m *Role) *RoleOrderOrganizationAccessQuery {
-	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+// QueryOrganizationAccesses queries the organization_accesses edge of a Role.
+func (c *RoleClient) QueryOrganizationAccesses(_m *Role) *RoleOrganizationAccessQuery {
+	query := (&RoleOrganizationAccessClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(role.Table, role.FieldID, id),
-			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderOrganizationAccessesTable, role.OrderOrganizationAccessesColumn),
+			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.OrganizationAccessesTable, role.OrganizationAccessesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17983,107 +18637,107 @@ func (c *RoleAssignmentClient) mutate(ctx context.Context, m *RoleAssignmentMuta
 	}
 }
 
-// RoleOrderOrganizationAccessClient is a client for the RoleOrderOrganizationAccess schema.
-type RoleOrderOrganizationAccessClient struct {
+// RoleOrganizationAccessClient is a client for the RoleOrganizationAccess schema.
+type RoleOrganizationAccessClient struct {
 	config
 }
 
-// NewRoleOrderOrganizationAccessClient returns a client for the RoleOrderOrganizationAccess from the given config.
-func NewRoleOrderOrganizationAccessClient(c config) *RoleOrderOrganizationAccessClient {
-	return &RoleOrderOrganizationAccessClient{config: c}
+// NewRoleOrganizationAccessClient returns a client for the RoleOrganizationAccess from the given config.
+func NewRoleOrganizationAccessClient(c config) *RoleOrganizationAccessClient {
+	return &RoleOrganizationAccessClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `roleorderorganizationaccess.Hooks(f(g(h())))`.
-func (c *RoleOrderOrganizationAccessClient) Use(hooks ...Hook) {
-	c.hooks.RoleOrderOrganizationAccess = append(c.hooks.RoleOrderOrganizationAccess, hooks...)
+// A call to `Use(f, g, h)` equals to `roleorganizationaccess.Hooks(f(g(h())))`.
+func (c *RoleOrganizationAccessClient) Use(hooks ...Hook) {
+	c.hooks.RoleOrganizationAccess = append(c.hooks.RoleOrganizationAccess, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `roleorderorganizationaccess.Intercept(f(g(h())))`.
-func (c *RoleOrderOrganizationAccessClient) Intercept(interceptors ...Interceptor) {
-	c.inters.RoleOrderOrganizationAccess = append(c.inters.RoleOrderOrganizationAccess, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `roleorganizationaccess.Intercept(f(g(h())))`.
+func (c *RoleOrganizationAccessClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RoleOrganizationAccess = append(c.inters.RoleOrganizationAccess, interceptors...)
 }
 
-// Create returns a builder for creating a RoleOrderOrganizationAccess entity.
-func (c *RoleOrderOrganizationAccessClient) Create() *RoleOrderOrganizationAccessCreate {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpCreate)
-	return &RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a RoleOrganizationAccess entity.
+func (c *RoleOrganizationAccessClient) Create() *RoleOrganizationAccessCreate {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpCreate)
+	return &RoleOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of RoleOrderOrganizationAccess entities.
-func (c *RoleOrderOrganizationAccessClient) CreateBulk(builders ...*RoleOrderOrganizationAccessCreate) *RoleOrderOrganizationAccessCreateBulk {
-	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of RoleOrganizationAccess entities.
+func (c *RoleOrganizationAccessClient) CreateBulk(builders ...*RoleOrganizationAccessCreate) *RoleOrganizationAccessCreateBulk {
+	return &RoleOrganizationAccessCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *RoleOrderOrganizationAccessClient) MapCreateBulk(slice any, setFunc func(*RoleOrderOrganizationAccessCreate, int)) *RoleOrderOrganizationAccessCreateBulk {
+func (c *RoleOrganizationAccessClient) MapCreateBulk(slice any, setFunc func(*RoleOrganizationAccessCreate, int)) *RoleOrganizationAccessCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &RoleOrderOrganizationAccessCreateBulk{err: fmt.Errorf("calling to RoleOrderOrganizationAccessClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &RoleOrganizationAccessCreateBulk{err: fmt.Errorf("calling to RoleOrganizationAccessClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*RoleOrderOrganizationAccessCreate, rv.Len())
+	builders := make([]*RoleOrganizationAccessCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+	return &RoleOrganizationAccessCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Update() *RoleOrderOrganizationAccessUpdate {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdate)
-	return &RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Update() *RoleOrganizationAccessUpdate {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdate)
+	return &RoleOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *RoleOrderOrganizationAccessClient) UpdateOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessUpdateOne {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccess(_m))
-	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *RoleOrganizationAccessClient) UpdateOne(_m *RoleOrganizationAccess) *RoleOrganizationAccessUpdateOne {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrganizationAccess(_m))
+	return &RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RoleOrderOrganizationAccessClient) UpdateOneID(id uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccessID(id))
-	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *RoleOrganizationAccessClient) UpdateOneID(id uuid.UUID) *RoleOrganizationAccessUpdateOne {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrganizationAccessID(id))
+	return &RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Delete() *RoleOrderOrganizationAccessDelete {
-	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpDelete)
-	return &RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Delete() *RoleOrganizationAccessDelete {
+	mutation := newRoleOrganizationAccessMutation(c.config, OpDelete)
+	return &RoleOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *RoleOrderOrganizationAccessClient) DeleteOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessDeleteOne {
+func (c *RoleOrganizationAccessClient) DeleteOne(_m *RoleOrganizationAccess) *RoleOrganizationAccessDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RoleOrderOrganizationAccessClient) DeleteOneID(id uuid.UUID) *RoleOrderOrganizationAccessDeleteOne {
-	builder := c.Delete().Where(roleorderorganizationaccess.ID(id))
+func (c *RoleOrganizationAccessClient) DeleteOneID(id uuid.UUID) *RoleOrganizationAccessDeleteOne {
+	builder := c.Delete().Where(roleorganizationaccess.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &RoleOrderOrganizationAccessDeleteOne{builder}
+	return &RoleOrganizationAccessDeleteOne{builder}
 }
 
-// Query returns a query builder for RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) Query() *RoleOrderOrganizationAccessQuery {
-	return &RoleOrderOrganizationAccessQuery{
+// Query returns a query builder for RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) Query() *RoleOrganizationAccessQuery {
+	return &RoleOrganizationAccessQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeRoleOrderOrganizationAccess},
+		ctx:    &QueryContext{Type: TypeRoleOrganizationAccess},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a RoleOrderOrganizationAccess entity by its id.
-func (c *RoleOrderOrganizationAccessClient) Get(ctx context.Context, id uuid.UUID) (*RoleOrderOrganizationAccess, error) {
-	return c.Query().Where(roleorderorganizationaccess.ID(id)).Only(ctx)
+// Get returns a RoleOrganizationAccess entity by its id.
+func (c *RoleOrganizationAccessClient) Get(ctx context.Context, id uuid.UUID) (*RoleOrganizationAccess, error) {
+	return c.Query().Where(roleorganizationaccess.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RoleOrderOrganizationAccessClient) GetX(ctx context.Context, id uuid.UUID) *RoleOrderOrganizationAccess {
+func (c *RoleOrganizationAccessClient) GetX(ctx context.Context, id uuid.UUID) *RoleOrganizationAccess {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -18091,15 +18745,15 @@ func (c *RoleOrderOrganizationAccessClient) GetX(ctx context.Context, id uuid.UU
 	return obj
 }
 
-// QueryRole queries the role edge of a RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) QueryRole(_m *RoleOrderOrganizationAccess) *RoleQuery {
+// QueryRole queries the role edge of a RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) QueryRole(_m *RoleOrganizationAccess) *RoleQuery {
 	query := (&RoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.RoleTable, roleorderorganizationaccess.RoleColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.RoleTable, roleorganizationaccess.RoleColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18107,15 +18761,15 @@ func (c *RoleOrderOrganizationAccessClient) QueryRole(_m *RoleOrderOrganizationA
 	return query
 }
 
-// QueryOrganization queries the organization edge of a RoleOrderOrganizationAccess.
-func (c *RoleOrderOrganizationAccessClient) QueryOrganization(_m *RoleOrderOrganizationAccess) *OrganizationQuery {
+// QueryOrganization queries the organization edge of a RoleOrganizationAccess.
+func (c *RoleOrganizationAccessClient) QueryOrganization(_m *RoleOrganizationAccess) *OrganizationQuery {
 	query := (&OrganizationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.From(roleorganizationaccess.Table, roleorganizationaccess.FieldID, id),
 			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.OrganizationTable, roleorderorganizationaccess.OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorganizationaccess.OrganizationTable, roleorganizationaccess.OrganizationColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18124,131 +18778,131 @@ func (c *RoleOrderOrganizationAccessClient) QueryOrganization(_m *RoleOrderOrgan
 }
 
 // Hooks returns the client hooks.
-func (c *RoleOrderOrganizationAccessClient) Hooks() []Hook {
-	return c.hooks.RoleOrderOrganizationAccess
+func (c *RoleOrganizationAccessClient) Hooks() []Hook {
+	return c.hooks.RoleOrganizationAccess
 }
 
 // Interceptors returns the client interceptors.
-func (c *RoleOrderOrganizationAccessClient) Interceptors() []Interceptor {
-	return c.inters.RoleOrderOrganizationAccess
+func (c *RoleOrganizationAccessClient) Interceptors() []Interceptor {
+	return c.inters.RoleOrganizationAccess
 }
 
-func (c *RoleOrderOrganizationAccessClient) mutate(ctx context.Context, m *RoleOrderOrganizationAccessMutation) (Value, error) {
+func (c *RoleOrganizationAccessClient) mutate(ctx context.Context, m *RoleOrganizationAccessMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&RoleOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&RoleOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown RoleOrderOrganizationAccess mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown RoleOrganizationAccess mutation op: %q", m.Op())
 	}
 }
 
-// SeaCargoAllocationClient is a client for the SeaCargoAllocation schema.
-type SeaCargoAllocationClient struct {
+// SeaDocumentModeChangeEventClient is a client for the SeaDocumentModeChangeEvent schema.
+type SeaDocumentModeChangeEventClient struct {
 	config
 }
 
-// NewSeaCargoAllocationClient returns a client for the SeaCargoAllocation from the given config.
-func NewSeaCargoAllocationClient(c config) *SeaCargoAllocationClient {
-	return &SeaCargoAllocationClient{config: c}
+// NewSeaDocumentModeChangeEventClient returns a client for the SeaDocumentModeChangeEvent from the given config.
+func NewSeaDocumentModeChangeEventClient(c config) *SeaDocumentModeChangeEventClient {
+	return &SeaDocumentModeChangeEventClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `seacargoallocation.Hooks(f(g(h())))`.
-func (c *SeaCargoAllocationClient) Use(hooks ...Hook) {
-	c.hooks.SeaCargoAllocation = append(c.hooks.SeaCargoAllocation, hooks...)
+// A call to `Use(f, g, h)` equals to `seadocumentmodechangeevent.Hooks(f(g(h())))`.
+func (c *SeaDocumentModeChangeEventClient) Use(hooks ...Hook) {
+	c.hooks.SeaDocumentModeChangeEvent = append(c.hooks.SeaDocumentModeChangeEvent, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `seacargoallocation.Intercept(f(g(h())))`.
-func (c *SeaCargoAllocationClient) Intercept(interceptors ...Interceptor) {
-	c.inters.SeaCargoAllocation = append(c.inters.SeaCargoAllocation, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `seadocumentmodechangeevent.Intercept(f(g(h())))`.
+func (c *SeaDocumentModeChangeEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaDocumentModeChangeEvent = append(c.inters.SeaDocumentModeChangeEvent, interceptors...)
 }
 
-// Create returns a builder for creating a SeaCargoAllocation entity.
-func (c *SeaCargoAllocationClient) Create() *SeaCargoAllocationCreate {
-	mutation := newSeaCargoAllocationMutation(c.config, OpCreate)
-	return &SeaCargoAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a SeaDocumentModeChangeEvent entity.
+func (c *SeaDocumentModeChangeEventClient) Create() *SeaDocumentModeChangeEventCreate {
+	mutation := newSeaDocumentModeChangeEventMutation(c.config, OpCreate)
+	return &SeaDocumentModeChangeEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of SeaCargoAllocation entities.
-func (c *SeaCargoAllocationClient) CreateBulk(builders ...*SeaCargoAllocationCreate) *SeaCargoAllocationCreateBulk {
-	return &SeaCargoAllocationCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of SeaDocumentModeChangeEvent entities.
+func (c *SeaDocumentModeChangeEventClient) CreateBulk(builders ...*SeaDocumentModeChangeEventCreate) *SeaDocumentModeChangeEventCreateBulk {
+	return &SeaDocumentModeChangeEventCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *SeaCargoAllocationClient) MapCreateBulk(slice any, setFunc func(*SeaCargoAllocationCreate, int)) *SeaCargoAllocationCreateBulk {
+func (c *SeaDocumentModeChangeEventClient) MapCreateBulk(slice any, setFunc func(*SeaDocumentModeChangeEventCreate, int)) *SeaDocumentModeChangeEventCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &SeaCargoAllocationCreateBulk{err: fmt.Errorf("calling to SeaCargoAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &SeaDocumentModeChangeEventCreateBulk{err: fmt.Errorf("calling to SeaDocumentModeChangeEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*SeaCargoAllocationCreate, rv.Len())
+	builders := make([]*SeaDocumentModeChangeEventCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &SeaCargoAllocationCreateBulk{config: c.config, builders: builders}
+	return &SeaDocumentModeChangeEventCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) Update() *SeaCargoAllocationUpdate {
-	mutation := newSeaCargoAllocationMutation(c.config, OpUpdate)
-	return &SeaCargoAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) Update() *SeaDocumentModeChangeEventUpdate {
+	mutation := newSeaDocumentModeChangeEventMutation(c.config, OpUpdate)
+	return &SeaDocumentModeChangeEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *SeaCargoAllocationClient) UpdateOne(_m *SeaCargoAllocation) *SeaCargoAllocationUpdateOne {
-	mutation := newSeaCargoAllocationMutation(c.config, OpUpdateOne, withSeaCargoAllocation(_m))
-	return &SeaCargoAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SeaDocumentModeChangeEventClient) UpdateOne(_m *SeaDocumentModeChangeEvent) *SeaDocumentModeChangeEventUpdateOne {
+	mutation := newSeaDocumentModeChangeEventMutation(c.config, OpUpdateOne, withSeaDocumentModeChangeEvent(_m))
+	return &SeaDocumentModeChangeEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SeaCargoAllocationClient) UpdateOneID(id uuid.UUID) *SeaCargoAllocationUpdateOne {
-	mutation := newSeaCargoAllocationMutation(c.config, OpUpdateOne, withSeaCargoAllocationID(id))
-	return &SeaCargoAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SeaDocumentModeChangeEventClient) UpdateOneID(id uuid.UUID) *SeaDocumentModeChangeEventUpdateOne {
+	mutation := newSeaDocumentModeChangeEventMutation(c.config, OpUpdateOne, withSeaDocumentModeChangeEventID(id))
+	return &SeaDocumentModeChangeEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) Delete() *SeaCargoAllocationDelete {
-	mutation := newSeaCargoAllocationMutation(c.config, OpDelete)
-	return &SeaCargoAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) Delete() *SeaDocumentModeChangeEventDelete {
+	mutation := newSeaDocumentModeChangeEventMutation(c.config, OpDelete)
+	return &SeaDocumentModeChangeEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *SeaCargoAllocationClient) DeleteOne(_m *SeaCargoAllocation) *SeaCargoAllocationDeleteOne {
+func (c *SeaDocumentModeChangeEventClient) DeleteOne(_m *SeaDocumentModeChangeEvent) *SeaDocumentModeChangeEventDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SeaCargoAllocationClient) DeleteOneID(id uuid.UUID) *SeaCargoAllocationDeleteOne {
-	builder := c.Delete().Where(seacargoallocation.ID(id))
+func (c *SeaDocumentModeChangeEventClient) DeleteOneID(id uuid.UUID) *SeaDocumentModeChangeEventDeleteOne {
+	builder := c.Delete().Where(seadocumentmodechangeevent.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &SeaCargoAllocationDeleteOne{builder}
+	return &SeaDocumentModeChangeEventDeleteOne{builder}
 }
 
-// Query returns a query builder for SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) Query() *SeaCargoAllocationQuery {
-	return &SeaCargoAllocationQuery{
+// Query returns a query builder for SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) Query() *SeaDocumentModeChangeEventQuery {
+	return &SeaDocumentModeChangeEventQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeSeaCargoAllocation},
+		ctx:    &QueryContext{Type: TypeSeaDocumentModeChangeEvent},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a SeaCargoAllocation entity by its id.
-func (c *SeaCargoAllocationClient) Get(ctx context.Context, id uuid.UUID) (*SeaCargoAllocation, error) {
-	return c.Query().Where(seacargoallocation.ID(id)).Only(ctx)
+// Get returns a SeaDocumentModeChangeEvent entity by its id.
+func (c *SeaDocumentModeChangeEventClient) Get(ctx context.Context, id uuid.UUID) (*SeaDocumentModeChangeEvent, error) {
+	return c.Query().Where(seadocumentmodechangeevent.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SeaCargoAllocationClient) GetX(ctx context.Context, id uuid.UUID) *SeaCargoAllocation {
+func (c *SeaDocumentModeChangeEventClient) GetX(ctx context.Context, id uuid.UUID) *SeaDocumentModeChangeEvent {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -18256,15 +18910,15 @@ func (c *SeaCargoAllocationClient) GetX(ctx context.Context, id uuid.UUID) *SeaC
 	return obj
 }
 
-// QueryOrganization queries the organization edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryOrganization(_m *SeaCargoAllocation) *OrganizationQuery {
+// QueryOrganization queries the organization edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryOrganization(_m *SeaDocumentModeChangeEvent) *OrganizationQuery {
 	query := (&OrganizationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
 			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.OrganizationTable, seacargoallocation.OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.OrganizationTable, seadocumentmodechangeevent.OrganizationColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18272,15 +18926,15 @@ func (c *SeaCargoAllocationClient) QueryOrganization(_m *SeaCargoAllocation) *Or
 	return query
 }
 
-// QueryOrder queries the order edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryOrder(_m *SeaCargoAllocation) *OrderQuery {
+// QueryOrder queries the order edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryOrder(_m *SeaDocumentModeChangeEvent) *OrderQuery {
 	query := (&OrderClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.OrderTable, seacargoallocation.OrderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.OrderTable, seadocumentmodechangeevent.OrderColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18288,15 +18942,15 @@ func (c *SeaCargoAllocationClient) QueryOrder(_m *SeaCargoAllocation) *OrderQuer
 	return query
 }
 
-// QueryOrderLink queries the order_link edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryOrderLink(_m *SeaCargoAllocation) *SeaMasterBillOrderLinkQuery {
-	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
+// QueryCreator queries the creator edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryCreator(_m *SeaDocumentModeChangeEvent) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
-			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.OrderLinkTable, seacargoallocation.OrderLinkColumn),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.CreatorTable, seadocumentmodechangeevent.CreatorColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18304,15 +18958,15 @@ func (c *SeaCargoAllocationClient) QueryOrderLink(_m *SeaCargoAllocation) *SeaMa
 	return query
 }
 
-// QueryCargoItem queries the cargo_item edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryCargoItem(_m *SeaCargoAllocation) *OrderCargoItemQuery {
-	query := (&OrderCargoItemClient{config: c.config}).Query()
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryConfirmationAttachment(_m *SeaDocumentModeChangeEvent) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
-			sqlgraph.To(ordercargoitem.Table, ordercargoitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.CargoItemTable, seacargoallocation.CargoItemColumn),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.ConfirmationAttachmentTable, seadocumentmodechangeevent.ConfirmationAttachmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18320,15 +18974,15 @@ func (c *SeaCargoAllocationClient) QueryCargoItem(_m *SeaCargoAllocation) *Order
 	return query
 }
 
-// QueryHouseBill queries the house_bill edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryHouseBill(_m *SeaCargoAllocation) *SeaHouseBillQuery {
+// QueryPreviousHouseBill queries the previous_house_bill edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryPreviousHouseBill(_m *SeaDocumentModeChangeEvent) *SeaHouseBillQuery {
 	query := (&SeaHouseBillClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
 			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.HouseBillTable, seacargoallocation.HouseBillColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.PreviousHouseBillTable, seadocumentmodechangeevent.PreviousHouseBillColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18336,15 +18990,47 @@ func (c *SeaCargoAllocationClient) QueryHouseBill(_m *SeaCargoAllocation) *SeaHo
 	return query
 }
 
-// QueryContainer queries the container edge of a SeaCargoAllocation.
-func (c *SeaCargoAllocationClient) QueryContainer(_m *SeaCargoAllocation) *OrderContainerQuery {
-	query := (&OrderContainerClient{config: c.config}).Query()
+// QueryPreviousHouseBillVersion queries the previous_house_bill_version edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryPreviousHouseBillVersion(_m *SeaDocumentModeChangeEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(seacargoallocation.Table, seacargoallocation.FieldID, id),
-			sqlgraph.To(ordercontainer.Table, ordercontainer.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seacargoallocation.ContainerTable, seacargoallocation.ContainerColumn),
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.PreviousHouseBillVersionTable, seadocumentmodechangeevent.PreviousHouseBillVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTargetHouseBill queries the target_house_bill edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryTargetHouseBill(_m *SeaDocumentModeChangeEvent) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.TargetHouseBillTable, seadocumentmodechangeevent.TargetHouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTargetHouseBillVersion queries the target_house_bill_version edge of a SeaDocumentModeChangeEvent.
+func (c *SeaDocumentModeChangeEventClient) QueryTargetHouseBillVersion(_m *SeaDocumentModeChangeEvent) *SeaHouseBillVersionQuery {
+	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID, id),
+			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentmodechangeevent.TargetHouseBillVersionTable, seadocumentmodechangeevent.TargetHouseBillVersionColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18353,27 +19039,27 @@ func (c *SeaCargoAllocationClient) QueryContainer(_m *SeaCargoAllocation) *Order
 }
 
 // Hooks returns the client hooks.
-func (c *SeaCargoAllocationClient) Hooks() []Hook {
-	return c.hooks.SeaCargoAllocation
+func (c *SeaDocumentModeChangeEventClient) Hooks() []Hook {
+	return c.hooks.SeaDocumentModeChangeEvent
 }
 
 // Interceptors returns the client interceptors.
-func (c *SeaCargoAllocationClient) Interceptors() []Interceptor {
-	return c.inters.SeaCargoAllocation
+func (c *SeaDocumentModeChangeEventClient) Interceptors() []Interceptor {
+	return c.inters.SeaDocumentModeChangeEvent
 }
 
-func (c *SeaCargoAllocationClient) mutate(ctx context.Context, m *SeaCargoAllocationMutation) (Value, error) {
+func (c *SeaDocumentModeChangeEventClient) mutate(ctx context.Context, m *SeaDocumentModeChangeEventMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&SeaCargoAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SeaDocumentModeChangeEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&SeaCargoAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SeaDocumentModeChangeEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&SeaCargoAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SeaDocumentModeChangeEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&SeaCargoAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&SeaDocumentModeChangeEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown SeaCargoAllocation mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown SeaDocumentModeChangeEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -18629,6 +19315,22 @@ func (c *SeaDocumentVoidEventClient) QueryCreator(_m *SeaDocumentVoidEvent) *Use
 	return query
 }
 
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaDocumentVoidEvent.
+func (c *SeaDocumentVoidEventClient) QueryConfirmationAttachment(_m *SeaDocumentVoidEvent) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seadocumentvoidevent.ConfirmationAttachmentTable, seadocumentvoidevent.ConfirmationAttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SeaDocumentVoidEventClient) Hooks() []Hook {
 	return c.hooks.SeaDocumentVoidEvent
@@ -18842,15 +19544,15 @@ func (c *SeaHouseBillClient) QueryIssuerPartner(_m *SeaHouseBill) *PartnerQuery 
 	return query
 }
 
-// QueryCargoAllocations queries the cargo_allocations edge of a SeaHouseBill.
-func (c *SeaHouseBillClient) QueryCargoAllocations(_m *SeaHouseBill) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
+// QuerySharedContainerAllocations queries the shared_container_allocations edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QuerySharedContainerAllocations(_m *SeaHouseBill) *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.CargoAllocationsTable, seahousebill.CargoAllocationsColumn),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.SharedContainerAllocationsTable, seahousebill.SharedContainerAllocationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18922,15 +19624,15 @@ func (c *SeaHouseBillClient) QueryVoidEvents(_m *SeaHouseBill) *SeaDocumentVoidE
 	return query
 }
 
-// QueryOldSwitchEvents queries the old_switch_events edge of a SeaHouseBill.
-func (c *SeaHouseBillClient) QueryOldSwitchEvents(_m *SeaHouseBill) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QueryPreviousModeChangeEvents queries the previous_mode_change_events edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryPreviousModeChangeEvents(_m *SeaHouseBill) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.OldSwitchEventsTable, seahousebill.OldSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.PreviousModeChangeEventsTable, seahousebill.PreviousModeChangeEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18938,15 +19640,15 @@ func (c *SeaHouseBillClient) QueryOldSwitchEvents(_m *SeaHouseBill) *SeaHouseBil
 	return query
 }
 
-// QueryNewSwitchEvents queries the new_switch_events edge of a SeaHouseBill.
-func (c *SeaHouseBillClient) QueryNewSwitchEvents(_m *SeaHouseBill) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QueryTargetModeChangeEvents queries the target_mode_change_events edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryTargetModeChangeEvents(_m *SeaHouseBill) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.NewSwitchEventsTable, seahousebill.NewSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebill.TargetModeChangeEventsTable, seahousebill.TargetModeChangeEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -18992,267 +19694,6 @@ func (c *SeaHouseBillClient) mutate(ctx context.Context, m *SeaHouseBillMutation
 		return (&SeaHouseBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown SeaHouseBill mutation op: %q", m.Op())
-	}
-}
-
-// SeaHouseBillSwitchEventClient is a client for the SeaHouseBillSwitchEvent schema.
-type SeaHouseBillSwitchEventClient struct {
-	config
-}
-
-// NewSeaHouseBillSwitchEventClient returns a client for the SeaHouseBillSwitchEvent from the given config.
-func NewSeaHouseBillSwitchEventClient(c config) *SeaHouseBillSwitchEventClient {
-	return &SeaHouseBillSwitchEventClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `seahousebillswitchevent.Hooks(f(g(h())))`.
-func (c *SeaHouseBillSwitchEventClient) Use(hooks ...Hook) {
-	c.hooks.SeaHouseBillSwitchEvent = append(c.hooks.SeaHouseBillSwitchEvent, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `seahousebillswitchevent.Intercept(f(g(h())))`.
-func (c *SeaHouseBillSwitchEventClient) Intercept(interceptors ...Interceptor) {
-	c.inters.SeaHouseBillSwitchEvent = append(c.inters.SeaHouseBillSwitchEvent, interceptors...)
-}
-
-// Create returns a builder for creating a SeaHouseBillSwitchEvent entity.
-func (c *SeaHouseBillSwitchEventClient) Create() *SeaHouseBillSwitchEventCreate {
-	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpCreate)
-	return &SeaHouseBillSwitchEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of SeaHouseBillSwitchEvent entities.
-func (c *SeaHouseBillSwitchEventClient) CreateBulk(builders ...*SeaHouseBillSwitchEventCreate) *SeaHouseBillSwitchEventCreateBulk {
-	return &SeaHouseBillSwitchEventCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *SeaHouseBillSwitchEventClient) MapCreateBulk(slice any, setFunc func(*SeaHouseBillSwitchEventCreate, int)) *SeaHouseBillSwitchEventCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &SeaHouseBillSwitchEventCreateBulk{err: fmt.Errorf("calling to SeaHouseBillSwitchEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*SeaHouseBillSwitchEventCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &SeaHouseBillSwitchEventCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) Update() *SeaHouseBillSwitchEventUpdate {
-	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdate)
-	return &SeaHouseBillSwitchEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SeaHouseBillSwitchEventClient) UpdateOne(_m *SeaHouseBillSwitchEvent) *SeaHouseBillSwitchEventUpdateOne {
-	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdateOne, withSeaHouseBillSwitchEvent(_m))
-	return &SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SeaHouseBillSwitchEventClient) UpdateOneID(id uuid.UUID) *SeaHouseBillSwitchEventUpdateOne {
-	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpUpdateOne, withSeaHouseBillSwitchEventID(id))
-	return &SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) Delete() *SeaHouseBillSwitchEventDelete {
-	mutation := newSeaHouseBillSwitchEventMutation(c.config, OpDelete)
-	return &SeaHouseBillSwitchEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SeaHouseBillSwitchEventClient) DeleteOne(_m *SeaHouseBillSwitchEvent) *SeaHouseBillSwitchEventDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SeaHouseBillSwitchEventClient) DeleteOneID(id uuid.UUID) *SeaHouseBillSwitchEventDeleteOne {
-	builder := c.Delete().Where(seahousebillswitchevent.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SeaHouseBillSwitchEventDeleteOne{builder}
-}
-
-// Query returns a query builder for SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) Query() *SeaHouseBillSwitchEventQuery {
-	return &SeaHouseBillSwitchEventQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSeaHouseBillSwitchEvent},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a SeaHouseBillSwitchEvent entity by its id.
-func (c *SeaHouseBillSwitchEventClient) Get(ctx context.Context, id uuid.UUID) (*SeaHouseBillSwitchEvent, error) {
-	return c.Query().Where(seahousebillswitchevent.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SeaHouseBillSwitchEventClient) GetX(ctx context.Context, id uuid.UUID) *SeaHouseBillSwitchEvent {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOrganization queries the organization edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryOrganization(_m *SeaHouseBillSwitchEvent) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OrganizationTable, seahousebillswitchevent.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryOrder queries the order edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryOrder(_m *SeaHouseBillSwitchEvent) *OrderQuery {
-	query := (&OrderClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(order.Table, order.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OrderTable, seahousebillswitchevent.OrderColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryMasterBill queries the master_bill edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryMasterBill(_m *SeaHouseBillSwitchEvent) *SeaMasterBillQuery {
-	query := (&SeaMasterBillClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.MasterBillTable, seahousebillswitchevent.MasterBillColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryOldHouseBill queries the old_house_bill edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryOldHouseBill(_m *SeaHouseBillSwitchEvent) *SeaHouseBillQuery {
-	query := (&SeaHouseBillClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OldHouseBillTable, seahousebillswitchevent.OldHouseBillColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryOldHouseBillVersion queries the old_house_bill_version edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryOldHouseBillVersion(_m *SeaHouseBillSwitchEvent) *SeaHouseBillVersionQuery {
-	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.OldHouseBillVersionTable, seahousebillswitchevent.OldHouseBillVersionColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryNewHouseBill queries the new_house_bill edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryNewHouseBill(_m *SeaHouseBillSwitchEvent) *SeaHouseBillQuery {
-	query := (&SeaHouseBillClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.NewHouseBillTable, seahousebillswitchevent.NewHouseBillColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryNewHouseBillVersion queries the new_house_bill_version edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryNewHouseBillVersion(_m *SeaHouseBillSwitchEvent) *SeaHouseBillVersionQuery {
-	query := (&SeaHouseBillVersionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(seahousebillversion.Table, seahousebillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.NewHouseBillVersionTable, seahousebillswitchevent.NewHouseBillVersionColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCreator queries the creator edge of a SeaHouseBillSwitchEvent.
-func (c *SeaHouseBillSwitchEventClient) QueryCreator(_m *SeaHouseBillSwitchEvent) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillswitchevent.CreatorTable, seahousebillswitchevent.CreatorColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SeaHouseBillSwitchEventClient) Hooks() []Hook {
-	return c.hooks.SeaHouseBillSwitchEvent
-}
-
-// Interceptors returns the client interceptors.
-func (c *SeaHouseBillSwitchEventClient) Interceptors() []Interceptor {
-	return c.inters.SeaHouseBillSwitchEvent
-}
-
-func (c *SeaHouseBillSwitchEventClient) mutate(ctx context.Context, m *SeaHouseBillSwitchEventMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SeaHouseBillSwitchEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SeaHouseBillSwitchEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SeaHouseBillSwitchEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SeaHouseBillSwitchEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown SeaHouseBillSwitchEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -19476,6 +19917,22 @@ func (c *SeaHouseBillVersionClient) QueryCreator(_m *SeaHouseBillVersion) *UserQ
 	return query
 }
 
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryConfirmationAttachment(_m *SeaHouseBillVersion) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.ConfirmationAttachmentTable, seahousebillversion.ConfirmationAttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryLockSnapshots queries the lock_snapshots edge of a SeaHouseBillVersion.
 func (c *SeaHouseBillVersionClient) QueryLockSnapshots(_m *SeaHouseBillVersion) *OrderLockHouseBillSnapshotQuery {
 	query := (&OrderLockHouseBillSnapshotClient{config: c.config}).Query()
@@ -19524,15 +19981,15 @@ func (c *SeaHouseBillVersionClient) QueryPreviousVoidEvents(_m *SeaHouseBillVers
 	return query
 }
 
-// QueryOldSwitchEvents queries the old_switch_events edge of a SeaHouseBillVersion.
-func (c *SeaHouseBillVersionClient) QueryOldSwitchEvents(_m *SeaHouseBillVersion) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QueryPreviousModeChangeEvents queries the previous_mode_change_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryPreviousModeChangeEvents(_m *SeaHouseBillVersion) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.OldSwitchEventsTable, seahousebillversion.OldSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.PreviousModeChangeEventsTable, seahousebillversion.PreviousModeChangeEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -19540,15 +19997,15 @@ func (c *SeaHouseBillVersionClient) QueryOldSwitchEvents(_m *SeaHouseBillVersion
 	return query
 }
 
-// QueryNewSwitchEvents queries the new_switch_events edge of a SeaHouseBillVersion.
-func (c *SeaHouseBillVersionClient) QueryNewSwitchEvents(_m *SeaHouseBillVersion) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QueryTargetModeChangeEvents queries the target_mode_change_events edge of a SeaHouseBillVersion.
+func (c *SeaHouseBillVersionClient) QueryTargetModeChangeEvents(_m *SeaHouseBillVersion) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.NewSwitchEventsTable, seahousebillversion.NewSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.TargetModeChangeEventsTable, seahousebillversion.TargetModeChangeEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -19705,15 +20162,15 @@ func (c *SeaMasterBillClient) QueryOrganization(_m *SeaMasterBill) *Organization
 	return query
 }
 
-// QueryTransportExecution queries the transport_execution edge of a SeaMasterBill.
-func (c *SeaMasterBillClient) QueryTransportExecution(_m *SeaMasterBill) *SeaTransportExecutionQuery {
-	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+// QueryShippingLine queries the shipping_line edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryShippingLine(_m *SeaMasterBill) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
-			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.TransportExecutionTable, seamasterbill.TransportExecutionColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbill.ShippingLineTable, seamasterbill.ShippingLineColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -19890,22 +20347,6 @@ func (c *SeaMasterBillClient) QueryVoidEvents(_m *SeaMasterBill) *SeaDocumentVoi
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
 			sqlgraph.To(seadocumentvoidevent.Table, seadocumentvoidevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.VoidEventsTable, seamasterbill.VoidEventsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySwitchEvents queries the switch_events edge of a SeaMasterBill.
-func (c *SeaMasterBillClient) QuerySwitchEvents(_m *SeaMasterBill) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.SwitchEventsTable, seamasterbill.SwitchEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -20094,6 +20535,22 @@ func (c *SeaMasterBillOrderLinkClient) QueryMasterBill(_m *SeaMasterBillOrderLin
 	return query
 }
 
+// QueryTransportExecution queries the transport_execution edge of a SeaMasterBillOrderLink.
+func (c *SeaMasterBillOrderLinkClient) QueryTransportExecution(_m *SeaMasterBillOrderLink) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.TransportExecutionTable, seamasterbillorderlink.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrder queries the order edge of a SeaMasterBillOrderLink.
 func (c *SeaMasterBillOrderLinkClient) QueryOrder(_m *SeaMasterBillOrderLink) *OrderQuery {
 	query := (&OrderClient{config: c.config}).Query()
@@ -20103,38 +20560,6 @@ func (c *SeaMasterBillOrderLinkClient) QueryOrder(_m *SeaMasterBillOrderLink) *O
 			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.OrderTable, seamasterbillorderlink.OrderColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCargoAllocations queries the cargo_allocations edge of a SeaMasterBillOrderLink.
-func (c *SeaMasterBillOrderLinkClient) QueryCargoAllocations(_m *SeaMasterBillOrderLink) *SeaCargoAllocationQuery {
-	query := (&SeaCargoAllocationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
-			sqlgraph.To(seacargoallocation.Table, seacargoallocation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbillorderlink.CargoAllocationsTable, seamasterbillorderlink.CargoAllocationsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCargoAllocationConfirmedByUser queries the cargo_allocation_confirmed_by_user edge of a SeaMasterBillOrderLink.
-func (c *SeaMasterBillOrderLinkClient) QueryCargoAllocationConfirmedByUser(_m *SeaMasterBillOrderLink) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillorderlink.CargoAllocationConfirmedByUserTable, seamasterbillorderlink.CargoAllocationConfirmedByUserColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -20307,31 +20732,15 @@ func (c *SeaMasterBillVersionClient) QueryMasterBill(_m *SeaMasterBillVersion) *
 	return query
 }
 
-// QueryIssuerPartner queries the issuer_partner edge of a SeaMasterBillVersion.
-func (c *SeaMasterBillVersionClient) QueryIssuerPartner(_m *SeaMasterBillVersion) *PartnerQuery {
-	query := (&PartnerClient{config: c.config}).Query()
+// QueryShippingLine queries the shipping_line edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryShippingLine(_m *SeaMasterBillVersion) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
-			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.IssuerPartnerTable, seamasterbillversion.IssuerPartnerColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryTransportExecution queries the transport_execution edge of a SeaMasterBillVersion.
-func (c *SeaMasterBillVersionClient) QueryTransportExecution(_m *SeaMasterBillVersion) *SeaTransportExecutionQuery {
-	query := (&SeaTransportExecutionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
-			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.TransportExecutionTable, seamasterbillversion.TransportExecutionColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ShippingLineTable, seamasterbillversion.ShippingLineColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -20348,6 +20757,22 @@ func (c *SeaMasterBillVersionClient) QueryCreator(_m *SeaMasterBillVersion) *Use
 			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.CreatorTable, seamasterbillversion.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaMasterBillVersion.
+func (c *SeaMasterBillVersionClient) QueryConfirmationAttachment(_m *SeaMasterBillVersion) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbillversion.Table, seamasterbillversion.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seamasterbillversion.ConfirmationAttachmentTable, seamasterbillversion.ConfirmationAttachmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -20657,6 +21082,22 @@ func (c *SeaOrderReassignmentEventClient) QueryCreator(_m *SeaOrderReassignmentE
 			sqlgraph.From(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, seaorderreassignmentevent.CreatorTable, seaorderreassignmentevent.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaOrderReassignmentEvent.
+func (c *SeaOrderReassignmentEventClient) QueryConfirmationAttachment(_m *SeaOrderReassignmentEvent) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seaorderreassignmentevent.Table, seaorderreassignmentevent.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seaorderreassignmentevent.ConfirmationAttachmentTable, seaorderreassignmentevent.ConfirmationAttachmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -21131,6 +21572,416 @@ func (c *SeaOrderSplitResultClient) mutate(ctx context.Context, m *SeaOrderSplit
 	}
 }
 
+// SeaSharedContainerClient is a client for the SeaSharedContainer schema.
+type SeaSharedContainerClient struct {
+	config
+}
+
+// NewSeaSharedContainerClient returns a client for the SeaSharedContainer from the given config.
+func NewSeaSharedContainerClient(c config) *SeaSharedContainerClient {
+	return &SeaSharedContainerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seasharedcontainer.Hooks(f(g(h())))`.
+func (c *SeaSharedContainerClient) Use(hooks ...Hook) {
+	c.hooks.SeaSharedContainer = append(c.hooks.SeaSharedContainer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seasharedcontainer.Intercept(f(g(h())))`.
+func (c *SeaSharedContainerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaSharedContainer = append(c.inters.SeaSharedContainer, interceptors...)
+}
+
+// Create returns a builder for creating a SeaSharedContainer entity.
+func (c *SeaSharedContainerClient) Create() *SeaSharedContainerCreate {
+	mutation := newSeaSharedContainerMutation(c.config, OpCreate)
+	return &SeaSharedContainerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaSharedContainer entities.
+func (c *SeaSharedContainerClient) CreateBulk(builders ...*SeaSharedContainerCreate) *SeaSharedContainerCreateBulk {
+	return &SeaSharedContainerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaSharedContainerClient) MapCreateBulk(slice any, setFunc func(*SeaSharedContainerCreate, int)) *SeaSharedContainerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaSharedContainerCreateBulk{err: fmt.Errorf("calling to SeaSharedContainerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaSharedContainerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaSharedContainerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaSharedContainer.
+func (c *SeaSharedContainerClient) Update() *SeaSharedContainerUpdate {
+	mutation := newSeaSharedContainerMutation(c.config, OpUpdate)
+	return &SeaSharedContainerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaSharedContainerClient) UpdateOne(_m *SeaSharedContainer) *SeaSharedContainerUpdateOne {
+	mutation := newSeaSharedContainerMutation(c.config, OpUpdateOne, withSeaSharedContainer(_m))
+	return &SeaSharedContainerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaSharedContainerClient) UpdateOneID(id uuid.UUID) *SeaSharedContainerUpdateOne {
+	mutation := newSeaSharedContainerMutation(c.config, OpUpdateOne, withSeaSharedContainerID(id))
+	return &SeaSharedContainerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaSharedContainer.
+func (c *SeaSharedContainerClient) Delete() *SeaSharedContainerDelete {
+	mutation := newSeaSharedContainerMutation(c.config, OpDelete)
+	return &SeaSharedContainerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaSharedContainerClient) DeleteOne(_m *SeaSharedContainer) *SeaSharedContainerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaSharedContainerClient) DeleteOneID(id uuid.UUID) *SeaSharedContainerDeleteOne {
+	builder := c.Delete().Where(seasharedcontainer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaSharedContainerDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaSharedContainer.
+func (c *SeaSharedContainerClient) Query() *SeaSharedContainerQuery {
+	return &SeaSharedContainerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaSharedContainer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaSharedContainer entity by its id.
+func (c *SeaSharedContainerClient) Get(ctx context.Context, id uuid.UUID) (*SeaSharedContainer, error) {
+	return c.Query().Where(seasharedcontainer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaSharedContainerClient) GetX(ctx context.Context, id uuid.UUID) *SeaSharedContainer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaSharedContainer.
+func (c *SeaSharedContainerClient) QueryOrganization(_m *SeaSharedContainer) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainer.Table, seasharedcontainer.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainer.OrganizationTable, seasharedcontainer.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecution queries the transport_execution edge of a SeaSharedContainer.
+func (c *SeaSharedContainerClient) QueryTransportExecution(_m *SeaSharedContainer) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainer.Table, seasharedcontainer.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainer.TransportExecutionTable, seasharedcontainer.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAllocations queries the allocations edge of a SeaSharedContainer.
+func (c *SeaSharedContainerClient) QueryAllocations(_m *SeaSharedContainer) *SeaSharedContainerAllocationQuery {
+	query := (&SeaSharedContainerAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainer.Table, seasharedcontainer.FieldID, id),
+			sqlgraph.To(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seasharedcontainer.AllocationsTable, seasharedcontainer.AllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmedByUser queries the confirmed_by_user edge of a SeaSharedContainer.
+func (c *SeaSharedContainerClient) QueryConfirmedByUser(_m *SeaSharedContainer) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainer.Table, seasharedcontainer.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainer.ConfirmedByUserTable, seasharedcontainer.ConfirmedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaSharedContainerClient) Hooks() []Hook {
+	return c.hooks.SeaSharedContainer
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaSharedContainerClient) Interceptors() []Interceptor {
+	return c.inters.SeaSharedContainer
+}
+
+func (c *SeaSharedContainerClient) mutate(ctx context.Context, m *SeaSharedContainerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaSharedContainerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaSharedContainerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaSharedContainerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaSharedContainerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaSharedContainer mutation op: %q", m.Op())
+	}
+}
+
+// SeaSharedContainerAllocationClient is a client for the SeaSharedContainerAllocation schema.
+type SeaSharedContainerAllocationClient struct {
+	config
+}
+
+// NewSeaSharedContainerAllocationClient returns a client for the SeaSharedContainerAllocation from the given config.
+func NewSeaSharedContainerAllocationClient(c config) *SeaSharedContainerAllocationClient {
+	return &SeaSharedContainerAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seasharedcontainerallocation.Hooks(f(g(h())))`.
+func (c *SeaSharedContainerAllocationClient) Use(hooks ...Hook) {
+	c.hooks.SeaSharedContainerAllocation = append(c.hooks.SeaSharedContainerAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seasharedcontainerallocation.Intercept(f(g(h())))`.
+func (c *SeaSharedContainerAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaSharedContainerAllocation = append(c.inters.SeaSharedContainerAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a SeaSharedContainerAllocation entity.
+func (c *SeaSharedContainerAllocationClient) Create() *SeaSharedContainerAllocationCreate {
+	mutation := newSeaSharedContainerAllocationMutation(c.config, OpCreate)
+	return &SeaSharedContainerAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaSharedContainerAllocation entities.
+func (c *SeaSharedContainerAllocationClient) CreateBulk(builders ...*SeaSharedContainerAllocationCreate) *SeaSharedContainerAllocationCreateBulk {
+	return &SeaSharedContainerAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaSharedContainerAllocationClient) MapCreateBulk(slice any, setFunc func(*SeaSharedContainerAllocationCreate, int)) *SeaSharedContainerAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaSharedContainerAllocationCreateBulk{err: fmt.Errorf("calling to SeaSharedContainerAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaSharedContainerAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaSharedContainerAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) Update() *SeaSharedContainerAllocationUpdate {
+	mutation := newSeaSharedContainerAllocationMutation(c.config, OpUpdate)
+	return &SeaSharedContainerAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaSharedContainerAllocationClient) UpdateOne(_m *SeaSharedContainerAllocation) *SeaSharedContainerAllocationUpdateOne {
+	mutation := newSeaSharedContainerAllocationMutation(c.config, OpUpdateOne, withSeaSharedContainerAllocation(_m))
+	return &SeaSharedContainerAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaSharedContainerAllocationClient) UpdateOneID(id uuid.UUID) *SeaSharedContainerAllocationUpdateOne {
+	mutation := newSeaSharedContainerAllocationMutation(c.config, OpUpdateOne, withSeaSharedContainerAllocationID(id))
+	return &SeaSharedContainerAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) Delete() *SeaSharedContainerAllocationDelete {
+	mutation := newSeaSharedContainerAllocationMutation(c.config, OpDelete)
+	return &SeaSharedContainerAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaSharedContainerAllocationClient) DeleteOne(_m *SeaSharedContainerAllocation) *SeaSharedContainerAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaSharedContainerAllocationClient) DeleteOneID(id uuid.UUID) *SeaSharedContainerAllocationDeleteOne {
+	builder := c.Delete().Where(seasharedcontainerallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaSharedContainerAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) Query() *SeaSharedContainerAllocationQuery {
+	return &SeaSharedContainerAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaSharedContainerAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaSharedContainerAllocation entity by its id.
+func (c *SeaSharedContainerAllocationClient) Get(ctx context.Context, id uuid.UUID) (*SeaSharedContainerAllocation, error) {
+	return c.Query().Where(seasharedcontainerallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaSharedContainerAllocationClient) GetX(ctx context.Context, id uuid.UUID) *SeaSharedContainerAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) QueryOrganization(_m *SeaSharedContainerAllocation) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainerallocation.OrganizationTable, seasharedcontainerallocation.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySharedContainer queries the shared_container edge of a SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) QuerySharedContainer(_m *SeaSharedContainerAllocation) *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID, id),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainerallocation.SharedContainerTable, seasharedcontainerallocation.SharedContainerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) QueryOrder(_m *SeaSharedContainerAllocation) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainerallocation.OrderTable, seasharedcontainerallocation.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBill queries the house_bill edge of a SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) QueryHouseBill(_m *SeaSharedContainerAllocation) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainerallocation.HouseBillTable, seasharedcontainerallocation.HouseBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCargoItem queries the cargo_item edge of a SeaSharedContainerAllocation.
+func (c *SeaSharedContainerAllocationClient) QueryCargoItem(_m *SeaSharedContainerAllocation) *OrderCargoItemQuery {
+	query := (&OrderCargoItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seasharedcontainerallocation.Table, seasharedcontainerallocation.FieldID, id),
+			sqlgraph.To(ordercargoitem.Table, ordercargoitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seasharedcontainerallocation.CargoItemTable, seasharedcontainerallocation.CargoItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaSharedContainerAllocationClient) Hooks() []Hook {
+	return c.hooks.SeaSharedContainerAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaSharedContainerAllocationClient) Interceptors() []Interceptor {
+	return c.inters.SeaSharedContainerAllocation
+}
+
+func (c *SeaSharedContainerAllocationClient) mutate(ctx context.Context, m *SeaSharedContainerAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaSharedContainerAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaSharedContainerAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaSharedContainerAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaSharedContainerAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaSharedContainerAllocation mutation op: %q", m.Op())
+	}
+}
+
 // SeaTransportExecutionClient is a client for the SeaTransportExecution schema.
 type SeaTransportExecutionClient struct {
 	config
@@ -21255,15 +22106,15 @@ func (c *SeaTransportExecutionClient) QueryOrganization(_m *SeaTransportExecutio
 	return query
 }
 
-// QueryMasterBills queries the master_bills edge of a SeaTransportExecution.
-func (c *SeaTransportExecutionClient) QueryMasterBills(_m *SeaTransportExecution) *SeaMasterBillQuery {
-	query := (&SeaMasterBillClient{config: c.config}).Query()
+// QueryShippingLine queries the shipping_line edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryShippingLine(_m *SeaTransportExecution) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
-			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillsTable, seatransportexecution.MasterBillsColumn),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecution.ShippingLineTable, seatransportexecution.ShippingLineColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -21271,15 +22122,79 @@ func (c *SeaTransportExecutionClient) QueryMasterBills(_m *SeaTransportExecution
 	return query
 }
 
-// QueryMasterBillVersions queries the master_bill_versions edge of a SeaTransportExecution.
-func (c *SeaTransportExecutionClient) QueryMasterBillVersions(_m *SeaTransportExecution) *SeaMasterBillVersionQuery {
-	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+// QueryOrderLinks queries the order_links edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryOrderLinks(_m *SeaTransportExecution) *SeaMasterBillOrderLinkQuery {
+	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
-			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.MasterBillVersionsTable, seatransportexecution.MasterBillVersionsColumn),
+			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.OrderLinksTable, seatransportexecution.OrderLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCurrentVersion queries the current_version edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryCurrentVersion(_m *SeaTransportExecution) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, seatransportexecution.CurrentVersionTable, seatransportexecution.CurrentVersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVersions queries the versions edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryVersions(_m *SeaTransportExecution) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.VersionsTable, seatransportexecution.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySharedContainers queries the shared_containers edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QuerySharedContainers(_m *SeaTransportExecution) *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.SharedContainersTable, seatransportexecution.SharedContainersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecords queries the lock_records edge of a SeaTransportExecution.
+func (c *SeaTransportExecutionClient) QueryLockRecords(_m *SeaTransportExecution) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecution.Table, seatransportexecution.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecution.LockRecordsTable, seatransportexecution.LockRecordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -21309,6 +22224,235 @@ func (c *SeaTransportExecutionClient) mutate(ctx context.Context, m *SeaTranspor
 		return (&SeaTransportExecutionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown SeaTransportExecution mutation op: %q", m.Op())
+	}
+}
+
+// SeaTransportExecutionVersionClient is a client for the SeaTransportExecutionVersion schema.
+type SeaTransportExecutionVersionClient struct {
+	config
+}
+
+// NewSeaTransportExecutionVersionClient returns a client for the SeaTransportExecutionVersion from the given config.
+func NewSeaTransportExecutionVersionClient(c config) *SeaTransportExecutionVersionClient {
+	return &SeaTransportExecutionVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seatransportexecutionversion.Hooks(f(g(h())))`.
+func (c *SeaTransportExecutionVersionClient) Use(hooks ...Hook) {
+	c.hooks.SeaTransportExecutionVersion = append(c.hooks.SeaTransportExecutionVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seatransportexecutionversion.Intercept(f(g(h())))`.
+func (c *SeaTransportExecutionVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaTransportExecutionVersion = append(c.inters.SeaTransportExecutionVersion, interceptors...)
+}
+
+// Create returns a builder for creating a SeaTransportExecutionVersion entity.
+func (c *SeaTransportExecutionVersionClient) Create() *SeaTransportExecutionVersionCreate {
+	mutation := newSeaTransportExecutionVersionMutation(c.config, OpCreate)
+	return &SeaTransportExecutionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaTransportExecutionVersion entities.
+func (c *SeaTransportExecutionVersionClient) CreateBulk(builders ...*SeaTransportExecutionVersionCreate) *SeaTransportExecutionVersionCreateBulk {
+	return &SeaTransportExecutionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaTransportExecutionVersionClient) MapCreateBulk(slice any, setFunc func(*SeaTransportExecutionVersionCreate, int)) *SeaTransportExecutionVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaTransportExecutionVersionCreateBulk{err: fmt.Errorf("calling to SeaTransportExecutionVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaTransportExecutionVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaTransportExecutionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) Update() *SeaTransportExecutionVersionUpdate {
+	mutation := newSeaTransportExecutionVersionMutation(c.config, OpUpdate)
+	return &SeaTransportExecutionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaTransportExecutionVersionClient) UpdateOne(_m *SeaTransportExecutionVersion) *SeaTransportExecutionVersionUpdateOne {
+	mutation := newSeaTransportExecutionVersionMutation(c.config, OpUpdateOne, withSeaTransportExecutionVersion(_m))
+	return &SeaTransportExecutionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaTransportExecutionVersionClient) UpdateOneID(id uuid.UUID) *SeaTransportExecutionVersionUpdateOne {
+	mutation := newSeaTransportExecutionVersionMutation(c.config, OpUpdateOne, withSeaTransportExecutionVersionID(id))
+	return &SeaTransportExecutionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) Delete() *SeaTransportExecutionVersionDelete {
+	mutation := newSeaTransportExecutionVersionMutation(c.config, OpDelete)
+	return &SeaTransportExecutionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaTransportExecutionVersionClient) DeleteOne(_m *SeaTransportExecutionVersion) *SeaTransportExecutionVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaTransportExecutionVersionClient) DeleteOneID(id uuid.UUID) *SeaTransportExecutionVersionDeleteOne {
+	builder := c.Delete().Where(seatransportexecutionversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaTransportExecutionVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) Query() *SeaTransportExecutionVersionQuery {
+	return &SeaTransportExecutionVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaTransportExecutionVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaTransportExecutionVersion entity by its id.
+func (c *SeaTransportExecutionVersionClient) Get(ctx context.Context, id uuid.UUID) (*SeaTransportExecutionVersion, error) {
+	return c.Query().Where(seatransportexecutionversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaTransportExecutionVersionClient) GetX(ctx context.Context, id uuid.UUID) *SeaTransportExecutionVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryOrganization(_m *SeaTransportExecutionVersion) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecutionversion.OrganizationTable, seatransportexecutionversion.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransportExecution queries the transport_execution edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryTransportExecution(_m *SeaTransportExecutionVersion) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecutionversion.TransportExecutionTable, seatransportexecutionversion.TransportExecutionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShippingLine queries the shipping_line edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryShippingLine(_m *SeaTransportExecutionVersion) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecutionversion.ShippingLineTable, seatransportexecutionversion.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryCreator(_m *SeaTransportExecutionVersion) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecutionversion.CreatorTable, seatransportexecutionversion.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmationAttachment queries the confirmation_attachment edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryConfirmationAttachment(_m *SeaTransportExecutionVersion) *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatransportexecutionversion.ConfirmationAttachmentTable, seatransportexecutionversion.ConfirmationAttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLockRecords queries the lock_records edge of a SeaTransportExecutionVersion.
+func (c *SeaTransportExecutionVersionClient) QueryLockRecords(_m *SeaTransportExecutionVersion) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seatransportexecutionversion.LockRecordsTable, seatransportexecutionversion.LockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaTransportExecutionVersionClient) Hooks() []Hook {
+	return c.hooks.SeaTransportExecutionVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaTransportExecutionVersionClient) Interceptors() []Interceptor {
+	return c.inters.SeaTransportExecutionVersion
+}
+
+func (c *SeaTransportExecutionVersionClient) mutate(ctx context.Context, m *SeaTransportExecutionVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaTransportExecutionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaTransportExecutionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaTransportExecutionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaTransportExecutionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaTransportExecutionVersion mutation op: %q", m.Op())
 	}
 }
 
@@ -21610,6 +22754,86 @@ func (c *ShippingLineClient) QueryContainerPrefixes(_m *ShippingLine) *ShippingL
 			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
 			sqlgraph.To(shippinglinecontainerprefix.Table, shippinglinecontainerprefix.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.ContainerPrefixesTable, shippingline.ContainerPrefixesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrders queries the orders edge of a ShippingLine.
+func (c *ShippingLineClient) QueryOrders(_m *ShippingLine) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.OrdersTable, shippingline.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutions queries the sea_transport_executions edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaTransportExecutions(_m *ShippingLine) *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaTransportExecutionsTable, shippingline.SeaTransportExecutionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaTransportExecutionVersions queries the sea_transport_execution_versions edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaTransportExecutionVersions(_m *ShippingLine) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaTransportExecutionVersionsTable, shippingline.SeaTransportExecutionVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBills queries the sea_master_bills edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaMasterBills(_m *ShippingLine) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaMasterBillsTable, shippingline.SeaMasterBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeaMasterBillVersions queries the sea_master_bill_versions edge of a ShippingLine.
+func (c *ShippingLineClient) QuerySeaMasterBillVersions(_m *ShippingLine) *SeaMasterBillVersionQuery {
+	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.SeaMasterBillVersionsTable, shippingline.SeaMasterBillVersionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -22306,6 +23530,54 @@ func (c *UserClient) QueryReversedFinanceVerifications(_m *User) *FinanceVerific
 	return query
 }
 
+// QueryConfirmedFinanceNettings queries the confirmed_finance_nettings edge of a User.
+func (c *UserClient) QueryConfirmedFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedFinanceNettingsTable, user.ConfirmedFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceNettings queries the cancelled_finance_nettings edge of a User.
+func (c *UserClient) QueryCancelledFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceNettingsTable, user.CancelledFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReversedFinanceNettings queries the reversed_finance_nettings edge of a User.
+func (c *UserClient) QueryReversedFinanceNettings(_m *User) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReversedFinanceNettingsTable, user.ReversedFinanceNettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceCommissions queries the finance_commissions edge of a User.
 func (c *UserClient) QueryFinanceCommissions(_m *User) *FinanceCommissionQuery {
 	query := (&FinanceCommissionClient{config: c.config}).Query()
@@ -22562,22 +23834,6 @@ func (c *UserClient) QueryEnterpriseResourceAssignments(_m *User) *EnterpriseRes
 	return query
 }
 
-// QueryConfirmedSeaCargoAllocationLinks queries the confirmed_sea_cargo_allocation_links edge of a User.
-func (c *UserClient) QueryConfirmedSeaCargoAllocationLinks(_m *User) *SeaMasterBillOrderLinkQuery {
-	query := (&SeaMasterBillOrderLinkClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedSeaCargoAllocationLinksTable, user.ConfirmedSeaCargoAllocationLinksColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryCreatedSeaOrderSplitEvents queries the created_sea_order_split_events edge of a User.
 func (c *UserClient) QueryCreatedSeaOrderSplitEvents(_m *User) *SeaOrderSplitEventQuery {
 	query := (&SeaOrderSplitEventClient{config: c.config}).Query()
@@ -22786,15 +24042,47 @@ func (c *UserClient) QueryCreatedSeaDocumentVoidEvents(_m *User) *SeaDocumentVoi
 	return query
 }
 
-// QueryCreatedSeaHouseBillSwitchEvents queries the created_sea_house_bill_switch_events edge of a User.
-func (c *UserClient) QueryCreatedSeaHouseBillSwitchEvents(_m *User) *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: c.config}).Query()
+// QueryCreatedSeaTransportExecutionVersions queries the created_sea_transport_execution_versions edge of a User.
+func (c *UserClient) QueryCreatedSeaTransportExecutionVersions(_m *User) *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaHouseBillSwitchEventsTable, user.CreatedSeaHouseBillSwitchEventsColumn),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaTransportExecutionVersionsTable, user.CreatedSeaTransportExecutionVersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedSeaDocumentModeChangeEvents queries the created_sea_document_mode_change_events edge of a User.
+func (c *UserClient) QueryCreatedSeaDocumentModeChangeEvents(_m *User) *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedSeaDocumentModeChangeEventsTable, user.CreatedSeaDocumentModeChangeEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfirmedSeaSharedContainers queries the confirmed_sea_shared_containers edge of a User.
+func (c *UserClient) QueryConfirmedSeaSharedContainers(_m *User) *SeaSharedContainerQuery {
+	query := (&SeaSharedContainerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(seasharedcontainer.Table, seasharedcontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedSeaSharedContainersTable, user.ConfirmedSeaSharedContainersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -22842,11 +24130,11 @@ type (
 		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
@@ -22855,11 +24143,12 @@ type (
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
 		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaCargoAllocation, SeaDocumentVoidEvent,
-		SeaHouseBill, SeaHouseBillSwitchEvent, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaTransportExecution, Session,
-		ShippingLine, ShippingLineContainerPrefix, TaxableService, User []ent.Hook
+		RoleOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -22873,11 +24162,11 @@ type (
 		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
@@ -22886,11 +24175,11 @@ type (
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
 		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaCargoAllocation, SeaDocumentVoidEvent,
-		SeaHouseBill, SeaHouseBillSwitchEvent, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaTransportExecution, Session,
-		ShippingLine, ShippingLineContainerPrefix, TaxableService,
-		User []ent.Interceptor
+		RoleOrganizationAccess, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

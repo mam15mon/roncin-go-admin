@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "公共 QuickCreateModal 扩展、订单模板组件边界与复用规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "字段本地选项、远程搜索结果与页面表单状态的职责边界"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "组件内权限、表单实例和路由参数派生状态的 Hook 使用规范"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "伙伴角色枚举、Select option 与生成客户端请求类型约束"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向 Vitest、Biome、tsc 和最终前端门禁规则"}

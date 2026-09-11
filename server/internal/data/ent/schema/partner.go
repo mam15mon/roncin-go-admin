@@ -32,6 +32,7 @@ func (Partner) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("partners").Field("organization_id").Unique().Required(),
 		edge.To("roles", PartnerRole.Type),
+		edge.To("accounts", PartnerAccount.Type),
 		edge.To("contacts", PartnerContact.Type),
 		edge.To("aliases", PartnerAlias.Type),
 		edge.To("profile", PartnerProfile.Type).Unique(),
@@ -46,10 +47,10 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("finance_invoices", FinanceInvoice.Type),
 		edge.To("finance_cashflows", FinanceCashflow.Type),
 		edge.To("finance_verifications", FinanceVerification.Type),
+		edge.To("finance_nettings", FinanceNetting.Type),
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
 		edge.To("issued_sea_house_bills", SeaHouseBill.Type),
 		edge.To("sea_order_reassignments", SeaOrderReassignmentEvent.Type),
-		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type),
 		edge.To("sea_house_bill_versions", SeaHouseBillVersion.Type),
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -104,6 +105,20 @@ func (_c *FinanceBillBatchCreate) SetNillableSplitByTaxRate(v *bool) *FinanceBil
 	return _c
 }
 
+// SetGroupingMode sets the "grouping_mode" field.
+func (_c *FinanceBillBatchCreate) SetGroupingMode(v financebillbatch.GroupingMode) *FinanceBillBatchCreate {
+	_c.mutation.SetGroupingMode(v)
+	return _c
+}
+
+// SetNillableGroupingMode sets the "grouping_mode" field if the given value is not nil.
+func (_c *FinanceBillBatchCreate) SetNillableGroupingMode(v *financebillbatch.GroupingMode) *FinanceBillBatchCreate {
+	if v != nil {
+		_c.SetGroupingMode(*v)
+	}
+	return _c
+}
+
 // SetFeeCount sets the "fee_count" field.
 func (_c *FinanceBillBatchCreate) SetFeeCount(v int) *FinanceBillBatchCreate {
 	_c.mutation.SetFeeCount(v)
@@ -179,6 +194,21 @@ func (_c *FinanceBillBatchCreate) AddBills(v ...*FinanceBill) *FinanceBillBatchC
 	return _c.AddBillIDs(ids...)
 }
 
+// AddNettingIDs adds the "nettings" edge to the FinanceNetting entity by IDs.
+func (_c *FinanceBillBatchCreate) AddNettingIDs(ids ...uuid.UUID) *FinanceBillBatchCreate {
+	_c.mutation.AddNettingIDs(ids...)
+	return _c
+}
+
+// AddNettings adds the "nettings" edges to the FinanceNetting entity.
+func (_c *FinanceBillBatchCreate) AddNettings(v ...*FinanceNetting) *FinanceBillBatchCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNettingIDs(ids...)
+}
+
 // Mutation returns the FinanceBillBatchMutation object of the builder.
 func (_c *FinanceBillBatchCreate) Mutation() *FinanceBillBatchMutation {
 	return _c.mutation
@@ -230,6 +260,10 @@ func (_c *FinanceBillBatchCreate) defaults() {
 		v := financebillbatch.DefaultSplitByTaxRate
 		_c.mutation.SetSplitByTaxRate(v)
 	}
+	if _, ok := _c.mutation.GroupingMode(); !ok {
+		v := financebillbatch.DefaultGroupingMode
+		_c.mutation.SetGroupingMode(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := financebillbatch.DefaultID()
 		_c.mutation.SetID(v)
@@ -276,6 +310,14 @@ func (_c *FinanceBillBatchCreate) check() error {
 	}
 	if _, ok := _c.mutation.SplitByTaxRate(); !ok {
 		return &ValidationError{Name: "split_by_tax_rate", err: errors.New(`ent: missing required field "FinanceBillBatch.split_by_tax_rate"`)}
+	}
+	if _, ok := _c.mutation.GroupingMode(); !ok {
+		return &ValidationError{Name: "grouping_mode", err: errors.New(`ent: missing required field "FinanceBillBatch.grouping_mode"`)}
+	}
+	if v, ok := _c.mutation.GroupingMode(); ok {
+		if err := financebillbatch.GroupingModeValidator(v); err != nil {
+			return &ValidationError{Name: "grouping_mode", err: fmt.Errorf(`ent: validator failed for field "FinanceBillBatch.grouping_mode": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.FeeCount(); !ok {
 		return &ValidationError{Name: "fee_count", err: errors.New(`ent: missing required field "FinanceBillBatch.fee_count"`)}
@@ -376,6 +418,10 @@ func (_c *FinanceBillBatchCreate) createSpec() (*FinanceBillBatch, *sqlgraph.Cre
 		_spec.SetField(financebillbatch.FieldSplitByTaxRate, field.TypeBool, value)
 		_node.SplitByTaxRate = value
 	}
+	if value, ok := _c.mutation.GroupingMode(); ok {
+		_spec.SetField(financebillbatch.FieldGroupingMode, field.TypeEnum, value)
+		_node.GroupingMode = value
+	}
 	if value, ok := _c.mutation.FeeCount(); ok {
 		_spec.SetField(financebillbatch.FieldFeeCount, field.TypeInt, value)
 		_node.FeeCount = value
@@ -435,6 +481,22 @@ func (_c *FinanceBillBatchCreate) createSpec() (*FinanceBillBatch, *sqlgraph.Cre
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillbatch.NettingsTable,
+			Columns: []string{financebillbatch.NettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

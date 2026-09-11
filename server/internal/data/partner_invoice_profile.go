@@ -18,7 +18,11 @@ func NewPartnerInvoiceProfileRepo(data *Data) biz.PartnerInvoiceProfileRepo {
 }
 
 func (r *partnerInvoiceProfileRepo) List(ctx context.Context, organizationID, partnerID uuid.UUID) ([]*biz.PartnerInvoiceProfile, error) {
-	items, err := r.data.db.PartnerInvoiceProfile.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.PartnerInvoiceProfile.Query().
 		Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(partnerID)).
 		Order(profileent.ByIsDefault(sql.OrderDesc()), profileent.ByEnabled(sql.OrderDesc()), profileent.ByCreatedAt()).
 		All(ctx)

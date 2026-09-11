@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"复核 MBL/HBL 语义、候选确认与拆票改配契约"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"复核共享 MBL 固定锁序与锁定快照不回归"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核分层、生成物和 PostgreSQL 验证证据"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"复核现有 OpenAPI 字段的类型安全派生及生成物边界"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核前端定向与最终验收命令"}

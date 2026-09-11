@@ -14,6 +14,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -131,6 +137,96 @@ func (_c *OrderAttachmentCreate) SetNillableCreatorID(id *uuid.UUID) *OrderAttac
 // SetCreator sets the "creator" edge to the User entity.
 func (_c *OrderAttachmentCreate) SetCreator(v *User) *OrderAttachmentCreate {
 	return _c.SetCreatorID(v.ID)
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_c *OrderAttachmentCreate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillVersionIDs(ids...)
+}
+
+// AddSeaHouseBillVersionIDs adds the "sea_house_bill_versions" edge to the SeaHouseBillVersion entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaHouseBillVersionIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaHouseBillVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaHouseBillVersions adds the "sea_house_bill_versions" edges to the SeaHouseBillVersion entity.
+func (_c *OrderAttachmentCreate) AddSeaHouseBillVersions(v ...*SeaHouseBillVersion) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaHouseBillVersionIDs(ids...)
+}
+
+// AddSeaOrderReassignmentEventIDs adds the "sea_order_reassignment_events" edge to the SeaOrderReassignmentEvent entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaOrderReassignmentEventIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaOrderReassignmentEventIDs(ids...)
+	return _c
+}
+
+// AddSeaOrderReassignmentEvents adds the "sea_order_reassignment_events" edges to the SeaOrderReassignmentEvent entity.
+func (_c *OrderAttachmentCreate) AddSeaOrderReassignmentEvents(v ...*SeaOrderReassignmentEvent) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaOrderReassignmentEventIDs(ids...)
+}
+
+// AddSeaDocumentVoidEventIDs adds the "sea_document_void_events" edge to the SeaDocumentVoidEvent entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaDocumentVoidEventIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaDocumentVoidEventIDs(ids...)
+	return _c
+}
+
+// AddSeaDocumentVoidEvents adds the "sea_document_void_events" edges to the SeaDocumentVoidEvent entity.
+func (_c *OrderAttachmentCreate) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaDocumentVoidEventIDs(ids...)
+}
+
+// AddSeaDocumentModeChangeEventIDs adds the "sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaDocumentModeChangeEventIDs(ids...)
+	return _c
+}
+
+// AddSeaDocumentModeChangeEvents adds the "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *OrderAttachmentCreate) AddSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *OrderAttachmentCreate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrderAttachmentCreate {
+	_c.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *OrderAttachmentCreate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrderAttachmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaTransportExecutionVersionIDs(ids...)
 }
 
 // Mutation returns the OrderAttachmentMutation object of the builder.
@@ -318,6 +414,102 @@ func (_c *OrderAttachmentCreate) createSpec() (*OrderAttachment, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CreatedBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaMasterBillVersionsTable,
+			Columns: []string{orderattachment.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaHouseBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaHouseBillVersionsTable,
+			Columns: []string{orderattachment.SeaHouseBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebillversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaOrderReassignmentEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaOrderReassignmentEventsTable,
+			Columns: []string{orderattachment.SeaOrderReassignmentEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaDocumentVoidEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentVoidEventsTable,
+			Columns: []string{orderattachment.SeaDocumentVoidEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaDocumentModeChangeEventsTable,
+			Columns: []string{orderattachment.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderattachment.SeaTransportExecutionVersionsTable,
+			Columns: []string{orderattachment.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

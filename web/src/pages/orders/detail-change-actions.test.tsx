@@ -5,9 +5,10 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { App } from 'antd';
+import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderAllowedAction } from '@/enums.generated';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import OrderDetailPage from './detail';
 
@@ -17,6 +18,11 @@ const routeState = vi.hoisted(() => ({
 
 const detailTestState = vi.hoisted(() => ({
   loadData: vi.fn<(orderId?: string) => Promise<void>>(),
+  allowedActions: [1] as number[],
+  lockState: { isLocked: false } as API.OrderLockStateData | null,
+  sectionReadonly: undefined as boolean | undefined,
+  templateReadonly: undefined as boolean | undefined,
+  customerReferenceNo: '服务端初始值',
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -33,7 +39,13 @@ vi.mock('./use-order-detail-data', () => ({
   useOrderDetailData: (orderId?: string) => ({
     loading: false,
     order: orderId
-      ? { id: orderId, orderNo: `ORDER-${orderId}`, version: '1' }
+      ? {
+          id: orderId,
+          orderNo: `ORDER-${orderId}`,
+          version: '1',
+          customerReferenceNo: detailTestState.customerReferenceNo,
+          allowedActions: detailTestState.allowedActions,
+        }
       : undefined,
     shippingDocs: [],
     personnel: [],
@@ -44,6 +56,7 @@ vi.mock('./use-order-detail-data', () => ({
     currencyOptions: [],
     containerSpecOptions: [],
     personnelOptions: [],
+    draftScope: 'user-1:org-1',
     loadData: () => detailTestState.loadData(orderId),
   }),
 }));
@@ -54,7 +67,7 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
   return {
     ...actual,
     useOrderLockState: () => ({
-      state: null,
+      state: detailTestState.lockState,
       loading: false,
       error: null,
       refresh: vi.fn().mockResolvedValue(null),
@@ -63,15 +76,59 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
 });
 
 vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
-  OrderFormTemplate: ({ header }: { header: React.ReactNode }) => header,
+  OrderFormTemplate: ({
+    header,
+    readonly,
+    formRef,
+    actionsRef,
+    initialValues,
+  }: {
+    header: React.ReactNode;
+    readonly?: boolean;
+    formRef?: React.MutableRefObject<ReturnType<typeof Form.useForm>[0]>;
+    actionsRef?: React.MutableRefObject<{
+      resetTo: (values?: { customerReferenceNo?: string }) => void;
+    } | null>;
+    initialValues?: { customerReferenceNo?: string };
+  }) => {
+    const [form] = Form.useForm();
+    detailTestState.templateReadonly = readonly;
+    React.useEffect(() => {
+      if (formRef) {
+        formRef.current = form;
+      }
+    }, [form, formRef]);
+    React.useImperativeHandle(
+      actionsRef,
+      () => ({
+        resetTo: (values?: { customerReferenceNo?: string }) => {
+          form.resetFields();
+          if (values) form.setFieldsValue(values);
+        },
+      }),
+      [form],
+    );
+    return (
+      <Form form={form} initialValues={initialValues}>
+        <Form.Item name="customerReferenceNo">
+          <Input aria-label="客户参考号" />
+        </Form.Item>
+        {header}
+      </Form>
+    );
+  },
+}));
+
+vi.mock('./templates', () => ({
+  getSeaTemplateSections: (props: { readonly?: boolean }) => {
+    detailTestState.sectionReadonly = props.readonly;
+    return [];
+  },
 }));
 
 vi.mock('./components/detail/OrderDetailHeader', () => ({
   default: (props: {
-    splitDisabled?: boolean;
-    splitBlockedReasons?: string[];
-    reassignDisabled?: boolean;
-    reassignBlockedReasons?: string[];
+    businessActions?: React.ReactNode;
     moreMenuItems?: Array<{
       key?: React.Key;
       onClick?: () => void;
@@ -79,26 +136,7 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
     onSynchronizeLockChange?: () => Promise<void>;
   }) => (
     <div>
-      <button
-        type="button"
-        data-testid="split-action"
-        disabled={props.splitDisabled}
-      >
-        拆票
-      </button>
-      <span data-testid="split-reasons">
-        {props.splitBlockedReasons?.join('；')}
-      </span>
-      <button
-        type="button"
-        data-testid="reassign-action"
-        disabled={props.reassignDisabled}
-      >
-        改配
-      </button>
-      <span data-testid="reassign-reasons">
-        {props.reassignBlockedReasons?.join('；')}
-      </span>
+      {props.businessActions}
       <button
         type="button"
         onClick={() =>
@@ -123,6 +161,9 @@ const mockGetChangeActions = vi.mocked(
   seaOrderChangeServiceGetSeaOrderChangeActions,
 );
 
+const getSplitButton = () => screen.getByRole('button', { name: /拆票/ });
+const getReassignButton = () => screen.getByRole('button', { name: /改配/ });
+
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason?: unknown) => void;
@@ -138,6 +179,55 @@ describe('订单详情页拆票与改配动作隔离', () => {
     vi.clearAllMocks();
     routeState.params = { kind: 'sea-export', id: 'ord-A' };
     detailTestState.loadData.mockResolvedValue(undefined);
+    detailTestState.allowedActions = [
+      OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT,
+    ];
+    detailTestState.lockState = { isLocked: false } as API.OrderLockStateData;
+    detailTestState.sectionReadonly = undefined;
+    detailTestState.templateReadonly = undefined;
+    detailTestState.customerReferenceNo = '服务端初始值';
+  });
+
+  it.each([
+    {
+      name: '缺少编辑动作权限',
+      allowedActions: [] as number[],
+      lockState: { isLocked: false } as API.OrderLockStateData,
+    },
+    {
+      name: '订单已锁定',
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
+      lockState: { isLocked: true } as API.OrderLockStateData,
+    },
+  ])(
+    '$name 时模板与分节使用同一完整只读值',
+    ({ allowedActions, lockState }) => {
+      detailTestState.allowedActions = allowedActions;
+      detailTestState.lockState = lockState;
+      mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+      render(
+        <App>
+          <OrderDetailPage />
+        </App>,
+      );
+
+      expect(detailTestState.sectionReadonly).toBe(true);
+      expect(detailTestState.templateReadonly).toBe(true);
+    },
+  );
+
+  it('有编辑动作且未锁单时模板与分节均可编辑', () => {
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    expect(detailTestState.sectionReadonly).toBe(false);
+    expect(detailTestState.templateReadonly).toBe(false);
   });
 
   it('A 与 B 响应逆序返回时，仅展示当前订单 B 的动作资格', async () => {
@@ -177,11 +267,8 @@ describe('订单详情页拆票与改配动作隔离', () => {
       });
     });
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        'B 不允许拆票',
-      );
-      expect(screen.getByTestId('reassign-action')).toBeEnabled();
+      expect(getSplitButton()).toBeDisabled();
+      expect(getReassignButton()).toBeEnabled();
     });
 
     await act(async () => {
@@ -195,12 +282,12 @@ describe('订单详情页拆票与改配动作隔离', () => {
       });
     });
 
-    expect(screen.getByTestId('split-action')).toBeDisabled();
-    expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-      'B 不允许拆票',
-    );
-    expect(screen.getByTestId('reassign-action')).toBeEnabled();
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
+    expect(getSplitButton()).toBeDisabled();
+    expect(getReassignButton()).toBeEnabled();
+
+    // 阻断原因进入按钮 Tooltip：B 的原因保持可见，A 的迟到结果不得覆盖。
+    fireEvent.mouseEnter(getSplitButton());
+    expect(await screen.findByText('B 不允许拆票')).toBeInTheDocument();
   });
 
   it('切换到 B 后立即清空 A 的动作资格，且 B 失败时不恢复 A 的状态', async () => {
@@ -222,10 +309,8 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeEnabled();
-      expect(screen.getByTestId('reassign-reasons')).toHaveTextContent(
-        'A 不允许改配',
-      );
+      expect(getSplitButton()).toBeEnabled();
+      expect(getReassignButton()).toBeDisabled();
     });
 
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
@@ -235,20 +320,17 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
 
-    expect(screen.getByTestId('split-action')).toBeDisabled();
-    expect(screen.getByTestId('split-reasons')).toBeEmptyDOMElement();
-    expect(screen.getByTestId('reassign-action')).toBeDisabled();
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
+    expect(getSplitButton()).toBeDisabled();
+    expect(getReassignButton()).toBeDisabled();
 
     await act(async () => {
       requestB.reject(new Error('B 动作资格加载失败'));
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('reassign-action')).toBeDisabled();
+      expect(getSplitButton()).toBeDisabled();
+      expect(getReassignButton()).toBeDisabled();
     });
-    expect(screen.getByTestId('reassign-reasons')).toBeEmptyDOMElement();
   });
 
   it('页面手工刷新会重新获取当前订单的动作资格', async () => {
@@ -275,18 +357,13 @@ describe('订单详情页拆票与改配动作隔离', () => {
         <OrderDetailPage />
       </App>,
     );
-    await waitFor(() =>
-      expect(screen.getByTestId('split-action')).toBeEnabled(),
-    );
+    await waitFor(() => expect(getSplitButton()).toBeEnabled());
 
     fireEvent.click(screen.getByRole('button', { name: '刷新动作资格' }));
 
     await waitFor(() => {
       expect(mockGetChangeActions).toHaveBeenCalledTimes(2);
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        '刷新后不可拆票',
-      );
+      expect(getSplitButton()).toBeDisabled();
     });
   });
 
@@ -312,9 +389,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
         <OrderDetailPage />
       </App>,
     );
-    await waitFor(() =>
-      expect(screen.getByTestId('split-action')).toBeEnabled(),
-    );
+    await waitFor(() => expect(getSplitButton()).toBeEnabled());
 
     fireEvent.click(screen.getByRole('button', { name: '同步锁单状态' }));
     await waitFor(() =>
@@ -348,10 +423,71 @@ describe('订单详情页拆票与改配动作隔离', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('split-action')).toBeDisabled();
-      expect(screen.getByTestId('split-reasons')).toHaveTextContent(
-        'B 当前不可拆票',
-      );
+      expect(getSplitButton()).toBeDisabled();
     });
+  });
+
+  it('锁状态同步和同订单后台加载不会覆盖当前未保存表单值', async () => {
+    const pendingLoad = deferred<void>();
+    detailTestState.loadData.mockImplementation(() => pendingLoad.promise);
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const customerReferenceNo = await screen.findByLabelText('客户参考号');
+    expect(customerReferenceNo).toHaveValue('服务端初始值');
+    fireEvent.change(customerReferenceNo, {
+      target: { value: '尚未保存的修改' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '同步锁单状态' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('尚未保存的修改'),
+    );
+
+    // 模拟同一订单的 loadData 返回新版对象；同步结束后的 rerender 不得把表单重置为服务端值。
+    detailTestState.customerReferenceNo = '同步后的服务端值';
+    await act(async () => {
+      pendingLoad.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('尚未保存的修改'),
+    );
+  });
+
+  it('显式刷新数据在当前加载完成后才用最新服务端值重置表单', async () => {
+    const pendingLoad = deferred<void>();
+    detailTestState.loadData.mockImplementation(() => pendingLoad.promise);
+    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const customerReferenceNo = await screen.findByLabelText('客户参考号');
+    fireEvent.change(customerReferenceNo, {
+      target: { value: '等待刷新前的修改' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '刷新动作资格' }));
+    expect(screen.getByLabelText('客户参考号')).toHaveValue('等待刷新前的修改');
+
+    detailTestState.customerReferenceNo = '刷新后的服务端值';
+    await act(async () => {
+      pendingLoad.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('客户参考号')).toHaveValue(
+        '刷新后的服务端值',
+      ),
+    );
   });
 });

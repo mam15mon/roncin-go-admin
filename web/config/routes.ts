@@ -196,6 +196,12 @@ export default [
         component: './finance/verifications',
       },
       {
+        path: '/finance/nettings',
+        name: '对冲管理',
+        access: 'canReadFinanceNettings',
+        component: './finance/nettings',
+      },
+      {
         path: '/finance/commissions',
         name: '提成管理',
         access: 'canReadFinanceCommissions',

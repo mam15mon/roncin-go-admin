@@ -100,9 +100,27 @@ func parseOptions() syncrunner.Options {
 	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
 	path := resolveSourcePath(strings.TrimSpace(*source))
+	if path == "" {
+		defaultPaths := []string{
+			filepath.Join("seeds", "loc251csv.zip"),
+			filepath.Join("server", "seeds", "loc251csv.zip"),
+			filepath.Join("..", "seeds", "loc251csv.zip"),
+			"/tmp/dinotty/loc251csv.zip",
+			"/tmp/dinotty/artifacts.zip",
+		}
+		for _, p := range defaultPaths {
+			if _, err := os.Stat(p); err == nil {
+				path = p
+				break
+			}
+		}
+	}
 	code := strings.TrimSpace(*organizationCode)
-	if path == "" || code == "" {
-		fmt.Fprintln(os.Stderr, "source 和 org-code 均不能为空")
+	if code == "" {
+		code = "HQ"
+	}
+	if path == "" {
+		fmt.Fprintln(os.Stderr, "source 不能为空，未找到默认的 UN/LOCODE ZIP 文件")
 		os.Exit(2)
 	}
 	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release), OrganizationCode: code}

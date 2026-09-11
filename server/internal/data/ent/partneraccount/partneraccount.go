@@ -20,35 +20,41 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldPartnerRoleID holds the string denoting the partner_role_id field in the database.
-	FieldPartnerRoleID = "partner_role_id"
-	// FieldAccountType holds the string denoting the account_type field in the database.
-	FieldAccountType = "account_type"
+	// FieldPartnerID holds the string denoting the partner_id field in the database.
+	FieldPartnerID = "partner_id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldAccountHolder holds the string denoting the account_holder field in the database.
+	FieldAccountHolder = "account_holder"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldBankName holds the string denoting the bank_name field in the database.
 	FieldBankName = "bank_name"
-	// FieldBankAccount holds the string denoting the bank_account field in the database.
-	FieldBankAccount = "bank_account"
+	// FieldAccountNo holds the string denoting the account_no field in the database.
+	FieldAccountNo = "account_no"
 	// FieldSwiftCode holds the string denoting the swift_code field in the database.
 	FieldSwiftCode = "swift_code"
-	// FieldIsDefault holds the string denoting the is_default field in the database.
-	FieldIsDefault = "is_default"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
+	// FieldUsage holds the string denoting the usage field in the database.
+	FieldUsage = "usage"
+	// FieldIsDefaultReceivable holds the string denoting the is_default_receivable field in the database.
+	FieldIsDefaultReceivable = "is_default_receivable"
+	// FieldIsDefaultPayable holds the string denoting the is_default_payable field in the database.
+	FieldIsDefaultPayable = "is_default_payable"
+	// FieldEnabled holds the string denoting the enabled field in the database.
+	FieldEnabled = "enabled"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
-	// EdgePartnerRole holds the string denoting the partner_role edge name in mutations.
-	EdgePartnerRole = "partner_role"
+	// EdgePartner holds the string denoting the partner edge name in mutations.
+	EdgePartner = "partner"
 	// Table holds the table name of the partneraccount in the database.
 	Table = "partner_accounts"
-	// PartnerRoleTable is the table that holds the partner_role relation/edge.
-	PartnerRoleTable = "partner_accounts"
-	// PartnerRoleInverseTable is the table name for the PartnerRole entity.
-	// It exists in this package in order to avoid circular dependency with the "partnerrole" package.
-	PartnerRoleInverseTable = "partner_roles"
-	// PartnerRoleColumn is the table column denoting the partner_role relation/edge.
-	PartnerRoleColumn = "partner_role_id"
+	// PartnerTable is the table that holds the partner relation/edge.
+	PartnerTable = "partner_accounts"
+	// PartnerInverseTable is the table name for the Partner entity.
+	// It exists in this package in order to avoid circular dependency with the "partner" package.
+	PartnerInverseTable = "partners"
+	// PartnerColumn is the table column denoting the partner relation/edge.
+	PartnerColumn = "partner_id"
 )
 
 // Columns holds all SQL columns for partneraccount fields.
@@ -56,14 +62,17 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldPartnerRoleID,
-	FieldAccountType,
+	FieldPartnerID,
+	FieldName,
+	FieldAccountHolder,
 	FieldCurrency,
 	FieldBankName,
-	FieldBankAccount,
+	FieldAccountNo,
 	FieldSwiftCode,
-	FieldIsDefault,
-	FieldStatus,
+	FieldUsage,
+	FieldIsDefaultReceivable,
+	FieldIsDefaultPayable,
+	FieldEnabled,
 	FieldRemark,
 }
 
@@ -84,67 +93,51 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// AccountHolderValidator is a validator for the "account_holder" field. It is called by the builders before save.
+	AccountHolderValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
 	BankNameValidator func(string) error
-	// BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
-	BankAccountValidator func(string) error
+	// AccountNoValidator is a validator for the "account_no" field. It is called by the builders before save.
+	AccountNoValidator func(string) error
 	// SwiftCodeValidator is a validator for the "swift_code" field. It is called by the builders before save.
 	SwiftCodeValidator func(string) error
-	// DefaultIsDefault holds the default value on creation for the "is_default" field.
-	DefaultIsDefault bool
+	// DefaultIsDefaultReceivable holds the default value on creation for the "is_default_receivable" field.
+	DefaultIsDefaultReceivable bool
+	// DefaultIsDefaultPayable holds the default value on creation for the "is_default_payable" field.
+	DefaultIsDefaultPayable bool
+	// DefaultEnabled holds the default value on creation for the "enabled" field.
+	DefaultEnabled bool
 	// RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
 	RemarkValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
 
-// AccountType defines the type for the "account_type" enum field.
-type AccountType string
+// Usage defines the type for the "usage" enum field.
+type Usage string
 
-// AccountType values.
+// Usage values.
 const (
-	AccountTypeCustomerSettlement AccountType = "customer_settlement"
+	UsageRECEIVABLE Usage = "RECEIVABLE"
+	UsagePAYABLE    Usage = "PAYABLE"
+	UsageBOTH       Usage = "BOTH"
 )
 
-func (at AccountType) String() string {
-	return string(at)
+func (u Usage) String() string {
+	return string(u)
 }
 
-// AccountTypeValidator is a validator for the "account_type" field enum values. It is called by the builders before save.
-func AccountTypeValidator(at AccountType) error {
-	switch at {
-	case AccountTypeCustomerSettlement:
+// UsageValidator is a validator for the "usage" field enum values. It is called by the builders before save.
+func UsageValidator(u Usage) error {
+	switch u {
+	case UsageRECEIVABLE, UsagePAYABLE, UsageBOTH:
 		return nil
 	default:
-		return fmt.Errorf("partneraccount: invalid enum value for account_type field: %q", at)
-	}
-}
-
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusActive is the default value of the Status enum.
-const DefaultStatus = StatusActive
-
-// Status values.
-const (
-	StatusActive   Status = "active"
-	StatusInactive Status = "inactive"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusActive, StatusInactive:
-		return nil
-	default:
-		return fmt.Errorf("partneraccount: invalid enum value for status field: %q", s)
+		return fmt.Errorf("partneraccount: invalid enum value for usage field: %q", u)
 	}
 }
 
@@ -166,14 +159,19 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByPartnerRoleID orders the results by the partner_role_id field.
-func ByPartnerRoleID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPartnerRoleID, opts...).ToFunc()
+// ByPartnerID orders the results by the partner_id field.
+func ByPartnerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPartnerID, opts...).ToFunc()
 }
 
-// ByAccountType orders the results by the account_type field.
-func ByAccountType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAccountType, opts...).ToFunc()
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByAccountHolder orders the results by the account_holder field.
+func ByAccountHolder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountHolder, opts...).ToFunc()
 }
 
 // ByCurrency orders the results by the currency field.
@@ -186,9 +184,9 @@ func ByBankName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBankName, opts...).ToFunc()
 }
 
-// ByBankAccount orders the results by the bank_account field.
-func ByBankAccount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBankAccount, opts...).ToFunc()
+// ByAccountNo orders the results by the account_no field.
+func ByAccountNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountNo, opts...).ToFunc()
 }
 
 // BySwiftCode orders the results by the swift_code field.
@@ -196,14 +194,24 @@ func BySwiftCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSwiftCode, opts...).ToFunc()
 }
 
-// ByIsDefault orders the results by the is_default field.
-func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsDefault, opts...).ToFunc()
+// ByUsage orders the results by the usage field.
+func ByUsage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsage, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+// ByIsDefaultReceivable orders the results by the is_default_receivable field.
+func ByIsDefaultReceivable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefaultReceivable, opts...).ToFunc()
+}
+
+// ByIsDefaultPayable orders the results by the is_default_payable field.
+func ByIsDefaultPayable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefaultPayable, opts...).ToFunc()
+}
+
+// ByEnabled orders the results by the enabled field.
+func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.
@@ -211,16 +219,16 @@ func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
 }
 
-// ByPartnerRoleField orders the results by partner_role field.
-func ByPartnerRoleField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByPartnerField orders the results by partner field.
+func ByPartnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPartnerRoleStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newPartnerStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newPartnerRoleStep() *sqlgraph.Step {
+func newPartnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PartnerRoleInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, PartnerRoleTable, PartnerRoleColumn),
+		sqlgraph.To(PartnerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PartnerTable, PartnerColumn),
 	)
 }

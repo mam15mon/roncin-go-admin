@@ -45,6 +45,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -92,12 +94,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -105,7 +106,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -293,39 +297,11 @@ func init() {
 	// airlineDescAwbPrefix is the schema descriptor for awb_prefix field.
 	airlineDescAwbPrefix := airlineFields[3].Descriptor()
 	// airline.AwbPrefixValidator is a validator for the "awb_prefix" field. It is called by the builders before save.
-	airline.AwbPrefixValidator = func() func(string) error {
-		validators := airlineDescAwbPrefix.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(awb_prefix string) error {
-			for _, fn := range fns {
-				if err := fn(awb_prefix); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airline.AwbPrefixValidator = airlineDescAwbPrefix.Validators[0].(func(string) error)
 	// airlineDescNameZh is the schema descriptor for name_zh field.
 	airlineDescNameZh := airlineFields[4].Descriptor()
 	// airline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
-	airline.NameZhValidator = func() func(string) error {
-		validators := airlineDescNameZh.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name_zh string) error {
-			for _, fn := range fns {
-				if err := fn(name_zh); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airline.NameZhValidator = airlineDescNameZh.Validators[0].(func(string) error)
 	// airlineDescNameEn is the schema descriptor for name_en field.
 	airlineDescNameEn := airlineFields[5].Descriptor()
 	// airline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
@@ -372,16 +348,24 @@ func init() {
 	airline.DefaultSource = airlineDescSource.Default.(string)
 	// airline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	airline.SourceValidator = airlineDescSource.Validators[0].(func(string) error)
+	// airlineDescSourceVersion is the schema descriptor for source_version field.
+	airlineDescSourceVersion := airlineFields[9].Descriptor()
+	// airline.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
+	airline.SourceVersionValidator = airlineDescSourceVersion.Validators[0].(func(string) error)
+	// airlineDescSourceHash is the schema descriptor for source_hash field.
+	airlineDescSourceHash := airlineFields[10].Descriptor()
+	// airline.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
+	airline.SourceHashValidator = airlineDescSourceHash.Validators[0].(func(string) error)
 	// airlineDescSortOrder is the schema descriptor for sort_order field.
-	airlineDescSortOrder := airlineFields[9].Descriptor()
+	airlineDescSortOrder := airlineFields[11].Descriptor()
 	// airline.DefaultSortOrder holds the default value on creation for the sort_order field.
 	airline.DefaultSortOrder = airlineDescSortOrder.Default.(int)
 	// airlineDescEnabled is the schema descriptor for enabled field.
-	airlineDescEnabled := airlineFields[10].Descriptor()
+	airlineDescEnabled := airlineFields[12].Descriptor()
 	// airline.DefaultEnabled holds the default value on creation for the enabled field.
 	airline.DefaultEnabled = airlineDescEnabled.Default.(bool)
 	// airlineDescSearchKeywords is the schema descriptor for search_keywords field.
-	airlineDescSearchKeywords := airlineFields[11].Descriptor()
+	airlineDescSearchKeywords := airlineFields[13].Descriptor()
 	// airline.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	airline.DefaultSearchKeywords = airlineDescSearchKeywords.Default.(string)
 	// airlineDescID is the schema descriptor for id field.
@@ -2018,8 +2002,121 @@ func init() {
 			return nil
 		}
 	}()
+	// financebillDescSettlementAccountName is the schema descriptor for settlement_account_name field.
+	financebillDescSettlementAccountName := financebillFields[9].Descriptor()
+	// financebill.SettlementAccountNameValidator is a validator for the "settlement_account_name" field. It is called by the builders before save.
+	financebill.SettlementAccountNameValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_account_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementAccountHolder is the schema descriptor for settlement_account_holder field.
+	financebillDescSettlementAccountHolder := financebillFields[10].Descriptor()
+	// financebill.SettlementAccountHolderValidator is a validator for the "settlement_account_holder" field. It is called by the builders before save.
+	financebill.SettlementAccountHolderValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountHolder.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_account_holder string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_holder); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementBankName is the schema descriptor for settlement_bank_name field.
+	financebillDescSettlementBankName := financebillFields[11].Descriptor()
+	// financebill.SettlementBankNameValidator is a validator for the "settlement_bank_name" field. It is called by the builders before save.
+	financebill.SettlementBankNameValidator = func() func(string) error {
+		validators := financebillDescSettlementBankName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_bank_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_bank_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementBankAccount is the schema descriptor for settlement_bank_account field.
+	financebillDescSettlementBankAccount := financebillFields[12].Descriptor()
+	// financebill.SettlementBankAccountValidator is a validator for the "settlement_bank_account" field. It is called by the builders before save.
+	financebill.SettlementBankAccountValidator = func() func(string) error {
+		validators := financebillDescSettlementBankAccount.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_bank_account string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_bank_account); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementAccountCurrency is the schema descriptor for settlement_account_currency field.
+	financebillDescSettlementAccountCurrency := financebillFields[13].Descriptor()
+	// financebill.SettlementAccountCurrencyValidator is a validator for the "settlement_account_currency" field. It is called by the builders before save.
+	financebill.SettlementAccountCurrencyValidator = func() func(string) error {
+		validators := financebillDescSettlementAccountCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(settlement_account_currency string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_account_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financebillDescSettlementSwiftCode is the schema descriptor for settlement_swift_code field.
+	financebillDescSettlementSwiftCode := financebillFields[14].Descriptor()
+	// financebill.SettlementSwiftCodeValidator is a validator for the "settlement_swift_code" field. It is called by the builders before save.
+	financebill.SettlementSwiftCodeValidator = financebillDescSettlementSwiftCode.Validators[0].(func(string) error)
+	// financebillDescEstimatedInvoiceCurrency is the schema descriptor for estimated_invoice_currency field.
+	financebillDescEstimatedInvoiceCurrency := financebillFields[15].Descriptor()
+	// financebill.EstimatedInvoiceCurrencyValidator is a validator for the "estimated_invoice_currency" field. It is called by the builders before save.
+	financebill.EstimatedInvoiceCurrencyValidator = func() func(string) error {
+		validators := financebillDescEstimatedInvoiceCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(estimated_invoice_currency string) error {
+			for _, fn := range fns {
+				if err := fn(estimated_invoice_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// financebillDescCurrency is the schema descriptor for currency field.
-	financebillDescCurrency := financebillFields[8].Descriptor()
+	financebillDescCurrency := financebillFields[18].Descriptor()
 	// financebill.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	financebill.CurrencyValidator = func() func(string) error {
 		validators := financebillDescCurrency.Validators
@@ -2038,7 +2135,7 @@ func init() {
 		}
 	}()
 	// financebillDescBaseCurrency is the schema descriptor for base_currency field.
-	financebillDescBaseCurrency := financebillFields[9].Descriptor()
+	financebillDescBaseCurrency := financebillFields[19].Descriptor()
 	// financebill.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financebill.BaseCurrencyValidator = func() func(string) error {
 		validators := financebillDescBaseCurrency.Validators
@@ -2057,7 +2154,7 @@ func init() {
 		}
 	}()
 	// financebillDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	financebillDescExchangeRateDate := financebillFields[12].Descriptor()
+	financebillDescExchangeRateDate := financebillFields[22].Descriptor()
 	// financebill.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	financebill.ExchangeRateDateValidator = func() func(string) error {
 		validators := financebillDescExchangeRateDate.Validators
@@ -2076,11 +2173,11 @@ func init() {
 		}
 	}()
 	// financebillDescFeeCount is the schema descriptor for fee_count field.
-	financebillDescFeeCount := financebillFields[18].Descriptor()
+	financebillDescFeeCount := financebillFields[28].Descriptor()
 	// financebill.FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
 	financebill.FeeCountValidator = financebillDescFeeCount.Validators[0].(func(int) error)
 	// financebillDescBillDate is the schema descriptor for bill_date field.
-	financebillDescBillDate := financebillFields[19].Descriptor()
+	financebillDescBillDate := financebillFields[29].Descriptor()
 	// financebill.BillDateValidator is a validator for the "bill_date" field. It is called by the builders before save.
 	financebill.BillDateValidator = func() func(string) error {
 		validators := financebillDescBillDate.Validators
@@ -2099,11 +2196,11 @@ func init() {
 		}
 	}()
 	// financebillDescStatementTitle is the schema descriptor for statement_title field.
-	financebillDescStatementTitle := financebillFields[20].Descriptor()
+	financebillDescStatementTitle := financebillFields[30].Descriptor()
 	// financebill.StatementTitleValidator is a validator for the "statement_title" field. It is called by the builders before save.
 	financebill.StatementTitleValidator = financebillDescStatementTitle.Validators[0].(func(string) error)
 	// financebillDescPaymentTermsDays is the schema descriptor for payment_terms_days field.
-	financebillDescPaymentTermsDays := financebillFields[21].Descriptor()
+	financebillDescPaymentTermsDays := financebillFields[31].Descriptor()
 	// financebill.PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
 	financebill.PaymentTermsDaysValidator = func() func(int) error {
 		validators := financebillDescPaymentTermsDays.Validators
@@ -2121,7 +2218,7 @@ func init() {
 		}
 	}()
 	// financebillDescDueDate is the schema descriptor for due_date field.
-	financebillDescDueDate := financebillFields[22].Descriptor()
+	financebillDescDueDate := financebillFields[32].Descriptor()
 	// financebill.DueDateValidator is a validator for the "due_date" field. It is called by the builders before save.
 	financebill.DueDateValidator = func() func(string) error {
 		validators := financebillDescDueDate.Validators
@@ -2139,15 +2236,15 @@ func init() {
 		}
 	}()
 	// financebillDescNote is the schema descriptor for note field.
-	financebillDescNote := financebillFields[23].Descriptor()
+	financebillDescNote := financebillFields[33].Descriptor()
 	// financebill.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financebill.NoteValidator = financebillDescNote.Validators[0].(func(string) error)
 	// financebillDescVersion is the schema descriptor for version field.
-	financebillDescVersion := financebillFields[24].Descriptor()
+	financebillDescVersion := financebillFields[34].Descriptor()
 	// financebill.DefaultVersion holds the default value on creation for the version field.
 	financebill.DefaultVersion = financebillDescVersion.Default.(uint64)
 	// financebillDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financebillDescCancellationReason := financebillFields[29].Descriptor()
+	financebillDescCancellationReason := financebillFields[39].Descriptor()
 	// financebill.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financebill.CancellationReasonValidator = financebillDescCancellationReason.Validators[0].(func(string) error)
 	// financebillDescID is the schema descriptor for id field.
@@ -2235,15 +2332,15 @@ func init() {
 	// financebillbatch.DefaultSplitByTaxRate holds the default value on creation for the split_by_tax_rate field.
 	financebillbatch.DefaultSplitByTaxRate = financebillbatchDescSplitByTaxRate.Default.(bool)
 	// financebillbatchDescFeeCount is the schema descriptor for fee_count field.
-	financebillbatchDescFeeCount := financebillbatchFields[6].Descriptor()
+	financebillbatchDescFeeCount := financebillbatchFields[7].Descriptor()
 	// financebillbatch.FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
 	financebillbatch.FeeCountValidator = financebillbatchDescFeeCount.Validators[0].(func(int) error)
 	// financebillbatchDescBillCount is the schema descriptor for bill_count field.
-	financebillbatchDescBillCount := financebillbatchFields[7].Descriptor()
+	financebillbatchDescBillCount := financebillbatchFields[8].Descriptor()
 	// financebillbatch.BillCountValidator is a validator for the "bill_count" field. It is called by the builders before save.
 	financebillbatch.BillCountValidator = financebillbatchDescBillCount.Validators[0].(func(int) error)
 	// financebillbatchDescBaseCurrency is the schema descriptor for base_currency field.
-	financebillbatchDescBaseCurrency := financebillbatchFields[9].Descriptor()
+	financebillbatchDescBaseCurrency := financebillbatchFields[10].Descriptor()
 	// financebillbatch.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financebillbatch.BaseCurrencyValidator = func() func(string) error {
 		validators := financebillbatchDescBaseCurrency.Validators
@@ -3679,6 +3776,196 @@ func init() {
 	financeinvoicelineDescID := financeinvoicelineMixinFields0[0].Descriptor()
 	// financeinvoiceline.DefaultID holds the default value on creation for the id field.
 	financeinvoiceline.DefaultID = financeinvoicelineDescID.Default.(func() uuid.UUID)
+	financenettingMixin := schema.FinanceNetting{}.Mixin()
+	financenettingMixinFields0 := financenettingMixin[0].Fields()
+	_ = financenettingMixinFields0
+	financenettingMixinFields1 := financenettingMixin[1].Fields()
+	_ = financenettingMixinFields1
+	financenettingFields := schema.FinanceNetting{}.Fields()
+	_ = financenettingFields
+	// financenettingDescCreatedAt is the schema descriptor for created_at field.
+	financenettingDescCreatedAt := financenettingMixinFields1[0].Descriptor()
+	// financenetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financenetting.DefaultCreatedAt = financenettingDescCreatedAt.Default.(func() time.Time)
+	// financenettingDescUpdatedAt is the schema descriptor for updated_at field.
+	financenettingDescUpdatedAt := financenettingMixinFields1[1].Descriptor()
+	// financenetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financenetting.DefaultUpdatedAt = financenettingDescUpdatedAt.Default.(func() time.Time)
+	// financenetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financenetting.UpdateDefaultUpdatedAt = financenettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financenettingDescNettingNo is the schema descriptor for netting_no field.
+	financenettingDescNettingNo := financenettingFields[1].Descriptor()
+	// financenetting.NettingNoValidator is a validator for the "netting_no" field. It is called by the builders before save.
+	financenetting.NettingNoValidator = func() func(string) error {
+		validators := financenettingDescNettingNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(netting_no string) error {
+			for _, fn := range fns {
+				if err := fn(netting_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	financenettingDescIdempotencyKey := financenettingFields[2].Descriptor()
+	// financenetting.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	financenetting.IdempotencyKeyValidator = func() func(string) error {
+		validators := financenettingDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescRequestHash is the schema descriptor for request_hash field.
+	financenettingDescRequestHash := financenettingFields[3].Descriptor()
+	// financenetting.RequestHashValidator is a validator for the "request_hash" field. It is called by the builders before save.
+	financenetting.RequestHashValidator = func() func(string) error {
+		validators := financenettingDescRequestHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_hash string) error {
+			for _, fn := range fns {
+				if err := fn(request_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescSettlementPartyName is the schema descriptor for settlement_party_name field.
+	financenettingDescSettlementPartyName := financenettingFields[7].Descriptor()
+	// financenetting.SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
+	financenetting.SettlementPartyNameValidator = func() func(string) error {
+		validators := financenettingDescSettlementPartyName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_party_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_party_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescCurrency is the schema descriptor for currency field.
+	financenettingDescCurrency := financenettingFields[8].Descriptor()
+	// financenetting.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	financenetting.CurrencyValidator = func() func(string) error {
+		validators := financenettingDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescBaseCurrency is the schema descriptor for base_currency field.
+	financenettingDescBaseCurrency := financenettingFields[10].Descriptor()
+	// financenetting.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	financenetting.BaseCurrencyValidator = func() func(string) error {
+		validators := financenettingDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingDescNote is the schema descriptor for note field.
+	financenettingDescNote := financenettingFields[12].Descriptor()
+	// financenetting.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	financenetting.NoteValidator = financenettingDescNote.Validators[0].(func(string) error)
+	// financenettingDescVersion is the schema descriptor for version field.
+	financenettingDescVersion := financenettingFields[13].Descriptor()
+	// financenetting.DefaultVersion holds the default value on creation for the version field.
+	financenetting.DefaultVersion = financenettingDescVersion.Default.(uint64)
+	// financenettingDescCancellationReason is the schema descriptor for cancellation_reason field.
+	financenettingDescCancellationReason := financenettingFields[18].Descriptor()
+	// financenetting.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
+	financenetting.CancellationReasonValidator = financenettingDescCancellationReason.Validators[0].(func(string) error)
+	// financenettingDescReversalReason is the schema descriptor for reversal_reason field.
+	financenettingDescReversalReason := financenettingFields[21].Descriptor()
+	// financenetting.ReversalReasonValidator is a validator for the "reversal_reason" field. It is called by the builders before save.
+	financenetting.ReversalReasonValidator = financenettingDescReversalReason.Validators[0].(func(string) error)
+	// financenettingDescID is the schema descriptor for id field.
+	financenettingDescID := financenettingMixinFields0[0].Descriptor()
+	// financenetting.DefaultID holds the default value on creation for the id field.
+	financenetting.DefaultID = financenettingDescID.Default.(func() uuid.UUID)
+	financenettingallocationMixin := schema.FinanceNettingAllocation{}.Mixin()
+	financenettingallocationMixinFields0 := financenettingallocationMixin[0].Fields()
+	_ = financenettingallocationMixinFields0
+	financenettingallocationMixinFields1 := financenettingallocationMixin[1].Fields()
+	_ = financenettingallocationMixinFields1
+	financenettingallocationFields := schema.FinanceNettingAllocation{}.Fields()
+	_ = financenettingallocationFields
+	// financenettingallocationDescCreatedAt is the schema descriptor for created_at field.
+	financenettingallocationDescCreatedAt := financenettingallocationMixinFields1[0].Descriptor()
+	// financenettingallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financenettingallocation.DefaultCreatedAt = financenettingallocationDescCreatedAt.Default.(func() time.Time)
+	// financenettingallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	financenettingallocationDescUpdatedAt := financenettingallocationMixinFields1[1].Descriptor()
+	// financenettingallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financenettingallocation.DefaultUpdatedAt = financenettingallocationDescUpdatedAt.Default.(func() time.Time)
+	// financenettingallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financenettingallocation.UpdateDefaultUpdatedAt = financenettingallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financenettingallocationDescBillNo is the schema descriptor for bill_no field.
+	financenettingallocationDescBillNo := financenettingallocationFields[2].Descriptor()
+	// financenettingallocation.BillNoValidator is a validator for the "bill_no" field. It is called by the builders before save.
+	financenettingallocation.BillNoValidator = func() func(string) error {
+		validators := financenettingallocationDescBillNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bill_no string) error {
+			for _, fn := range fns {
+				if err := fn(bill_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financenettingallocationDescActive is the schema descriptor for active field.
+	financenettingallocationDescActive := financenettingallocationFields[6].Descriptor()
+	// financenettingallocation.DefaultActive holds the default value on creation for the active field.
+	financenettingallocation.DefaultActive = financenettingallocationDescActive.Default.(bool)
+	// financenettingallocationDescID is the schema descriptor for id field.
+	financenettingallocationDescID := financenettingallocationMixinFields0[0].Descriptor()
+	// financenettingallocation.DefaultID holds the default value on creation for the id field.
+	financenettingallocation.DefaultID = financenettingallocationDescID.Default.(func() uuid.UUID)
 	financeverificationMixin := schema.FinanceVerification{}.Mixin()
 	financeverificationMixinFields0 := financeverificationMixin[0].Fields()
 	_ = financeverificationMixinFields0
@@ -4371,90 +4658,90 @@ func init() {
 	orderDescCargoReadyAt := orderFields[19].Descriptor()
 	// order.CargoReadyAtValidator is a validator for the "cargo_ready_at" field. It is called by the builders before save.
 	order.CargoReadyAtValidator = orderDescCargoReadyAt.Validators[0].(func(string) error)
-	// orderDescLoadingTerms is the schema descriptor for loading_terms field.
-	orderDescLoadingTerms := orderFields[20].Descriptor()
-	// order.LoadingTermsValidator is a validator for the "loading_terms" field. It is called by the builders before save.
-	order.LoadingTermsValidator = orderDescLoadingTerms.Validators[0].(func(string) error)
 	// orderDescDeclarationCutoffAt is the schema descriptor for declaration_cutoff_at field.
-	orderDescDeclarationCutoffAt := orderFields[21].Descriptor()
+	orderDescDeclarationCutoffAt := orderFields[20].Descriptor()
 	// order.DeclarationCutoffAtValidator is a validator for the "declaration_cutoff_at" field. It is called by the builders before save.
 	order.DeclarationCutoffAtValidator = orderDescDeclarationCutoffAt.Validators[0].(func(string) error)
 	// orderDescReceivedAt is the schema descriptor for received_at field.
-	orderDescReceivedAt := orderFields[22].Descriptor()
+	orderDescReceivedAt := orderFields[21].Descriptor()
 	// order.ReceivedAtValidator is a validator for the "received_at" field. It is called by the builders before save.
 	order.ReceivedAtValidator = orderDescReceivedAt.Validators[0].(func(string) error)
 	// orderDescTerminationReason is the schema descriptor for termination_reason field.
-	orderDescTerminationReason := orderFields[33].Descriptor()
+	orderDescTerminationReason := orderFields[32].Descriptor()
 	// order.TerminationReasonValidator is a validator for the "termination_reason" field. It is called by the builders before save.
 	order.TerminationReasonValidator = orderDescTerminationReason.Validators[0].(func(string) error)
 	// orderDescClosureReason is the schema descriptor for closure_reason field.
-	orderDescClosureReason := orderFields[37].Descriptor()
+	orderDescClosureReason := orderFields[36].Descriptor()
 	// order.ClosureReasonValidator is a validator for the "closure_reason" field. It is called by the builders before save.
 	order.ClosureReasonValidator = orderDescClosureReason.Validators[0].(func(string) error)
 	// orderDescLockGeneration is the schema descriptor for lock_generation field.
-	orderDescLockGeneration := orderFields[42].Descriptor()
+	orderDescLockGeneration := orderFields[41].Descriptor()
 	// order.DefaultLockGeneration holds the default value on creation for the lock_generation field.
 	order.DefaultLockGeneration = orderDescLockGeneration.Default.(uint64)
 	// orderDescIsShared is the schema descriptor for is_shared field.
-	orderDescIsShared := orderFields[43].Descriptor()
+	orderDescIsShared := orderFields[42].Descriptor()
 	// order.DefaultIsShared holds the default value on creation for the is_shared field.
 	order.DefaultIsShared = orderDescIsShared.Default.(bool)
 	// orderDescVersion is the schema descriptor for version field.
-	orderDescVersion := orderFields[44].Descriptor()
+	orderDescVersion := orderFields[43].Descriptor()
 	// order.DefaultVersion holds the default value on creation for the version field.
 	order.DefaultVersion = orderDescVersion.Default.(uint64)
 	// orderDescVesselVoyage is the schema descriptor for vessel_voyage field.
-	orderDescVesselVoyage := orderFields[49].Descriptor()
+	orderDescVesselVoyage := orderFields[48].Descriptor()
 	// order.VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	order.VesselVoyageValidator = orderDescVesselVoyage.Validators[0].(func(string) error)
 	// orderDescEtd is the schema descriptor for etd field.
-	orderDescEtd := orderFields[50].Descriptor()
+	orderDescEtd := orderFields[49].Descriptor()
 	// order.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
 	order.EtdValidator = orderDescEtd.Validators[0].(func(string) error)
 	// orderDescEta is the schema descriptor for eta field.
-	orderDescEta := orderFields[51].Descriptor()
+	orderDescEta := orderFields[50].Descriptor()
 	// order.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
 	order.EtaValidator = orderDescEta.Validators[0].(func(string) error)
 	// orderDescSiCutoff is the schema descriptor for si_cutoff field.
-	orderDescSiCutoff := orderFields[52].Descriptor()
+	orderDescSiCutoff := orderFields[51].Descriptor()
 	// order.SiCutoffValidator is a validator for the "si_cutoff" field. It is called by the builders before save.
 	order.SiCutoffValidator = orderDescSiCutoff.Validators[0].(func(string) error)
 	// orderDescDocCutoff is the schema descriptor for doc_cutoff field.
-	orderDescDocCutoff := orderFields[53].Descriptor()
+	orderDescDocCutoff := orderFields[52].Descriptor()
 	// order.DocCutoffValidator is a validator for the "doc_cutoff" field. It is called by the builders before save.
 	order.DocCutoffValidator = orderDescDocCutoff.Validators[0].(func(string) error)
 	// orderDescCustomsCutoff is the schema descriptor for customs_cutoff field.
-	orderDescCustomsCutoff := orderFields[54].Descriptor()
+	orderDescCustomsCutoff := orderFields[53].Descriptor()
 	// order.CustomsCutoffValidator is a validator for the "customs_cutoff" field. It is called by the builders before save.
 	order.CustomsCutoffValidator = orderDescCustomsCutoff.Validators[0].(func(string) error)
 	// orderDescVgmCutoff is the schema descriptor for vgm_cutoff field.
-	orderDescVgmCutoff := orderFields[55].Descriptor()
+	orderDescVgmCutoff := orderFields[54].Descriptor()
 	// order.VgmCutoffValidator is a validator for the "vgm_cutoff" field. It is called by the builders before save.
 	order.VgmCutoffValidator = orderDescVgmCutoff.Validators[0].(func(string) error)
 	// orderDescGoodsDescription is the schema descriptor for goods_description field.
-	orderDescGoodsDescription := orderFields[56].Descriptor()
+	orderDescGoodsDescription := orderFields[55].Descriptor()
 	// order.GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
 	order.GoodsDescriptionValidator = orderDescGoodsDescription.Validators[0].(func(string) error)
 	// orderDescTotalGrossWeightKg is the schema descriptor for total_gross_weight_kg field.
-	orderDescTotalGrossWeightKg := orderFields[58].Descriptor()
+	orderDescTotalGrossWeightKg := orderFields[57].Descriptor()
 	// order.TotalGrossWeightKgValidator is a validator for the "total_gross_weight_kg" field. It is called by the builders before save.
 	order.TotalGrossWeightKgValidator = orderDescTotalGrossWeightKg.Validators[0].(func(float64) error)
 	// orderDescTotalVolumeCbm is the schema descriptor for total_volume_cbm field.
-	orderDescTotalVolumeCbm := orderFields[59].Descriptor()
+	orderDescTotalVolumeCbm := orderFields[58].Descriptor()
 	// order.TotalVolumeCbmValidator is a validator for the "total_volume_cbm" field. It is called by the builders before save.
 	order.TotalVolumeCbmValidator = orderDescTotalVolumeCbm.Validators[0].(func(float64) error)
 	// orderDescTotalPackageUnit is the schema descriptor for total_package_unit field.
-	orderDescTotalPackageUnit := orderFields[60].Descriptor()
+	orderDescTotalPackageUnit := orderFields[59].Descriptor()
 	// order.TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
 	order.TotalPackageUnitValidator = orderDescTotalPackageUnit.Validators[0].(func(string) error)
 	// orderDescSpecialRequirements is the schema descriptor for special_requirements field.
-	orderDescSpecialRequirements := orderFields[61].Descriptor()
+	orderDescSpecialRequirements := orderFields[60].Descriptor()
 	// order.SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
 	order.SpecialRequirementsValidator = orderDescSpecialRequirements.Validators[0].(func(string) error)
 	// orderDescOrderDate is the schema descriptor for order_date field.
-	orderDescOrderDate := orderFields[62].Descriptor()
+	orderDescOrderDate := orderFields[61].Descriptor()
 	// order.OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
 	order.OrderDateValidator = orderDescOrderDate.Validators[0].(func(string) error)
+	// orderDescBookingNo is the schema descriptor for booking_no field.
+	orderDescBookingNo := orderFields[62].Descriptor()
+	// order.BookingNoValidator is a validator for the "booking_no" field. It is called by the builders before save.
+	order.BookingNoValidator = orderDescBookingNo.Validators[0].(func(string) error)
 	// orderDescNotes is the schema descriptor for notes field.
 	orderDescNotes := orderFields[63].Descriptor()
 	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
@@ -5206,11 +5493,11 @@ func init() {
 		}
 	}()
 	// orderlockrecordDescUnlockReason is the schema descriptor for unlock_reason field.
-	orderlockrecordDescUnlockReason := orderlockrecordFields[15].Descriptor()
+	orderlockrecordDescUnlockReason := orderlockrecordFields[17].Descriptor()
 	// orderlockrecord.UnlockReasonValidator is a validator for the "unlock_reason" field. It is called by the builders before save.
 	orderlockrecord.UnlockReasonValidator = orderlockrecordDescUnlockReason.Validators[0].(func(string) error)
 	// orderlockrecordDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderlockrecordDescIdempotencyKey := orderlockrecordFields[17].Descriptor()
+	orderlockrecordDescIdempotencyKey := orderlockrecordFields[19].Descriptor()
 	// orderlockrecord.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderlockrecord.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderlockrecordDescIdempotencyKey.Validators
@@ -5228,7 +5515,7 @@ func init() {
 		}
 	}()
 	// orderlockrecordDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderlockrecordDescRequestFingerprint := orderlockrecordFields[18].Descriptor()
+	orderlockrecordDescRequestFingerprint := orderlockrecordFields[20].Descriptor()
 	// orderlockrecord.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderlockrecord.RequestFingerprintValidator = func() func(string) error {
 		validators := orderlockrecordDescRequestFingerprint.Validators
@@ -5761,8 +6048,44 @@ func init() {
 	partneraccount.DefaultUpdatedAt = partneraccountDescUpdatedAt.Default.(func() time.Time)
 	// partneraccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partneraccount.UpdateDefaultUpdatedAt = partneraccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partneraccountDescName is the schema descriptor for name field.
+	partneraccountDescName := partneraccountFields[1].Descriptor()
+	// partneraccount.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	partneraccount.NameValidator = func() func(string) error {
+		validators := partneraccountDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescAccountHolder is the schema descriptor for account_holder field.
+	partneraccountDescAccountHolder := partneraccountFields[2].Descriptor()
+	// partneraccount.AccountHolderValidator is a validator for the "account_holder" field. It is called by the builders before save.
+	partneraccount.AccountHolderValidator = func() func(string) error {
+		validators := partneraccountDescAccountHolder.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(account_holder string) error {
+			for _, fn := range fns {
+				if err := fn(account_holder); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// partneraccountDescCurrency is the schema descriptor for currency field.
-	partneraccountDescCurrency := partneraccountFields[2].Descriptor()
+	partneraccountDescCurrency := partneraccountFields[3].Descriptor()
 	// partneraccount.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	partneraccount.CurrencyValidator = func() func(string) error {
 		validators := partneraccountDescCurrency.Validators
@@ -5780,23 +6103,59 @@ func init() {
 		}
 	}()
 	// partneraccountDescBankName is the schema descriptor for bank_name field.
-	partneraccountDescBankName := partneraccountFields[3].Descriptor()
+	partneraccountDescBankName := partneraccountFields[4].Descriptor()
 	// partneraccount.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
-	partneraccount.BankNameValidator = partneraccountDescBankName.Validators[0].(func(string) error)
-	// partneraccountDescBankAccount is the schema descriptor for bank_account field.
-	partneraccountDescBankAccount := partneraccountFields[4].Descriptor()
-	// partneraccount.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
-	partneraccount.BankAccountValidator = partneraccountDescBankAccount.Validators[0].(func(string) error)
+	partneraccount.BankNameValidator = func() func(string) error {
+		validators := partneraccountDescBankName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bank_name string) error {
+			for _, fn := range fns {
+				if err := fn(bank_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescAccountNo is the schema descriptor for account_no field.
+	partneraccountDescAccountNo := partneraccountFields[5].Descriptor()
+	// partneraccount.AccountNoValidator is a validator for the "account_no" field. It is called by the builders before save.
+	partneraccount.AccountNoValidator = func() func(string) error {
+		validators := partneraccountDescAccountNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(account_no string) error {
+			for _, fn := range fns {
+				if err := fn(account_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// partneraccountDescSwiftCode is the schema descriptor for swift_code field.
-	partneraccountDescSwiftCode := partneraccountFields[5].Descriptor()
+	partneraccountDescSwiftCode := partneraccountFields[6].Descriptor()
 	// partneraccount.SwiftCodeValidator is a validator for the "swift_code" field. It is called by the builders before save.
 	partneraccount.SwiftCodeValidator = partneraccountDescSwiftCode.Validators[0].(func(string) error)
-	// partneraccountDescIsDefault is the schema descriptor for is_default field.
-	partneraccountDescIsDefault := partneraccountFields[6].Descriptor()
-	// partneraccount.DefaultIsDefault holds the default value on creation for the is_default field.
-	partneraccount.DefaultIsDefault = partneraccountDescIsDefault.Default.(bool)
+	// partneraccountDescIsDefaultReceivable is the schema descriptor for is_default_receivable field.
+	partneraccountDescIsDefaultReceivable := partneraccountFields[8].Descriptor()
+	// partneraccount.DefaultIsDefaultReceivable holds the default value on creation for the is_default_receivable field.
+	partneraccount.DefaultIsDefaultReceivable = partneraccountDescIsDefaultReceivable.Default.(bool)
+	// partneraccountDescIsDefaultPayable is the schema descriptor for is_default_payable field.
+	partneraccountDescIsDefaultPayable := partneraccountFields[9].Descriptor()
+	// partneraccount.DefaultIsDefaultPayable holds the default value on creation for the is_default_payable field.
+	partneraccount.DefaultIsDefaultPayable = partneraccountDescIsDefaultPayable.Default.(bool)
+	// partneraccountDescEnabled is the schema descriptor for enabled field.
+	partneraccountDescEnabled := partneraccountFields[10].Descriptor()
+	// partneraccount.DefaultEnabled holds the default value on creation for the enabled field.
+	partneraccount.DefaultEnabled = partneraccountDescEnabled.Default.(bool)
 	// partneraccountDescRemark is the schema descriptor for remark field.
-	partneraccountDescRemark := partneraccountFields[8].Descriptor()
+	partneraccountDescRemark := partneraccountFields[11].Descriptor()
 	// partneraccount.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
 	partneraccount.RemarkValidator = partneraccountDescRemark.Validators[0].(func(string) error)
 	// partneraccountDescID is the schema descriptor for id field.
@@ -6654,56 +7013,138 @@ func init() {
 	roleassignmentDescID := roleassignmentMixinFields0[0].Descriptor()
 	// roleassignment.DefaultID holds the default value on creation for the id field.
 	roleassignment.DefaultID = roleassignmentDescID.Default.(func() uuid.UUID)
-	roleorderorganizationaccessMixin := schema.RoleOrderOrganizationAccess{}.Mixin()
-	roleorderorganizationaccessMixinFields0 := roleorderorganizationaccessMixin[0].Fields()
-	_ = roleorderorganizationaccessMixinFields0
-	roleorderorganizationaccessMixinFields1 := roleorderorganizationaccessMixin[1].Fields()
-	_ = roleorderorganizationaccessMixinFields1
-	roleorderorganizationaccessFields := schema.RoleOrderOrganizationAccess{}.Fields()
-	_ = roleorderorganizationaccessFields
-	// roleorderorganizationaccessDescCreatedAt is the schema descriptor for created_at field.
-	roleorderorganizationaccessDescCreatedAt := roleorderorganizationaccessMixinFields1[0].Descriptor()
-	// roleorderorganizationaccess.DefaultCreatedAt holds the default value on creation for the created_at field.
-	roleorderorganizationaccess.DefaultCreatedAt = roleorderorganizationaccessDescCreatedAt.Default.(func() time.Time)
-	// roleorderorganizationaccessDescUpdatedAt is the schema descriptor for updated_at field.
-	roleorderorganizationaccessDescUpdatedAt := roleorderorganizationaccessMixinFields1[1].Descriptor()
-	// roleorderorganizationaccess.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	roleorderorganizationaccess.DefaultUpdatedAt = roleorderorganizationaccessDescUpdatedAt.Default.(func() time.Time)
-	// roleorderorganizationaccess.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	roleorderorganizationaccess.UpdateDefaultUpdatedAt = roleorderorganizationaccessDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// roleorderorganizationaccessDescWritable is the schema descriptor for writable field.
-	roleorderorganizationaccessDescWritable := roleorderorganizationaccessFields[2].Descriptor()
-	// roleorderorganizationaccess.DefaultWritable holds the default value on creation for the writable field.
-	roleorderorganizationaccess.DefaultWritable = roleorderorganizationaccessDescWritable.Default.(bool)
-	// roleorderorganizationaccessDescID is the schema descriptor for id field.
-	roleorderorganizationaccessDescID := roleorderorganizationaccessMixinFields0[0].Descriptor()
-	// roleorderorganizationaccess.DefaultID holds the default value on creation for the id field.
-	roleorderorganizationaccess.DefaultID = roleorderorganizationaccessDescID.Default.(func() uuid.UUID)
-	seacargoallocationMixin := schema.SeaCargoAllocation{}.Mixin()
-	seacargoallocationMixinFields0 := seacargoallocationMixin[0].Fields()
-	_ = seacargoallocationMixinFields0
-	seacargoallocationMixinFields1 := seacargoallocationMixin[1].Fields()
-	_ = seacargoallocationMixinFields1
-	seacargoallocationFields := schema.SeaCargoAllocation{}.Fields()
-	_ = seacargoallocationFields
-	// seacargoallocationDescCreatedAt is the schema descriptor for created_at field.
-	seacargoallocationDescCreatedAt := seacargoallocationMixinFields1[0].Descriptor()
-	// seacargoallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
-	seacargoallocation.DefaultCreatedAt = seacargoallocationDescCreatedAt.Default.(func() time.Time)
-	// seacargoallocationDescUpdatedAt is the schema descriptor for updated_at field.
-	seacargoallocationDescUpdatedAt := seacargoallocationMixinFields1[1].Descriptor()
-	// seacargoallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	seacargoallocation.DefaultUpdatedAt = seacargoallocationDescUpdatedAt.Default.(func() time.Time)
-	// seacargoallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	seacargoallocation.UpdateDefaultUpdatedAt = seacargoallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// seacargoallocationDescPackageCount is the schema descriptor for package_count field.
-	seacargoallocationDescPackageCount := seacargoallocationFields[6].Descriptor()
-	// seacargoallocation.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
-	seacargoallocation.PackageCountValidator = seacargoallocationDescPackageCount.Validators[0].(func(int) error)
-	// seacargoallocationDescID is the schema descriptor for id field.
-	seacargoallocationDescID := seacargoallocationMixinFields0[0].Descriptor()
-	// seacargoallocation.DefaultID holds the default value on creation for the id field.
-	seacargoallocation.DefaultID = seacargoallocationDescID.Default.(func() uuid.UUID)
+	roleorganizationaccessMixin := schema.RoleOrganizationAccess{}.Mixin()
+	roleorganizationaccessMixinFields0 := roleorganizationaccessMixin[0].Fields()
+	_ = roleorganizationaccessMixinFields0
+	roleorganizationaccessMixinFields1 := roleorganizationaccessMixin[1].Fields()
+	_ = roleorganizationaccessMixinFields1
+	roleorganizationaccessFields := schema.RoleOrganizationAccess{}.Fields()
+	_ = roleorganizationaccessFields
+	// roleorganizationaccessDescCreatedAt is the schema descriptor for created_at field.
+	roleorganizationaccessDescCreatedAt := roleorganizationaccessMixinFields1[0].Descriptor()
+	// roleorganizationaccess.DefaultCreatedAt holds the default value on creation for the created_at field.
+	roleorganizationaccess.DefaultCreatedAt = roleorganizationaccessDescCreatedAt.Default.(func() time.Time)
+	// roleorganizationaccessDescUpdatedAt is the schema descriptor for updated_at field.
+	roleorganizationaccessDescUpdatedAt := roleorganizationaccessMixinFields1[1].Descriptor()
+	// roleorganizationaccess.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	roleorganizationaccess.DefaultUpdatedAt = roleorganizationaccessDescUpdatedAt.Default.(func() time.Time)
+	// roleorganizationaccess.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	roleorganizationaccess.UpdateDefaultUpdatedAt = roleorganizationaccessDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// roleorganizationaccessDescWritable is the schema descriptor for writable field.
+	roleorganizationaccessDescWritable := roleorganizationaccessFields[2].Descriptor()
+	// roleorganizationaccess.DefaultWritable holds the default value on creation for the writable field.
+	roleorganizationaccess.DefaultWritable = roleorganizationaccessDescWritable.Default.(bool)
+	// roleorganizationaccessDescID is the schema descriptor for id field.
+	roleorganizationaccessDescID := roleorganizationaccessMixinFields0[0].Descriptor()
+	// roleorganizationaccess.DefaultID holds the default value on creation for the id field.
+	roleorganizationaccess.DefaultID = roleorganizationaccessDescID.Default.(func() uuid.UUID)
+	seadocumentmodechangeeventMixin := schema.SeaDocumentModeChangeEvent{}.Mixin()
+	seadocumentmodechangeeventMixinFields0 := seadocumentmodechangeeventMixin[0].Fields()
+	_ = seadocumentmodechangeeventMixinFields0
+	seadocumentmodechangeeventFields := schema.SeaDocumentModeChangeEvent{}.Fields()
+	_ = seadocumentmodechangeeventFields
+	// seadocumentmodechangeeventDescCreatedAt is the schema descriptor for created_at field.
+	seadocumentmodechangeeventDescCreatedAt := seadocumentmodechangeeventFields[0].Descriptor()
+	// seadocumentmodechangeevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seadocumentmodechangeevent.DefaultCreatedAt = seadocumentmodechangeeventDescCreatedAt.Default.(func() time.Time)
+	// seadocumentmodechangeeventDescReason is the schema descriptor for reason field.
+	seadocumentmodechangeeventDescReason := seadocumentmodechangeeventFields[9].Descriptor()
+	// seadocumentmodechangeevent.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	seadocumentmodechangeevent.ReasonValidator = func() func(string) error {
+		validators := seadocumentmodechangeeventDescReason.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(reason string) error {
+			for _, fn := range fns {
+				if err := fn(reason); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentmodechangeeventDescImpactSummary is the schema descriptor for impact_summary field.
+	seadocumentmodechangeeventDescImpactSummary := seadocumentmodechangeeventFields[10].Descriptor()
+	// seadocumentmodechangeevent.ImpactSummaryValidator is a validator for the "impact_summary" field. It is called by the builders before save.
+	seadocumentmodechangeevent.ImpactSummaryValidator = seadocumentmodechangeeventDescImpactSummary.Validators[0].(func(string) error)
+	// seadocumentmodechangeeventDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seadocumentmodechangeeventDescConfirmedByParty := seadocumentmodechangeeventFields[11].Descriptor()
+	// seadocumentmodechangeevent.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seadocumentmodechangeevent.ConfirmedByPartyValidator = func() func(string) error {
+		validators := seadocumentmodechangeeventDescConfirmedByParty.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmed_by_party string) error {
+			for _, fn := range fns {
+				if err := fn(confirmed_by_party); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentmodechangeeventDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seadocumentmodechangeeventDescConfirmationNote := seadocumentmodechangeeventFields[13].Descriptor()
+	// seadocumentmodechangeevent.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seadocumentmodechangeevent.ConfirmationNoteValidator = func() func(string) error {
+		validators := seadocumentmodechangeeventDescConfirmationNote.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmation_note string) error {
+			for _, fn := range fns {
+				if err := fn(confirmation_note); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentmodechangeeventDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	seadocumentmodechangeeventDescIdempotencyKey := seadocumentmodechangeeventFields[16].Descriptor()
+	// seadocumentmodechangeevent.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	seadocumentmodechangeevent.IdempotencyKeyValidator = func() func(string) error {
+		validators := seadocumentmodechangeeventDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentmodechangeeventDescRequestFingerprint is the schema descriptor for request_fingerprint field.
+	seadocumentmodechangeeventDescRequestFingerprint := seadocumentmodechangeeventFields[17].Descriptor()
+	// seadocumentmodechangeevent.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	seadocumentmodechangeevent.RequestFingerprintValidator = func() func(string) error {
+		validators := seadocumentmodechangeeventDescRequestFingerprint.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_fingerprint string) error {
+			for _, fn := range fns {
+				if err := fn(request_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentmodechangeeventDescID is the schema descriptor for id field.
+	seadocumentmodechangeeventDescID := seadocumentmodechangeeventMixinFields0[0].Descriptor()
+	// seadocumentmodechangeevent.DefaultID holds the default value on creation for the id field.
+	seadocumentmodechangeevent.DefaultID = seadocumentmodechangeeventDescID.Default.(func() uuid.UUID)
 	seadocumentvoideventMixin := schema.SeaDocumentVoidEvent{}.Mixin()
 	seadocumentvoideventMixinFields0 := seadocumentvoideventMixin[0].Fields()
 	_ = seadocumentvoideventMixinFields0
@@ -6801,6 +7242,42 @@ func init() {
 		return func(request_fingerprint string) error {
 			for _, fn := range fns {
 				if err := fn(request_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentvoideventDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seadocumentvoideventDescConfirmedByParty := seadocumentvoideventFields[17].Descriptor()
+	// seadocumentvoidevent.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seadocumentvoidevent.ConfirmedByPartyValidator = func() func(string) error {
+		validators := seadocumentvoideventDescConfirmedByParty.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmed_by_party string) error {
+			for _, fn := range fns {
+				if err := fn(confirmed_by_party); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seadocumentvoideventDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seadocumentvoideventDescConfirmationNote := seadocumentvoideventFields[19].Descriptor()
+	// seadocumentvoidevent.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seadocumentvoidevent.ConfirmationNoteValidator = func() func(string) error {
+		validators := seadocumentvoideventDescConfirmationNote.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmation_note string) error {
+			for _, fn := range fns {
+				if err := fn(confirmation_note); err != nil {
 					return err
 				}
 			}
@@ -6908,85 +7385,6 @@ func init() {
 	seahousebillDescID := seahousebillMixinFields0[0].Descriptor()
 	// seahousebill.DefaultID holds the default value on creation for the id field.
 	seahousebill.DefaultID = seahousebillDescID.Default.(func() uuid.UUID)
-	seahousebillswitcheventMixin := schema.SeaHouseBillSwitchEvent{}.Mixin()
-	seahousebillswitcheventMixinFields0 := seahousebillswitcheventMixin[0].Fields()
-	_ = seahousebillswitcheventMixinFields0
-	seahousebillswitcheventFields := schema.SeaHouseBillSwitchEvent{}.Fields()
-	_ = seahousebillswitcheventFields
-	// seahousebillswitcheventDescCreatedAt is the schema descriptor for created_at field.
-	seahousebillswitcheventDescCreatedAt := seahousebillswitcheventFields[0].Descriptor()
-	// seahousebillswitchevent.DefaultCreatedAt holds the default value on creation for the created_at field.
-	seahousebillswitchevent.DefaultCreatedAt = seahousebillswitcheventDescCreatedAt.Default.(func() time.Time)
-	// seahousebillswitcheventDescSequence is the schema descriptor for sequence field.
-	seahousebillswitcheventDescSequence := seahousebillswitcheventFields[5].Descriptor()
-	// seahousebillswitchevent.SequenceValidator is a validator for the "sequence" field. It is called by the builders before save.
-	seahousebillswitchevent.SequenceValidator = seahousebillswitcheventDescSequence.Validators[0].(func(int) error)
-	// seahousebillswitcheventDescReason is the schema descriptor for reason field.
-	seahousebillswitcheventDescReason := seahousebillswitcheventFields[10].Descriptor()
-	// seahousebillswitchevent.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
-	seahousebillswitchevent.ReasonValidator = func() func(string) error {
-		validators := seahousebillswitcheventDescReason.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(reason string) error {
-			for _, fn := range fns {
-				if err := fn(reason); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// seahousebillswitcheventDescSurrenderInfo is the schema descriptor for surrender_info field.
-	seahousebillswitcheventDescSurrenderInfo := seahousebillswitcheventFields[11].Descriptor()
-	// seahousebillswitchevent.SurrenderInfoValidator is a validator for the "surrender_info" field. It is called by the builders before save.
-	seahousebillswitchevent.SurrenderInfoValidator = seahousebillswitcheventDescSurrenderInfo.Validators[0].(func(string) error)
-	// seahousebillswitcheventDescImpactSummary is the schema descriptor for impact_summary field.
-	seahousebillswitcheventDescImpactSummary := seahousebillswitcheventFields[12].Descriptor()
-	// seahousebillswitchevent.ImpactSummaryValidator is a validator for the "impact_summary" field. It is called by the builders before save.
-	seahousebillswitchevent.ImpactSummaryValidator = seahousebillswitcheventDescImpactSummary.Validators[0].(func(string) error)
-	// seahousebillswitcheventDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	seahousebillswitcheventDescIdempotencyKey := seahousebillswitcheventFields[13].Descriptor()
-	// seahousebillswitchevent.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
-	seahousebillswitchevent.IdempotencyKeyValidator = func() func(string) error {
-		validators := seahousebillswitcheventDescIdempotencyKey.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(idempotency_key string) error {
-			for _, fn := range fns {
-				if err := fn(idempotency_key); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// seahousebillswitcheventDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	seahousebillswitcheventDescRequestFingerprint := seahousebillswitcheventFields[14].Descriptor()
-	// seahousebillswitchevent.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
-	seahousebillswitchevent.RequestFingerprintValidator = func() func(string) error {
-		validators := seahousebillswitcheventDescRequestFingerprint.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(request_fingerprint string) error {
-			for _, fn := range fns {
-				if err := fn(request_fingerprint); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// seahousebillswitcheventDescID is the schema descriptor for id field.
-	seahousebillswitcheventDescID := seahousebillswitcheventMixinFields0[0].Descriptor()
-	// seahousebillswitchevent.DefaultID holds the default value on creation for the id field.
-	seahousebillswitchevent.DefaultID = seahousebillswitcheventDescID.Default.(func() uuid.UUID)
 	seahousebillversionMixin := schema.SeaHouseBillVersion{}.Mixin()
 	seahousebillversionMixinFields0 := seahousebillversionMixin[0].Fields()
 	_ = seahousebillversionMixinFields0
@@ -7066,36 +7464,44 @@ func init() {
 	seahousebillversionDescRequestFingerprint := seahousebillversionFields[19].Descriptor()
 	// seahousebillversion.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	seahousebillversion.RequestFingerprintValidator = seahousebillversionDescRequestFingerprint.Validators[0].(func(string) error)
+	// seahousebillversionDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seahousebillversionDescConfirmedByParty := seahousebillversionFields[20].Descriptor()
+	// seahousebillversion.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seahousebillversion.ConfirmedByPartyValidator = seahousebillversionDescConfirmedByParty.Validators[0].(func(string) error)
+	// seahousebillversionDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seahousebillversionDescConfirmationNote := seahousebillversionFields[22].Descriptor()
+	// seahousebillversion.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seahousebillversion.ConfirmationNoteValidator = seahousebillversionDescConfirmationNote.Validators[0].(func(string) error)
 	// seahousebillversionDescPackageCount is the schema descriptor for package_count field.
-	seahousebillversionDescPackageCount := seahousebillversionFields[26].Descriptor()
+	seahousebillversionDescPackageCount := seahousebillversionFields[30].Descriptor()
 	// seahousebillversion.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seahousebillversion.PackageCountValidator = seahousebillversionDescPackageCount.Validators[0].(func(int) error)
 	// seahousebillversionDescPackageUnit is the schema descriptor for package_unit field.
-	seahousebillversionDescPackageUnit := seahousebillversionFields[27].Descriptor()
+	seahousebillversionDescPackageUnit := seahousebillversionFields[31].Descriptor()
 	// seahousebillversion.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seahousebillversion.PackageUnitValidator = seahousebillversionDescPackageUnit.Validators[0].(func(string) error)
 	// seahousebillversionDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seahousebillversionDescGrossWeightKg := seahousebillversionFields[28].Descriptor()
+	seahousebillversionDescGrossWeightKg := seahousebillversionFields[32].Descriptor()
 	// seahousebillversion.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seahousebillversion.GrossWeightKgValidator = seahousebillversionDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seahousebillversionDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seahousebillversionDescVolumeCbm := seahousebillversionFields[29].Descriptor()
+	seahousebillversionDescVolumeCbm := seahousebillversionFields[33].Descriptor()
 	// seahousebillversion.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seahousebillversion.VolumeCbmValidator = seahousebillversionDescVolumeCbm.Validators[0].(func(float64) error)
 	// seahousebillversionDescFreightTerms is the schema descriptor for freight_terms field.
-	seahousebillversionDescFreightTerms := seahousebillversionFields[30].Descriptor()
+	seahousebillversionDescFreightTerms := seahousebillversionFields[34].Descriptor()
 	// seahousebillversion.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seahousebillversion.FreightTermsValidator = seahousebillversionDescFreightTerms.Validators[0].(func(string) error)
 	// seahousebillversionDescTransportTerms is the schema descriptor for transport_terms field.
-	seahousebillversionDescTransportTerms := seahousebillversionFields[31].Descriptor()
+	seahousebillversionDescTransportTerms := seahousebillversionFields[35].Descriptor()
 	// seahousebillversion.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seahousebillversion.TransportTermsValidator = seahousebillversionDescTransportTerms.Validators[0].(func(string) error)
 	// seahousebillversionDescBillForm is the schema descriptor for bill_form field.
-	seahousebillversionDescBillForm := seahousebillversionFields[32].Descriptor()
+	seahousebillversionDescBillForm := seahousebillversionFields[36].Descriptor()
 	// seahousebillversion.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seahousebillversion.BillFormValidator = seahousebillversionDescBillForm.Validators[0].(func(string) error)
 	// seahousebillversionDescReleaseType is the schema descriptor for release_type field.
-	seahousebillversionDescReleaseType := seahousebillversionFields[33].Descriptor()
+	seahousebillversionDescReleaseType := seahousebillversionFields[37].Descriptor()
 	// seahousebillversion.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seahousebillversion.ReleaseTypeValidator = seahousebillversionDescReleaseType.Validators[0].(func(string) error)
 	// seahousebillversionDescID is the schema descriptor for id field.
@@ -7120,7 +7526,7 @@ func init() {
 	// seamasterbill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	seamasterbill.UpdateDefaultUpdatedAt = seamasterbillDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// seamasterbillDescMasterNo is the schema descriptor for master_no field.
-	seamasterbillDescMasterNo := seamasterbillFields[3].Descriptor()
+	seamasterbillDescMasterNo := seamasterbillFields[2].Descriptor()
 	// seamasterbill.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
 	seamasterbill.MasterNoValidator = func() func(string) error {
 		validators := seamasterbillDescMasterNo.Validators
@@ -7138,7 +7544,7 @@ func init() {
 		}
 	}()
 	// seamasterbillDescNormalizedMasterNo is the schema descriptor for normalized_master_no field.
-	seamasterbillDescNormalizedMasterNo := seamasterbillFields[4].Descriptor()
+	seamasterbillDescNormalizedMasterNo := seamasterbillFields[3].Descriptor()
 	// seamasterbill.NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
 	seamasterbill.NormalizedMasterNoValidator = func() func(string) error {
 		validators := seamasterbillDescNormalizedMasterNo.Validators
@@ -7156,39 +7562,39 @@ func init() {
 		}
 	}()
 	// seamasterbillDescVersion is the schema descriptor for version field.
-	seamasterbillDescVersion := seamasterbillFields[7].Descriptor()
+	seamasterbillDescVersion := seamasterbillFields[6].Descriptor()
 	// seamasterbill.DefaultVersion holds the default value on creation for the version field.
 	seamasterbill.DefaultVersion = seamasterbillDescVersion.Default.(uint64)
 	// seamasterbillDescPackageCount is the schema descriptor for package_count field.
-	seamasterbillDescPackageCount := seamasterbillFields[14].Descriptor()
+	seamasterbillDescPackageCount := seamasterbillFields[13].Descriptor()
 	// seamasterbill.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seamasterbill.PackageCountValidator = seamasterbillDescPackageCount.Validators[0].(func(int) error)
 	// seamasterbillDescPackageUnit is the schema descriptor for package_unit field.
-	seamasterbillDescPackageUnit := seamasterbillFields[15].Descriptor()
+	seamasterbillDescPackageUnit := seamasterbillFields[14].Descriptor()
 	// seamasterbill.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seamasterbill.PackageUnitValidator = seamasterbillDescPackageUnit.Validators[0].(func(string) error)
 	// seamasterbillDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seamasterbillDescGrossWeightKg := seamasterbillFields[16].Descriptor()
+	seamasterbillDescGrossWeightKg := seamasterbillFields[15].Descriptor()
 	// seamasterbill.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seamasterbill.GrossWeightKgValidator = seamasterbillDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seamasterbillDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seamasterbillDescVolumeCbm := seamasterbillFields[17].Descriptor()
+	seamasterbillDescVolumeCbm := seamasterbillFields[16].Descriptor()
 	// seamasterbill.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seamasterbill.VolumeCbmValidator = seamasterbillDescVolumeCbm.Validators[0].(func(float64) error)
 	// seamasterbillDescFreightTerms is the schema descriptor for freight_terms field.
-	seamasterbillDescFreightTerms := seamasterbillFields[18].Descriptor()
+	seamasterbillDescFreightTerms := seamasterbillFields[17].Descriptor()
 	// seamasterbill.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seamasterbill.FreightTermsValidator = seamasterbillDescFreightTerms.Validators[0].(func(string) error)
 	// seamasterbillDescTransportTerms is the schema descriptor for transport_terms field.
-	seamasterbillDescTransportTerms := seamasterbillFields[19].Descriptor()
+	seamasterbillDescTransportTerms := seamasterbillFields[18].Descriptor()
 	// seamasterbill.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seamasterbill.TransportTermsValidator = seamasterbillDescTransportTerms.Validators[0].(func(string) error)
 	// seamasterbillDescBillForm is the schema descriptor for bill_form field.
-	seamasterbillDescBillForm := seamasterbillFields[20].Descriptor()
+	seamasterbillDescBillForm := seamasterbillFields[19].Descriptor()
 	// seamasterbill.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seamasterbill.BillFormValidator = seamasterbillDescBillForm.Validators[0].(func(string) error)
 	// seamasterbillDescReleaseType is the schema descriptor for release_type field.
-	seamasterbillDescReleaseType := seamasterbillFields[21].Descriptor()
+	seamasterbillDescReleaseType := seamasterbillFields[20].Descriptor()
 	// seamasterbill.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seamasterbill.ReleaseTypeValidator = seamasterbillDescReleaseType.Validators[0].(func(string) error)
 	// seamasterbillDescID is the schema descriptor for id field.
@@ -7213,21 +7619,17 @@ func init() {
 	// seamasterbillorderlink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	seamasterbillorderlink.UpdateDefaultUpdatedAt = seamasterbillorderlinkDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// seamasterbillorderlinkDescStartedAt is the schema descriptor for started_at field.
-	seamasterbillorderlinkDescStartedAt := seamasterbillorderlinkFields[5].Descriptor()
+	seamasterbillorderlinkDescStartedAt := seamasterbillorderlinkFields[6].Descriptor()
 	// seamasterbillorderlink.DefaultStartedAt holds the default value on creation for the started_at field.
 	seamasterbillorderlink.DefaultStartedAt = seamasterbillorderlinkDescStartedAt.Default.(func() time.Time)
 	// seamasterbillorderlinkDescEndedReason is the schema descriptor for ended_reason field.
-	seamasterbillorderlinkDescEndedReason := seamasterbillorderlinkFields[7].Descriptor()
+	seamasterbillorderlinkDescEndedReason := seamasterbillorderlinkFields[8].Descriptor()
 	// seamasterbillorderlink.EndedReasonValidator is a validator for the "ended_reason" field. It is called by the builders before save.
 	seamasterbillorderlink.EndedReasonValidator = seamasterbillorderlinkDescEndedReason.Validators[0].(func(string) error)
 	// seamasterbillorderlinkDescVersion is the schema descriptor for version field.
-	seamasterbillorderlinkDescVersion := seamasterbillorderlinkFields[8].Descriptor()
+	seamasterbillorderlinkDescVersion := seamasterbillorderlinkFields[9].Descriptor()
 	// seamasterbillorderlink.DefaultVersion holds the default value on creation for the version field.
 	seamasterbillorderlink.DefaultVersion = seamasterbillorderlinkDescVersion.Default.(uint64)
-	// seamasterbillorderlinkDescCargoAllocationVersion is the schema descriptor for cargo_allocation_version field.
-	seamasterbillorderlinkDescCargoAllocationVersion := seamasterbillorderlinkFields[10].Descriptor()
-	// seamasterbillorderlink.DefaultCargoAllocationVersion holds the default value on creation for the cargo_allocation_version field.
-	seamasterbillorderlink.DefaultCargoAllocationVersion = seamasterbillorderlinkDescCargoAllocationVersion.Default.(uint64)
 	// seamasterbillorderlinkDescID is the schema descriptor for id field.
 	seamasterbillorderlinkDescID := seamasterbillorderlinkMixinFields0[0].Descriptor()
 	// seamasterbillorderlink.DefaultID holds the default value on creation for the id field.
@@ -7242,7 +7644,7 @@ func init() {
 	// seamasterbillversion.DefaultCreatedAt holds the default value on creation for the created_at field.
 	seamasterbillversion.DefaultCreatedAt = seamasterbillversionDescCreatedAt.Default.(func() time.Time)
 	// seamasterbillversionDescMasterNo is the schema descriptor for master_no field.
-	seamasterbillversionDescMasterNo := seamasterbillversionFields[7].Descriptor()
+	seamasterbillversionDescMasterNo := seamasterbillversionFields[6].Descriptor()
 	// seamasterbillversion.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
 	seamasterbillversion.MasterNoValidator = func() func(string) error {
 		validators := seamasterbillversionDescMasterNo.Validators
@@ -7260,7 +7662,7 @@ func init() {
 		}
 	}()
 	// seamasterbillversionDescNormalizedMasterNo is the schema descriptor for normalized_master_no field.
-	seamasterbillversionDescNormalizedMasterNo := seamasterbillversionFields[8].Descriptor()
+	seamasterbillversionDescNormalizedMasterNo := seamasterbillversionFields[7].Descriptor()
 	// seamasterbillversion.NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
 	seamasterbillversion.NormalizedMasterNoValidator = func() func(string) error {
 		validators := seamasterbillversionDescNormalizedMasterNo.Validators
@@ -7277,32 +7679,8 @@ func init() {
 			return nil
 		}
 	}()
-	// seamasterbillversionDescVesselVoyageSnapshot is the schema descriptor for vessel_voyage_snapshot field.
-	seamasterbillversionDescVesselVoyageSnapshot := seamasterbillversionFields[10].Descriptor()
-	// seamasterbillversion.VesselVoyageSnapshotValidator is a validator for the "vessel_voyage_snapshot" field. It is called by the builders before save.
-	seamasterbillversion.VesselVoyageSnapshotValidator = seamasterbillversionDescVesselVoyageSnapshot.Validators[0].(func(string) error)
-	// seamasterbillversionDescEtdSnapshot is the schema descriptor for etd_snapshot field.
-	seamasterbillversionDescEtdSnapshot := seamasterbillversionFields[11].Descriptor()
-	// seamasterbillversion.EtdSnapshotValidator is a validator for the "etd_snapshot" field. It is called by the builders before save.
-	seamasterbillversion.EtdSnapshotValidator = seamasterbillversionDescEtdSnapshot.Validators[0].(func(string) error)
-	// seamasterbillversionDescEtaSnapshot is the schema descriptor for eta_snapshot field.
-	seamasterbillversionDescEtaSnapshot := seamasterbillversionFields[12].Descriptor()
-	// seamasterbillversion.EtaSnapshotValidator is a validator for the "eta_snapshot" field. It is called by the builders before save.
-	seamasterbillversion.EtaSnapshotValidator = seamasterbillversionDescEtaSnapshot.Validators[0].(func(string) error)
-	// seamasterbillversionDescVesselName is the schema descriptor for vessel_name field.
-	seamasterbillversionDescVesselName := seamasterbillversionFields[17].Descriptor()
-	// seamasterbillversion.DefaultVesselName holds the default value on creation for the vessel_name field.
-	seamasterbillversion.DefaultVesselName = seamasterbillversionDescVesselName.Default.(string)
-	// seamasterbillversion.VesselNameValidator is a validator for the "vessel_name" field. It is called by the builders before save.
-	seamasterbillversion.VesselNameValidator = seamasterbillversionDescVesselName.Validators[0].(func(string) error)
-	// seamasterbillversionDescVoyageNo is the schema descriptor for voyage_no field.
-	seamasterbillversionDescVoyageNo := seamasterbillversionFields[18].Descriptor()
-	// seamasterbillversion.DefaultVoyageNo holds the default value on creation for the voyage_no field.
-	seamasterbillversion.DefaultVoyageNo = seamasterbillversionDescVoyageNo.Default.(string)
-	// seamasterbillversion.VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
-	seamasterbillversion.VoyageNoValidator = seamasterbillversionDescVoyageNo.Validators[0].(func(string) error)
 	// seamasterbillversionDescContentHash is the schema descriptor for content_hash field.
-	seamasterbillversionDescContentHash := seamasterbillversionFields[21].Descriptor()
+	seamasterbillversionDescContentHash := seamasterbillversionFields[9].Descriptor()
 	// seamasterbillversion.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
 	seamasterbillversion.ContentHashValidator = func() func(string) error {
 		validators := seamasterbillversionDescContentHash.Validators
@@ -7320,47 +7698,55 @@ func init() {
 		}
 	}()
 	// seamasterbillversionDescReason is the schema descriptor for reason field.
-	seamasterbillversionDescReason := seamasterbillversionFields[23].Descriptor()
+	seamasterbillversionDescReason := seamasterbillversionFields[11].Descriptor()
 	// seamasterbillversion.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	seamasterbillversion.ReasonValidator = seamasterbillversionDescReason.Validators[0].(func(string) error)
 	// seamasterbillversionDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	seamasterbillversionDescIdempotencyKey := seamasterbillversionFields[25].Descriptor()
+	seamasterbillversionDescIdempotencyKey := seamasterbillversionFields[13].Descriptor()
 	// seamasterbillversion.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	seamasterbillversion.IdempotencyKeyValidator = seamasterbillversionDescIdempotencyKey.Validators[0].(func(string) error)
 	// seamasterbillversionDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	seamasterbillversionDescRequestFingerprint := seamasterbillversionFields[26].Descriptor()
+	seamasterbillversionDescRequestFingerprint := seamasterbillversionFields[14].Descriptor()
 	// seamasterbillversion.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	seamasterbillversion.RequestFingerprintValidator = seamasterbillversionDescRequestFingerprint.Validators[0].(func(string) error)
+	// seamasterbillversionDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seamasterbillversionDescConfirmedByParty := seamasterbillversionFields[15].Descriptor()
+	// seamasterbillversion.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seamasterbillversion.ConfirmedByPartyValidator = seamasterbillversionDescConfirmedByParty.Validators[0].(func(string) error)
+	// seamasterbillversionDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seamasterbillversionDescConfirmationNote := seamasterbillversionFields[17].Descriptor()
+	// seamasterbillversion.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seamasterbillversion.ConfirmationNoteValidator = seamasterbillversionDescConfirmationNote.Validators[0].(func(string) error)
 	// seamasterbillversionDescPackageCount is the schema descriptor for package_count field.
-	seamasterbillversionDescPackageCount := seamasterbillversionFields[33].Descriptor()
+	seamasterbillversionDescPackageCount := seamasterbillversionFields[25].Descriptor()
 	// seamasterbillversion.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seamasterbillversion.PackageCountValidator = seamasterbillversionDescPackageCount.Validators[0].(func(int) error)
 	// seamasterbillversionDescPackageUnit is the schema descriptor for package_unit field.
-	seamasterbillversionDescPackageUnit := seamasterbillversionFields[34].Descriptor()
+	seamasterbillversionDescPackageUnit := seamasterbillversionFields[26].Descriptor()
 	// seamasterbillversion.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seamasterbillversion.PackageUnitValidator = seamasterbillversionDescPackageUnit.Validators[0].(func(string) error)
 	// seamasterbillversionDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seamasterbillversionDescGrossWeightKg := seamasterbillversionFields[35].Descriptor()
+	seamasterbillversionDescGrossWeightKg := seamasterbillversionFields[27].Descriptor()
 	// seamasterbillversion.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seamasterbillversion.GrossWeightKgValidator = seamasterbillversionDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seamasterbillversionDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seamasterbillversionDescVolumeCbm := seamasterbillversionFields[36].Descriptor()
+	seamasterbillversionDescVolumeCbm := seamasterbillversionFields[28].Descriptor()
 	// seamasterbillversion.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seamasterbillversion.VolumeCbmValidator = seamasterbillversionDescVolumeCbm.Validators[0].(func(float64) error)
 	// seamasterbillversionDescFreightTerms is the schema descriptor for freight_terms field.
-	seamasterbillversionDescFreightTerms := seamasterbillversionFields[37].Descriptor()
+	seamasterbillversionDescFreightTerms := seamasterbillversionFields[29].Descriptor()
 	// seamasterbillversion.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seamasterbillversion.FreightTermsValidator = seamasterbillversionDescFreightTerms.Validators[0].(func(string) error)
 	// seamasterbillversionDescTransportTerms is the schema descriptor for transport_terms field.
-	seamasterbillversionDescTransportTerms := seamasterbillversionFields[38].Descriptor()
+	seamasterbillversionDescTransportTerms := seamasterbillversionFields[30].Descriptor()
 	// seamasterbillversion.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seamasterbillversion.TransportTermsValidator = seamasterbillversionDescTransportTerms.Validators[0].(func(string) error)
 	// seamasterbillversionDescBillForm is the schema descriptor for bill_form field.
-	seamasterbillversionDescBillForm := seamasterbillversionFields[39].Descriptor()
+	seamasterbillversionDescBillForm := seamasterbillversionFields[31].Descriptor()
 	// seamasterbillversion.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seamasterbillversion.BillFormValidator = seamasterbillversionDescBillForm.Validators[0].(func(string) error)
 	// seamasterbillversionDescReleaseType is the schema descriptor for release_type field.
-	seamasterbillversionDescReleaseType := seamasterbillversionFields[40].Descriptor()
+	seamasterbillversionDescReleaseType := seamasterbillversionFields[32].Descriptor()
 	// seamasterbillversion.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seamasterbillversion.ReleaseTypeValidator = seamasterbillversionDescReleaseType.Validators[0].(func(string) error)
 	// seamasterbillversionDescID is the schema descriptor for id field.
@@ -7452,6 +7838,42 @@ func init() {
 	seaorderreassignmenteventDescResponsiblePartnerName := seaorderreassignmenteventFields[19].Descriptor()
 	// seaorderreassignmentevent.ResponsiblePartnerNameValidator is a validator for the "responsible_partner_name" field. It is called by the builders before save.
 	seaorderreassignmentevent.ResponsiblePartnerNameValidator = seaorderreassignmenteventDescResponsiblePartnerName.Validators[0].(func(string) error)
+	// seaorderreassignmenteventDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seaorderreassignmenteventDescConfirmedByParty := seaorderreassignmenteventFields[23].Descriptor()
+	// seaorderreassignmentevent.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seaorderreassignmentevent.ConfirmedByPartyValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescConfirmedByParty.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmed_by_party string) error {
+			for _, fn := range fns {
+				if err := fn(confirmed_by_party); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seaorderreassignmenteventDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seaorderreassignmenteventDescConfirmationNote := seaorderreassignmenteventFields[25].Descriptor()
+	// seaorderreassignmentevent.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seaorderreassignmentevent.ConfirmationNoteValidator = func() func(string) error {
+		validators := seaorderreassignmenteventDescConfirmationNote.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(confirmation_note string) error {
+			for _, fn := range fns {
+				if err := fn(confirmation_note); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// seaorderreassignmenteventDescID is the schema descriptor for id field.
 	seaorderreassignmenteventDescID := seaorderreassignmenteventMixinFields0[0].Descriptor()
 	// seaorderreassignmentevent.DefaultID holds the default value on creation for the id field.
@@ -7576,6 +7998,106 @@ func init() {
 	seaordersplitresultDescID := seaordersplitresultMixinFields0[0].Descriptor()
 	// seaordersplitresult.DefaultID holds the default value on creation for the id field.
 	seaordersplitresult.DefaultID = seaordersplitresultDescID.Default.(func() uuid.UUID)
+	seasharedcontainerMixin := schema.SeaSharedContainer{}.Mixin()
+	seasharedcontainerMixinFields0 := seasharedcontainerMixin[0].Fields()
+	_ = seasharedcontainerMixinFields0
+	seasharedcontainerMixinFields1 := seasharedcontainerMixin[1].Fields()
+	_ = seasharedcontainerMixinFields1
+	seasharedcontainerFields := schema.SeaSharedContainer{}.Fields()
+	_ = seasharedcontainerFields
+	// seasharedcontainerDescCreatedAt is the schema descriptor for created_at field.
+	seasharedcontainerDescCreatedAt := seasharedcontainerMixinFields1[0].Descriptor()
+	// seasharedcontainer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seasharedcontainer.DefaultCreatedAt = seasharedcontainerDescCreatedAt.Default.(func() time.Time)
+	// seasharedcontainerDescUpdatedAt is the schema descriptor for updated_at field.
+	seasharedcontainerDescUpdatedAt := seasharedcontainerMixinFields1[1].Descriptor()
+	// seasharedcontainer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seasharedcontainer.DefaultUpdatedAt = seasharedcontainerDescUpdatedAt.Default.(func() time.Time)
+	// seasharedcontainer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seasharedcontainer.UpdateDefaultUpdatedAt = seasharedcontainerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seasharedcontainerDescContainerNo is the schema descriptor for container_no field.
+	seasharedcontainerDescContainerNo := seasharedcontainerFields[2].Descriptor()
+	// seasharedcontainer.ContainerNoValidator is a validator for the "container_no" field. It is called by the builders before save.
+	seasharedcontainer.ContainerNoValidator = func() func(string) error {
+		validators := seasharedcontainerDescContainerNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(container_no string) error {
+			for _, fn := range fns {
+				if err := fn(container_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seasharedcontainerDescSealNo is the schema descriptor for seal_no field.
+	seasharedcontainerDescSealNo := seasharedcontainerFields[4].Descriptor()
+	// seasharedcontainer.SealNoValidator is a validator for the "seal_no" field. It is called by the builders before save.
+	seasharedcontainer.SealNoValidator = seasharedcontainerDescSealNo.Validators[0].(func(string) error)
+	// seasharedcontainerDescPackageCount is the schema descriptor for package_count field.
+	seasharedcontainerDescPackageCount := seasharedcontainerFields[5].Descriptor()
+	// seasharedcontainer.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	seasharedcontainer.PackageCountValidator = seasharedcontainerDescPackageCount.Validators[0].(func(int) error)
+	// seasharedcontainerDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
+	seasharedcontainerDescGrossWeightKg := seasharedcontainerFields[6].Descriptor()
+	// seasharedcontainer.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
+	seasharedcontainer.GrossWeightKgValidator = seasharedcontainerDescGrossWeightKg.Validators[0].(func(string) error)
+	// seasharedcontainerDescVolumeCbm is the schema descriptor for volume_cbm field.
+	seasharedcontainerDescVolumeCbm := seasharedcontainerFields[7].Descriptor()
+	// seasharedcontainer.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
+	seasharedcontainer.VolumeCbmValidator = seasharedcontainerDescVolumeCbm.Validators[0].(func(string) error)
+	// seasharedcontainerDescNote is the schema descriptor for note field.
+	seasharedcontainerDescNote := seasharedcontainerFields[11].Descriptor()
+	// seasharedcontainer.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	seasharedcontainer.NoteValidator = seasharedcontainerDescNote.Validators[0].(func(string) error)
+	// seasharedcontainerDescVersion is the schema descriptor for version field.
+	seasharedcontainerDescVersion := seasharedcontainerFields[12].Descriptor()
+	// seasharedcontainer.DefaultVersion holds the default value on creation for the version field.
+	seasharedcontainer.DefaultVersion = seasharedcontainerDescVersion.Default.(uint64)
+	// seasharedcontainerDescID is the schema descriptor for id field.
+	seasharedcontainerDescID := seasharedcontainerMixinFields0[0].Descriptor()
+	// seasharedcontainer.DefaultID holds the default value on creation for the id field.
+	seasharedcontainer.DefaultID = seasharedcontainerDescID.Default.(func() uuid.UUID)
+	seasharedcontainerallocationMixin := schema.SeaSharedContainerAllocation{}.Mixin()
+	seasharedcontainerallocationMixinFields0 := seasharedcontainerallocationMixin[0].Fields()
+	_ = seasharedcontainerallocationMixinFields0
+	seasharedcontainerallocationMixinFields1 := seasharedcontainerallocationMixin[1].Fields()
+	_ = seasharedcontainerallocationMixinFields1
+	seasharedcontainerallocationFields := schema.SeaSharedContainerAllocation{}.Fields()
+	_ = seasharedcontainerallocationFields
+	// seasharedcontainerallocationDescCreatedAt is the schema descriptor for created_at field.
+	seasharedcontainerallocationDescCreatedAt := seasharedcontainerallocationMixinFields1[0].Descriptor()
+	// seasharedcontainerallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seasharedcontainerallocation.DefaultCreatedAt = seasharedcontainerallocationDescCreatedAt.Default.(func() time.Time)
+	// seasharedcontainerallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	seasharedcontainerallocationDescUpdatedAt := seasharedcontainerallocationMixinFields1[1].Descriptor()
+	// seasharedcontainerallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	seasharedcontainerallocation.DefaultUpdatedAt = seasharedcontainerallocationDescUpdatedAt.Default.(func() time.Time)
+	// seasharedcontainerallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	seasharedcontainerallocation.UpdateDefaultUpdatedAt = seasharedcontainerallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// seasharedcontainerallocationDescPackageCount is the schema descriptor for package_count field.
+	seasharedcontainerallocationDescPackageCount := seasharedcontainerallocationFields[5].Descriptor()
+	// seasharedcontainerallocation.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	seasharedcontainerallocation.PackageCountValidator = seasharedcontainerallocationDescPackageCount.Validators[0].(func(int) error)
+	// seasharedcontainerallocationDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
+	seasharedcontainerallocationDescGrossWeightKg := seasharedcontainerallocationFields[6].Descriptor()
+	// seasharedcontainerallocation.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
+	seasharedcontainerallocation.GrossWeightKgValidator = seasharedcontainerallocationDescGrossWeightKg.Validators[0].(func(string) error)
+	// seasharedcontainerallocationDescVolumeCbm is the schema descriptor for volume_cbm field.
+	seasharedcontainerallocationDescVolumeCbm := seasharedcontainerallocationFields[7].Descriptor()
+	// seasharedcontainerallocation.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
+	seasharedcontainerallocation.VolumeCbmValidator = seasharedcontainerallocationDescVolumeCbm.Validators[0].(func(string) error)
+	// seasharedcontainerallocationDescVersion is the schema descriptor for version field.
+	seasharedcontainerallocationDescVersion := seasharedcontainerallocationFields[8].Descriptor()
+	// seasharedcontainerallocation.DefaultVersion holds the default value on creation for the version field.
+	seasharedcontainerallocation.DefaultVersion = seasharedcontainerallocationDescVersion.Default.(uint64)
+	// seasharedcontainerallocationDescID is the schema descriptor for id field.
+	seasharedcontainerallocationDescID := seasharedcontainerallocationMixinFields0[0].Descriptor()
+	// seasharedcontainerallocation.DefaultID holds the default value on creation for the id field.
+	seasharedcontainerallocation.DefaultID = seasharedcontainerallocationDescID.Default.(func() uuid.UUID)
 	seatransportexecutionMixin := schema.SeaTransportExecution{}.Mixin()
 	seatransportexecutionMixinFields0 := seatransportexecutionMixin[0].Fields()
 	_ = seatransportexecutionMixinFields0
@@ -7606,13 +8128,76 @@ func init() {
 	// seatransportexecution.VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
 	seatransportexecution.VoyageNoValidator = seatransportexecutionDescVoyageNo.Validators[0].(func(string) error)
 	// seatransportexecutionDescVersion is the schema descriptor for version field.
-	seatransportexecutionDescVersion := seatransportexecutionFields[9].Descriptor()
+	seatransportexecutionDescVersion := seatransportexecutionFields[10].Descriptor()
 	// seatransportexecution.DefaultVersion holds the default value on creation for the version field.
 	seatransportexecution.DefaultVersion = seatransportexecutionDescVersion.Default.(uint64)
 	// seatransportexecutionDescID is the schema descriptor for id field.
 	seatransportexecutionDescID := seatransportexecutionMixinFields0[0].Descriptor()
 	// seatransportexecution.DefaultID holds the default value on creation for the id field.
 	seatransportexecution.DefaultID = seatransportexecutionDescID.Default.(func() uuid.UUID)
+	seatransportexecutionversionMixin := schema.SeaTransportExecutionVersion{}.Mixin()
+	seatransportexecutionversionMixinFields0 := seatransportexecutionversionMixin[0].Fields()
+	_ = seatransportexecutionversionMixinFields0
+	seatransportexecutionversionFields := schema.SeaTransportExecutionVersion{}.Fields()
+	_ = seatransportexecutionversionFields
+	// seatransportexecutionversionDescCreatedAt is the schema descriptor for created_at field.
+	seatransportexecutionversionDescCreatedAt := seatransportexecutionversionFields[0].Descriptor()
+	// seatransportexecutionversion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	seatransportexecutionversion.DefaultCreatedAt = seatransportexecutionversionDescCreatedAt.Default.(func() time.Time)
+	// seatransportexecutionversionDescVesselName is the schema descriptor for vessel_name field.
+	seatransportexecutionversionDescVesselName := seatransportexecutionversionFields[9].Descriptor()
+	// seatransportexecutionversion.DefaultVesselName holds the default value on creation for the vessel_name field.
+	seatransportexecutionversion.DefaultVesselName = seatransportexecutionversionDescVesselName.Default.(string)
+	// seatransportexecutionversion.VesselNameValidator is a validator for the "vessel_name" field. It is called by the builders before save.
+	seatransportexecutionversion.VesselNameValidator = seatransportexecutionversionDescVesselName.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescVoyageNo is the schema descriptor for voyage_no field.
+	seatransportexecutionversionDescVoyageNo := seatransportexecutionversionFields[10].Descriptor()
+	// seatransportexecutionversion.DefaultVoyageNo holds the default value on creation for the voyage_no field.
+	seatransportexecutionversion.DefaultVoyageNo = seatransportexecutionversionDescVoyageNo.Default.(string)
+	// seatransportexecutionversion.VoyageNoValidator is a validator for the "voyage_no" field. It is called by the builders before save.
+	seatransportexecutionversion.VoyageNoValidator = seatransportexecutionversionDescVoyageNo.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescContentHash is the schema descriptor for content_hash field.
+	seatransportexecutionversionDescContentHash := seatransportexecutionversionFields[13].Descriptor()
+	// seatransportexecutionversion.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	seatransportexecutionversion.ContentHashValidator = func() func(string) error {
+		validators := seatransportexecutionversionDescContentHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(content_hash string) error {
+			for _, fn := range fns {
+				if err := fn(content_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// seatransportexecutionversionDescReason is the schema descriptor for reason field.
+	seatransportexecutionversionDescReason := seatransportexecutionversionFields[15].Descriptor()
+	// seatransportexecutionversion.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	seatransportexecutionversion.ReasonValidator = seatransportexecutionversionDescReason.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	seatransportexecutionversionDescIdempotencyKey := seatransportexecutionversionFields[17].Descriptor()
+	// seatransportexecutionversion.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	seatransportexecutionversion.IdempotencyKeyValidator = seatransportexecutionversionDescIdempotencyKey.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescRequestFingerprint is the schema descriptor for request_fingerprint field.
+	seatransportexecutionversionDescRequestFingerprint := seatransportexecutionversionFields[18].Descriptor()
+	// seatransportexecutionversion.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	seatransportexecutionversion.RequestFingerprintValidator = seatransportexecutionversionDescRequestFingerprint.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
+	seatransportexecutionversionDescConfirmedByParty := seatransportexecutionversionFields[19].Descriptor()
+	// seatransportexecutionversion.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	seatransportexecutionversion.ConfirmedByPartyValidator = seatransportexecutionversionDescConfirmedByParty.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescConfirmationNote is the schema descriptor for confirmation_note field.
+	seatransportexecutionversionDescConfirmationNote := seatransportexecutionversionFields[21].Descriptor()
+	// seatransportexecutionversion.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	seatransportexecutionversion.ConfirmationNoteValidator = seatransportexecutionversionDescConfirmationNote.Validators[0].(func(string) error)
+	// seatransportexecutionversionDescID is the schema descriptor for id field.
+	seatransportexecutionversionDescID := seatransportexecutionversionMixinFields0[0].Descriptor()
+	// seatransportexecutionversion.DefaultID holds the default value on creation for the id field.
+	seatransportexecutionversion.DefaultID = seatransportexecutionversionDescID.Default.(func() uuid.UUID)
 	sessionMixin := schema.Session{}.Mixin()
 	sessionMixinFields0 := sessionMixin[0].Fields()
 	_ = sessionMixinFields0

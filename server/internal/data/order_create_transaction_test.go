@@ -86,7 +86,7 @@ func TestValidateOrderReferencesPreservesPartnerQueryError(t *testing.T) {
 	databaseErr := errors.New("partner query failed")
 	mock.ExpectQuery(`SELECT .* FROM "partner_roles"`).WillReturnError(databaseErr)
 
-	err = validateOrderReferences(t.Context(), tx, uuid.New(), &biz.Order{CustomerID: uuid.New()})
+	err = validateOrderReferences(t.Context(), tx, uuid.New(), &biz.Order{CustomerID: uuid.New()}, nil)
 	if !errors.Is(err, databaseErr) {
 		t.Fatalf("合作方查询错误被改写: got %v, want %v", err, databaseErr)
 	}

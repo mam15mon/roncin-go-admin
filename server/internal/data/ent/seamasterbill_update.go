@@ -18,14 +18,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 // SeaMasterBillUpdate is the builder for updating SeaMasterBill entities.
@@ -61,30 +60,16 @@ func (_u *SeaMasterBillUpdate) SetNillableOrganizationID(v *uuid.UUID) *SeaMaste
 	return _u
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (_u *SeaMasterBillUpdate) SetIssuerPartnerID(v uuid.UUID) *SeaMasterBillUpdate {
-	_u.mutation.SetIssuerPartnerID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *SeaMasterBillUpdate) SetShippingLineID(v uuid.UUID) *SeaMasterBillUpdate {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableIssuerPartnerID sets the "issuer_partner_id" field if the given value is not nil.
-func (_u *SeaMasterBillUpdate) SetNillableIssuerPartnerID(v *uuid.UUID) *SeaMasterBillUpdate {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableShippingLineID(v *uuid.UUID) *SeaMasterBillUpdate {
 	if v != nil {
-		_u.SetIssuerPartnerID(*v)
-	}
-	return _u
-}
-
-// SetTransportExecutionID sets the "transport_execution_id" field.
-func (_u *SeaMasterBillUpdate) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillUpdate {
-	_u.mutation.SetTransportExecutionID(v)
-	return _u
-}
-
-// SetNillableTransportExecutionID sets the "transport_execution_id" field if the given value is not nil.
-func (_u *SeaMasterBillUpdate) SetNillableTransportExecutionID(v *uuid.UUID) *SeaMasterBillUpdate {
-	if v != nil {
-		_u.SetTransportExecutionID(*v)
+		_u.SetShippingLineID(*v)
 	}
 	return _u
 }
@@ -498,9 +483,9 @@ func (_u *SeaMasterBillUpdate) SetOrganization(v *Organization) *SeaMasterBillUp
 	return _u.SetOrganizationID(v.ID)
 }
 
-// SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
-func (_u *SeaMasterBillUpdate) SetTransportExecution(v *SeaTransportExecution) *SeaMasterBillUpdate {
-	return _u.SetTransportExecutionID(v.ID)
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaMasterBillUpdate) SetShippingLine(v *ShippingLine) *SeaMasterBillUpdate {
+	return _u.SetShippingLineID(v.ID)
 }
 
 // AddOrderLinkIDs adds the "order_links" edge to the SeaMasterBillOrderLink entity by IDs.
@@ -658,21 +643,6 @@ func (_u *SeaMasterBillUpdate) AddVoidEvents(v ...*SeaDocumentVoidEvent) *SeaMas
 	return _u.AddVoidEventIDs(ids...)
 }
 
-// AddSwitchEventIDs adds the "switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaMasterBillUpdate) AddSwitchEventIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
-	_u.mutation.AddSwitchEventIDs(ids...)
-	return _u
-}
-
-// AddSwitchEvents adds the "switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaMasterBillUpdate) AddSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaMasterBillUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSwitchEventIDs(ids...)
-}
-
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
 func (_u *SeaMasterBillUpdate) AddReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
 	_u.mutation.AddReleasePodIDs(ids...)
@@ -699,9 +669,9 @@ func (_u *SeaMasterBillUpdate) ClearOrganization() *SeaMasterBillUpdate {
 	return _u
 }
 
-// ClearTransportExecution clears the "transport_execution" edge to the SeaTransportExecution entity.
-func (_u *SeaMasterBillUpdate) ClearTransportExecution() *SeaMasterBillUpdate {
-	_u.mutation.ClearTransportExecution()
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaMasterBillUpdate) ClearShippingLine() *SeaMasterBillUpdate {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -921,27 +891,6 @@ func (_u *SeaMasterBillUpdate) RemoveVoidEvents(v ...*SeaDocumentVoidEvent) *Sea
 	return _u.RemoveVoidEventIDs(ids...)
 }
 
-// ClearSwitchEvents clears all "switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaMasterBillUpdate) ClearSwitchEvents() *SeaMasterBillUpdate {
-	_u.mutation.ClearSwitchEvents()
-	return _u
-}
-
-// RemoveSwitchEventIDs removes the "switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaMasterBillUpdate) RemoveSwitchEventIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
-	_u.mutation.RemoveSwitchEventIDs(ids...)
-	return _u
-}
-
-// RemoveSwitchEvents removes "switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaMasterBillUpdate) RemoveSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaMasterBillUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSwitchEventIDs(ids...)
-}
-
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
 func (_u *SeaMasterBillUpdate) ClearReleasePods() *SeaMasterBillUpdate {
 	_u.mutation.ClearReleasePods()
@@ -1059,8 +1008,8 @@ func (_u *SeaMasterBillUpdate) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.organization"`)
 	}
-	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.transport_execution"`)
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.shipping_line"`)
 	}
 	return nil
 }
@@ -1079,9 +1028,6 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(seamasterbill.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.IssuerPartnerID(); ok {
-		_spec.SetField(seamasterbill.FieldIssuerPartnerID, field.TypeUUID, value)
 	}
 	if value, ok := _u.mutation.MasterNo(); ok {
 		_spec.SetField(seamasterbill.FieldMasterNo, field.TypeString, value)
@@ -1226,28 +1172,28 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.TransportExecutionCleared() {
+	if _u.mutation.ShippingLineCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbill.TransportExecutionTable,
-			Columns: []string{seamasterbill.TransportExecutionColumn},
+			Table:   seamasterbill.ShippingLineTable,
+			Columns: []string{seamasterbill.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.TransportExecutionIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbill.TransportExecutionTable,
-			Columns: []string{seamasterbill.TransportExecutionColumn},
+			Table:   seamasterbill.ShippingLineTable,
+			Columns: []string{seamasterbill.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1734,51 +1680,6 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.SwitchEventsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.SwitchEventsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SwitchEventsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.ReleasePodsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1864,30 +1765,16 @@ func (_u *SeaMasterBillUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *SeaMa
 	return _u
 }
 
-// SetIssuerPartnerID sets the "issuer_partner_id" field.
-func (_u *SeaMasterBillUpdateOne) SetIssuerPartnerID(v uuid.UUID) *SeaMasterBillUpdateOne {
-	_u.mutation.SetIssuerPartnerID(v)
+// SetShippingLineID sets the "shipping_line_id" field.
+func (_u *SeaMasterBillUpdateOne) SetShippingLineID(v uuid.UUID) *SeaMasterBillUpdateOne {
+	_u.mutation.SetShippingLineID(v)
 	return _u
 }
 
-// SetNillableIssuerPartnerID sets the "issuer_partner_id" field if the given value is not nil.
-func (_u *SeaMasterBillUpdateOne) SetNillableIssuerPartnerID(v *uuid.UUID) *SeaMasterBillUpdateOne {
+// SetNillableShippingLineID sets the "shipping_line_id" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableShippingLineID(v *uuid.UUID) *SeaMasterBillUpdateOne {
 	if v != nil {
-		_u.SetIssuerPartnerID(*v)
-	}
-	return _u
-}
-
-// SetTransportExecutionID sets the "transport_execution_id" field.
-func (_u *SeaMasterBillUpdateOne) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillUpdateOne {
-	_u.mutation.SetTransportExecutionID(v)
-	return _u
-}
-
-// SetNillableTransportExecutionID sets the "transport_execution_id" field if the given value is not nil.
-func (_u *SeaMasterBillUpdateOne) SetNillableTransportExecutionID(v *uuid.UUID) *SeaMasterBillUpdateOne {
-	if v != nil {
-		_u.SetTransportExecutionID(*v)
+		_u.SetShippingLineID(*v)
 	}
 	return _u
 }
@@ -2301,9 +2188,9 @@ func (_u *SeaMasterBillUpdateOne) SetOrganization(v *Organization) *SeaMasterBil
 	return _u.SetOrganizationID(v.ID)
 }
 
-// SetTransportExecution sets the "transport_execution" edge to the SeaTransportExecution entity.
-func (_u *SeaMasterBillUpdateOne) SetTransportExecution(v *SeaTransportExecution) *SeaMasterBillUpdateOne {
-	return _u.SetTransportExecutionID(v.ID)
+// SetShippingLine sets the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaMasterBillUpdateOne) SetShippingLine(v *ShippingLine) *SeaMasterBillUpdateOne {
+	return _u.SetShippingLineID(v.ID)
 }
 
 // AddOrderLinkIDs adds the "order_links" edge to the SeaMasterBillOrderLink entity by IDs.
@@ -2461,21 +2348,6 @@ func (_u *SeaMasterBillUpdateOne) AddVoidEvents(v ...*SeaDocumentVoidEvent) *Sea
 	return _u.AddVoidEventIDs(ids...)
 }
 
-// AddSwitchEventIDs adds the "switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_u *SeaMasterBillUpdateOne) AddSwitchEventIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
-	_u.mutation.AddSwitchEventIDs(ids...)
-	return _u
-}
-
-// AddSwitchEvents adds the "switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaMasterBillUpdateOne) AddSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaMasterBillUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddSwitchEventIDs(ids...)
-}
-
 // AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
 func (_u *SeaMasterBillUpdateOne) AddReleasePodIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
 	_u.mutation.AddReleasePodIDs(ids...)
@@ -2502,9 +2374,9 @@ func (_u *SeaMasterBillUpdateOne) ClearOrganization() *SeaMasterBillUpdateOne {
 	return _u
 }
 
-// ClearTransportExecution clears the "transport_execution" edge to the SeaTransportExecution entity.
-func (_u *SeaMasterBillUpdateOne) ClearTransportExecution() *SeaMasterBillUpdateOne {
-	_u.mutation.ClearTransportExecution()
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (_u *SeaMasterBillUpdateOne) ClearShippingLine() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearShippingLine()
 	return _u
 }
 
@@ -2724,27 +2596,6 @@ func (_u *SeaMasterBillUpdateOne) RemoveVoidEvents(v ...*SeaDocumentVoidEvent) *
 	return _u.RemoveVoidEventIDs(ids...)
 }
 
-// ClearSwitchEvents clears all "switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_u *SeaMasterBillUpdateOne) ClearSwitchEvents() *SeaMasterBillUpdateOne {
-	_u.mutation.ClearSwitchEvents()
-	return _u
-}
-
-// RemoveSwitchEventIDs removes the "switch_events" edge to SeaHouseBillSwitchEvent entities by IDs.
-func (_u *SeaMasterBillUpdateOne) RemoveSwitchEventIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
-	_u.mutation.RemoveSwitchEventIDs(ids...)
-	return _u
-}
-
-// RemoveSwitchEvents removes "switch_events" edges to SeaHouseBillSwitchEvent entities.
-func (_u *SeaMasterBillUpdateOne) RemoveSwitchEvents(v ...*SeaHouseBillSwitchEvent) *SeaMasterBillUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveSwitchEventIDs(ids...)
-}
-
 // ClearReleasePods clears all "release_pods" edges to the OrderReleasePod entity.
 func (_u *SeaMasterBillUpdateOne) ClearReleasePods() *SeaMasterBillUpdateOne {
 	_u.mutation.ClearReleasePods()
@@ -2875,8 +2726,8 @@ func (_u *SeaMasterBillUpdateOne) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.organization"`)
 	}
-	if _u.mutation.TransportExecutionCleared() && len(_u.mutation.TransportExecutionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.transport_execution"`)
+	if _u.mutation.ShippingLineCleared() && len(_u.mutation.ShippingLineIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.shipping_line"`)
 	}
 	return nil
 }
@@ -2912,9 +2763,6 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(seamasterbill.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.IssuerPartnerID(); ok {
-		_spec.SetField(seamasterbill.FieldIssuerPartnerID, field.TypeUUID, value)
 	}
 	if value, ok := _u.mutation.MasterNo(); ok {
 		_spec.SetField(seamasterbill.FieldMasterNo, field.TypeString, value)
@@ -3059,28 +2907,28 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.TransportExecutionCleared() {
+	if _u.mutation.ShippingLineCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbill.TransportExecutionTable,
-			Columns: []string{seamasterbill.TransportExecutionColumn},
+			Table:   seamasterbill.ShippingLineTable,
+			Columns: []string{seamasterbill.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.TransportExecutionIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ShippingLineIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   seamasterbill.TransportExecutionTable,
-			Columns: []string{seamasterbill.TransportExecutionColumn},
+			Table:   seamasterbill.ShippingLineTable,
+			Columns: []string{seamasterbill.ShippingLineColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3560,51 +3408,6 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.SwitchEventsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedSwitchEventsIDs(); len(nodes) > 0 && !_u.mutation.SwitchEventsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.SwitchEventsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   seamasterbill.SwitchEventsTable,
-			Columns: []string{seamasterbill.SwitchEventsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

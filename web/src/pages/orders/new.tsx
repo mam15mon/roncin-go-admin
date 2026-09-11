@@ -1,32 +1,21 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useModel, useParams } from '@umijs/max';
-import { App, Button, Result } from 'antd';
-import dayjs from 'dayjs';
+import { App, Button, Card, Result } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
-import {
-  OrderReferenceType,
-  ShipmentMode,
-  ShipmentType,
-} from '@/enums.generated';
+import { getFormDraftScope } from '@/components/layout/formDraft';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import OrderPageHeader from './components/OrderPageHeader';
+import { OrderReferenceType } from '@/enums.generated';
 import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
-import {
-  PARTNER_ROLES,
-  parseOrderKind,
-  searchPartnersByRole,
-} from './common';
-import { searchPartnerOptions } from '@/utils/options';
-import {
-  type CreateOrderFormValues,
-  buildCreateOrderPayload,
-} from './order-create-payload';
-import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
-import { getAirTemplateSections, getSeaTemplateSections } from './templates';
+import { searchShippingLineOptions } from '@/utils/options';
+import { PARTNER_ROLES, searchPartnersByRole } from './common';
+import OrderPageHeader from './components/OrderPageHeader';
+import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
@@ -35,11 +24,17 @@ export default function NewOrderPage() {
   const { message } = App.useApp();
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
+  const draftScope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    initialState?.currentUser?.currentOrganization?.id,
+  );
 
-  const config = parseOrderKind(params.kind);
+  const definition = getOrderKindDefinition(params.kind);
 
   const {
     loading,
+    error,
+    retry,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
@@ -47,7 +42,7 @@ export default function NewOrderPage() {
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
-  } = useOrderCreateOptions(config);
+  } = useOrderCreateOptions(definition);
 
   const checkOrderReference = useCallback(
     async (referenceType: OrderReferenceType) => {
@@ -104,26 +99,19 @@ export default function NewOrderPage() {
       containerSpecOptions,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
-      searchCarriers: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
+      searchShippingLines: searchShippingLineOptions,
       searchBookingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       searchForeignAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      searchIssuers: (keyword?: string) =>
-        searchPartnerOptions(keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: () =>
-        checkOrderReference(
-          OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER,
-        ),
+        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER),
       checkInternalReferenceNo: () =>
-        checkOrderReference(
-          OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL,
-        ),
+        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL),
       personnelOptions,
       creator:
         initialState?.currentUser?.id &&
@@ -154,14 +142,12 @@ export default function NewOrderPage() {
     ],
   );
 
-  const sections = useMemo(() => {
-    if (!config) return [];
-    return config.category === 'sea'
-      ? getSeaTemplateSections(templateProps)
-      : getAirTemplateSections(templateProps);
-  }, [config, templateProps]);
+  const sections = useMemo(
+    () => definition?.form.buildSections(templateProps) ?? [],
+    [definition, templateProps],
+  );
 
-  if (!config) {
+  if (!definition) {
     return (
       <PageContainer>
         <Result
@@ -181,15 +167,60 @@ export default function NewOrderPage() {
     );
   }
 
-  if (!access.canOrder(config.businessType, 'create')) {
+  if (!access.canOrder(definition.businessType, 'create')) {
     return <Result status="403" title="无权新建此类订单" />;
+  }
+
+  if (error && !loading) {
+    return (
+      <PageContainer
+        title={false}
+        breadcrumbRender={false}
+        header={{
+          title: false,
+          breadcrumb: undefined,
+          style: { padding: 0 },
+        }}
+        style={{ marginTop: 0 }}
+      >
+        <OrderPageHeader
+          page="create"
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
+          subTitle="填写业务委托与配舱信息"
+        />
+        <Card
+          variant="borderless"
+          style={{
+            marginTop: 12,
+            borderRadius: 8,
+            border: '1px solid #f0f0f0',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <Result
+            status="warning"
+            title="主数据加载失败"
+            subTitle={
+              error.message ||
+              '无法获取创建订单所需的主数据，请检查网络或重试。'
+            }
+            extra={
+              <Button type="primary" onClick={retry}>
+                重新加载
+              </Button>
+            }
+          />
+        </Card>
+      </PageContainer>
+    );
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
     try {
-      await orderServiceCreateOrder(buildCreateOrderPayload(values, config));
+      await orderServiceCreateOrder(definition.form.buildCreatePayload(values));
       message.success('创建订单成功');
-      history.push(`/orders/${config.kind}`);
+      history.push(`/orders/${definition.kind}`);
       return true;
     } catch (error: unknown) {
       const err = error as Error;
@@ -198,44 +229,28 @@ export default function NewOrderPage() {
     }
   };
 
-  const defaultCargoCategoryId = cargoCategoryOptions.find(
-    (item) => item.label === '普货',
-  )?.value;
-
   return (
     <OrderFormTemplate<CreateOrderFormValues>
+      tabKey={resolveTabKey(`/orders/${definition.kind}/new`)}
+      draftPathname={`/orders/${definition.kind}/new`}
+      draftScope={draftScope}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
       header={
         <OrderPageHeader
           page="create"
-          orderKind={config.kind}
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
           subTitle="填写业务委托与配舱信息"
         />
       }
       sections={sections}
-      initialValues={{
-        orderDate: dayjs(),
-        ...(config.category === 'sea'
-          ? {
-              shipmentMode:
-                ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-              shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
-              serviceTypeIds: recommendedServiceIDs(
-                serviceTypeOptions,
-                SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
-              ),
-              cargoCategoryIds:
-                typeof defaultCargoCategoryId === 'string'
-                  ? [defaultCargoCategoryId]
-                  : undefined,
-              creatorUserId: initialState?.currentUser?.id,
-              creatorOrganizationId:
-                initialState?.currentUser?.currentOrganization?.id,
-            }
-          : {}),
-      }}
+      initialValues={definition.form.buildCreateDefaults({
+        creator: templateProps.creator,
+        serviceTypeOptions,
+        cargoCategoryOptions,
+      })}
       onFinish={handleFinish}
       submitText="创建订单"
       resetText="重置表单"

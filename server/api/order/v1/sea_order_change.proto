@@ -5,6 +5,8 @@ package order.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "order/v1/order.proto";
+import "order/v1/sea_document.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -54,6 +56,24 @@ service SeaOrderChangeService {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/sea-order-change/reassignment/execute"
+      body: "*"
+    };
+  }
+
+  // PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
+  rpc PreviewSeaTransportExecutionUpdate(PreviewSeaTransportExecutionUpdateRequest) returns (PreviewSeaTransportExecutionUpdateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview"
+      body: "*"
+    };
+  }
+
+  // ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
+  rpc ExecuteSeaTransportExecutionUpdate(ExecuteSeaTransportExecutionUpdateRequest) returns (ExecuteSeaTransportExecutionUpdateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-order-change/transport-execution"
       body: "*"
     };
   }
@@ -126,25 +146,40 @@ message SeaOrderSplitContextData {
   string current_link_id = 13;
   uint64 current_link_version = 14;
   string document_structure = 15;
-  string cargo_allocation_status = 16;
-  uint64 cargo_allocation_version = 17;
+  reserved 16, 17, 21;
+  reserved "cargo_allocation_status", "cargo_allocation_version", "allocations";
   repeated SeaOrderSplitHouseBillItem house_bills = 18;
   repeated SeaOrderSplitCargoItem cargo_items = 19;
   repeated SeaOrderSplitContainerItem containers = 20;
-  repeated SeaOrderSplitAllocationItem allocations = 21;
   repeated SeaOrderSplitDraftFeeItem draft_fees = 22;
   repeated SeaOrderSplitAttachmentItem attachments = 23;
   repeated SeaOrderSplitContainerPlanItem container_plans = 24;
   optional string attachment_reference_fingerprint = 25;
+  optional string booking_no = 26;
+  optional SeaOrderSplitHouseBillItem current_house_bill = 27;
+  repeated SeaOrderSplitSharedContainerAllocationItem shared_container_allocations = 28;
+}
+
+message SeaOrderSplitSharedContainerAllocationItem {
+  string allocation_id = 1;
+  string shared_container_id = 2;
+  string container_no = 3;
+  string container_spec_id = 4;
+  string container_spec_name = 5;
+  string cargo_item_id = 6;
+  int32 package_count = 7;
+  string gross_weight_kg = 8;
+  string volume_cbm = 9;
+  uint64 shared_container_version = 10;
 }
 
 message SeaOrderSplitMasterBillSummary {
   string id = 1;
   string master_no = 2;
-  string issuer_partner_id = 3;
-  string issuer_partner_name = 4;
-  string carrier_id = 5;
-  string carrier_name = 6;
+  string shipping_line_id = 3;
+  string shipping_line_name = 4;
+  reserved 5, 6;
+  reserved "carrier_id", "carrier_name";
   string vessel_name = 7;
   string voyage_no = 8;
   string etd = 9;
@@ -187,16 +222,6 @@ message SeaOrderSplitContainerItem {
   uint64 version = 8;
 }
 
-message SeaOrderSplitAllocationItem {
-  string id = 1;
-  string cargo_item_id = 2;
-  string house_bill_id = 3;
-  string container_id = 4;
-  int32 package_count = 5;
-  string gross_weight_kg = 6;
-  string volume_cbm = 7;
-}
-
 message SeaOrderSplitDraftFeeItem {
   string id = 1;
   string fee_code = 2;
@@ -236,8 +261,9 @@ message SeaOrderSplitTargetInput {
   optional string candidate_id = 3;
   optional uint64 candidate_version = 4;
   optional string master_no = 5;
-  optional string issuer_partner_id = 6;
-  optional string carrier_id = 7;
+  optional string shipping_line_id = 6;
+  reserved 7;
+  reserved "carrier_id";
   optional string vessel_name = 8;
   optional string voyage_no = 9;
   optional string etd = 10;
@@ -249,30 +275,58 @@ message SeaOrderSplitTargetInput {
   optional uint64 candidate_te_version = 16;
 }
 
+message SeaOrderSplitHouseBillInput {
+  string house_no = 1 [(google.api.field_behavior) = REQUIRED];
+  string issuer_source = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string issuer_partner_id = 3;
+  optional string note = 4;
+}
+
+message SeaOrderSplitCargoAllocationInput {
+  string cargo_item_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 2;
+  string gross_weight_kg = 3;
+  string volume_cbm = 4;
+}
+
+message SeaOrderSplitSharedContainerAllocationInput {
+  string allocation_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 2;
+  string gross_weight_kg = 3;
+  string volume_cbm = 4;
+}
+
 message SeaOrderSplitResultInput {
   string client_result_key = 1 [(google.api.field_behavior) = REQUIRED];
   string result_role = 2 [(google.api.field_behavior) = REQUIRED]; // ORIGINAL | CREATED
   string client_target_key = 3 [(google.api.field_behavior) = REQUIRED];
-  repeated string house_bill_ids = 4;
+  reserved 4;
+  reserved "house_bill_ids";
   repeated string draft_fee_ids = 5;
   repeated string attachment_reference_ids = 6;
   optional string internal_reference_no = 7;
   optional string booking_notes = 8;
   optional string allocation_notes = 9;
   optional string operation_notes = 10;
+  optional SeaOrderSplitHouseBillInput house_bill = 11;
+  repeated SeaOrderSplitCargoAllocationInput cargo_allocations = 12;
+  repeated string container_ids = 13;
+  repeated SeaOrderSplitSharedContainerAllocationInput shared_container_allocations = 14;
 }
 
 message SeaOrderSplitExpectedVersions {
   uint64 order_version = 1;
   uint64 link_version = 2;
-  uint64 allocation_version = 3;
-  map<string, uint64> house_bill_versions = 4;
+  reserved 3, 4;
+  reserved "allocation_version", "house_bill_versions";
   map<string, uint64> cargo_item_versions = 5;
   map<string, uint64> container_versions = 6;
   map<string, uint64> fee_versions = 7;
   map<string, uint64> candidate_mbl_versions = 8;
   optional string attachment_reference_fingerprint = 9;
   map<string, uint64> candidate_te_versions = 10;
+  optional uint64 current_hbl_version = 11;
+  map<string, uint64> shared_container_versions = 12;
 }
 
 message PreviewSeaOrderSplitRequest {
@@ -340,6 +394,7 @@ message SeaOrderSplitPreviewResultItem {
   string booking_notes = 13;
   string allocation_notes = 14;
   string operation_notes = 15;
+  optional string house_no = 16;
 }
 
 message ExecuteSeaOrderSplitRequest {
@@ -350,6 +405,8 @@ message ExecuteSeaOrderSplitRequest {
   repeated SeaOrderSplitTargetInput targets = 5 [(google.api.field_behavior) = REQUIRED];
   repeated SeaOrderSplitResultInput results = 6 [(google.api.field_behavior) = REQUIRED];
   SeaOrderSplitExpectedVersions expected_versions = 7 [(google.api.field_behavior) = REQUIRED];
+  // 任一结果目标不是当前母单（即产生内嵌改配）时必填
+  SeaExternalConfirmationInput confirmation = 8;
 }
 
 message ExecuteSeaOrderSplitResponse {
@@ -388,8 +445,9 @@ message SeaOrderReassignmentTargetInput {
   optional string candidate_id = 2;
   optional uint64 candidate_version = 3;
   optional string master_no = 4;
-  optional string issuer_partner_id = 5;
-  optional string carrier_id = 6;
+  optional string shipping_line_id = 5;
+  reserved 6;
+  reserved "carrier_id";
   optional string vessel_name = 7;
   optional string voyage_no = 8;
   optional string etd = 9;
@@ -445,6 +503,7 @@ message ExecuteSeaOrderReassignmentRequest {
   uint64 expected_link_version = 9 [(google.api.field_behavior) = REQUIRED];
   optional uint64 expected_candidate_mbl_version = 10;
   optional uint64 expected_candidate_te_version = 11;
+  SeaExternalConfirmationInput confirmation = 12 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ExecuteSeaOrderReassignmentResponse {
@@ -462,6 +521,58 @@ message ExecuteSeaOrderReassignmentData {
   string order_no = 4;
   string target_master_bill_id = 5;
   string target_master_no = 6;
+}
+
+message SeaTransportExecutionUpdateInput {
+  optional string origin_location_id = 1;
+  optional string discharge_location_id = 2;
+  optional string transit_location_id = 3;
+  string vessel_name = 4;
+  string voyage_no = 5;
+  optional string etd = 6;
+  optional string eta = 7;
+}
+
+message SeaTransportExecutionUpdatePreviewData {
+  string transport_execution_id = 1;
+  uint64 transport_execution_version = 2;
+  repeated string member_order_ids = 3;
+  repeated VoyageDifferenceItem differences = 4;
+  repeated SeaDocumentDownstreamImpact impacts = 5;
+  bool executable = 6;
+}
+
+message PreviewSeaTransportExecutionUpdateRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_transport_execution_version = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaTransportExecutionUpdateInput input = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PreviewSeaTransportExecutionUpdateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaTransportExecutionUpdatePreviewData data = 4;
+  string trace_id = 5;
+}
+
+message ExecuteSeaTransportExecutionUpdateRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_transport_execution_version = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaTransportExecutionUpdateInput input = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+  SeaExternalConfirmationInput confirmation = 5 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 6 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExecuteSeaTransportExecutionUpdateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaTransportExecution transport_execution = 4;
+  string version_id = 5;
+  string trace_id = 6;
 }
 
 // -------------------------------------------------------------
@@ -519,6 +630,7 @@ message SeaOrderReassignmentEventSummary {
   string responsibility_type = 5;
   string responsible_partner_name = 6;
   string reason = 7;
+  optional SeaExternalConfirmationSummary confirmation = 8;
 }
 
 message GetSeaOrderChangeEventRequest {

@@ -332,32 +332,32 @@ func (x *GetSeaOrderSplitContextResponse) GetTraceId() string {
 }
 
 type SeaOrderSplitContextData struct {
-	state                          protoimpl.MessageState            `protogen:"open.v1"`
-	OrderId                        string                            `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo                        string                            `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	BusinessType                   string                            `protobuf:"bytes,3,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
-	ShipmentType                   string                            `protobuf:"bytes,4,opt,name=shipment_type,json=shipmentType,proto3" json:"shipment_type,omitempty"`
-	FlowStatus                     string                            `protobuf:"bytes,5,opt,name=flow_status,json=flowStatus,proto3" json:"flow_status,omitempty"`
-	OrderVersion                   uint64                            `protobuf:"varint,6,opt,name=order_version,json=orderVersion,proto3" json:"order_version,omitempty"`
-	CustomerReferenceNo            string                            `protobuf:"bytes,7,opt,name=customer_reference_no,json=customerReferenceNo,proto3" json:"customer_reference_no,omitempty"`
-	InternalReferenceNo            string                            `protobuf:"bytes,8,opt,name=internal_reference_no,json=internalReferenceNo,proto3" json:"internal_reference_no,omitempty"`
-	BookingNotes                   string                            `protobuf:"bytes,9,opt,name=booking_notes,json=bookingNotes,proto3" json:"booking_notes,omitempty"`
-	AllocationNotes                string                            `protobuf:"bytes,10,opt,name=allocation_notes,json=allocationNotes,proto3" json:"allocation_notes,omitempty"`
-	OperationNotes                 string                            `protobuf:"bytes,11,opt,name=operation_notes,json=operationNotes,proto3" json:"operation_notes,omitempty"`
-	CurrentMasterBill              *SeaOrderSplitMasterBillSummary   `protobuf:"bytes,12,opt,name=current_master_bill,json=currentMasterBill,proto3" json:"current_master_bill,omitempty"`
-	CurrentLinkId                  string                            `protobuf:"bytes,13,opt,name=current_link_id,json=currentLinkId,proto3" json:"current_link_id,omitempty"`
-	CurrentLinkVersion             uint64                            `protobuf:"varint,14,opt,name=current_link_version,json=currentLinkVersion,proto3" json:"current_link_version,omitempty"`
-	DocumentStructure              string                            `protobuf:"bytes,15,opt,name=document_structure,json=documentStructure,proto3" json:"document_structure,omitempty"`
-	CargoAllocationStatus          string                            `protobuf:"bytes,16,opt,name=cargo_allocation_status,json=cargoAllocationStatus,proto3" json:"cargo_allocation_status,omitempty"`
-	CargoAllocationVersion         uint64                            `protobuf:"varint,17,opt,name=cargo_allocation_version,json=cargoAllocationVersion,proto3" json:"cargo_allocation_version,omitempty"`
-	HouseBills                     []*SeaOrderSplitHouseBillItem     `protobuf:"bytes,18,rep,name=house_bills,json=houseBills,proto3" json:"house_bills,omitempty"`
-	CargoItems                     []*SeaOrderSplitCargoItem         `protobuf:"bytes,19,rep,name=cargo_items,json=cargoItems,proto3" json:"cargo_items,omitempty"`
-	Containers                     []*SeaOrderSplitContainerItem     `protobuf:"bytes,20,rep,name=containers,proto3" json:"containers,omitempty"`
-	Allocations                    []*SeaOrderSplitAllocationItem    `protobuf:"bytes,21,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	DraftFees                      []*SeaOrderSplitDraftFeeItem      `protobuf:"bytes,22,rep,name=draft_fees,json=draftFees,proto3" json:"draft_fees,omitempty"`
-	Attachments                    []*SeaOrderSplitAttachmentItem    `protobuf:"bytes,23,rep,name=attachments,proto3" json:"attachments,omitempty"`
-	ContainerPlans                 []*SeaOrderSplitContainerPlanItem `protobuf:"bytes,24,rep,name=container_plans,json=containerPlans,proto3" json:"container_plans,omitempty"`
-	AttachmentReferenceFingerprint *string                           `protobuf:"bytes,25,opt,name=attachment_reference_fingerprint,json=attachmentReferenceFingerprint,proto3,oneof" json:"attachment_reference_fingerprint,omitempty"`
+	state                          protoimpl.MessageState                        `protogen:"open.v1"`
+	OrderId                        string                                        `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo                        string                                        `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	BusinessType                   string                                        `protobuf:"bytes,3,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	ShipmentType                   string                                        `protobuf:"bytes,4,opt,name=shipment_type,json=shipmentType,proto3" json:"shipment_type,omitempty"`
+	FlowStatus                     string                                        `protobuf:"bytes,5,opt,name=flow_status,json=flowStatus,proto3" json:"flow_status,omitempty"`
+	OrderVersion                   uint64                                        `protobuf:"varint,6,opt,name=order_version,json=orderVersion,proto3" json:"order_version,omitempty"`
+	CustomerReferenceNo            string                                        `protobuf:"bytes,7,opt,name=customer_reference_no,json=customerReferenceNo,proto3" json:"customer_reference_no,omitempty"`
+	InternalReferenceNo            string                                        `protobuf:"bytes,8,opt,name=internal_reference_no,json=internalReferenceNo,proto3" json:"internal_reference_no,omitempty"`
+	BookingNotes                   string                                        `protobuf:"bytes,9,opt,name=booking_notes,json=bookingNotes,proto3" json:"booking_notes,omitempty"`
+	AllocationNotes                string                                        `protobuf:"bytes,10,opt,name=allocation_notes,json=allocationNotes,proto3" json:"allocation_notes,omitempty"`
+	OperationNotes                 string                                        `protobuf:"bytes,11,opt,name=operation_notes,json=operationNotes,proto3" json:"operation_notes,omitempty"`
+	CurrentMasterBill              *SeaOrderSplitMasterBillSummary               `protobuf:"bytes,12,opt,name=current_master_bill,json=currentMasterBill,proto3" json:"current_master_bill,omitempty"`
+	CurrentLinkId                  string                                        `protobuf:"bytes,13,opt,name=current_link_id,json=currentLinkId,proto3" json:"current_link_id,omitempty"`
+	CurrentLinkVersion             uint64                                        `protobuf:"varint,14,opt,name=current_link_version,json=currentLinkVersion,proto3" json:"current_link_version,omitempty"`
+	DocumentStructure              string                                        `protobuf:"bytes,15,opt,name=document_structure,json=documentStructure,proto3" json:"document_structure,omitempty"`
+	HouseBills                     []*SeaOrderSplitHouseBillItem                 `protobuf:"bytes,18,rep,name=house_bills,json=houseBills,proto3" json:"house_bills,omitempty"`
+	CargoItems                     []*SeaOrderSplitCargoItem                     `protobuf:"bytes,19,rep,name=cargo_items,json=cargoItems,proto3" json:"cargo_items,omitempty"`
+	Containers                     []*SeaOrderSplitContainerItem                 `protobuf:"bytes,20,rep,name=containers,proto3" json:"containers,omitempty"`
+	DraftFees                      []*SeaOrderSplitDraftFeeItem                  `protobuf:"bytes,22,rep,name=draft_fees,json=draftFees,proto3" json:"draft_fees,omitempty"`
+	Attachments                    []*SeaOrderSplitAttachmentItem                `protobuf:"bytes,23,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	ContainerPlans                 []*SeaOrderSplitContainerPlanItem             `protobuf:"bytes,24,rep,name=container_plans,json=containerPlans,proto3" json:"container_plans,omitempty"`
+	AttachmentReferenceFingerprint *string                                       `protobuf:"bytes,25,opt,name=attachment_reference_fingerprint,json=attachmentReferenceFingerprint,proto3,oneof" json:"attachment_reference_fingerprint,omitempty"`
+	BookingNo                      *string                                       `protobuf:"bytes,26,opt,name=booking_no,json=bookingNo,proto3,oneof" json:"booking_no,omitempty"`
+	CurrentHouseBill               *SeaOrderSplitHouseBillItem                   `protobuf:"bytes,27,opt,name=current_house_bill,json=currentHouseBill,proto3,oneof" json:"current_house_bill,omitempty"`
+	SharedContainerAllocations     []*SeaOrderSplitSharedContainerAllocationItem `protobuf:"bytes,28,rep,name=shared_container_allocations,json=sharedContainerAllocations,proto3" json:"shared_container_allocations,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -497,20 +497,6 @@ func (x *SeaOrderSplitContextData) GetDocumentStructure() string {
 	return ""
 }
 
-func (x *SeaOrderSplitContextData) GetCargoAllocationStatus() string {
-	if x != nil {
-		return x.CargoAllocationStatus
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitContextData) GetCargoAllocationVersion() uint64 {
-	if x != nil {
-		return x.CargoAllocationVersion
-	}
-	return 0
-}
-
 func (x *SeaOrderSplitContextData) GetHouseBills() []*SeaOrderSplitHouseBillItem {
 	if x != nil {
 		return x.HouseBills
@@ -528,13 +514,6 @@ func (x *SeaOrderSplitContextData) GetCargoItems() []*SeaOrderSplitCargoItem {
 func (x *SeaOrderSplitContextData) GetContainers() []*SeaOrderSplitContainerItem {
 	if x != nil {
 		return x.Containers
-	}
-	return nil
-}
-
-func (x *SeaOrderSplitContextData) GetAllocations() []*SeaOrderSplitAllocationItem {
-	if x != nil {
-		return x.Allocations
 	}
 	return nil
 }
@@ -567,14 +546,149 @@ func (x *SeaOrderSplitContextData) GetAttachmentReferenceFingerprint() string {
 	return ""
 }
 
+func (x *SeaOrderSplitContextData) GetBookingNo() string {
+	if x != nil && x.BookingNo != nil {
+		return *x.BookingNo
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitContextData) GetCurrentHouseBill() *SeaOrderSplitHouseBillItem {
+	if x != nil {
+		return x.CurrentHouseBill
+	}
+	return nil
+}
+
+func (x *SeaOrderSplitContextData) GetSharedContainerAllocations() []*SeaOrderSplitSharedContainerAllocationItem {
+	if x != nil {
+		return x.SharedContainerAllocations
+	}
+	return nil
+}
+
+type SeaOrderSplitSharedContainerAllocationItem struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	AllocationId           string                 `protobuf:"bytes,1,opt,name=allocation_id,json=allocationId,proto3" json:"allocation_id,omitempty"`
+	SharedContainerId      string                 `protobuf:"bytes,2,opt,name=shared_container_id,json=sharedContainerId,proto3" json:"shared_container_id,omitempty"`
+	ContainerNo            string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
+	ContainerSpecId        string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	ContainerSpecName      string                 `protobuf:"bytes,5,opt,name=container_spec_name,json=containerSpecName,proto3" json:"container_spec_name,omitempty"`
+	CargoItemId            string                 `protobuf:"bytes,6,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
+	PackageCount           int32                  `protobuf:"varint,7,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg          string                 `protobuf:"bytes,8,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm              string                 `protobuf:"bytes,9,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	SharedContainerVersion uint64                 `protobuf:"varint,10,opt,name=shared_container_version,json=sharedContainerVersion,proto3" json:"shared_container_version,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) Reset() {
+	*x = SeaOrderSplitSharedContainerAllocationItem{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaOrderSplitSharedContainerAllocationItem) ProtoMessage() {}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaOrderSplitSharedContainerAllocationItem.ProtoReflect.Descriptor instead.
+func (*SeaOrderSplitSharedContainerAllocationItem) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetAllocationId() string {
+	if x != nil {
+		return x.AllocationId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetSharedContainerId() string {
+	if x != nil {
+		return x.SharedContainerId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetContainerNo() string {
+	if x != nil {
+		return x.ContainerNo
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetContainerSpecId() string {
+	if x != nil {
+		return x.ContainerSpecId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetContainerSpecName() string {
+	if x != nil {
+		return x.ContainerSpecName
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetCargoItemId() string {
+	if x != nil {
+		return x.CargoItemId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationItem) GetSharedContainerVersion() uint64 {
+	if x != nil {
+		return x.SharedContainerVersion
+	}
+	return 0
+}
+
 type SeaOrderSplitMasterBillSummary struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
 	Id                        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	MasterNo                  string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	IssuerPartnerId           string                 `protobuf:"bytes,3,opt,name=issuer_partner_id,json=issuerPartnerId,proto3" json:"issuer_partner_id,omitempty"`
-	IssuerPartnerName         string                 `protobuf:"bytes,4,opt,name=issuer_partner_name,json=issuerPartnerName,proto3" json:"issuer_partner_name,omitempty"`
-	CarrierId                 string                 `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3" json:"carrier_id,omitempty"`
-	CarrierName               string                 `protobuf:"bytes,6,opt,name=carrier_name,json=carrierName,proto3" json:"carrier_name,omitempty"`
+	ShippingLineId            string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName          string                 `protobuf:"bytes,4,opt,name=shipping_line_name,json=shippingLineName,proto3" json:"shipping_line_name,omitempty"`
 	VesselName                string                 `protobuf:"bytes,7,opt,name=vessel_name,json=vesselName,proto3" json:"vessel_name,omitempty"`
 	VoyageNo                  string                 `protobuf:"bytes,8,opt,name=voyage_no,json=voyageNo,proto3" json:"voyage_no,omitempty"`
 	Etd                       string                 `protobuf:"bytes,9,opt,name=etd,proto3" json:"etd,omitempty"`
@@ -594,7 +708,7 @@ type SeaOrderSplitMasterBillSummary struct {
 
 func (x *SeaOrderSplitMasterBillSummary) Reset() {
 	*x = SeaOrderSplitMasterBillSummary{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[6]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -606,7 +720,7 @@ func (x *SeaOrderSplitMasterBillSummary) String() string {
 func (*SeaOrderSplitMasterBillSummary) ProtoMessage() {}
 
 func (x *SeaOrderSplitMasterBillSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[6]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -619,7 +733,7 @@ func (x *SeaOrderSplitMasterBillSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitMasterBillSummary.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitMasterBillSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{6}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SeaOrderSplitMasterBillSummary) GetId() string {
@@ -636,30 +750,16 @@ func (x *SeaOrderSplitMasterBillSummary) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaOrderSplitMasterBillSummary) GetIssuerPartnerId() string {
+func (x *SeaOrderSplitMasterBillSummary) GetShippingLineId() string {
 	if x != nil {
-		return x.IssuerPartnerId
+		return x.ShippingLineId
 	}
 	return ""
 }
 
-func (x *SeaOrderSplitMasterBillSummary) GetIssuerPartnerName() string {
+func (x *SeaOrderSplitMasterBillSummary) GetShippingLineName() string {
 	if x != nil {
-		return x.IssuerPartnerName
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitMasterBillSummary) GetCarrierId() string {
-	if x != nil {
-		return x.CarrierId
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitMasterBillSummary) GetCarrierName() string {
-	if x != nil {
-		return x.CarrierName
+		return x.ShippingLineName
 	}
 	return ""
 }
@@ -767,7 +867,7 @@ type SeaOrderSplitHouseBillItem struct {
 
 func (x *SeaOrderSplitHouseBillItem) Reset() {
 	*x = SeaOrderSplitHouseBillItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[7]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +879,7 @@ func (x *SeaOrderSplitHouseBillItem) String() string {
 func (*SeaOrderSplitHouseBillItem) ProtoMessage() {}
 
 func (x *SeaOrderSplitHouseBillItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[7]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +892,7 @@ func (x *SeaOrderSplitHouseBillItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitHouseBillItem.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitHouseBillItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{7}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SeaOrderSplitHouseBillItem) GetId() string {
@@ -837,7 +937,7 @@ type SeaOrderSplitCargoItem struct {
 
 func (x *SeaOrderSplitCargoItem) Reset() {
 	*x = SeaOrderSplitCargoItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[8]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -849,7 +949,7 @@ func (x *SeaOrderSplitCargoItem) String() string {
 func (*SeaOrderSplitCargoItem) ProtoMessage() {}
 
 func (x *SeaOrderSplitCargoItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[8]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -862,7 +962,7 @@ func (x *SeaOrderSplitCargoItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitCargoItem.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitCargoItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{8}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SeaOrderSplitCargoItem) GetId() string {
@@ -923,7 +1023,7 @@ type SeaOrderSplitContainerItem struct {
 
 func (x *SeaOrderSplitContainerItem) Reset() {
 	*x = SeaOrderSplitContainerItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[9]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -935,7 +1035,7 @@ func (x *SeaOrderSplitContainerItem) String() string {
 func (*SeaOrderSplitContainerItem) ProtoMessage() {}
 
 func (x *SeaOrderSplitContainerItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[9]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -948,7 +1048,7 @@ func (x *SeaOrderSplitContainerItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitContainerItem.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitContainerItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{9}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SeaOrderSplitContainerItem) GetId() string {
@@ -1005,98 +1105,6 @@ func (x *SeaOrderSplitContainerItem) GetVersion() uint64 {
 		return x.Version
 	}
 	return 0
-}
-
-type SeaOrderSplitAllocationItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CargoItemId   string                 `protobuf:"bytes,2,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
-	HouseBillId   string                 `protobuf:"bytes,3,opt,name=house_bill_id,json=houseBillId,proto3" json:"house_bill_id,omitempty"`
-	ContainerId   string                 `protobuf:"bytes,4,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
-	PackageCount  int32                  `protobuf:"varint,5,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
-	GrossWeightKg string                 `protobuf:"bytes,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm     string                 `protobuf:"bytes,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SeaOrderSplitAllocationItem) Reset() {
-	*x = SeaOrderSplitAllocationItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SeaOrderSplitAllocationItem) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SeaOrderSplitAllocationItem) ProtoMessage() {}
-
-func (x *SeaOrderSplitAllocationItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SeaOrderSplitAllocationItem.ProtoReflect.Descriptor instead.
-func (*SeaOrderSplitAllocationItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *SeaOrderSplitAllocationItem) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitAllocationItem) GetCargoItemId() string {
-	if x != nil {
-		return x.CargoItemId
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitAllocationItem) GetHouseBillId() string {
-	if x != nil {
-		return x.HouseBillId
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitAllocationItem) GetContainerId() string {
-	if x != nil {
-		return x.ContainerId
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitAllocationItem) GetPackageCount() int32 {
-	if x != nil {
-		return x.PackageCount
-	}
-	return 0
-}
-
-func (x *SeaOrderSplitAllocationItem) GetGrossWeightKg() string {
-	if x != nil {
-		return x.GrossWeightKg
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitAllocationItem) GetVolumeCbm() string {
-	if x != nil {
-		return x.VolumeCbm
-	}
-	return ""
 }
 
 type SeaOrderSplitDraftFeeItem struct {
@@ -1374,8 +1382,7 @@ type SeaOrderSplitTargetInput struct {
 	CandidateId         *string                `protobuf:"bytes,3,opt,name=candidate_id,json=candidateId,proto3,oneof" json:"candidate_id,omitempty"`
 	CandidateVersion    *uint64                `protobuf:"varint,4,opt,name=candidate_version,json=candidateVersion,proto3,oneof" json:"candidate_version,omitempty"`
 	MasterNo            *string                `protobuf:"bytes,5,opt,name=master_no,json=masterNo,proto3,oneof" json:"master_no,omitempty"`
-	IssuerPartnerId     *string                `protobuf:"bytes,6,opt,name=issuer_partner_id,json=issuerPartnerId,proto3,oneof" json:"issuer_partner_id,omitempty"`
-	CarrierId           *string                `protobuf:"bytes,7,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	ShippingLineId      *string                `protobuf:"bytes,6,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	VesselName          *string                `protobuf:"bytes,8,opt,name=vessel_name,json=vesselName,proto3,oneof" json:"vessel_name,omitempty"`
 	VoyageNo            *string                `protobuf:"bytes,9,opt,name=voyage_no,json=voyageNo,proto3,oneof" json:"voyage_no,omitempty"`
 	Etd                 *string                `protobuf:"bytes,10,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
@@ -1454,16 +1461,9 @@ func (x *SeaOrderSplitTargetInput) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaOrderSplitTargetInput) GetIssuerPartnerId() string {
-	if x != nil && x.IssuerPartnerId != nil {
-		return *x.IssuerPartnerId
-	}
-	return ""
-}
-
-func (x *SeaOrderSplitTargetInput) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *SeaOrderSplitTargetInput) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
 	}
 	return ""
 }
@@ -1531,25 +1531,232 @@ func (x *SeaOrderSplitTargetInput) GetCandidateTeVersion() uint64 {
 	return 0
 }
 
+type SeaOrderSplitHouseBillInput struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	HouseNo         string                 `protobuf:"bytes,1,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	IssuerSource    string                 `protobuf:"bytes,2,opt,name=issuer_source,json=issuerSource,proto3" json:"issuer_source,omitempty"`
+	IssuerPartnerId *string                `protobuf:"bytes,3,opt,name=issuer_partner_id,json=issuerPartnerId,proto3,oneof" json:"issuer_partner_id,omitempty"`
+	Note            *string                `protobuf:"bytes,4,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SeaOrderSplitHouseBillInput) Reset() {
+	*x = SeaOrderSplitHouseBillInput{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaOrderSplitHouseBillInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaOrderSplitHouseBillInput) ProtoMessage() {}
+
+func (x *SeaOrderSplitHouseBillInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaOrderSplitHouseBillInput.ProtoReflect.Descriptor instead.
+func (*SeaOrderSplitHouseBillInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SeaOrderSplitHouseBillInput) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitHouseBillInput) GetIssuerSource() string {
+	if x != nil {
+		return x.IssuerSource
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitHouseBillInput) GetIssuerPartnerId() string {
+	if x != nil && x.IssuerPartnerId != nil {
+		return *x.IssuerPartnerId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitHouseBillInput) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+type SeaOrderSplitCargoAllocationInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CargoItemId   string                 `protobuf:"bytes,1,opt,name=cargo_item_id,json=cargoItemId,proto3" json:"cargo_item_id,omitempty"`
+	PackageCount  int32                  `protobuf:"varint,2,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg string                 `protobuf:"bytes,3,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm     string                 `protobuf:"bytes,4,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) Reset() {
+	*x = SeaOrderSplitCargoAllocationInput{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaOrderSplitCargoAllocationInput) ProtoMessage() {}
+
+func (x *SeaOrderSplitCargoAllocationInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaOrderSplitCargoAllocationInput.ProtoReflect.Descriptor instead.
+func (*SeaOrderSplitCargoAllocationInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) GetCargoItemId() string {
+	if x != nil {
+		return x.CargoItemId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitCargoAllocationInput) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
+type SeaOrderSplitSharedContainerAllocationInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AllocationId  string                 `protobuf:"bytes,1,opt,name=allocation_id,json=allocationId,proto3" json:"allocation_id,omitempty"`
+	PackageCount  int32                  `protobuf:"varint,2,opt,name=package_count,json=packageCount,proto3" json:"package_count,omitempty"`
+	GrossWeightKg string                 `protobuf:"bytes,3,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm     string                 `protobuf:"bytes,4,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) Reset() {
+	*x = SeaOrderSplitSharedContainerAllocationInput{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaOrderSplitSharedContainerAllocationInput) ProtoMessage() {}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaOrderSplitSharedContainerAllocationInput.ProtoReflect.Descriptor instead.
+func (*SeaOrderSplitSharedContainerAllocationInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) GetAllocationId() string {
+	if x != nil {
+		return x.AllocationId
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) GetPackageCount() int32 {
+	if x != nil {
+		return x.PackageCount
+	}
+	return 0
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *SeaOrderSplitSharedContainerAllocationInput) GetVolumeCbm() string {
+	if x != nil {
+		return x.VolumeCbm
+	}
+	return ""
+}
+
 type SeaOrderSplitResultInput struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	ClientResultKey        string                 `protobuf:"bytes,1,opt,name=client_result_key,json=clientResultKey,proto3" json:"client_result_key,omitempty"`
-	ResultRole             string                 `protobuf:"bytes,2,opt,name=result_role,json=resultRole,proto3" json:"result_role,omitempty"` // ORIGINAL | CREATED
-	ClientTargetKey        string                 `protobuf:"bytes,3,opt,name=client_target_key,json=clientTargetKey,proto3" json:"client_target_key,omitempty"`
-	HouseBillIds           []string               `protobuf:"bytes,4,rep,name=house_bill_ids,json=houseBillIds,proto3" json:"house_bill_ids,omitempty"`
-	DraftFeeIds            []string               `protobuf:"bytes,5,rep,name=draft_fee_ids,json=draftFeeIds,proto3" json:"draft_fee_ids,omitempty"`
-	AttachmentReferenceIds []string               `protobuf:"bytes,6,rep,name=attachment_reference_ids,json=attachmentReferenceIds,proto3" json:"attachment_reference_ids,omitempty"`
-	InternalReferenceNo    *string                `protobuf:"bytes,7,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
-	BookingNotes           *string                `protobuf:"bytes,8,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
-	AllocationNotes        *string                `protobuf:"bytes,9,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
-	OperationNotes         *string                `protobuf:"bytes,10,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                      protoimpl.MessageState                         `protogen:"open.v1"`
+	ClientResultKey            string                                         `protobuf:"bytes,1,opt,name=client_result_key,json=clientResultKey,proto3" json:"client_result_key,omitempty"`
+	ResultRole                 string                                         `protobuf:"bytes,2,opt,name=result_role,json=resultRole,proto3" json:"result_role,omitempty"` // ORIGINAL | CREATED
+	ClientTargetKey            string                                         `protobuf:"bytes,3,opt,name=client_target_key,json=clientTargetKey,proto3" json:"client_target_key,omitempty"`
+	DraftFeeIds                []string                                       `protobuf:"bytes,5,rep,name=draft_fee_ids,json=draftFeeIds,proto3" json:"draft_fee_ids,omitempty"`
+	AttachmentReferenceIds     []string                                       `protobuf:"bytes,6,rep,name=attachment_reference_ids,json=attachmentReferenceIds,proto3" json:"attachment_reference_ids,omitempty"`
+	InternalReferenceNo        *string                                        `protobuf:"bytes,7,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	BookingNotes               *string                                        `protobuf:"bytes,8,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
+	AllocationNotes            *string                                        `protobuf:"bytes,9,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
+	OperationNotes             *string                                        `protobuf:"bytes,10,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	HouseBill                  *SeaOrderSplitHouseBillInput                   `protobuf:"bytes,11,opt,name=house_bill,json=houseBill,proto3,oneof" json:"house_bill,omitempty"`
+	CargoAllocations           []*SeaOrderSplitCargoAllocationInput           `protobuf:"bytes,12,rep,name=cargo_allocations,json=cargoAllocations,proto3" json:"cargo_allocations,omitempty"`
+	ContainerIds               []string                                       `protobuf:"bytes,13,rep,name=container_ids,json=containerIds,proto3" json:"container_ids,omitempty"`
+	SharedContainerAllocations []*SeaOrderSplitSharedContainerAllocationInput `protobuf:"bytes,14,rep,name=shared_container_allocations,json=sharedContainerAllocations,proto3" json:"shared_container_allocations,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *SeaOrderSplitResultInput) Reset() {
 	*x = SeaOrderSplitResultInput{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[15]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1561,7 +1768,7 @@ func (x *SeaOrderSplitResultInput) String() string {
 func (*SeaOrderSplitResultInput) ProtoMessage() {}
 
 func (x *SeaOrderSplitResultInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[15]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1574,7 +1781,7 @@ func (x *SeaOrderSplitResultInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitResultInput.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitResultInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SeaOrderSplitResultInput) GetClientResultKey() string {
@@ -1596,13 +1803,6 @@ func (x *SeaOrderSplitResultInput) GetClientTargetKey() string {
 		return x.ClientTargetKey
 	}
 	return ""
-}
-
-func (x *SeaOrderSplitResultInput) GetHouseBillIds() []string {
-	if x != nil {
-		return x.HouseBillIds
-	}
-	return nil
 }
 
 func (x *SeaOrderSplitResultInput) GetDraftFeeIds() []string {
@@ -1647,25 +1847,53 @@ func (x *SeaOrderSplitResultInput) GetOperationNotes() string {
 	return ""
 }
 
+func (x *SeaOrderSplitResultInput) GetHouseBill() *SeaOrderSplitHouseBillInput {
+	if x != nil {
+		return x.HouseBill
+	}
+	return nil
+}
+
+func (x *SeaOrderSplitResultInput) GetCargoAllocations() []*SeaOrderSplitCargoAllocationInput {
+	if x != nil {
+		return x.CargoAllocations
+	}
+	return nil
+}
+
+func (x *SeaOrderSplitResultInput) GetContainerIds() []string {
+	if x != nil {
+		return x.ContainerIds
+	}
+	return nil
+}
+
+func (x *SeaOrderSplitResultInput) GetSharedContainerAllocations() []*SeaOrderSplitSharedContainerAllocationInput {
+	if x != nil {
+		return x.SharedContainerAllocations
+	}
+	return nil
+}
+
 type SeaOrderSplitExpectedVersions struct {
 	state                          protoimpl.MessageState `protogen:"open.v1"`
 	OrderVersion                   uint64                 `protobuf:"varint,1,opt,name=order_version,json=orderVersion,proto3" json:"order_version,omitempty"`
 	LinkVersion                    uint64                 `protobuf:"varint,2,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
-	AllocationVersion              uint64                 `protobuf:"varint,3,opt,name=allocation_version,json=allocationVersion,proto3" json:"allocation_version,omitempty"`
-	HouseBillVersions              map[string]uint64      `protobuf:"bytes,4,rep,name=house_bill_versions,json=houseBillVersions,proto3" json:"house_bill_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	CargoItemVersions              map[string]uint64      `protobuf:"bytes,5,rep,name=cargo_item_versions,json=cargoItemVersions,proto3" json:"cargo_item_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	ContainerVersions              map[string]uint64      `protobuf:"bytes,6,rep,name=container_versions,json=containerVersions,proto3" json:"container_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	FeeVersions                    map[string]uint64      `protobuf:"bytes,7,rep,name=fee_versions,json=feeVersions,proto3" json:"fee_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	CandidateMblVersions           map[string]uint64      `protobuf:"bytes,8,rep,name=candidate_mbl_versions,json=candidateMblVersions,proto3" json:"candidate_mbl_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	AttachmentReferenceFingerprint *string                `protobuf:"bytes,9,opt,name=attachment_reference_fingerprint,json=attachmentReferenceFingerprint,proto3,oneof" json:"attachment_reference_fingerprint,omitempty"`
 	CandidateTeVersions            map[string]uint64      `protobuf:"bytes,10,rep,name=candidate_te_versions,json=candidateTeVersions,proto3" json:"candidate_te_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	CurrentHblVersion              *uint64                `protobuf:"varint,11,opt,name=current_hbl_version,json=currentHblVersion,proto3,oneof" json:"current_hbl_version,omitempty"`
+	SharedContainerVersions        map[string]uint64      `protobuf:"bytes,12,rep,name=shared_container_versions,json=sharedContainerVersions,proto3" json:"shared_container_versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *SeaOrderSplitExpectedVersions) Reset() {
 	*x = SeaOrderSplitExpectedVersions{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[16]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1677,7 +1905,7 @@ func (x *SeaOrderSplitExpectedVersions) String() string {
 func (*SeaOrderSplitExpectedVersions) ProtoMessage() {}
 
 func (x *SeaOrderSplitExpectedVersions) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[16]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1690,7 +1918,7 @@ func (x *SeaOrderSplitExpectedVersions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitExpectedVersions.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitExpectedVersions) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SeaOrderSplitExpectedVersions) GetOrderVersion() uint64 {
@@ -1705,20 +1933,6 @@ func (x *SeaOrderSplitExpectedVersions) GetLinkVersion() uint64 {
 		return x.LinkVersion
 	}
 	return 0
-}
-
-func (x *SeaOrderSplitExpectedVersions) GetAllocationVersion() uint64 {
-	if x != nil {
-		return x.AllocationVersion
-	}
-	return 0
-}
-
-func (x *SeaOrderSplitExpectedVersions) GetHouseBillVersions() map[string]uint64 {
-	if x != nil {
-		return x.HouseBillVersions
-	}
-	return nil
 }
 
 func (x *SeaOrderSplitExpectedVersions) GetCargoItemVersions() map[string]uint64 {
@@ -1763,6 +1977,20 @@ func (x *SeaOrderSplitExpectedVersions) GetCandidateTeVersions() map[string]uint
 	return nil
 }
 
+func (x *SeaOrderSplitExpectedVersions) GetCurrentHblVersion() uint64 {
+	if x != nil && x.CurrentHblVersion != nil {
+		return *x.CurrentHblVersion
+	}
+	return 0
+}
+
+func (x *SeaOrderSplitExpectedVersions) GetSharedContainerVersions() map[string]uint64 {
+	if x != nil {
+		return x.SharedContainerVersions
+	}
+	return nil
+}
+
 type PreviewSeaOrderSplitRequest struct {
 	state            protoimpl.MessageState         `protogen:"open.v1"`
 	OrderId          string                         `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -1776,7 +2004,7 @@ type PreviewSeaOrderSplitRequest struct {
 
 func (x *PreviewSeaOrderSplitRequest) Reset() {
 	*x = PreviewSeaOrderSplitRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[17]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1788,7 +2016,7 @@ func (x *PreviewSeaOrderSplitRequest) String() string {
 func (*PreviewSeaOrderSplitRequest) ProtoMessage() {}
 
 func (x *PreviewSeaOrderSplitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[17]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1801,7 +2029,7 @@ func (x *PreviewSeaOrderSplitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewSeaOrderSplitRequest.ProtoReflect.Descriptor instead.
 func (*PreviewSeaOrderSplitRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PreviewSeaOrderSplitRequest) GetOrderId() string {
@@ -1852,7 +2080,7 @@ type PreviewSeaOrderSplitResponse struct {
 
 func (x *PreviewSeaOrderSplitResponse) Reset() {
 	*x = PreviewSeaOrderSplitResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[18]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1864,7 +2092,7 @@ func (x *PreviewSeaOrderSplitResponse) String() string {
 func (*PreviewSeaOrderSplitResponse) ProtoMessage() {}
 
 func (x *PreviewSeaOrderSplitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[18]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1877,7 +2105,7 @@ func (x *PreviewSeaOrderSplitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewSeaOrderSplitResponse.ProtoReflect.Descriptor instead.
 func (*PreviewSeaOrderSplitResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PreviewSeaOrderSplitResponse) GetSuccess() bool {
@@ -1930,7 +2158,7 @@ type SeaOrderSplitPreviewData struct {
 
 func (x *SeaOrderSplitPreviewData) Reset() {
 	*x = SeaOrderSplitPreviewData{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[19]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1942,7 +2170,7 @@ func (x *SeaOrderSplitPreviewData) String() string {
 func (*SeaOrderSplitPreviewData) ProtoMessage() {}
 
 func (x *SeaOrderSplitPreviewData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[19]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1955,7 +2183,7 @@ func (x *SeaOrderSplitPreviewData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitPreviewData.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitPreviewData) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SeaOrderSplitPreviewData) GetIsValid() bool {
@@ -2026,7 +2254,7 @@ type SeaOrderSplitValidationError struct {
 
 func (x *SeaOrderSplitValidationError) Reset() {
 	*x = SeaOrderSplitValidationError{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[20]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2038,7 +2266,7 @@ func (x *SeaOrderSplitValidationError) String() string {
 func (*SeaOrderSplitValidationError) ProtoMessage() {}
 
 func (x *SeaOrderSplitValidationError) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[20]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2051,7 +2279,7 @@ func (x *SeaOrderSplitValidationError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitValidationError.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitValidationError) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SeaOrderSplitValidationError) GetReason() string {
@@ -2145,7 +2373,7 @@ type SeaOrderSplitQuantitySummary struct {
 
 func (x *SeaOrderSplitQuantitySummary) Reset() {
 	*x = SeaOrderSplitQuantitySummary{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[21]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2157,7 +2385,7 @@ func (x *SeaOrderSplitQuantitySummary) String() string {
 func (*SeaOrderSplitQuantitySummary) ProtoMessage() {}
 
 func (x *SeaOrderSplitQuantitySummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[21]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2170,7 +2398,7 @@ func (x *SeaOrderSplitQuantitySummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitQuantitySummary.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitQuantitySummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SeaOrderSplitQuantitySummary) GetPackageCount() int32 {
@@ -2232,13 +2460,14 @@ type SeaOrderSplitPreviewResultItem struct {
 	BookingNotes        string                            `protobuf:"bytes,13,opt,name=booking_notes,json=bookingNotes,proto3" json:"booking_notes,omitempty"`
 	AllocationNotes     string                            `protobuf:"bytes,14,opt,name=allocation_notes,json=allocationNotes,proto3" json:"allocation_notes,omitempty"`
 	OperationNotes      string                            `protobuf:"bytes,15,opt,name=operation_notes,json=operationNotes,proto3" json:"operation_notes,omitempty"`
+	HouseNo             *string                           `protobuf:"bytes,16,opt,name=house_no,json=houseNo,proto3,oneof" json:"house_no,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SeaOrderSplitPreviewResultItem) Reset() {
 	*x = SeaOrderSplitPreviewResultItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[22]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2250,7 +2479,7 @@ func (x *SeaOrderSplitPreviewResultItem) String() string {
 func (*SeaOrderSplitPreviewResultItem) ProtoMessage() {}
 
 func (x *SeaOrderSplitPreviewResultItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[22]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2263,7 +2492,7 @@ func (x *SeaOrderSplitPreviewResultItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitPreviewResultItem.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitPreviewResultItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SeaOrderSplitPreviewResultItem) GetClientResultKey() string {
@@ -2371,6 +2600,13 @@ func (x *SeaOrderSplitPreviewResultItem) GetOperationNotes() string {
 	return ""
 }
 
+func (x *SeaOrderSplitPreviewResultItem) GetHouseNo() string {
+	if x != nil && x.HouseNo != nil {
+		return *x.HouseNo
+	}
+	return ""
+}
+
 type ExecuteSeaOrderSplitRequest struct {
 	state              protoimpl.MessageState         `protogen:"open.v1"`
 	OrderId            string                         `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -2380,13 +2616,15 @@ type ExecuteSeaOrderSplitRequest struct {
 	Targets            []*SeaOrderSplitTargetInput    `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets,omitempty"`
 	Results            []*SeaOrderSplitResultInput    `protobuf:"bytes,6,rep,name=results,proto3" json:"results,omitempty"`
 	ExpectedVersions   *SeaOrderSplitExpectedVersions `protobuf:"bytes,7,opt,name=expected_versions,json=expectedVersions,proto3" json:"expected_versions,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// 任一结果目标不是当前母单（即产生内嵌改配）时必填
+	Confirmation  *SeaExternalConfirmationInput `protobuf:"bytes,8,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecuteSeaOrderSplitRequest) Reset() {
 	*x = ExecuteSeaOrderSplitRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[23]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2398,7 +2636,7 @@ func (x *ExecuteSeaOrderSplitRequest) String() string {
 func (*ExecuteSeaOrderSplitRequest) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderSplitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[23]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2411,7 +2649,7 @@ func (x *ExecuteSeaOrderSplitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaOrderSplitRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderSplitRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{23}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ExecuteSeaOrderSplitRequest) GetOrderId() string {
@@ -2463,6 +2701,13 @@ func (x *ExecuteSeaOrderSplitRequest) GetExpectedVersions() *SeaOrderSplitExpect
 	return nil
 }
 
+func (x *ExecuteSeaOrderSplitRequest) GetConfirmation() *SeaExternalConfirmationInput {
+	if x != nil {
+		return x.Confirmation
+	}
+	return nil
+}
+
 type ExecuteSeaOrderSplitResponse struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
 	Success       bool                      `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -2476,7 +2721,7 @@ type ExecuteSeaOrderSplitResponse struct {
 
 func (x *ExecuteSeaOrderSplitResponse) Reset() {
 	*x = ExecuteSeaOrderSplitResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[24]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2488,7 +2733,7 @@ func (x *ExecuteSeaOrderSplitResponse) String() string {
 func (*ExecuteSeaOrderSplitResponse) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderSplitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[24]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2501,7 +2746,7 @@ func (x *ExecuteSeaOrderSplitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaOrderSplitResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderSplitResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{24}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ExecuteSeaOrderSplitResponse) GetSuccess() bool {
@@ -2552,7 +2797,7 @@ type ExecuteSeaOrderSplitData struct {
 
 func (x *ExecuteSeaOrderSplitData) Reset() {
 	*x = ExecuteSeaOrderSplitData{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[25]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2564,7 +2809,7 @@ func (x *ExecuteSeaOrderSplitData) String() string {
 func (*ExecuteSeaOrderSplitData) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderSplitData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[25]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2577,7 +2822,7 @@ func (x *ExecuteSeaOrderSplitData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaOrderSplitData.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderSplitData) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{25}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ExecuteSeaOrderSplitData) GetSplitEventId() string {
@@ -2625,7 +2870,7 @@ type SeaOrderSplitOrderReference struct {
 
 func (x *SeaOrderSplitOrderReference) Reset() {
 	*x = SeaOrderSplitOrderReference{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[26]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2637,7 +2882,7 @@ func (x *SeaOrderSplitOrderReference) String() string {
 func (*SeaOrderSplitOrderReference) ProtoMessage() {}
 
 func (x *SeaOrderSplitOrderReference) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[26]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2650,7 +2895,7 @@ func (x *SeaOrderSplitOrderReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitOrderReference.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitOrderReference) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{26}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SeaOrderSplitOrderReference) GetOrderId() string {
@@ -2678,7 +2923,7 @@ type SeaOrderSplitCreatedOrder struct {
 
 func (x *SeaOrderSplitCreatedOrder) Reset() {
 	*x = SeaOrderSplitCreatedOrder{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[27]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2690,7 +2935,7 @@ func (x *SeaOrderSplitCreatedOrder) String() string {
 func (*SeaOrderSplitCreatedOrder) ProtoMessage() {}
 
 func (x *SeaOrderSplitCreatedOrder) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[27]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2703,7 +2948,7 @@ func (x *SeaOrderSplitCreatedOrder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitCreatedOrder.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitCreatedOrder) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{27}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SeaOrderSplitCreatedOrder) GetOrderId() string {
@@ -2733,8 +2978,7 @@ type SeaOrderReassignmentTargetInput struct {
 	CandidateId         *string                `protobuf:"bytes,2,opt,name=candidate_id,json=candidateId,proto3,oneof" json:"candidate_id,omitempty"`
 	CandidateVersion    *uint64                `protobuf:"varint,3,opt,name=candidate_version,json=candidateVersion,proto3,oneof" json:"candidate_version,omitempty"`
 	MasterNo            *string                `protobuf:"bytes,4,opt,name=master_no,json=masterNo,proto3,oneof" json:"master_no,omitempty"`
-	IssuerPartnerId     *string                `protobuf:"bytes,5,opt,name=issuer_partner_id,json=issuerPartnerId,proto3,oneof" json:"issuer_partner_id,omitempty"`
-	CarrierId           *string                `protobuf:"bytes,6,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	ShippingLineId      *string                `protobuf:"bytes,5,opt,name=shipping_line_id,json=shippingLineId,proto3,oneof" json:"shipping_line_id,omitempty"`
 	VesselName          *string                `protobuf:"bytes,7,opt,name=vessel_name,json=vesselName,proto3,oneof" json:"vessel_name,omitempty"`
 	VoyageNo            *string                `protobuf:"bytes,8,opt,name=voyage_no,json=voyageNo,proto3,oneof" json:"voyage_no,omitempty"`
 	Etd                 *string                `protobuf:"bytes,9,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
@@ -2750,7 +2994,7 @@ type SeaOrderReassignmentTargetInput struct {
 
 func (x *SeaOrderReassignmentTargetInput) Reset() {
 	*x = SeaOrderReassignmentTargetInput{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[28]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2762,7 +3006,7 @@ func (x *SeaOrderReassignmentTargetInput) String() string {
 func (*SeaOrderReassignmentTargetInput) ProtoMessage() {}
 
 func (x *SeaOrderReassignmentTargetInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[28]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2775,7 +3019,7 @@ func (x *SeaOrderReassignmentTargetInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderReassignmentTargetInput.ProtoReflect.Descriptor instead.
 func (*SeaOrderReassignmentTargetInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{28}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SeaOrderReassignmentTargetInput) GetTargetType() string {
@@ -2806,16 +3050,9 @@ func (x *SeaOrderReassignmentTargetInput) GetMasterNo() string {
 	return ""
 }
 
-func (x *SeaOrderReassignmentTargetInput) GetIssuerPartnerId() string {
-	if x != nil && x.IssuerPartnerId != nil {
-		return *x.IssuerPartnerId
-	}
-	return ""
-}
-
-func (x *SeaOrderReassignmentTargetInput) GetCarrierId() string {
-	if x != nil && x.CarrierId != nil {
-		return *x.CarrierId
+func (x *SeaOrderReassignmentTargetInput) GetShippingLineId() string {
+	if x != nil && x.ShippingLineId != nil {
+		return *x.ShippingLineId
 	}
 	return ""
 }
@@ -2893,7 +3130,7 @@ type PreviewSeaOrderReassignmentRequest struct {
 
 func (x *PreviewSeaOrderReassignmentRequest) Reset() {
 	*x = PreviewSeaOrderReassignmentRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[29]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2905,7 +3142,7 @@ func (x *PreviewSeaOrderReassignmentRequest) String() string {
 func (*PreviewSeaOrderReassignmentRequest) ProtoMessage() {}
 
 func (x *PreviewSeaOrderReassignmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[29]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2918,7 +3155,7 @@ func (x *PreviewSeaOrderReassignmentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PreviewSeaOrderReassignmentRequest.ProtoReflect.Descriptor instead.
 func (*PreviewSeaOrderReassignmentRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{29}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *PreviewSeaOrderReassignmentRequest) GetOrderId() string {
@@ -2948,7 +3185,7 @@ type PreviewSeaOrderReassignmentResponse struct {
 
 func (x *PreviewSeaOrderReassignmentResponse) Reset() {
 	*x = PreviewSeaOrderReassignmentResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[30]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2960,7 +3197,7 @@ func (x *PreviewSeaOrderReassignmentResponse) String() string {
 func (*PreviewSeaOrderReassignmentResponse) ProtoMessage() {}
 
 func (x *PreviewSeaOrderReassignmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[30]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2973,7 +3210,7 @@ func (x *PreviewSeaOrderReassignmentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use PreviewSeaOrderReassignmentResponse.ProtoReflect.Descriptor instead.
 func (*PreviewSeaOrderReassignmentResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{30}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *PreviewSeaOrderReassignmentResponse) GetSuccess() bool {
@@ -3027,7 +3264,7 @@ type SeaOrderReassignmentPreviewData struct {
 
 func (x *SeaOrderReassignmentPreviewData) Reset() {
 	*x = SeaOrderReassignmentPreviewData{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[31]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3039,7 +3276,7 @@ func (x *SeaOrderReassignmentPreviewData) String() string {
 func (*SeaOrderReassignmentPreviewData) ProtoMessage() {}
 
 func (x *SeaOrderReassignmentPreviewData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[31]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3052,7 +3289,7 @@ func (x *SeaOrderReassignmentPreviewData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderReassignmentPreviewData.ProtoReflect.Descriptor instead.
 func (*SeaOrderReassignmentPreviewData) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{31}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SeaOrderReassignmentPreviewData) GetIsValid() bool {
@@ -3124,7 +3361,7 @@ type VoyageDifferenceItem struct {
 
 func (x *VoyageDifferenceItem) Reset() {
 	*x = VoyageDifferenceItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[32]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3136,7 +3373,7 @@ func (x *VoyageDifferenceItem) String() string {
 func (*VoyageDifferenceItem) ProtoMessage() {}
 
 func (x *VoyageDifferenceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[32]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3149,7 +3386,7 @@ func (x *VoyageDifferenceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VoyageDifferenceItem.ProtoReflect.Descriptor instead.
 func (*VoyageDifferenceItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{32}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *VoyageDifferenceItem) GetFieldName() string {
@@ -3200,13 +3437,14 @@ type ExecuteSeaOrderReassignmentRequest struct {
 	ExpectedLinkVersion         uint64                           `protobuf:"varint,9,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
 	ExpectedCandidateMblVersion *uint64                          `protobuf:"varint,10,opt,name=expected_candidate_mbl_version,json=expectedCandidateMblVersion,proto3,oneof" json:"expected_candidate_mbl_version,omitempty"`
 	ExpectedCandidateTeVersion  *uint64                          `protobuf:"varint,11,opt,name=expected_candidate_te_version,json=expectedCandidateTeVersion,proto3,oneof" json:"expected_candidate_te_version,omitempty"`
+	Confirmation                *SeaExternalConfirmationInput    `protobuf:"bytes,12,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *ExecuteSeaOrderReassignmentRequest) Reset() {
 	*x = ExecuteSeaOrderReassignmentRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[33]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3218,7 +3456,7 @@ func (x *ExecuteSeaOrderReassignmentRequest) String() string {
 func (*ExecuteSeaOrderReassignmentRequest) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderReassignmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[33]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3231,7 +3469,7 @@ func (x *ExecuteSeaOrderReassignmentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ExecuteSeaOrderReassignmentRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderReassignmentRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{33}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ExecuteSeaOrderReassignmentRequest) GetOrderId() string {
@@ -3311,6 +3549,13 @@ func (x *ExecuteSeaOrderReassignmentRequest) GetExpectedCandidateTeVersion() uin
 	return 0
 }
 
+func (x *ExecuteSeaOrderReassignmentRequest) GetConfirmation() *SeaExternalConfirmationInput {
+	if x != nil {
+		return x.Confirmation
+	}
+	return nil
+}
+
 type ExecuteSeaOrderReassignmentResponse struct {
 	state         protoimpl.MessageState           `protogen:"open.v1"`
 	Success       bool                             `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -3324,7 +3569,7 @@ type ExecuteSeaOrderReassignmentResponse struct {
 
 func (x *ExecuteSeaOrderReassignmentResponse) Reset() {
 	*x = ExecuteSeaOrderReassignmentResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[34]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3336,7 +3581,7 @@ func (x *ExecuteSeaOrderReassignmentResponse) String() string {
 func (*ExecuteSeaOrderReassignmentResponse) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderReassignmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[34]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3349,7 +3594,7 @@ func (x *ExecuteSeaOrderReassignmentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ExecuteSeaOrderReassignmentResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderReassignmentResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{34}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ExecuteSeaOrderReassignmentResponse) GetSuccess() bool {
@@ -3401,7 +3646,7 @@ type ExecuteSeaOrderReassignmentData struct {
 
 func (x *ExecuteSeaOrderReassignmentData) Reset() {
 	*x = ExecuteSeaOrderReassignmentData{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[35]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3413,7 +3658,7 @@ func (x *ExecuteSeaOrderReassignmentData) String() string {
 func (*ExecuteSeaOrderReassignmentData) ProtoMessage() {}
 
 func (x *ExecuteSeaOrderReassignmentData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[35]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3426,7 +3671,7 @@ func (x *ExecuteSeaOrderReassignmentData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteSeaOrderReassignmentData.ProtoReflect.Descriptor instead.
 func (*ExecuteSeaOrderReassignmentData) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{35}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ExecuteSeaOrderReassignmentData) GetReassignmentEventId() string {
@@ -3471,6 +3716,494 @@ func (x *ExecuteSeaOrderReassignmentData) GetTargetMasterNo() string {
 	return ""
 }
 
+type SeaTransportExecutionUpdateInput struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	OriginLocationId    *string                `protobuf:"bytes,1,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
+	DischargeLocationId *string                `protobuf:"bytes,2,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
+	TransitLocationId   *string                `protobuf:"bytes,3,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
+	VesselName          string                 `protobuf:"bytes,4,opt,name=vessel_name,json=vesselName,proto3" json:"vessel_name,omitempty"`
+	VoyageNo            string                 `protobuf:"bytes,5,opt,name=voyage_no,json=voyageNo,proto3" json:"voyage_no,omitempty"`
+	Etd                 *string                `protobuf:"bytes,6,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
+	Eta                 *string                `protobuf:"bytes,7,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *SeaTransportExecutionUpdateInput) Reset() {
+	*x = SeaTransportExecutionUpdateInput{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaTransportExecutionUpdateInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaTransportExecutionUpdateInput) ProtoMessage() {}
+
+func (x *SeaTransportExecutionUpdateInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaTransportExecutionUpdateInput.ProtoReflect.Descriptor instead.
+func (*SeaTransportExecutionUpdateInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetOriginLocationId() string {
+	if x != nil && x.OriginLocationId != nil {
+		return *x.OriginLocationId
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetDischargeLocationId() string {
+	if x != nil && x.DischargeLocationId != nil {
+		return *x.DischargeLocationId
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetTransitLocationId() string {
+	if x != nil && x.TransitLocationId != nil {
+		return *x.TransitLocationId
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetVesselName() string {
+	if x != nil {
+		return x.VesselName
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetVoyageNo() string {
+	if x != nil {
+		return x.VoyageNo
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetEtd() string {
+	if x != nil && x.Etd != nil {
+		return *x.Etd
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdateInput) GetEta() string {
+	if x != nil && x.Eta != nil {
+		return *x.Eta
+	}
+	return ""
+}
+
+type SeaTransportExecutionUpdatePreviewData struct {
+	state                     protoimpl.MessageState         `protogen:"open.v1"`
+	TransportExecutionId      string                         `protobuf:"bytes,1,opt,name=transport_execution_id,json=transportExecutionId,proto3" json:"transport_execution_id,omitempty"`
+	TransportExecutionVersion uint64                         `protobuf:"varint,2,opt,name=transport_execution_version,json=transportExecutionVersion,proto3" json:"transport_execution_version,omitempty"`
+	MemberOrderIds            []string                       `protobuf:"bytes,3,rep,name=member_order_ids,json=memberOrderIds,proto3" json:"member_order_ids,omitempty"`
+	Differences               []*VoyageDifferenceItem        `protobuf:"bytes,4,rep,name=differences,proto3" json:"differences,omitempty"`
+	Impacts                   []*SeaDocumentDownstreamImpact `protobuf:"bytes,5,rep,name=impacts,proto3" json:"impacts,omitempty"`
+	Executable                bool                           `protobuf:"varint,6,opt,name=executable,proto3" json:"executable,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) Reset() {
+	*x = SeaTransportExecutionUpdatePreviewData{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeaTransportExecutionUpdatePreviewData) ProtoMessage() {}
+
+func (x *SeaTransportExecutionUpdatePreviewData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeaTransportExecutionUpdatePreviewData.ProtoReflect.Descriptor instead.
+func (*SeaTransportExecutionUpdatePreviewData) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetTransportExecutionId() string {
+	if x != nil {
+		return x.TransportExecutionId
+	}
+	return ""
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetTransportExecutionVersion() uint64 {
+	if x != nil {
+		return x.TransportExecutionVersion
+	}
+	return 0
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetMemberOrderIds() []string {
+	if x != nil {
+		return x.MemberOrderIds
+	}
+	return nil
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetDifferences() []*VoyageDifferenceItem {
+	if x != nil {
+		return x.Differences
+	}
+	return nil
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetImpacts() []*SeaDocumentDownstreamImpact {
+	if x != nil {
+		return x.Impacts
+	}
+	return nil
+}
+
+func (x *SeaTransportExecutionUpdatePreviewData) GetExecutable() bool {
+	if x != nil {
+		return x.Executable
+	}
+	return false
+}
+
+type PreviewSeaTransportExecutionUpdateRequest struct {
+	state                             protoimpl.MessageState            `protogen:"open.v1"`
+	OrderId                           string                            `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedTransportExecutionVersion uint64                            `protobuf:"varint,2,opt,name=expected_transport_execution_version,json=expectedTransportExecutionVersion,proto3" json:"expected_transport_execution_version,omitempty"`
+	Input                             *SeaTransportExecutionUpdateInput `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	Reason                            string                            `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) Reset() {
+	*x = PreviewSeaTransportExecutionUpdateRequest{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewSeaTransportExecutionUpdateRequest) ProtoMessage() {}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewSeaTransportExecutionUpdateRequest.ProtoReflect.Descriptor instead.
+func (*PreviewSeaTransportExecutionUpdateRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) GetExpectedTransportExecutionVersion() uint64 {
+	if x != nil {
+		return x.ExpectedTransportExecutionVersion
+	}
+	return 0
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) GetInput() *SeaTransportExecutionUpdateInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+func (x *PreviewSeaTransportExecutionUpdateRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type PreviewSeaTransportExecutionUpdateResponse struct {
+	state         protoimpl.MessageState                  `protogen:"open.v1"`
+	Success       bool                                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SeaTransportExecutionUpdatePreviewData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                                  `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) Reset() {
+	*x = PreviewSeaTransportExecutionUpdateResponse{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewSeaTransportExecutionUpdateResponse) ProtoMessage() {}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewSeaTransportExecutionUpdateResponse.ProtoReflect.Descriptor instead.
+func (*PreviewSeaTransportExecutionUpdateResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) GetData() *SeaTransportExecutionUpdatePreviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PreviewSeaTransportExecutionUpdateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ExecuteSeaTransportExecutionUpdateRequest struct {
+	state                             protoimpl.MessageState            `protogen:"open.v1"`
+	OrderId                           string                            `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedTransportExecutionVersion uint64                            `protobuf:"varint,2,opt,name=expected_transport_execution_version,json=expectedTransportExecutionVersion,proto3" json:"expected_transport_execution_version,omitempty"`
+	Input                             *SeaTransportExecutionUpdateInput `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	Reason                            string                            `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	Confirmation                      *SeaExternalConfirmationInput     `protobuf:"bytes,5,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	IdempotencyKey                    string                            `protobuf:"bytes,6,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields                     protoimpl.UnknownFields
+	sizeCache                         protoimpl.SizeCache
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) Reset() {
+	*x = ExecuteSeaTransportExecutionUpdateRequest{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteSeaTransportExecutionUpdateRequest) ProtoMessage() {}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteSeaTransportExecutionUpdateRequest.ProtoReflect.Descriptor instead.
+func (*ExecuteSeaTransportExecutionUpdateRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetExpectedTransportExecutionVersion() uint64 {
+	if x != nil {
+		return x.ExpectedTransportExecutionVersion
+	}
+	return 0
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetInput() *SeaTransportExecutionUpdateInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetConfirmation() *SeaExternalConfirmationInput {
+	if x != nil {
+		return x.Confirmation
+	}
+	return nil
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+type ExecuteSeaTransportExecutionUpdateResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Success            bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code               int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message            string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TransportExecution *SeaTransportExecution `protobuf:"bytes,4,opt,name=transport_execution,json=transportExecution,proto3" json:"transport_execution,omitempty"`
+	VersionId          string                 `protobuf:"bytes,5,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`
+	TraceId            string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) Reset() {
+	*x = ExecuteSeaTransportExecutionUpdateResponse{}
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecuteSeaTransportExecutionUpdateResponse) ProtoMessage() {}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecuteSeaTransportExecutionUpdateResponse.ProtoReflect.Descriptor instead.
+func (*ExecuteSeaTransportExecutionUpdateResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetTransportExecution() *SeaTransportExecution {
+	if x != nil {
+		return x.TransportExecution
+	}
+	return nil
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetVersionId() string {
+	if x != nil {
+		return x.VersionId
+	}
+	return ""
+}
+
+func (x *ExecuteSeaTransportExecutionUpdateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type ListSeaOrderChangeEventsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -3482,7 +4215,7 @@ type ListSeaOrderChangeEventsRequest struct {
 
 func (x *ListSeaOrderChangeEventsRequest) Reset() {
 	*x = ListSeaOrderChangeEventsRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[36]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3494,7 +4227,7 @@ func (x *ListSeaOrderChangeEventsRequest) String() string {
 func (*ListSeaOrderChangeEventsRequest) ProtoMessage() {}
 
 func (x *ListSeaOrderChangeEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[36]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3507,7 +4240,7 @@ func (x *ListSeaOrderChangeEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaOrderChangeEventsRequest.ProtoReflect.Descriptor instead.
 func (*ListSeaOrderChangeEventsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{36}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ListSeaOrderChangeEventsRequest) GetOrderId() string {
@@ -3545,7 +4278,7 @@ type ListSeaOrderChangeEventsResponse struct {
 
 func (x *ListSeaOrderChangeEventsResponse) Reset() {
 	*x = ListSeaOrderChangeEventsResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[37]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3557,7 +4290,7 @@ func (x *ListSeaOrderChangeEventsResponse) String() string {
 func (*ListSeaOrderChangeEventsResponse) ProtoMessage() {}
 
 func (x *ListSeaOrderChangeEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[37]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3570,7 +4303,7 @@ func (x *ListSeaOrderChangeEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSeaOrderChangeEventsResponse.ProtoReflect.Descriptor instead.
 func (*ListSeaOrderChangeEventsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{37}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListSeaOrderChangeEventsResponse) GetSuccess() bool {
@@ -3631,7 +4364,7 @@ type SeaOrderChangeEventSummary struct {
 
 func (x *SeaOrderChangeEventSummary) Reset() {
 	*x = SeaOrderChangeEventSummary{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[38]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3643,7 +4376,7 @@ func (x *SeaOrderChangeEventSummary) String() string {
 func (*SeaOrderChangeEventSummary) ProtoMessage() {}
 
 func (x *SeaOrderChangeEventSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[38]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3656,7 +4389,7 @@ func (x *SeaOrderChangeEventSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderChangeEventSummary.ProtoReflect.Descriptor instead.
 func (*SeaOrderChangeEventSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{38}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *SeaOrderChangeEventSummary) GetId() string {
@@ -3727,7 +4460,7 @@ type SeaOrderSplitEventSummary struct {
 
 func (x *SeaOrderSplitEventSummary) Reset() {
 	*x = SeaOrderSplitEventSummary{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[39]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3739,7 +4472,7 @@ func (x *SeaOrderSplitEventSummary) String() string {
 func (*SeaOrderSplitEventSummary) ProtoMessage() {}
 
 func (x *SeaOrderSplitEventSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[39]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3752,7 +4485,7 @@ func (x *SeaOrderSplitEventSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitEventSummary.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitEventSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{39}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *SeaOrderSplitEventSummary) GetSourceOrderId() string {
@@ -3798,7 +4531,7 @@ type SeaOrderSplitResultSummaryItem struct {
 
 func (x *SeaOrderSplitResultSummaryItem) Reset() {
 	*x = SeaOrderSplitResultSummaryItem{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[40]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3810,7 +4543,7 @@ func (x *SeaOrderSplitResultSummaryItem) String() string {
 func (*SeaOrderSplitResultSummaryItem) ProtoMessage() {}
 
 func (x *SeaOrderSplitResultSummaryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[40]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3823,7 +4556,7 @@ func (x *SeaOrderSplitResultSummaryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderSplitResultSummaryItem.ProtoReflect.Descriptor instead.
 func (*SeaOrderSplitResultSummaryItem) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{40}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *SeaOrderSplitResultSummaryItem) GetResultRole() string {
@@ -3876,21 +4609,22 @@ func (x *SeaOrderSplitResultSummaryItem) GetVolumeCbm() string {
 }
 
 type SeaOrderReassignmentEventSummary struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo                string                 `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	PreviousMasterNo       string                 `protobuf:"bytes,3,opt,name=previous_master_no,json=previousMasterNo,proto3" json:"previous_master_no,omitempty"`
-	TargetMasterNo         string                 `protobuf:"bytes,4,opt,name=target_master_no,json=targetMasterNo,proto3" json:"target_master_no,omitempty"`
-	ResponsibilityType     string                 `protobuf:"bytes,5,opt,name=responsibility_type,json=responsibilityType,proto3" json:"responsibility_type,omitempty"`
-	ResponsiblePartnerName string                 `protobuf:"bytes,6,opt,name=responsible_partner_name,json=responsiblePartnerName,proto3" json:"responsible_partner_name,omitempty"`
-	Reason                 string                 `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
+	state                  protoimpl.MessageState          `protogen:"open.v1"`
+	OrderId                string                          `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo                string                          `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	PreviousMasterNo       string                          `protobuf:"bytes,3,opt,name=previous_master_no,json=previousMasterNo,proto3" json:"previous_master_no,omitempty"`
+	TargetMasterNo         string                          `protobuf:"bytes,4,opt,name=target_master_no,json=targetMasterNo,proto3" json:"target_master_no,omitempty"`
+	ResponsibilityType     string                          `protobuf:"bytes,5,opt,name=responsibility_type,json=responsibilityType,proto3" json:"responsibility_type,omitempty"`
+	ResponsiblePartnerName string                          `protobuf:"bytes,6,opt,name=responsible_partner_name,json=responsiblePartnerName,proto3" json:"responsible_partner_name,omitempty"`
+	Reason                 string                          `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
+	Confirmation           *SeaExternalConfirmationSummary `protobuf:"bytes,8,opt,name=confirmation,proto3,oneof" json:"confirmation,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *SeaOrderReassignmentEventSummary) Reset() {
 	*x = SeaOrderReassignmentEventSummary{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[41]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3902,7 +4636,7 @@ func (x *SeaOrderReassignmentEventSummary) String() string {
 func (*SeaOrderReassignmentEventSummary) ProtoMessage() {}
 
 func (x *SeaOrderReassignmentEventSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[41]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3915,7 +4649,7 @@ func (x *SeaOrderReassignmentEventSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderReassignmentEventSummary.ProtoReflect.Descriptor instead.
 func (*SeaOrderReassignmentEventSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{41}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *SeaOrderReassignmentEventSummary) GetOrderId() string {
@@ -3967,6 +4701,13 @@ func (x *SeaOrderReassignmentEventSummary) GetReason() string {
 	return ""
 }
 
+func (x *SeaOrderReassignmentEventSummary) GetConfirmation() *SeaExternalConfirmationSummary {
+	if x != nil {
+		return x.Confirmation
+	}
+	return nil
+}
+
 type GetSeaOrderChangeEventRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -3978,7 +4719,7 @@ type GetSeaOrderChangeEventRequest struct {
 
 func (x *GetSeaOrderChangeEventRequest) Reset() {
 	*x = GetSeaOrderChangeEventRequest{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[42]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3990,7 +4731,7 @@ func (x *GetSeaOrderChangeEventRequest) String() string {
 func (*GetSeaOrderChangeEventRequest) ProtoMessage() {}
 
 func (x *GetSeaOrderChangeEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[42]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4003,7 +4744,7 @@ func (x *GetSeaOrderChangeEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeaOrderChangeEventRequest.ProtoReflect.Descriptor instead.
 func (*GetSeaOrderChangeEventRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{42}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetSeaOrderChangeEventRequest) GetOrderId() string {
@@ -4040,7 +4781,7 @@ type GetSeaOrderChangeEventResponse struct {
 
 func (x *GetSeaOrderChangeEventResponse) Reset() {
 	*x = GetSeaOrderChangeEventResponse{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[43]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4052,7 +4793,7 @@ func (x *GetSeaOrderChangeEventResponse) String() string {
 func (*GetSeaOrderChangeEventResponse) ProtoMessage() {}
 
 func (x *GetSeaOrderChangeEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[43]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4065,7 +4806,7 @@ func (x *GetSeaOrderChangeEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeaOrderChangeEventResponse.ProtoReflect.Descriptor instead.
 func (*GetSeaOrderChangeEventResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{43}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetSeaOrderChangeEventResponse) GetSuccess() bool {
@@ -4122,7 +4863,7 @@ type SeaOrderChangeEventDetailData struct {
 
 func (x *SeaOrderChangeEventDetailData) Reset() {
 	*x = SeaOrderChangeEventDetailData{}
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[44]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4134,7 +4875,7 @@ func (x *SeaOrderChangeEventDetailData) String() string {
 func (*SeaOrderChangeEventDetailData) ProtoMessage() {}
 
 func (x *SeaOrderChangeEventDetailData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_sea_order_change_proto_msgTypes[44]
+	mi := &file_order_v1_sea_order_change_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4147,7 +4888,7 @@ func (x *SeaOrderChangeEventDetailData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaOrderChangeEventDetailData.ProtoReflect.Descriptor instead.
 func (*SeaOrderChangeEventDetailData) Descriptor() ([]byte, []int) {
-	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{44}
+	return file_order_v1_sea_order_change_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *SeaOrderChangeEventDetailData) GetId() string {
@@ -4231,7 +4972,7 @@ var File_order_v1_sea_order_change_proto protoreflect.FileDescriptor
 
 const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\n" +
-	"\x1forder/v1/sea_order_change.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"A\n" +
+	"\x1forder/v1/sea_order_change.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\x1a\x1border/v1/sea_document.proto\"A\n" +
 	"\x1fGetSeaOrderChangeActionsRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xbe\x01\n" +
 	" GetSeaOrderChangeActionsResponse\x12\x18\n" +
@@ -4252,7 +4993,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x126\n" +
 	"\x04data\x18\x04 \x01(\v2\".order.v1.SeaOrderSplitContextDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x83\v\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb5\f\n" +
 	"\x18SeaOrderSplitContextData\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12#\n" +
@@ -4270,31 +5011,44 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x13current_master_bill\x18\f \x01(\v2(.order.v1.SeaOrderSplitMasterBillSummaryR\x11currentMasterBill\x12&\n" +
 	"\x0fcurrent_link_id\x18\r \x01(\tR\rcurrentLinkId\x120\n" +
 	"\x14current_link_version\x18\x0e \x01(\x04R\x12currentLinkVersion\x12-\n" +
-	"\x12document_structure\x18\x0f \x01(\tR\x11documentStructure\x126\n" +
-	"\x17cargo_allocation_status\x18\x10 \x01(\tR\x15cargoAllocationStatus\x128\n" +
-	"\x18cargo_allocation_version\x18\x11 \x01(\x04R\x16cargoAllocationVersion\x12E\n" +
+	"\x12document_structure\x18\x0f \x01(\tR\x11documentStructure\x12E\n" +
 	"\vhouse_bills\x18\x12 \x03(\v2$.order.v1.SeaOrderSplitHouseBillItemR\n" +
 	"houseBills\x12A\n" +
 	"\vcargo_items\x18\x13 \x03(\v2 .order.v1.SeaOrderSplitCargoItemR\n" +
 	"cargoItems\x12D\n" +
 	"\n" +
 	"containers\x18\x14 \x03(\v2$.order.v1.SeaOrderSplitContainerItemR\n" +
-	"containers\x12G\n" +
-	"\vallocations\x18\x15 \x03(\v2%.order.v1.SeaOrderSplitAllocationItemR\vallocations\x12B\n" +
+	"containers\x12B\n" +
 	"\n" +
 	"draft_fees\x18\x16 \x03(\v2#.order.v1.SeaOrderSplitDraftFeeItemR\tdraftFees\x12G\n" +
 	"\vattachments\x18\x17 \x03(\v2%.order.v1.SeaOrderSplitAttachmentItemR\vattachments\x12Q\n" +
 	"\x0fcontainer_plans\x18\x18 \x03(\v2(.order.v1.SeaOrderSplitContainerPlanItemR\x0econtainerPlans\x12M\n" +
-	" attachment_reference_fingerprint\x18\x19 \x01(\tH\x00R\x1eattachmentReferenceFingerprint\x88\x01\x01B#\n" +
-	"!_attachment_reference_fingerprint\"\x8d\x06\n" +
+	" attachment_reference_fingerprint\x18\x19 \x01(\tH\x00R\x1eattachmentReferenceFingerprint\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"booking_no\x18\x1a \x01(\tH\x01R\tbookingNo\x88\x01\x01\x12W\n" +
+	"\x12current_house_bill\x18\x1b \x01(\v2$.order.v1.SeaOrderSplitHouseBillItemH\x02R\x10currentHouseBill\x88\x01\x01\x12v\n" +
+	"\x1cshared_container_allocations\x18\x1c \x03(\v24.order.v1.SeaOrderSplitSharedContainerAllocationItemR\x1asharedContainerAllocationsB#\n" +
+	"!_attachment_reference_fingerprintB\r\n" +
+	"\v_booking_noB\x15\n" +
+	"\x13_current_house_billJ\x04\b\x10\x10\x11J\x04\b\x11\x10\x12J\x04\b\x15\x10\x16R\x17cargo_allocation_statusR\x18cargo_allocation_versionR\vallocations\"\xca\x03\n" +
+	"*SeaOrderSplitSharedContainerAllocationItem\x12#\n" +
+	"\rallocation_id\x18\x01 \x01(\tR\fallocationId\x12.\n" +
+	"\x13shared_container_id\x18\x02 \x01(\tR\x11sharedContainerId\x12!\n" +
+	"\fcontainer_no\x18\x03 \x01(\tR\vcontainerNo\x12*\n" +
+	"\x11container_spec_id\x18\x04 \x01(\tR\x0fcontainerSpecId\x12.\n" +
+	"\x13container_spec_name\x18\x05 \x01(\tR\x11containerSpecName\x12\"\n" +
+	"\rcargo_item_id\x18\x06 \x01(\tR\vcargoItemId\x12#\n" +
+	"\rpackage_count\x18\a \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\b \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\t \x01(\tR\tvolumeCbm\x128\n" +
+	"\x18shared_container_version\x18\n" +
+	" \x01(\x04R\x16sharedContainerVersion\"\xed\x05\n" +
 	"\x1eSeaOrderSplitMasterBillSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12*\n" +
-	"\x11issuer_partner_id\x18\x03 \x01(\tR\x0fissuerPartnerId\x12.\n" +
-	"\x13issuer_partner_name\x18\x04 \x01(\tR\x11issuerPartnerName\x12\x1d\n" +
-	"\n" +
-	"carrier_id\x18\x05 \x01(\tR\tcarrierId\x12!\n" +
-	"\fcarrier_name\x18\x06 \x01(\tR\vcarrierName\x12\x1f\n" +
+	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
+	"\x10shipping_line_id\x18\x03 \x01(\tR\x0eshippingLineId\x12,\n" +
+	"\x12shipping_line_name\x18\x04 \x01(\tR\x10shippingLineName\x12\x1f\n" +
 	"\vvessel_name\x18\a \x01(\tR\n" +
 	"vesselName\x12\x1b\n" +
 	"\tvoyage_no\x18\b \x01(\tR\bvoyageNo\x12\x10\n" +
@@ -4309,7 +5063,8 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x13transit_location_id\x18\x10 \x01(\tR\x11transitLocationId\x122\n" +
 	"\x15transit_location_name\x18\x11 \x01(\tR\x13transitLocationName\x124\n" +
 	"\x16transport_execution_id\x18\x12 \x01(\tR\x14transportExecutionId\x12>\n" +
-	"\x1btransport_execution_version\x18\x13 \x01(\x04R\x19transportExecutionVersion\"y\n" +
+	"\x1btransport_execution_version\x18\x13 \x01(\x04R\x19transportExecutionVersionJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\n" +
+	"carrier_idR\fcarrier_name\"y\n" +
 	"\x1aSeaOrderSplitHouseBillItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bhouse_no\x18\x02 \x01(\tR\ahouseNo\x12\x16\n" +
@@ -4333,16 +5088,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x0fgross_weight_kg\x18\x06 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
 	"\n" +
 	"volume_cbm\x18\a \x01(\tR\tvolumeCbm\x12\x18\n" +
-	"\aversion\x18\b \x01(\x04R\aversion\"\x84\x02\n" +
-	"\x1bSeaOrderSplitAllocationItem\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
-	"\rcargo_item_id\x18\x02 \x01(\tR\vcargoItemId\x12\"\n" +
-	"\rhouse_bill_id\x18\x03 \x01(\tR\vhouseBillId\x12!\n" +
-	"\fcontainer_id\x18\x04 \x01(\tR\vcontainerId\x12#\n" +
-	"\rpackage_count\x18\x05 \x01(\x05R\fpackageCount\x12&\n" +
-	"\x0fgross_weight_kg\x18\x06 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
-	"\n" +
-	"volume_cbm\x18\a \x01(\tR\tvolumeCbm\"\x93\x03\n" +
+	"\aversion\x18\b \x01(\x04R\aversion\"\x93\x03\n" +
 	"\x19SeaOrderSplitDraftFeeItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bfee_code\x18\x02 \x01(\tR\afeeCode\x12\x19\n" +
@@ -4366,35 +5112,32 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x1eSeaOrderSplitContainerPlanItem\x12*\n" +
 	"\x11container_spec_id\x18\x01 \x01(\tR\x0fcontainerSpecId\x12.\n" +
 	"\x13container_spec_name\x18\x02 \x01(\tR\x11containerSpecName\x12\x1a\n" +
-	"\bquantity\x18\x03 \x01(\x05R\bquantity\"\xbb\a\n" +
+	"\bquantity\x18\x03 \x01(\x05R\bquantity\"\x97\a\n" +
 	"\x18SeaOrderSplitTargetInput\x12/\n" +
 	"\x11client_target_key\x18\x01 \x01(\tB\x03\xe0A\x02R\x0fclientTargetKey\x12$\n" +
 	"\vtarget_type\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
 	"targetType\x12&\n" +
 	"\fcandidate_id\x18\x03 \x01(\tH\x00R\vcandidateId\x88\x01\x01\x120\n" +
 	"\x11candidate_version\x18\x04 \x01(\x04H\x01R\x10candidateVersion\x88\x01\x01\x12 \n" +
-	"\tmaster_no\x18\x05 \x01(\tH\x02R\bmasterNo\x88\x01\x01\x12/\n" +
-	"\x11issuer_partner_id\x18\x06 \x01(\tH\x03R\x0fissuerPartnerId\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\a \x01(\tH\x04R\tcarrierId\x88\x01\x01\x12$\n" +
-	"\vvessel_name\x18\b \x01(\tH\x05R\n" +
+	"\tmaster_no\x18\x05 \x01(\tH\x02R\bmasterNo\x88\x01\x01\x12-\n" +
+	"\x10shipping_line_id\x18\x06 \x01(\tH\x03R\x0eshippingLineId\x88\x01\x01\x12$\n" +
+	"\vvessel_name\x18\b \x01(\tH\x04R\n" +
 	"vesselName\x88\x01\x01\x12 \n" +
-	"\tvoyage_no\x18\t \x01(\tH\x06R\bvoyageNo\x88\x01\x01\x12\x15\n" +
+	"\tvoyage_no\x18\t \x01(\tH\x05R\bvoyageNo\x88\x01\x01\x12\x15\n" +
 	"\x03etd\x18\n" +
-	" \x01(\tH\aR\x03etd\x88\x01\x01\x12\x15\n" +
-	"\x03eta\x18\v \x01(\tH\bR\x03eta\x88\x01\x01\x121\n" +
-	"\x12origin_location_id\x18\f \x01(\tH\tR\x10originLocationId\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\r \x01(\tH\n" +
-	"R\x13dischargeLocationId\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\x0e \x01(\tH\vR\x11transitLocationId\x88\x01\x01\x12+\n" +
-	"\x0fcandidate_te_id\x18\x0f \x01(\tH\fR\rcandidateTeId\x88\x01\x01\x125\n" +
-	"\x14candidate_te_version\x18\x10 \x01(\x04H\rR\x12candidateTeVersion\x88\x01\x01B\x0f\n" +
+	" \x01(\tH\x06R\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\v \x01(\tH\aR\x03eta\x88\x01\x01\x121\n" +
+	"\x12origin_location_id\x18\f \x01(\tH\bR\x10originLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\r \x01(\tH\tR\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\x0e \x01(\tH\n" +
+	"R\x11transitLocationId\x88\x01\x01\x12+\n" +
+	"\x0fcandidate_te_id\x18\x0f \x01(\tH\vR\rcandidateTeId\x88\x01\x01\x125\n" +
+	"\x14candidate_te_version\x18\x10 \x01(\x04H\fR\x12candidateTeVersion\x88\x01\x01B\x0f\n" +
 	"\r_candidate_idB\x14\n" +
 	"\x12_candidate_versionB\f\n" +
 	"\n" +
-	"_master_noB\x14\n" +
-	"\x12_issuer_partner_idB\r\n" +
-	"\v_carrier_idB\x0e\n" +
+	"_master_noB\x13\n" +
+	"\x11_shipping_line_idB\x0e\n" +
 	"\f_vessel_nameB\f\n" +
 	"\n" +
 	"_voyage_noB\x06\n" +
@@ -4404,40 +5147,61 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x16_discharge_location_idB\x16\n" +
 	"\x14_transit_location_idB\x12\n" +
 	"\x10_candidate_te_idB\x17\n" +
-	"\x15_candidate_te_version\"\xbc\x04\n" +
+	"\x15_candidate_te_versionJ\x04\b\a\x10\bR\n" +
+	"carrier_id\"\xd0\x01\n" +
+	"\x1bSeaOrderSplitHouseBillInput\x12\x1e\n" +
+	"\bhouse_no\x18\x01 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12(\n" +
+	"\rissuer_source\x18\x02 \x01(\tB\x03\xe0A\x02R\fissuerSource\x12/\n" +
+	"\x11issuer_partner_id\x18\x03 \x01(\tH\x00R\x0fissuerPartnerId\x88\x01\x01\x12\x17\n" +
+	"\x04note\x18\x04 \x01(\tH\x01R\x04note\x88\x01\x01B\x14\n" +
+	"\x12_issuer_partner_idB\a\n" +
+	"\x05_note\"\xb8\x01\n" +
+	"!SeaOrderSplitCargoAllocationInput\x12'\n" +
+	"\rcargo_item_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vcargoItemId\x12#\n" +
+	"\rpackage_count\x18\x02 \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\x03 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\x04 \x01(\tR\tvolumeCbm\"\xc3\x01\n" +
+	"+SeaOrderSplitSharedContainerAllocationInput\x12(\n" +
+	"\rallocation_id\x18\x01 \x01(\tB\x03\xe0A\x02R\fallocationId\x12#\n" +
+	"\rpackage_count\x18\x02 \x01(\x05R\fpackageCount\x12&\n" +
+	"\x0fgross_weight_kg\x18\x03 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"volume_cbm\x18\x04 \x01(\tR\tvolumeCbm\"\xfe\x06\n" +
 	"\x18SeaOrderSplitResultInput\x12/\n" +
 	"\x11client_result_key\x18\x01 \x01(\tB\x03\xe0A\x02R\x0fclientResultKey\x12$\n" +
 	"\vresult_role\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
 	"resultRole\x12/\n" +
-	"\x11client_target_key\x18\x03 \x01(\tB\x03\xe0A\x02R\x0fclientTargetKey\x12$\n" +
-	"\x0ehouse_bill_ids\x18\x04 \x03(\tR\fhouseBillIds\x12\"\n" +
+	"\x11client_target_key\x18\x03 \x01(\tB\x03\xe0A\x02R\x0fclientTargetKey\x12\"\n" +
 	"\rdraft_fee_ids\x18\x05 \x03(\tR\vdraftFeeIds\x128\n" +
 	"\x18attachment_reference_ids\x18\x06 \x03(\tR\x16attachmentReferenceIds\x127\n" +
 	"\x15internal_reference_no\x18\a \x01(\tH\x00R\x13internalReferenceNo\x88\x01\x01\x12(\n" +
 	"\rbooking_notes\x18\b \x01(\tH\x01R\fbookingNotes\x88\x01\x01\x12.\n" +
 	"\x10allocation_notes\x18\t \x01(\tH\x02R\x0fallocationNotes\x88\x01\x01\x12,\n" +
 	"\x0foperation_notes\x18\n" +
-	" \x01(\tH\x03R\x0eoperationNotes\x88\x01\x01B\x18\n" +
+	" \x01(\tH\x03R\x0eoperationNotes\x88\x01\x01\x12I\n" +
+	"\n" +
+	"house_bill\x18\v \x01(\v2%.order.v1.SeaOrderSplitHouseBillInputH\x04R\thouseBill\x88\x01\x01\x12X\n" +
+	"\x11cargo_allocations\x18\f \x03(\v2+.order.v1.SeaOrderSplitCargoAllocationInputR\x10cargoAllocations\x12#\n" +
+	"\rcontainer_ids\x18\r \x03(\tR\fcontainerIds\x12w\n" +
+	"\x1cshared_container_allocations\x18\x0e \x03(\v25.order.v1.SeaOrderSplitSharedContainerAllocationInputR\x1asharedContainerAllocationsB\x18\n" +
 	"\x16_internal_reference_noB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xc8\n" +
-	"\n" +
+	"\x10_operation_notesB\r\n" +
+	"\v_house_billJ\x04\b\x04\x10\x05R\x0ehouse_bill_ids\"\xb4\v\n" +
 	"\x1dSeaOrderSplitExpectedVersions\x12#\n" +
 	"\rorder_version\x18\x01 \x01(\x04R\forderVersion\x12!\n" +
-	"\flink_version\x18\x02 \x01(\x04R\vlinkVersion\x12-\n" +
-	"\x12allocation_version\x18\x03 \x01(\x04R\x11allocationVersion\x12n\n" +
-	"\x13house_bill_versions\x18\x04 \x03(\v2>.order.v1.SeaOrderSplitExpectedVersions.HouseBillVersionsEntryR\x11houseBillVersions\x12n\n" +
+	"\flink_version\x18\x02 \x01(\x04R\vlinkVersion\x12n\n" +
 	"\x13cargo_item_versions\x18\x05 \x03(\v2>.order.v1.SeaOrderSplitExpectedVersions.CargoItemVersionsEntryR\x11cargoItemVersions\x12m\n" +
 	"\x12container_versions\x18\x06 \x03(\v2>.order.v1.SeaOrderSplitExpectedVersions.ContainerVersionsEntryR\x11containerVersions\x12[\n" +
 	"\ffee_versions\x18\a \x03(\v28.order.v1.SeaOrderSplitExpectedVersions.FeeVersionsEntryR\vfeeVersions\x12w\n" +
 	"\x16candidate_mbl_versions\x18\b \x03(\v2A.order.v1.SeaOrderSplitExpectedVersions.CandidateMblVersionsEntryR\x14candidateMblVersions\x12M\n" +
 	" attachment_reference_fingerprint\x18\t \x01(\tH\x00R\x1eattachmentReferenceFingerprint\x88\x01\x01\x12t\n" +
 	"\x15candidate_te_versions\x18\n" +
-	" \x03(\v2@.order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntryR\x13candidateTeVersions\x1aD\n" +
-	"\x16HouseBillVersionsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01\x1aD\n" +
+	" \x03(\v2@.order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntryR\x13candidateTeVersions\x123\n" +
+	"\x13current_hbl_version\x18\v \x01(\x04H\x01R\x11currentHblVersion\x88\x01\x01\x12\x80\x01\n" +
+	"\x19shared_container_versions\x18\f \x03(\v2D.order.v1.SeaOrderSplitExpectedVersions.SharedContainerVersionsEntryR\x17sharedContainerVersions\x1aD\n" +
 	"\x16CargoItemVersionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01\x1aD\n" +
@@ -4452,8 +5216,12 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01\x1aF\n" +
 	"\x18CandidateTeVersionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01\x1aJ\n" +
+	"\x1cSharedContainerVersionsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x04R\x05value:\x028\x01B#\n" +
-	"!_attachment_reference_fingerprint\"\xd6\x02\n" +
+	"!_attachment_reference_fingerprintB\x16\n" +
+	"\x14_current_hbl_versionJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05R\x12allocation_versionR\x13house_bill_versions\"\xd6\x02\n" +
 	"\x1bPreviewSeaOrderSplitRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x17\n" +
 	"\x04note\x18\x02 \x01(\tH\x00R\x04note\x88\x01\x01\x12A\n" +
@@ -4497,7 +5265,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"volume_cbm\x18\x03 \x01(\tR\tvolumeCbm\x12'\n" +
 	"\x0fcontainer_count\x18\x04 \x01(\x05R\x0econtainerCount\x12(\n" +
 	"\x10house_bill_count\x18\x05 \x01(\x05R\x0ehouseBillCount\x12\x1b\n" +
-	"\tfee_count\x18\x06 \x01(\x05R\bfeeCount\"\xbf\x05\n" +
+	"\tfee_count\x18\x06 \x01(\x05R\bfeeCount\"\xec\x05\n" +
 	"\x1eSeaOrderSplitPreviewResultItem\x12*\n" +
 	"\x11client_result_key\x18\x01 \x01(\tR\x0fclientResultKey\x12\x1f\n" +
 	"\vresult_role\x18\x02 \x01(\tR\n" +
@@ -4516,8 +5284,10 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x15internal_reference_no\x18\f \x01(\tH\x00R\x13internalReferenceNo\x88\x01\x01\x12#\n" +
 	"\rbooking_notes\x18\r \x01(\tR\fbookingNotes\x12)\n" +
 	"\x10allocation_notes\x18\x0e \x01(\tR\x0fallocationNotes\x12'\n" +
-	"\x0foperation_notes\x18\x0f \x01(\tR\x0eoperationNotesB\x18\n" +
-	"\x16_internal_reference_no\"\xa4\x03\n" +
+	"\x0foperation_notes\x18\x0f \x01(\tR\x0eoperationNotes\x12\x1e\n" +
+	"\bhouse_no\x18\x10 \x01(\tH\x01R\ahouseNo\x88\x01\x01B\x18\n" +
+	"\x16_internal_reference_noB\v\n" +
+	"\t_house_no\"\xf0\x03\n" +
 	"\x1bExecuteSeaOrderSplitRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12,\n" +
 	"\x0fidempotency_key\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x124\n" +
@@ -4525,7 +5295,8 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x04note\x18\x04 \x01(\tH\x00R\x04note\x88\x01\x01\x12A\n" +
 	"\atargets\x18\x05 \x03(\v2\".order.v1.SeaOrderSplitTargetInputB\x03\xe0A\x02R\atargets\x12A\n" +
 	"\aresults\x18\x06 \x03(\v2\".order.v1.SeaOrderSplitResultInputB\x03\xe0A\x02R\aresults\x12Y\n" +
-	"\x11expected_versions\x18\a \x01(\v2'.order.v1.SeaOrderSplitExpectedVersionsB\x03\xe0A\x02R\x10expectedVersionsB\a\n" +
+	"\x11expected_versions\x18\a \x01(\v2'.order.v1.SeaOrderSplitExpectedVersionsB\x03\xe0A\x02R\x10expectedVersions\x12J\n" +
+	"\fconfirmation\x18\b \x01(\v2&.order.v1.SeaExternalConfirmationInputR\fconfirmationB\a\n" +
 	"\x05_note\"\xb9\x01\n" +
 	"\x1cExecuteSeaOrderSplitResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -4546,34 +5317,31 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x19SeaOrderSplitCreatedOrder\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12*\n" +
-	"\x11client_result_key\x18\x03 \x01(\tR\x0fclientResultKey\"\x91\a\n" +
+	"\x11client_result_key\x18\x03 \x01(\tR\x0fclientResultKey\"\xed\x06\n" +
 	"\x1fSeaOrderReassignmentTargetInput\x12$\n" +
 	"\vtarget_type\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"targetType\x12&\n" +
 	"\fcandidate_id\x18\x02 \x01(\tH\x00R\vcandidateId\x88\x01\x01\x120\n" +
 	"\x11candidate_version\x18\x03 \x01(\x04H\x01R\x10candidateVersion\x88\x01\x01\x12 \n" +
-	"\tmaster_no\x18\x04 \x01(\tH\x02R\bmasterNo\x88\x01\x01\x12/\n" +
-	"\x11issuer_partner_id\x18\x05 \x01(\tH\x03R\x0fissuerPartnerId\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"carrier_id\x18\x06 \x01(\tH\x04R\tcarrierId\x88\x01\x01\x12$\n" +
-	"\vvessel_name\x18\a \x01(\tH\x05R\n" +
+	"\tmaster_no\x18\x04 \x01(\tH\x02R\bmasterNo\x88\x01\x01\x12-\n" +
+	"\x10shipping_line_id\x18\x05 \x01(\tH\x03R\x0eshippingLineId\x88\x01\x01\x12$\n" +
+	"\vvessel_name\x18\a \x01(\tH\x04R\n" +
 	"vesselName\x88\x01\x01\x12 \n" +
-	"\tvoyage_no\x18\b \x01(\tH\x06R\bvoyageNo\x88\x01\x01\x12\x15\n" +
-	"\x03etd\x18\t \x01(\tH\aR\x03etd\x88\x01\x01\x12\x15\n" +
+	"\tvoyage_no\x18\b \x01(\tH\x05R\bvoyageNo\x88\x01\x01\x12\x15\n" +
+	"\x03etd\x18\t \x01(\tH\x06R\x03etd\x88\x01\x01\x12\x15\n" +
 	"\x03eta\x18\n" +
-	" \x01(\tH\bR\x03eta\x88\x01\x01\x121\n" +
-	"\x12origin_location_id\x18\v \x01(\tH\tR\x10originLocationId\x88\x01\x01\x127\n" +
-	"\x15discharge_location_id\x18\f \x01(\tH\n" +
-	"R\x13dischargeLocationId\x88\x01\x01\x123\n" +
-	"\x13transit_location_id\x18\r \x01(\tH\vR\x11transitLocationId\x88\x01\x01\x12+\n" +
-	"\x0fcandidate_te_id\x18\x0e \x01(\tH\fR\rcandidateTeId\x88\x01\x01\x125\n" +
-	"\x14candidate_te_version\x18\x0f \x01(\x04H\rR\x12candidateTeVersion\x88\x01\x01B\x0f\n" +
+	" \x01(\tH\aR\x03eta\x88\x01\x01\x121\n" +
+	"\x12origin_location_id\x18\v \x01(\tH\bR\x10originLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\f \x01(\tH\tR\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\r \x01(\tH\n" +
+	"R\x11transitLocationId\x88\x01\x01\x12+\n" +
+	"\x0fcandidate_te_id\x18\x0e \x01(\tH\vR\rcandidateTeId\x88\x01\x01\x125\n" +
+	"\x14candidate_te_version\x18\x0f \x01(\x04H\fR\x12candidateTeVersion\x88\x01\x01B\x0f\n" +
 	"\r_candidate_idB\x14\n" +
 	"\x12_candidate_versionB\f\n" +
 	"\n" +
-	"_master_noB\x14\n" +
-	"\x12_issuer_partner_idB\r\n" +
-	"\v_carrier_idB\x0e\n" +
+	"_master_noB\x13\n" +
+	"\x11_shipping_line_idB\x0e\n" +
 	"\f_vessel_nameB\f\n" +
 	"\n" +
 	"_voyage_noB\x06\n" +
@@ -4583,7 +5351,8 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x16_discharge_location_idB\x16\n" +
 	"\x14_transit_location_idB\x12\n" +
 	"\x10_candidate_te_idB\x17\n" +
-	"\x15_candidate_te_version\"\x8c\x01\n" +
+	"\x15_candidate_te_versionJ\x04\b\x06\x10\aR\n" +
+	"carrier_id\"\x8c\x01\n" +
 	"\"PreviewSeaOrderReassignmentRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12F\n" +
 	"\x06target\x18\x02 \x01(\v2).order.v1.SeaOrderReassignmentTargetInputB\x03\xe0A\x02R\x06target\"\xc7\x01\n" +
@@ -4608,7 +5377,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12#\n" +
 	"\rcurrent_value\x18\x03 \x01(\tR\fcurrentValue\x12!\n" +
 	"\ftarget_value\x18\x04 \x01(\tR\vtargetValue\x12!\n" +
-	"\fis_different\x18\x05 \x01(\bR\visDifferent\"\xe4\x05\n" +
+	"\fis_different\x18\x05 \x01(\bR\visDifferent\"\xb5\x06\n" +
 	"\"ExecuteSeaOrderReassignmentRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12,\n" +
 	"\x0fidempotency_key\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x124\n" +
@@ -4621,7 +5390,8 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x15expected_link_version\x18\t \x01(\x04B\x03\xe0A\x02R\x13expectedLinkVersion\x12H\n" +
 	"\x1eexpected_candidate_mbl_version\x18\n" +
 	" \x01(\x04H\x01R\x1bexpectedCandidateMblVersion\x88\x01\x01\x12F\n" +
-	"\x1dexpected_candidate_te_version\x18\v \x01(\x04H\x02R\x1aexpectedCandidateTeVersion\x88\x01\x01B\x19\n" +
+	"\x1dexpected_candidate_te_version\x18\v \x01(\x04H\x02R\x1aexpectedCandidateTeVersion\x88\x01\x01\x12O\n" +
+	"\fconfirmation\x18\f \x01(\v2&.order.v1.SeaExternalConfirmationInputB\x03\xe0A\x02R\fconfirmationB\x19\n" +
 	"\x17_responsible_partner_idB!\n" +
 	"\x1f_expected_candidate_mbl_versionB \n" +
 	"\x1e_expected_candidate_te_version\"\xc7\x01\n" +
@@ -4638,7 +5408,56 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\border_id\x18\x03 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x04 \x01(\tR\aorderNo\x121\n" +
 	"\x15target_master_bill_id\x18\x05 \x01(\tR\x12targetMasterBillId\x12(\n" +
-	"\x10target_master_no\x18\x06 \x01(\tR\x0etargetMasterNo\"r\n" +
+	"\x10target_master_no\x18\x06 \x01(\tR\x0etargetMasterNo\"\x88\x03\n" +
+	" SeaTransportExecutionUpdateInput\x121\n" +
+	"\x12origin_location_id\x18\x01 \x01(\tH\x00R\x10originLocationId\x88\x01\x01\x127\n" +
+	"\x15discharge_location_id\x18\x02 \x01(\tH\x01R\x13dischargeLocationId\x88\x01\x01\x123\n" +
+	"\x13transit_location_id\x18\x03 \x01(\tH\x02R\x11transitLocationId\x88\x01\x01\x12\x1f\n" +
+	"\vvessel_name\x18\x04 \x01(\tR\n" +
+	"vesselName\x12\x1b\n" +
+	"\tvoyage_no\x18\x05 \x01(\tR\bvoyageNo\x12\x15\n" +
+	"\x03etd\x18\x06 \x01(\tH\x03R\x03etd\x88\x01\x01\x12\x15\n" +
+	"\x03eta\x18\a \x01(\tH\x04R\x03eta\x88\x01\x01B\x15\n" +
+	"\x13_origin_location_idB\x18\n" +
+	"\x16_discharge_location_idB\x16\n" +
+	"\x14_transit_location_idB\x06\n" +
+	"\x04_etdB\x06\n" +
+	"\x04_eta\"\xeb\x02\n" +
+	"&SeaTransportExecutionUpdatePreviewData\x124\n" +
+	"\x16transport_execution_id\x18\x01 \x01(\tR\x14transportExecutionId\x12>\n" +
+	"\x1btransport_execution_version\x18\x02 \x01(\x04R\x19transportExecutionVersion\x12(\n" +
+	"\x10member_order_ids\x18\x03 \x03(\tR\x0ememberOrderIds\x12@\n" +
+	"\vdifferences\x18\x04 \x03(\v2\x1e.order.v1.VoyageDifferenceItemR\vdifferences\x12?\n" +
+	"\aimpacts\x18\x05 \x03(\v2%.order.v1.SeaDocumentDownstreamImpactR\aimpacts\x12\x1e\n" +
+	"\n" +
+	"executable\x18\x06 \x01(\bR\n" +
+	"executable\"\x85\x02\n" +
+	")PreviewSeaTransportExecutionUpdateRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12T\n" +
+	"$expected_transport_execution_version\x18\x02 \x01(\x04B\x03\xe0A\x02R!expectedTransportExecutionVersion\x12E\n" +
+	"\x05input\x18\x03 \x01(\v2*.order.v1.SeaTransportExecutionUpdateInputB\x03\xe0A\x02R\x05input\x12\x1b\n" +
+	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"\xd5\x01\n" +
+	"*PreviewSeaTransportExecutionUpdateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12D\n" +
+	"\x04data\x18\x04 \x01(\v20.order.v1.SeaTransportExecutionUpdatePreviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x84\x03\n" +
+	")ExecuteSeaTransportExecutionUpdateRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12T\n" +
+	"$expected_transport_execution_version\x18\x02 \x01(\x04B\x03\xe0A\x02R!expectedTransportExecutionVersion\x12E\n" +
+	"\x05input\x18\x03 \x01(\v2*.order.v1.SeaTransportExecutionUpdateInputB\x03\xe0A\x02R\x05input\x12\x1b\n" +
+	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\x12O\n" +
+	"\fconfirmation\x18\x05 \x01(\v2&.order.v1.SeaExternalConfirmationInputB\x03\xe0A\x02R\fconfirmation\x12,\n" +
+	"\x0fidempotency_key\x18\x06 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\"\x80\x02\n" +
+	"*ExecuteSeaTransportExecutionUpdateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12P\n" +
+	"\x13transport_execution\x18\x04 \x01(\v2\x1f.order.v1.SeaTransportExecutionR\x12transportExecution\x12\x1d\n" +
+	"\n" +
+	"version_id\x18\x05 \x01(\tR\tversionId\x12\x19\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"r\n" +
 	"\x1fListSeaOrderChangeEventsRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
@@ -4678,7 +5497,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\rpackage_count\x18\x05 \x01(\x05R\fpackageCount\x12&\n" +
 	"\x0fgross_weight_kg\x18\x06 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
 	"\n" +
-	"volume_cbm\x18\a \x01(\tR\tvolumeCbm\"\xb3\x02\n" +
+	"volume_cbm\x18\a \x01(\tR\tvolumeCbm\"\x97\x03\n" +
 	" SeaOrderReassignmentEventSummary\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12,\n" +
@@ -4686,7 +5505,9 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x10target_master_no\x18\x04 \x01(\tR\x0etargetMasterNo\x12/\n" +
 	"\x13responsibility_type\x18\x05 \x01(\tR\x12responsibilityType\x128\n" +
 	"\x18responsible_partner_name\x18\x06 \x01(\tR\x16responsiblePartnerName\x12\x16\n" +
-	"\x06reason\x18\a \x01(\tR\x06reason\"\x83\x01\n" +
+	"\x06reason\x18\a \x01(\tR\x06reason\x12Q\n" +
+	"\fconfirmation\x18\b \x01(\v2(.order.v1.SeaExternalConfirmationSummaryH\x00R\fconfirmation\x88\x01\x01B\x0f\n" +
+	"\r_confirmation\"\x83\x01\n" +
 	"\x1dGetSeaOrderChangeEventRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1e\n" +
 	"\bevent_id\x18\x02 \x01(\tB\x03\xe0A\x02R\aeventId\x12\"\n" +
@@ -4715,7 +5536,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	" \x01(\v2#.order.v1.SeaOrderSplitEventSummaryH\x00R\fsplitSummary\x88\x01\x01\x12b\n" +
 	"\x14reassignment_summary\x18\v \x01(\v2*.order.v1.SeaOrderReassignmentEventSummaryH\x01R\x13reassignmentSummary\x88\x01\x01B\x10\n" +
 	"\x0e_split_summaryB\x17\n" +
-	"\x15_reassignment_summary2\xc4\f\n" +
+	"\x15_reassignment_summary2\xaa\x10\n" +
 	"\x15SeaOrderChangeService\x12\xbb\x01\n" +
 	"\x18GetSeaOrderChangeActions\x12).order.v1.GetSeaOrderChangeActionsRequest\x1a*.order.v1.GetSeaOrderChangeActionsResponse\"H\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x024\x122/api/v1/orders/{order_id}/sea-order-change/actions\x12\xbf\x01\n" +
@@ -4723,7 +5544,9 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x14PreviewSeaOrderSplit\x12%.order.v1.PreviewSeaOrderSplitRequest\x1a&.order.v1.PreviewSeaOrderSplitResponse\"R\x82\xb5\x18\v\b\x04\x1a\x05split \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/orders/{order_id}/sea-order-change/split/preview\x12\xb9\x01\n" +
 	"\x14ExecuteSeaOrderSplit\x12%.order.v1.ExecuteSeaOrderSplitRequest\x1a&.order.v1.ExecuteSeaOrderSplitResponse\"R\x82\xb5\x18\v\b\x04\x1a\x05split \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/orders/{order_id}/sea-order-change/split/execute\x12\xd8\x01\n" +
 	"\x1bPreviewSeaOrderReassignment\x12,.order.v1.PreviewSeaOrderReassignmentRequest\x1a-.order.v1.PreviewSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/preview\x12\xd8\x01\n" +
-	"\x1bExecuteSeaOrderReassignment\x12,.order.v1.ExecuteSeaOrderReassignmentRequest\x1a-.order.v1.ExecuteSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/execute\x12\xba\x01\n" +
+	"\x1bExecuteSeaOrderReassignment\x12,.order.v1.ExecuteSeaOrderReassignmentRequest\x1a-.order.v1.ExecuteSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/execute\x12\xf4\x01\n" +
+	"\"PreviewSeaTransportExecutionUpdate\x123.order.v1.PreviewSeaTransportExecutionUpdateRequest\x1a4.order.v1.PreviewSeaTransportExecutionUpdateResponse\"c\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview\x12\xec\x01\n" +
+	"\"ExecuteSeaTransportExecutionUpdate\x123.order.v1.ExecuteSeaTransportExecutionUpdateRequest\x1a4.order.v1.ExecuteSeaTransportExecutionUpdateResponse\"[\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02C:\x01*\">/api/v1/orders/{order_id}/sea-order-change/transport-execution\x12\xba\x01\n" +
 	"\x18ListSeaOrderChangeEvents\x12).order.v1.ListSeaOrderChangeEventsRequest\x1a*.order.v1.ListSeaOrderChangeEventsResponse\"G\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x023\x121/api/v1/orders/{order_id}/sea-order-change/events\x12\xbf\x01\n" +
 	"\x16GetSeaOrderChangeEvent\x12'.order.v1.GetSeaOrderChangeEventRequest\x1a(.order.v1.GetSeaOrderChangeEventResponse\"R\x82\xb5\x18\n" +
@@ -4741,128 +5564,159 @@ func file_order_v1_sea_order_change_proto_rawDescGZIP() []byte {
 	return file_order_v1_sea_order_change_proto_rawDescData
 }
 
-var file_order_v1_sea_order_change_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
+var file_order_v1_sea_order_change_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
 var file_order_v1_sea_order_change_proto_goTypes = []any{
-	(*GetSeaOrderChangeActionsRequest)(nil),     // 0: order.v1.GetSeaOrderChangeActionsRequest
-	(*GetSeaOrderChangeActionsResponse)(nil),    // 1: order.v1.GetSeaOrderChangeActionsResponse
-	(*SeaOrderChangeActionsData)(nil),           // 2: order.v1.SeaOrderChangeActionsData
-	(*GetSeaOrderSplitContextRequest)(nil),      // 3: order.v1.GetSeaOrderSplitContextRequest
-	(*GetSeaOrderSplitContextResponse)(nil),     // 4: order.v1.GetSeaOrderSplitContextResponse
-	(*SeaOrderSplitContextData)(nil),            // 5: order.v1.SeaOrderSplitContextData
-	(*SeaOrderSplitMasterBillSummary)(nil),      // 6: order.v1.SeaOrderSplitMasterBillSummary
-	(*SeaOrderSplitHouseBillItem)(nil),          // 7: order.v1.SeaOrderSplitHouseBillItem
-	(*SeaOrderSplitCargoItem)(nil),              // 8: order.v1.SeaOrderSplitCargoItem
-	(*SeaOrderSplitContainerItem)(nil),          // 9: order.v1.SeaOrderSplitContainerItem
-	(*SeaOrderSplitAllocationItem)(nil),         // 10: order.v1.SeaOrderSplitAllocationItem
-	(*SeaOrderSplitDraftFeeItem)(nil),           // 11: order.v1.SeaOrderSplitDraftFeeItem
-	(*SeaOrderSplitAttachmentItem)(nil),         // 12: order.v1.SeaOrderSplitAttachmentItem
-	(*SeaOrderSplitContainerPlanItem)(nil),      // 13: order.v1.SeaOrderSplitContainerPlanItem
-	(*SeaOrderSplitTargetInput)(nil),            // 14: order.v1.SeaOrderSplitTargetInput
-	(*SeaOrderSplitResultInput)(nil),            // 15: order.v1.SeaOrderSplitResultInput
-	(*SeaOrderSplitExpectedVersions)(nil),       // 16: order.v1.SeaOrderSplitExpectedVersions
-	(*PreviewSeaOrderSplitRequest)(nil),         // 17: order.v1.PreviewSeaOrderSplitRequest
-	(*PreviewSeaOrderSplitResponse)(nil),        // 18: order.v1.PreviewSeaOrderSplitResponse
-	(*SeaOrderSplitPreviewData)(nil),            // 19: order.v1.SeaOrderSplitPreviewData
-	(*SeaOrderSplitValidationError)(nil),        // 20: order.v1.SeaOrderSplitValidationError
-	(*SeaOrderSplitQuantitySummary)(nil),        // 21: order.v1.SeaOrderSplitQuantitySummary
-	(*SeaOrderSplitPreviewResultItem)(nil),      // 22: order.v1.SeaOrderSplitPreviewResultItem
-	(*ExecuteSeaOrderSplitRequest)(nil),         // 23: order.v1.ExecuteSeaOrderSplitRequest
-	(*ExecuteSeaOrderSplitResponse)(nil),        // 24: order.v1.ExecuteSeaOrderSplitResponse
-	(*ExecuteSeaOrderSplitData)(nil),            // 25: order.v1.ExecuteSeaOrderSplitData
-	(*SeaOrderSplitOrderReference)(nil),         // 26: order.v1.SeaOrderSplitOrderReference
-	(*SeaOrderSplitCreatedOrder)(nil),           // 27: order.v1.SeaOrderSplitCreatedOrder
-	(*SeaOrderReassignmentTargetInput)(nil),     // 28: order.v1.SeaOrderReassignmentTargetInput
-	(*PreviewSeaOrderReassignmentRequest)(nil),  // 29: order.v1.PreviewSeaOrderReassignmentRequest
-	(*PreviewSeaOrderReassignmentResponse)(nil), // 30: order.v1.PreviewSeaOrderReassignmentResponse
-	(*SeaOrderReassignmentPreviewData)(nil),     // 31: order.v1.SeaOrderReassignmentPreviewData
-	(*VoyageDifferenceItem)(nil),                // 32: order.v1.VoyageDifferenceItem
-	(*ExecuteSeaOrderReassignmentRequest)(nil),  // 33: order.v1.ExecuteSeaOrderReassignmentRequest
-	(*ExecuteSeaOrderReassignmentResponse)(nil), // 34: order.v1.ExecuteSeaOrderReassignmentResponse
-	(*ExecuteSeaOrderReassignmentData)(nil),     // 35: order.v1.ExecuteSeaOrderReassignmentData
-	(*ListSeaOrderChangeEventsRequest)(nil),     // 36: order.v1.ListSeaOrderChangeEventsRequest
-	(*ListSeaOrderChangeEventsResponse)(nil),    // 37: order.v1.ListSeaOrderChangeEventsResponse
-	(*SeaOrderChangeEventSummary)(nil),          // 38: order.v1.SeaOrderChangeEventSummary
-	(*SeaOrderSplitEventSummary)(nil),           // 39: order.v1.SeaOrderSplitEventSummary
-	(*SeaOrderSplitResultSummaryItem)(nil),      // 40: order.v1.SeaOrderSplitResultSummaryItem
-	(*SeaOrderReassignmentEventSummary)(nil),    // 41: order.v1.SeaOrderReassignmentEventSummary
-	(*GetSeaOrderChangeEventRequest)(nil),       // 42: order.v1.GetSeaOrderChangeEventRequest
-	(*GetSeaOrderChangeEventResponse)(nil),      // 43: order.v1.GetSeaOrderChangeEventResponse
-	(*SeaOrderChangeEventDetailData)(nil),       // 44: order.v1.SeaOrderChangeEventDetailData
-	nil,                                         // 45: order.v1.SeaOrderSplitExpectedVersions.HouseBillVersionsEntry
-	nil,                                         // 46: order.v1.SeaOrderSplitExpectedVersions.CargoItemVersionsEntry
-	nil,                                         // 47: order.v1.SeaOrderSplitExpectedVersions.ContainerVersionsEntry
-	nil,                                         // 48: order.v1.SeaOrderSplitExpectedVersions.FeeVersionsEntry
-	nil,                                         // 49: order.v1.SeaOrderSplitExpectedVersions.CandidateMblVersionsEntry
-	nil,                                         // 50: order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntry
+	(*GetSeaOrderChangeActionsRequest)(nil),             // 0: order.v1.GetSeaOrderChangeActionsRequest
+	(*GetSeaOrderChangeActionsResponse)(nil),            // 1: order.v1.GetSeaOrderChangeActionsResponse
+	(*SeaOrderChangeActionsData)(nil),                   // 2: order.v1.SeaOrderChangeActionsData
+	(*GetSeaOrderSplitContextRequest)(nil),              // 3: order.v1.GetSeaOrderSplitContextRequest
+	(*GetSeaOrderSplitContextResponse)(nil),             // 4: order.v1.GetSeaOrderSplitContextResponse
+	(*SeaOrderSplitContextData)(nil),                    // 5: order.v1.SeaOrderSplitContextData
+	(*SeaOrderSplitSharedContainerAllocationItem)(nil),  // 6: order.v1.SeaOrderSplitSharedContainerAllocationItem
+	(*SeaOrderSplitMasterBillSummary)(nil),              // 7: order.v1.SeaOrderSplitMasterBillSummary
+	(*SeaOrderSplitHouseBillItem)(nil),                  // 8: order.v1.SeaOrderSplitHouseBillItem
+	(*SeaOrderSplitCargoItem)(nil),                      // 9: order.v1.SeaOrderSplitCargoItem
+	(*SeaOrderSplitContainerItem)(nil),                  // 10: order.v1.SeaOrderSplitContainerItem
+	(*SeaOrderSplitDraftFeeItem)(nil),                   // 11: order.v1.SeaOrderSplitDraftFeeItem
+	(*SeaOrderSplitAttachmentItem)(nil),                 // 12: order.v1.SeaOrderSplitAttachmentItem
+	(*SeaOrderSplitContainerPlanItem)(nil),              // 13: order.v1.SeaOrderSplitContainerPlanItem
+	(*SeaOrderSplitTargetInput)(nil),                    // 14: order.v1.SeaOrderSplitTargetInput
+	(*SeaOrderSplitHouseBillInput)(nil),                 // 15: order.v1.SeaOrderSplitHouseBillInput
+	(*SeaOrderSplitCargoAllocationInput)(nil),           // 16: order.v1.SeaOrderSplitCargoAllocationInput
+	(*SeaOrderSplitSharedContainerAllocationInput)(nil), // 17: order.v1.SeaOrderSplitSharedContainerAllocationInput
+	(*SeaOrderSplitResultInput)(nil),                    // 18: order.v1.SeaOrderSplitResultInput
+	(*SeaOrderSplitExpectedVersions)(nil),               // 19: order.v1.SeaOrderSplitExpectedVersions
+	(*PreviewSeaOrderSplitRequest)(nil),                 // 20: order.v1.PreviewSeaOrderSplitRequest
+	(*PreviewSeaOrderSplitResponse)(nil),                // 21: order.v1.PreviewSeaOrderSplitResponse
+	(*SeaOrderSplitPreviewData)(nil),                    // 22: order.v1.SeaOrderSplitPreviewData
+	(*SeaOrderSplitValidationError)(nil),                // 23: order.v1.SeaOrderSplitValidationError
+	(*SeaOrderSplitQuantitySummary)(nil),                // 24: order.v1.SeaOrderSplitQuantitySummary
+	(*SeaOrderSplitPreviewResultItem)(nil),              // 25: order.v1.SeaOrderSplitPreviewResultItem
+	(*ExecuteSeaOrderSplitRequest)(nil),                 // 26: order.v1.ExecuteSeaOrderSplitRequest
+	(*ExecuteSeaOrderSplitResponse)(nil),                // 27: order.v1.ExecuteSeaOrderSplitResponse
+	(*ExecuteSeaOrderSplitData)(nil),                    // 28: order.v1.ExecuteSeaOrderSplitData
+	(*SeaOrderSplitOrderReference)(nil),                 // 29: order.v1.SeaOrderSplitOrderReference
+	(*SeaOrderSplitCreatedOrder)(nil),                   // 30: order.v1.SeaOrderSplitCreatedOrder
+	(*SeaOrderReassignmentTargetInput)(nil),             // 31: order.v1.SeaOrderReassignmentTargetInput
+	(*PreviewSeaOrderReassignmentRequest)(nil),          // 32: order.v1.PreviewSeaOrderReassignmentRequest
+	(*PreviewSeaOrderReassignmentResponse)(nil),         // 33: order.v1.PreviewSeaOrderReassignmentResponse
+	(*SeaOrderReassignmentPreviewData)(nil),             // 34: order.v1.SeaOrderReassignmentPreviewData
+	(*VoyageDifferenceItem)(nil),                        // 35: order.v1.VoyageDifferenceItem
+	(*ExecuteSeaOrderReassignmentRequest)(nil),          // 36: order.v1.ExecuteSeaOrderReassignmentRequest
+	(*ExecuteSeaOrderReassignmentResponse)(nil),         // 37: order.v1.ExecuteSeaOrderReassignmentResponse
+	(*ExecuteSeaOrderReassignmentData)(nil),             // 38: order.v1.ExecuteSeaOrderReassignmentData
+	(*SeaTransportExecutionUpdateInput)(nil),            // 39: order.v1.SeaTransportExecutionUpdateInput
+	(*SeaTransportExecutionUpdatePreviewData)(nil),      // 40: order.v1.SeaTransportExecutionUpdatePreviewData
+	(*PreviewSeaTransportExecutionUpdateRequest)(nil),   // 41: order.v1.PreviewSeaTransportExecutionUpdateRequest
+	(*PreviewSeaTransportExecutionUpdateResponse)(nil),  // 42: order.v1.PreviewSeaTransportExecutionUpdateResponse
+	(*ExecuteSeaTransportExecutionUpdateRequest)(nil),   // 43: order.v1.ExecuteSeaTransportExecutionUpdateRequest
+	(*ExecuteSeaTransportExecutionUpdateResponse)(nil),  // 44: order.v1.ExecuteSeaTransportExecutionUpdateResponse
+	(*ListSeaOrderChangeEventsRequest)(nil),             // 45: order.v1.ListSeaOrderChangeEventsRequest
+	(*ListSeaOrderChangeEventsResponse)(nil),            // 46: order.v1.ListSeaOrderChangeEventsResponse
+	(*SeaOrderChangeEventSummary)(nil),                  // 47: order.v1.SeaOrderChangeEventSummary
+	(*SeaOrderSplitEventSummary)(nil),                   // 48: order.v1.SeaOrderSplitEventSummary
+	(*SeaOrderSplitResultSummaryItem)(nil),              // 49: order.v1.SeaOrderSplitResultSummaryItem
+	(*SeaOrderReassignmentEventSummary)(nil),            // 50: order.v1.SeaOrderReassignmentEventSummary
+	(*GetSeaOrderChangeEventRequest)(nil),               // 51: order.v1.GetSeaOrderChangeEventRequest
+	(*GetSeaOrderChangeEventResponse)(nil),              // 52: order.v1.GetSeaOrderChangeEventResponse
+	(*SeaOrderChangeEventDetailData)(nil),               // 53: order.v1.SeaOrderChangeEventDetailData
+	nil,                                                 // 54: order.v1.SeaOrderSplitExpectedVersions.CargoItemVersionsEntry
+	nil,                                                 // 55: order.v1.SeaOrderSplitExpectedVersions.ContainerVersionsEntry
+	nil,                                                 // 56: order.v1.SeaOrderSplitExpectedVersions.FeeVersionsEntry
+	nil,                                                 // 57: order.v1.SeaOrderSplitExpectedVersions.CandidateMblVersionsEntry
+	nil,                                                 // 58: order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntry
+	nil,                                                 // 59: order.v1.SeaOrderSplitExpectedVersions.SharedContainerVersionsEntry
+	(*SeaExternalConfirmationInput)(nil),                // 60: order.v1.SeaExternalConfirmationInput
+	(*SeaDocumentDownstreamImpact)(nil),                 // 61: order.v1.SeaDocumentDownstreamImpact
+	(*SeaTransportExecution)(nil),                       // 62: order.v1.SeaTransportExecution
+	(*SeaExternalConfirmationSummary)(nil),              // 63: order.v1.SeaExternalConfirmationSummary
 }
 var file_order_v1_sea_order_change_proto_depIdxs = []int32{
 	2,  // 0: order.v1.GetSeaOrderChangeActionsResponse.data:type_name -> order.v1.SeaOrderChangeActionsData
 	5,  // 1: order.v1.GetSeaOrderSplitContextResponse.data:type_name -> order.v1.SeaOrderSplitContextData
-	6,  // 2: order.v1.SeaOrderSplitContextData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
-	7,  // 3: order.v1.SeaOrderSplitContextData.house_bills:type_name -> order.v1.SeaOrderSplitHouseBillItem
-	8,  // 4: order.v1.SeaOrderSplitContextData.cargo_items:type_name -> order.v1.SeaOrderSplitCargoItem
-	9,  // 5: order.v1.SeaOrderSplitContextData.containers:type_name -> order.v1.SeaOrderSplitContainerItem
-	10, // 6: order.v1.SeaOrderSplitContextData.allocations:type_name -> order.v1.SeaOrderSplitAllocationItem
-	11, // 7: order.v1.SeaOrderSplitContextData.draft_fees:type_name -> order.v1.SeaOrderSplitDraftFeeItem
-	12, // 8: order.v1.SeaOrderSplitContextData.attachments:type_name -> order.v1.SeaOrderSplitAttachmentItem
-	13, // 9: order.v1.SeaOrderSplitContextData.container_plans:type_name -> order.v1.SeaOrderSplitContainerPlanItem
-	45, // 10: order.v1.SeaOrderSplitExpectedVersions.house_bill_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.HouseBillVersionsEntry
-	46, // 11: order.v1.SeaOrderSplitExpectedVersions.cargo_item_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CargoItemVersionsEntry
-	47, // 12: order.v1.SeaOrderSplitExpectedVersions.container_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.ContainerVersionsEntry
-	48, // 13: order.v1.SeaOrderSplitExpectedVersions.fee_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.FeeVersionsEntry
-	49, // 14: order.v1.SeaOrderSplitExpectedVersions.candidate_mbl_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CandidateMblVersionsEntry
-	50, // 15: order.v1.SeaOrderSplitExpectedVersions.candidate_te_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntry
-	14, // 16: order.v1.PreviewSeaOrderSplitRequest.targets:type_name -> order.v1.SeaOrderSplitTargetInput
-	15, // 17: order.v1.PreviewSeaOrderSplitRequest.results:type_name -> order.v1.SeaOrderSplitResultInput
-	16, // 18: order.v1.PreviewSeaOrderSplitRequest.expected_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions
-	19, // 19: order.v1.PreviewSeaOrderSplitResponse.data:type_name -> order.v1.SeaOrderSplitPreviewData
-	20, // 20: order.v1.SeaOrderSplitPreviewData.validation_errors:type_name -> order.v1.SeaOrderSplitValidationError
-	21, // 21: order.v1.SeaOrderSplitPreviewData.baseline:type_name -> order.v1.SeaOrderSplitQuantitySummary
-	21, // 22: order.v1.SeaOrderSplitPreviewData.allocated:type_name -> order.v1.SeaOrderSplitQuantitySummary
-	21, // 23: order.v1.SeaOrderSplitPreviewData.remaining:type_name -> order.v1.SeaOrderSplitQuantitySummary
-	22, // 24: order.v1.SeaOrderSplitPreviewData.results:type_name -> order.v1.SeaOrderSplitPreviewResultItem
-	13, // 25: order.v1.SeaOrderSplitPreviewResultItem.container_plans:type_name -> order.v1.SeaOrderSplitContainerPlanItem
-	14, // 26: order.v1.ExecuteSeaOrderSplitRequest.targets:type_name -> order.v1.SeaOrderSplitTargetInput
-	15, // 27: order.v1.ExecuteSeaOrderSplitRequest.results:type_name -> order.v1.SeaOrderSplitResultInput
-	16, // 28: order.v1.ExecuteSeaOrderSplitRequest.expected_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions
-	25, // 29: order.v1.ExecuteSeaOrderSplitResponse.data:type_name -> order.v1.ExecuteSeaOrderSplitData
-	26, // 30: order.v1.ExecuteSeaOrderSplitData.original_order:type_name -> order.v1.SeaOrderSplitOrderReference
-	27, // 31: order.v1.ExecuteSeaOrderSplitData.created_orders:type_name -> order.v1.SeaOrderSplitCreatedOrder
-	28, // 32: order.v1.PreviewSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
-	31, // 33: order.v1.PreviewSeaOrderReassignmentResponse.data:type_name -> order.v1.SeaOrderReassignmentPreviewData
-	6,  // 34: order.v1.SeaOrderReassignmentPreviewData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
-	6,  // 35: order.v1.SeaOrderReassignmentPreviewData.target_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
-	32, // 36: order.v1.SeaOrderReassignmentPreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
-	28, // 37: order.v1.ExecuteSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
-	35, // 38: order.v1.ExecuteSeaOrderReassignmentResponse.data:type_name -> order.v1.ExecuteSeaOrderReassignmentData
-	38, // 39: order.v1.ListSeaOrderChangeEventsResponse.data:type_name -> order.v1.SeaOrderChangeEventSummary
-	39, // 40: order.v1.SeaOrderChangeEventSummary.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
-	41, // 41: order.v1.SeaOrderChangeEventSummary.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
-	40, // 42: order.v1.SeaOrderSplitEventSummary.results:type_name -> order.v1.SeaOrderSplitResultSummaryItem
-	44, // 43: order.v1.GetSeaOrderChangeEventResponse.data:type_name -> order.v1.SeaOrderChangeEventDetailData
-	39, // 44: order.v1.SeaOrderChangeEventDetailData.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
-	41, // 45: order.v1.SeaOrderChangeEventDetailData.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
-	0,  // 46: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:input_type -> order.v1.GetSeaOrderChangeActionsRequest
-	3,  // 47: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:input_type -> order.v1.GetSeaOrderSplitContextRequest
-	17, // 48: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:input_type -> order.v1.PreviewSeaOrderSplitRequest
-	23, // 49: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:input_type -> order.v1.ExecuteSeaOrderSplitRequest
-	29, // 50: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:input_type -> order.v1.PreviewSeaOrderReassignmentRequest
-	33, // 51: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:input_type -> order.v1.ExecuteSeaOrderReassignmentRequest
-	36, // 52: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:input_type -> order.v1.ListSeaOrderChangeEventsRequest
-	42, // 53: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:input_type -> order.v1.GetSeaOrderChangeEventRequest
-	1,  // 54: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:output_type -> order.v1.GetSeaOrderChangeActionsResponse
-	4,  // 55: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:output_type -> order.v1.GetSeaOrderSplitContextResponse
-	18, // 56: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:output_type -> order.v1.PreviewSeaOrderSplitResponse
-	24, // 57: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:output_type -> order.v1.ExecuteSeaOrderSplitResponse
-	30, // 58: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:output_type -> order.v1.PreviewSeaOrderReassignmentResponse
-	34, // 59: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:output_type -> order.v1.ExecuteSeaOrderReassignmentResponse
-	37, // 60: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:output_type -> order.v1.ListSeaOrderChangeEventsResponse
-	43, // 61: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:output_type -> order.v1.GetSeaOrderChangeEventResponse
-	54, // [54:62] is the sub-list for method output_type
-	46, // [46:54] is the sub-list for method input_type
-	46, // [46:46] is the sub-list for extension type_name
-	46, // [46:46] is the sub-list for extension extendee
-	0,  // [0:46] is the sub-list for field type_name
+	7,  // 2: order.v1.SeaOrderSplitContextData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
+	8,  // 3: order.v1.SeaOrderSplitContextData.house_bills:type_name -> order.v1.SeaOrderSplitHouseBillItem
+	9,  // 4: order.v1.SeaOrderSplitContextData.cargo_items:type_name -> order.v1.SeaOrderSplitCargoItem
+	10, // 5: order.v1.SeaOrderSplitContextData.containers:type_name -> order.v1.SeaOrderSplitContainerItem
+	11, // 6: order.v1.SeaOrderSplitContextData.draft_fees:type_name -> order.v1.SeaOrderSplitDraftFeeItem
+	12, // 7: order.v1.SeaOrderSplitContextData.attachments:type_name -> order.v1.SeaOrderSplitAttachmentItem
+	13, // 8: order.v1.SeaOrderSplitContextData.container_plans:type_name -> order.v1.SeaOrderSplitContainerPlanItem
+	8,  // 9: order.v1.SeaOrderSplitContextData.current_house_bill:type_name -> order.v1.SeaOrderSplitHouseBillItem
+	6,  // 10: order.v1.SeaOrderSplitContextData.shared_container_allocations:type_name -> order.v1.SeaOrderSplitSharedContainerAllocationItem
+	15, // 11: order.v1.SeaOrderSplitResultInput.house_bill:type_name -> order.v1.SeaOrderSplitHouseBillInput
+	16, // 12: order.v1.SeaOrderSplitResultInput.cargo_allocations:type_name -> order.v1.SeaOrderSplitCargoAllocationInput
+	17, // 13: order.v1.SeaOrderSplitResultInput.shared_container_allocations:type_name -> order.v1.SeaOrderSplitSharedContainerAllocationInput
+	54, // 14: order.v1.SeaOrderSplitExpectedVersions.cargo_item_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CargoItemVersionsEntry
+	55, // 15: order.v1.SeaOrderSplitExpectedVersions.container_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.ContainerVersionsEntry
+	56, // 16: order.v1.SeaOrderSplitExpectedVersions.fee_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.FeeVersionsEntry
+	57, // 17: order.v1.SeaOrderSplitExpectedVersions.candidate_mbl_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CandidateMblVersionsEntry
+	58, // 18: order.v1.SeaOrderSplitExpectedVersions.candidate_te_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.CandidateTeVersionsEntry
+	59, // 19: order.v1.SeaOrderSplitExpectedVersions.shared_container_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions.SharedContainerVersionsEntry
+	14, // 20: order.v1.PreviewSeaOrderSplitRequest.targets:type_name -> order.v1.SeaOrderSplitTargetInput
+	18, // 21: order.v1.PreviewSeaOrderSplitRequest.results:type_name -> order.v1.SeaOrderSplitResultInput
+	19, // 22: order.v1.PreviewSeaOrderSplitRequest.expected_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions
+	22, // 23: order.v1.PreviewSeaOrderSplitResponse.data:type_name -> order.v1.SeaOrderSplitPreviewData
+	23, // 24: order.v1.SeaOrderSplitPreviewData.validation_errors:type_name -> order.v1.SeaOrderSplitValidationError
+	24, // 25: order.v1.SeaOrderSplitPreviewData.baseline:type_name -> order.v1.SeaOrderSplitQuantitySummary
+	24, // 26: order.v1.SeaOrderSplitPreviewData.allocated:type_name -> order.v1.SeaOrderSplitQuantitySummary
+	24, // 27: order.v1.SeaOrderSplitPreviewData.remaining:type_name -> order.v1.SeaOrderSplitQuantitySummary
+	25, // 28: order.v1.SeaOrderSplitPreviewData.results:type_name -> order.v1.SeaOrderSplitPreviewResultItem
+	13, // 29: order.v1.SeaOrderSplitPreviewResultItem.container_plans:type_name -> order.v1.SeaOrderSplitContainerPlanItem
+	14, // 30: order.v1.ExecuteSeaOrderSplitRequest.targets:type_name -> order.v1.SeaOrderSplitTargetInput
+	18, // 31: order.v1.ExecuteSeaOrderSplitRequest.results:type_name -> order.v1.SeaOrderSplitResultInput
+	19, // 32: order.v1.ExecuteSeaOrderSplitRequest.expected_versions:type_name -> order.v1.SeaOrderSplitExpectedVersions
+	60, // 33: order.v1.ExecuteSeaOrderSplitRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	28, // 34: order.v1.ExecuteSeaOrderSplitResponse.data:type_name -> order.v1.ExecuteSeaOrderSplitData
+	29, // 35: order.v1.ExecuteSeaOrderSplitData.original_order:type_name -> order.v1.SeaOrderSplitOrderReference
+	30, // 36: order.v1.ExecuteSeaOrderSplitData.created_orders:type_name -> order.v1.SeaOrderSplitCreatedOrder
+	31, // 37: order.v1.PreviewSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
+	34, // 38: order.v1.PreviewSeaOrderReassignmentResponse.data:type_name -> order.v1.SeaOrderReassignmentPreviewData
+	7,  // 39: order.v1.SeaOrderReassignmentPreviewData.current_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
+	7,  // 40: order.v1.SeaOrderReassignmentPreviewData.target_master_bill:type_name -> order.v1.SeaOrderSplitMasterBillSummary
+	35, // 41: order.v1.SeaOrderReassignmentPreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
+	31, // 42: order.v1.ExecuteSeaOrderReassignmentRequest.target:type_name -> order.v1.SeaOrderReassignmentTargetInput
+	60, // 43: order.v1.ExecuteSeaOrderReassignmentRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	38, // 44: order.v1.ExecuteSeaOrderReassignmentResponse.data:type_name -> order.v1.ExecuteSeaOrderReassignmentData
+	35, // 45: order.v1.SeaTransportExecutionUpdatePreviewData.differences:type_name -> order.v1.VoyageDifferenceItem
+	61, // 46: order.v1.SeaTransportExecutionUpdatePreviewData.impacts:type_name -> order.v1.SeaDocumentDownstreamImpact
+	39, // 47: order.v1.PreviewSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
+	40, // 48: order.v1.PreviewSeaTransportExecutionUpdateResponse.data:type_name -> order.v1.SeaTransportExecutionUpdatePreviewData
+	39, // 49: order.v1.ExecuteSeaTransportExecutionUpdateRequest.input:type_name -> order.v1.SeaTransportExecutionUpdateInput
+	60, // 50: order.v1.ExecuteSeaTransportExecutionUpdateRequest.confirmation:type_name -> order.v1.SeaExternalConfirmationInput
+	62, // 51: order.v1.ExecuteSeaTransportExecutionUpdateResponse.transport_execution:type_name -> order.v1.SeaTransportExecution
+	47, // 52: order.v1.ListSeaOrderChangeEventsResponse.data:type_name -> order.v1.SeaOrderChangeEventSummary
+	48, // 53: order.v1.SeaOrderChangeEventSummary.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
+	50, // 54: order.v1.SeaOrderChangeEventSummary.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
+	49, // 55: order.v1.SeaOrderSplitEventSummary.results:type_name -> order.v1.SeaOrderSplitResultSummaryItem
+	63, // 56: order.v1.SeaOrderReassignmentEventSummary.confirmation:type_name -> order.v1.SeaExternalConfirmationSummary
+	53, // 57: order.v1.GetSeaOrderChangeEventResponse.data:type_name -> order.v1.SeaOrderChangeEventDetailData
+	48, // 58: order.v1.SeaOrderChangeEventDetailData.split_summary:type_name -> order.v1.SeaOrderSplitEventSummary
+	50, // 59: order.v1.SeaOrderChangeEventDetailData.reassignment_summary:type_name -> order.v1.SeaOrderReassignmentEventSummary
+	0,  // 60: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:input_type -> order.v1.GetSeaOrderChangeActionsRequest
+	3,  // 61: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:input_type -> order.v1.GetSeaOrderSplitContextRequest
+	20, // 62: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:input_type -> order.v1.PreviewSeaOrderSplitRequest
+	26, // 63: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:input_type -> order.v1.ExecuteSeaOrderSplitRequest
+	32, // 64: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:input_type -> order.v1.PreviewSeaOrderReassignmentRequest
+	36, // 65: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:input_type -> order.v1.ExecuteSeaOrderReassignmentRequest
+	41, // 66: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:input_type -> order.v1.PreviewSeaTransportExecutionUpdateRequest
+	43, // 67: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:input_type -> order.v1.ExecuteSeaTransportExecutionUpdateRequest
+	45, // 68: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:input_type -> order.v1.ListSeaOrderChangeEventsRequest
+	51, // 69: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:input_type -> order.v1.GetSeaOrderChangeEventRequest
+	1,  // 70: order.v1.SeaOrderChangeService.GetSeaOrderChangeActions:output_type -> order.v1.GetSeaOrderChangeActionsResponse
+	4,  // 71: order.v1.SeaOrderChangeService.GetSeaOrderSplitContext:output_type -> order.v1.GetSeaOrderSplitContextResponse
+	21, // 72: order.v1.SeaOrderChangeService.PreviewSeaOrderSplit:output_type -> order.v1.PreviewSeaOrderSplitResponse
+	27, // 73: order.v1.SeaOrderChangeService.ExecuteSeaOrderSplit:output_type -> order.v1.ExecuteSeaOrderSplitResponse
+	33, // 74: order.v1.SeaOrderChangeService.PreviewSeaOrderReassignment:output_type -> order.v1.PreviewSeaOrderReassignmentResponse
+	37, // 75: order.v1.SeaOrderChangeService.ExecuteSeaOrderReassignment:output_type -> order.v1.ExecuteSeaOrderReassignmentResponse
+	42, // 76: order.v1.SeaOrderChangeService.PreviewSeaTransportExecutionUpdate:output_type -> order.v1.PreviewSeaTransportExecutionUpdateResponse
+	44, // 77: order.v1.SeaOrderChangeService.ExecuteSeaTransportExecutionUpdate:output_type -> order.v1.ExecuteSeaTransportExecutionUpdateResponse
+	46, // 78: order.v1.SeaOrderChangeService.ListSeaOrderChangeEvents:output_type -> order.v1.ListSeaOrderChangeEventsResponse
+	52, // 79: order.v1.SeaOrderChangeService.GetSeaOrderChangeEvent:output_type -> order.v1.GetSeaOrderChangeEventResponse
+	70, // [70:80] is the sub-list for method output_type
+	60, // [60:70] is the sub-list for method input_type
+	60, // [60:60] is the sub-list for extension type_name
+	60, // [60:60] is the sub-list for extension extendee
+	0,  // [0:60] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_sea_order_change_proto_init() }
@@ -4870,24 +5724,29 @@ func file_order_v1_sea_order_change_proto_init() {
 	if File_order_v1_sea_order_change_proto != nil {
 		return
 	}
+	file_order_v1_order_proto_init()
+	file_order_v1_sea_document_proto_init()
 	file_order_v1_sea_order_change_proto_msgTypes[5].OneofWrappers = []any{}
 	file_order_v1_sea_order_change_proto_msgTypes[14].OneofWrappers = []any{}
 	file_order_v1_sea_order_change_proto_msgTypes[15].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[16].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[17].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[22].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[23].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[28].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[33].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[38].OneofWrappers = []any{}
-	file_order_v1_sea_order_change_proto_msgTypes[44].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[18].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[19].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[20].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[25].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[26].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[31].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[36].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[39].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[47].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[50].OneofWrappers = []any{}
+	file_order_v1_sea_order_change_proto_msgTypes[53].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_sea_order_change_proto_rawDesc), len(file_order_v1_sea_order_change_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   51,
+			NumMessages:   60,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -1,12 +1,26 @@
 package biz
 
 import (
-	"slices"
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type billCreationCandidateRepoStub struct {
+	FinanceBillRepo
+	organizationID uuid.UUID
+	filter         FinanceBillCreationCandidateFilter
+	err            error
+}
+
+func (s *billCreationCandidateRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return &FinanceBillCreationCandidateResult{}, s.err
+}
 
 func TestBuildFinanceBillAggregatesExactSnapshots(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
@@ -53,7 +67,7 @@ func TestNormalizeCreateFinanceBillRejectsDuplicateFeesAndInvalidDueDate(t *test
 	}
 }
 
-func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T) {
+func TestBuildConfiguredFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	partyID := uuid.Must(uuid.NewV7())
 	first := financeBillableFeeForTest(partyID, "100", "94.33962264", "5.66037736", "100")
@@ -65,7 +79,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 	third.Fee.TaxRate = &otherRate
 	fees := []*FinanceBillableFee{third, first, second}
 
-	basePreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
+	basePreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("按固定维度预览失败: %v", err)
 	}
@@ -76,7 +90,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 		t.Fatalf("未启用可选策略时不应返回订单或税率分组维度")
 	}
 
-	orderPreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{SplitByOrder: true})
+	orderPreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL", SplitByOrder: true}})
 	if err != nil {
 		t.Fatalf("按订单拆分预览失败: %v", err)
 	}
@@ -84,7 +98,7 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 		t.Fatalf("按订单拆分应得到 2 组，实际为 %d", len(orderPreview.Groups))
 	}
 
-	fullPreview, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{SplitByOrder: true, SplitByTaxRate: true})
+	fullPreview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL", SplitByOrder: true, SplitByTaxRate: true}})
 	if err != nil {
 		t.Fatalf("按订单和税率拆分预览失败: %v", err)
 	}
@@ -98,39 +112,30 @@ func TestBuildFinanceBillBatchPreviewUsesFixedAndOptionalDimensions(t *testing.T
 	}
 }
 
-func TestBuildFinanceBillBatchPreviewIsDeterministicAndDetectsSnapshotChanges(t *testing.T) {
+func TestBuildConfiguredFinanceBillBatchPreviewIsDeterministic(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	partyID := uuid.Must(uuid.NewV7())
 	first := financeBillableFeeForTest(partyID, "100", "94.33962264", "5.66037736", "100")
 	second := financeBillableFeeForTest(partyID, "200", "188.67924528", "11.32075472", "200")
 	fees := []*FinanceBillableFee{first, second}
 
-	forward, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
+	forward, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("首次预览失败: %v", err)
 	}
-	reverse, err := BuildFinanceBillBatchPreview(organizationID, slices.Clone([]*FinanceBillableFee{second, first}), FinanceBillGroupingPolicy{})
+	reverse, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{second, first}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
 	if err != nil {
 		t.Fatalf("倒序预览失败: %v", err)
 	}
-	if forward.PreviewToken != reverse.PreviewToken || forward.Groups[0].GroupKey != reverse.Groups[0].GroupKey {
+	if forward.Groups[0].GroupKey != reverse.Groups[0].GroupKey {
 		t.Fatalf("相同费用集合不应受输入顺序影响")
-	}
-
-	second.Fee.Version++
-	changed, err := BuildFinanceBillBatchPreview(organizationID, fees, FinanceBillGroupingPolicy{})
-	if err != nil {
-		t.Fatalf("快照变化后预览失败: %v", err)
-	}
-	if changed.PreviewToken == forward.PreviewToken {
-		t.Fatalf("费用版本变化后预览令牌必须变化")
 	}
 }
 
 func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	feeID := uuid.Must(uuid.NewV7())
 	terms := 30
-	normalized, err := normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", PaymentTermsDays: &terms, IdempotencyKey: "terms"})
+	normalized, err := normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", PaymentTermsDays: &terms, IdempotencyKey: "terms", SettlementAccountID: uuid.New()})
 	if err != nil {
 		t.Fatalf("账期归一化失败: %v", err)
 	}
@@ -141,6 +146,45 @@ func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	inconsistent := "2026-09-24"
 	if _, err = normalizeCreateFinanceBill(CreateFinanceBillInput{FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", DueDate: &inconsistent, PaymentTermsDays: &terms, IdempotencyKey: "bad-terms"}); err != ErrFinanceBillInvalidArgument {
 		t.Fatalf("账期与到期日不一致应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestSameFinanceBillCreateIntentRejectsChangedSettlementAccount(t *testing.T) {
+	feeID := uuid.New()
+	statementTitle := "测试结算单位"
+	existing := &FinanceBill{
+		SettlementPartyName: "测试结算单位", SettlementAccountID: uuid.New(), BillDate: "2026-08-26",
+		StatementTitle: &statementTitle,
+		Lines:          []*FinanceBillLine{{OrderFeeID: feeID}},
+	}
+	requested := CreateFinanceBillInput{
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", SettlementAccountID: uuid.New(),
+	}
+	if sameFinanceBillCreateIntent(existing, requested) {
+		t.Fatal("同一幂等键更换结算账户必须判定为不同创建意图")
+	}
+	requested.SettlementAccountID = existing.SettlementAccountID
+	if !sameFinanceBillCreateIntent(existing, requested) {
+		t.Fatal("相同结算账户和费用应保留幂等重试语义")
+	}
+}
+
+func TestBillCreationCandidatesNormalizeAndRejectInvalid(t *testing.T) {
+	repo := &billCreationCandidateRepoStub{}
+	uc := NewFinanceBillUsecase(repo, nil, nil)
+	org := uuid.New()
+	if _, err := uc.ListCreationCandidates(context.Background(), org, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20, Keyword: "  海运  ", Direction: OrderFeeReceivable}); err != nil {
+		t.Fatal(err)
+	}
+	if repo.organizationID != org || repo.filter.Keyword != "海运" {
+		t.Fatalf("候选参数未规范化: %+v", repo.filter)
+	}
+	if _, err := uc.ListCreationCandidates(context.Background(), uuid.Nil, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("非法组织错误=%v", err)
+	}
+	repo.err = errors.New("db")
+	if _, err := uc.ListCreationCandidates(context.Background(), org, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20}); !errors.Is(err, repo.err) {
+		t.Fatalf("错误未透传:%v", err)
 	}
 }
 
@@ -156,5 +200,59 @@ func financeBillableFeeForTest(partyID uuid.UUID, total, net, tax, base string) 
 			NetAmount: decimal.RequireFromString(net), TaxAmount: decimal.RequireFromString(tax),
 			TaxRate: &taxRate, ExchangeRate: decimal.NewFromInt(1), BaseCurrencyAmount: decimal.RequireFromString(base), Version: 1,
 		},
+	}
+}
+
+func TestCalculateOverdueDays(t *testing.T) {
+	dueDate := "2026-09-01"
+	futureDueDate := "2026-09-15"
+	businessDate := "2026-09-10"
+
+	// 1. 正常应收已确认且未结清、已逾期9天
+	days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &dueDate, businessDate)
+	if days != 9 {
+		t.Fatalf("预期逾期9天，实际=%d", days)
+	}
+
+	// 2. 应付账单不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeePayable, FinanceBillConfirmed, decimal.NewFromInt(100), &dueDate, businessDate); days != 0 {
+		t.Fatalf("应付账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 3. 草稿账单不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillDraft, decimal.NewFromInt(100), &dueDate, businessDate); days != 0 {
+		t.Fatalf("草稿账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 4. 已结清账单（未核销为0）不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.Zero, &dueDate, businessDate); days != 0 {
+		t.Fatalf("已结清账单不应计算逾期天数，实际=%d", days)
+	}
+
+	// 5. 到期日为空不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), nil, businessDate); days != 0 {
+		t.Fatalf("空到期日不应计算逾期天数，实际=%d", days)
+	}
+
+	// 6. 到期日在业务日期当天或未来不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &futureDueDate, businessDate); days != 0 {
+		t.Fatalf("未到期账单不应计算逾期天数，实际=%d", days)
+	}
+	sameDate := businessDate
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), &sameDate, businessDate); days != 0 {
+		t.Fatalf("当天到期账单不应计算逾期天数，实际=%d", days)
+	}
+}
+
+func TestFinanceBillListDueDateValidation(t *testing.T) {
+	uc := NewFinanceBillUsecase(nil, nil, nil)
+	org := uuid.New()
+	// 非法到期日格式
+	if _, err := uc.List(context.Background(), []uuid.UUID{org}, FinanceBillFilter{Page: 1, PageSize: 20, DueDateFrom: "invalid"}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("非法到期日应被拒绝，实际错误=%v", err)
+	}
+	// DueDateFrom > DueDateTo
+	if _, err := uc.List(context.Background(), []uuid.UUID{org}, FinanceBillFilter{Page: 1, PageSize: 20, DueDateFrom: "2026-09-10", DueDateTo: "2026-09-01"}); err != ErrFinanceBillInvalidArgument {
+		t.Fatalf("到期日范围倒置应被拒绝，实际错误=%v", err)
 	}
 }

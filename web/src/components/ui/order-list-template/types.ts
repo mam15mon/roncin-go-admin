@@ -1,14 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 
-export type OrderKind =
-  | 'sea-export'
-  | 'sea-import'
-  | 'air-export'
-  | 'air-import'
-  | 'rail'
-  | 'truck'
-  | 'customs';
-
 export interface OrderSelectOption {
   label: string;
   value: string;
@@ -46,9 +37,14 @@ export interface OrderListFilterParams {
   statusTimeRange?: [string, string];
 
   // 单号与业务实体类
-  numberType?: 'order' | 'master' | 'consolidated_master';
+  numberType?:
+    | 'order'
+    | 'master'
+    | 'consolidated_master'
+    | 'customer_reference'
+    | 'booking';
   numberKeyword?: string;
-  carrierId?: string; // 船公司/航司
+  shippingLineId?: string; // 船公司
   originLocationId?: string; // 起运港
   destinationLocationId?: string; // 目的港
   customerId?: string; // 委托单位
@@ -82,7 +78,8 @@ export interface OrderListFilterParams {
 export interface OrderListItem {
   id: string;
   orderNo: string;
-  orderKind?: OrderKind;
+  /** 页面注册定义提供的稳定路由标识（如 `sea-export`），模板不做业务解释。 */
+  orderKind?: string;
   businessType?: string | number;
   stage?: string; // 进程
   customerName?: string;
@@ -142,14 +139,6 @@ export interface OrderListItem {
   [key: string]: any;
 }
 
-/** 状态切签项配置 */
-export interface OrderStatusTabItem {
-  key: string;
-  label: string;
-  count?: number;
-  badgeColor?: string;
-}
-
 /** 批量操作菜单枚举/动作 */
 export type BatchActionKey =
   | 'export-documents'
@@ -173,20 +162,12 @@ export type BatchActionKey =
 export interface OrderListTemplateProps {
   /** 是否显示标签管理入口 */
   showManageTags?: boolean;
-  /** 品类标识（如 'sea-export' | 'sea-import' | 'air-export' | 'air-import'） */
-  orderKind: OrderKind;
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */
   actionRef?: React.MutableRefObject<ActionType | undefined> | React.RefObject<ActionType | undefined>;
   /** 页面副标题 */
   subTitle?: string;
-  /** 状态切签列表（如 全部、待订舱、已配载、在途、已放行、已完成、异常等） */
-  statusTabs?: OrderStatusTabItem[];
-  /** 当前激活的状态切签 key */
-  activeStatusTab?: string;
-  /** 切换状态切签回调 */
-  onStatusTabChange?: (statusKey: string) => void;
 
   /** 自定义或扩展 ProTable 表格列 */
   customColumns?: ProColumns<OrderListItem>[];
@@ -227,10 +208,6 @@ export interface OrderListTemplateProps {
   onOpenContainers?: (record: OrderListItem) => void;
   /** 打开货物明细面板 */
   onOpenCargo?: (record: OrderListItem) => void;
-  /** 打开海运箱货分配面板 */
-  onOpenCargoAllocation?: (record: OrderListItem) => void;
-  /** 当前行是否显示海运箱货分配入口 */
-  canOpenCargoAllocation?: (record: OrderListItem) => boolean;
   /** 打开附件档案面板 */
   onOpenAttachments?: (record: OrderListItem) => void;
   /** 打开协作人员面板 */

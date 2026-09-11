@@ -24,14 +24,13 @@ import (
 	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
-	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
-	seacargoallocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
@@ -46,7 +45,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err != nil {
 			return err
 		}
-		if err := validateOrderReferences(ctx, tx, organizationID, input); err != nil {
+		if err := validateOrderReferences(ctx, tx, organizationID, input, nil); err != nil {
 			return err
 		}
 		create := tx.Order.Create().
@@ -54,10 +53,11 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetOrderNo(number).
 			SetCustomerID(input.CustomerID).
 			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetBookingNo(input.BookingNo).
 			SetInternalReferenceNo(input.InternalReferenceNo).
 			SetShipperShortName(input.ShipperShortName).
 			SetConsigneeShortName(input.ConsigneeShortName).
-			SetNillableCarrierID(input.CarrierID).
+			SetNillableShippingLineID(input.ShippingLineID).
 			SetNillableBookingAgentID(input.BookingAgentID).
 			SetNillableForeignAgentID(input.ForeignAgentID).
 			SetNillableShippingAgentID(input.ShippingAgentID).
@@ -68,12 +68,11 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetHazardClass(input.HazardClass).
 			SetFactoryName(input.FactoryName).
 			SetCargoReadyAt(input.CargoReadyAt).
-			SetLoadingTerms(input.LoadingTerms).
 			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 			SetReceivedAt(input.ReceivedAt).
 			SetBusinessType(orderent.BusinessType(input.BusinessType)).
 			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
+			SetNillableTradeTerm(orderTradeTermToEnt(input.TradeTerm)).
 			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
 			SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
 			SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
@@ -367,51 +366,23 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
 			return biz.ErrOrderBusinessUnsupported
 		}
-		if validateErr := validateOrderReferences(ctx, tx, organizationID, input); validateErr != nil {
+		if validateErr := validateOrderReferences(ctx, tx, organizationID, input, existing.ShippingLineID); validateErr != nil {
 			return validateErr
 		}
 
 		// 共享 MBL 门禁必须在 Link/HBL/Order 等下游数据发生任何写入前完成，避免通过
-		// 同一请求改变下游事实后绕过校验。后续任一步失败仍由同一事务整体回滚。
+		// 同一请求改变下游事实后绕过校验。后续任一行失败仍由同一事务整体回滚。
 		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
 			return syncErr
 		}
 		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
 			return syncErr
 		}
-		if existing.BusinessType == orderent.BusinessTypeSE && input.ShipmentType != nil && (existing.ShipmentType == nil || string(*existing.ShipmentType) != string(*input.ShipmentType)) {
-			activeLink, linkErr := lockActiveSeaCargoAllocationLink(ctx, tx, organizationID, id)
-			if linkErr != nil {
-				return linkErr
-			}
-			if activeLink != nil {
-				if activeLink.CargoAllocationStatus == seamasterbillorderlink.CargoAllocationStatusCONFIRMED {
-					return biz.ErrSeaCargoAllocationStatusConflict
-				}
-				if string(*input.ShipmentType) != string(orderent.ShipmentTypeFCL) {
-					hasAlloc, aErr := tx.SeaCargoAllocation.Query().
-						Where(seacargoallocation.OrganizationIDEQ(organizationID), seacargoallocation.OrderIDEQ(id), seacargoallocation.MasterBillOrderLinkIDEQ(activeLink.ID), seacargoallocation.ContainerIDNotNil()).
-						Exist(ctx)
-					if aErr != nil {
-						return aErr
-					}
-					if hasAlloc {
-						return biz.ErrSeaCargoAllocationStatusConflict
-					}
-				}
-				if activeLink.DocumentStructure == seamasterbillorderlink.DocumentStructureHOUSE {
-					if _, err := tx.SeaMasterBillOrderLink.UpdateOne(activeLink).
-						SetCargoAllocationVersion(activeLink.CargoAllocationVersion + 1).
-						Save(ctx); err != nil {
-						return err
-					}
-				}
-			}
-		}
 		update := existing.Update().
 			SetVersion(existing.Version + 1).
 			SetCustomerID(input.CustomerID).
 			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetBookingNo(input.BookingNo).
 			SetInternalReferenceNo(input.InternalReferenceNo).
 			SetShipperShortName(input.ShipperShortName).
 			SetConsigneeShortName(input.ConsigneeShortName).
@@ -422,11 +393,9 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			SetHazardClass(input.HazardClass).
 			SetFactoryName(input.FactoryName).
 			SetCargoReadyAt(input.CargoReadyAt).
-			SetLoadingTerms(input.LoadingTerms).
 			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 			SetReceivedAt(input.ReceivedAt).
 			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
 			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
 			SetVesselVoyage(input.VesselVoyage).
 			SetEtd(input.ETD).
@@ -514,11 +483,16 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
-			return err
-		}
 		if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
+		}
+		// 主流程推进属于业务写入：生命周期专属校验要求终止维度 ACTIVE、结案维度
+		// OPEN；业务锁规则保持现状，锁定后不得推进主流程。
+		if existing.TerminationStatus != orderent.TerminationStatusACTIVE || existing.ClosureStatus != orderent.ClosureStatusOPEN {
+			return biz.ErrOrderStatusConflict
+		}
+		if existing.LockedAt != nil {
+			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
 		if _, updateErr := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); updateErr != nil {
 			return updateErr
@@ -540,11 +514,19 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
-			return err
-		}
 		if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
+		}
+		// 终止维度是生命周期命令：不复用内容写门禁。专属校验只要求结案维度
+		// 保持 OPEN；完成、取消与恢复不得因业务锁或历史终止状态被误封。
+		if existing.ClosureStatus != orderent.ClosureStatusOPEN {
+			return biz.ErrOrderTerminationInvalid
+		}
+		// ACTIVE → TERMINATING 属于发起业务变更，保持“锁定资料不可发起退关”
+		// 的现行约束；其余流转路径不因业务锁被阻断。
+		if existing.TerminationStatus == orderent.TerminationStatusACTIVE &&
+			target == biz.OrderTerminationTerminating && existing.LockedAt != nil {
+			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
 		update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
 		if target == biz.OrderTerminationActive {
@@ -560,6 +542,13 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return updateErr
 		}
+		// 最终进入 TERMINATED 时在同一事务结束该订单的活动 SE Link；任何一步
+		// 失败（订单更新、Link 结束、生命周期事件、审计）整体回滚。
+		if target == biz.OrderTerminationTerminated {
+			if linkErr := endActiveSeaMasterBillLinksOnTermination(ctx, tx, existing, event.OccurredAt); linkErr != nil {
+				return linkErr
+			}
+		}
 		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
 			return eventErr
 		}
@@ -569,6 +558,46 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
+}
+
+// orderTerminationLinkEndedReason 是退关结束活动 Link 的固定中文原因。
+const orderTerminationLinkEndedReason = "订单退关"
+
+// endActiveSeaMasterBillLinksOnTermination 在订单最终流转到 TERMINATED 的同一
+// 事务中结束其活动 SE Link。调用前必须已锁定订单行；活动 Link 按 ID 排序后
+// FOR UPDATE，数量超过一条时返回结构冲突（fail-closed，不静默修复）。结束时
+// 写入 UTC ended_at、固定中文 ended_reason 并递增 Link 版本；不修改 MBL 与
+// TransportExecution 的内容版本。非 SE 订单没有 Link 操作。
+func endActiveSeaMasterBillLinksOnTermination(ctx context.Context, tx *ent.Tx, order *ent.Order, occurredAt time.Time) error {
+	if order.BusinessType != orderent.BusinessTypeSE {
+		return nil
+	}
+	activeLinks, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(order.OrganizationID),
+			seamasterbillorderlink.OrderIDEQ(order.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		Order(seamasterbillorderlink.ByID()).
+		ForUpdate().
+		All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(activeLinks) == 0 {
+		return nil
+	}
+	if len(activeLinks) > 1 {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+	link := activeLinks[0]
+	_, err = link.Update().
+		SetStatus(seamasterbillorderlink.StatusENDED).
+		SetEndedAt(occurredAt.UTC()).
+		SetEndedReason(orderTerminationLinkEndedReason).
+		SetVersion(link.Version + 1).
+		Save(ctx)
+	return err
 }
 
 func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uuid.UUID) (*biz.OrderClosureReadiness, error) {
@@ -597,9 +626,9 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
-			return err
-		}
+		// 结案与反结案是生命周期命令：不复用内容写门禁，也不校验业务锁，
+		// 允许已业务锁定的 DOCUMENT_RELEASED 订单结案；版本与来源状态仍在
+		// 事务内权威校验，结案 readiness 在下方重验。
 		if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
 		}
@@ -654,11 +683,22 @@ func parseOptionalTime(s string) *time.Time {
 }
 
 func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaMasterBillInput == nil {
+	if input.BusinessType != biz.OrderBusinessSE {
 		return nil
 	}
+	if input.SeaMasterBillInput == nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
+	if input.SeaDocumentInput == nil || input.SeaDocumentInput.DocumentStructure == nil {
+		return biz.ErrSeaDocumentStructureInvalid
+	}
+	documentStructure := seamasterbillorderlink.DocumentStructure(*input.SeaDocumentInput.DocumentStructure)
 	mblInput := input.SeaMasterBillInput
-	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
+	if input.ShippingLineID == nil || *input.ShippingLineID == uuid.Nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
+	shippingLineID := *input.ShippingLineID
+	if err := validateSeaMasterBillShippingLine(ctx, tx, organizationID, shippingLineID, true); err != nil {
 		return err
 	}
 
@@ -669,8 +709,8 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		ETD:        parseOptionalTime(input.ETD),
 		ETA:        parseOptionalTime(input.ETA),
 	}
-	if input.CarrierID != nil {
-		orderVoyage.CarrierID = *input.CarrierID
+	if input.ShippingLineID != nil {
+		orderVoyage.ShippingLineID = *input.ShippingLineID
 	}
 	if input.OriginLocationID != nil {
 		orderVoyage.OriginLocationID = *input.OriginLocationID
@@ -684,6 +724,11 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	if mblInput.CandidateID != nil && *mblInput.CandidateID != uuid.Nil {
 		candidateID := *mblInput.CandidateID
+		if mblInput.CandidateTEID == nil || *mblInput.CandidateTEID == uuid.Nil ||
+			mblInput.ExpectedCandidateTEVersion == nil || *mblInput.ExpectedCandidateTEVersion == 0 {
+			return biz.ErrSeaMasterBillInvalidArgument
+		}
+		candidateTEID := *mblInput.CandidateTEID
 		targetMBL, err := tx.SeaMasterBill.Query().
 			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID)).
 			ForUpdate().
@@ -694,16 +739,35 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		if mblInput.ExpectedCandidateVersion == nil || targetMBL.Version != *mblInput.ExpectedCandidateVersion {
 			return biz.ErrSeaMasterBillStatusConflict
 		}
-		if targetMBL.IssuerPartnerID != mblInput.IssuerPartnerID || targetMBL.NormalizedMasterNo != mblInput.MasterNo {
+		if targetMBL.ShippingLineID != shippingLineID || targetMBL.NormalizedMasterNo != mblInput.MasterNo {
 			return biz.ErrSeaMasterBillStatusConflict
 		}
 
+		activeLinks, err := tx.SeaMasterBillOrderLink.Query().
+			Where(
+				seamasterbillorderlink.OrganizationIDEQ(organizationID),
+				seamasterbillorderlink.MasterBillIDEQ(targetMBL.ID),
+				seamasterbillorderlink.TransportExecutionIDEQ(candidateTEID),
+				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+			).
+			Order(seamasterbillorderlink.ByID()).
+			ForUpdate().
+			All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(activeLinks) == 0 {
+			return biz.ErrSeaMasterBillStatusConflict
+		}
 		targetTE, err := tx.SeaTransportExecution.Query().
-			Where(seatransportexecution.IDEQ(targetMBL.TransportExecutionID), seatransportexecution.OrganizationIDEQ(organizationID)).
+			Where(seatransportexecution.IDEQ(candidateTEID), seatransportexecution.OrganizationIDEQ(organizationID)).
 			ForUpdate().
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if targetTE.Version != *mblInput.ExpectedCandidateTEVersion || targetTE.ShippingLineID != targetMBL.ShippingLineID || targetTE.ShippingLineID != shippingLineID {
+			return biz.ErrSeaMasterBillStatusConflict
 		}
 
 		candidateVoyage := &biz.SeaTransportExecution{
@@ -714,9 +778,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			ETD:               targetTE.Etd,
 			ETA:               targetTE.Eta,
 		}
-		if targetTE.CarrierID != nil {
-			candidateVoyage.CarrierID = *targetTE.CarrierID
-		}
+		candidateVoyage.ShippingLineID = targetTE.ShippingLineID
 		if targetTE.OriginLocationID != nil {
 			candidateVoyage.OriginLocationID = *targetTE.OriginLocationID
 		}
@@ -732,8 +794,10 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			SetID(uuid.Must(uuid.NewV7())).
 			SetOrganizationID(organizationID).
 			SetMasterBillID(targetMBL.ID).
+			SetTransportExecutionID(targetTE.ID).
 			SetOrderID(order.ID).
 			SetStatus(seamasterbillorderlink.StatusACTIVE).
+			SetDocumentStructure(documentStructure).
 			SetStartedAt(time.Now().UTC()).
 			SetVersion(1).
 			Save(ctx)
@@ -742,11 +806,14 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		}
 		return nil
 	}
+	if mblInput.CandidateTEID != nil || mblInput.ExpectedCandidateTEVersion != nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
 
 	exists, err := tx.SeaMasterBill.Query().
 		Where(
 			seamasterbill.OrganizationIDEQ(organizationID),
-			seamasterbill.IssuerPartnerIDEQ(mblInput.IssuerPartnerID),
+			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 		).
 		Exist(ctx)
@@ -760,12 +827,10 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 	teBuilder := tx.SeaTransportExecution.Create().
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
+		SetShippingLineID(shippingLineID).
 		SetVesselName(vesselName).
 		SetVoyageNo(voyageNo).
 		SetVersion(1)
-	if input.CarrierID != nil {
-		teBuilder.SetCarrierID(*input.CarrierID)
-	}
 	if input.OriginLocationID != nil {
 		teBuilder.SetOriginLocationID(*input.OriginLocationID)
 	}
@@ -790,8 +855,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 	mblBuilder := tx.SeaMasterBill.Create().
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
-		SetIssuerPartnerID(mblInput.IssuerPartnerID).
-		SetTransportExecutionID(te.ID).
+		SetShippingLineID(shippingLineID).
 		SetMasterNo(mblInput.MasterNo).
 		SetNormalizedMasterNo(mblInput.MasterNo).
 		SetStatus(seamasterbill.StatusDRAFT).
@@ -799,15 +863,17 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	mbl, err := mblBuilder.Save(ctx)
 	if err != nil {
-		return mapEntConstraint(err, "seamasterbill_organization_id_issuer_partner_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
+		return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
 	}
 
 	_, err = tx.SeaMasterBillOrderLink.Create().
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(te.ID).
 		SetOrderID(order.ID).
 		SetStatus(seamasterbillorderlink.StatusACTIVE).
+		SetDocumentStructure(documentStructure).
 		SetStartedAt(time.Now().UTC()).
 		SetVersion(1).
 		Save(ctx)
@@ -827,11 +893,20 @@ func syncOrderSeaMasterBillOnUpdate(
 	audit *biz.AuditEvent,
 	lockContext *seaMasterBillUpdateLockContext,
 ) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaMasterBillInput == nil {
+	if input.BusinessType != biz.OrderBusinessSE {
 		return nil
+	}
+	contentOnlyUpdate := input.SeaMasterBillInput == nil &&
+		input.SeaDocumentInput != nil && input.SeaDocumentInput.MasterBillContent != nil
+	if input.SeaMasterBillInput == nil && !contentOnlyUpdate {
+		return biz.ErrSeaMasterBillInvalidArgument
 	}
 	orderID := order.ID
 	mblInput := input.SeaMasterBillInput
+	if input.ShippingLineID == nil || *input.ShippingLineID == uuid.Nil {
+		return biz.ErrSeaMasterBillInvalidArgument
+	}
+	shippingLineID := *input.ShippingLineID
 
 	// Order 已由 UpdateDraft 首先加锁。这里先无锁读取活动关联用于定位 MBL，随后
 	// 严格按 MBL → Link → TransportExecution 加写锁，并在锁后重验关联未变化。
@@ -893,7 +968,7 @@ func syncOrderSeaMasterBillOnUpdate(
 
 	currentTE, err := tx.SeaTransportExecution.Query().
 		Where(
-			seatransportexecution.IDEQ(currentMBL.TransportExecutionID),
+			seatransportexecution.IDEQ(activeLink.TransportExecutionID),
 			seatransportexecution.OrganizationIDEQ(organizationID),
 		).
 		ForUpdate().
@@ -901,16 +976,25 @@ func syncOrderSeaMasterBillOnUpdate(
 	if err != nil {
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
+	if currentTE.ShippingLineID != currentMBL.ShippingLineID {
+		return biz.ErrSeaMasterBillStatusConflict
+	}
 
-	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
+	if err := validateSeaMasterBillShippingLine(ctx, tx, organizationID, shippingLineID, shippingLineID != currentMBL.ShippingLineID); err != nil {
 		return err
+	}
+	if contentOnlyUpdate {
+		if shippingLineID != currentMBL.ShippingLineID || seaTransportExecutionDiffersFromOrder(currentTE, input) {
+			return biz.ErrSeaMasterBillInvalidArgument
+		}
+		return nil
 	}
 
 	activeCount := len(lockedMemberOrderIDs)
 
 	vesselName, voyageNo := biz.SplitVesselVoyage(input.VesselVoyage)
 
-	identityChanged := (currentMBL.IssuerPartnerID != mblInput.IssuerPartnerID || currentMBL.NormalizedMasterNo != mblInput.MasterNo)
+	identityChanged := currentMBL.ShippingLineID != shippingLineID || currentMBL.NormalizedMasterNo != mblInput.MasterNo
 	voyageChanged := seaTransportExecutionDiffersFromOrder(currentTE, input)
 	if activeCount > 1 && (identityChanged || voyageChanged) {
 		if err := ensureLockedMembersAllowSharedMasterBillUpdate(lockContext); err != nil {
@@ -940,7 +1024,7 @@ func syncOrderSeaMasterBillOnUpdate(
 		otherExists, err := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.OrganizationIDEQ(organizationID),
-				seamasterbill.IssuerPartnerIDEQ(mblInput.IssuerPartnerID),
+				seamasterbill.ShippingLineIDEQ(shippingLineID),
 				seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 				seamasterbill.IDNEQ(currentMBL.ID),
 			).
@@ -954,17 +1038,17 @@ func syncOrderSeaMasterBillOnUpdate(
 		audit.Details["sea_master_bill.id"] = currentMBL.ID.String()
 		audit.Details["sea_master_bill.old_master_no"] = currentMBL.MasterNo
 		audit.Details["sea_master_bill.new_master_no"] = mblInput.MasterNo
-		audit.Details["sea_master_bill.old_issuer_partner_id"] = currentMBL.IssuerPartnerID.String()
-		audit.Details["sea_master_bill.new_issuer_partner_id"] = mblInput.IssuerPartnerID.String()
+		audit.Details["sea_master_bill.old_shipping_line_id"] = currentMBL.ShippingLineID.String()
+		audit.Details["sea_master_bill.new_shipping_line_id"] = shippingLineID.String()
 		audit.Details["sea_master_bill.correction_reason"] = strings.TrimSpace(mblInput.CorrectionReason)
 
 		if _, err := currentMBL.Update().
-			SetIssuerPartnerID(mblInput.IssuerPartnerID).
+			SetShippingLineID(shippingLineID).
 			SetMasterNo(mblInput.MasterNo).
 			SetNormalizedMasterNo(mblInput.MasterNo).
 			SetVersion(currentMBL.Version + 1).
 			Save(ctx); err != nil {
-			return mapEntConstraint(err, "seamasterbill_organization_id_issuer_partner_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
+			return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
 		}
 
 		if currentTE != nil && voyageChanged {
@@ -972,11 +1056,7 @@ func syncOrderSeaMasterBillOnUpdate(
 				SetVesselName(vesselName).
 				SetVoyageNo(voyageNo).
 				SetVersion(currentTE.Version + 1)
-			if input.CarrierID != nil {
-				teUpdate.SetCarrierID(*input.CarrierID)
-			} else {
-				teUpdate.ClearCarrierID()
-			}
+			teUpdate.SetShippingLineID(shippingLineID)
 			if input.OriginLocationID != nil {
 				teUpdate.SetOriginLocationID(*input.OriginLocationID)
 			} else {
@@ -1015,8 +1095,8 @@ func syncOrderSeaMasterBillOnUpdate(
 					ETD:        parseOptionalTime(input.ETD),
 					ETA:        parseOptionalTime(input.ETA),
 				}
-				if input.CarrierID != nil {
-					orderVoyage.CarrierID = *input.CarrierID
+				if input.ShippingLineID != nil {
+					orderVoyage.ShippingLineID = *input.ShippingLineID
 				}
 				if input.OriginLocationID != nil {
 					orderVoyage.OriginLocationID = *input.OriginLocationID
@@ -1047,8 +1127,8 @@ func syncOrderSeaMasterBillOnUpdate(
 						ETD:        parseOptionalTime(input.ETD),
 						ETA:        parseOptionalTime(input.ETA),
 					}
-					if input.CarrierID != nil {
-						orderVoyage.CarrierID = *input.CarrierID
+					if input.ShippingLineID != nil {
+						orderVoyage.ShippingLineID = *input.ShippingLineID
 					}
 					if input.OriginLocationID != nil {
 						orderVoyage.OriginLocationID = *input.OriginLocationID
@@ -1079,11 +1159,7 @@ func syncOrderSeaMasterBillOnUpdate(
 						SetVesselName(vesselName).
 						SetVoyageNo(voyageNo).
 						SetVersion(currentTE.Version + 1)
-					if input.CarrierID != nil {
-						teUpdate.SetCarrierID(*input.CarrierID)
-					} else {
-						teUpdate.ClearCarrierID()
-					}
+					teUpdate.SetShippingLineID(shippingLineID)
 					if input.OriginLocationID != nil {
 						teUpdate.SetOriginLocationID(*input.OriginLocationID)
 					} else {
@@ -1123,16 +1199,18 @@ func syncOrderSeaMasterBillOnUpdate(
 	return nil
 }
 
-func validateSeaMasterBillIssuer(ctx context.Context, tx *ent.Tx, organizationID, issuerPartnerID uuid.UUID) error {
-	if issuerPartnerID == uuid.Nil {
+func validateSeaMasterBillShippingLine(ctx context.Context, tx *ent.Tx, organizationID, shippingLineID uuid.UUID, requireEnabled bool) error {
+	if shippingLineID == uuid.Nil {
 		return biz.ErrSeaMasterBillInvalidArgument
 	}
-	exists, err := tx.PartnerRole.Query().Where(
-		partnerroleent.PartnerIDEQ(issuerPartnerID),
-		partnerroleent.RoleTypeIn(partnerroleent.RoleTypeSupplier, partnerroleent.RoleTypeCarrier),
-		partnerroleent.EnabledEQ(true),
-		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)),
-	).Exist(ctx)
+	predicates := []predicate.ShippingLine{
+		shippinglineent.IDEQ(shippingLineID),
+		shippinglineent.OrganizationIDEQ(organizationID),
+	}
+	if requireEnabled {
+		predicates = append(predicates, shippinglineent.EnabledEQ(true))
+	}
+	exists, err := tx.ShippingLine.Query().Where(predicates...).ForShare().Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -1147,7 +1225,7 @@ func seaTransportExecutionDiffersFromOrder(current *ent.SeaTransportExecution, i
 		return false
 	}
 	vesselName, voyageNo := biz.SplitVesselVoyage(input.VesselVoyage)
-	return !optionalUUIDEquals(current.CarrierID, input.CarrierID) ||
+	return input.ShippingLineID == nil || current.ShippingLineID != *input.ShippingLineID ||
 		!optionalUUIDEquals(current.OriginLocationID, input.OriginLocationID) ||
 		!optionalUUIDEquals(current.DischargeLocationID, input.DischargeLocationID) ||
 		!optionalUUIDEquals(current.TransitLocationID, input.TransitLocationID) ||
@@ -1227,30 +1305,22 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		}
 	}
 
-	hasHBLs := len(docInput.HouseBills) > 0
-	targetStructure := seamasterbillorderlink.DocumentStructureUNDETERMINED
+	hasHBL := docInput.HouseBill != nil
+	targetStructure := seamasterbillorderlink.DocumentStructureHOUSE
 
 	if docInput.DocumentStructure != nil {
 		switch *docInput.DocumentStructure {
 		case biz.SeaDocumentStructureDirect:
-			if hasHBLs {
+			if hasHBL {
 				return biz.ErrSeaDocumentStructureInvalid
 			}
 			targetStructure = seamasterbillorderlink.DocumentStructureDIRECT
 		case biz.SeaDocumentStructureHouse:
-			if !hasHBLs {
-				return errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须至少包含一张分单")
+			if !hasHBL {
+				return errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须包含分单")
 			}
 			targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
-		case biz.SeaDocumentStructureUndetermined:
-			if hasHBLs {
-				targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
-			} else {
-				targetStructure = seamasterbillorderlink.DocumentStructureUNDETERMINED
-			}
 		}
-	} else if hasHBLs {
-		targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
 	}
 
 	if targetStructure != link.DocumentStructure {
@@ -1259,7 +1329,8 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		}
 	}
 
-	for _, hbInput := range docInput.HouseBills {
+	if hasHBL {
+		hbInput := docInput.HouseBill
 		normalized, err := biz.NormalizeSeaHouseNo(hbInput.HouseNo)
 		if err != nil {
 			return err
@@ -1305,7 +1376,11 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		audit.Details = make(map[string]string)
 	}
 	audit.Details["sea_document.initial_structure"] = string(targetStructure)
-	audit.Details["sea_house_bills.initial_count"] = fmt.Sprintf("%d", len(docInput.HouseBills))
+	initialCount := 0
+	if hasHBL {
+		initialCount = 1
+	}
+	audit.Details["sea_house_bills.initial_count"] = fmt.Sprintf("%d", initialCount)
 
 	return nil
 }
@@ -1323,8 +1398,8 @@ func syncOrderSeaDocumentOnUpdate(
 		return nil
 	}
 	docInput := input.SeaDocumentInput
-	if docInput.HouseBills != nil && len(docInput.HouseBills) > 0 {
-		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单集合变更，请使用专用单证命令")
+	if docInput.HouseBill != nil {
+		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单变更，请使用专用单证命令")
 	}
 
 	// 1. Order 已在 UpdateDraft 中加锁 ForUpdate
@@ -1409,35 +1484,25 @@ func syncOrderSeaDocumentOnUpdate(
 		}
 		targetStructure := *docInput.DocumentStructure
 		if targetStructure == biz.SeaDocumentStructureDirect {
-			if link.DocumentStructure == seamasterbillorderlink.DocumentStructureUNDETERMINED {
-				hbCount, err := tx.SeaHouseBill.Query().
-					Where(
-						seahousebill.OrganizationIDEQ(organizationID),
-						seahousebill.OrderIDEQ(order.ID),
-						seahousebill.MasterBillIDEQ(mbl.ID),
-					).Count(ctx)
-				if err != nil {
-					return err
-				}
-				if hbCount > 0 {
-					return biz.ErrSeaDocumentStructureInvalid
-				}
+			hbCount, err := tx.SeaHouseBill.Query().
+				Where(
+					seahousebill.OrganizationIDEQ(organizationID),
+					seahousebill.OrderIDEQ(order.ID),
+					seahousebill.MasterBillIDEQ(mbl.ID),
+				).Count(ctx)
+			if err != nil {
+				return err
+			}
+			if hbCount > 0 {
+				return biz.ErrSeaDocumentStructureInvalid
+			}
+			if link.DocumentStructure != seamasterbillorderlink.DocumentStructureDIRECT {
 				if _, err := link.Update().SetDocumentStructure(seamasterbillorderlink.DocumentStructureDIRECT).SetVersion(link.Version + 1).Save(ctx); err != nil {
 					return err
 				}
-			} else if link.DocumentStructure != seamasterbillorderlink.DocumentStructureDIRECT {
-				return biz.ErrSeaDocumentStructureInvalid
-			}
-		} else if targetStructure == biz.SeaDocumentStructureUndetermined {
-			if link.DocumentStructure == seamasterbillorderlink.DocumentStructureDIRECT {
-				if _, err := link.Update().SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED).SetVersion(link.Version + 1).Save(ctx); err != nil {
-					return err
-				}
-			} else if link.DocumentStructure != seamasterbillorderlink.DocumentStructureUNDETERMINED {
-				return biz.ErrSeaDocumentStructureInvalid
 			}
 		} else if targetStructure == biz.SeaDocumentStructureHouse {
-			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "不能直接设置 HOUSE 结构，请通过添加分单命令进入 HOUSE 结构")
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "切换单证结构请使用专用模式切换命令")
 		}
 
 		if audit.Details == nil {

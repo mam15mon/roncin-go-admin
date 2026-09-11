@@ -37,12 +37,31 @@ func (s *commissionRepoStub) List(_ context.Context, _ uuid.UUID, f CommissionFi
 	return &CommissionListResult{}, nil
 }
 
+func (s *commissionRepoStub) ListScoped(_ context.Context, _ []uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
+	s.listed = &f
+	return &CommissionListResult{}, nil
+}
+
 func (s *commissionRepoStub) Count(_ context.Context, _ uuid.UUID, f CommissionFilter) (int64, error) {
 	s.countFilter = &f
 	return s.count, s.countErr
 }
 
+func (s *commissionRepoStub) CountScoped(_ context.Context, _ []uuid.UUID, f CommissionFilter) (int64, error) {
+	s.countFilter = &f
+	return s.count, s.countErr
+}
+
 func (s *commissionRepoStub) ExportBatch(_ context.Context, _ uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
+	index := len(s.exportCalls)
+	s.exportCalls = append(s.exportCalls, f)
+	if index >= len(s.exportBatches) {
+		return nil, nil
+	}
+	return s.exportBatches[index], nil
+}
+
+func (s *commissionRepoStub) ExportBatchScoped(_ context.Context, _ []uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
 	index := len(s.exportCalls)
 	s.exportCalls = append(s.exportCalls, f)
 	if index >= len(s.exportBatches) {
@@ -113,6 +132,11 @@ func (r *commissionAdjustmentRepoStub) ListEmployees(_ context.Context, _ uuid.U
 	return &PagedList[*CommissionEmployeeOption]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
+func (r *commissionAdjustmentRepoStub) ListEmployeesScoped(_ context.Context, _ []uuid.UUID, options SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error) {
+	r.employeeOptions = options
+	return &PagedList[*CommissionEmployeeOption]{Page: options.Page, PageSize: options.PageSize}, nil
+}
+
 func (r *commissionAdjustmentRepoStub) GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error) {
 	return nil, nil
 }
@@ -149,6 +173,19 @@ func TestCalculateCommissionAmount(t *testing.T) {
 				t.Fatalf("CalculateCommissionAmount() base=%s amount=%s", base.StringFixed(8), amount.StringFixed(8))
 			}
 		})
+	}
+}
+
+func TestCommissionExportAuditKeepsMultiOrganizationScopeUnattributed(t *testing.T) {
+	first := uuid.New()
+	second := uuid.New()
+	actor := uuid.New()
+	event := commissionExportAudit([]uuid.UUID{second, first}, actor, CommissionFilter{}, 2)
+	if event.OrganizationID != nil {
+		t.Fatalf("跨组织导出审计不得伪造单一组织归属: %#v", event.OrganizationID)
+	}
+	if event.Details["organization_count"] != "2" || event.Details["organization_ids"] != first.String()+","+second.String() && event.Details["organization_ids"] != second.String()+","+first.String() {
+		t.Fatalf("跨组织范围未写入审计详情: %#v", event.Details)
 	}
 }
 

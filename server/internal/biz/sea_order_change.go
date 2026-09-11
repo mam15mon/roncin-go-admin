@@ -73,16 +73,29 @@ type SeaOrderSplitContext struct {
 	CurrentLinkID                  uuid.UUID
 	CurrentLinkVersion             uint64
 	DocumentStructure              string
-	CargoAllocationStatus          string
-	CargoAllocationVersion         uint64
 	HouseBills                     []*SeaOrderSplitHouseBillItem
+	CurrentHouseBill               *SeaOrderSplitHouseBillItem
 	CargoItems                     []*SeaOrderSplitCargoItem
 	Containers                     []*SeaOrderSplitContainerItem
-	Allocations                    []*SeaOrderSplitAllocationItem
 	DraftFees                      []*SeaOrderSplitDraftFeeItem
 	Attachments                    []*SeaOrderSplitAttachmentItem
 	ContainerPlans                 []*SeaOrderSplitContainerPlanItem
+	SharedContainerAllocations     []*SeaOrderSplitSharedContainerAllocationItem
 	AttachmentReferenceFingerprint string
+	BookingNo                      string
+}
+
+type SeaOrderSplitSharedContainerAllocationItem struct {
+	AllocationID           uuid.UUID
+	SharedContainerID      uuid.UUID
+	ContainerNo            string
+	ContainerSpecID        uuid.UUID
+	ContainerSpecName      string
+	CargoItemID            uuid.UUID
+	PackageCount           int32
+	GrossWeightKg          decimal.Decimal
+	VolumeCbm              decimal.Decimal
+	SharedContainerVersion uint64
 }
 
 type SeaOrderSplitHouseBillItem struct {
@@ -112,11 +125,22 @@ type SeaOrderSplitContainerItem struct {
 	Version           uint64
 }
 
-type SeaOrderSplitAllocationItem struct {
-	ID            uuid.UUID
+type SeaOrderSplitHouseBillInput struct {
+	HouseNo         string
+	IssuerSource    string
+	IssuerPartnerID *uuid.UUID
+	Note            *string
+}
+
+type SeaOrderSplitCargoAllocationInput struct {
 	CargoItemID   uuid.UUID
-	HouseBillID   uuid.UUID
-	ContainerID   *uuid.UUID
+	PackageCount  int32
+	GrossWeightKg decimal.Decimal
+	VolumeCbm     decimal.Decimal
+}
+
+type SeaOrderSplitSharedContainerAllocationInput struct {
+	AllocationID  uuid.UUID
 	PackageCount  int32
 	GrossWeightKg decimal.Decimal
 	VolumeCbm     decimal.Decimal
@@ -157,8 +181,7 @@ type SeaOrderSplitTargetInput struct {
 	CandidateID         *uuid.UUID
 	CandidateVersion    *uint64
 	MasterNo            string
-	IssuerPartnerID     *uuid.UUID
-	CarrierID           *uuid.UUID
+	ShippingLineID      *uuid.UUID
 	VesselName          string
 	VoyageNo            string
 	ETD                 string
@@ -171,29 +194,32 @@ type SeaOrderSplitTargetInput struct {
 }
 
 type SeaOrderSplitResultInput struct {
-	ClientResultKey        string
-	ResultRole             string // ORIGINAL | CREATED
-	ClientTargetKey        string
-	HouseBillIDs           []uuid.UUID
-	DraftFeeIDs            []uuid.UUID
-	AttachmentReferenceIDs []uuid.UUID
-	InternalReferenceNo    *string
-	BookingNotes           *string
-	AllocationNotes        *string
-	OperationNotes         *string
+	ClientResultKey            string
+	ResultRole                 string // ORIGINAL | CREATED
+	ClientTargetKey            string
+	DraftFeeIDs                []uuid.UUID
+	AttachmentReferenceIDs     []uuid.UUID
+	InternalReferenceNo        *string
+	BookingNotes               *string
+	AllocationNotes            *string
+	OperationNotes             *string
+	HouseBill                  *SeaOrderSplitHouseBillInput
+	CargoAllocations           []*SeaOrderSplitCargoAllocationInput
+	ContainerIDs               []uuid.UUID
+	SharedContainerAllocations []*SeaOrderSplitSharedContainerAllocationInput
 }
 
 type SeaOrderSplitExpectedVersions struct {
 	OrderVersion                   uint64
 	LinkVersion                    uint64
-	AllocationVersion              uint64
-	HouseBillVersions              map[uuid.UUID]uint64
+	CurrentHBLVersion              *uint64
 	CargoItemVersions              map[uuid.UUID]uint64
 	ContainerVersions              map[uuid.UUID]uint64
 	FeeVersions                    map[uuid.UUID]uint64
 	CandidateMBLVersions           map[uuid.UUID]uint64
-	AttachmentReferenceFingerprint string
 	CandidateTEVersions            map[uuid.UUID]uint64
+	SharedContainerVersions        map[uuid.UUID]uint64
+	AttachmentReferenceFingerprint string
 }
 
 type SeaOrderSplitInput struct {
@@ -201,6 +227,7 @@ type SeaOrderSplitInput struct {
 	IdempotencyKey     string
 	RequestFingerprint string
 	Note               *string
+	Confirmation       *SeaExternalConfirmation
 	Targets            []*SeaOrderSplitTargetInput
 	Results            []*SeaOrderSplitResultInput
 	ExpectedVersions   *SeaOrderSplitExpectedVersions
@@ -255,6 +282,7 @@ type SeaOrderSplitPreviewResultItem struct {
 	BookingNotes        string
 	AllocationNotes     string
 	OperationNotes      string
+	HouseNo             *string
 }
 
 type SeaOrderSplitEvent struct {
@@ -297,8 +325,7 @@ type SeaOrderReassignmentTargetInput struct {
 	CandidateID         *uuid.UUID
 	CandidateVersion    *uint64
 	MasterNo            string
-	IssuerPartnerID     *uuid.UUID
-	CarrierID           *uuid.UUID
+	ShippingLineID      *uuid.UUID
 	VesselName          string
 	VoyageNo            string
 	ETD                 string
@@ -322,6 +349,7 @@ type SeaOrderReassignmentInput struct {
 	ExpectedLinkVersion         uint64
 	ExpectedCandidateMBLVersion *uint64
 	ExpectedCandidateTEVersion  *uint64
+	Confirmation                *SeaExternalConfirmation
 }
 
 type SeaOrderReassignmentPreview struct {
@@ -368,6 +396,40 @@ type SeaOrderReassignmentEvent struct {
 	BeforeSnapshot               []byte
 	AfterSnapshot                []byte
 	CreatedBy                    *uuid.UUID
+	Confirmation                 *SeaExternalConfirmation
+}
+
+type SeaTransportExecutionUpdateInput struct {
+	OriginLocationID    *uuid.UUID
+	DischargeLocationID *uuid.UUID
+	TransitLocationID   *uuid.UUID
+	VesselName          string
+	VoyageNo            string
+	ETD                 *time.Time
+	ETA                 *time.Time
+}
+
+type SeaTransportExecutionUpdateCommand struct {
+	OrderID                           uuid.UUID
+	ExpectedTransportExecutionVersion uint64
+	Input                             *SeaTransportExecutionUpdateInput
+	Reason                            string
+	Confirmation                      *SeaExternalConfirmation
+	IdempotencyKey                    string
+}
+
+type SeaTransportExecutionUpdatePreview struct {
+	TransportExecutionID      uuid.UUID
+	TransportExecutionVersion uint64
+	MemberOrderIDs            []uuid.UUID
+	Differences               []*VoyageDifference
+	Impacts                   []*SeaDocumentDownstreamImpact
+	Executable                bool
+}
+
+type SeaTransportExecutionUpdateResult struct {
+	TransportExecution *SeaTransportExecution
+	VersionID          uuid.UUID
 }
 
 type SeaOrderChangeEventSummary struct {
@@ -406,6 +468,7 @@ type SeaOrderReassignmentEventSummary struct {
 	ResponsibilityType     string
 	ResponsiblePartnerName string
 	Reason                 string
+	Confirmation           *SeaExternalConfirmation
 }
 
 type SeaOrderChangeEventDetail struct {
@@ -435,6 +498,61 @@ type SeaOrderChangeRepo interface {
 	GetReassignmentEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
 	ListChangeEvents(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
 	GetChangeEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error)
+	ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error)
+}
+
+func validateTransportExecutionUpdateCommand(input *SeaTransportExecutionUpdateCommand, execute bool) (*SeaTransportExecutionUpdateCommand, error) {
+	if input == nil || input.OrderID == uuid.Nil || input.ExpectedTransportExecutionVersion == 0 || input.Input == nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	reason, err := normalizeRequiredChangeText(input.Reason, 500)
+	if err != nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	out := *input
+	out.Reason = reason
+	out.Input = &SeaTransportExecutionUpdateInput{
+		OriginLocationID: input.Input.OriginLocationID, DischargeLocationID: input.Input.DischargeLocationID,
+		TransitLocationID: input.Input.TransitLocationID, VesselName: strings.TrimSpace(input.Input.VesselName),
+		VoyageNo: strings.TrimSpace(input.Input.VoyageNo), ETD: input.Input.ETD, ETA: input.Input.ETA,
+	}
+	for _, id := range []*uuid.UUID{out.Input.OriginLocationID, out.Input.DischargeLocationID, out.Input.TransitLocationID} {
+		if id != nil && *id == uuid.Nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+	}
+	if utf8.RuneCountInString(out.Input.VesselName) > 128 || utf8.RuneCountInString(out.Input.VoyageNo) > 64 || out.Input.ETD != nil && out.Input.ETA != nil && out.Input.ETA.Before(*out.Input.ETD) {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	if execute {
+		out.IdempotencyKey, err = normalizeRequiredChangeText(input.IdempotencyKey, 128)
+		if err != nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, ErrSeaOrderReassignmentInvalidArgument
+		}
+	}
+	return &out, nil
+}
+
+func (uc *SeaOrderChangeUsecase) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error) {
+	validated, err := validateTransportExecutionUpdateCommand(input, false)
+	if err != nil || organizationID == uuid.Nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	return uc.repo.PreviewTransportExecutionUpdate(ctx, organizationID, validated)
+}
+
+func (uc *SeaOrderChangeUsecase) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdateResult, error) {
+	validated, err := validateTransportExecutionUpdateCommand(input, true)
+	if err != nil || organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.sea.transport_execution.update", Result: "success", Details: map[string]string{"order.id": validated.OrderID.String(), "reason": validated.Reason}}
+	return uc.repo.ExecuteTransportExecutionUpdate(ctx, organizationID, actorID, validated, audit)
 }
 
 type SeaOrderChangeUsecase struct {
@@ -493,7 +611,6 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			return ErrSeaOrderSplitInvalidArgument
 		}
 		seenTargetKeys[targetKey] = target
-
 		switch target.TargetType {
 		case SplitTargetTypeCurrent:
 			if target.CandidateID != nil ||
@@ -501,8 +618,7 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 				target.CandidateTEID != nil ||
 				target.CandidateTEVersion != nil ||
 				target.MasterNo != "" ||
-				target.IssuerPartnerID != nil ||
-				target.CarrierID != nil ||
+				target.ShippingLineID != nil ||
 				target.VesselName != "" ||
 				target.VoyageNo != "" ||
 				target.ETD != "" ||
@@ -517,8 +633,10 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if target.CandidateID == nil || *target.CandidateID == uuid.Nil ||
 				target.CandidateVersion == nil || *target.CandidateVersion == 0 ||
 				target.CandidateTEID == nil || *target.CandidateTEID == uuid.Nil ||
-				target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 ||
-				target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+				target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+			if target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
 				return ErrSeaOrderSplitInvalidArgument
 			}
 			if expected != nil {
@@ -540,7 +658,7 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if _, err := ValidateAndNormalizeSeaMasterNo(target.MasterNo); err != nil {
 				return err
 			}
-			if target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+			if target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
 				return ErrSeaOrderSplitInvalidArgument
 			}
 			if strings.TrimSpace(target.VesselName) == "" || strings.TrimSpace(target.VoyageNo) == "" {
@@ -558,18 +676,61 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 		}
 	}
 
-	if len(results) == 0 {
+	if len(results) < 2 {
 		return ErrSeaOrderSplitInvalidArgument
 	}
+	originalCount := 0
+	createdCount := 0
+	seenHouseNos := make(map[string]struct{})
 	for _, res := range results {
 		if res == nil {
+			return ErrSeaOrderSplitInvalidArgument
+		}
+		if res.ResultRole == ResultRoleOriginal {
+			originalCount++
+		} else if res.ResultRole == ResultRoleCreated {
+			createdCount++
+		} else {
 			return ErrSeaOrderSplitInvalidArgument
 		}
 		if _, exists := seenTargetKeys[res.ClientTargetKey]; !exists {
 			return ErrSeaOrderSplitInvalidArgument
 		}
+		if res.HouseBill != nil {
+			normalizedHouseNo, err := NormalizeSeaHouseNo(res.HouseBill.HouseNo)
+			if err != nil {
+				return err
+			}
+			if _, seen := seenHouseNos[normalizedHouseNo]; seen {
+				return ErrSeaHouseBillExists
+			}
+			seenHouseNos[normalizedHouseNo] = struct{}{}
+			if res.HouseBill.IssuerSource == "" {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
+		for _, ca := range res.CargoAllocations {
+			if ca == nil || ca.CargoItemID == uuid.Nil || ca.PackageCount < 0 || ca.GrossWeightKg.IsNegative() || ca.VolumeCbm.IsNegative() {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
+		for _, sca := range res.SharedContainerAllocations {
+			if sca == nil || sca.AllocationID == uuid.Nil || sca.PackageCount < 0 || sca.GrossWeightKg.IsNegative() || sca.VolumeCbm.IsNegative() {
+				return ErrSeaOrderSplitInvalidArgument
+			}
+		}
+	}
+	if originalCount != 1 || createdCount < 1 {
+		return ErrSeaOrderSplitInvalidArgument
 	}
 
+	return nil
+}
+
+func validateReassignmentTargetShippingLine(target *SeaOrderReassignmentTargetInput) error {
+	if target == nil || target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
+		return ErrSeaOrderReassignmentInvalidArgument
+	}
 	return nil
 }
 
@@ -587,7 +748,7 @@ func validateReassignmentCandidateTarget(
 			target.CandidateVersion == nil || *target.CandidateVersion == 0 ||
 			target.CandidateTEID == nil || *target.CandidateTEID == uuid.Nil ||
 			target.CandidateTEVersion == nil || *target.CandidateTEVersion == 0 ||
-			target.IssuerPartnerID == nil || *target.IssuerPartnerID == uuid.Nil {
+			target.ShippingLineID == nil || *target.ShippingLineID == uuid.Nil {
 			return ErrSeaOrderReassignmentInvalidArgument
 		}
 		if expectedMBLVersion != nil && (*expectedMBLVersion == 0 || *expectedMBLVersion != *target.CandidateVersion) {
@@ -638,7 +799,8 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 	if input.ExpectedVersions == nil ||
 		input.ExpectedVersions.OrderVersion == 0 ||
 		input.ExpectedVersions.LinkVersion == 0 ||
-		input.ExpectedVersions.AllocationVersion == 0 {
+		input.ExpectedVersions.CurrentHBLVersion == nil ||
+		*input.ExpectedVersions.CurrentHBLVersion == 0 {
 		return nil, ErrSeaOrderSplitInvalidArgument
 	}
 	if len(input.Results) < 2 {
@@ -646,6 +808,21 @@ func (uc *SeaOrderChangeUsecase) ExecuteSplit(ctx context.Context, organizationI
 	}
 	if err := validateSplitTargetsAndResults(input.Targets, input.Results, input.ExpectedVersions); err != nil {
 		return nil, err
+	}
+	// 任一结果目标不是当前母单时，拆票内嵌改配必须携带外部确认
+	needsConfirmation := false
+	for _, target := range input.Targets {
+		if target.TargetType != SplitTargetTypeCurrent {
+			needsConfirmation = true
+			break
+		}
+	}
+	if needsConfirmation {
+		confirmation, err := ValidateSeaExternalConfirmation(input.Confirmation)
+		if err != nil {
+			return nil, ErrSeaOrderSplitInvalidArgument
+		}
+		input.Confirmation = confirmation
 	}
 	if input.Note != nil {
 		trimmed := strings.TrimSpace(*input.Note)
@@ -732,6 +909,9 @@ func (uc *SeaOrderChangeUsecase) PreviewReassignment(ctx context.Context, organi
 	if organizationID == uuid.Nil || input == nil || input.OrderID == uuid.Nil || input.Target == nil {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
 	}
+	if err := validateReassignmentTargetShippingLine(input.Target); err != nil {
+		return nil, err
+	}
 	if err := validateReassignmentCandidateTarget(input.Target, nil, nil); err != nil {
 		return nil, err
 	}
@@ -747,6 +927,14 @@ func (uc *SeaOrderChangeUsecase) ExecuteReassignment(ctx context.Context, organi
 	}
 	if input.ExpectedOrderVersion == 0 || input.ExpectedLinkVersion == 0 {
 		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	confirmation, err := ValidateSeaExternalConfirmation(input.Confirmation)
+	if err != nil {
+		return nil, ErrSeaOrderReassignmentInvalidArgument
+	}
+	input.Confirmation = confirmation
+	if err := validateReassignmentTargetShippingLine(input.Target); err != nil {
+		return nil, err
 	}
 	if input.Target.TargetType == SplitTargetTypeCandidate &&
 		(input.ExpectedCandidateMBLVersion == nil || input.ExpectedCandidateTEVersion == nil) {

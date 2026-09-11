@@ -31,7 +31,6 @@ const roleOptions = [
   { label: '客户', value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, color: 'blue' },
   { label: '供应商', value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER, color: 'green' },
   { label: '国外代理', value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT, color: 'purple' },
-  { label: '承运人', value: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER, color: 'orange' },
 ];
 
 const roleMap = new Map<number, (typeof roleOptions)[number]>(

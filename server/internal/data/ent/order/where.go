@@ -101,9 +101,9 @@ func ConsigneeShortName(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldConsigneeShortName, v))
 }
 
-// CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
-func CarrierID(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
+func ShippingLineID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingLineID, v))
 }
 
 // BookingAgentID applies equality check predicate on the "booking_agent_id" field. It's identical to BookingAgentIDEQ.
@@ -164,11 +164,6 @@ func FactoryName(v string) predicate.Order {
 // CargoReadyAt applies equality check predicate on the "cargo_ready_at" field. It's identical to CargoReadyAtEQ.
 func CargoReadyAt(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCargoReadyAt, v))
-}
-
-// LoadingTerms applies equality check predicate on the "loading_terms" field. It's identical to LoadingTermsEQ.
-func LoadingTerms(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
 }
 
 // DeclarationCutoffAt applies equality check predicate on the "declaration_cutoff_at" field. It's identical to DeclarationCutoffAtEQ.
@@ -324,6 +319,11 @@ func SpecialRequirements(v string) predicate.Order {
 // OrderDate applies equality check predicate on the "order_date" field. It's identical to OrderDateEQ.
 func OrderDate(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderDate, v))
+}
+
+// BookingNo applies equality check predicate on the "booking_no" field. It's identical to BookingNoEQ.
+func BookingNo(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNo, v))
 }
 
 // Notes applies equality check predicate on the "notes" field. It's identical to NotesEQ.
@@ -811,54 +811,34 @@ func ConsigneeShortNameContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldConsigneeShortName, v))
 }
 
-// CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
-func CarrierIDEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
+// ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.
+func ShippingLineIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDNEQ applies the NEQ predicate on the "carrier_id" field.
-func CarrierIDNEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldCarrierID, v))
+// ShippingLineIDNEQ applies the NEQ predicate on the "shipping_line_id" field.
+func ShippingLineIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldShippingLineID, v))
 }
 
-// CarrierIDIn applies the In predicate on the "carrier_id" field.
-func CarrierIDIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldCarrierID, vs...))
+// ShippingLineIDIn applies the In predicate on the "shipping_line_id" field.
+func ShippingLineIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldShippingLineID, vs...))
 }
 
-// CarrierIDNotIn applies the NotIn predicate on the "carrier_id" field.
-func CarrierIDNotIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldCarrierID, vs...))
+// ShippingLineIDNotIn applies the NotIn predicate on the "shipping_line_id" field.
+func ShippingLineIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldShippingLineID, vs...))
 }
 
-// CarrierIDGT applies the GT predicate on the "carrier_id" field.
-func CarrierIDGT(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldCarrierID, v))
+// ShippingLineIDIsNil applies the IsNil predicate on the "shipping_line_id" field.
+func ShippingLineIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldShippingLineID))
 }
 
-// CarrierIDGTE applies the GTE predicate on the "carrier_id" field.
-func CarrierIDGTE(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldCarrierID, v))
-}
-
-// CarrierIDLT applies the LT predicate on the "carrier_id" field.
-func CarrierIDLT(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldCarrierID, v))
-}
-
-// CarrierIDLTE applies the LTE predicate on the "carrier_id" field.
-func CarrierIDLTE(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldCarrierID, v))
-}
-
-// CarrierIDIsNil applies the IsNil predicate on the "carrier_id" field.
-func CarrierIDIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldCarrierID))
-}
-
-// CarrierIDNotNil applies the NotNil predicate on the "carrier_id" field.
-func CarrierIDNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldCarrierID))
+// ShippingLineIDNotNil applies the NotNil predicate on the "shipping_line_id" field.
+func ShippingLineIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldShippingLineID))
 }
 
 // BookingAgentIDEQ applies the EQ predicate on the "booking_agent_id" field.
@@ -1686,81 +1666,6 @@ func CargoReadyAtContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldCargoReadyAt, v))
 }
 
-// LoadingTermsEQ applies the EQ predicate on the "loading_terms" field.
-func LoadingTermsEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
-}
-
-// LoadingTermsNEQ applies the NEQ predicate on the "loading_terms" field.
-func LoadingTermsNEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldLoadingTerms, v))
-}
-
-// LoadingTermsIn applies the In predicate on the "loading_terms" field.
-func LoadingTermsIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldLoadingTerms, vs...))
-}
-
-// LoadingTermsNotIn applies the NotIn predicate on the "loading_terms" field.
-func LoadingTermsNotIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldLoadingTerms, vs...))
-}
-
-// LoadingTermsGT applies the GT predicate on the "loading_terms" field.
-func LoadingTermsGT(v string) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldLoadingTerms, v))
-}
-
-// LoadingTermsGTE applies the GTE predicate on the "loading_terms" field.
-func LoadingTermsGTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldLoadingTerms, v))
-}
-
-// LoadingTermsLT applies the LT predicate on the "loading_terms" field.
-func LoadingTermsLT(v string) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldLoadingTerms, v))
-}
-
-// LoadingTermsLTE applies the LTE predicate on the "loading_terms" field.
-func LoadingTermsLTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldLoadingTerms, v))
-}
-
-// LoadingTermsContains applies the Contains predicate on the "loading_terms" field.
-func LoadingTermsContains(v string) predicate.Order {
-	return predicate.Order(sql.FieldContains(FieldLoadingTerms, v))
-}
-
-// LoadingTermsHasPrefix applies the HasPrefix predicate on the "loading_terms" field.
-func LoadingTermsHasPrefix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasPrefix(FieldLoadingTerms, v))
-}
-
-// LoadingTermsHasSuffix applies the HasSuffix predicate on the "loading_terms" field.
-func LoadingTermsHasSuffix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasSuffix(FieldLoadingTerms, v))
-}
-
-// LoadingTermsIsNil applies the IsNil predicate on the "loading_terms" field.
-func LoadingTermsIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldLoadingTerms))
-}
-
-// LoadingTermsNotNil applies the NotNil predicate on the "loading_terms" field.
-func LoadingTermsNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldLoadingTerms))
-}
-
-// LoadingTermsEqualFold applies the EqualFold predicate on the "loading_terms" field.
-func LoadingTermsEqualFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldEqualFold(FieldLoadingTerms, v))
-}
-
-// LoadingTermsContainsFold applies the ContainsFold predicate on the "loading_terms" field.
-func LoadingTermsContainsFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldContainsFold(FieldLoadingTerms, v))
-}
-
 // DeclarationCutoffAtEQ applies the EQ predicate on the "declaration_cutoff_at" field.
 func DeclarationCutoffAtEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldDeclarationCutoffAt, v))
@@ -1969,6 +1874,16 @@ func TradeTermIn(vs ...TradeTerm) predicate.Order {
 // TradeTermNotIn applies the NotIn predicate on the "trade_term" field.
 func TradeTermNotIn(vs ...TradeTerm) predicate.Order {
 	return predicate.Order(sql.FieldNotIn(FieldTradeTerm, vs...))
+}
+
+// TradeTermIsNil applies the IsNil predicate on the "trade_term" field.
+func TradeTermIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTradeTerm))
+}
+
+// TradeTermNotNil applies the NotNil predicate on the "trade_term" field.
+func TradeTermNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTradeTerm))
 }
 
 // PaymentTermEQ applies the EQ predicate on the "payment_term" field.
@@ -3866,6 +3781,81 @@ func OrderDateContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldOrderDate, v))
 }
 
+// BookingNoEQ applies the EQ predicate on the "booking_no" field.
+func BookingNoEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNo, v))
+}
+
+// BookingNoNEQ applies the NEQ predicate on the "booking_no" field.
+func BookingNoNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldBookingNo, v))
+}
+
+// BookingNoIn applies the In predicate on the "booking_no" field.
+func BookingNoIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldBookingNo, vs...))
+}
+
+// BookingNoNotIn applies the NotIn predicate on the "booking_no" field.
+func BookingNoNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldBookingNo, vs...))
+}
+
+// BookingNoGT applies the GT predicate on the "booking_no" field.
+func BookingNoGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldBookingNo, v))
+}
+
+// BookingNoGTE applies the GTE predicate on the "booking_no" field.
+func BookingNoGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldBookingNo, v))
+}
+
+// BookingNoLT applies the LT predicate on the "booking_no" field.
+func BookingNoLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldBookingNo, v))
+}
+
+// BookingNoLTE applies the LTE predicate on the "booking_no" field.
+func BookingNoLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldBookingNo, v))
+}
+
+// BookingNoContains applies the Contains predicate on the "booking_no" field.
+func BookingNoContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldBookingNo, v))
+}
+
+// BookingNoHasPrefix applies the HasPrefix predicate on the "booking_no" field.
+func BookingNoHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldBookingNo, v))
+}
+
+// BookingNoHasSuffix applies the HasSuffix predicate on the "booking_no" field.
+func BookingNoHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldBookingNo, v))
+}
+
+// BookingNoIsNil applies the IsNil predicate on the "booking_no" field.
+func BookingNoIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldBookingNo))
+}
+
+// BookingNoNotNil applies the NotNil predicate on the "booking_no" field.
+func BookingNoNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldBookingNo))
+}
+
+// BookingNoEqualFold applies the EqualFold predicate on the "booking_no" field.
+func BookingNoEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldBookingNo, v))
+}
+
+// BookingNoContainsFold applies the ContainsFold predicate on the "booking_no" field.
+func BookingNoContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldBookingNo, v))
+}
+
 // NotesEQ applies the EQ predicate on the "notes" field.
 func NotesEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNotes, v))
@@ -4204,6 +4194,29 @@ func HasCustomer() predicate.Order {
 func HasCustomerWith(preds ...predicate.Partner) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newCustomerStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingLine applies the HasEdge predicate on the "shipping_line" edge.
+func HasShippingLine() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingLineTable, ShippingLineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingLineWith applies the HasEdge predicate on the "shipping_line" edge with a given conditions (other predicates).
+func HasShippingLineWith(preds ...predicate.ShippingLine) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newShippingLineStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -4672,21 +4685,44 @@ func HasSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Order {
 	})
 }
 
-// HasSeaCargoAllocations applies the HasEdge predicate on the "sea_cargo_allocations" edge.
-func HasSeaCargoAllocations() predicate.Order {
+// HasSeaDocumentModeChangeEvents applies the HasEdge predicate on the "sea_document_mode_change_events" edge.
+func HasSeaDocumentModeChangeEvents() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SeaCargoAllocationsTable, SeaCargoAllocationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSeaCargoAllocationsWith applies the HasEdge predicate on the "sea_cargo_allocations" edge with a given conditions (other predicates).
-func HasSeaCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.Order {
+// HasSeaDocumentModeChangeEventsWith applies the HasEdge predicate on the "sea_document_mode_change_events" edge with a given conditions (other predicates).
+func HasSeaDocumentModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
-		step := newSeaCargoAllocationsStep()
+		step := newSeaDocumentModeChangeEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaSharedContainerAllocations applies the HasEdge predicate on the "sea_shared_container_allocations" edge.
+func HasSeaSharedContainerAllocations() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaSharedContainerAllocationsWith applies the HasEdge predicate on the "sea_shared_container_allocations" edge with a given conditions (other predicates).
+func HasSeaSharedContainerAllocationsWith(preds ...predicate.SeaSharedContainerAllocation) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaSharedContainerAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -4871,29 +4907,6 @@ func HasSeaDocumentVoidEvents() predicate.Order {
 func HasSeaDocumentVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newSeaDocumentVoidEventsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasSeaHouseBillSwitchEvents applies the HasEdge predicate on the "sea_house_bill_switch_events" edge.
-func HasSeaHouseBillSwitchEvents() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillSwitchEventsTable, SeaHouseBillSwitchEventsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasSeaHouseBillSwitchEventsWith applies the HasEdge predicate on the "sea_house_bill_switch_events" edge with a given conditions (other predicates).
-func HasSeaHouseBillSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newSeaHouseBillSwitchEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

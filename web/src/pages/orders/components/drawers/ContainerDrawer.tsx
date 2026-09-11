@@ -1,3 +1,4 @@
+import { ShareAltOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import {
   ProFormDigit,
@@ -5,8 +6,9 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { message, Typography } from 'antd';
-import React, { forwardRef } from 'react';
+import { Button, message, Typography } from 'antd';
+import React, { forwardRef, useState } from 'react';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
@@ -17,6 +19,7 @@ import {
   orderContainerServiceRemoveContainer,
   orderContainerServiceUpdateContainer,
 } from '@/services/roncin/orderContainerService';
+import SeaSharedContainerDrawer from './SeaSharedContainerDrawer';
 
 const { Text } = Typography;
 
@@ -51,6 +54,12 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     },
     ref,
   ) {
+    const [sharedDrawerOpen, setSharedDrawerOpen] = useState(false);
+    const [sharedTEId, setSharedTEId] = useState<string | undefined>(undefined);
+    const [currentOrder, setCurrentOrder] = useState<API.Order | undefined>(
+      undefined,
+    );
+
     const columns: ProColumns<API.OrderContainer>[] = [
       {
         title: '箱号',
@@ -107,8 +116,9 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     ];
 
     return (
-      <SubEntityDrawerTemplate<
-        API.OrderContainer,
+      <>
+        <SubEntityDrawerTemplate<
+          API.OrderContainer,
         API.Order,
         ContainerFormValues
       >
@@ -245,7 +255,44 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             />
           </>
         )}
+        extraToolbar={(order) => {
+          if (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE) {
+            return [];
+          }
+          return [
+            <Button
+              key="shared-container"
+              icon={<ShareAltOutlined />}
+              onClick={() => {
+                const teId = order.seaMasterBill?.transportExecutionId;
+                if (!teId) {
+                  message.warning(
+                    '当前订单尚未关联运输执行，无法开展跨订单拼箱',
+                  );
+                  return;
+                }
+                setSharedTEId(teId);
+                setCurrentOrder(order);
+                setSharedDrawerOpen(true);
+              }}
+            >
+              共享箱 / 客户拼货
+            </Button>,
+          ];
+        }}
       />
+      <SeaSharedContainerDrawer
+        open={sharedDrawerOpen}
+        onClose={() => setSharedDrawerOpen(false)}
+        transportExecutionId={sharedTEId}
+        orderId={currentOrder?.id}
+        orderNo={currentOrder?.orderNo}
+        canCreate={canCreate}
+        canUpdate={canUpdate}
+        canDelete={canRemove}
+        containerSpecOptions={containerSpecOptions}
+      />
+    </>
     );
   },
 );

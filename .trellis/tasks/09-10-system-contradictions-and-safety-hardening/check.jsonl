@@ -1,0 +1,12 @@
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"检查分层与生成物边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查事务、锁序、版本和多行排序"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查错误码与中文业务含义"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"检查实现与更新后的订单锁契约一致"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"检查 HBL/MBL 当前关系读取"}
+{"file":".trellis/spec/server/backend/finance-bill-currency.md","reason":"检查财务金额与账单版本口径"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查服务端质量门禁"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"检查权限驱动请求与状态边界"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查前端枚举和生成类型使用"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查前端测试与静态分析"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查需求到各层的端到端闭环"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"检查重复门禁、投影和权限规则"}

@@ -46,6 +46,16 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeContainerPrefixes holds the string denoting the container_prefixes edge name in mutations.
 	EdgeContainerPrefixes = "container_prefixes"
+	// EdgeOrders holds the string denoting the orders edge name in mutations.
+	EdgeOrders = "orders"
+	// EdgeSeaTransportExecutions holds the string denoting the sea_transport_executions edge name in mutations.
+	EdgeSeaTransportExecutions = "sea_transport_executions"
+	// EdgeSeaTransportExecutionVersions holds the string denoting the sea_transport_execution_versions edge name in mutations.
+	EdgeSeaTransportExecutionVersions = "sea_transport_execution_versions"
+	// EdgeSeaMasterBills holds the string denoting the sea_master_bills edge name in mutations.
+	EdgeSeaMasterBills = "sea_master_bills"
+	// EdgeSeaMasterBillVersions holds the string denoting the sea_master_bill_versions edge name in mutations.
+	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
 	// Table holds the table name of the shippingline in the database.
 	Table = "shipping_lines"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -62,6 +72,41 @@ const (
 	ContainerPrefixesInverseTable = "shipping_line_container_prefixes"
 	// ContainerPrefixesColumn is the table column denoting the container_prefixes relation/edge.
 	ContainerPrefixesColumn = "shipping_line_id"
+	// OrdersTable is the table that holds the orders relation/edge.
+	OrdersTable = "orders"
+	// OrdersInverseTable is the table name for the Order entity.
+	// It exists in this package in order to avoid circular dependency with the "order" package.
+	OrdersInverseTable = "orders"
+	// OrdersColumn is the table column denoting the orders relation/edge.
+	OrdersColumn = "shipping_line_id"
+	// SeaTransportExecutionsTable is the table that holds the sea_transport_executions relation/edge.
+	SeaTransportExecutionsTable = "sea_transport_executions"
+	// SeaTransportExecutionsInverseTable is the table name for the SeaTransportExecution entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecution" package.
+	SeaTransportExecutionsInverseTable = "sea_transport_executions"
+	// SeaTransportExecutionsColumn is the table column denoting the sea_transport_executions relation/edge.
+	SeaTransportExecutionsColumn = "shipping_line_id"
+	// SeaTransportExecutionVersionsTable is the table that holds the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsInverseTable is the table name for the SeaTransportExecutionVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seatransportexecutionversion" package.
+	SeaTransportExecutionVersionsInverseTable = "sea_transport_execution_versions"
+	// SeaTransportExecutionVersionsColumn is the table column denoting the sea_transport_execution_versions relation/edge.
+	SeaTransportExecutionVersionsColumn = "shipping_line_id"
+	// SeaMasterBillsTable is the table that holds the sea_master_bills relation/edge.
+	SeaMasterBillsTable = "sea_master_bills"
+	// SeaMasterBillsInverseTable is the table name for the SeaMasterBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbill" package.
+	SeaMasterBillsInverseTable = "sea_master_bills"
+	// SeaMasterBillsColumn is the table column denoting the sea_master_bills relation/edge.
+	SeaMasterBillsColumn = "shipping_line_id"
+	// SeaMasterBillVersionsTable is the table that holds the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "seamasterbillversion" package.
+	SeaMasterBillVersionsInverseTable = "sea_master_bill_versions"
+	// SeaMasterBillVersionsColumn is the table column denoting the sea_master_bill_versions relation/edge.
+	SeaMasterBillVersionsColumn = "shipping_line_id"
 )
 
 // Columns holds all SQL columns for shippingline fields.
@@ -224,6 +269,76 @@ func ByContainerPrefixes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newContainerPrefixesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrdersCount orders the results by orders count.
+func ByOrdersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrdersStep(), opts...)
+	}
+}
+
+// ByOrders orders the results by orders terms.
+func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrdersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaTransportExecutionsCount orders the results by sea_transport_executions count.
+func BySeaTransportExecutionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionsStep(), opts...)
+	}
+}
+
+// BySeaTransportExecutions orders the results by sea_transport_executions terms.
+func BySeaTransportExecutions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaTransportExecutionVersionsCount orders the results by sea_transport_execution_versions count.
+func BySeaTransportExecutionVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaTransportExecutionVersionsStep(), opts...)
+	}
+}
+
+// BySeaTransportExecutionVersions orders the results by sea_transport_execution_versions terms.
+func BySeaTransportExecutionVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaTransportExecutionVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaMasterBillsCount orders the results by sea_master_bills count.
+func BySeaMasterBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillsStep(), opts...)
+	}
+}
+
+// BySeaMasterBills orders the results by sea_master_bills terms.
+func BySeaMasterBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySeaMasterBillVersionsCount orders the results by sea_master_bill_versions count.
+func BySeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaMasterBillVersionsStep(), opts...)
+	}
+}
+
+// BySeaMasterBillVersions orders the results by sea_master_bill_versions terms.
+func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -236,5 +351,40 @@ func newContainerPrefixesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ContainerPrefixesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ContainerPrefixesTable, ContainerPrefixesColumn),
+	)
+}
+func newOrdersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrdersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+	)
+}
+func newSeaTransportExecutionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaTransportExecutionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionsTable, SeaTransportExecutionsColumn),
+	)
+}
+func newSeaTransportExecutionVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaTransportExecutionVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+	)
+}
+func newSeaMasterBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillsTable, SeaMasterBillsColumn),
+	)
+}
+func newSeaMasterBillVersionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaMasterBillVersionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
 	)
 }

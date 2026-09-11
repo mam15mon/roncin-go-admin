@@ -1,8 +1,4 @@
-import {
-  HistoryOutlined,
-  RetweetOutlined,
-  StopOutlined,
-} from '@ant-design/icons';
+import { HistoryOutlined, StopOutlined } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
 import {
   Alert,
@@ -13,41 +9,40 @@ import {
   Form,
   Input,
   Modal,
-  Radio,
   Space,
   Table,
   Tag,
   Typography,
 } from 'antd';
 import React, { useCallback, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import dayjs from 'dayjs';
 import {
   OrderBusinessType,
   SeaDocumentEventType,
+  SeaDocumentStructure,
   SeaDocumentType,
   SeaDocumentVersionSource,
-  SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import {
   seaDocumentServiceExecuteSeaDocumentAmendment,
   seaDocumentServiceExecuteSeaDocumentVoid,
-  seaDocumentServiceExecuteSeaHouseBillSwitch,
   seaDocumentServiceListSeaDocumentEvents,
   seaDocumentServiceListSeaHouseBillVersions,
   seaDocumentServiceListSeaMasterBillVersions,
   seaDocumentServicePreviewSeaDocumentAmendment,
   seaDocumentServicePreviewSeaDocumentVoid,
-  seaDocumentServicePreviewSeaHouseBillSwitch,
 } from '@/services/roncin/seaDocumentService';
-import { searchPartnerOptions } from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
+import SeaExternalConfirmationFields, {
+  buildSeaExternalConfirmation,
+  type SeaExternalConfirmationFormValues,
+} from './SeaExternalConfirmationFields';
 
-type ActionMode = 'amendment' | 'void' | 'switch';
+type ActionMode = 'amendment' | 'void';
 type ChangePreview =
   | API.SeaDocumentAmendmentPreview
-  | API.SeaDocumentVoidPreview
-  | API.SeaHouseBillSwitchPreview;
+  | API.SeaDocumentVoidPreview;
 
 interface SeaDocumentHistoryActionsProps {
   orderId: string;
@@ -64,36 +59,37 @@ interface SeaDocumentHistoryActionsProps {
   disabled?: boolean;
 }
 
-interface SwitchFormValues {
+interface ActionFormValues extends SeaExternalConfirmationFormValues {
   reason: string;
-  surrenderInfo?: string;
-  houseNo: string;
-  issuerSource: number;
-  issuerPartnerId?: string;
-  note?: string;
 }
 
 interface PreviewPayload {
-  values: SwitchFormValues;
+  values: ActionFormValues;
   amendmentInput?: API.SeaDocumentAmendmentInput;
-  switchHouseBill?: API.SeaHouseBillInput;
 }
 
 const sourceText: Record<number, string> = {
   [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_ORDER_LOCK]: '订单锁定',
   [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT]: '改单',
-  [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_SWITCH]: 'Switch B/L',
   [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_VOID]: '作废',
+  [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE]:
+    '模式切换',
 };
 
 const eventText: Record<number, string> = {
   [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_AMENDMENT]: '改单',
   [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_VOID]: '作废',
-  [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_SWITCH]: 'Switch B/L',
+  [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE]: '模式切换',
 };
 
 function createIdempotencyKey() {
   return `sea-document-${generateUUID()}`;
+}
+
+function documentModeText(mode?: number) {
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) return 'HOUSE';
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) return 'DIRECT';
+  return '-';
 }
 
 function PreviewResult({ preview }: { preview: ChangePreview }) {
@@ -180,11 +176,8 @@ export default function SeaDocumentHistoryActions({
   const isHouse = documentType === SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL;
   const terminal =
     documentStatus === 'VOIDED' ||
-    documentStatus === 'REPLACED' ||
     currentHouseBill?.status ===
-      SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED ||
-    currentHouseBill?.status ===
-      SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_REPLACED;
+      SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED;
   const commandReady = Boolean(
     orderVersion && documentVersion && currentVersionId && !terminal,
   );
@@ -216,8 +209,8 @@ export default function SeaDocumentHistoryActions({
         (eventResult.data ?? []).filter(
           (event) =>
             event.documentId === documentId ||
-            event.oldHouseBillId === documentId ||
-            event.newHouseBillId === documentId,
+            event.eventType ===
+              SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE,
         ),
       );
     } catch (error: unknown) {
@@ -241,11 +234,10 @@ export default function SeaDocumentHistoryActions({
     setIdempotencyKey(createIdempotencyKey());
     form.setFieldsValue({
       reason: undefined,
-      surrenderInfo: undefined,
-      houseNo: undefined,
-      issuerSource: currentHouseBill?.issuerSource,
-      issuerPartnerId: currentHouseBill?.issuerPartnerId,
-      note: currentHouseBill?.note,
+      confirmedByParty: undefined,
+      confirmedAt: dayjs(),
+      confirmationNote: undefined,
+      confirmationAttachmentId: undefined,
     });
   };
 
@@ -264,26 +256,12 @@ export default function SeaDocumentHistoryActions({
     expectedOrderVersion: orderVersion,
     expectedDocumentVersion: documentVersion,
     expectedCurrentVersionId: currentVersionId as string,
-    reason,
-  });
-
-  const buildSwitchHouseBill = (
-    values: SwitchFormValues,
-  ): API.SeaHouseBillInput => ({
-    houseNo: values.houseNo,
-    issuerSource: values.issuerSource,
-    issuerPartnerId:
-      values.issuerSource ===
-      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-        ? values.issuerPartnerId
-        : undefined,
-    note: values.note?.trim() || undefined,
-    content: currentHouseBill?.content ?? {},
+    reason: reason.trim(),
   });
 
   const handlePreview = async () => {
     if (!mode || !commandReady || disabled) return;
-    const values = (await form.validateFields()) as SwitchFormValues;
+    const values = (await form.validateFields()) as ActionFormValues;
     setPreviewing(true);
     setPreview(null);
     setPreviewPayload(null);
@@ -296,30 +274,13 @@ export default function SeaDocumentHistoryActions({
         );
         setPreview(result.data ?? null);
         setPreviewPayload({ values, amendmentInput });
-      } else if (mode === 'void') {
+      } else {
         const result = await seaDocumentServicePreviewSeaDocumentVoid(
           { orderId },
           buildCommon(values.reason),
         );
         setPreview(result.data ?? null);
         setPreviewPayload({ values });
-      } else {
-        const switchHouseBill = buildSwitchHouseBill(values);
-        const result = await seaDocumentServicePreviewSeaHouseBillSwitch(
-          { orderId },
-          {
-            orderId,
-            oldHouseBillId: documentId,
-            expectedOrderVersion: orderVersion,
-            expectedHouseBillVersion: documentVersion,
-            expectedCurrentVersionId: currentVersionId as string,
-            reason: values.reason,
-            surrenderInfo: values.surrenderInfo?.trim() || undefined,
-            newHouseBill: switchHouseBill,
-          },
-        );
-        setPreview(result.data ?? null);
-        setPreviewPayload({ values, switchHouseBill });
       }
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : '预览失败');
@@ -330,7 +291,7 @@ export default function SeaDocumentHistoryActions({
 
   const handleExecute = async () => {
     if (!mode || !preview?.executable || !previewPayload || disabled) return;
-    const { values, amendmentInput, switchHouseBill } = previewPayload;
+    const { values, amendmentInput } = previewPayload;
     setExecuting(true);
     try {
       if (mode === 'amendment') {
@@ -341,37 +302,20 @@ export default function SeaDocumentHistoryActions({
             ...buildCommon(values.reason),
             idempotencyKey,
             input: amendmentInput,
+            confirmation: buildSeaExternalConfirmation(values),
           },
         );
-      } else if (mode === 'void') {
+      } else {
         await seaDocumentServiceExecuteSeaDocumentVoid(
           { orderId },
-          { ...buildCommon(values.reason), idempotencyKey },
-        );
-      } else {
-        if (!switchHouseBill) return;
-        await seaDocumentServiceExecuteSeaHouseBillSwitch(
-          { orderId },
           {
-            orderId,
-            oldHouseBillId: documentId,
-            expectedOrderVersion: orderVersion,
-            expectedHouseBillVersion: documentVersion,
-            expectedCurrentVersionId: currentVersionId as string,
-            reason: values.reason,
-            surrenderInfo: values.surrenderInfo?.trim() || undefined,
+            ...buildCommon(values.reason),
             idempotencyKey,
-            newHouseBill: switchHouseBill,
+            confirmation: buildSeaExternalConfirmation(values),
           },
         );
       }
-      message.success(
-        mode === 'amendment'
-          ? '改单版本已发布'
-          : mode === 'void'
-            ? '单证已作废'
-            : 'Switch B/L 已完成',
-      );
+      message.success(mode === 'amendment' ? '改单版本已发布' : '单证已作废');
       setMode(null);
       setPreview(null);
       setPreviewPayload(null);
@@ -385,11 +329,7 @@ export default function SeaDocumentHistoryActions({
   };
 
   const modeTitle =
-    mode === 'amendment'
-      ? `改单：${documentNo}`
-      : mode === 'void'
-        ? `作废：${documentNo}`
-        : `Switch B/L：${documentNo}`;
+    mode === 'amendment' ? `改单：${documentNo}` : `作废：${documentNo}`;
 
   return (
     <>
@@ -415,17 +355,6 @@ export default function SeaDocumentHistoryActions({
             onClick={() => openAction('void')}
           >
             作废
-          </Button>
-        ) : null}
-        {isHouse &&
-        access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'switch') ? (
-          <Button
-            size="small"
-            icon={<RetweetOutlined />}
-            disabled={disabled || !commandReady}
-            onClick={() => openAction('switch')}
-          >
-            Switch B/L
           </Button>
         ) : null}
       </Space>
@@ -472,6 +401,12 @@ export default function SeaDocumentHistoryActions({
                 <Descriptions.Item label="实体版本">
                   v{row.sourceEntityVersion}
                 </Descriptions.Item>
+                {row.documentType ===
+                  SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL && (
+                  <Descriptions.Item label="船公司" span={2}>
+                    {row.shippingLineName || row.shippingLineId || '-'}
+                  </Descriptions.Item>
+                )}
                 <Descriptions.Item label="船名">
                   {row.vesselName || '-'}
                 </Descriptions.Item>
@@ -506,11 +441,11 @@ export default function SeaDocumentHistoryActions({
             },
             { title: '单证', dataIndex: 'documentNo', width: 150 },
             {
-              title: '替代链',
+              title: '模式变化',
               width: 200,
               render: (_, row) =>
-                row.oldHouseNo && row.newHouseNo
-                  ? `${row.oldHouseNo} → ${row.newHouseNo}`
+                row.previousMode !== undefined && row.targetMode !== undefined
+                  ? `${documentModeText(row.previousMode)} → ${documentModeText(row.targetMode)}`
                   : '-',
             },
             { title: '原因', dataIndex: 'reason' },
@@ -577,76 +512,7 @@ export default function SeaDocumentHistoryActions({
           >
             <Input.TextArea maxLength={500} showCount rows={3} />
           </Form.Item>
-          {mode === 'switch' ? (
-            <>
-              <Form.Item name="surrenderInfo" label="交回/作废信息">
-                <Input maxLength={500} />
-              </Form.Item>
-              <Form.Item
-                name="houseNo"
-                label="新 HBL 号"
-                rules={[
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: '请输入新 HBL 号',
-                  },
-                ]}
-              >
-                <Input maxLength={128} />
-              </Form.Item>
-              <Form.Item
-                name="issuerSource"
-                label="新 HBL 签发主体"
-                rules={[{ required: true, message: '请选择签发主体' }]}
-              >
-                <Radio.Group>
-                  <Radio
-                    value={
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                    }
-                  >
-                    本公司
-                  </Radio>
-                  <Radio
-                    value={
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                    }
-                  >
-                    委托单位
-                  </Radio>
-                  <Radio
-                    value={
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                    }
-                  >
-                    其他主体
-                  </Radio>
-                </Radio.Group>
-              </Form.Item>
-              <Form.Item noStyle shouldUpdate>
-                {({ getFieldValue }) =>
-                  getFieldValue('issuerSource') ===
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER ? (
-                    <ProFormSearchableSelect
-                      name="issuerPartnerId"
-                      label="签发合作伙伴"
-                      rules={[
-                        { required: true, message: '请选择签发合作伙伴' },
-                      ]}
-                      request={async ({ keyWords }) =>
-                        searchPartnerOptions(keyWords)
-                      }
-                      fieldProps={{ filterOption: false }}
-                    />
-                  ) : null
-                }
-              </Form.Item>
-              <Form.Item name="note" label="新 HBL 备注">
-                <Input maxLength={500} />
-              </Form.Item>
-            </>
-          ) : null}
+          <SeaExternalConfirmationFields orderId={orderId} />
         </Form>
         {preview ? <PreviewResult preview={preview} /> : null}
       </Modal>

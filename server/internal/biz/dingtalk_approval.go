@@ -80,6 +80,7 @@ type DingTalkApprovalQueryResult struct {
 
 // DingTalkApprovalGateway 隔离原生 OA API，不与机器人通知接口混用。
 type DingTalkApprovalGateway interface {
+	Enabled() bool
 	Create(context.Context, *DingTalkApprovalCreateCommand) (*DingTalkApprovalCreateResult, error)
 	Query(context.Context, string) (*DingTalkApprovalQueryResult, error)
 }
@@ -161,7 +162,13 @@ func NewDingTalkApprovalUsecase(tasks *BackgroundTaskUsecase, repo DingTalkAppro
 	return &DingTalkApprovalUsecase{tasks: tasks, repo: repo, gateway: gateway, codec: codec, now: time.Now}
 }
 
-func (uc *DingTalkApprovalUsecase) CallbackEnabled() bool { return uc.codec.Enabled() }
+func (uc *DingTalkApprovalUsecase) Enabled() bool {
+	return uc != nil && uc.gateway != nil && uc.gateway.Enabled()
+}
+
+func (uc *DingTalkApprovalUsecase) CallbackEnabled() bool {
+	return uc != nil && uc.codec != nil && uc.codec.Enabled()
+}
 
 // ReceiveCallback 验证入站协议并幂等写入 Inbox；不在 HTTP 请求内查询 OA 或生效解锁。
 func (uc *DingTalkApprovalUsecase) ReceiveCallback(ctx context.Context, signature, timestamp, nonce, encrypted string) (string, string, error) {

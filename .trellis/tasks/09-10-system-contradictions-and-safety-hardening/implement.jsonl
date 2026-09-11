@@ -1,0 +1,12 @@
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"服务端分层边界与生成物规则"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"事务封装、固定锁序与并发版本规范"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"稳定领域错误与 HTTP 映射"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"订单锁、解锁资格、候选快照与共享 MBL 契约"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"SeaHouseBill 与活动提单关系真相源"}
+{"file":".trellis/spec/server/backend/finance-bill-currency.md","reason":"账单、结清金额与财务并发契约"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端测试与质量要求"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"前端请求状态与权限驱动调用"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成枚举和类型安全访问判断"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome 与类型检查"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"跨 API、Biz、Data、Web 数据流核验"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"统一门禁和投影复用，避免规则漂移"}

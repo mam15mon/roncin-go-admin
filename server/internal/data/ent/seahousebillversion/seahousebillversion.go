@@ -56,6 +56,14 @@ const (
 	FieldIdempotencyKey = "idempotency_key"
 	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
 	FieldRequestFingerprint = "request_fingerprint"
+	// FieldConfirmedByParty holds the string denoting the confirmed_by_party field in the database.
+	FieldConfirmedByParty = "confirmed_by_party"
+	// FieldConfirmedAt holds the string denoting the confirmed_at field in the database.
+	FieldConfirmedAt = "confirmed_at"
+	// FieldConfirmationNote holds the string denoting the confirmation_note field in the database.
+	FieldConfirmationNote = "confirmation_note"
+	// FieldConfirmationAttachmentID holds the string denoting the confirmation_attachment_id field in the database.
+	FieldConfirmationAttachmentID = "confirmation_attachment_id"
 	// FieldShipperText holds the string denoting the shipper_text field in the database.
 	FieldShipperText = "shipper_text"
 	// FieldConsigneeText holds the string denoting the consignee_text field in the database.
@@ -100,16 +108,18 @@ const (
 	EdgeMasterBill = "master_bill"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
+	// EdgeConfirmationAttachment holds the string denoting the confirmation_attachment edge name in mutations.
+	EdgeConfirmationAttachment = "confirmation_attachment"
 	// EdgeLockSnapshots holds the string denoting the lock_snapshots edge name in mutations.
 	EdgeLockSnapshots = "lock_snapshots"
 	// EdgeVoidEvents holds the string denoting the void_events edge name in mutations.
 	EdgeVoidEvents = "void_events"
 	// EdgePreviousVoidEvents holds the string denoting the previous_void_events edge name in mutations.
 	EdgePreviousVoidEvents = "previous_void_events"
-	// EdgeOldSwitchEvents holds the string denoting the old_switch_events edge name in mutations.
-	EdgeOldSwitchEvents = "old_switch_events"
-	// EdgeNewSwitchEvents holds the string denoting the new_switch_events edge name in mutations.
-	EdgeNewSwitchEvents = "new_switch_events"
+	// EdgePreviousModeChangeEvents holds the string denoting the previous_mode_change_events edge name in mutations.
+	EdgePreviousModeChangeEvents = "previous_mode_change_events"
+	// EdgeTargetModeChangeEvents holds the string denoting the target_mode_change_events edge name in mutations.
+	EdgeTargetModeChangeEvents = "target_mode_change_events"
 	// Table holds the table name of the seahousebillversion in the database.
 	Table = "sea_house_bill_versions"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -161,6 +171,13 @@ const (
 	CreatorInverseTable = "users"
 	// CreatorColumn is the table column denoting the creator relation/edge.
 	CreatorColumn = "created_by"
+	// ConfirmationAttachmentTable is the table that holds the confirmation_attachment relation/edge.
+	ConfirmationAttachmentTable = "sea_house_bill_versions"
+	// ConfirmationAttachmentInverseTable is the table name for the OrderAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachment" package.
+	ConfirmationAttachmentInverseTable = "order_attachments"
+	// ConfirmationAttachmentColumn is the table column denoting the confirmation_attachment relation/edge.
+	ConfirmationAttachmentColumn = "confirmation_attachment_id"
 	// LockSnapshotsTable is the table that holds the lock_snapshots relation/edge.
 	LockSnapshotsTable = "order_lock_house_bill_snapshots"
 	// LockSnapshotsInverseTable is the table name for the OrderLockHouseBillSnapshot entity.
@@ -182,20 +199,20 @@ const (
 	PreviousVoidEventsInverseTable = "sea_document_void_events"
 	// PreviousVoidEventsColumn is the table column denoting the previous_void_events relation/edge.
 	PreviousVoidEventsColumn = "previous_house_bill_version_id"
-	// OldSwitchEventsTable is the table that holds the old_switch_events relation/edge.
-	OldSwitchEventsTable = "sea_house_bill_switch_events"
-	// OldSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	OldSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// OldSwitchEventsColumn is the table column denoting the old_switch_events relation/edge.
-	OldSwitchEventsColumn = "old_house_bill_version_id"
-	// NewSwitchEventsTable is the table that holds the new_switch_events relation/edge.
-	NewSwitchEventsTable = "sea_house_bill_switch_events"
-	// NewSwitchEventsInverseTable is the table name for the SeaHouseBillSwitchEvent entity.
-	// It exists in this package in order to avoid circular dependency with the "seahousebillswitchevent" package.
-	NewSwitchEventsInverseTable = "sea_house_bill_switch_events"
-	// NewSwitchEventsColumn is the table column denoting the new_switch_events relation/edge.
-	NewSwitchEventsColumn = "new_house_bill_version_id"
+	// PreviousModeChangeEventsTable is the table that holds the previous_mode_change_events relation/edge.
+	PreviousModeChangeEventsTable = "sea_document_mode_change_events"
+	// PreviousModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	PreviousModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// PreviousModeChangeEventsColumn is the table column denoting the previous_mode_change_events relation/edge.
+	PreviousModeChangeEventsColumn = "previous_house_bill_version_id"
+	// TargetModeChangeEventsTable is the table that holds the target_mode_change_events relation/edge.
+	TargetModeChangeEventsTable = "sea_document_mode_change_events"
+	// TargetModeChangeEventsInverseTable is the table name for the SeaDocumentModeChangeEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "seadocumentmodechangeevent" package.
+	TargetModeChangeEventsInverseTable = "sea_document_mode_change_events"
+	// TargetModeChangeEventsColumn is the table column denoting the target_mode_change_events relation/edge.
+	TargetModeChangeEventsColumn = "target_house_bill_version_id"
 )
 
 // Columns holds all SQL columns for seahousebillversion fields.
@@ -221,6 +238,10 @@ var Columns = []string{
 	FieldCreatedBy,
 	FieldIdempotencyKey,
 	FieldRequestFingerprint,
+	FieldConfirmedByParty,
+	FieldConfirmedAt,
+	FieldConfirmationNote,
+	FieldConfirmationAttachmentID,
 	FieldShipperText,
 	FieldConsigneeText,
 	FieldNotifyPartyText,
@@ -265,6 +286,10 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	RequestFingerprintValidator func(string) error
+	// ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
+	ConfirmedByPartyValidator func(string) error
+	// ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
+	ConfirmationNoteValidator func(string) error
 	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	PackageCountValidator func(int) error
 	// PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
@@ -318,7 +343,6 @@ const (
 	StatusCONFIRMED Status = "CONFIRMED"
 	StatusRELEASED  Status = "RELEASED"
 	StatusVOIDED    Status = "VOIDED"
-	StatusREPLACED  Status = "REPLACED"
 )
 
 func (s Status) String() string {
@@ -328,7 +352,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED, StatusVOIDED, StatusREPLACED:
+	case StatusDRAFT, StatusCONFIRMED, StatusRELEASED, StatusVOIDED:
 		return nil
 	default:
 		return fmt.Errorf("seahousebillversion: invalid enum value for status field: %q", s)
@@ -340,10 +364,10 @@ type Source string
 
 // Source values.
 const (
-	SourceORDER_LOCK Source = "ORDER_LOCK"
-	SourceAMENDMENT  Source = "AMENDMENT"
-	SourceSWITCH     Source = "SWITCH"
-	SourceVOID       Source = "VOID"
+	SourceORDER_LOCK  Source = "ORDER_LOCK"
+	SourceAMENDMENT   Source = "AMENDMENT"
+	SourceVOID        Source = "VOID"
+	SourceMODE_CHANGE Source = "MODE_CHANGE"
 )
 
 func (s Source) String() string {
@@ -353,7 +377,7 @@ func (s Source) String() string {
 // SourceValidator is a validator for the "source" field enum values. It is called by the builders before save.
 func SourceValidator(s Source) error {
 	switch s {
-	case SourceORDER_LOCK, SourceAMENDMENT, SourceSWITCH, SourceVOID:
+	case SourceORDER_LOCK, SourceAMENDMENT, SourceVOID, SourceMODE_CHANGE:
 		return nil
 	default:
 		return fmt.Errorf("seahousebillversion: invalid enum value for source field: %q", s)
@@ -466,6 +490,26 @@ func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
 // ByRequestFingerprint orders the results by the request_fingerprint field.
 func ByRequestFingerprint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequestFingerprint, opts...).ToFunc()
+}
+
+// ByConfirmedByParty orders the results by the confirmed_by_party field.
+func ByConfirmedByParty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedByParty, opts...).ToFunc()
+}
+
+// ByConfirmedAt orders the results by the confirmed_at field.
+func ByConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmedAt, opts...).ToFunc()
+}
+
+// ByConfirmationNote orders the results by the confirmation_note field.
+func ByConfirmationNote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationNote, opts...).ToFunc()
+}
+
+// ByConfirmationAttachmentID orders the results by the confirmation_attachment_id field.
+func ByConfirmationAttachmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfirmationAttachmentID, opts...).ToFunc()
 }
 
 // ByShipperText orders the results by the shipper_text field.
@@ -592,6 +636,13 @@ func ByCreatorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByConfirmationAttachmentField orders the results by confirmation_attachment field.
+func ByConfirmationAttachmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmationAttachmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByLockSnapshotsCount orders the results by lock_snapshots count.
 func ByLockSnapshotsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -634,31 +685,31 @@ func ByPreviousVoidEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
-// ByOldSwitchEventsCount orders the results by old_switch_events count.
-func ByOldSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPreviousModeChangeEventsCount orders the results by previous_mode_change_events count.
+func ByPreviousModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOldSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newPreviousModeChangeEventsStep(), opts...)
 	}
 }
 
-// ByOldSwitchEvents orders the results by old_switch_events terms.
-func ByOldSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPreviousModeChangeEvents orders the results by previous_mode_change_events terms.
+func ByPreviousModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOldSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPreviousModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByNewSwitchEventsCount orders the results by new_switch_events count.
-func ByNewSwitchEventsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTargetModeChangeEventsCount orders the results by target_mode_change_events count.
+func ByTargetModeChangeEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newNewSwitchEventsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newTargetModeChangeEventsStep(), opts...)
 	}
 }
 
-// ByNewSwitchEvents orders the results by new_switch_events terms.
-func ByNewSwitchEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByTargetModeChangeEvents orders the results by target_mode_change_events terms.
+func ByTargetModeChangeEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newNewSwitchEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTargetModeChangeEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newOrganizationStep() *sqlgraph.Step {
@@ -710,6 +761,13 @@ func newCreatorStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, CreatorTable, CreatorColumn),
 	)
 }
+func newConfirmationAttachmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmationAttachmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
+	)
+}
 func newLockSnapshotsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -731,17 +789,17 @@ func newPreviousVoidEventsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, PreviousVoidEventsTable, PreviousVoidEventsColumn),
 	)
 }
-func newOldSwitchEventsStep() *sqlgraph.Step {
+func newPreviousModeChangeEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OldSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OldSwitchEventsTable, OldSwitchEventsColumn),
+		sqlgraph.To(PreviousModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PreviousModeChangeEventsTable, PreviousModeChangeEventsColumn),
 	)
 }
-func newNewSwitchEventsStep() *sqlgraph.Step {
+func newTargetModeChangeEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(NewSwitchEventsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, NewSwitchEventsTable, NewSwitchEventsColumn),
+		sqlgraph.To(TargetModeChangeEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TargetModeChangeEventsTable, TargetModeChangeEventsColumn),
 	)
 }

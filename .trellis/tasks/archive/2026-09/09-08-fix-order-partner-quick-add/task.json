@@ -1,0 +1,29 @@
+{
+  "id": "fix-order-partner-quick-add",
+  "name": "fix-order-partner-quick-add",
+  "title": "修复订单伙伴快捷新增验收缺口",
+  "description": "修复订单伙伴快捷新增验收缺口，并审核完成订单草稿、页签保护、品牌资源和本地开发说明",
+  "status": "completed",
+  "dev_type": "bugfix",
+  "scope": "server+web+docs",
+  "package": "server+web",
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-08",
+  "completedAt": "2026-09-09",
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "related_task": ".trellis/tasks/archive/2026-09/09-08-order-partner-quick-add",
+    "fixes_commit": "b83c1be6"
+  }
+}

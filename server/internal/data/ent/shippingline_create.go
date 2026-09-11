@@ -11,7 +11,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 )
@@ -197,6 +202,81 @@ func (_c *ShippingLineCreate) AddContainerPrefixes(v ...*ShippingLineContainerPr
 		ids[i] = v[i].ID
 	}
 	return _c.AddContainerPrefixIDs(ids...)
+}
+
+// AddOrderIDs adds the "orders" edge to the Order entity by IDs.
+func (_c *ShippingLineCreate) AddOrderIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddOrderIDs(ids...)
+	return _c
+}
+
+// AddOrders adds the "orders" edges to the Order entity.
+func (_c *ShippingLineCreate) AddOrders(v ...*Order) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderIDs(ids...)
+}
+
+// AddSeaTransportExecutionIDs adds the "sea_transport_executions" edge to the SeaTransportExecution entity by IDs.
+func (_c *ShippingLineCreate) AddSeaTransportExecutionIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddSeaTransportExecutionIDs(ids...)
+	return _c
+}
+
+// AddSeaTransportExecutions adds the "sea_transport_executions" edges to the SeaTransportExecution entity.
+func (_c *ShippingLineCreate) AddSeaTransportExecutions(v ...*SeaTransportExecution) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaTransportExecutionIDs(ids...)
+}
+
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *ShippingLineCreate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddSeaTransportExecutionVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *ShippingLineCreate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
+// AddSeaMasterBillIDs adds the "sea_master_bills" edge to the SeaMasterBill entity by IDs.
+func (_c *ShippingLineCreate) AddSeaMasterBillIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddSeaMasterBillIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBills adds the "sea_master_bills" edges to the SeaMasterBill entity.
+func (_c *ShippingLineCreate) AddSeaMasterBills(v ...*SeaMasterBill) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillIDs(ids...)
+}
+
+// AddSeaMasterBillVersionIDs adds the "sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
+func (_c *ShippingLineCreate) AddSeaMasterBillVersionIDs(ids ...uuid.UUID) *ShippingLineCreate {
+	_c.mutation.AddSeaMasterBillVersionIDs(ids...)
+	return _c
+}
+
+// AddSeaMasterBillVersions adds the "sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
+func (_c *ShippingLineCreate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersion) *ShippingLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaMasterBillVersionIDs(ids...)
 }
 
 // Mutation returns the ShippingLineMutation object of the builder.
@@ -458,6 +538,86 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(shippinglinecontainerprefix.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.OrdersTable,
+			Columns: []string{shippingline.OrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaTransportExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaTransportExecutionVersionsTable,
+			Columns: []string{shippingline.SeaTransportExecutionVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaMasterBillsTable,
+			Columns: []string{shippingline.SeaMasterBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaMasterBillVersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingline.SeaMasterBillVersionsTable,
+			Columns: []string{shippingline.SeaMasterBillVersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

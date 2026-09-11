@@ -1,19 +1,45 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
+import { Modal } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getFormDraftKey, getFormDraftScope, hasTabDraft } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 import {
+  computeNextActivePath,
   FIXED_TAB,
+  shouldIgnorePath,
   type TagItem,
   TagsView,
-  computeNextActivePath,
-  shouldIgnorePath,
 } from './TagsView';
+import {
+  _clearAllTabCloseGuards,
+  registerTabCloseGuard,
+} from './tabCloseGuard';
 
 const mockPush = vi.fn();
 let mockPathname = '/welcome';
 let mockSearch = '';
 let mockHash = '';
+
+/**
+ * 确认关闭行为只需要读取 Modal.confirm 参数并主动执行 onOk。
+ * 不挂载 Ant Design 的命令式 portal，避免 portal 在 happy-dom 清理后继续调度 React 更新。
+ */
+function spyOnConfirm() {
+  return vi.spyOn(Modal, 'confirm').mockImplementation(
+    () =>
+      ({
+        destroy: vi.fn(),
+        update: vi.fn(),
+      }) as ReturnType<typeof Modal.confirm>,
+  );
+}
 
 vi.mock('@umijs/max', () => ({
   history: {
@@ -23,6 +49,14 @@ vi.mock('@umijs/max', () => ({
     pathname: mockPathname,
     search: mockSearch,
     hash: mockHash,
+  }),
+  useModel: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user-1',
+        currentOrganization: { id: 'org-1' },
+      },
+    },
   }),
 }));
 
@@ -35,26 +69,44 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
       expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新增海运出口');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe('海运出口详情');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe('海运出口费用录入');
-      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/split')).toBe('海运出口拆票');
-      expect(resolveRouteTitle('/orders/sea-import')).toBe('海运进口订单列表');
-      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('新增海运进口');
-      expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口订单列表');
-      expect(resolveRouteTitle('/orders/air-export/new')).toBe('新增空运出口');
-      expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe('空运出口详情');
-      expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe('空运出口费用录入');
-      expect(resolveRouteTitle('/orders/air-import')).toBe('空运进口订单列表');
-      expect(resolveRouteTitle('/orders/air-import/new')).toBe('新增空运进口');
+      // 订单动态路由统一使用中性占位标题，具体订单页加载后回填真实标题
+      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe(
+        '订单详情',
+      );
+      expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe(
+        '订单费用录入',
+      );
+      expect(
+        resolveRouteTitle('/orders/sea-export/SE2026082600004/split'),
+      ).toBe('订单拆票');
+      // 未注册订单类型不再伪装成已知业务，回落到订单管理中性标题
+      expect(resolveRouteTitle('/orders/sea-import')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export/new')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe(
+        '订单详情',
+      );
+      expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe(
+        '订单费用录入',
+      );
+      expect(resolveRouteTitle('/orders/air-import')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-import/new')).toBe('订单管理');
       expect(resolveRouteTitle('/partners/customers')).toBe('客户');
       expect(resolveRouteTitle('/partners/customers/create')).toBe('新建客户');
       expect(resolveRouteTitle('/partners/customers/123')).toBe('客户详情');
       expect(resolveRouteTitle('/partners/suppliers')).toBe('供应商');
-      expect(resolveRouteTitle('/partners/suppliers/create')).toBe('新建供应商');
+      expect(resolveRouteTitle('/partners/suppliers/create')).toBe(
+        '新建供应商',
+      );
       expect(resolveRouteTitle('/partners/suppliers/456')).toBe('供应商详情');
       expect(resolveRouteTitle('/partners/foreign-agents')).toBe('国外代理');
-      expect(resolveRouteTitle('/partners/foreign-agents/create')).toBe('新建国外代理');
-      expect(resolveRouteTitle('/partners/foreign-agents/789')).toBe('国外代理详情');
+      expect(resolveRouteTitle('/partners/foreign-agents/create')).toBe(
+        '新建国外代理',
+      );
+      expect(resolveRouteTitle('/partners/foreign-agents/789')).toBe(
+        '国外代理详情',
+      );
       expect(resolveRouteTitle('/finance/fees')).toBe('集运费用明细');
       expect(resolveRouteTitle('/finance/fees/detail/FEE123')).toBe('费用详情');
       expect(resolveRouteTitle('/master-data')).toBe('主数据');
@@ -83,35 +135,63 @@ describe('routeUtils', () => {
       expect(resolveTabKey('/partners/suppliers/456/audit')).toBe(
         '/partners/suppliers/456/audit',
       );
-      expect(resolveTabKey('/finance/fees/export')).toBe('/finance/fees/export');
+      expect(resolveTabKey('/finance/fees/export')).toBe(
+        '/finance/fees/export',
+      );
     });
     it('海运出口所有子路由归组为 /orders/sea-export', () => {
       expect(resolveTabKey('/orders/sea-export')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/new')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/fees')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/split')).toBe('/orders/sea-export');
+      expect(resolveTabKey('/orders/sea-export/new')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004/fees')).toBe(
+        '/orders/sea-export',
+      );
+      expect(resolveTabKey('/orders/sea-export/SE2026082600004/split')).toBe(
+        '/orders/sea-export',
+      );
     });
 
     it('客商三类入口各自归组且互不合并', () => {
       expect(resolveTabKey('/partners/customers')).toBe('/partners/customers');
-      expect(resolveTabKey('/partners/customers/create')).toBe('/partners/customers');
-      expect(resolveTabKey('/partners/customers/123')).toBe('/partners/customers');
+      expect(resolveTabKey('/partners/customers/create')).toBe(
+        '/partners/customers',
+      );
+      expect(resolveTabKey('/partners/customers/123')).toBe(
+        '/partners/customers',
+      );
 
       expect(resolveTabKey('/partners/suppliers')).toBe('/partners/suppliers');
-      expect(resolveTabKey('/partners/suppliers/create')).toBe('/partners/suppliers');
-      expect(resolveTabKey('/partners/suppliers/456')).toBe('/partners/suppliers');
+      expect(resolveTabKey('/partners/suppliers/create')).toBe(
+        '/partners/suppliers',
+      );
+      expect(resolveTabKey('/partners/suppliers/456')).toBe(
+        '/partners/suppliers',
+      );
 
-      expect(resolveTabKey('/partners/foreign-agents')).toBe('/partners/foreign-agents');
-      expect(resolveTabKey('/partners/foreign-agents/create')).toBe('/partners/foreign-agents');
-      expect(resolveTabKey('/partners/foreign-agents/789')).toBe('/partners/foreign-agents');
+      expect(resolveTabKey('/partners/foreign-agents')).toBe(
+        '/partners/foreign-agents',
+      );
+      expect(resolveTabKey('/partners/foreign-agents/create')).toBe(
+        '/partners/foreign-agents',
+      );
+      expect(resolveTabKey('/partners/foreign-agents/789')).toBe(
+        '/partners/foreign-agents',
+      );
     });
 
     it('集运费用明细与单票详情归组为 /finance/fees', () => {
       expect(resolveTabKey('/finance/fees')).toBe('/finance/fees');
-      expect(resolveTabKey('/finance/fees/detail/FEE123')).toBe('/finance/fees');
+      expect(resolveTabKey('/finance/fees/detail/FEE123')).toBe(
+        '/finance/fees',
+      );
       // 费用其他设置项不归入费用明细
-      expect(resolveTabKey('/finance/fee-settings')).toBe('/finance/fee-settings');
+      expect(resolveTabKey('/finance/fee-settings')).toBe(
+        '/finance/fee-settings',
+      );
       expect(resolveTabKey('/finance/bills')).toBe('/finance/bills');
     });
 
@@ -142,7 +222,12 @@ describe('TagsView logic', () => {
   it('关闭非当前激活页签时不触发跳转', () => {
     const tags: TagItem[] = [
       FIXED_TAB,
-      { key: '/orders/sea-export', path: '/orders/sea-export', title: '海运出口', closable: true },
+      {
+        key: '/orders/sea-export',
+        path: '/orders/sea-export',
+        title: '海运出口',
+        closable: true,
+      },
       {
         key: '/partners/customers',
         path: '/partners/customers',
@@ -151,7 +236,11 @@ describe('TagsView logic', () => {
       },
     ];
     // 当前稳定 key 为 /orders/sea-export，关闭 /partners/customers
-    const next = computeNextActivePath(tags, '/partners/customers', '/orders/sea-export');
+    const next = computeNextActivePath(
+      tags,
+      '/partners/customers',
+      '/orders/sea-export',
+    );
     expect(next).toBeNull();
   });
 
@@ -161,7 +250,7 @@ describe('TagsView logic', () => {
       {
         key: '/orders/sea-export',
         path: '/orders/sea-export/SE001?tab=fees',
-        title: '海运出口详情',
+        title: '订单详情',
         closable: true,
       },
       {
@@ -172,16 +261,29 @@ describe('TagsView logic', () => {
       },
     ];
     // 当前在客户详情，关闭客户页签后激活海运出口并恢复其最新完整 path
-    const next = computeNextActivePath(tags, '/partners/customers', '/partners/customers');
+    const next = computeNextActivePath(
+      tags,
+      '/partners/customers',
+      '/partners/customers',
+    );
     expect(next).toBe('/orders/sea-export/SE001?tab=fees');
   });
 
   it('关闭列表中唯一可关闭页签时回退到工作台', () => {
     const tags: TagItem[] = [
       FIXED_TAB,
-      { key: '/orders/sea-export', path: '/orders/sea-export', title: '海运出口', closable: true },
+      {
+        key: '/orders/sea-export',
+        path: '/orders/sea-export',
+        title: '海运出口',
+        closable: true,
+      },
     ];
-    const next = computeNextActivePath(tags, '/orders/sea-export', '/orders/sea-export');
+    const next = computeNextActivePath(
+      tags,
+      '/orders/sea-export',
+      '/orders/sea-export',
+    );
     expect(next).toBe('/welcome');
   });
 });
@@ -189,12 +291,16 @@ describe('TagsView logic', () => {
 describe('TagsView Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _clearAllTabCloseGuards();
+    sessionStorage.clear();
     mockPathname = '/welcome';
     mockSearch = '';
     mockHash = '';
   });
 
   afterEach(() => {
+    _clearAllTabCloseGuards();
+    sessionStorage.clear();
     cleanup();
   });
 
@@ -233,13 +339,13 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE2026082600004';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 跳转至费用录入
     mockPathname = '/orders/sea-export/SE2026082600004/fees';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('海运出口费用录入')).toBeInTheDocument();
+    expect(screen.getByText('订单费用录入')).toBeInTheDocument();
 
     // 返回列表
     mockPathname = '/orders/sea-export';
@@ -262,7 +368,7 @@ describe('TagsView Component', () => {
     mockPathname = '/welcome';
     rerender(<TagsView />);
 
-    const orderTab = screen.getByText('海运出口详情');
+    const orderTab = screen.getByText('订单详情');
     fireEvent.click(orderTab);
     expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/SE002');
   });
@@ -299,7 +405,7 @@ describe('TagsView Component', () => {
     // 保留费用页签，并建立海运出口页签，共 3 个页签
     expect(screen.getAllByRole('tab').length).toBe(3);
     expect(screen.getByText('费用详情')).toBeInTheDocument();
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 点击费用页签应能回到费用详情
     fireEvent.click(screen.getByText('费用详情'));
@@ -328,7 +434,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
 
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 异步加载完成，发送动态标题事件
     act(() => {
@@ -369,11 +475,11 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     render(<TagsView />);
 
-    const closeBtn = screen.getByLabelText('关闭 海运出口详情');
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
     fireEvent.click(closeBtn);
 
     expect(mockPush).toHaveBeenCalledWith('/welcome');
-    expect(screen.queryByText('海运出口详情')).not.toBeInTheDocument();
+    expect(screen.queryByText('订单详情')).not.toBeInTheDocument();
   });
 
   it('直接访问重定向入口 /orders 时只产生一个业务页签', () => {
@@ -395,7 +501,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
 
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // 快速切换至订单 SE002
     mockPathname = '/orders/sea-export/SE002';
@@ -414,7 +520,7 @@ describe('TagsView Component', () => {
     });
 
     expect(screen.queryByText('SE001 (海运出口)')).not.toBeInTheDocument();
-    expect(screen.getByText('海运出口详情')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // SE002 的标题更新事件正常到达，页签标题更新为 SE002
     act(() => {
@@ -611,5 +717,139 @@ describe('TagsView Component', () => {
     expect(screen.getByText('国外代理')).toBeInTheDocument();
     expect(screen.getAllByRole('tab').length).toBe(3);
     expect(mockPush).toHaveBeenCalledWith('/partners/suppliers');
+  });
+
+  it('关闭已编辑未保存的订单页签时，弹出确认提示并在取消时保留页签', () => {
+    mockPathname = '/orders/sea-export/new';
+    render(<TagsView />);
+
+    // 注册海运出口新建订单处于 dirty 状态
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = spyOnConfirm();
+
+    const closeBtn = screen.getByLabelText('关闭 新增海运出口');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    const modalArgs = modalSpy.mock.calls[0][0];
+    expect(modalArgs.title).toBe('提示');
+    expect(modalArgs.content).toBe('修改的信息尚未保存，您确定要离开吗？');
+    expect(modalArgs.okText).toBe('确定离开');
+    expect(modalArgs.cancelText).toBe('取消');
+
+    // 未执行 onOk，页签依然存在，未跳转
+    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+
+    modalSpy.mockRestore();
+  });
+
+  it('关闭已编辑未保存的订单页签时，用户确认离开后正常关闭页签并跳转', () => {
+    mockPathname = '/orders/sea-export/SE001';
+    render(<TagsView />);
+
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = spyOnConfirm();
+
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    const modalArgs = modalSpy.mock.calls[0][0];
+
+    // 模拟用户点击「确定离开」
+    act(() => {
+      modalArgs.onOk?.();
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/welcome');
+    expect(screen.queryByText('订单详情')).not.toBeInTheDocument();
+
+    modalSpy.mockRestore();
+  });
+
+  it('右键菜单关闭其他标签页包含已编辑页签时，弹出确认提示', () => {
+    mockPathname = '/orders/sea-export/new';
+    const { rerender } = render(<TagsView />);
+
+    mockPathname = '/partners/customers';
+    rerender(<TagsView />);
+
+    // 此时标签为：工作台、海运出口、客户；海运出口处于 dirty 状态
+    registerTabCloseGuard('/orders/sea-export', {
+      isDirty: () => true,
+    });
+
+    const modalSpy = spyOnConfirm();
+
+    // 在客户标签上右键关闭其他标签页（包括海运出口）
+    const customerTab = getTabByText('客户');
+    act(() => {
+      fireEvent.contextMenu(customerTab);
+    });
+    const closeOtherItem = screen.getByText('关闭其他标签页');
+    act(() => {
+      fireEvent.click(closeOtherItem);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+    expect(modalSpy.mock.calls[0][0].content).toBe(
+      '修改的信息尚未保存，您确定要离开吗？',
+    );
+
+    // 取消时，海运出口页签依然存在
+    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+
+    // 确认后，其他标签页被关闭
+    act(() => {
+      modalSpy.mock.calls[0][0].onOk?.();
+    });
+    expect(screen.queryByText('新增海运出口')).not.toBeInTheDocument();
+    expect(screen.getByText('客户')).toBeInTheDocument();
+
+    modalSpy.mockRestore();
+  });
+
+  it('确认关闭已编辑页签后，自动清除该页签在 sessionStorage 中的草稿', () => {
+    mockPathname = '/orders/sea-export/SE001';
+    render(<TagsView />);
+
+    const draftScope = getFormDraftScope('user-1', 'org-1');
+    const draftKey = getFormDraftKey(
+      '/orders/sea-export',
+      '/orders/sea-export/SE001',
+      draftScope,
+    );
+    sessionStorage.setItem(draftKey, JSON.stringify({ field: 'value' }));
+    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(true);
+
+    const modalSpy = spyOnConfirm();
+
+    const closeBtn = screen.getByLabelText('关闭 订单详情');
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
+
+    expect(modalSpy).toHaveBeenCalledTimes(1);
+
+    // 确认离开
+    act(() => {
+      modalSpy.mock.calls[0][0].onOk?.();
+    });
+
+    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(false);
+    expect(sessionStorage.getItem(draftKey)).toBeNull();
+
+    modalSpy.mockRestore();
   });
 });

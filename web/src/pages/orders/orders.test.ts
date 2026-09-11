@@ -1,13 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataKind } from '@/enums.generated';
+import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import {
   MASTER_DATA_KINDS,
-  ORDER_KIND_CONFIGS,
   PARTNER_ROLES,
   businessTypeOptions,
   fetchOrderMasterData,
   isMasterDataKind,
-  parseOrderKind,
   requireSeaServiceTypeOptions,
   seaServiceTypes,
   shipmentModeOptions,
@@ -66,28 +65,14 @@ const numericMasterData = [
 describe('orders common and config', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearOrderMasterDataCache();
     listOptions.mockResolvedValue({ data: numericMasterData });
     listPorts.mockResolvedValue({ data: [] });
     listAirports.mockResolvedValue({ data: [] });
     getCurrencies.mockResolvedValue([]);
   });
 
-  it('正确解析业务类型路径到配置', () => {
-    expect(parseOrderKind('sea-export')).toEqual(ORDER_KIND_CONFIGS['sea-export']);
-    expect(parseOrderKind('/orders/sea-export')?.businessType).toBe(1);
-    expect(parseOrderKind('/orders/sea-export/new')?.category).toBe('sea');
-
-    expect(parseOrderKind('sea-import')).toBeUndefined();
-    expect(parseOrderKind('air-export')).toBeUndefined();
-    expect(parseOrderKind('air-import')).toBeUndefined();
-
-    expect(parseOrderKind('unknown-kind')).toBeUndefined();
-    expect(parseOrderKind('')).toBeUndefined();
-  });
-
   it('验证业务类型与贸易方向配置', () => {
-    expect(ORDER_KIND_CONFIGS['sea-export'].tradeDirection).toBe(1);
-
     expect(businessTypeOptions).toEqual([
       { label: '海运出口', value: 1, color: 'blue' },
     ]);
@@ -171,7 +156,7 @@ describe('orders common and config', () => {
   });
 
   it('使用真实数字枚举构建完整订单主数据候选', async () => {
-    const result = await fetchOrderMasterData();
+    const result = await fetchOrderMasterData('org-1', 'sea');
 
     expect(result.serviceTypeOptions).toHaveLength(19);
     expect(requireSeaServiceTypeOptions(result.serviceTypeOptions)[0]).toEqual({
@@ -199,10 +184,33 @@ describe('orders common and config', () => {
       data: numericMasterData.filter((item) => item.code !== 'BOOKING'),
     });
 
-    const result = await fetchOrderMasterData();
+    const result = await fetchOrderMasterData('org-1', 'sea');
 
     expect(() =>
       requireSeaServiceTypeOptions(result.serviceTypeOptions),
     ).toThrow('缺少海运服务类型主数据：订舱（BOOKING）');
   });
+
+  it('按需加载：sea 模式仅请求港口，不请求机场', async () => {
+    await fetchOrderMasterData('org-1', 'sea');
+    expect(listPorts).toHaveBeenCalledTimes(1);
+    expect(listAirports).not.toHaveBeenCalled();
+  });
+
+  it('按需加载：air 模式仅请求机场，不请求港口', async () => {
+    await fetchOrderMasterData('org-1', 'air');
+    expect(listAirports).toHaveBeenCalledTimes(1);
+    expect(listPorts).not.toHaveBeenCalled();
+  });
+
+  it.each(['land', 'rail'] as const)(
+    '未开放的 %s 运输方式在装载主数据前显式抛错，不请求港口或机场',
+    async (transportMode) => {
+      await expect(fetchOrderMasterData('org-1', transportMode)).rejects.toThrow(
+        '陆运与铁路订单的地点主数据尚未开放',
+      );
+      expect(listPorts).not.toHaveBeenCalled();
+      expect(listAirports).not.toHaveBeenCalled();
+    },
+  );
 });

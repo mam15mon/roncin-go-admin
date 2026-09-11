@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -72,6 +73,14 @@ type SeaOrderReassignmentEvent struct {
 	AfterSnapshot json.RawMessage `json:"after_snapshot,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy *uuid.UUID `json:"created_by,omitempty"`
+	// ConfirmedByParty holds the value of the "confirmed_by_party" field.
+	ConfirmedByParty string `json:"confirmed_by_party,omitempty"`
+	// ConfirmedAt holds the value of the "confirmed_at" field.
+	ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
+	// ConfirmationNote holds the value of the "confirmation_note" field.
+	ConfirmationNote string `json:"confirmation_note,omitempty"`
+	// ConfirmationAttachmentID holds the value of the "confirmation_attachment_id" field.
+	ConfirmationAttachmentID *uuid.UUID `json:"confirmation_attachment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaOrderReassignmentEventQuery when eager-loading is set.
 	Edges        SeaOrderReassignmentEventEdges `json:"edges"`
@@ -96,9 +105,11 @@ type SeaOrderReassignmentEventEdges struct {
 	ResponsiblePartner *Partner `json:"responsible_partner,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// ConfirmationAttachment holds the value of the confirmation_attachment edge.
+	ConfirmationAttachment *OrderAttachment `json:"confirmation_attachment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -189,20 +200,31 @@ func (e SeaOrderReassignmentEventEdges) CreatorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "creator"}
 }
 
+// ConfirmationAttachmentOrErr returns the ConfirmationAttachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaOrderReassignmentEventEdges) ConfirmationAttachmentOrErr() (*OrderAttachment, error) {
+	if e.ConfirmationAttachment != nil {
+		return e.ConfirmationAttachment, nil
+	} else if e.loadedTypes[8] {
+		return nil, &NotFoundError{label: orderattachment.Label}
+	}
+	return nil, &NotLoadedError{edge: "confirmation_attachment"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaOrderReassignmentEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seaorderreassignmentevent.FieldSplitEventID, seaorderreassignmentevent.FieldSplitResultID, seaorderreassignmentevent.FieldResponsiblePartnerID, seaorderreassignmentevent.FieldCreatedBy:
+		case seaorderreassignmentevent.FieldSplitEventID, seaorderreassignmentevent.FieldSplitResultID, seaorderreassignmentevent.FieldResponsiblePartnerID, seaorderreassignmentevent.FieldCreatedBy, seaorderreassignmentevent.FieldConfirmationAttachmentID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case seaorderreassignmentevent.FieldBeforeSnapshot, seaorderreassignmentevent.FieldAfterSnapshot:
 			values[i] = new([]byte)
 		case seaorderreassignmentevent.FieldPreviousLinkVersion, seaorderreassignmentevent.FieldTargetLinkVersion:
 			values[i] = new(sql.NullInt64)
-		case seaorderreassignmentevent.FieldOrderNo, seaorderreassignmentevent.FieldIdempotencyKey, seaorderreassignmentevent.FieldRequestFingerprint, seaorderreassignmentevent.FieldReason, seaorderreassignmentevent.FieldResponsibilityType, seaorderreassignmentevent.FieldResponsiblePartnerName:
+		case seaorderreassignmentevent.FieldOrderNo, seaorderreassignmentevent.FieldIdempotencyKey, seaorderreassignmentevent.FieldRequestFingerprint, seaorderreassignmentevent.FieldReason, seaorderreassignmentevent.FieldResponsibilityType, seaorderreassignmentevent.FieldResponsiblePartnerName, seaorderreassignmentevent.FieldConfirmedByParty, seaorderreassignmentevent.FieldConfirmationNote:
 			values[i] = new(sql.NullString)
-		case seaorderreassignmentevent.FieldCreatedAt:
+		case seaorderreassignmentevent.FieldCreatedAt, seaorderreassignmentevent.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
 		case seaorderreassignmentevent.FieldID, seaorderreassignmentevent.FieldOrganizationID, seaorderreassignmentevent.FieldOrderID, seaorderreassignmentevent.FieldPreviousMasterBillID, seaorderreassignmentevent.FieldTargetMasterBillID, seaorderreassignmentevent.FieldPreviousTransportExecutionID, seaorderreassignmentevent.FieldTargetTransportExecutionID, seaorderreassignmentevent.FieldPreviousLinkID, seaorderreassignmentevent.FieldTargetLinkID:
 			values[i] = new(uuid.UUID)
@@ -374,6 +396,31 @@ func (_m *SeaOrderReassignmentEvent) assignValues(columns []string, values []any
 				_m.CreatedBy = new(uuid.UUID)
 				*_m.CreatedBy = *value.S.(*uuid.UUID)
 			}
+		case seaorderreassignmentevent.FieldConfirmedByParty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_by_party", values[i])
+			} else if value.Valid {
+				_m.ConfirmedByParty = value.String
+			}
+		case seaorderreassignmentevent.FieldConfirmedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_at", values[i])
+			} else if value.Valid {
+				_m.ConfirmedAt = value.Time
+			}
+		case seaorderreassignmentevent.FieldConfirmationNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_note", values[i])
+			} else if value.Valid {
+				_m.ConfirmationNote = value.String
+			}
+		case seaorderreassignmentevent.FieldConfirmationAttachmentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_attachment_id", values[i])
+			} else if value.Valid {
+				_m.ConfirmationAttachmentID = new(uuid.UUID)
+				*_m.ConfirmationAttachmentID = *value.S.(*uuid.UUID)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -425,6 +472,11 @@ func (_m *SeaOrderReassignmentEvent) QueryResponsiblePartner() *PartnerQuery {
 // QueryCreator queries the "creator" edge of the SeaOrderReassignmentEvent entity.
 func (_m *SeaOrderReassignmentEvent) QueryCreator() *UserQuery {
 	return NewSeaOrderReassignmentEventClient(_m.config).QueryCreator(_m)
+}
+
+// QueryConfirmationAttachment queries the "confirmation_attachment" edge of the SeaOrderReassignmentEvent entity.
+func (_m *SeaOrderReassignmentEvent) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	return NewSeaOrderReassignmentEventClient(_m.config).QueryConfirmationAttachment(_m)
 }
 
 // Update returns a builder for updating this SeaOrderReassignmentEvent.
@@ -526,6 +578,20 @@ func (_m *SeaOrderReassignmentEvent) String() string {
 	builder.WriteString(", ")
 	if v := _m.CreatedBy; v != nil {
 		builder.WriteString("created_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("confirmed_by_party=")
+	builder.WriteString(_m.ConfirmedByParty)
+	builder.WriteString(", ")
+	builder.WriteString("confirmed_at=")
+	builder.WriteString(_m.ConfirmedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("confirmation_note=")
+	builder.WriteString(_m.ConfirmationNote)
+	builder.WriteString(", ")
+	if v := _m.ConfirmationAttachmentID; v != nil {
+		builder.WriteString("confirmation_attachment_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteByte(')')

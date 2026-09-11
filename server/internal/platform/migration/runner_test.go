@@ -153,27 +153,65 @@ func TestApplyRejectsChangedMigration(t *testing.T) {
 	}
 }
 
-func TestCompatibleChecksumOnlyAcceptsRegisteredHistoricalRepair(t *testing.T) {
-	const oldChecksum = "d50b2a09d9b4d640285f3abb43d2d9ed05e7c701a1296363b7ab3c333cc6617c"
-	const orderFeeOldChecksum = "eec00e191b2ff7429c7469316f2b2cbc3cd77f7c98ecb2fb6373b53c4c96989a"
-	const dingTalkNotificationOldChecksum = "ae50fc1578484e1ba96f67fcaee9b088fc2e0d1e579f4fe2088c35ff8aedbd1c"
-	if !isCompatibleChecksum("20260824043000_global_exchange_rates", oldChecksum) {
-		t.Fatal("已登记的共享汇率迁移旧校验和应被接受")
+func TestApplyWithChecksumRepairReRecordsRevision(t *testing.T) {
+	dir := t.TempDir()
+	statement := "SELECT 1;"
+	if err := os.WriteFile(filepath.Join(dir, "20260821140000_create_test.sql"), []byte(statement), 0o600); err != nil {
+		t.Fatal(err)
 	}
-	if !isCompatibleChecksum("20260826150000_order_fee_finance_foundation", orderFeeOldChecksum) {
-		t.Fatal("已登记的费用基础迁移旧校验和应被接受")
+	hash := sha256.Sum256([]byte(statement))
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !isCompatibleChecksum("20260829003000_dingtalk_user_authorized_notification", dingTalkNotificationOldChecksum) {
-		t.Fatal("已登记的钉钉授权通知迁移旧校验和应被接受")
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821140000_create_test", "old"))
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "schema_migrations" SET "checksum" = $1 WHERE "version" = $2 AND "checksum" = $3`)).
+		WithArgs(hex.EncodeToString(hash[:]), "20260821140000_create_test", "old").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	var repaired []string
+	err = ApplyWithOptions(context.Background(), db, dir, Options{
+		AllowChecksumRepair: true,
+		ChecksumRepaired: func(version, oldChecksum, newChecksum string) {
+			repaired = append(repaired, version+"|"+oldChecksum+"|"+newChecksum)
+		},
+	})
+	if err != nil {
+		t.Fatalf("ApplyWithOptions() error = %v", err)
 	}
-	if isCompatibleChecksum("20260829003000_dingtalk_user_authorized_notification", "unknown") {
-		t.Fatal("未知钉钉授权通知迁移校验和不应被接受")
+	if len(repaired) != 1 || repaired[0] != "20260821140000_create_test|old|"+hex.EncodeToString(hash[:]) {
+		t.Fatalf("repaired = %#v", repaired)
 	}
-	if isCompatibleChecksum("20260824043000_global_exchange_rates", "unknown") {
-		t.Fatal("未知共享汇率迁移校验和不应被接受")
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
-	if isCompatibleChecksum("20260821140000_create_test", oldChecksum) {
-		t.Fatal("兼容校验和不应扩散到其他迁移")
+}
+
+func TestApplyWithChecksumRepairStillRejectsMissingVersion(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "20260821150000_new.sql"), []byte("SELECT 2;"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821140000_missing", "checksum"))
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err = ApplyWithOptions(context.Background(), db, dir, Options{AllowChecksumRepair: true})
+	if err == nil {
+		t.Fatal("ApplyWithOptions() error = nil, want missing history error")
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
 }
 

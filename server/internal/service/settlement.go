@@ -9,13 +9,15 @@ import (
 	"github.com/shopspring/decimal"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
 // SettlementService 按子域拆分实现：费账台账（settlement_fee_ledger.go）、
 // 账单（settlement_bill.go）、发票（settlement_invoice.go）、资金流水
-// （settlement_cashflow.go）、核销（settlement_verification.go）、佣金
-// （settlement_commission.go）；本文件保留服务锚点与跨子域共享的转换辅助。
+// （settlement_cashflow.go）、核销（settlement_verification.go）、对冲
+// （settlement_netting.go）、佣金（settlement_commission.go）；本文件保留
+// 服务锚点与跨子域共享的转换辅助。
 type SettlementService struct {
 	v1.UnimplementedSettlementServiceServer
 	usecase              *biz.SettlementUsecase
@@ -23,14 +25,104 @@ type SettlementService struct {
 	invoiceUsecase       *biz.FinanceInvoiceUsecase
 	cashflowUsecase      *biz.FinanceCashflowUsecase
 	verificationUsecase  *biz.VerificationUsecase
+	nettingUsecase       *biz.FinanceNettingUsecase
 	commissionUsecase    *biz.CommissionUsecase
 	preferenceUsecase    *biz.FeeLedgerPreferenceUsecase
 	customSettingUsecase *biz.FinanceCustomSettingUsecase
 	tagUsecase           *biz.BusinessTagUsecase
+	accountUsecase       *biz.PartnerAccountUsecase
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase}
+func (s *SettlementService) ListFinanceOrganizationOptions(ctx context.Context, request *v1.ListFinanceOrganizationOptionsRequest) (*v1.ListFinanceOrganizationOptionsResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	permission, writable, ok := financeOrganizationPurposePermission(request.GetPurpose())
+	if !ok {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	organizationIDs, err := organizationIDsForPermission(principal, permission, writable)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.usecase.ListFinanceOrganizations(ctx, organizationIDs, financeOptionalString(request.Keyword))
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceOrganizationOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.FinanceOrganizationOption{Id: item.ID.String(), Code: item.Code, Name: item.Name, BaseCurrency: item.BaseCurrency})
+	}
+	return okList(ctx, &v1.ListFinanceOrganizationOptionsResponse{Data: data}), nil
+}
+
+func (s *SettlementService) ListFinanceSettlementPartyOptions(ctx context.Context, request *v1.ListFinanceSettlementPartyOptionsRequest) (*v1.ListFinanceSettlementPartyOptionsResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	permission, writable, ok := financeOrganizationPurposePermission(request.GetPurpose())
+	if !ok || !writable || (request.GetPurpose() != v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE &&
+		request.GetPurpose() != v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE) {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceLedgerInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	rawOrganizationID := request.GetOrganizationId()
+	organizationIDs, err := organizationIDsForRequestedOrganization(principal, permission, writable, &rawOrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	items, total, err := s.usecase.ListFinanceSettlementParties(ctx, organizationIDs[0], financeOptionalString(request.Keyword), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceSettlementPartyOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.FinanceSettlementPartyOption{Id: item.ID, Code: item.Code, Name: item.Name})
+	}
+	return okList(ctx, &v1.ListFinanceSettlementPartyOptionsResponse{Data: data, Total: total}), nil
+}
+
+func financeOrganizationPurposePermission(purpose v1.FinanceOrganizationPurpose) (string, bool, bool) {
+	switch purpose {
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_READ:
+		return access.FinanceBillRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE:
+		return access.FinanceBillCreate, true, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ:
+		return access.FinanceInvoiceRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE:
+		return access.FinanceInvoiceCreate, true, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ:
+		return access.FinanceCashflowRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE:
+		return access.FinanceCashflowCreate, true, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ:
+		return access.FinanceVerificationRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE:
+		return access.FinanceVerificationCreate, true, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ:
+		return access.FinanceCommissionRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE:
+		return access.FinanceCommissionManage, true, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_FEE_READ:
+		return access.FinanceFeeRead, false, true
+	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_NETTING_READ:
+		return access.FinanceNettingRead, false, true
+	default:
+		return "", false, false
+	}
+}
+
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
 }
 
 func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
@@ -50,7 +51,11 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		}
 		filter.CustomerID = &id
 	}
-	result, err := s.usecase.ListFeeLedger(ctx, principal.Organization.ID, filter)
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceFeeRead, false, request.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	result, err := s.usecase.ListFeeLedger(ctx, organizationIDs, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -64,35 +69,69 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	}
 	data := make([]*v1.FeeLedgerItem, 0, len(result.Items))
 	for _, item := range result.Items {
-		fee := item.Fee
-		data = append(data, &v1.FeeLedgerItem{
-			Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName,
-			Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName,
-			SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
-			Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8),
-			NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
-			ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8),
-			ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
-			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
-			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
-			FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
-			FinanceLocked:     item.FinanceLocked,
-			Tags:              businessTagSummariesToFinanceAPI(feeTags[fee.ID]),
-		})
-		if item.BillNo != "" {
-			data[len(data)-1].BillNo = &item.BillNo
-		}
+		data = append(data, feeLedgerItemToAPI(item, businessTagSummariesToFinanceAPI(feeTags[item.Fee.ID])))
 	}
 	return okList(ctx, &v1.ListFeeLedgerResponse{
 		Data: data, Total: result.Total,
-		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: result.Summary.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: result.Summary.ProfitBaseAmount.StringFixed(8), BaseCurrency: result.Summary.BaseCurrency},
+		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, AmountsByBaseCurrency: feeLedgerAmountsByBaseCurrencyToAPI(result.Summary.AmountsByBaseCurrency)},
 	}), nil
 }
 
-func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
+func (s *SettlementService) GetFeeLedgerOrderDetail(ctx context.Context, request *v1.GetFeeLedgerOrderDetailRequest) (*v1.GetFeeLedgerOrderDetailResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	orderID, err := uuid.Parse(strings.TrimSpace(request.GetOrderId()))
+	if err != nil {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(principal, access.FinanceFeeRead, false)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	detail, err := s.usecase.GetFeeLedgerOrderDetail(ctx, organizationIDs, orderID)
+	if err != nil {
+		return nil, err
+	}
+	fees := make([]*v1.FeeLedgerItem, 0, len(detail.Items))
+	for _, item := range detail.Items {
+		fees = append(fees, feeLedgerItemToAPI(item, nil))
+	}
+	return ok(ctx, &v1.GetFeeLedgerOrderDetailResponse{Data: &v1.FeeLedgerOrderDetail{OrderId: detail.OrderID, OrderNo: detail.OrderNo, BusinessType: detail.Business, CustomerName: detail.CustomerName, OrganizationId: detail.OrganizationID.String(), OrganizationName: detail.OrganizationName, Fees: fees, AmountsByBaseCurrency: feeLedgerAmountsByBaseCurrencyToAPI(detail.AmountsByBaseCurrency)}}), nil
+}
+
+func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) *v1.FeeLedgerItem {
+	fee := item.Fee
+	result := &v1.FeeLedgerItem{
+		Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName, OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
+		Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
+		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
+		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
+		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
+		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress), FinanceLocked: item.FinanceLocked, Tags: tags,
+	}
+	if item.BillNo != "" {
+		result.BillNo = &item.BillNo
+	}
+	return result
+}
+
+func feeLedgerAmountsByBaseCurrencyToAPI(items []biz.FeeLedgerBaseCurrencyAmount) []*v1.FeeLedgerBaseCurrencyAmount {
+	result := make([]*v1.FeeLedgerBaseCurrencyAmount, 0, len(items))
+	for _, item := range items {
+		result = append(result, &v1.FeeLedgerBaseCurrencyAmount{BaseCurrency: item.BaseCurrency, ReceivableBaseAmount: item.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: item.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: item.ProfitBaseAmount.StringFixed(8)})
+	}
+	return result
+}
+
+func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, request *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
+		return nil, err
 	}
 	preference, err := s.preferenceUsecase.Get(ctx, principal.Organization.ID, principal.UserID)
 	if err != nil {
@@ -118,6 +157,9 @@ func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, reque
 	colors := request.GetRowColors()
 	if colors == nil {
 		return nil, biz.ErrFeeLedgerPreferenceInvalidArgument
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
+		return nil, err
 	}
 	preference, err := s.preferenceUsecase.Save(ctx, principal.Organization.ID, principal.UserID, &biz.FeeLedgerPreference{
 		Columns:       columns,
@@ -148,6 +190,9 @@ func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, reques
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
+		return nil, err
+	}
 	preference, err := s.preferenceUsecase.Reset(ctx, principal.Organization.ID, principal.UserID, request.GetVersion())
 	if err != nil {
 		return nil, err
@@ -162,11 +207,17 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
+		return nil, err
+	}
 	policy, err := s.customSettingUsecase.GetBilledFeeEditPolicy(ctx, principal.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.GetBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy)}), nil
+	// 读取使用 bill.read；是否可编辑必须独立按 bill.update 的当前组织写范围计算，
+	// 不能由前端把任一组织的 update 权限误当作当前组织能力。
+	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true) == nil
+	return ok(ctx, &v1.GetBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy), CanUpdate: canUpdate}), nil
 }
 
 func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, request *v1.UpdateBilledFeeEditPolicyRequest) (*v1.UpdateBilledFeeEditPolicyResponse, error) {
@@ -184,6 +235,9 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 			return nil, biz.ErrFinanceCustomSettingInvalidArgument
 		}
 		fields = append(fields, converted)
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true); err != nil {
+		return nil, err
 	}
 	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion().GetValue())
 	if err != nil {

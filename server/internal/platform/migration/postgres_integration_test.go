@@ -2,7 +2,9 @@ package migration
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,9 +22,9 @@ func TestPostgresColdStartMigration(t *testing.T) {
 	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
 		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
 	}
-	source := os.Getenv("DATABASE_SOURCE")
+	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
 	if source == "" {
-		t.Fatal("DATABASE_SOURCE 不能为空")
+		t.Skip("设置 RONCIN_INTEGRATION_DATABASE_SOURCE 后运行真实 PostgreSQL 迁移测试")
 	}
 
 	db, err := sql.Open("pgx", source)
@@ -110,6 +112,16 @@ func TestPostgresColdStartMigration(t *testing.T) {
 		}
 	}
 
+	var documentStructureDefault sql.NullString
+	if err := db.QueryRowContext(ctx, `SELECT column_default
+		FROM information_schema.columns
+		WHERE table_schema = $1 AND table_name = 'sea_master_bill_order_links' AND column_name = 'document_structure'`,
+		schemaName).Scan(&documentStructureDefault); err != nil {
+		t.Errorf("迁移后缺少 sea_master_bill_order_links.document_structure: %v", err)
+	} else if documentStructureDefault.Valid {
+		t.Errorf("sea_master_bill_order_links.document_structure 不应保留默认值，实际为 %q", documentStructureDefault.String)
+	}
+
 	var checkDefinition string
 	if err := db.QueryRowContext(ctx, `SELECT pg_get_constraintdef(c.oid)
 		FROM pg_constraint c
@@ -141,6 +153,217 @@ func TestPostgresColdStartMigration(t *testing.T) {
 			t.Errorf("真实海运单证外键 %s delete_rule=%q，期望 NO ACTION", constraintName, deleteRule)
 		}
 	}
+}
+
+func TestPostgresSeaShippingLineIdentityMigration(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
+	if source == "" {
+		t.Skip("设置 RONCIN_INTEGRATION_DATABASE_SOURCE 后运行真实 PostgreSQL 迁移测试")
+	}
+
+	const baselineMigration = "20260905140000_release_pod_sea_documents.sql"
+	const targetRevision = "20260906120000_sea_shipping_line_identity"
+	fullDir := filepath.Join("..", "..", "..", "migrations")
+	baselineDir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > baselineMigration {
+			continue
+		}
+		content, readErr := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if readErr != nil {
+			t.Fatalf("读取基线迁移 %s 失败: %v", entry.Name(), readErr)
+		}
+		if writeErr := os.WriteFile(filepath.Join(baselineDir, entry.Name()), content, 0o600); writeErr != nil {
+			t.Fatalf("复制基线迁移 %s 失败: %v", entry.Name(), writeErr)
+		}
+	}
+
+	newDatabase := func(t *testing.T) (*sql.DB, string) {
+		t.Helper()
+		db, openErr := sql.Open("pgx", source)
+		if openErr != nil {
+			t.Fatalf("打开 PostgreSQL 失败: %v", openErr)
+		}
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+		schemaName := "roncin_shipping_line_mig_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+		quotedSchema := `"` + schemaName + `"`
+		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+		if _, createErr := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); createErr != nil {
+			_ = db.Close()
+			t.Fatalf("创建临时 Schema 失败: %v", createErr)
+		}
+		if _, searchPathErr := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); searchPathErr != nil {
+			_ = db.Close()
+			t.Fatalf("切换临时 Schema 失败: %v", searchPathErr)
+		}
+		t.Cleanup(func() {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cleanupCancel()
+			_, _ = db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE")
+			_ = db.Close()
+		})
+		return db, schemaName
+	}
+
+	t.Run("保留ShippingLine并生成目标结构", func(t *testing.T) {
+		db, schemaName := newDatabase(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+		if err := Apply(ctx, db, baselineDir); err != nil {
+			t.Fatalf("建立迁移基线失败: %v", err)
+		}
+		orgID := uuid.New()
+		if _, err := db.ExecContext(ctx, `INSERT INTO organizations (id, created_at, updated_at, code, name, kind, base_currency) VALUES ($1, now(), now(), 'SLMIG', '船公司迁移测试', 'company', 'CNY')`, orgID); err != nil {
+			t.Fatalf("写入测试组织失败: %v", err)
+		}
+		for i := 0; i < 358; i++ {
+			code := fmt.Sprintf("%c%c%c%c", 'A'+rune(i/17576), 'A'+rune((i/676)%26), 'A'+rune((i/26)%26), 'A'+rune(i%26))
+			if _, err := db.ExecContext(ctx, `INSERT INTO shipping_lines (id, created_at, updated_at, organization_id, scac_code, name_zh, name_en, country_code, source, sort_order, enabled, search_keywords) VALUES ($1, now(), now(), $2, $3, $4, $5, 'CN', 'test', 100, true, '')`, uuid.New(), orgID, code, "测试船公司"+code, "Shipping Line "+code); err != nil {
+				t.Fatalf("写入第 %d 条船公司失败: %v", i+1, err)
+			}
+		}
+		if err := Apply(ctx, db, fullDir); err != nil {
+			t.Fatalf("执行船公司身份迁移失败: %v", err)
+		}
+		var count int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM shipping_lines`).Scan(&count); err != nil || count != 358 {
+			t.Fatalf("船公司主数据未完整保留: count=%d err=%v", count, err)
+		}
+		for _, tableName := range []string{"orders", "sea_transport_executions", "sea_master_bills", "sea_master_bill_versions"} {
+			var exists bool
+			if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name=$2 AND column_name='shipping_line_id')`, schemaName, tableName).Scan(&exists); err != nil || !exists {
+				t.Fatalf("%s 缺少 shipping_line_id: exists=%v err=%v", tableName, exists, err)
+			}
+		}
+		var transportShippingLineNullable string
+		if err := db.QueryRowContext(ctx, `SELECT is_nullable FROM information_schema.columns WHERE table_schema=$1 AND table_name='sea_transport_executions' AND column_name='shipping_line_id'`, schemaName).Scan(&transportShippingLineNullable); err != nil || transportShippingLineNullable != "NO" {
+			t.Fatalf("sea_transport_executions.shipping_line_id 必须非空: nullable=%q err=%v", transportShippingLineNullable, err)
+		}
+		for tableName, constraintName := range map[string]string{
+			"orders":                   "orders_shipping_lines_orders",
+			"sea_transport_executions": "sea_transport_executions_shipping_lines_sea_transport_executions",
+			"sea_master_bills":         "sea_master_bills_shipping_lines_sea_master_bills",
+			"sea_master_bill_versions": "sea_master_bill_versions_shipping_lines_sea_master_bill_versions",
+		} {
+			var validForeignKey bool
+			if err := db.QueryRowContext(ctx, `
+				SELECT EXISTS (
+					SELECT 1
+					FROM pg_constraint
+					WHERE connamespace = $1::regnamespace
+					  AND conrelid = ($1 || '.' || $2)::regclass
+					  AND confrelid = ($1 || '.shipping_lines')::regclass
+					  AND conname = $3
+					  AND contype = 'f'
+					  AND confdeltype = 'a'
+				)`, schemaName, tableName, constraintName).Scan(&validForeignKey); err != nil || !validForeignKey {
+				t.Fatalf("%s 缺少指向 shipping_lines 且 ON DELETE NO ACTION 的外键 %s: exists=%v err=%v", tableName, constraintName, validForeignKey, err)
+			}
+		}
+		var masterBillUniqueIndexDefinition string
+		if err := db.QueryRowContext(ctx, `SELECT indexdef FROM pg_indexes WHERE schemaname=$1 AND tablename='sea_master_bills' AND indexname='seamasterbill_organization_id_shipping_line_id_normalized_master_no'`, schemaName).Scan(&masterBillUniqueIndexDefinition); err != nil || !strings.Contains(masterBillUniqueIndexDefinition, "UNIQUE INDEX") || !strings.Contains(strings.ReplaceAll(masterBillUniqueIndexDefinition, `"`, ""), "(organization_id, shipping_line_id, normalized_master_no)") {
+			t.Fatalf("MBL 唯一索引定义异常: definition=%q err=%v", masterBillUniqueIndexDefinition, err)
+		}
+		var partnerRoleCheckDefinition string
+		if err := db.QueryRowContext(ctx, `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE connamespace=$1::regnamespace AND conrelid=($1 || '.partner_roles')::regclass AND conname='partner_roles_role_type_check' AND contype='c'`, schemaName).Scan(&partnerRoleCheckDefinition); err != nil || !strings.Contains(partnerRoleCheckDefinition, "customer") || !strings.Contains(partnerRoleCheckDefinition, "supplier") || !strings.Contains(partnerRoleCheckDefinition, "foreign_agent") || strings.Contains(partnerRoleCheckDefinition, "carrier") {
+			t.Fatalf("Partner role CHECK 定义异常: definition=%q err=%v", partnerRoleCheckDefinition, err)
+		}
+		var revisionExists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version=$1)`, targetRevision).Scan(&revisionExists); err != nil || !revisionExists {
+			t.Fatalf("目标迁移记录缺失: exists=%v err=%v", revisionExists, err)
+		}
+	})
+
+	t.Run("旧SE订单使迁移原子停止", func(t *testing.T) {
+		db, schemaName := newDatabase(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+		if err := Apply(ctx, db, baselineDir); err != nil {
+			t.Fatalf("建立迁移基线失败: %v", err)
+		}
+		orgID, partnerID, orderID := uuid.New(), uuid.New(), uuid.New()
+		if _, err := db.ExecContext(ctx, `INSERT INTO organizations
+			(id, created_at, updated_at, code, name, kind, base_currency)
+			VALUES ($1, now(), now(), $2, '迁移阻断测试组织', 'company', 'CNY')`,
+			orgID, "SL-ORDER-"+orgID.String()[:8]); err != nil {
+			t.Fatalf("写入测试组织失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO partners
+			(id, created_at, updated_at, organization_id, code, legal_name, normalized_name)
+			VALUES ($1, now(), now(), $2, $3, '迁移测试客户', '迁移测试客户')`,
+			partnerID, orgID, "SL-CUSTOMER-"+partnerID.String()[:8]); err != nil {
+			t.Fatalf("写入测试客户失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO orders
+			(id, created_at, updated_at, organization_id, order_no, customer_id,
+			 business_type, trade_direction, trade_term, payment_term,
+			 flow_status, termination_status, closure_status, version)
+			VALUES ($1, now(), now(), $2, $3, $4,
+			 'SE', 'export', 'FOB', 'PREPAID', 'DRAFT', 'ACTIVE', 'OPEN', 1)`,
+			orderID, orgID, "SL-ORDER-"+orderID.String()[:8], partnerID); err != nil {
+			t.Fatalf("写入旧 SE 订单失败: %v", err)
+		}
+		if err := Apply(ctx, db, fullDir); err == nil || !strings.Contains(err.Error(), "orders") {
+			t.Fatalf("迁移应被旧 SE 订单阻断，实际错误: %v", err)
+		}
+		var oldColumnExists, newColumnExists, revisionExists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name='orders' AND column_name='carrier_id')`, schemaName).Scan(&oldColumnExists); err != nil {
+			t.Fatalf("检查旧列失败: %v", err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name='orders' AND column_name='shipping_line_id')`, schemaName).Scan(&newColumnExists); err != nil {
+			t.Fatalf("检查新列失败: %v", err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version=$1)`, targetRevision).Scan(&revisionExists); err != nil {
+			t.Fatalf("检查迁移记录失败: %v", err)
+		}
+		if !oldColumnExists || newColumnExists || revisionExists {
+			t.Fatalf("迁移失败后出现部分 DDL: old=%v new=%v revision=%v", oldColumnExists, newColumnExists, revisionExists)
+		}
+	})
+
+	t.Run("非法Partner角色使迁移原子停止", func(t *testing.T) {
+		db, schemaName := newDatabase(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancel()
+		if err := Apply(ctx, db, baselineDir); err != nil {
+			t.Fatalf("建立迁移基线失败: %v", err)
+		}
+		orgID, partnerID := uuid.New(), uuid.New()
+		if _, err := db.ExecContext(ctx, `INSERT INTO organizations (id, created_at, updated_at, code, name, kind, base_currency) VALUES ($1, now(), now(), 'SLBLOCK', '迁移阻断测试', 'company', 'CNY')`, orgID); err != nil {
+			t.Fatalf("写入测试组织失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO partners (id, created_at, updated_at, organization_id, code, legal_name, normalized_name, enabled) VALUES ($1, now(), now(), $2, 'CARRIER', '旧船公司', '旧船公司', true)`, partnerID, orgID); err != nil {
+			t.Fatalf("写入测试往来单位失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO partner_roles (id, created_at, updated_at, partner_id, role_type, enabled, blacklisted) VALUES ($1, now(), now(), $2, 'carrier', true, false)`, uuid.New(), partnerID); err != nil {
+			t.Fatalf("写入非法角色失败: %v", err)
+		}
+		if err := Apply(ctx, db, fullDir); err == nil || !strings.Contains(err.Error(), "partner_roles") {
+			t.Fatalf("迁移应被非法角色阻断，实际错误: %v", err)
+		}
+		var oldColumnExists, newColumnExists, revisionExists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name='orders' AND column_name='carrier_id')`, schemaName).Scan(&oldColumnExists); err != nil {
+			t.Fatalf("检查旧列失败: %v", err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name='orders' AND column_name='shipping_line_id')`, schemaName).Scan(&newColumnExists); err != nil {
+			t.Fatalf("检查新列失败: %v", err)
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version=$1)`, targetRevision).Scan(&revisionExists); err != nil {
+			t.Fatalf("检查迁移记录失败: %v", err)
+		}
+		if !oldColumnExists || newColumnExists || revisionExists {
+			t.Fatalf("迁移失败后出现部分 DDL: old=%v new=%v revision=%v", oldColumnExists, newColumnExists, revisionExists)
+		}
+	})
 }
 
 func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
@@ -902,5 +1125,87 @@ func TestPostgresUniversalOrderLockMigrationFromSEBaseline(t *testing.T) {
 	}
 	if len(revisionChecksum) != 64 {
 		t.Errorf("全业务订单锁迁移 checksum 长度=%d，期望 64", len(revisionChecksum))
+	}
+}
+
+func TestPostgresChecksumRepairMigration(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+
+	db, err := sql.Open("pgx", source)
+	if err != nil {
+		t.Fatalf("打开 PostgreSQL 失败: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		t.Fatalf("连接 PostgreSQL 失败: %v", err)
+	}
+
+	schemaName := "roncin_checksum_repair_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	quotedSchema := `"` + schemaName + `"`
+	if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+		t.Fatalf("创建临时 Schema 失败: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanupCancel()
+		if _, err := db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE"); err != nil {
+			t.Errorf("删除临时 Schema 失败: %v", err)
+		}
+	})
+	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+		t.Fatalf("切换临时 Schema 失败: %v", err)
+	}
+
+	dir := t.TempDir()
+	migrationPath := filepath.Join(dir, "20260910140000_repair_probe.sql")
+	initialContent := "CREATE TABLE repair_probe (id integer PRIMARY KEY);"
+	if err := os.WriteFile(migrationPath, []byte(initialContent), 0o600); err != nil {
+		t.Fatalf("写入迁移文件失败: %v", err)
+	}
+	if err := Apply(ctx, db, dir); err != nil {
+		t.Fatalf("首次迁移失败: %v", err)
+	}
+
+	// 模拟开发期把已应用的迁移文件继续改写。
+	editedContent := "CREATE TABLE repair_probe (id integer PRIMARY KEY, note text);"
+	if err := os.WriteFile(migrationPath, []byte(editedContent), 0o600); err != nil {
+		t.Fatalf("改写迁移文件失败: %v", err)
+	}
+	if err := Apply(ctx, db, dir); err == nil || !strings.Contains(err.Error(), "校验和不一致") {
+		t.Fatalf("严格模式应因校验和不一致失败，实际错误: %v", err)
+	}
+
+	var repaired []string
+	if err := ApplyWithOptions(ctx, db, dir, Options{
+		AllowChecksumRepair: true,
+		ChecksumRepaired: func(version, oldChecksum, newChecksum string) {
+			repaired = append(repaired, version)
+		},
+	}); err != nil {
+		t.Fatalf("重录校验和后迁移失败: %v", err)
+	}
+	if len(repaired) != 1 || repaired[0] != "20260910140000_repair_probe" {
+		t.Fatalf("重录回调异常: %#v", repaired)
+	}
+	editedHash := sha256.Sum256([]byte(editedContent))
+	var storedChecksum string
+	if err := db.QueryRowContext(ctx, `SELECT checksum FROM schema_migrations WHERE version = $1`, "20260910140000_repair_probe").Scan(&storedChecksum); err != nil {
+		t.Fatalf("读取迁移记录失败: %v", err)
+	}
+	if storedChecksum != hex.EncodeToString(editedHash[:]) {
+		t.Fatalf("迁移记录未更新为当前文件校验和: %s", storedChecksum)
+	}
+	if err := Apply(ctx, db, dir); err != nil {
+		t.Fatalf("重录后严格模式重复执行失败: %v", err)
 	}
 }

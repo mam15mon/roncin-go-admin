@@ -11,19 +11,23 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+func u64Ptr(v uint64) *uint64 { return &v }
+
 type mockSeaOrderChangeRepo struct {
-	getActionsFunc           func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderChangeActions, error)
-	getSplitCtxFunc          func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderSplitContext, error)
-	previewSplitFunc         func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error)
-	executeSplitFunc         func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderSplitInput, audit *AuditEvent) (*SeaOrderSplitEvent, error)
-	getSplitEventByIdempFunc func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error)
-	previewReasFunc          func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error)
-	executeReasFunc          func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderReassignmentInput, audit *AuditEvent) (*SeaOrderReassignmentEvent, error)
-	getReasEventByIdempFunc  func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderReassignmentEvent, error)
-	getSplitEventFunc        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderSplitEvent, error)
-	getReassignmentEventFunc func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
-	listEventsFunc           func(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
-	getEventFunc             func(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	getActionsFunc                      func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderChangeActions, error)
+	getSplitCtxFunc                     func(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaOrderSplitContext, error)
+	previewSplitFunc                    func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderSplitInput) (*SeaOrderSplitPreview, error)
+	executeSplitFunc                    func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderSplitInput, audit *AuditEvent) (*SeaOrderSplitEvent, error)
+	getSplitEventByIdempFunc            func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error)
+	previewReasFunc                     func(ctx context.Context, organizationID uuid.UUID, input *SeaOrderReassignmentInput) (*SeaOrderReassignmentPreview, error)
+	executeReasFunc                     func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaOrderReassignmentInput, audit *AuditEvent) (*SeaOrderReassignmentEvent, error)
+	getReasEventByIdempFunc             func(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderReassignmentEvent, error)
+	getSplitEventFunc                   func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderSplitEvent, error)
+	getReassignmentEventFunc            func(ctx context.Context, organizationID, orderID, eventID uuid.UUID) (*SeaOrderReassignmentEvent, error)
+	listEventsFunc                      func(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int32) ([]*SeaOrderChangeEventSummary, int32, error)
+	getEventFunc                        func(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error)
+	previewTransportExecutionUpdateFunc func(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error)
+	executeTransportExecutionUpdateFunc func(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error)
 }
 
 func (m *mockSeaOrderChangeRepo) GetSplitEventByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*SeaOrderSplitEvent, error) {
@@ -112,6 +116,20 @@ func (m *mockSeaOrderChangeRepo) ListChangeEvents(ctx context.Context, organizat
 func (m *mockSeaOrderChangeRepo) GetChangeEvent(ctx context.Context, organizationID, orderID, eventID uuid.UUID, eventType string) (*SeaOrderChangeEventDetail, error) {
 	if m.getEventFunc != nil {
 		return m.getEventFunc(ctx, organizationID, orderID, eventID, eventType)
+	}
+	return nil, nil
+}
+
+func (m *mockSeaOrderChangeRepo) PreviewTransportExecutionUpdate(ctx context.Context, organizationID uuid.UUID, input *SeaTransportExecutionUpdateCommand) (*SeaTransportExecutionUpdatePreview, error) {
+	if m.previewTransportExecutionUpdateFunc != nil {
+		return m.previewTransportExecutionUpdateFunc(ctx, organizationID, input)
+	}
+	return nil, nil
+}
+
+func (m *mockSeaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context, organizationID, actorID uuid.UUID, input *SeaTransportExecutionUpdateCommand, audit *AuditEvent) (*SeaTransportExecutionUpdateResult, error) {
+	if m.executeTransportExecutionUpdateFunc != nil {
+		return m.executeTransportExecutionUpdateFunc(ctx, organizationID, actorID, input, audit)
 	}
 	return nil, nil
 }
@@ -258,7 +276,7 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
 			OrderVersion:      1,
 			LinkVersion:       1,
-			AllocationVersion: 1,
+			CurrentHBLVersion: u64Ptr(1),
 		},
 	}
 
@@ -283,7 +301,7 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteSplit(t *testing.T) {
 	zeroVerInput := *input
 	zeroVerInput.IdempotencyKey = "idemp-test-zero"
 	zeroVerInput.RequestFingerprint = "fp-zero"
-	zeroVerInput.ExpectedVersions = &SeaOrderSplitExpectedVersions{OrderVersion: 0, LinkVersion: 1, AllocationVersion: 1}
+	zeroVerInput.ExpectedVersions = &SeaOrderSplitExpectedVersions{OrderVersion: 0, LinkVersion: 1}
 	if _, err := uc.ExecuteSplit(ctx, orgID, actorID, &zeroVerInput); err != ErrSeaOrderSplitInvalidArgument {
 		t.Fatalf("expected ErrSeaOrderSplitInvalidArgument on version 0, got %v", err)
 	}
@@ -341,9 +359,9 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 	input := &SeaOrderReassignmentInput{
 		OrderID: orderID,
 		Target: &SeaOrderReassignmentTargetInput{
-			TargetType:      "NEW",
-			MasterNo:        "NEWMBL",
-			IssuerPartnerID: &partnerID,
+			TargetType:     "NEW",
+			MasterNo:       "NEWMBL",
+			ShippingLineID: &partnerID,
 		},
 		Reason:               "客户要求改配",
 		ResponsibilityType:   "CUSTOMER",
@@ -351,6 +369,11 @@ func TestSeaOrderChangeUsecase_PreviewAndExecuteReassignment(t *testing.T) {
 		RequestFingerprint:   "fp-reas-123",
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
+		Confirmation: &SeaExternalConfirmation{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      time.Now(),
+			ConfirmationNote: "客户要求改配并经船司确认",
+		},
 	}
 
 	preview, err := uc.PreviewReassignment(ctx, orgID, input)
@@ -440,7 +463,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 	candidateVersion := uint64(1)
 	candidateTEID := uuid.New()
 	candidateTEVersion := uint64(2)
-	issuerID := uuid.New()
 
 	splitInput := &SeaOrderSplitInput{
 		OrderID:            orderID,
@@ -455,7 +477,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 				CandidateVersion:   &candidateVersion,
 				CandidateTEID:      &candidateTEID,
 				CandidateTEVersion: &candidateTEVersion,
-				IssuerPartnerID:    &issuerID,
 			},
 		},
 		Results: []*SeaOrderSplitResultInput{
@@ -465,7 +486,7 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 		ExpectedVersions: &SeaOrderSplitExpectedVersions{
 			OrderVersion:         1,
 			LinkVersion:          1,
-			AllocationVersion:    1,
+			CurrentHBLVersion:    u64Ptr(1),
 			CandidateMBLVersions: map[uuid.UUID]uint64{candidateID: candidateVersion},
 		},
 	}
@@ -483,7 +504,6 @@ func TestSeaOrderChangeUsecase_ExecuteCandidateRequiresAllVersions(t *testing.T)
 			CandidateVersion:   &candidateVersion,
 			CandidateTEID:      &candidateTEID,
 			CandidateTEVersion: &candidateTEVersion,
-			IssuerPartnerID:    &issuerID,
 		},
 		Reason:                      "改配测试",
 		ResponsibilityType:          ResponsibilityTypeOwnCompany,
@@ -537,7 +557,7 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 			{ClientResultKey: "original", ResultRole: ResultRoleOriginal, ClientTargetKey: "current"},
 			{ClientResultKey: "created", ResultRole: ResultRoleCreated, ClientTargetKey: "current"},
 		},
-		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, AllocationVersion: 1},
+		ExpectedVersions: &SeaOrderSplitExpectedVersions{OrderVersion: 1, LinkVersion: 1, CurrentHBLVersion: u64Ptr(1)},
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("split recovery must propagate lookup error, got %v", err)
@@ -560,15 +580,21 @@ func TestSeaOrderChangeUsecase_IdempotencyRecoveryPropagatesLookupErrors(t *test
 		},
 	}
 	reassignUC := NewSeaOrderChangeUsecase(reassignRepo, &mockTransactor{})
+	reassignShippingLineID := uuid.New()
 	_, err = reassignUC.ExecuteReassignment(context.Background(), orgID, actorID, &SeaOrderReassignmentInput{
 		OrderID:              orderID,
 		IdempotencyKey:       "reassign-lookup-error",
 		RequestFingerprint:   "reassign-lookup-error-fingerprint",
 		Reason:               "船期调整",
 		ResponsibilityType:   ResponsibilityTypeCarrier,
-		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001"},
+		Target:               &SeaOrderReassignmentTargetInput{TargetType: SplitTargetTypeNew, MasterNo: "NEWMBL001", ShippingLineID: &reassignShippingLineID},
 		ExpectedOrderVersion: 1,
 		ExpectedLinkVersion:  1,
+		Confirmation: &SeaExternalConfirmation{
+			ConfirmedByParty: "COSCO",
+			ConfirmedAt:      time.Now(),
+			ConfirmationNote: "确认船期调整",
+		},
 	})
 	if !stderrors.Is(err, lookupErr) {
 		t.Fatalf("reassignment recovery must propagate lookup error, got %v", err)
@@ -580,7 +606,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 	orgID := uuid.New()
 	actorID := uuid.New()
 	orderID := uuid.New()
-	partnerID := uuid.New()
 	candMBLID := uuid.New()
 	candTEID := uuid.New()
 	u64 := func(v uint64) *uint64 { return &v }
@@ -604,7 +629,7 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 	validExpected := &SeaOrderSplitExpectedVersions{
 		OrderVersion:      1,
 		LinkVersion:       1,
-		AllocationVersion: 1,
+		CurrentHBLVersion: u64Ptr(1),
 		CandidateMBLVersions: map[uuid.UUID]uint64{
 			candMBLID: 2,
 		},
@@ -696,7 +721,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					CandidateID:      &candMBLID,
 					CandidateVersion: u64(2),
 					CandidateTEID:    &candTEID,
-					IssuerPartnerID:  &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -715,7 +739,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					CandidateVersion:   u64(2),
 					CandidateTEID:      &candTEID,
 					CandidateTEVersion: u64(999),
-					IssuerPartnerID:    &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -733,7 +756,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					TargetType:      SplitTargetTypeNew,
 					CandidateID:     &candMBLID,
 					MasterNo:        "NEWSPLIT999",
-					IssuerPartnerID: &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -764,7 +786,6 @@ func TestSeaOrderSplit_TargetAndResultValidation(t *testing.T) {
 					ClientTargetKey: "t-new",
 					TargetType:      SplitTargetTypeNew,
 					MasterNo:        "NEW-MBL-INVALID",
-					IssuerPartnerID: &partnerID,
 				},
 			},
 			results: []*SeaOrderSplitResultInput{
@@ -904,14 +925,13 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateVersion:   u64(candMBLVer),
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
-				IssuerPartnerID:    &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),
 			wantError:            true,
 		},
 		{
-			name: "CANDIDATE缺失IssuerPartnerID被阻断",
+			name: "CANDIDATE缺失ShippingLineID被阻断",
 			target: &SeaOrderReassignmentTargetInput{
 				TargetType:         SplitTargetTypeCandidate,
 				CandidateID:        &candMBLID,
@@ -930,7 +950,6 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateID:      &candMBLID,
 				CandidateVersion: u64(candMBLVer),
 				CandidateTEID:    &candTEID,
-				IssuerPartnerID:  &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),
@@ -939,9 +958,9 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 		{
 			name: "合法NEW目标校验成功",
 			target: &SeaOrderReassignmentTargetInput{
-				TargetType:      SplitTargetTypeNew,
-				MasterNo:        "NEWMBL001",
-				IssuerPartnerID: &issuerID,
+				TargetType:     SplitTargetTypeNew,
+				MasterNo:       "NEWMBL001",
+				ShippingLineID: &issuerID,
 			},
 			wantError: false,
 		},
@@ -953,7 +972,7 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				CandidateVersion:   u64(candMBLVer),
 				CandidateTEID:      &candTEID,
 				CandidateTEVersion: u64(candTEVer),
-				IssuerPartnerID:    &issuerID,
+				ShippingLineID:     &issuerID,
 			},
 			expectedCandidateMBL: u64(candMBLVer),
 			expectedCandidateTE:  u64(candTEVer),
@@ -986,6 +1005,11 @@ func TestSeaOrderReassignment_TargetTypeAndFieldValidation(t *testing.T) {
 				ExpectedLinkVersion:         1,
 				ExpectedCandidateMBLVersion: tc.expectedCandidateMBL,
 				ExpectedCandidateTEVersion:  tc.expectedCandidateTE,
+				Confirmation: &SeaExternalConfirmation{
+					ConfirmedByParty: "COSCO",
+					ConfirmedAt:      time.Now(),
+					ConfirmationNote: "确认改配目标",
+				},
 			}
 			_, eErr := uc.ExecuteReassignment(ctx, orgID, actorID, execInput)
 			if tc.wantError && eErr != ErrSeaOrderReassignmentInvalidArgument {

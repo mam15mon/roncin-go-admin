@@ -103,3 +103,10 @@ globalThis.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 };
+
+process.on('uncaughtException', (err) => {
+  if (err?.name === 'ReferenceError' && err?.message?.includes('window is not defined')) {
+    return;
+  }
+  throw err;
+});

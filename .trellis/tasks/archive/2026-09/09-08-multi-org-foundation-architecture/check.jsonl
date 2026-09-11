@@ -1,0 +1,8 @@
+{"file": "AGENTS.md", "reason": "确认实现保持快速上线范围且未加入历史兼容与无关框架"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "检查组织切换、页签、草稿和迟到响应边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "检查前端定向验证与最终门禁记录"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "检查权限范围算法与仓储过滤未越层"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "检查显式组织过滤、事务、并发与迁移"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "检查范围外读取和写入错误语义"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "检查服务端测试和生成物完整性"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查角色权限到组织集合再到 SQL 谓词的完整链路"}

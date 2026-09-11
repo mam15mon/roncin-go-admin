@@ -15,13 +15,14 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -30,23 +31,24 @@ import (
 // SeaHouseBillVersionQuery is the builder for querying SeaHouseBillVersion entities.
 type SeaHouseBillVersionQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []seahousebillversion.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.SeaHouseBillVersion
-	withOrganization       *OrganizationQuery
-	withHouseBill          *SeaHouseBillQuery
-	withIssuerOrganization *OrganizationQuery
-	withIssuerPartner      *PartnerQuery
-	withOrder              *OrderQuery
-	withMasterBill         *SeaMasterBillQuery
-	withCreator            *UserQuery
-	withLockSnapshots      *OrderLockHouseBillSnapshotQuery
-	withVoidEvents         *SeaDocumentVoidEventQuery
-	withPreviousVoidEvents *SeaDocumentVoidEventQuery
-	withOldSwitchEvents    *SeaHouseBillSwitchEventQuery
-	withNewSwitchEvents    *SeaHouseBillSwitchEventQuery
-	modifiers              []func(*sql.Selector)
+	ctx                          *QueryContext
+	order                        []seahousebillversion.OrderOption
+	inters                       []Interceptor
+	predicates                   []predicate.SeaHouseBillVersion
+	withOrganization             *OrganizationQuery
+	withHouseBill                *SeaHouseBillQuery
+	withIssuerOrganization       *OrganizationQuery
+	withIssuerPartner            *PartnerQuery
+	withOrder                    *OrderQuery
+	withMasterBill               *SeaMasterBillQuery
+	withCreator                  *UserQuery
+	withConfirmationAttachment   *OrderAttachmentQuery
+	withLockSnapshots            *OrderLockHouseBillSnapshotQuery
+	withVoidEvents               *SeaDocumentVoidEventQuery
+	withPreviousVoidEvents       *SeaDocumentVoidEventQuery
+	withPreviousModeChangeEvents *SeaDocumentModeChangeEventQuery
+	withTargetModeChangeEvents   *SeaDocumentModeChangeEventQuery
+	modifiers                    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -237,6 +239,28 @@ func (_q *SeaHouseBillVersionQuery) QueryCreator() *UserQuery {
 	return query
 }
 
+// QueryConfirmationAttachment chains the current query on the "confirmation_attachment" edge.
+func (_q *SeaHouseBillVersionQuery) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebillversion.ConfirmationAttachmentTable, seahousebillversion.ConfirmationAttachmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryLockSnapshots chains the current query on the "lock_snapshots" edge.
 func (_q *SeaHouseBillVersionQuery) QueryLockSnapshots() *OrderLockHouseBillSnapshotQuery {
 	query := (&OrderLockHouseBillSnapshotClient{config: _q.config}).Query()
@@ -303,9 +327,9 @@ func (_q *SeaHouseBillVersionQuery) QueryPreviousVoidEvents() *SeaDocumentVoidEv
 	return query
 }
 
-// QueryOldSwitchEvents chains the current query on the "old_switch_events" edge.
-func (_q *SeaHouseBillVersionQuery) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// QueryPreviousModeChangeEvents chains the current query on the "previous_mode_change_events" edge.
+func (_q *SeaHouseBillVersionQuery) QueryPreviousModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -316,8 +340,8 @@ func (_q *SeaHouseBillVersionQuery) QueryOldSwitchEvents() *SeaHouseBillSwitchEv
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.OldSwitchEventsTable, seahousebillversion.OldSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.PreviousModeChangeEventsTable, seahousebillversion.PreviousModeChangeEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -325,9 +349,9 @@ func (_q *SeaHouseBillVersionQuery) QueryOldSwitchEvents() *SeaHouseBillSwitchEv
 	return query
 }
 
-// QueryNewSwitchEvents chains the current query on the "new_switch_events" edge.
-func (_q *SeaHouseBillVersionQuery) QueryNewSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// QueryTargetModeChangeEvents chains the current query on the "target_mode_change_events" edge.
+func (_q *SeaHouseBillVersionQuery) QueryTargetModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -338,8 +362,8 @@ func (_q *SeaHouseBillVersionQuery) QueryNewSwitchEvents() *SeaHouseBillSwitchEv
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(seahousebillversion.Table, seahousebillversion.FieldID, selector),
-			sqlgraph.To(seahousebillswitchevent.Table, seahousebillswitchevent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.NewSwitchEventsTable, seahousebillversion.NewSwitchEventsColumn),
+			sqlgraph.To(seadocumentmodechangeevent.Table, seadocumentmodechangeevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seahousebillversion.TargetModeChangeEventsTable, seahousebillversion.TargetModeChangeEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -534,23 +558,24 @@ func (_q *SeaHouseBillVersionQuery) Clone() *SeaHouseBillVersionQuery {
 		return nil
 	}
 	return &SeaHouseBillVersionQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]seahousebillversion.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.SeaHouseBillVersion{}, _q.predicates...),
-		withOrganization:       _q.withOrganization.Clone(),
-		withHouseBill:          _q.withHouseBill.Clone(),
-		withIssuerOrganization: _q.withIssuerOrganization.Clone(),
-		withIssuerPartner:      _q.withIssuerPartner.Clone(),
-		withOrder:              _q.withOrder.Clone(),
-		withMasterBill:         _q.withMasterBill.Clone(),
-		withCreator:            _q.withCreator.Clone(),
-		withLockSnapshots:      _q.withLockSnapshots.Clone(),
-		withVoidEvents:         _q.withVoidEvents.Clone(),
-		withPreviousVoidEvents: _q.withPreviousVoidEvents.Clone(),
-		withOldSwitchEvents:    _q.withOldSwitchEvents.Clone(),
-		withNewSwitchEvents:    _q.withNewSwitchEvents.Clone(),
+		config:                       _q.config,
+		ctx:                          _q.ctx.Clone(),
+		order:                        append([]seahousebillversion.OrderOption{}, _q.order...),
+		inters:                       append([]Interceptor{}, _q.inters...),
+		predicates:                   append([]predicate.SeaHouseBillVersion{}, _q.predicates...),
+		withOrganization:             _q.withOrganization.Clone(),
+		withHouseBill:                _q.withHouseBill.Clone(),
+		withIssuerOrganization:       _q.withIssuerOrganization.Clone(),
+		withIssuerPartner:            _q.withIssuerPartner.Clone(),
+		withOrder:                    _q.withOrder.Clone(),
+		withMasterBill:               _q.withMasterBill.Clone(),
+		withCreator:                  _q.withCreator.Clone(),
+		withConfirmationAttachment:   _q.withConfirmationAttachment.Clone(),
+		withLockSnapshots:            _q.withLockSnapshots.Clone(),
+		withVoidEvents:               _q.withVoidEvents.Clone(),
+		withPreviousVoidEvents:       _q.withPreviousVoidEvents.Clone(),
+		withPreviousModeChangeEvents: _q.withPreviousModeChangeEvents.Clone(),
+		withTargetModeChangeEvents:   _q.withTargetModeChangeEvents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -634,6 +659,17 @@ func (_q *SeaHouseBillVersionQuery) WithCreator(opts ...func(*UserQuery)) *SeaHo
 	return _q
 }
 
+// WithConfirmationAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "confirmation_attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaHouseBillVersionQuery) WithConfirmationAttachment(opts ...func(*OrderAttachmentQuery)) *SeaHouseBillVersionQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmationAttachment = query
+	return _q
+}
+
 // WithLockSnapshots tells the query-builder to eager-load the nodes that are connected to
 // the "lock_snapshots" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *SeaHouseBillVersionQuery) WithLockSnapshots(opts ...func(*OrderLockHouseBillSnapshotQuery)) *SeaHouseBillVersionQuery {
@@ -667,25 +703,25 @@ func (_q *SeaHouseBillVersionQuery) WithPreviousVoidEvents(opts ...func(*SeaDocu
 	return _q
 }
 
-// WithOldSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "old_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaHouseBillVersionQuery) WithOldSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *SeaHouseBillVersionQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// WithPreviousModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "previous_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaHouseBillVersionQuery) WithPreviousModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *SeaHouseBillVersionQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withOldSwitchEvents = query
+	_q.withPreviousModeChangeEvents = query
 	return _q
 }
 
-// WithNewSwitchEvents tells the query-builder to eager-load the nodes that are connected to
-// the "new_switch_events" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SeaHouseBillVersionQuery) WithNewSwitchEvents(opts ...func(*SeaHouseBillSwitchEventQuery)) *SeaHouseBillVersionQuery {
-	query := (&SeaHouseBillSwitchEventClient{config: _q.config}).Query()
+// WithTargetModeChangeEvents tells the query-builder to eager-load the nodes that are connected to
+// the "target_mode_change_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaHouseBillVersionQuery) WithTargetModeChangeEvents(opts ...func(*SeaDocumentModeChangeEventQuery)) *SeaHouseBillVersionQuery {
+	query := (&SeaDocumentModeChangeEventClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNewSwitchEvents = query
+	_q.withTargetModeChangeEvents = query
 	return _q
 }
 
@@ -767,7 +803,7 @@ func (_q *SeaHouseBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryHo
 	var (
 		nodes       = []*SeaHouseBillVersion{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			_q.withOrganization != nil,
 			_q.withHouseBill != nil,
 			_q.withIssuerOrganization != nil,
@@ -775,11 +811,12 @@ func (_q *SeaHouseBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			_q.withOrder != nil,
 			_q.withMasterBill != nil,
 			_q.withCreator != nil,
+			_q.withConfirmationAttachment != nil,
 			_q.withLockSnapshots != nil,
 			_q.withVoidEvents != nil,
 			_q.withPreviousVoidEvents != nil,
-			_q.withOldSwitchEvents != nil,
-			_q.withNewSwitchEvents != nil,
+			_q.withPreviousModeChangeEvents != nil,
+			_q.withTargetModeChangeEvents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -845,6 +882,12 @@ func (_q *SeaHouseBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			return nil, err
 		}
 	}
+	if query := _q.withConfirmationAttachment; query != nil {
+		if err := _q.loadConfirmationAttachment(ctx, query, nodes, nil,
+			func(n *SeaHouseBillVersion, e *OrderAttachment) { n.Edges.ConfirmationAttachment = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withLockSnapshots; query != nil {
 		if err := _q.loadLockSnapshots(ctx, query, nodes,
 			func(n *SeaHouseBillVersion) { n.Edges.LockSnapshots = []*OrderLockHouseBillSnapshot{} },
@@ -872,20 +915,20 @@ func (_q *SeaHouseBillVersionQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			return nil, err
 		}
 	}
-	if query := _q.withOldSwitchEvents; query != nil {
-		if err := _q.loadOldSwitchEvents(ctx, query, nodes,
-			func(n *SeaHouseBillVersion) { n.Edges.OldSwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *SeaHouseBillVersion, e *SeaHouseBillSwitchEvent) {
-				n.Edges.OldSwitchEvents = append(n.Edges.OldSwitchEvents, e)
+	if query := _q.withPreviousModeChangeEvents; query != nil {
+		if err := _q.loadPreviousModeChangeEvents(ctx, query, nodes,
+			func(n *SeaHouseBillVersion) { n.Edges.PreviousModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *SeaHouseBillVersion, e *SeaDocumentModeChangeEvent) {
+				n.Edges.PreviousModeChangeEvents = append(n.Edges.PreviousModeChangeEvents, e)
 			}); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withNewSwitchEvents; query != nil {
-		if err := _q.loadNewSwitchEvents(ctx, query, nodes,
-			func(n *SeaHouseBillVersion) { n.Edges.NewSwitchEvents = []*SeaHouseBillSwitchEvent{} },
-			func(n *SeaHouseBillVersion, e *SeaHouseBillSwitchEvent) {
-				n.Edges.NewSwitchEvents = append(n.Edges.NewSwitchEvents, e)
+	if query := _q.withTargetModeChangeEvents; query != nil {
+		if err := _q.loadTargetModeChangeEvents(ctx, query, nodes,
+			func(n *SeaHouseBillVersion) { n.Edges.TargetModeChangeEvents = []*SeaDocumentModeChangeEvent{} },
+			func(n *SeaHouseBillVersion, e *SeaDocumentModeChangeEvent) {
+				n.Edges.TargetModeChangeEvents = append(n.Edges.TargetModeChangeEvents, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1105,6 +1148,38 @@ func (_q *SeaHouseBillVersionQuery) loadCreator(ctx context.Context, query *User
 	}
 	return nil
 }
+func (_q *SeaHouseBillVersionQuery) loadConfirmationAttachment(ctx context.Context, query *OrderAttachmentQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *OrderAttachment)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*SeaHouseBillVersion)
+	for i := range nodes {
+		if nodes[i].ConfirmationAttachmentID == nil {
+			continue
+		}
+		fk := *nodes[i].ConfirmationAttachmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderattachment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "confirmation_attachment_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *SeaHouseBillVersionQuery) loadLockSnapshots(ctx context.Context, query *OrderLockHouseBillSnapshotQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *OrderLockHouseBillSnapshot)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaHouseBillVersion)
@@ -1201,7 +1276,7 @@ func (_q *SeaHouseBillVersionQuery) loadPreviousVoidEvents(ctx context.Context, 
 	}
 	return nil
 }
-func (_q *SeaHouseBillVersionQuery) loadOldSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *SeaHouseBillSwitchEvent)) error {
+func (_q *SeaHouseBillVersionQuery) loadPreviousModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *SeaDocumentModeChangeEvent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaHouseBillVersion)
 	for i := range nodes {
@@ -1212,26 +1287,29 @@ func (_q *SeaHouseBillVersionQuery) loadOldSwitchEvents(ctx context.Context, que
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldOldHouseBillVersionID)
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldPreviousHouseBillVersionID)
 	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(seahousebillversion.OldSwitchEventsColumn), fks...))
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seahousebillversion.PreviousModeChangeEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.OldHouseBillVersionID
-		node, ok := nodeids[fk]
+		fk := n.PreviousHouseBillVersionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "previous_house_bill_version_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "old_house_bill_version_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "previous_house_bill_version_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
 	return nil
 }
-func (_q *SeaHouseBillVersionQuery) loadNewSwitchEvents(ctx context.Context, query *SeaHouseBillSwitchEventQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *SeaHouseBillSwitchEvent)) error {
+func (_q *SeaHouseBillVersionQuery) loadTargetModeChangeEvents(ctx context.Context, query *SeaDocumentModeChangeEventQuery, nodes []*SeaHouseBillVersion, init func(*SeaHouseBillVersion), assign func(*SeaHouseBillVersion, *SeaDocumentModeChangeEvent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*SeaHouseBillVersion)
 	for i := range nodes {
@@ -1242,20 +1320,23 @@ func (_q *SeaHouseBillVersionQuery) loadNewSwitchEvents(ctx context.Context, que
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(seahousebillswitchevent.FieldNewHouseBillVersionID)
+		query.ctx.AppendFieldOnce(seadocumentmodechangeevent.FieldTargetHouseBillVersionID)
 	}
-	query.Where(predicate.SeaHouseBillSwitchEvent(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(seahousebillversion.NewSwitchEventsColumn), fks...))
+	query.Where(predicate.SeaDocumentModeChangeEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seahousebillversion.TargetModeChangeEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.NewHouseBillVersionID
-		node, ok := nodeids[fk]
+		fk := n.TargetHouseBillVersionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "target_house_bill_version_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "new_house_bill_version_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "target_house_bill_version_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -1310,6 +1391,9 @@ func (_q *SeaHouseBillVersionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCreator != nil {
 			_spec.Node.AddColumnOnce(seahousebillversion.FieldCreatedBy)
+		}
+		if _q.withConfirmationAttachment != nil {
+			_spec.Node.AddColumnOnce(seahousebillversion.FieldConfirmationAttachmentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

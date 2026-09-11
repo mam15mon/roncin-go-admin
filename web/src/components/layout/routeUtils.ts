@@ -12,12 +12,6 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/partners/foreign-agents/create': '新建国外代理',
   '/orders/sea-export': '海运出口订单列表',
   '/orders/sea-export/new': '新增海运出口',
-  '/orders/sea-import': '海运进口订单列表',
-  '/orders/sea-import/new': '新增海运进口',
-  '/orders/air-export': '空运出口订单列表',
-  '/orders/air-export/new': '新增空运出口',
-  '/orders/air-import': '空运进口订单列表',
-  '/orders/air-import/new': '新增空运进口',
   '/orders': '订单管理',
   '/master-data': '主数据',
   '/settings': '参数设置',
@@ -32,16 +26,6 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/admin': '系统管理',
 };
 
-const KIND_NAMES: Record<string, string> = {
-  'sea-export': '海运出口',
-  'sea-import': '海运进口',
-  'air-export': '空运出口',
-  'air-import': '空运进口',
-  rail: '铁路运输',
-  truck: '内陆拖车',
-  customs: '报关业务',
-};
-
 export const DYNAMIC_ROUTE_PATTERNS: Array<{
   pattern: RegExp;
   title: string | ((matches: RegExpMatchArray) => string);
@@ -53,16 +37,18 @@ export const DYNAMIC_ROUTE_PATTERNS: Array<{
     title: '国外代理详情',
   },
   {
+    // 订单动态路由统一使用中性占位标题；具体订单页在数据加载后
+    // 通过 roncin:update-tab-title 事件回填带业务类型的真实标题。
     pattern: /^\/orders\/([^/]+)\/([^/]+)\/fees$/,
-    title: (m) => `${KIND_NAMES[m[1]] || '订单'}费用录入`,
+    title: '订单费用录入',
   },
   {
     pattern: /^\/orders\/([^/]+)\/([^/]+)\/split$/,
-    title: (m) => `${KIND_NAMES[m[1]] || '订单'}拆票`,
+    title: '订单拆票',
   },
   {
     pattern: /^\/orders\/([^/]+)\/(?!new)[^/]+$/,
-    title: (m) => `${KIND_NAMES[m[1]] || '订单'}详情`,
+    title: '订单详情',
   },
   {
     pattern: /^\/finance\/fees\/detail\/[^/]+$/,

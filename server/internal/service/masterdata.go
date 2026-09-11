@@ -547,7 +547,24 @@ func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
 }
 
 func airlineToAPI(item *biz.Airline) *v1.Airline {
-	return &v1.Airline{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, AwbPrefix: item.AWBPrefix, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, CargoOnly: item.CargoOnly, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.Airline{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		IataCode:       item.IATACode,
+		IcaoCode:       item.ICAOCode,
+		AwbPrefix:      optionalString(item.AWBPrefix, item.AWBPrefix != ""),
+		NameZh:         optionalString(item.NameZH, item.NameZH != ""),
+		NameEn:         item.NameEN,
+		CountryCode:    item.CountryCode,
+		CargoOnly:      item.CargoOnly,
+		Source:         item.Source,
+		SortOrder:      int32(item.SortOrder),
+		Enabled:        item.Enabled,
+		CreatedAt:      item.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.UTC().Format(time.RFC3339),
+		SourceVersion:  item.SourceVersion,
+		SourceHash:     item.SourceHash,
+	}
 }
 
 func shippingLinesToAPI(items []*biz.ShippingLine) []*v1.ShippingLine {
@@ -613,6 +630,8 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 		return biz.DocumentTypeFreightRate
 	case v1.DocumentType_DOCUMENT_TYPE_COMMISSION:
 		return biz.DocumentTypeCommission
+	case v1.DocumentType_DOCUMENT_TYPE_NETTING:
+		return biz.DocumentTypeNetting
 	default:
 		return ""
 	}
@@ -646,6 +665,8 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 		return v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE
 	case biz.DocumentTypeCommission:
 		return v1.DocumentType_DOCUMENT_TYPE_COMMISSION
+	case biz.DocumentTypeNetting:
+		return v1.DocumentType_DOCUMENT_TYPE_NETTING
 	default:
 		return v1.DocumentType_DOCUMENT_TYPE_UNSPECIFIED
 	}

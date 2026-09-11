@@ -25,6 +25,7 @@ const (
 	OrderService_CheckOrderReference_FullMethodName         = "/order.v1.OrderService/CheckOrderReference"
 	OrderService_ListPersonnelOptions_FullMethodName        = "/order.v1.OrderService/ListPersonnelOptions"
 	OrderService_ListOrderConsolidations_FullMethodName     = "/order.v1.OrderService/ListOrderConsolidations"
+	OrderService_ListSameBatchOrders_FullMethodName         = "/order.v1.OrderService/ListSameBatchOrders"
 	OrderService_CreateOrder_FullMethodName                 = "/order.v1.OrderService/CreateOrder"
 	OrderService_UpdateOrder_FullMethodName                 = "/order.v1.OrderService/UpdateOrder"
 	OrderService_TransitionOrderStatus_FullMethodName       = "/order.v1.OrderService/TransitionOrderStatus"
@@ -44,6 +45,7 @@ type OrderServiceClient interface {
 	CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...grpc.CallOption) (*CheckOrderReferenceResponse, error)
 	ListPersonnelOptions(ctx context.Context, in *ListPersonnelOptionsRequest, opts ...grpc.CallOption) (*ListPersonnelOptionsResponse, error)
 	ListOrderConsolidations(ctx context.Context, in *ListOrderConsolidationsRequest, opts ...grpc.CallOption) (*ListOrderConsolidationsResponse, error)
+	ListSameBatchOrders(ctx context.Context, in *ListSameBatchOrdersRequest, opts ...grpc.CallOption) (*ListSameBatchOrdersResponse, error)
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*UpdateOrderResponse, error)
 	TransitionOrderStatus(ctx context.Context, in *TransitionOrderStatusRequest, opts ...grpc.CallOption) (*TransitionOrderStatusResponse, error)
@@ -119,6 +121,16 @@ func (c *orderServiceClient) ListOrderConsolidations(ctx context.Context, in *Li
 	return out, nil
 }
 
+func (c *orderServiceClient) ListSameBatchOrders(ctx context.Context, in *ListSameBatchOrdersRequest, opts ...grpc.CallOption) (*ListSameBatchOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSameBatchOrdersResponse)
+	err := c.cc.Invoke(ctx, OrderService_ListSameBatchOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateOrderResponse)
@@ -181,6 +193,7 @@ type OrderServiceServer interface {
 	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*CheckOrderReferenceResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
 	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
+	ListSameBatchOrders(context.Context, *ListSameBatchOrdersRequest) (*ListSameBatchOrdersResponse, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
@@ -213,6 +226,9 @@ func (UnimplementedOrderServiceServer) ListPersonnelOptions(context.Context, *Li
 }
 func (UnimplementedOrderServiceServer) ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOrderConsolidations not implemented")
+}
+func (UnimplementedOrderServiceServer) ListSameBatchOrders(context.Context, *ListSameBatchOrdersRequest) (*ListSameBatchOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSameBatchOrders not implemented")
 }
 func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateOrder not implemented")
@@ -358,6 +374,24 @@ func _OrderService_ListOrderConsolidations_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_ListSameBatchOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSameBatchOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).ListSameBatchOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_ListSameBatchOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).ListSameBatchOrders(ctx, req.(*ListSameBatchOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderService_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrderRequest)
 	if err := dec(in); err != nil {
@@ -478,6 +512,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrderConsolidations",
 			Handler:    _OrderService_ListOrderConsolidations_Handler,
+		},
+		{
+			MethodName: "ListSameBatchOrders",
+			Handler:    _OrderService_ListSameBatchOrders_Handler,
 		},
 		{
 			MethodName: "CreateOrder",

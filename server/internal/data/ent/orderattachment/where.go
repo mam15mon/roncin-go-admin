@@ -440,6 +440,144 @@ func HasCreatorWith(preds ...predicate.User) predicate.OrderAttachment {
 	})
 }
 
+// HasSeaMasterBillVersions applies the HasEdge predicate on the "sea_master_bill_versions" edge.
+func HasSeaMasterBillVersions() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillVersionsTable, SeaMasterBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaMasterBillVersionsWith applies the HasEdge predicate on the "sea_master_bill_versions" edge with a given conditions (other predicates).
+func HasSeaMasterBillVersionsWith(preds ...predicate.SeaMasterBillVersion) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaMasterBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaHouseBillVersions applies the HasEdge predicate on the "sea_house_bill_versions" edge.
+func HasSeaHouseBillVersions() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillVersionsTable, SeaHouseBillVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillVersionsWith applies the HasEdge predicate on the "sea_house_bill_versions" edge with a given conditions (other predicates).
+func HasSeaHouseBillVersionsWith(preds ...predicate.SeaHouseBillVersion) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaHouseBillVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaOrderReassignmentEvents applies the HasEdge predicate on the "sea_order_reassignment_events" edge.
+func HasSeaOrderReassignmentEvents() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaOrderReassignmentEventsTable, SeaOrderReassignmentEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaOrderReassignmentEventsWith applies the HasEdge predicate on the "sea_order_reassignment_events" edge with a given conditions (other predicates).
+func HasSeaOrderReassignmentEventsWith(preds ...predicate.SeaOrderReassignmentEvent) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaOrderReassignmentEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaDocumentVoidEvents applies the HasEdge predicate on the "sea_document_void_events" edge.
+func HasSeaDocumentVoidEvents() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentVoidEventsTable, SeaDocumentVoidEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaDocumentVoidEventsWith applies the HasEdge predicate on the "sea_document_void_events" edge with a given conditions (other predicates).
+func HasSeaDocumentVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaDocumentVoidEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaDocumentModeChangeEvents applies the HasEdge predicate on the "sea_document_mode_change_events" edge.
+func HasSeaDocumentModeChangeEvents() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaDocumentModeChangeEventsTable, SeaDocumentModeChangeEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaDocumentModeChangeEventsWith applies the HasEdge predicate on the "sea_document_mode_change_events" edge with a given conditions (other predicates).
+func HasSeaDocumentModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaDocumentModeChangeEventsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeaTransportExecutionVersions applies the HasEdge predicate on the "sea_transport_execution_versions" edge.
+func HasSeaTransportExecutionVersions() predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaTransportExecutionVersionsTable, SeaTransportExecutionVersionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaTransportExecutionVersionsWith applies the HasEdge predicate on the "sea_transport_execution_versions" edge with a given conditions (other predicates).
+func HasSeaTransportExecutionVersionsWith(preds ...predicate.SeaTransportExecutionVersion) predicate.OrderAttachment {
+	return predicate.OrderAttachment(func(s *sql.Selector) {
+		step := newSeaTransportExecutionVersionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.OrderAttachment) predicate.OrderAttachment {
 	return predicate.OrderAttachment(sql.AndPredicates(predicates...))

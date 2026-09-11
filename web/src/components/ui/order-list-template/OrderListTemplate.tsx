@@ -1,6 +1,5 @@
 import {
   AlertOutlined,
-  AppstoreOutlined,
   DollarOutlined,
   DownOutlined,
   EditOutlined,
@@ -15,7 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { Badge, Button, Card, Dropdown, Space, Tabs, Tag, Tooltip } from 'antd';
+import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import OrderListSearchFilter from './OrderListSearchFilter';
@@ -24,28 +23,12 @@ import type {
   OrderListFilterParams,
   OrderListItem,
   OrderListTemplateProps,
-  OrderStatusTabItem,
 } from './types';
-
-const defaultStatusTabs: OrderStatusTabItem[] = [
-  { key: 'all', label: '全部订单' },
-  { key: 'draft', label: '草稿待提交', count: 0 },
-  { key: 'booking', label: '待订舱', count: 0, badgeColor: '#faad14' },
-  { key: 'loaded', label: '已配载/订舱确认', count: 0 },
-  { key: 'in_transit', label: '在途运输', count: 0, badgeColor: '#1677ff' },
-  { key: 'released', label: '已放货/放行', count: 0 },
-  { key: 'completed', label: '已完结', count: 0, badgeColor: '#52c41a' },
-  { key: 'abnormal', label: '异常预警', count: 0, badgeColor: '#ff4d4f' },
-];
 
 export function OrderListTemplate({
   actionRef: externalActionRef,
-  orderKind,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
-  statusTabs = defaultStatusTabs,
-  activeStatusTab = 'all',
-  onStatusTabChange,
   customColumns,
   extraColumns = [],
   queryOrders,
@@ -61,8 +44,6 @@ export function OrderListTemplate({
   documentsActionLabel = '主分单据管理',
   onOpenContainers,
   onOpenCargo,
-  onOpenCargoAllocation,
-  canOpenCargoAllocation,
   onOpenAttachments,
   onOpenPersonnel,
   onOpenConsolidations,
@@ -79,7 +60,6 @@ export function OrderListTemplate({
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const currentFilterRef = useRef<OrderListFilterParams>({});
-  const [currentTab, setCurrentTab] = useState<string>(activeStatusTab);
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 1. 构建完整表头列定义
@@ -138,28 +118,13 @@ export function OrderListTemplate({
           </Space>
         ),
       },
-      // 4. 业务类型
+      // 4. 业务类型（页面查询已按注册定义映射好显示文案）
       {
         title: '业务类型',
         dataIndex: 'businessType',
         width: 100,
         sorter: true,
-        render: (_, record) => {
-          const kindMap: Record<string, string> = {
-            'sea-export': '海运出口',
-            'sea-import': '海运进口',
-            'air-export': '空运出口',
-            'air-import': '空运进口',
-            rail: '铁路运输',
-            truck: '内陆拖车',
-            customs: '报关业务',
-          };
-          return (
-            kindMap[record.orderKind || orderKind] ||
-            record.businessType ||
-            '海运出口'
-          );
-        },
+        renderText: (val) => val || '-',
       },
       // 5. 委托单位
       {
@@ -508,16 +473,6 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenCargoAllocation && (canOpenCargoAllocation?.(record) ?? true)
-                    ? [
-                        {
-                          key: 'cargo_allocation',
-                          icon: <AppstoreOutlined />,
-                          label: '箱货分配',
-                          onClick: () => onOpenCargoAllocation(record),
-                        },
-                      ]
-                    : []),
                   ...(onOpenAttachments
                     ? [
                         {
@@ -575,7 +530,6 @@ export function OrderListTemplate({
       },
     ],
     [
-      orderKind,
       extraColumns,
       onViewDetail,
       onEditOrder,
@@ -585,8 +539,6 @@ export function OrderListTemplate({
       documentsActionLabel,
       onOpenContainers,
       onOpenCargo,
-      onOpenCargoAllocation,
-      canOpenCargoAllocation,
       onOpenAttachments,
       onOpenPersonnel,
       onOpenConsolidations,
@@ -598,55 +550,15 @@ export function OrderListTemplate({
 
   const columns = customColumns || defaultColumns;
 
-  // 状态切签切换
-  const handleTabChange = (key: string) => {
-    setCurrentTab(key);
-    onStatusTabChange?.(key);
-    actionRef.current?.reload();
-  };
-
   return (
     <PageContainer
+      breadcrumbRender={false}
       header={{
         title,
         subTitle,
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
-      {/* 顶部状态快捷切签卡片 */}
-      {statusTabs && statusTabs.length > 0 && (
-        <Card
-          variant="borderless"
-          style={{
-            borderRadius: 8,
-            border: '1px solid #f0f0f0',
-            backgroundColor: '#ffffff',
-            marginBottom: 12,
-          }}
-          styles={{ body: { padding: '4px 16px 0' } }}
-        >
-          <Tabs
-            activeKey={currentTab}
-            onChange={handleTabChange}
-            items={statusTabs.map((tab) => ({
-              key: tab.key,
-              label: (
-                <Space size={4}>
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <Badge
-                      count={tab.count}
-                      color={tab.badgeColor || '#1677ff'}
-                      style={{ boxShadow: 'none' }}
-                    />
-                  )}
-                </Space>
-              ),
-            }))}
-          />
-        </Card>
-      )}
-
       {/* 展开/收起的专业多维筛选面板（默认收起） */}
       {filterVisible && (
         <OrderListSearchFilter
@@ -713,7 +625,6 @@ export function OrderListTemplate({
 
             const res = await queryOrders({
               ...currentFilter,
-              stage: currentTab !== 'all' ? currentTab : currentFilter.stage,
               page: params.current,
               pageSize: params.pageSize,
               sorterField,

@@ -1,48 +1,66 @@
+import { useModel } from '@umijs/max';
 import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
-import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
-import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
-import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
-import {
-  orderServiceGetOrder,
-  orderServiceListPersonnelOptions,
-} from '@/services/roncin/orderService';
+import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { unwrapList } from '@/utils/api';
+import { getOrderPersonnelOptions } from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  type OrderKindConfig,
   requireSeaServiceTypeOptions,
+  resolveOrderLocationOptions,
   searchOrderLocations,
 } from './common';
+import type { OrderKindDefinition } from './order-kinds/types';
 import type { SelectOption } from './templates';
+
+type DetailErrorState = {
+  organizationId: string;
+  orderId: string;
+  transportMode: OrderKindDefinition['transportMode'];
+  businessType: number;
+  error: Error;
+};
 
 /** 订单详情页的订单档案与主数据候选项加载。 */
 export function useOrderDetailData(
   orderId: string | undefined,
-  config?: OrderKindConfig,
+  definition?: OrderKindDefinition,
 ) {
   const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const isUserLoaded = Boolean(initialState?.currentUser);
+  const activeOrgIdRef = useRef(organizationId);
+  activeOrgIdRef.current = organizationId;
   const businessType =
-    config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
-  const category = config?.category;
-  const [loading, setLoading] = useState(Boolean(config && orderId));
+    definition?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
+  const transportMode = definition?.transportMode;
+  const activeTransportModeRef = useRef(transportMode);
+  activeTransportModeRef.current = transportMode;
+  const activeBusinessTypeRef = useRef(businessType);
+  activeBusinessTypeRef.current = businessType;
+  const [loading, setLoading] = useState(Boolean(definition && orderId));
   const [order, setOrder] = useState<API.Order>();
   const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
-  const [failedOrderId, setFailedOrderId] = useState<string | undefined>();
+  const [loadedOrganizationId, setLoadedOrganizationId] = useState<
+    string | undefined
+  >();
+  const [loadedTransportMode, setLoadedTransportMode] =
+    useState<typeof transportMode>();
+  const [loadedBusinessType, setLoadedBusinessType] = useState<number>();
+  const [errorState, setErrorState] = useState<DetailErrorState | null>(null);
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
   const requestIdRef = useRef(0);
   const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
     [],
   );
-  const [_containers, setContainers] = useState<API.OrderContainer[]>([]);
-  const [_cargoItems, setCargoItems] = useState<API.OrderCargoItem[]>([]);
-  const [_milestones, setMilestones] = useState<API.OrderMilestone[]>([]);
   const [personnel, setPersonnel] = useState<API.OrderPersonnel[]>([]);
 
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
@@ -61,67 +79,79 @@ export function useOrderDetailData(
   >([]);
 
   const loadData = useCallback(async () => {
-    if (!orderId || !config) {
+    if (!orderId || !definition) {
+      requestIdRef.current += 1;
       setOrder(undefined);
       setLoadedOrderId(undefined);
-      setFailedOrderId(undefined);
+      setLoadedOrganizationId(undefined);
+      setLoadedTransportMode(undefined);
+      setLoadedBusinessType(undefined);
+      setErrorState(null);
       setShippingDocs([]);
-      setContainers([]);
-      setCargoItems([]);
-      setMilestones([]);
       setPersonnel([]);
       setLoading(false);
       return;
     }
+
+    if (isUserLoaded && !organizationId) {
+      requestIdRef.current += 1;
+      setOrder(undefined);
+      setLoadedOrderId(undefined);
+      setLoadedOrganizationId(undefined);
+      setLoadedTransportMode(undefined);
+      setLoadedBusinessType(undefined);
+      setErrorState(null);
+      setShippingDocs([]);
+      setPersonnel([]);
+      setLoading(false);
+      return;
+    }
+
+    if (!organizationId) {
+      requestIdRef.current += 1;
+      setLoading(true);
+      setErrorState(null);
+      return;
+    }
+
     const currentRequestId = ++requestIdRef.current;
     const currentOrderId = orderId;
+    const currentOrgId = organizationId;
+    const currentTransportMode = definition.transportMode;
+    const currentBusinessType = businessType;
     setLoading(true);
-    setFailedOrderId(undefined);
+    setErrorState(null);
     try {
-      const [
-        masterData,
-        personnelOptRes,
-        orderRes,
-        docsRes,
-        cntrsRes,
-        cargoRes,
-        milestonesRes,
-        personnelRes,
-      ] = await Promise.all([
-        fetchOrderMasterData(),
-        category === 'sea'
-          ? orderServiceListPersonnelOptions({
-              businessType,
-              page: 1,
-              pageSize: 200,
-            })
-          : Promise.resolve({ data: [] }),
-        orderServiceGetOrder({ id: orderId }),
-        orderShippingDocumentServiceListShippingDocuments({ orderId }),
-        orderContainerServiceListContainers({ orderId }),
-        orderCargoItemServiceListCargoItems({ orderId }),
-        orderMilestoneServiceListMilestones({ orderId }),
-        orderPersonnelServiceListPersonnel({ orderId }),
-      ]);
+      const [masterData, personnelOptRes, orderRes, docsRes, personnelRes] =
+        await Promise.all([
+          fetchOrderMasterData(organizationId, definition.transportMode),
+          transportMode === 'sea'
+            ? getOrderPersonnelOptions(organizationId, businessType)
+            : Promise.resolve([]),
+          orderServiceGetOrder({ id: orderId }),
+          orderShippingDocumentServiceListShippingDocuments({ orderId }),
+          orderPersonnelServiceListPersonnel({ orderId }),
+        ]);
 
       if (
         currentRequestId !== requestIdRef.current ||
-        currentOrderId !== activeOrderIdRef.current
+        currentOrderId !== activeOrderIdRef.current ||
+        currentOrgId !== activeOrgIdRef.current ||
+        currentTransportMode !== activeTransportModeRef.current ||
+        currentBusinessType !== activeBusinessTypeRef.current
       ) {
         return;
       }
 
       const nextServiceTypeOptions =
-        category === 'sea'
+        transportMode === 'sea'
           ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
           : masterData.serviceTypeOptions;
 
       setServiceTypeOptions(nextServiceTypeOptions);
       setCargoCategoryOptions(masterData.cargoCategoryOptions);
       setLocationOptions(
-        category === 'sea'
-          ? masterData.seaLocationOptions
-          : masterData.airLocationOptions,
+        resolveOrderLocationOptions(definition.transportMode, masterData),
       );
       setCurrencyOptions(masterData.currencyOptions);
       setContainerSpecOptions(
@@ -139,71 +169,170 @@ export function useOrderDetailData(
           }))
           .filter((item) => item.value !== ''),
       );
-      setPersonnelOptions(unwrapList(personnelOptRes));
+      setPersonnelOptions(personnelOptRes);
 
       setOrder(orderRes.data);
       setLoadedOrderId(currentOrderId);
+      setLoadedOrganizationId(currentOrgId);
+      setLoadedTransportMode(currentTransportMode);
+      setLoadedBusinessType(currentBusinessType);
+      setErrorState(null);
       setShippingDocs(unwrapList(docsRes));
-      setContainers(unwrapList(cntrsRes));
-      setCargoItems(unwrapList(cargoRes));
-      setMilestones(unwrapList(milestonesRes));
       setPersonnel(unwrapList(personnelRes));
-    } catch (error: any) {
+    } catch (err: any) {
       if (
         currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
+        currentOrderId === activeOrderIdRef.current &&
+        currentOrgId === activeOrgIdRef.current &&
+        currentTransportMode === activeTransportModeRef.current &&
+        currentBusinessType === activeBusinessTypeRef.current
       ) {
         setOrder(undefined);
         setLoadedOrderId(undefined);
-        setFailedOrderId(currentOrderId);
+        setLoadedOrganizationId(undefined);
+        setLoadedTransportMode(undefined);
+        setLoadedBusinessType(undefined);
+        setErrorState({
+          organizationId: currentOrgId,
+          orderId: currentOrderId,
+          transportMode: currentTransportMode,
+          businessType: currentBusinessType,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
         setShippingDocs([]);
-        setContainers([]);
-        setCargoItems([]);
-        setMilestones([]);
         setPersonnel([]);
-        message.error(error.message || '加载订单数据失败');
+        message.error(err.message || '加载订单数据失败');
       }
     } finally {
       if (
         currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
+        currentOrderId === activeOrderIdRef.current &&
+        currentOrgId === activeOrgIdRef.current &&
+        currentTransportMode === activeTransportModeRef.current &&
+        currentBusinessType === activeBusinessTypeRef.current
       ) {
         setLoading(false);
       }
     }
-  }, [businessType, category, message, orderId, config]);
+  }, [
+    businessType,
+    transportMode,
+    definition,
+    isUserLoaded,
+    message,
+    orderId,
+    organizationId,
+  ]);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
 
-  const searchLocations = useCallback(
-    (keyword?: string) =>
-      category ? searchOrderLocations(category, keyword) : Promise.resolve([]),
-    [category],
+  const isOrderMatched = Boolean(
+    orderId &&
+      organizationId &&
+      loadedOrderId === orderId &&
+      loadedOrganizationId === organizationId &&
+      loadedTransportMode === transportMode &&
+      loadedBusinessType === businessType,
   );
-
-  const isOrderMatched = Boolean(orderId && loadedOrderId === orderId);
   const effectiveOrder = isOrderMatched ? order : undefined;
   const effectiveShippingDocs = isOrderMatched ? shippingDocs : [];
   const effectivePersonnel = isOrderMatched ? personnel : [];
+  const effectiveLocationOptions = isOrderMatched ? locationOptions : [];
+
+  const searchLocations = useCallback(
+    async (keyword?: string) => {
+      const requestOrgId = organizationId;
+      const requestTransportMode = transportMode;
+      const requestBusinessType = businessType;
+      if (!requestOrgId || !requestTransportMode) {
+        return [];
+      }
+
+      if (!keyword?.trim()) {
+        return activeOrgIdRef.current === requestOrgId &&
+          activeTransportModeRef.current === requestTransportMode &&
+          activeBusinessTypeRef.current === requestBusinessType &&
+          activeOrderIdRef.current === orderId &&
+          loadedOrderId === orderId &&
+          loadedOrganizationId === requestOrgId &&
+          loadedTransportMode === requestTransportMode &&
+          loadedBusinessType === requestBusinessType
+          ? locationOptions
+          : [];
+      }
+
+      const options = await searchOrderLocations(requestTransportMode, keyword);
+      if (
+        activeOrgIdRef.current !== requestOrgId ||
+        activeTransportModeRef.current !== requestTransportMode ||
+        activeBusinessTypeRef.current !== requestBusinessType ||
+        activeOrderIdRef.current !== orderId
+      ) {
+        return [];
+      }
+      return options;
+    },
+    [
+      transportMode,
+      businessType,
+      loadedTransportMode,
+      loadedBusinessType,
+      loadedOrderId,
+      loadedOrganizationId,
+      locationOptions,
+      orderId,
+      organizationId,
+    ],
+  );
+
+  const missingOrgError =
+    isUserLoaded && !organizationId
+      ? new Error('缺少当前组织，无法加载订单详情')
+      : null;
+  const effectiveError =
+    missingOrgError ||
+    (organizationId &&
+    orderId &&
+    errorState?.organizationId === organizationId &&
+    errorState.orderId === orderId &&
+    errorState.transportMode === transportMode &&
+    errorState.businessType === businessType
+      ? errorState.error
+      : null);
   const isPending =
-    Boolean(config && orderId) && !isOrderMatched && failedOrderId !== orderId;
-  const effectiveLoading = loading || isPending;
+    Boolean(definition && orderId && organizationId) &&
+    !isOrderMatched &&
+    !effectiveError;
+
+  const effectiveLoading = !definition
+    ? false
+    : isUserLoaded && !organizationId
+      ? false
+      : effectiveError
+        ? false
+        : loading || isPending;
 
   return {
     loading: effectiveLoading,
+    error: effectiveError,
     order: effectiveOrder,
     loadedOrderId,
+    loadedOrganizationId,
     shippingDocs: effectiveShippingDocs,
     personnel: effectivePersonnel,
-    serviceTypeOptions,
-    cargoCategoryOptions,
-    locationOptions,
+    serviceTypeOptions: isOrderMatched ? serviceTypeOptions : [],
+    cargoCategoryOptions: isOrderMatched ? cargoCategoryOptions : [],
+    locationOptions: effectiveLocationOptions,
     searchLocations,
-    currencyOptions,
-    containerSpecOptions,
-    personnelOptions,
+    currencyOptions: isOrderMatched ? currencyOptions : [],
+    containerSpecOptions: isOrderMatched ? containerSpecOptions : [],
+    personnelOptions: isOrderMatched ? personnelOptions : [],
+    draftScope: getFormDraftScope(
+      initialState?.currentUser?.id,
+      organizationId,
+    ),
     loadData,
   };
 }

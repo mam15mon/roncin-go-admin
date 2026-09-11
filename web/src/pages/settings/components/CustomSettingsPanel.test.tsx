@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -24,7 +30,8 @@ const mockGetBilledFeeEditPolicy = vi.fn();
 const mockUpdateBilledFeeEditPolicy = vi.fn();
 
 vi.mock('@/services/roncin/exchangeRateService', () => ({
-  exchangeRateServiceGetExchangeRateCustomSetting: () => mockGetExchangeRateCustomSetting(),
+  exchangeRateServiceGetExchangeRateCustomSetting: () =>
+    mockGetExchangeRateCustomSetting(),
   exchangeRateServiceUpdateExchangeRateCustomSetting: (body: any) =>
     mockUpdateExchangeRateCustomSetting(body),
 }));
@@ -47,6 +54,7 @@ describe('CustomSettingsPanel', () => {
   it('并行加载并渲染财务汇率设置与账单费用修改策略', async () => {
     mockGetExchangeRateCustomSetting.mockResolvedValueOnce({
       success: true,
+      canUpdate: true,
       data: {
         organizationId: 'org-headquarter',
         inheritBaseCurrencyRate: false,
@@ -56,6 +64,7 @@ describe('CustomSettingsPanel', () => {
 
     mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
       success: true,
+      canUpdate: true,
       data: {
         organizationId: 'org-headquarter',
         enabled: true,
@@ -75,7 +84,9 @@ describe('CustomSettingsPanel', () => {
 
     // 检查财务汇率设置项
     expect(screen.getByText('财务汇率设置')).toBeInTheDocument();
-    expect(screen.getByText('专用汇率未配置时继承折本币汇率')).toBeInTheDocument();
+    expect(
+      screen.getByText('专用汇率未配置时继承折本币汇率'),
+    ).toBeInTheDocument();
 
     // 检查账单费用修改策略项
     expect(screen.getByText('账单费用修改策略')).toBeInTheDocument();
@@ -104,6 +115,7 @@ describe('CustomSettingsPanel', () => {
   it('切换账单费用修改策略总开关并提交 expectedVersion', async () => {
     mockGetExchangeRateCustomSetting.mockResolvedValueOnce({
       success: true,
+      canUpdate: true,
       data: {
         organizationId: 'org-headquarter',
         inheritBaseCurrencyRate: false,
@@ -113,6 +125,7 @@ describe('CustomSettingsPanel', () => {
 
     mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
       success: true,
+      canUpdate: true,
       data: {
         organizationId: 'org-headquarter',
         enabled: false,
@@ -175,6 +188,7 @@ describe('CustomSettingsPanel', () => {
 
     mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
       success: true,
+      canUpdate: true,
       data: {
         organizationId: 'org-headquarter',
         enabled: true,
@@ -214,8 +228,12 @@ describe('CustomSettingsPanel', () => {
       const calledArg = mockUpdateBilledFeeEditPolicy.mock.calls[0][0];
       expect(calledArg.enabled).toBe(true);
       expect(calledArg.expectedVersion).toBe('1');
-      expect(calledArg.editableFields).toContain(BILLED_FEE_EDITABLE_FIELD.QUANTITY);
-      expect(calledArg.editableFields).toContain(BILLED_FEE_EDITABLE_FIELD.UNIT_PRICE);
+      expect(calledArg.editableFields).toContain(
+        BILLED_FEE_EDITABLE_FIELD.QUANTITY,
+      );
+      expect(calledArg.editableFields).toContain(
+        BILLED_FEE_EDITABLE_FIELD.UNIT_PRICE,
+      );
     });
   });
 
@@ -277,5 +295,72 @@ describe('CustomSettingsPanel', () => {
     await waitFor(() => {
       expect(screen.getByText('已开启继承')).toBeInTheDocument();
     });
+  });
+
+  it('服务端声明当前公司不可编辑时禁用费用策略，而不依赖其他公司的权限键', async () => {
+    mockGetExchangeRateCustomSetting.mockResolvedValueOnce({
+      data: {
+        organizationId: 'org-a',
+        inheritBaseCurrencyRate: false,
+        version: '0',
+      },
+    });
+    mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
+      canUpdate: false,
+      data: {
+        organizationId: 'org-a',
+        enabled: true,
+        editableFields: [],
+        version: '1',
+      },
+    });
+    render(
+      <App>
+        <CustomSettingsPanel />
+      </App>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('switch')[1]).toBeDisabled(),
+    );
+    expect(screen.getByLabelText('费用名称')).toBeDisabled();
+    expect(mockUpdateBilledFeeEditPolicy).not.toHaveBeenCalled();
+  });
+
+  it('费用策略读取被拒绝时不阻断汇率设置加载和更新', async () => {
+    mockGetExchangeRateCustomSetting.mockResolvedValueOnce({
+      data: {
+        organizationId: 'org-a',
+        inheritBaseCurrencyRate: false,
+        version: '0',
+      },
+    });
+    mockGetBilledFeeEditPolicy.mockRejectedValueOnce(
+      new Error('当前公司无此设置权限'),
+    );
+    mockUpdateExchangeRateCustomSetting.mockResolvedValueOnce({
+      data: {
+        organizationId: 'org-a',
+        inheritBaseCurrencyRate: true,
+        version: '1',
+      },
+    });
+    render(
+      <App>
+        <CustomSettingsPanel />
+      </App>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('switch')[0]).not.toBeDisabled(),
+    );
+    expect(screen.getAllByRole('switch')[1]).toBeDisabled();
+    fireEvent.click(screen.getAllByRole('switch')[0]);
+    await waitFor(() =>
+      expect(mockUpdateExchangeRateCustomSetting).toHaveBeenCalledWith({
+        inheritBaseCurrencyRate: true,
+        expectedVersion: '0',
+      }),
+    );
   });
 });

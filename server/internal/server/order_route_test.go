@@ -40,7 +40,7 @@ func TestSeaMasterBillCandidateRouteDispatch(t *testing.T) {
 	}{
 		{
 			name:              "静态候选路由不被订单详情路由吞掉",
-			path:              "/api/v1/orders/sea-master-bill-candidate?issuer_partner_id=" + uuid.New().String() + "&master_no=COSCO123456",
+			path:              "/api/v1/orders/sea-master-bill-candidate?shipping_line_id=" + uuid.New().String() + "&master_no=COSCO123456",
 			expectedMethod:    "MatchSeaMasterBillCandidate",
 			expectedOperation: orderv1.OperationOrderServiceMatchSeaMasterBillCandidate,
 		},

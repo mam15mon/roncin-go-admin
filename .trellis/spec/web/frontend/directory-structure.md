@@ -2,7 +2,8 @@
 
 ```
 web/config/             Umi 配置、路由、代理、OpenAPI 输入
-web/src/pages/          按业务领域组织的页面（finance/、order/…）
+web/src/pages/          按业务领域组织的页面（finance/、orders/…）
+web/src/hooks/          通用异步竞态 Hook（useLatestAsync/useAsyncGuard）
 web/src/services/roncin/ OpenAPI 生成的请求客户端（禁止手改）
 web/src/components/     可复用界面组件（ui/ 内为全站公共模板）
 web/src/access.ts       路由权限定义（权限键来自 permissions.generated.ts）
@@ -16,3 +17,6 @@ web/tests/              前端测试基础设施
   不上收到公共层。
 - 公共模板组件统一由 `@/components/ui` 导出；避免引入无关的大型聚合组件。
 - 页面内部可拆 `components/` 子目录（如 `pages/finance/commissions/components/`）。
+- 订单类型领域注册层放 `pages/orders/order-kinds/`（注册表、类型定义、品类表单
+  适配与有状态详情扩展），其所有权边界见 component-guidelines 的
+  「订单类型三类真相边界」。

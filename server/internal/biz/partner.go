@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"net/mail"
 	"sort"
@@ -18,7 +19,6 @@ var (
 	ErrPartnerCodeExists              = errors.Conflict("PARTNER_CODE_EXISTS", "往来单位编码已存在")
 	ErrPartnerNameExists              = errors.Conflict("PARTNER_NAME_EXISTS", "往来单位名称已存在")
 	ErrPartnerUSCCExists              = errors.Conflict("PARTNER_USCC_EXISTS", "统一社会信用代码已存在")
-	ErrPartnerTaxIdentifierRequired   = errors.BadRequest("PARTNER_TAX_IDENTIFIER_REQUIRED", "客户或供应商必须填写纳税人识别号")
 	ErrPartnerRoleRequired            = errors.BadRequest("PARTNER_ROLE_REQUIRED", "往来单位至少需要一个有效角色")
 	ErrPartnerInvalidRole             = errors.BadRequest("PARTNER_INVALID_ROLE", "往来单位角色不合法")
 	ErrPartnerInvalidArgument         = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位字段不合法")
@@ -36,11 +36,10 @@ const (
 	PartnerRoleCustomer     PartnerRoleType = "customer"
 	PartnerRoleSupplier     PartnerRoleType = "supplier"
 	PartnerRoleForeignAgent PartnerRoleType = "foreign_agent"
-	PartnerRoleCarrier      PartnerRoleType = "carrier"
 )
 
 func (t PartnerRoleType) Valid() bool {
-	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleForeignAgent || t == PartnerRoleCarrier
+	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleForeignAgent
 }
 
 type PartnerRole struct {
@@ -235,7 +234,8 @@ type PartnerBlacklistResult struct {
 
 type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
-	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
+	FindAuthorized(context.Context, uuid.UUID, []uuid.UUID) (*Partner, error)
+	List(context.Context, []uuid.UUID, PartnerListOptions) (*PartnerList, error)
 	ListAssignmentOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error)
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
@@ -245,12 +245,17 @@ type PartnerRepo interface {
 }
 
 type PartnerUsecase struct {
-	repo PartnerRepo
-	now  func() time.Time
+	repo                PartnerRepo
+	now                 func() time.Time
+	generatePartnerCode func() (string, error)
 }
 
 func NewPartnerUsecase(repo PartnerRepo) *PartnerUsecase {
-	return &PartnerUsecase{repo: repo, now: time.Now}
+	return &PartnerUsecase{
+		repo:                repo,
+		now:                 time.Now,
+		generatePartnerCode: generatePartnerCode,
+	}
 }
 
 func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*Partner, error) {
@@ -260,15 +265,36 @@ func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID)
 	return uc.repo.Get(ctx, organizationID, id)
 }
 
-func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
-	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
+// FindAuthorized 在仓储查询中同时限制往来单位 ID 和允许组织，供传输鉴权定位
+// 跨组织详情及其子资源的组织上下文使用。禁止先按 ID 全局查询后在内存中判定。
+func (uc *PartnerUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*Partner, error) {
+	if id == uuid.Nil || !validPartnerOrganizationIDs(organizationIDs) {
+		return nil, ErrPartnerNotFound
+	}
+	return uc.repo.FindAuthorized(ctx, id, organizationIDs)
+}
+
+func (uc *PartnerUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
+	if !validPartnerOrganizationIDs(organizationIDs) || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrPartnerInvalidArgument
 	}
 	if options.Role != "" && !options.Role.Valid() {
 		return nil, ErrPartnerInvalidRole
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
-	return uc.repo.List(ctx, organizationID, options)
+	return uc.repo.List(ctx, organizationIDs, options)
+}
+
+func validPartnerOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error) {
@@ -322,18 +348,61 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 		return nil, err
 	}
 	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
-	return uc.repo.Create(ctx, organizationID, normalized, &AuditEvent{
-		OrganizationID: &organizationID,
-		UserID:         &userID,
-		Action:         "partner.create",
-		ResourceType:   "partner",
-		Result:         "success",
-		Details: map[string]string{
-			"partner.code": normalized.Code,
-			"legal_name":   normalized.LegalName,
-			"roles":        FormatPartnerRolesAuditValue(normalized.Roles),
-		},
-	})
+
+	create := func(candidate *Partner) (*Partner, error) {
+		audit := &AuditEvent{
+			OrganizationID: &organizationID,
+			UserID:         &userID,
+			Action:         "partner.create",
+			ResourceType:   "partner",
+			Result:         "success",
+			Details: map[string]string{
+				"partner.code": candidate.Code,
+				"legal_name":   candidate.LegalName,
+				"roles":        FormatPartnerRolesAuditValue(candidate.Roles),
+			},
+		}
+		return uc.repo.Create(ctx, organizationID, candidate, audit)
+	}
+
+	if normalized.Code != "" {
+		return create(normalized)
+	}
+
+	// 自动代码冲突时重新生成候选；唯一性仍由数据库索引兜底。
+	seenCodes := make(map[string]struct{}, 3)
+	for attempt := 0; attempt < 3; attempt++ {
+		generated, genErr := uc.generatePartnerCode()
+		if genErr != nil {
+			return nil, genErr
+		}
+		if _, duplicate := seenCodes[generated]; duplicate {
+			continue
+		}
+		seenCodes[generated] = struct{}{}
+		candidate := *normalized
+		candidate.Code = generated
+		created, createErr := create(&candidate)
+		if createErr == nil || !errors.Is(createErr, ErrPartnerCodeExists) {
+			return created, createErr
+		}
+	}
+	return nil, ErrPartnerCodeExists
+}
+
+// generatePartnerCode 生成客商代码候选值（P 前缀 + 8 位大写字母数字）。
+// 唯一性不在此处保证，由 partner_org_code_key 唯一索引兜底并在 Create 中重试。
+func generatePartnerCode() (string, error) {
+	raw := make([]byte, 8)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	code := make([]byte, len(raw))
+	for i, b := range raw {
+		code[i] = alphabet[int(b)%len(alphabet)]
+	}
+	return "P" + string(code), nil
 }
 
 func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {
@@ -407,7 +476,7 @@ func normalizePartner(input *Partner, creating bool) (*Partner, error) {
 	if creating {
 		output.Enabled = true
 	}
-	if (creating && output.Code == "") || utf8.RuneCountInString(output.Code) > 64 || output.LegalName == "" || utf8.RuneCountInString(output.LegalName) > 200 || utf8.RuneCountInString(output.RegisteredAddress) > 500 {
+	if utf8.RuneCountInString(output.Code) > 64 || output.LegalName == "" || utf8.RuneCountInString(output.LegalName) > 200 || utf8.RuneCountInString(output.RegisteredAddress) > 500 {
 		return nil, ErrPartnerInvalidArgument
 	}
 	if output.UnifiedSocialCreditCode != "" && !validUnifiedSocialCreditCode(output.UnifiedSocialCreditCode) {
@@ -425,9 +494,6 @@ func normalizePartner(input *Partner, creating bool) (*Partner, error) {
 	aliases, err := normalizePartnerAliases(output.Aliases)
 	if err != nil {
 		return nil, err
-	}
-	if requiresPartnerTaxIdentifier(roles) && output.UnifiedSocialCreditCode == "" {
-		return nil, ErrPartnerTaxIdentifierRequired
 	}
 	output.Roles = roles
 	output.Contacts = contacts
@@ -537,15 +603,6 @@ func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignme
 		result = append(result, &copy)
 	}
 	return result, nil
-}
-
-func requiresPartnerTaxIdentifier(roles []*PartnerRole) bool {
-	for _, role := range roles {
-		if role.Enabled && (role.Type == PartnerRoleCustomer || role.Type == PartnerRoleSupplier) {
-			return true
-		}
-	}
-	return false
 }
 
 func normalizePartnerRoles(input []*PartnerRole, partnerEnabled bool) ([]*PartnerRole, error) {

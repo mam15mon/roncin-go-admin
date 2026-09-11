@@ -24,12 +24,12 @@ import (
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	orderattachmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	seacargoallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	seadocumentmodechangeeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	seadocumentvoideventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	seahousebillswitcheventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	seahousebillversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -59,7 +59,7 @@ func (r *seaDocumentChangeRepo) ListMasterBillVersions(ctx context.Context, orgI
 	query := client.SeaMasterBillVersion.Query().Where(
 		seamasterbillversionent.OrganizationIDEQ(orgID),
 		seamasterbillversionent.MasterBillIDEQ(link.MasterBillID),
-	)
+	).WithShippingLine()
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -114,7 +114,7 @@ func (r *seaDocumentChangeRepo) GetDocumentVersion(ctx context.Context, orgID, o
 	}
 	switch documentType {
 	case biz.SeaDocumentTypeMasterBill:
-		row, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(versionID), seamasterbillversionent.OrganizationIDEQ(orgID)).Only(ctx)
+		row, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(versionID), seamasterbillversionent.OrganizationIDEQ(orgID)).WithShippingLine().Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrSeaDocumentVersionNotFound, nil)
 		}
@@ -152,7 +152,7 @@ func (r *seaDocumentChangeRepo) ListDocumentEvents(ctx context.Context, orgID, o
 	}
 	events := make([]*biz.SeaDocumentEvent, 0)
 	if len(mblIDs) > 0 {
-		versions, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.OrganizationIDEQ(orgID), seamasterbillversionent.MasterBillIDIn(mblIDs...), seamasterbillversionent.SourceEQ(seamasterbillversionent.SourceAMENDMENT)).All(ctx)
+		versions, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.OrganizationIDEQ(orgID), seamasterbillversionent.MasterBillIDIn(mblIDs...), seamasterbillversionent.SourceEQ(seamasterbillversionent.SourceAMENDMENT)).WithShippingLine().All(ctx)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -184,12 +184,15 @@ func (r *seaDocumentChangeRepo) ListDocumentEvents(ctx context.Context, orgID, o
 	for _, v := range voids {
 		events = append(events, voidEventToBiz(v))
 	}
-	switches, err := client.SeaHouseBillSwitchEvent.Query().Where(seahousebillswitcheventent.OrganizationIDEQ(orgID), seahousebillswitcheventent.OrderIDEQ(orderID)).WithOldHouseBillVersion().WithNewHouseBillVersion().All(ctx)
+	modeChanges, err := client.SeaDocumentModeChangeEvent.Query().Where(
+		seadocumentmodechangeeventent.OrganizationIDEQ(orgID),
+		seadocumentmodechangeeventent.OrderIDEQ(orderID),
+	).All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, v := range switches {
-		events = append(events, switchEventToBiz(v))
+	for _, event := range modeChanges {
+		events = append(events, modeChangeEventToBiz(event))
 	}
 	sort.Slice(events, func(i, j int) bool {
 		if events[i].CreatedAt.Equal(events[j].CreatedAt) {
@@ -230,6 +233,9 @@ func (r *seaDocumentChangeRepo) PreviewVoid(ctx context.Context, orgID uuid.UUID
 	if err != nil {
 		return nil, err
 	}
+	if input.DocumentType == biz.SeaDocumentTypeHouseBill {
+		return nil, biz.ErrSeaDocumentStructureConflict
+	}
 	base, orderIDs, err := loadCurrentDocumentBase(ctx, client, orgID, input.OrderID, input.DocumentType, input.DocumentID, input.ExpectedOrderVersion, input.ExpectedDocumentVersion, input.ExpectedCurrentVersionID)
 	if err != nil {
 		return nil, err
@@ -242,26 +248,60 @@ func (r *seaDocumentChangeRepo) PreviewVoid(ctx context.Context, orgID uuid.UUID
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
 }
 
-func (r *seaDocumentChangeRepo) PreviewSwitch(ctx context.Context, orgID uuid.UUID, input *biz.SeaHouseBillSwitchCommand) (*biz.SeaDocumentChangePreview, error) {
+func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uuid.UUID, input *biz.SeaDocumentModeChangeCommand) (*biz.SeaDocumentChangePreview, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	base, _, err := loadCurrentDocumentBase(ctx, client, orgID, input.OrderID, biz.SeaDocumentTypeHouseBill, input.OldHouseBillID, input.ExpectedOrderVersion, input.ExpectedHouseBillVersion, input.ExpectedCurrentVersionID)
+	order, err := client.Order.Query().Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(orgID)).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+	}
+	link, err := client.SeaMasterBillOrderLink.Query().Where(
+		seamasterbillorderlinkent.OrganizationIDEQ(orgID),
+		seamasterbillorderlinkent.OrderIDEQ(input.OrderID),
+		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+	).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
+	}
+	current := biz.SeaDocumentStructure(link.DocumentStructure)
+	if current == input.TargetMode {
+		return nil, biz.ErrSeaDocumentModeChangeConflict
+	}
+	differences := []*biz.SeaDocumentFieldDifference{{Field: "document_structure", Label: "单证模式", BeforeValue: string(current), AfterValue: string(input.TargetMode)}}
+	var base *biz.SeaDocumentVersion
+	if current == biz.SeaDocumentStructureHouse {
+		hbl, err := client.SeaHouseBill.Query().Where(
+			seahousebillent.OrganizationIDEQ(orgID),
+			seahousebillent.OrderIDEQ(input.OrderID),
+			seahousebillent.MasterBillIDEQ(link.MasterBillID),
+			seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED),
+		).Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrSeaDocumentStructureConflict, nil)
+		}
+		if hbl.CurrentVersionID != nil {
+			version, err := client.SeaHouseBillVersion.Query().Where(seahousebillversionent.IDEQ(*hbl.CurrentVersionID)).Only(ctx)
+			if err != nil {
+				return nil, err
+			}
+			base = houseVersionToBiz(version)
+		}
+	} else {
+		if input.NewHouseBill == nil {
+			return nil, biz.ErrSeaDocumentInvalidArgument
+		}
+		if _, _, err := resolveHouseBillIssuerForDiff(ctx, client, orgID, input.OrderID, input.NewHouseBill); err != nil {
+			return nil, err
+		}
+		differences = append(differences, &biz.SeaDocumentFieldDifference{Field: "house_no", Label: "HBL 号", BeforeValue: "", AfterValue: input.NewHouseBill.HouseNo})
+	}
+	impacts, err := collectDocumentImpacts(ctx, client, orgID, []uuid.UUID{order.ID}, false, uuid.Nil)
 	if err != nil {
 		return nil, err
 	}
-	issuerOrgID, issuerPartnerID, err := resolveHouseBillIssuerForDiff(ctx, client, orgID, input.OrderID, input.NewHouseBill)
-	if err != nil {
-		return nil, err
-	}
-	diffs := diffHouseVersionToInput(base, input.NewHouseBill, issuerOrgID, issuerPartnerID)
-	diffs = append(diffs, &biz.SeaDocumentFieldDifference{Field: "status", Label: "旧 HBL 状态", BeforeValue: base.Status, AfterValue: "REPLACED"})
-	impacts, err := collectDocumentImpacts(ctx, client, orgID, []uuid.UUID{input.OrderID}, true, input.OldHouseBillID)
-	if err != nil {
-		return nil, err
-	}
-	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
+	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: differences, Impacts: impacts, Executable: true}, nil
 }
 
 func loadAmendmentPreview(ctx context.Context, client *ent.Client, orgID uuid.UUID, input *biz.SeaDocumentAmendmentCommand) (*biz.SeaDocumentVersion, []*biz.SeaDocumentFieldDifference, []uuid.UUID, error) {
@@ -293,9 +333,6 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 	if order.Version != expectedOrderVersion {
 		return nil, nil, biz.ErrOrderStatusConflict
 	}
-	if order.LockedAt != nil {
-		return nil, nil, biz.NewErrOrderBusinessLocked(order.ID, order.OrderNo, order.LockGeneration, *order.LockedAt, "")
-	}
 	link, err := client.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.OrganizationIDEQ(orgID), seamasterbillorderlinkent.OrderIDEQ(orderID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).Only(ctx)
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
@@ -315,7 +352,7 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 		if mbl.Version != expectedDocumentVersion || mbl.CurrentVersionID == nil || *mbl.CurrentVersionID != expectedCurrentVersionID {
 			return nil, nil, biz.ErrSeaDocumentVersionConflict
 		}
-		version, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(expectedCurrentVersionID), seamasterbillversionent.MasterBillIDEQ(mbl.ID), seamasterbillversionent.OrganizationIDEQ(orgID)).Only(ctx)
+		version, err := client.SeaMasterBillVersion.Query().Where(seamasterbillversionent.IDEQ(expectedCurrentVersionID), seamasterbillversionent.MasterBillIDEQ(mbl.ID), seamasterbillversionent.OrganizationIDEQ(orgID)).WithShippingLine().Only(ctx)
 		if err != nil {
 			return nil, nil, mapEntError(err, biz.ErrSeaDocumentVersionNotFound, nil)
 		}
@@ -328,23 +365,6 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 			ids = append(ids, member.OrderID)
 		}
 		ids = sortAndDeduplicateUUIDs(ids)
-		memberOrders, err := client.Order.Query().
-			Where(orderent.OrganizationIDEQ(orgID), orderent.IDIn(ids...)).
-			Order(orderent.ByID()).
-			All(ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-		lockedOrderNos := make([]string, 0)
-		for _, memberOrder := range memberOrders {
-			if memberOrder.LockedAt != nil {
-				lockedOrderNos = append(lockedOrderNos, memberOrder.OrderNo)
-			}
-		}
-		if len(lockedOrderNos) > 0 {
-			sort.Strings(lockedOrderNos)
-			return nil, nil, biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
-		}
 		return masterVersionToBiz(version, orderID), ids, nil
 	case biz.SeaDocumentTypeHouseBill:
 		hbl, err := client.SeaHouseBill.Query().Where(seahousebillent.IDEQ(documentID), seahousebillent.OrganizationIDEQ(orgID), seahousebillent.OrderIDEQ(orderID), seahousebillent.MasterBillIDEQ(link.MasterBillID)).Only(ctx)
@@ -353,9 +373,6 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 		}
 		if hbl.Status == seahousebillent.StatusVOIDED {
 			return nil, nil, biz.ErrSeaDocumentVoided
-		}
-		if hbl.Status == seahousebillent.StatusREPLACED {
-			return nil, nil, biz.ErrSeaHouseBillSwitchConflict
 		}
 		if hbl.Version != expectedDocumentVersion || hbl.CurrentVersionID == nil || *hbl.CurrentVersionID != expectedCurrentVersionID {
 			return nil, nil, biz.ErrSeaDocumentVersionConflict
@@ -380,7 +397,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, fee := range fees {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已确认或进入结算", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已确认或进入结算，变更不会改写该事实"})
 	}
 	lines, err := client.FinanceBillLine.Query().Where(financebilllineent.OrderIDIn(orderIDs...), financebilllineent.ActiveEQ(true)).WithBill().Order(financebilllineent.ByID()).All(ctx)
 	if err != nil {
@@ -391,7 +408,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		if line.Edges.Bill != nil {
 			no = line.Edges.Bill.BillNo
 		}
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_BILL", ReferenceID: line.BillID.String(), ReferenceNo: no, Message: "账单 " + no + " 已引用订单费用", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_BILL", ReferenceID: line.BillID.String(), ReferenceNo: no, Message: "账单 " + no + " 已引用订单费用，变更不会改写该事实"})
 	}
 	invoices, err := client.FinanceInvoice.Query().Where(
 		financeinvoiceent.OrganizationIDEQ(orgID),
@@ -401,7 +418,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, invoice := range invoices {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_INVOICE", ReferenceID: invoice.ID.String(), ReferenceNo: invoice.RecordNo, Message: "发票 " + invoice.RecordNo + " 已形成开票事实", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_INVOICE", ReferenceID: invoice.ID.String(), ReferenceNo: invoice.RecordNo, Message: "发票 " + invoice.RecordNo + " 已形成开票事实，变更不会改写该事实"})
 	}
 	verifications, err := client.FinanceVerification.Query().Where(
 		financeverificationent.OrganizationIDEQ(orgID),
@@ -411,7 +428,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, verification := range verifications {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_VERIFICATION", ReferenceID: verification.ID.String(), ReferenceNo: verification.VerificationNo, Message: "核销单 " + verification.VerificationNo + " 已形成核销事实", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_VERIFICATION", ReferenceID: verification.ID.String(), ReferenceNo: verification.VerificationNo, Message: "核销单 " + verification.VerificationNo + " 已形成核销事实，变更不会改写该事实"})
 	}
 	commissions, err := client.FinanceCommissionLine.Query().Where(financecommissionlineent.OrganizationIDEQ(orgID), financecommissionlineent.OrderIDIn(orderIDs...)).WithCommission().Order(financecommissionlineent.ByID()).All(ctx)
 	if err != nil {
@@ -422,23 +439,14 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		if line.Edges.Commission != nil {
 			no = line.Edges.Commission.CommissionNo
 		}
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION", ReferenceID: line.CommissionID.String(), ReferenceNo: no, Message: "提成单 " + no + " 已形成计算事实", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION", ReferenceID: line.CommissionID.String(), ReferenceNo: no, Message: "提成单 " + no + " 已形成计算事实，变更不会改写该事实"})
 	}
 	adjustments, err := client.FinanceCommissionAdjustment.Query().Where(financecommissionadjustmentent.OrganizationIDEQ(orgID), financecommissionadjustmentent.OrderIDIn(orderIDs...)).Order(financecommissionadjustmentent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, adjustment := range adjustments {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION_ADJUSTMENT", ReferenceID: adjustment.ID.String(), ReferenceNo: adjustment.AdjustmentNo, Message: "提成调整单 " + adjustment.AdjustmentNo + " 已形成调整事实", BlocksExecution: true})
-	}
-	if includeAllocations {
-		allocs, err := client.SeaCargoAllocation.Query().Where(seacargoallocationent.OrganizationIDEQ(orgID), seacargoallocationent.HouseBillIDEQ(houseBillID)).Order(seacargoallocationent.ByID()).All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, allocation := range allocs {
-			impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "CARGO_ALLOCATION", ReferenceID: allocation.ID.String(), ReferenceNo: allocation.ID.String(), Message: "HBL 已存在箱货分配，需先按业务流程撤回或调整", BlocksExecution: true})
-		}
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION_ADJUSTMENT", ReferenceID: adjustment.ID.String(), ReferenceNo: adjustment.AdjustmentNo, Message: "提成调整单 " + adjustment.AdjustmentNo + " 已形成调整事实，变更不会改写该事实"})
 	}
 	return impacts, nil
 }
@@ -450,6 +458,24 @@ func hasBlockingImpact(items []*biz.SeaDocumentDownstreamImpact) bool {
 		}
 	}
 	return false
+}
+
+func validateConfirmationAttachment(ctx context.Context, client *ent.Client, orgID, orderID uuid.UUID, confirmation *biz.SeaExternalConfirmation) error {
+	if confirmation == nil || confirmation.ConfirmationAttachmentID == nil {
+		return nil
+	}
+	exists, err := client.OrderAttachment.Query().Where(
+		orderattachmentent.IDEQ(*confirmation.ConfirmationAttachmentID),
+		orderattachmentent.OrderIDEQ(orderID),
+		orderattachmentent.HasOrderWith(orderent.OrganizationIDEQ(orgID)),
+	).ForShare().Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return biz.ErrSeaDocumentInvalidArgument
+	}
+	return nil
 }
 
 func (r *seaDocumentChangeRepo) ExecuteAmendment(ctx context.Context, orgID, actorID uuid.UUID, input *biz.SeaDocumentAmendmentCommand, audit *biz.AuditEvent) (*biz.SeaDocumentVersion, error) {
@@ -505,24 +531,16 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 	if err != nil {
 		return err
 	}
-	lockedOrderNos := make([]string, 0)
 	for _, order := range orders {
-		if order.LockedAt != nil {
-			lockedOrderNos = append(lockedOrderNos, order.OrderNo)
-		}
 		if order.ID == input.OrderID && order.Version != input.ExpectedOrderVersion {
 			return biz.ErrOrderStatusConflict
 		}
-	}
-	if len(lockedOrderNos) > 0 {
-		sort.Strings(lockedOrderNos)
-		return biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
 	}
 	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
-	_, err = lockAndValidateMasterMemberLinks(ctx, tx, orgID, input.OrderID, mbl.ID, activeLinkID, memberIDs)
+	activeLink, err := lockAndValidateMasterMemberLinks(ctx, tx, orgID, input.OrderID, mbl.ID, activeLinkID, memberIDs)
 	if err != nil {
 		return err
 	}
@@ -532,7 +550,10 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 	if mbl.Version != input.ExpectedDocumentVersion || mbl.CurrentVersionID == nil || *mbl.CurrentVersionID != input.ExpectedCurrentVersionID {
 		return biz.ErrSeaDocumentVersionConflict
 	}
-	exec, err := tx.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(mbl.TransportExecutionID), seatransportexecutionent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+	if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, input.OrderID, input.Confirmation); err != nil {
+		return err
+	}
+	exec, err := tx.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(activeLink.TransportExecutionID), seatransportexecutionent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return err
 	}
@@ -553,7 +574,7 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 	if err != nil {
 		return err
 	}
-	version, err := createMasterVersion(ctx, tx, updated, exec, actorID, biz.VersionSourceAmendment, &input.Reason, &input.IdempotencyKey, &fingerprint)
+	version, err := createMasterVersion(ctx, tx, updated, exec, actorID, biz.VersionSourceAmendment, &input.Reason, &input.IdempotencyKey, &fingerprint, input.Confirmation)
 	if err != nil {
 		return err
 	}
@@ -577,6 +598,9 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 func (r *seaDocumentChangeRepo) executeHouseAmendment(ctx context.Context, tx *ent.Tx, orgID, actorID uuid.UUID, input *biz.SeaDocumentAmendmentCommand, fingerprint string, audit *biz.AuditEvent, resultID *uuid.UUID) error {
 	order, link, mbl, hbl, err := lockHouseDocument(ctx, tx, orgID, input.OrderID, input.DocumentID, input.ExpectedOrderVersion, input.ExpectedDocumentVersion, input.ExpectedCurrentVersionID)
 	if err != nil {
+		return err
+	}
+	if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, order.ID, input.Confirmation); err != nil {
 		return err
 	}
 	base, _, _, err := loadAmendmentPreview(ctx, tx.Client(), orgID, input)
@@ -614,7 +638,7 @@ func (r *seaDocumentChangeRepo) executeHouseAmendment(ctx context.Context, tx *e
 		}
 		return err
 	}
-	version, err := createHouseVersion(ctx, tx, updated, actorID, biz.VersionSourceAmendment, &input.Reason, &input.IdempotencyKey, &fingerprint)
+	version, err := createHouseVersion(ctx, tx, updated, actorID, biz.VersionSourceAmendment, &input.Reason, &input.IdempotencyKey, &fingerprint, input.Confirmation)
 	if err != nil {
 		return err
 	}
@@ -684,11 +708,7 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 		return err
 	}
 	var requestOrder *ent.Order
-	lockedOrderNos := make([]string, 0)
 	for _, order := range orders {
-		if order.LockedAt != nil {
-			lockedOrderNos = append(lockedOrderNos, order.OrderNo)
-		}
 		if order.ID == input.OrderID {
 			requestOrder = order
 			if order.Version != input.ExpectedOrderVersion {
@@ -696,15 +716,11 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 			}
 		}
 	}
-	if len(lockedOrderNos) > 0 {
-		sort.Strings(lockedOrderNos)
-		return biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
-	}
 	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = lockAndValidateMasterMemberLinks(ctx, tx, orgID, input.OrderID, mbl.ID, activeLinkID, memberIDs)
+	activeLink, err := lockAndValidateMasterMemberLinks(ctx, tx, orgID, input.OrderID, mbl.ID, activeLinkID, memberIDs)
 	if err != nil {
 		return err
 	}
@@ -714,7 +730,10 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 	if mbl.Version != input.ExpectedDocumentVersion || mbl.CurrentVersionID == nil || *mbl.CurrentVersionID != input.ExpectedCurrentVersionID {
 		return biz.ErrSeaDocumentVersionConflict
 	}
-	exec, err := tx.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(mbl.TransportExecutionID)).ForUpdate().Only(ctx)
+	if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, input.OrderID, input.Confirmation); err != nil {
+		return err
+	}
+	exec, err := tx.SeaTransportExecution.Query().Where(seatransportexecutionent.IDEQ(activeLink.TransportExecutionID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return err
 	}
@@ -729,14 +748,14 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 	if err != nil {
 		return err
 	}
-	version, err := createMasterVersion(ctx, tx, updated, exec, actorID, biz.VersionSourceVoid, &input.Reason, nil, nil)
+	version, err := createMasterVersion(ctx, tx, updated, exec, actorID, biz.VersionSourceVoid, &input.Reason, nil, nil, input.Confirmation)
 	if err != nil {
 		return err
 	}
 	if _, err = updated.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
 		return err
 	}
-	row, err := tx.SeaDocumentVoidEvent.Create().SetOrganizationID(orgID).SetOrderID(input.OrderID).SetDocumentType(seadocumentvoideventent.DocumentTypeMASTER).SetMasterBillID(mbl.ID).SetMasterBillVersionID(version.ID).SetPreviousMasterBillVersionID(input.ExpectedCurrentVersionID).SetPreviousStatus(string(mbl.Status)).SetVoidedStatus("VOIDED").SetReason(input.Reason).SetImpactSummary(impactSummary(impacts)).SetCreatedBy(actorID).SetIdempotencyKey(input.IdempotencyKey).SetRequestFingerprint(fingerprint).Save(ctx)
+	row, err := tx.SeaDocumentVoidEvent.Create().SetOrganizationID(orgID).SetOrderID(input.OrderID).SetDocumentType(seadocumentvoideventent.DocumentTypeMASTER).SetMasterBillID(mbl.ID).SetMasterBillVersionID(version.ID).SetPreviousMasterBillVersionID(input.ExpectedCurrentVersionID).SetPreviousStatus(string(mbl.Status)).SetVoidedStatus("VOIDED").SetReason(input.Reason).SetImpactSummary(impactSummary(impacts)).SetCreatedBy(actorID).SetIdempotencyKey(input.IdempotencyKey).SetRequestFingerprint(fingerprint).SetConfirmedByParty(input.Confirmation.ConfirmedByParty).SetConfirmedAt(input.Confirmation.ConfirmedAt).SetConfirmationNote(input.Confirmation.ConfirmationNote).SetNillableConfirmationAttachmentID(input.Confirmation.ConfirmationAttachmentID).Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -752,161 +771,167 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 }
 
 func (r *seaDocumentChangeRepo) executeHouseVoid(ctx context.Context, tx *ent.Tx, orgID, actorID uuid.UUID, input *biz.SeaDocumentVoidCommand, fingerprint string, audit *biz.AuditEvent, eventID *uuid.UUID) error {
-	order, link, _, hbl, err := lockHouseDocument(ctx, tx, orgID, input.OrderID, input.DocumentID, input.ExpectedOrderVersion, input.ExpectedDocumentVersion, input.ExpectedCurrentVersionID)
-	if err != nil {
-		return err
-	}
-	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, true, hbl.ID)
-	if err != nil {
-		return err
-	}
-	if hasBlockingImpact(impacts) {
-		return impactError(biz.ErrSeaDocumentChangeBlocked, impacts)
-	}
-	updated, err := hbl.Update().SetStatus(seahousebillent.StatusVOIDED).SetVersion(hbl.Version + 1).Save(ctx)
-	if err != nil {
-		return err
-	}
-	version, err := createHouseVersion(ctx, tx, updated, actorID, biz.VersionSourceVoid, &input.Reason, nil, nil)
-	if err != nil {
-		return err
-	}
-	if _, err = updated.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
-		return err
-	}
-	row, err := tx.SeaDocumentVoidEvent.Create().SetOrganizationID(orgID).SetOrderID(order.ID).SetDocumentType(seadocumentvoideventent.DocumentTypeHOUSE).SetHouseBillID(hbl.ID).SetHouseBillVersionID(version.ID).SetPreviousHouseBillVersionID(input.ExpectedCurrentVersionID).SetPreviousStatus(string(hbl.Status)).SetVoidedStatus("VOIDED").SetReason(input.Reason).SetImpactSummary(impactSummary(impacts)).SetCreatedBy(actorID).SetIdempotencyKey(input.IdempotencyKey).SetRequestFingerprint(fingerprint).Save(ctx)
-	if err != nil {
-		return err
-	}
-	*eventID = row.ID
-	activeCount, err := tx.SeaHouseBill.Query().Where(seahousebillent.OrderIDEQ(order.ID), seahousebillent.MasterBillIDEQ(hbl.MasterBillID), seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED, seahousebillent.StatusREPLACED)).Count(ctx)
-	if err != nil {
-		return err
-	}
-	linkUpdate := link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1)
-	if activeCount == 0 {
-		linkUpdate.SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureUNDETERMINED)
-	}
-	if _, err = linkUpdate.Save(ctx); err != nil {
-		return err
-	}
-	if _, err = order.Update().SetVersion(order.Version + 1).Save(ctx); err != nil {
-		return err
-	}
-	audit.Action = "sea_house_bill.void"
-	audit.Details = map[string]string{"order.id": order.ID.String(), "house_bill.id": hbl.ID.String(), "previous_version.id": input.ExpectedCurrentVersionID.String(), "result_version.id": version.ID.String(), "reason": input.Reason}
-	return writeAudit(ctx, tx.AuditLog, audit)
+	return biz.ErrSeaDocumentStructureConflict
 }
 
-func (r *seaDocumentChangeRepo) ExecuteSwitch(ctx context.Context, orgID, actorID uuid.UUID, input *biz.SeaHouseBillSwitchCommand, audit *biz.AuditEvent) (*biz.SeaHouseBillSwitchResult, error) {
+func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, actorID uuid.UUID, input *biz.SeaDocumentModeChangeCommand, audit *biz.AuditEvent) error {
 	fingerprint := changeFingerprint(input)
-	var eventID, newID uuid.UUID
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, err := tx.SeaHouseBillSwitchEvent.Query().Where(seahousebillswitcheventent.OrganizationIDEQ(orgID), seahousebillswitcheventent.IdempotencyKeyEQ(input.IdempotencyKey)).Only(ctx)
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.SeaDocumentModeChangeEvent.Query().Where(
+			seadocumentmodechangeeventent.OrganizationIDEQ(orgID),
+			seadocumentmodechangeeventent.IdempotencyKeyEQ(input.IdempotencyKey),
+		).Only(ctx)
 		if err == nil {
 			if existing.RequestFingerprint == fingerprint {
-				eventID, newID = existing.ID, existing.NewHouseBillID
 				return nil
 			}
-			return biz.ErrSeaHouseBillSwitchConflict
+			return biz.ErrSeaDocumentModeChangeConflict
 		}
 		if !ent.IsNotFound(err) {
 			return err
 		}
-		order, link, mbl, old, err := lockHouseDocument(ctx, tx, orgID, input.OrderID, input.OldHouseBillID, input.ExpectedOrderVersion, input.ExpectedHouseBillVersion, input.ExpectedCurrentVersionID)
+		order, err := tx.Order.Query().Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrOrderNotFound, nil)
+		}
+		if order.Version != input.ExpectedOrderVersion {
+			return biz.ErrOrderStatusConflict
+		}
+		located, err := tx.SeaMasterBillOrderLink.Query().Where(
+			seamasterbillorderlinkent.OrganizationIDEQ(orgID),
+			seamasterbillorderlinkent.OrderIDEQ(input.OrderID),
+			seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+		).Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
+		}
+		mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		link, err := tx.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.IDEQ(located.ID)).ForUpdate().Only(ctx)
 		if err != nil {
 			return err
 		}
-		impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, true, old.ID)
+		if !seaDocumentLinkMatches(link, orgID, input.OrderID, mbl.ID) || link.Version != input.ExpectedLinkVersion {
+			return biz.ErrSeaDocumentModeChangeConflict
+		}
+		previousMode := biz.SeaDocumentStructure(link.DocumentStructure)
+		if previousMode == input.TargetMode {
+			return biz.ErrSeaDocumentModeChangeConflict
+		}
+		if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, order.ID, input.Confirmation); err != nil {
+			return err
+		}
+		impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, false, uuid.Nil)
 		if err != nil {
 			return err
 		}
-		if hasBlockingImpact(impacts) {
-			return impactError(biz.ErrSeaHouseBillSwitchDownstreamBlocked, impacts)
-		}
-		issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), orgID, order.OrganizationID, order.CustomerID, input.NewHouseBill)
-		if err != nil {
-			return err
-		}
-		normalized, _ := biz.NormalizeSeaHouseNo(input.NewHouseBill.HouseNo)
-		newID = uuid.Must(uuid.NewV7())
-		builder := tx.SeaHouseBill.Create().SetID(newID).SetOrganizationID(orgID).SetOrderID(order.ID).SetMasterBillID(mbl.ID).SetHouseNo(input.NewHouseBill.HouseNo).SetNormalizedHouseNo(normalized).SetIssuerSource(seahousebillent.IssuerSource(input.NewHouseBill.IssuerSource)).SetStatus(seahousebillent.StatusDRAFT).SetVersion(1)
-		if issuerOrgID != nil {
-			builder.SetIssuerOrganizationID(*issuerOrgID)
-		} else {
-			builder.SetIssuerPartnerID(*issuerPartnerID)
-		}
-		if input.NewHouseBill.Note != nil {
-			builder.SetNote(*input.NewHouseBill.Note)
-		}
-		setSeaHouseBillContentCreate(builder, input.NewHouseBill.Content)
-		created, err := builder.Save(ctx)
-		if err != nil {
-			if ent.IsConstraintError(err) {
-				return biz.ErrSeaHouseBillExists
+		builder := tx.SeaDocumentModeChangeEvent.Create().
+			SetOrganizationID(orgID).
+			SetOrderID(order.ID).
+			SetPreviousMode(seadocumentmodechangeeventent.PreviousMode(previousMode)).
+			SetTargetMode(seadocumentmodechangeeventent.TargetMode(input.TargetMode)).
+			SetReason(input.Reason).
+			SetImpactSummary(impactSummary(impacts)).
+			SetConfirmedByParty(input.Confirmation.ConfirmedByParty).
+			SetConfirmedAt(input.Confirmation.ConfirmedAt).
+			SetConfirmationNote(input.Confirmation.ConfirmationNote).
+			SetNillableConfirmationAttachmentID(input.Confirmation.ConfirmationAttachmentID).
+			SetCreatedBy(actorID).
+			SetIdempotencyKey(input.IdempotencyKey).
+			SetRequestFingerprint(fingerprint)
+
+		switch {
+		case previousMode == biz.SeaDocumentStructureHouse && input.TargetMode == biz.SeaDocumentStructureDirect:
+			if input.ExpectedHouseBillVersion == nil || input.ExpectedCurrentVersionID == nil {
+				return biz.ErrSeaDocumentInvalidArgument
 			}
-			return err
-		}
-		version, err := createHouseVersion(ctx, tx, created, actorID, biz.VersionSourceSwitch, &input.Reason, nil, nil)
-		if err != nil {
-			return err
-		}
-		if _, err = created.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
-			return err
-		}
-		if _, err = old.Update().SetStatus(seahousebillent.StatusREPLACED).SetVersion(old.Version + 1).Save(ctx); err != nil {
-			return err
-		}
-		chainID := uuid.Must(uuid.NewV7())
-		sequence := 1
-		parent, err := tx.SeaHouseBillSwitchEvent.Query().Where(seahousebillswitcheventent.NewHouseBillIDEQ(old.ID)).Only(ctx)
-		if err == nil {
-			chainID = parent.ChainID
-			sequence = parent.Sequence + 1
-		} else if !ent.IsNotFound(err) {
-			return err
-		}
-		event, err := tx.SeaHouseBillSwitchEvent.Create().SetOrganizationID(orgID).SetOrderID(order.ID).SetMasterBillID(mbl.ID).SetChainID(chainID).SetSequence(sequence).SetOldHouseBillID(old.ID).SetOldHouseBillVersionID(input.ExpectedCurrentVersionID).SetNewHouseBillID(created.ID).SetNewHouseBillVersionID(version.ID).SetReason(input.Reason).SetNillableSurrenderInfo(input.SurrenderInfo).SetImpactSummary(impactSummary(impacts)).SetIdempotencyKey(input.IdempotencyKey).SetRequestFingerprint(fingerprint).SetCreatedBy(actorID).Save(ctx)
-		if err != nil {
-			if ent.IsConstraintError(err) {
-				return biz.ErrSeaHouseBillSwitchConflict
+			hbl, err := tx.SeaHouseBill.Query().Where(
+				seahousebillent.OrganizationIDEQ(orgID),
+				seahousebillent.OrderIDEQ(order.ID),
+				seahousebillent.MasterBillIDEQ(mbl.ID),
+				seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED),
+			).ForUpdate().Only(ctx)
+			if err != nil {
+				return mapEntError(err, biz.ErrSeaDocumentStructureConflict, nil)
 			}
-			return err
+			if hbl.Version != *input.ExpectedHouseBillVersion || hbl.CurrentVersionID == nil || *hbl.CurrentVersionID != *input.ExpectedCurrentVersionID {
+				return biz.ErrSeaDocumentModeChangeConflict
+			}
+			updated, err := hbl.Update().SetStatus(seahousebillent.StatusVOIDED).SetVersion(hbl.Version + 1).Save(ctx)
+			if err != nil {
+				return err
+			}
+			version, err := createHouseVersion(ctx, tx, updated, actorID, biz.VersionSourceModeChange, &input.Reason, nil, nil, input.Confirmation)
+			if err != nil {
+				return err
+			}
+			if _, err = updated.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
+				return err
+			}
+			builder.SetPreviousHouseBillID(hbl.ID).SetPreviousHouseBillVersionID(*input.ExpectedCurrentVersionID)
+		case previousMode == biz.SeaDocumentStructureDirect && input.TargetMode == biz.SeaDocumentStructureHouse:
+			if input.NewHouseBill == nil || input.ExpectedHouseBillVersion != nil || input.ExpectedCurrentVersionID != nil {
+				return biz.ErrSeaDocumentInvalidArgument
+			}
+			activeCount, err := tx.SeaHouseBill.Query().Where(seahousebillent.OrderIDEQ(order.ID), seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED)).Count(ctx)
+			if err != nil {
+				return err
+			}
+			if activeCount != 0 {
+				return biz.ErrSeaDocumentStructureConflict
+			}
+			normalized, err := biz.NormalizeSeaHouseNo(input.NewHouseBill.HouseNo)
+			if err != nil {
+				return err
+			}
+			issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), orgID, order.OrganizationID, order.CustomerID, input.NewHouseBill)
+			if err != nil {
+				return err
+			}
+			hblBuilder := tx.SeaHouseBill.Create().SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(orgID).SetOrderID(order.ID).SetMasterBillID(mbl.ID).SetHouseNo(input.NewHouseBill.HouseNo).SetNormalizedHouseNo(normalized).SetIssuerSource(seahousebillent.IssuerSource(input.NewHouseBill.IssuerSource)).SetStatus(seahousebillent.StatusDRAFT).SetVersion(1)
+			if issuerOrgID != nil {
+				hblBuilder.SetIssuerOrganizationID(*issuerOrgID)
+			}
+			if issuerPartnerID != nil {
+				hblBuilder.SetIssuerPartnerID(*issuerPartnerID)
+			}
+			if input.NewHouseBill.Note != nil {
+				hblBuilder.SetNote(*input.NewHouseBill.Note)
+			}
+			setSeaHouseBillContentCreate(hblBuilder, input.NewHouseBill.Content)
+			hbl, err := hblBuilder.Save(ctx)
+			if err != nil {
+				if ent.IsConstraintError(err) {
+					return biz.ErrSeaHouseBillExists
+				}
+				return err
+			}
+			version, err := createHouseVersion(ctx, tx, hbl, actorID, biz.VersionSourceModeChange, &input.Reason, nil, nil, input.Confirmation)
+			if err != nil {
+				return err
+			}
+			if _, err = hbl.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
+				return err
+			}
+			builder.SetTargetHouseBillID(hbl.ID).SetTargetHouseBillVersionID(version.ID)
+		default:
+			return biz.ErrSeaDocumentModeChangeConflict
 		}
-		eventID = event.ID
-		if _, err = link.Update().SetVersion(link.Version + 1).SetCargoAllocationVersion(link.CargoAllocationVersion + 1).Save(ctx); err != nil {
+		if _, err = link.Update().SetDocumentStructure(seamasterbillorderlinkent.DocumentStructure(input.TargetMode)).SetVersion(link.Version + 1).Save(ctx); err != nil {
 			return err
 		}
 		if _, err = order.Update().SetVersion(order.Version + 1).Save(ctx); err != nil {
 			return err
 		}
-		audit.Action = "sea_house_bill.switch"
-		audit.Details = map[string]string{"order.id": order.ID.String(), "old_house_bill.id": old.ID.String(), "old_version.id": input.ExpectedCurrentVersionID.String(), "new_house_bill.id": created.ID.String(), "new_version.id": version.ID.String(), "chain.id": chainID.String(), "reason": input.Reason}
+		if _, err = builder.Save(ctx); err != nil {
+			return err
+		}
+		audit.Action = "sea_document.mode_change"
+		audit.Details = map[string]string{"order.id": order.ID.String(), "previous_mode": string(previousMode), "target_mode": string(input.TargetMode), "reason": input.Reason}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
-	if err != nil {
-		replayEventID, replayNewID, found, replayErr := r.findSwitchReplay(ctx, orgID, input.IdempotencyKey, fingerprint)
-		if replayErr != nil {
-			return nil, replayErr
-		}
-		if !found {
-			return nil, err
-		}
-		eventID, newID = replayEventID, replayNewID
-	}
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	event, err := client.SeaHouseBillSwitchEvent.Query().Where(seahousebillswitcheventent.IDEQ(eventID), seahousebillswitcheventent.OrganizationIDEQ(orgID)).WithOldHouseBillVersion().WithNewHouseBillVersion().Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-	hb, err := (&seaDocumentRepo{data: r.data}).getSeaHouseBillByID(ctx, orgID, newID)
-	if err != nil {
-		return nil, err
-	}
-	return &biz.SeaHouseBillSwitchResult{Event: switchEventToBiz(event), NewHouseBill: hb}, nil
 }
 
 func (r *seaDocumentChangeRepo) findAmendmentReplay(ctx context.Context, orgID uuid.UUID, documentType biz.SeaDocumentType, idempotencyKey, fingerprint string) (uuid.UUID, bool, error) {
@@ -956,24 +981,6 @@ func (r *seaDocumentChangeRepo) findVoidReplay(ctx context.Context, orgID uuid.U
 		return uuid.Nil, false, biz.ErrSeaDocumentVersionConflict
 	}
 	return row.ID, true, nil
-}
-
-func (r *seaDocumentChangeRepo) findSwitchReplay(ctx context.Context, orgID uuid.UUID, idempotencyKey, fingerprint string) (uuid.UUID, uuid.UUID, bool, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return uuid.Nil, uuid.Nil, false, err
-	}
-	row, err := client.SeaHouseBillSwitchEvent.Query().Where(seahousebillswitcheventent.OrganizationIDEQ(orgID), seahousebillswitcheventent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return uuid.Nil, uuid.Nil, false, nil
-	}
-	if err != nil {
-		return uuid.Nil, uuid.Nil, false, err
-	}
-	if row.RequestFingerprint != fingerprint {
-		return uuid.Nil, uuid.Nil, false, biz.ErrSeaHouseBillSwitchConflict
-	}
-	return row.ID, row.NewHouseBillID, true, nil
 }
 
 func locateMasterMemberOrderIDs(ctx context.Context, client *ent.Client, orgID, orderID, mblID uuid.UUID) ([]uuid.UUID, uuid.UUID, error) {
@@ -1035,9 +1042,6 @@ func lockHouseDocument(ctx context.Context, tx *ent.Tx, orgID, orderID, hblID uu
 	if err != nil {
 		return nil, nil, nil, nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
-	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
-		return nil, nil, nil, nil, err
-	}
 	if order.Version != expectedOrderVersion {
 		return nil, nil, nil, nil, biz.ErrOrderStatusConflict
 	}
@@ -1066,16 +1070,14 @@ func lockHouseDocument(ctx context.Context, tx *ent.Tx, orgID, orderID, hblID uu
 	if hbl.Status == seahousebillent.StatusVOIDED {
 		return nil, nil, nil, nil, biz.ErrSeaDocumentVoided
 	}
-	if hbl.Status == seahousebillent.StatusREPLACED {
-		return nil, nil, nil, nil, biz.ErrSeaHouseBillSwitchConflict
-	}
 	if hbl.Version != expectedHBLVersion || hbl.CurrentVersionID == nil || *hbl.CurrentVersionID != expectedCurrentVersionID {
 		return nil, nil, nil, nil, biz.ErrSeaDocumentVersionConflict
 	}
 	return order, link, mbl, hbl, nil
 }
 
-func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill, exec *ent.SeaTransportExecution, actorID uuid.UUID, source string, reason, idempotencyKey, fingerprint *string) (*ent.SeaMasterBillVersion, error) {
+func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill, exec *ent.SeaTransportExecution, actorID uuid.UUID, source string, reason, idempotencyKey, fingerprint *string, confirmation *biz.SeaExternalConfirmation) (*ent.SeaMasterBillVersion, error) {
+	_ = exec
 	latest, err := tx.SeaMasterBillVersion.Query().Where(seamasterbillversionent.MasterBillIDEQ(mbl.ID)).Order(ent.Desc(seamasterbillversionent.FieldVersionNo)).First(ctx)
 	next := uint64(1)
 	if err == nil {
@@ -1083,24 +1085,41 @@ func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill
 	} else if !ent.IsNotFound(err) {
 		return nil, err
 	}
-	b := tx.SeaMasterBillVersion.Create().SetOrganizationID(mbl.OrganizationID).SetMasterBillID(mbl.ID).SetVersionNo(next).SetSourceEntityVersion(mbl.Version).SetIssuerPartnerID(mbl.IssuerPartnerID).SetTransportExecutionID(mbl.TransportExecutionID).SetMasterNo(mbl.MasterNo).SetNormalizedMasterNo(mbl.NormalizedMasterNo).SetStatus(seamasterbillversionent.Status(mbl.Status)).SetContentHash(computeMBLContentHash(mbl, exec)).SetSource(seamasterbillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(mbl.ShipperText).SetNillableConsigneeText(mbl.ConsigneeText).SetNillableNotifyPartyText(mbl.NotifyPartyText).SetNillableSecondNotifyPartyText(mbl.SecondNotifyPartyText).SetNillableMarksText(mbl.MarksText).SetNillableGoodsDescriptionText(mbl.GoodsDescriptionText).SetNillablePackageCount(mbl.PackageCount).SetNillablePackageUnit(mbl.PackageUnit).SetNillableGrossWeightKg(mbl.GrossWeightKg).SetNillableVolumeCbm(mbl.VolumeCbm).SetNillableFreightTerms(mbl.FreightTerms).SetNillableTransportTerms(mbl.TransportTerms).SetNillableBillForm(mbl.BillForm).SetNillableReleaseType(mbl.ReleaseType).SetNillableClauses(mbl.Clauses)
-	if exec != nil {
-		b.SetNillableCarrierID(exec.CarrierID).SetNillableOriginLocationID(exec.OriginLocationID).SetNillableDischargeLocationID(exec.DischargeLocationID).SetNillableTransitLocationID(exec.TransitLocationID).SetVesselName(exec.VesselName).SetVoyageNo(exec.VoyageNo).SetNillableEtd(exec.Etd).SetNillableEta(exec.Eta)
-		vv := strings.TrimSpace(exec.VesselName + " " + exec.VoyageNo)
-		if vv != "" {
-			b.SetVesselVoyageSnapshot(vv)
-		}
-		if exec.Etd != nil {
-			b.SetEtdSnapshot(exec.Etd.Format(time.RFC3339))
-		}
-		if exec.Eta != nil {
-			b.SetEtaSnapshot(exec.Eta.Format(time.RFC3339))
-		}
-	}
+	b := tx.SeaMasterBillVersion.Create().
+		SetOrganizationID(mbl.OrganizationID).
+		SetMasterBillID(mbl.ID).
+		SetVersionNo(next).
+		SetSourceEntityVersion(mbl.Version).
+		SetShippingLineID(mbl.ShippingLineID).
+		SetMasterNo(mbl.MasterNo).
+		SetNormalizedMasterNo(mbl.NormalizedMasterNo).
+		SetStatus(seamasterbillversionent.Status(mbl.Status)).
+		SetContentHash(computeMBLContentHash(mbl)).
+		SetSource(seamasterbillversionent.Source(source)).
+		SetNillableReason(reason).
+		SetNillableCreatedBy(&actorID).
+		SetNillableIdempotencyKey(idempotencyKey).
+		SetNillableRequestFingerprint(fingerprint).
+		SetNillableShipperText(mbl.ShipperText).
+		SetNillableConsigneeText(mbl.ConsigneeText).
+		SetNillableNotifyPartyText(mbl.NotifyPartyText).
+		SetNillableSecondNotifyPartyText(mbl.SecondNotifyPartyText).
+		SetNillableMarksText(mbl.MarksText).
+		SetNillableGoodsDescriptionText(mbl.GoodsDescriptionText).
+		SetNillablePackageCount(mbl.PackageCount).
+		SetNillablePackageUnit(mbl.PackageUnit).
+		SetNillableGrossWeightKg(mbl.GrossWeightKg).
+		SetNillableVolumeCbm(mbl.VolumeCbm).
+		SetNillableFreightTerms(mbl.FreightTerms).
+		SetNillableTransportTerms(mbl.TransportTerms).
+		SetNillableBillForm(mbl.BillForm).
+		SetNillableReleaseType(mbl.ReleaseType).
+		SetNillableClauses(mbl.Clauses)
+	setMasterVersionConfirmation(b, confirmation)
 	return b.Save(ctx)
 }
 
-func createHouseVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, actorID uuid.UUID, source string, reason, idempotencyKey, fingerprint *string) (*ent.SeaHouseBillVersion, error) {
+func createHouseVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, actorID uuid.UUID, source string, reason, idempotencyKey, fingerprint *string, confirmation *biz.SeaExternalConfirmation) (*ent.SeaHouseBillVersion, error) {
 	latest, err := tx.SeaHouseBillVersion.Query().Where(seahousebillversionent.HouseBillIDEQ(hbl.ID)).Order(ent.Desc(seahousebillversionent.FieldVersionNo)).First(ctx)
 	next := uint64(1)
 	if err == nil {
@@ -1108,20 +1127,53 @@ func createHouseVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, 
 	} else if !ent.IsNotFound(err) {
 		return nil, err
 	}
-	return tx.SeaHouseBillVersion.Create().SetOrganizationID(hbl.OrganizationID).SetHouseBillID(hbl.ID).SetOrderID(hbl.OrderID).SetMasterBillID(hbl.MasterBillID).SetVersionNo(next).SetSourceEntityVersion(hbl.Version).SetHouseNo(hbl.HouseNo).SetNormalizedHouseNo(hbl.NormalizedHouseNo).SetIssuerSource(seahousebillversionent.IssuerSource(hbl.IssuerSource)).SetNillableIssuerOrganizationID(hbl.IssuerOrganizationID).SetNillableIssuerPartnerID(hbl.IssuerPartnerID).SetStatus(seahousebillversionent.Status(hbl.Status)).SetNillableNote(hbl.Note).SetContentHash(computeHBLContentHash(hbl)).SetSource(seahousebillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(hbl.ShipperText).SetNillableConsigneeText(hbl.ConsigneeText).SetNillableNotifyPartyText(hbl.NotifyPartyText).SetNillableSecondNotifyPartyText(hbl.SecondNotifyPartyText).SetNillableMarksText(hbl.MarksText).SetNillableGoodsDescriptionText(hbl.GoodsDescriptionText).SetNillablePackageCount(hbl.PackageCount).SetNillablePackageUnit(hbl.PackageUnit).SetNillableGrossWeightKg(hbl.GrossWeightKg).SetNillableVolumeCbm(hbl.VolumeCbm).SetNillableFreightTerms(hbl.FreightTerms).SetNillableTransportTerms(hbl.TransportTerms).SetNillableBillForm(hbl.BillForm).SetNillableReleaseType(hbl.ReleaseType).SetNillableClauses(hbl.Clauses).Save(ctx)
+	b := tx.SeaHouseBillVersion.Create().SetOrganizationID(hbl.OrganizationID).SetHouseBillID(hbl.ID).SetOrderID(hbl.OrderID).SetMasterBillID(hbl.MasterBillID).SetVersionNo(next).SetSourceEntityVersion(hbl.Version).SetHouseNo(hbl.HouseNo).SetNormalizedHouseNo(hbl.NormalizedHouseNo).SetIssuerSource(seahousebillversionent.IssuerSource(hbl.IssuerSource)).SetNillableIssuerOrganizationID(hbl.IssuerOrganizationID).SetNillableIssuerPartnerID(hbl.IssuerPartnerID).SetStatus(seahousebillversionent.Status(hbl.Status)).SetNillableNote(hbl.Note).SetContentHash(computeHBLContentHash(hbl)).SetSource(seahousebillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(hbl.ShipperText).SetNillableConsigneeText(hbl.ConsigneeText).SetNillableNotifyPartyText(hbl.NotifyPartyText).SetNillableSecondNotifyPartyText(hbl.SecondNotifyPartyText).SetNillableMarksText(hbl.MarksText).SetNillableGoodsDescriptionText(hbl.GoodsDescriptionText).SetNillablePackageCount(hbl.PackageCount).SetNillablePackageUnit(hbl.PackageUnit).SetNillableGrossWeightKg(hbl.GrossWeightKg).SetNillableVolumeCbm(hbl.VolumeCbm).SetNillableFreightTerms(hbl.FreightTerms).SetNillableTransportTerms(hbl.TransportTerms).SetNillableBillForm(hbl.BillForm).SetNillableReleaseType(hbl.ReleaseType).SetNillableClauses(hbl.Clauses)
+	setHouseVersionConfirmation(b, confirmation)
+	return b.Save(ctx)
+}
+
+func setMasterVersionConfirmation(builder *ent.SeaMasterBillVersionCreate, confirmation *biz.SeaExternalConfirmation) {
+	if confirmation == nil {
+		return
+	}
+	builder.SetConfirmedByParty(confirmation.ConfirmedByParty).
+		SetConfirmedAt(confirmation.ConfirmedAt).
+		SetConfirmationNote(confirmation.ConfirmationNote).
+		SetNillableConfirmationAttachmentID(confirmation.ConfirmationAttachmentID)
+}
+
+func setHouseVersionConfirmation(builder *ent.SeaHouseBillVersionCreate, confirmation *biz.SeaExternalConfirmation) {
+	if confirmation == nil {
+		return
+	}
+	builder.SetConfirmedByParty(confirmation.ConfirmedByParty).
+		SetConfirmedAt(confirmation.ConfirmedAt).
+		SetConfirmationNote(confirmation.ConfirmationNote).
+		SetNillableConfirmationAttachmentID(confirmation.ConfirmationAttachmentID)
 }
 
 func masterVersionToBiz(v *ent.SeaMasterBillVersion, orderID uuid.UUID) *biz.SeaDocumentVersion {
 	if v == nil {
 		return nil
 	}
-	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: v.MasterBillID, OrderID: orderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.MasterNo, NormalizedDocumentNo: v.NormalizedMasterNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: &v.IssuerPartnerID, TransportExecutionID: &v.TransportExecutionID, VesselName: documentStringPointer(v.VesselName), VoyageNo: documentStringPointer(v.VoyageNo), ETD: v.Etd, ETA: v.Eta, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt}
+	result := &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: v.MasterBillID, OrderID: orderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.MasterNo, NormalizedDocumentNo: v.NormalizedMasterNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, ShippingLineID: &v.ShippingLineID, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt, Confirmation: externalConfirmationFromVersion(v.ConfirmedByParty, v.ConfirmedAt, v.ConfirmationNote, v.ConfirmationAttachmentID)}
+	if line := v.Edges.ShippingLine; line != nil {
+		result.ShippingLineName = formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode)
+	}
+	return result
 }
 func houseVersionToBiz(v *ent.SeaHouseBillVersion) *biz.SeaDocumentVersion {
 	if v == nil {
 		return nil
 	}
-	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: v.HouseBillID, OrderID: v.OrderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.HouseNo, NormalizedDocumentNo: v.NormalizedHouseNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: v.IssuerPartnerID, IssuerOrganizationID: v.IssuerOrganizationID, IssuerSource: biz.SeaHouseBillIssuerSource(v.IssuerSource), Note: v.Note, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt}
+	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: v.HouseBillID, OrderID: v.OrderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.HouseNo, NormalizedDocumentNo: v.NormalizedHouseNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: v.IssuerPartnerID, IssuerOrganizationID: v.IssuerOrganizationID, IssuerSource: biz.SeaHouseBillIssuerSource(v.IssuerSource), Note: v.Note, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt, Confirmation: externalConfirmationFromVersion(v.ConfirmedByParty, v.ConfirmedAt, v.ConfirmationNote, v.ConfirmationAttachmentID)}
+}
+
+func externalConfirmationFromVersion(party *string, confirmedAt *time.Time, note *string, attachmentID *uuid.UUID) *biz.SeaExternalConfirmation {
+	if party == nil || confirmedAt == nil || note == nil {
+		return nil
+	}
+	return &biz.SeaExternalConfirmation{ConfirmedByParty: *party, ConfirmedAt: *confirmedAt, ConfirmationNote: *note, ConfirmationAttachmentID: attachmentID}
 }
 func versionContent(shipper, consignee, notify, secondNotify, marks, goods *string, packages *int, unit *string, weight, volume *float64, freight, transport, form, release, clauses *string) *biz.SeaBillContent {
 	var count *int32
@@ -1162,21 +1214,28 @@ func voidEventToBiz(v *ent.SeaDocumentVoidEvent) *biz.SeaDocumentEvent {
 	if v.Edges.HouseBillVersion != nil {
 		documentNo = &v.Edges.HouseBillVersion.HouseNo
 	}
-	return &biz.SeaDocumentEvent{ID: v.ID, EventType: biz.SeaDocumentEventTypeVoid, DocumentType: t, DocumentID: docID, DocumentNo: documentNo, PreviousVersionID: prev, ResultVersionID: result, Reason: v.Reason, ImpactSummary: v.ImpactSummary, CreatedBy: &v.CreatedBy, CreatedAt: v.CreatedAt}
+	return &biz.SeaDocumentEvent{ID: v.ID, EventType: biz.SeaDocumentEventTypeVoid, DocumentType: t, DocumentID: docID, DocumentNo: documentNo, PreviousVersionID: prev, ResultVersionID: result, Reason: v.Reason, ImpactSummary: v.ImpactSummary, CreatedBy: &v.CreatedBy, CreatedAt: v.CreatedAt, Confirmation: externalConfirmationFromVoidEvent(v)}
 }
-func switchEventToBiz(v *ent.SeaHouseBillSwitchEvent) *biz.SeaDocumentEvent {
+
+func modeChangeEventToBiz(v *ent.SeaDocumentModeChangeEvent) *biz.SeaDocumentEvent {
 	if v == nil {
 		return nil
 	}
-	oldID, newID, chain, seq := v.OldHouseBillID, v.NewHouseBillID, v.ChainID, v.Sequence
-	var oldNo, newNo *string
-	if v.Edges.OldHouseBillVersion != nil {
-		oldNo = &v.Edges.OldHouseBillVersion.HouseNo
+	previous := biz.SeaDocumentStructure(v.PreviousMode)
+	target := biz.SeaDocumentStructure(v.TargetMode)
+	return &biz.SeaDocumentEvent{
+		ID: v.ID, EventType: biz.SeaDocumentEventTypeModeChange, DocumentType: biz.SeaDocumentTypeHouseBill,
+		Reason: v.Reason, ImpactSummary: v.ImpactSummary, PreviousMode: &previous, TargetMode: &target,
+		CreatedBy: &v.CreatedBy, CreatedAt: v.CreatedAt,
+		Confirmation: &biz.SeaExternalConfirmation{ConfirmedByParty: v.ConfirmedByParty, ConfirmedAt: v.ConfirmedAt, ConfirmationNote: v.ConfirmationNote, ConfirmationAttachmentID: v.ConfirmationAttachmentID},
 	}
-	if v.Edges.NewHouseBillVersion != nil {
-		newNo = &v.Edges.NewHouseBillVersion.HouseNo
+}
+
+func externalConfirmationFromVoidEvent(v *ent.SeaDocumentVoidEvent) *biz.SeaExternalConfirmation {
+	if v == nil {
+		return nil
 	}
-	return &biz.SeaDocumentEvent{ID: v.ID, EventType: biz.SeaDocumentEventTypeSwitch, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: &newID, OldHouseBillID: &oldID, OldHouseNo: oldNo, NewHouseBillID: &newID, NewHouseNo: newNo, PreviousVersionID: &v.OldHouseBillVersionID, ResultVersionID: &v.NewHouseBillVersionID, ChainID: &chain, Sequence: &seq, Reason: v.Reason, ImpactSummary: v.ImpactSummary, SurrenderInfo: v.SurrenderInfo, CreatedBy: &v.CreatedBy, CreatedAt: v.CreatedAt}
+	return &biz.SeaExternalConfirmation{ConfirmedByParty: v.ConfirmedByParty, ConfirmedAt: v.ConfirmedAt, ConfirmationNote: v.ConfirmationNote, ConfirmationAttachmentID: v.ConfirmationAttachmentID}
 }
 
 func resolveHouseBillIssuerForDiff(ctx context.Context, client *ent.Client, orgID, orderID uuid.UUID, input *biz.SeaHouseBillInput) (*uuid.UUID, *uuid.UUID, error) {

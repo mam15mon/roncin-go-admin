@@ -7,8 +7,8 @@ import {
 } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderListTemplate } from './OrderListTemplate';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
+import { OrderListTemplate } from './OrderListTemplate';
 import type { OrderListItem } from './types';
 
 // Mock matchMedia
@@ -35,7 +35,7 @@ describe('OrderListTemplate', () => {
     cleanup();
   });
 
-  it('正确渲染标题、状态切签与工具栏', async () => {
+  it('不渲染面包屑和状态切签，并正确渲染标题、工具栏与数据表格', async () => {
     const mockQuery = vi.fn().mockResolvedValue({
       data: [
         {
@@ -60,9 +60,8 @@ describe('OrderListTemplate', () => {
       success: true,
     });
 
-    render(
+    const { container } = render(
       <OrderListTemplate
-        orderKind="sea-export"
         title="海运出口订单"
         subTitle="海运整箱与拼箱出口业务调度"
         queryOrders={mockQuery}
@@ -71,8 +70,10 @@ describe('OrderListTemplate', () => {
     );
 
     expect(screen.getByText('海运出口订单')).toBeInTheDocument();
-    expect(screen.getByText('全部订单')).toBeInTheDocument();
-    expect(screen.getByText('待订舱')).toBeInTheDocument();
+    expect(container.querySelector('.ant-breadcrumb')).not.toBeInTheDocument();
+    expect(container.querySelector('.ant-tabs')).not.toBeInTheDocument();
+    expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
+    expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
     expect(screen.getByText('批量操作')).toBeInTheDocument();
 
@@ -82,26 +83,6 @@ describe('OrderListTemplate', () => {
       expect(screen.getByText('COSCO STAR / 024W')).toBeInTheDocument();
       expect(screen.getByText('COSU632189472')).toBeInTheDocument();
     });
-  });
-
-  it('支持切换状态切签并触发重新查询', async () => {
-    const mockQuery = vi.fn().mockResolvedValue({
-      data: [],
-      total: 0,
-      success: true,
-    });
-    const onStatusTabChange = vi.fn();
-
-    render(
-      <OrderListTemplate
-        orderKind="sea-export"
-        queryOrders={mockQuery}
-        onStatusTabChange={onStatusTabChange}
-      />,
-    );
-
-    fireEvent.click(screen.getByText('待订舱'));
-    expect(onStatusTabChange).toHaveBeenCalledWith('booking');
   });
 });
 
@@ -128,6 +109,17 @@ describe('OrderListSearchFilter', () => {
         }),
       );
     });
+  });
+
+  it('提供客户业务号与 Booking No 筛选类型', () => {
+    render(<OrderListSearchFilter onSearch={vi.fn()} onReset={vi.fn()} />);
+
+    const numberTypeSelect = document.querySelector('#numberType');
+    expect(numberTypeSelect).not.toBeNull();
+    fireEvent.mouseDown(numberTypeSelect as HTMLElement);
+
+    expect(screen.getByText('客户业务号')).toBeInTheDocument();
+    expect(screen.getByText('Booking No')).toBeInTheDocument();
   });
 
   it('展开全量筛选并按服务端方式加载动态候选项', async () => {

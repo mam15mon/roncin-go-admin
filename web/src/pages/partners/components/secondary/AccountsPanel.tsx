@@ -12,9 +12,9 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Alert, App, Button, Space, Tag, Typography } from 'antd';
+import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { PartnerAccountStatus, PartnerRoleType } from '@/enums.generated';
+import { PartnerAccountUsage } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceListPartnerAccounts,
@@ -24,32 +24,47 @@ import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
-const accountStatusOptions = [
-  { label: '启用', value: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE },
-  { label: '停用', value: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE },
+const usageOptions = [
+  {
+    label: '应收',
+    value: PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_RECEIVABLE,
+  },
+  {
+    label: '应付',
+    value: PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_PAYABLE,
+  },
+  {
+    label: '应收及应付',
+    value: PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_BOTH,
+  },
 ];
 
-type AccountFormValues = API.PartnerAccountInput;
+function usageText(usage?: number) {
+  return usageOptions.find((item) => item.value === usage)?.label || '-';
+}
 
 type AccountsPanelProps = {
   partner?: API.Partner;
-  canManage: boolean;
+  canRead: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
 };
 
+/**
+ * 往来单位结算账户是公司主体主数据，不因客户/供应商等角色重复维护。
+ * 账户读取、创建和更新分别使用账户专属权限；账单用途候选由财务 RPC 另行处理。
+ */
 export default function AccountsPanel({
   partner,
-  canManage,
+  canRead,
+  canCreate,
+  canUpdate,
 }: AccountsPanelProps) {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
-
-  const hasCustomerRole =
-    partner?.roles?.some(
-      (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-    ) ?? false;
 
   const openForm = (account?: API.PartnerAccount) => {
     setEditingAccount(account);
@@ -58,45 +73,52 @@ export default function AccountsPanel({
   };
 
   const columns: ProColumns<API.PartnerAccount>[] = [
+    { title: '账户名称', dataIndex: 'name', width: 150, ellipsis: true },
+    { title: '户名', dataIndex: 'accountHolder', width: 160, ellipsis: true },
+    {
+      title: '用途',
+      dataIndex: 'usage',
+      width: 115,
+      render: (value) => (
+        <Tag color="blue">
+          {usageText(typeof value === 'number' ? value : undefined)}
+        </Tag>
+      ),
+    },
     {
       title: '结算币种',
       dataIndex: 'currency',
       width: 100,
-      render: (cur) => (
-        <Tag color="gold" variant="filled">
-          {cur}
-        </Tag>
-      ),
+      render: (currency) => <Tag color="gold">{currency}</Tag>,
     },
-    { title: '开户银行', dataIndex: 'bankName', ellipsis: true },
+    { title: '开户银行', dataIndex: 'bankName', width: 190, ellipsis: true },
     {
       title: '银行账号',
-      dataIndex: 'bankAccount',
+      dataIndex: 'accountNo',
+      width: 180,
       copyable: true,
       ellipsis: true,
-      render: (acc) => <Text style={{ fontFamily: 'monospace' }}>{acc}</Text>,
+      render: (accountNo) => (
+        <Text style={{ fontFamily: 'monospace' }}>{accountNo}</Text>
+      ),
     },
     {
-      title: '默认账户',
-      dataIndex: 'isDefault',
-      width: 90,
-      render: (_, record) =>
-        record.isDefault ? (
-          <Tag color="blue">默认</Tag>
-        ) : (
-          <Text type="secondary">-</Text>
-        ),
+      title: '默认用途',
+      width: 135,
+      render: (_, record) => (
+        <Space size={4} wrap>
+          {record.isDefaultReceivable && <Tag color="green">应收默认</Tag>}
+          {record.isDefaultPayable && <Tag color="volcano">应付默认</Tag>}
+          {!record.isDefaultReceivable && !record.isDefaultPayable && '-'}
+        </Space>
+      ),
     },
     {
       title: '状态',
-      dataIndex: 'status',
+      dataIndex: 'enabled',
       width: 90,
-      render: (_, record) =>
-        record.status === PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE ? (
-          <Tag color="success">启用</Tag>
-        ) : (
-          <Tag color="default">停用</Tag>
-        ),
+      render: (enabled) =>
+        enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
     },
     {
       title: '更新时间',
@@ -110,7 +132,7 @@ export default function AccountsPanel({
       width: 80,
       fixed: 'right',
       render: (_, record) =>
-        canManage ? (
+        canUpdate ? (
           <Button
             type="link"
             size="small"
@@ -124,16 +146,8 @@ export default function AccountsPanel({
     },
   ];
 
-  if (!hasCustomerRole) {
-    return (
-      <Alert
-        showIcon
-        type="info"
-        title="无需结算账户配置"
-        description="该往来单位当前未分配客户角色，仅客户身份支持配置结算银行账户。"
-        style={{ margin: '16px 0' }}
-      />
-    );
+  if (!canRead) {
+    return <Text type="secondary">暂无结算账户查看权限。</Text>;
   }
 
   return (
@@ -142,7 +156,7 @@ export default function AccountsPanel({
         headerTitle={
           <Space size={6}>
             <BankOutlined style={{ color: '#1677ff' }} />
-            <span>客户结算账户列表</span>
+            <span>结算账户列表</span>
           </Space>
         }
         rowKey="id"
@@ -159,7 +173,7 @@ export default function AccountsPanel({
           return toTableRequest(response);
         }}
         toolBarRender={() =>
-          canManage
+          canCreate
             ? [
                 <Button
                   key="create"
@@ -174,15 +188,17 @@ export default function AccountsPanel({
         }
       />
 
-      <ModalForm<AccountFormValues>
+      <ModalForm<API.PartnerAccountInput>
         title={editingAccount ? '编辑结算账户' : '新增结算账户'}
         open={modalOpen}
         formRef={formRef}
         initialValues={
           editingAccount ?? {
             currency: 'CNY',
-            status: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE,
-            isDefault: false,
+            usage: PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_BOTH,
+            enabled: true,
+            isDefaultReceivable: false,
+            isDefaultPayable: false,
           }
         }
         modalProps={{
@@ -195,67 +211,98 @@ export default function AccountsPanel({
           if (!partner?.id) return false;
           const account: API.PartnerAccountInput = {
             ...values,
-            currency: values.currency?.trim() ?? 'CNY',
+            name: values.name.trim(),
+            accountHolder: values.accountHolder.trim(),
+            currency: values.currency.trim(),
+            bankName: values.bankName.trim(),
+            accountNo: values.accountNo.trim(),
+            swiftCode: values.swiftCode?.trim() || undefined,
+            remark: values.remark?.trim() || undefined,
           };
-          if (editingAccount?.id) {
-            await partnerServiceUpdatePartnerAccount(
-              { partnerId: partner.id, id: editingAccount.id },
-              { partnerId: partner.id, id: editingAccount.id, account },
+          try {
+            if (editingAccount?.id) {
+              await partnerServiceUpdatePartnerAccount(
+                { partnerId: partner.id, id: editingAccount.id },
+                { partnerId: partner.id, id: editingAccount.id, account },
+              );
+              message.success('结算账户已成功更新');
+            } else {
+              await partnerServiceCreatePartnerAccount(
+                { partnerId: partner.id },
+                { partnerId: partner.id, account },
+              );
+              message.success('结算账户已成功创建');
+            }
+            setModalOpen(false);
+            actionRef.current?.reload();
+            return true;
+          } catch (error) {
+            message.error(
+              error instanceof Error ? error.message : '保存结算账户失败',
             );
-            message.success('结算账户已成功更新');
-          } else {
-            await partnerServiceCreatePartnerAccount(
-              { partnerId: partner.id },
-              { partnerId: partner.id, account },
-            );
-            message.success('结算账户已成功创建');
+            return false;
           }
-          setModalOpen(false);
-          actionRef.current?.reload();
-          return true;
         }}
       >
-        <Space
-          align="start"
-          wrap
-          size={16}
-          style={{ width: '100%', marginBottom: 12 }}
-        >
+        <Space align="start" wrap size={16} style={{ width: '100%' }}>
+          <ProFormText
+            name="name"
+            label="账户名称"
+            width="sm"
+            rules={[
+              { required: true, whitespace: true, message: '请输入账户名称' },
+            ]}
+          />
+          <ProFormText
+            name="accountHolder"
+            label="账户户名"
+            width="sm"
+            rules={[
+              { required: true, whitespace: true, message: '请输入账户户名' },
+            ]}
+          />
           <ProFormText
             name="currency"
-            label="结算币种"
+            label="账户币种"
             width="sm"
             placeholder="如 CNY、USD"
             rules={[{ required: true, len: 3, message: '请输入三位币种代码' }]}
           />
           <ProFormSelect
-            name="status"
-            label="账户状态"
+            name="usage"
+            label="允许用途"
             width="sm"
-            options={accountStatusOptions}
-            rules={[{ required: true }]}
+            options={usageOptions}
+            rules={[{ required: true, message: '请选择账户用途' }]}
           />
-          <ProFormSwitch name="isDefault" label="设为默认结算账户" />
         </Space>
         <ProFormText
           name="bankName"
           label="开户银行名称及支行"
-          placeholder="例如：中国工商银行上海自贸试验区分行"
+          rules={[
+            { required: true, whitespace: true, message: '请输入开户银行' },
+          ]}
         />
         <ProFormText
-          name="bankAccount"
+          name="accountNo"
           label="银行开户账号"
-          placeholder="请输入银行结算账号"
+          rules={[
+            { required: true, whitespace: true, message: '请输入银行账号' },
+          ]}
         />
         <ProFormText
           name="swiftCode"
-          label="SWIFT Code (外币国际结算)"
+          label="SWIFT Code（外币国际结算）"
           placeholder="例如：ICBKCNBS"
         />
+        <Space align="start" wrap size={24}>
+          <ProFormSwitch name="isDefaultReceivable" label="设为应收默认账户" />
+          <ProFormSwitch name="isDefaultPayable" label="设为应付默认账户" />
+          <ProFormSwitch name="enabled" label="启用账户" />
+        </Space>
         <ProFormTextArea
           name="remark"
           label="备注说明"
-          placeholder="请输入其他结算说明"
           fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
         />
       </ModalForm>

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
 	"github.com/google/uuid"
@@ -44,7 +45,11 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
 	}
-	result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+	organizationIDs, err := organizationIDsForPermission(principal, access.PartnerRead, false)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.usecase.List(ctx, organizationIDs, options)
 	if err != nil {
 		return nil, err
 	}
@@ -188,9 +193,13 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
 	}
+	organizationIDs, err := organizationIDsForPermission(principal, access.PartnerExport, false)
+	if err != nil {
+		return nil, err
+	}
 	items := make([]*v1.PartnerExportItem, 0)
 	for {
-		result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+		result, err := s.usecase.List(ctx, organizationIDs, options)
 		if err != nil {
 			return nil, err
 		}

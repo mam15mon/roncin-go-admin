@@ -55,6 +55,10 @@ const (
 	FinanceVerificationRead     = "system.finance.verification.read"
 	FinanceVerificationCreate   = "system.finance.verification.create"
 	FinanceVerificationReverse  = "system.finance.verification.reverse"
+	FinanceNettingRead          = "system.finance.netting.read"
+	FinanceNettingCreate        = "system.finance.netting.create"
+	FinanceNettingConfirm       = "system.finance.netting.confirm"
+	FinanceNettingReverse       = "system.finance.netting.reverse"
 	FinanceCommissionRead       = "system.finance.commission.read"
 	FinanceCommissionManage     = "system.finance.commission.manage"
 	FinanceCommissionExport     = "system.finance.commission.export"
@@ -223,6 +227,10 @@ var manifest = append([]Permission{
 	{Key: FinanceVerificationRead, Name: "查看核销", Group: "费用管理 · 核销", Description: "查看账单与收付款核销记录"},
 	{Key: FinanceVerificationCreate, Name: "执行核销", Group: "费用管理 · 核销", Description: "将收付款金额分配到应收应付账单", Requires: []string{FinanceVerificationRead}},
 	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配", Requires: []string{FinanceVerificationRead}},
+	{Key: FinanceNettingRead, Name: "查看对冲", Group: "费用管理 · 对冲", Description: "查看同币种应收应付对冲结算单"},
+	{Key: FinanceNettingCreate, Name: "创建对冲", Group: "费用管理 · 对冲", Description: "按结算单位和账单币种创建同币种对冲抵销", Requires: []string{FinanceNettingRead}},
+	{Key: FinanceNettingConfirm, Name: "确认对冲", Group: "费用管理 · 对冲", Description: "确认对冲单并在双方账单形成抵销分摊", Requires: []string{FinanceNettingRead}},
+	{Key: FinanceNettingReverse, Name: "取消或反转对冲", Group: "费用管理 · 对冲", Description: "取消未生效对冲单或反转已确认对冲并恢复账单余额", Requires: []string{FinanceNettingRead}},
 	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
 	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成", Requires: []string{FinanceCommissionRead}},
 	{Key: FinanceCommissionExport, Name: "导出提成", Group: "费用管理 · 提成", Description: "按当前筛选条件导出提成双口径数据", Requires: []string{FinanceCommissionRead}},

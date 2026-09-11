@@ -670,3 +670,498 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 26: 精简订单列表头部与快捷切签
+<!-- trellis-session: v=2 fp=4f274122b7d3933b -->
+
+**Date**: 2026-09-06
+**Task**: 精简订单列表头部与快捷切签
+**Branch**: `main`
+
+### Summary
+
+移除订单列表模板的面包屑与顶部12项状态快捷筛选切签卡片，使海运出口订单列表保持纯白高密度清爽视图，保证全部单测与全量质量门禁通过并完成端到端视觉验收
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `539df794` | refactor(web): 移除订单列表页面的冗余面包屑与快捷状态切签 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 27: 优化新建订单页面主数据加载体验
+<!-- trellis-session: v=2 fp=abd3fcc9fdb2041d -->
+
+**Date**: 2026-09-06
+**Task**: 优化新建订单页面主数据加载体验
+**Branch**: `main`
+
+### Summary
+
+实现组织隔离的会话级主数据与人员选项缓存，海空运按需模式加载，以及纯白高密度分节骨架屏占位与错误重试
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `249d30d9` | feat(web): 优化新建订单主数据加载体验、分节骨架占位与组织会话缓存 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 28: 取消海运共享费用分摊并收尾父任务
+<!-- trellis-session: v=2 fp=f4cff12426da0d76 -->
+
+**Date**: 2026-09-06
+**Task**: 取消海运共享费用分摊并收尾父任务
+**Branch**: `main`
+
+### Summary
+
+业务确认当前没有真实共享费用案例或现行分摊规则，取消共享费用分摊阶段；父任务调整为五个已完成阶段并完成归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d96c400f` | docs: 取消海运共享费用分摊阶段 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 29: 修复订单缓存组织隔离
+<!-- trellis-session: v=2 fp=5af9b9f618caccb3 -->
+
+**Date**: 2026-09-06
+**Task**: 修复订单缓存组织隔离
+**Branch**: `fix/order-cache-org-isolation`
+
+### Summary
+
+修复订单新建、详情与列表资源在组织切换时的异步搜索和错误状态隔离；空关键字复用当前组织首批缓存，目标浏览器验收与前端完整门禁通过，并补充组织级异步联想规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a70c39e0` | fix(web): 完善订单缓存复用与组织隔离 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 30: 简化海运出口主单签发方录入
+<!-- trellis-session: v=2 fp=3a047541b01dea31 -->
+
+**Date**: 2026-09-06
+**Task**: 简化海运出口主单签发方录入
+**Branch**: `main`
+
+### Summary
+
+海运出口业务只维护必填的船公司与 MBL 主单号，系统统一维护 Order、运输执行和 MBL 签发主体；同步简化拆票、改配与详情界面，保留共享主单保护和 HBL 独立签发规则，并通过完整前后端门禁。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `047b3e79` | feat: 简化海运出口主单签发方录入 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 31: 海运出口船公司切换为 ShippingLine
+<!-- trellis-session: v=2 fp=f0e62b7adc45db1b -->
+
+**Date**: 2026-09-06
+**Task**: 海运出口船公司切换为 ShippingLine
+**Branch**: `main`
+
+### Summary
+
+将 SE 订单、运输执行与共享 MBL 的船公司身份统一为 ShippingLine，移除 Partner carrier 角色和费用结算回退；补齐严格迁移、候选锁内校验、前端搜索与历史回显，并通过完整 Web/Server、构建及真实 PostgreSQL 验证。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `834ff883` | feat: 海运出口船公司改用航运公司主数据 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 32: 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛
+<!-- trellis-session: v=2 fp=a213e5f45f8f0ce9 -->
+
+**Date**: 2026-09-07
+**Task**: 实施海运主分单简化阶段2：Proto、单值HBL与查询收敛
+**Branch**: `main`
+
+### Summary
+
+完成阶段2所有内容：收敛Proto契约与生成物；重构Order/SeaMasterBill/SeaDocument的service、biz、data实现；增加Booking No.与客户业务号/Booking/MBL三维度同批订单查询；移除废弃的Add/Remove HBL与UNDETERMINED调用链；通过全量服务端测试与代码检查。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `66389349` | refactor: 收敛海运订单单值分单契约 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 33: 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过
+<!-- trellis-session: v=2 fp=5b94e3ba5afd8a06 -->
+
+**Date**: 2026-09-07
+**Task**: 完成海运主单航次解耦与单证共享箱全链路实现与门禁通过
+**Branch**: `main`
+
+### Summary
+
+完成海运主分单模型简化任务：修复增量迁移脚本与单测，对齐并生成 Wire/PB/Ent/Web-Client 契约，实现 MBL 与实际航次解耦、单证变更模式切换与外部确认、SharedContainer/Allocation 跨订单共享箱模型，通过全量后端 check:server 与前端 tsc/biome/vitest 测试并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `372966b0` | refactor: 解耦海运主单航次并收敛单证变更与共享箱模型 |
+| `020dfe43` | feat: 增加共享航次统一调整入口 |
+| `09c01592` | feat: 为海运单证变更记录外部确认 |
+| `871650c8` | refactor: 删除旧海运箱货分配页面 |
+| `0fc306ea` | feat: 为海运改配记录外部确认 |
+| `5ae8e62b` | refactor: 删除海运换单前端流程 |
+| `c7c63a10` | feat: 增加海运外部确认表单 |
+| `092fdef8` | refactor: 移除旧海运箱货分配入口 |
+| `0eda90d9` | feat: 展示海运同批关联订单 |
+| `dc5cfa27` | feat: 增加海运订单聚合号码筛选 |
+| `c8409caa` | refactor: 收敛海运订单单值分单表单 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 34: 海运分单模型简化：重构拆票链路并实现共享箱工作台
+<!-- trellis-session: v=2 fp=a0d616136996746a -->
+
+**Date**: 2026-09-07
+**Task**: 海运分单模型简化：重构拆票链路并实现共享箱工作台
+**Branch**: `main`
+
+### Summary
+
+重构拆票 Proto 与领域契约，彻底移除旧箱货分配入参并支持货物件重尺切分与新 HBL 录入；完成拆票 Preview 与 Execute 逻辑及守恒校验；实现跨订单共享箱工作台并补齐前后端定向测试与数据库集成验证。
+
+### Main Changes
+
+- 契约重构：更新 sea_order_change.proto，移除旧 cargo_allocation_version 与 house_bill_ids，引入货物件重尺分配与新 HBL
+- 业务与仓储：重写 ExecuteSplit/PreviewSplit，支持独占箱移动、件重尺切分、共享箱分配跨票迁移与残余删除
+- 前端拆票：重构 orders/split.tsx，支持逐行货物件重尺输入、独占箱归属与实时守恒校验
+- 前端工作台：新建 SeaSharedContainerDrawer.tsx 支持跨订单共享箱货物分配、快捷填满、保存草稿、确认生效与撤回
+- 测试与迁移：修复 20260907140000 迁移脚本；修复 sea_document_test 集成测试；补齐前端单测
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e0dabf6` | feat: 重构海运拆票闭环并实现跨订单共享箱工作台 |
+
+### Testing
+
+- [OK] go -C server test ./internal/biz/... ./internal/service/...
+- [OK] RONCIN_INTEGRATION_DATABASE_SOURCE=... go -C server test -v -count=1 -run TestSeaDocumentPostgresIntegration ./internal/data/...
+- [OK] pnpm --dir web tsc --noEmit
+- [OK] pnpm --dir web exec vitest run src/pages/orders/components/drawers/SeaSharedContainerDrawer.test.tsx src/pages/orders/split.test.tsx
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 重写并恢复 3 份被 //go:build ignore 排除的 Data 集成测试 (sea_cargo_allocation_test, sea_document_change_integration_test, sea_order_change_integration_test)
+- 运行全套代码门禁 (check:server, check:web) 并归档任务
+
+
+## Session 35: 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复
+<!-- trellis-session: v=2 fp=56cb3d80cf4ba6e5 -->
+
+**Date**: 2026-09-08
+**Task**: 海运分单模型简化阶段 5/6 收尾：拆票资格、共享箱守恒与授权锚点五轮复核修复
+**Branch**: `main`
+
+### Summary
+
+完成任务 09-07-simplify-sea-order-house-bill-model 阶段 5/6 剩余工作并经五轮独立 Review 修复后归档。核心变更：拆票资格改为 HOUSE 订单唯一当前 HBL 即可拆票且历史 VOIDED 不阻断；Preview/Execute 增加逐结果逐货物共享箱交叉守恒与独占箱/共享箱版本强校验；三个 //go:build ignore 集成测试按新模型重写并在真实 PostgreSQL 全绿；拆票内嵌改配补外部确认契约（ExecuteSeaOrderSplit 新增 confirmation）；共享箱全部 RPC 增加 order_id 授权锚点并绑定锚点订单与运输执行/共享箱归属，权限收敛为 container.*；工作台完成异步上下文隔离（上下文键重挂载+请求序号防迟到覆盖）、服务端订单分页与货物行解耦、跨页草稿保全、确认单事务化并携带四实体乐观锁；统一 SharedContainer→Allocation 锁序并消除 Update 反向锁序与 TE 可变语义（不可变+锁内锚点校验+提交后私有 reload）；补真实 Authorization 中间件测试（含跨组织读写正向切换）。验证：真实 PostgreSQL 集成测试、go vet、govulncheck、tsc、biome、vitest 350 项、生产构建、生成幂等全部通过。教训：纯内存单测无法发现 NOT NULL 契约缺失与锁序死锁——集成测试必须接真实库；授权锚点与业务资源上下文必须双向绑定，仅中间件鉴权不够。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ef9ae789` | fix: 修复拆票资格与共享箱守恒闭环并恢复集成测试 |
+| `e273867f` | feat: 对齐共享箱细粒度权限并实现候选订单服务端搜索分页 |
+| `f53b4237` | fix: 补齐共享箱授权锚点与工作台异步上下文隔离 |
+| `0b876598` | fix: 补齐共享箱确认乐观锁与锚点业务上下文绑定 |
+| `8b54f7e6` | fix: 共享箱运输执行不可变并修正提交后响应重读 |
+| `2210d559` | fix: 消除共享箱 Update 反向锁序并收敛 Confirm 预读鉴权 |
+| `3cc7fca7` | test: 收紧共享箱 Update 并发测试为恰好一个成功 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 36: 统一全站面包屑UI规范与组件
+<!-- trellis-session: v=2 fp=df438608e4d45253 -->
+
+**Date**: 2026-09-08
+**Task**: 统一全站面包屑UI规范与组件
+**Branch**: `main`
+
+### Summary
+
+排查并收口全站面包屑规范，移除订单模块中无实体的'订单管理'虚拟层级；废弃DocumentDetailLayout自研面包屑；统一页面跳转使用标准Link(href)；同步更新组件规范文档及单元测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6e302495` | refactor(web): 统一全站面包屑规范并移除订单管理等虚拟层级 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 37: 美化页头面包屑为现代紧凑微交互流
+<!-- trellis-session: v=2 fp=4308b24d129c1dc4 -->
+
+**Date**: 2026-09-08
+**Task**: 美化页头面包屑为现代紧凑微交互流
+**Branch**: `main`
+
+### Summary
+
+精简返回按钮为带Tooltip的轻量圆形图标按钮，移除生硬垂直分割线；面包屑增加Hover高亮蓝与浅底微交互动效；升级斜杠分隔符为柔和样式；保持纯白高密度吸顶布局。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `37bc9414` | style(ui): 美化页头吸顶栏与面包屑交互样式 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 38: 重构页头为标准上下双层结构
+<!-- trellis-session: v=2 fp=68dc25a0f9650611 -->
+
+**Date**: 2026-09-08
+**Task**: 重构页头为标准上下双层结构
+**Branch**: `main`
+
+### Summary
+
+将PageHeaderShell重构为标准上下双层页头：顶层为12px纯净标准面包屑路径，底层为醒目独立的大标题行与操作栏，彻底根除单行生硬拼接和冗余回退箭头问题。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `525b133c` | style(ui): 重构页头为标准上下双层结构 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 39: 对齐海运订单表单订舱号输入框UI
+<!-- trellis-session: v=2 fp=37141f34d81502d6 -->
+
+**Date**: 2026-09-08
+**Task**: 对齐海运订单表单订舱号输入框UI
+**Branch**: `main`
+
+### Summary
+
+修复SeaBasicInfoSection中订舱号输入框遗漏marginInline: 8的问题，移除独有的tooltip问号图标，占位符统一为'请输入'，使边距、宽度及Label与整行其他字段完全对齐。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `516b943d` | fix(orders): 对齐海运订单表单订舱号输入框边距与占位符 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 40: 收口订单伙伴快捷新增与草稿边界
+<!-- trellis-session: v=2 fp=0743855a8f36e620 -->
+
+**Date**: 2026-09-09
+**Task**: 收口订单伙伴快捷新增与草稿边界
+**Branch**: `main`
+
+### Summary
+
+完成伙伴自动编码冲突重试、订单伙伴快捷新增与费用面板修复，审核并纳入组织草稿、页签保护、品牌和 Linux 文档；修复锁状态同步覆盖表单与 TagsView 测试 Portal 泄漏；前后端完整门禁及生产构建通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `566177f6` | fix(server): 修正伙伴自动编码冲突重试 |
+| `d5709b85` | fix(server): 避免重复尝试伙伴自动编码 |
+| `f15e5063` | fix(web): 完善订单草稿与伙伴快捷新增边界 |
+| `d8f8ce1c` | chore(web): 更新后台品牌资源与菜单配置 |
+| `8a7178de` | docs: 统一 Ubuntu Linux 开发环境说明 |
+| `9523bddb` | fix(web): 避免锁状态同步覆盖订单表单 |
+| `d3b7702a` | test(web): 隔离页签确认弹窗生命周期 |
+| `7221e15f` | docs(task): 收口伙伴快捷新增验收 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 41: 落地多组织快速上线薄底座
+<!-- trellis-session: v=2 fp=f24e3d5c493afda8 -->
+
+**Date**: 2026-09-09
+**Task**: 落地多组织快速上线薄底座
+**Branch**: `main`
+
+### Summary
+
+完成组织工作区与异步守卫，泛化角色组织访问并按权限来源解析范围，首批接入订单、往来单位和财务账单，补齐提权校验、规范与验收记录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1c8dfc1c` | feat(web): 建立多组织工作区边界 |
+| `67c81115` | refactor(web): 统一页面异步竞态保护 |
+| `327789ef` | refactor(server): 泛化角色组织访问模型 |
+| `5ed5bc17` | feat(server): 按权限解析角色组织范围 |
+| `b3ca41ee` | refactor(server): 接入订单通用组织范围 |
+| `6c67e1a1` | feat(server): 接入往来单位通用组织范围 |
+| `cfb8cb82` | test(server): 修正订单组织范围随机断言 |
+| `ff2c955b` | feat(server): 接入账单通用组织范围 |
+| `aed9f0af` | fix(server): 保持角色提权校验来源绑定 |
+| `d4349040` | chore(web): 整理角色页面代码格式 |
+| `721d2ff7` | docs(spec): 记录权限级组织范围契约 |
+| `aa2f9dec` | docs(task): 记录多组织薄底座验收结果 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 42: 清理订单草稿冗余防御代码
+<!-- trellis-session: v=2 fp=1027abfcd45da847 -->
+
+**Date**: 2026-09-09
+**Task**: 清理订单草稿冗余防御代码
+**Branch**: `main`
+
+### Summary
+
+在 OrganizationWorkspace 建立后，精简 OrderFormTemplate 与 OrderDetailPage 内部冗余的草稿探测与双重 key，建立双层挂载身份模型，前端全量门禁 check:web 通过
+
+### Main Changes
+
+- 精简 OrderFormTemplate：移除 previousDraftKeyRef、draftContextChanged 与内部 <ProForm key={draftKey}>
+- 精简 OrderDetailPage：定义 orderFormIdentity，资源切换 effect 移除 draftScope，传递 key={orderFormIdentity} 并删除重复 onReset 回调
+- 新增独立测试 detail-draft-lifecycle.test.tsx，全面验证 A->B 原地导航重挂载、更新失败保留、更新成功后立即清理、显式刷新失败保留与成功清理等时序
+- 同步更新 .trellis/spec/web/frontend/state-management.md 契约规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `823be6d8` | refactor(web): 清理订单草稿冗余防御代码 |
+| `917f460b` | chore(task): archive 09-09-cleanup-order-draft-defenses |
+
+### Testing
+
+- [OK] 运行 OrderFormTemplate、detail-change-actions、detail-draft-lifecycle、TagsView、formDraft 等定向测试全部通过
+- [OK] 执行 pnpm run check:web 全绿（96 个测试文件、433 个用例全部通过，Biome / tsc 0 错误）
+- [OK] git diff --check 0 错误
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 43: 收拢订单模板草稿生命周期
+<!-- trellis-session: v=2 fp=c0c9b48c77f681e7 -->
+
+**Date**: 2026-09-09
+**Task**: 收拢订单模板草稿生命周期
+**Branch**: `main`
+
+### Summary
+
+将订单草稿键、dirty、恢复与清理统一收归 OrderFormTemplate，并以显式草稿身份和统一单调刷新令牌覆盖同订单乱序、A/B 切换与 ABA；独立复核无 P1/P2/P3，check:web 96 个文件 445 个用例通过后完成归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f95cccc5` | docs(task): 规划订单模板草稿生命周期收拢 |
+| `66fad7df` | refactor(web): 收拢订单模板草稿生命周期 |
+| `12b2c3da` | fix(web): 显式刷新补单调请求序号门禁 |
+| `6ee5cc1b` | fix(web): 显式刷新令牌覆盖 ABA 身份往返场景 |
+| `752475b5` | refactor(web): 显式刷新令牌改为 layout effect 作废并双端复核 |
+| `1216d858` | refactor(web): 拆分订单详情业务容器并以身份作为 key 消除 ABA 竞态 |
+| `9f5168b6` | refactor(web): 统一显式刷新令牌架构定稿 |
+| `76348514` | refactor(web): 收紧 formDraft 工具层 pathname 为必传 |
+| `f264a215` | docs(task): 记录订单草稿生命周期验收 |
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 44: 订单类型注册薄底座最终复核与收尾
+<!-- trellis-session: v=2 fp=8f94463a5793ba4f -->
+
+**Date**: 2026-09-09
+**Task**: 订单类型注册薄底座最终复核与收尾
+**Branch**: `main`
+
+### Summary
+
+使用 gpt-5.6-terra 完成列表资源统一 fail-closed、多维身份竞态门禁与 receivedAt 测试补强；独立复核无阻断项，更新 Hook 规范，最终 check:web 98 个测试文件 488 个用例通过并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `89bcdd77` | fix(web): 列表资源统一 fail-closed 与组织加运输方式身份 |
+| `83024e4e` | docs(spec): 记录订单资源多维身份边界 |
+
+### Status
+
+[OK] **Completed**

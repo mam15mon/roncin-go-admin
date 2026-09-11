@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	stderrors "errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -61,6 +62,30 @@ type Organization struct {
 type RoleScope struct {
 	RoleCode  string
 	DataScope DataScope
+}
+
+// RoleGrant 保留角色、权限、数据范围和追加组织访问项之间的来源关系。
+// 组织范围必须按该角色授权的具体权限解析，不能先分别合并再交叉匹配。
+type RoleGrant struct {
+	RoleID               uuid.UUID
+	RoleCode             string
+	Permissions          map[string]struct{}
+	DataScope            DataScope
+	OrganizationAccesses []OrganizationAccess
+}
+
+// OrganizationScopeNode 是权限组织范围解析所需的组织树最小投影。
+// 停用节点保留其父子关系，以便组织树范围仍能识别其下的启用后代；停用节点自身不会进入范围。
+type OrganizationScopeNode struct {
+	ID       uuid.UUID
+	ParentID *uuid.UUID
+	Disabled bool
+}
+
+// PermissionOrganizationScope 是某一具体权限可读取和可写入的组织集合。
+type PermissionOrganizationScope struct {
+	ReadableOrganizationIDs []uuid.UUID
+	WritableOrganizationIDs []uuid.UUID
 }
 
 type Credential struct {
@@ -123,28 +148,42 @@ type DingTalkLoginResult struct {
 }
 
 type Principal struct {
-	SessionTokenHash          string
-	UserID                    uuid.UUID
-	Username                  string
-	DisplayName               string
-	Email                     *string
-	AvatarURL                 *string
-	IsBootstrapAdmin          bool
-	Organization              Organization
-	Organizations             []Organization
-	Permissions               []string
-	RoleScopes                []RoleScope
-	RolePermissions           map[string]map[string]struct{}
-	OrderOrganizationAccesses []OrderOrganizationAccess
+	SessionTokenHash  string
+	UserID            uuid.UUID
+	Username          string
+	DisplayName       string
+	Email             *string
+	AvatarURL         *string
+	IsBootstrapAdmin  bool
+	Organization      Organization
+	Organizations     []Organization
+	RoleGrants        []RoleGrant
+	OrganizationNodes []OrganizationScopeNode
 }
 
 func (p *Principal) HasPermission(key string) bool {
-	for _, permission := range p.Permissions {
-		if permission == key {
+	for _, grant := range p.RoleGrants {
+		if _, ok := grant.Permissions[key]; ok {
 			return true
 		}
 	}
 	return false
+}
+
+// PermissionKeys 从角色授权真相源投影登录响应所需的权限集合。
+func (p *Principal) PermissionKeys() []string {
+	permissions := make(map[string]struct{})
+	for _, grant := range p.RoleGrants {
+		for permission := range grant.Permissions {
+			permissions[permission] = struct{}{}
+		}
+	}
+	result := make([]string, 0, len(permissions))
+	for permission := range permissions {
+		result = append(result, permission)
+	}
+	sort.Strings(result)
+	return result
 }
 
 // HasPermissionInScope checks a permission together with the minimum data
@@ -152,39 +191,167 @@ func (p *Principal) HasPermission(key string) bool {
 // narrower requirement, but a self-scoped role cannot manage organization
 // resources.
 func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
-	if !p.HasPermission(key) {
-		return false
-	}
-	for _, roleScope := range p.RoleScopes {
-		permissions, ok := p.RolePermissions[roleScope.RoleCode]
-		if ok && roleScope.DataScope.rank() >= required.rank() {
-			if _, hasPermission := permissions[key]; hasPermission {
-				return true
-			}
+	for _, grant := range p.RoleGrants {
+		if _, hasPermission := grant.Permissions[key]; !hasPermission {
+			continue
+		}
+		if p.IsBootstrapAdmin || grant.DataScope.rank() >= required.rank() {
+			return true
 		}
 	}
 	return false
 }
 
-func (p *Principal) OrderOrganizationIDs() []uuid.UUID {
-	ids := []uuid.UUID{p.Organization.ID}
-	seen := map[uuid.UUID]struct{}{p.Organization.ID: {}}
-	for _, access := range p.OrderOrganizationAccesses {
-		if _, ok := seen[access.OrganizationID]; ok {
-			continue
+// RoleScopes 从角色授权真相源投影登录响应所需的角色范围，避免在 Principal 中保存第二份状态。
+func (p *Principal) RoleScopes() []RoleScope {
+	result := make([]RoleScope, 0, len(p.RoleGrants))
+	for _, grant := range p.RoleGrants {
+		result = append(result, RoleScope{RoleCode: grant.RoleCode, DataScope: grant.DataScope})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].RoleCode == result[j].RoleCode {
+			return result[i].DataScope < result[j].DataScope
 		}
-		seen[access.OrganizationID] = struct{}{}
-		ids = append(ids, access.OrganizationID)
+		return result[i].RoleCode < result[j].RoleCode
+	})
+	return result
+}
+
+// ResolvePermissionOrganizationScope 只合并持有目标权限的角色范围。
+// 没有匹配角色时返回统一权限错误，调用方不得回退为当前组织或其他角色的范围。
+func (p *Principal) ResolvePermissionOrganizationScope(permission string) (PermissionOrganizationScope, error) {
+	matchingGrants := make([]RoleGrant, 0, len(p.RoleGrants))
+	for _, grant := range p.RoleGrants {
+		if _, ok := grant.Permissions[permission]; ok {
+			matchingGrants = append(matchingGrants, grant)
+		}
+	}
+	if len(matchingGrants) == 0 {
+		return PermissionOrganizationScope{}, ErrPermissionDenied
+	}
+
+	nodes := p.organizationScopeNodes()
+	if p.IsBootstrapAdmin {
+		enabledIDs := enabledOrganizationIDs(nodes)
+		return permissionOrganizationScopeFromSets(enabledIDs, enabledIDs), nil
+	}
+
+	readable := make(map[uuid.UUID]struct{})
+	writable := make(map[uuid.UUID]struct{})
+	for _, grant := range matchingGrants {
+		for _, organizationID := range p.baseOrganizationIDs(grant.DataScope, nodes) {
+			readable[organizationID] = struct{}{}
+			writable[organizationID] = struct{}{}
+		}
+		for _, access := range grant.OrganizationAccesses {
+			node, exists := nodes[access.OrganizationID]
+			if !exists || node.Disabled {
+				continue
+			}
+			readable[access.OrganizationID] = struct{}{}
+			if access.Writable {
+				writable[access.OrganizationID] = struct{}{}
+			}
+		}
+	}
+	return permissionOrganizationScopeFromSets(readable, writable), nil
+}
+
+// CanAccessOrganizationForPermission 按单个权限的组织范围检查目标组织。
+func (p *Principal) CanAccessOrganizationForPermission(permission string, organizationID uuid.UUID, writable bool) bool {
+	scope, err := p.ResolvePermissionOrganizationScope(permission)
+	if err != nil {
+		return false
+	}
+	ids := scope.ReadableOrganizationIDs
+	if writable {
+		ids = scope.WritableOrganizationIDs
+	}
+	return containsOrganizationID(ids, organizationID)
+}
+
+func (p *Principal) organizationScopeNodes() map[uuid.UUID]OrganizationScopeNode {
+	nodes := make(map[uuid.UUID]OrganizationScopeNode, len(p.OrganizationNodes))
+	for _, node := range p.OrganizationNodes {
+		nodes[node.ID] = node
+	}
+	if len(nodes) == 0 && p.Organization.ID != uuid.Nil {
+		nodes[p.Organization.ID] = OrganizationScopeNode{ID: p.Organization.ID}
+	}
+	return nodes
+}
+
+func enabledOrganizationIDs(nodes map[uuid.UUID]OrganizationScopeNode) map[uuid.UUID]struct{} {
+	ids := make(map[uuid.UUID]struct{}, len(nodes))
+	for organizationID, node := range nodes {
+		if !node.Disabled {
+			ids[organizationID] = struct{}{}
+		}
 	}
 	return ids
 }
 
-func (p *Principal) CanAccessOrderOrganization(organizationID uuid.UUID, writable bool) bool {
-	if organizationID == p.Organization.ID {
-		return true
+func (p *Principal) baseOrganizationIDs(scope DataScope, nodes map[uuid.UUID]OrganizationScopeNode) []uuid.UUID {
+	current, currentExists := nodes[p.Organization.ID]
+	if !currentExists || current.Disabled {
+		return nil
 	}
-	for _, access := range p.OrderOrganizationAccesses {
-		if access.OrganizationID == organizationID && (!writable || access.Writable) {
+	switch scope {
+	case DataScopeAll:
+		return sortedOrganizationIDs(enabledOrganizationIDs(nodes))
+	case DataScopeOrganization, DataScopeSelf:
+		return []uuid.UUID{p.Organization.ID}
+	case DataScopeOrganizationTree:
+		result := make(map[uuid.UUID]struct{})
+		for organizationID, node := range nodes {
+			if !node.Disabled && (organizationID == p.Organization.ID || isOrganizationDescendant(organizationID, p.Organization.ID, nodes)) {
+				result[organizationID] = struct{}{}
+			}
+		}
+		return sortedOrganizationIDs(result)
+	default:
+		return nil
+	}
+}
+
+func isOrganizationDescendant(organizationID, ancestorID uuid.UUID, nodes map[uuid.UUID]OrganizationScopeNode) bool {
+	seen := make(map[uuid.UUID]struct{})
+	for currentID := organizationID; currentID != uuid.Nil; {
+		if currentID == ancestorID {
+			return true
+		}
+		if _, visited := seen[currentID]; visited {
+			return false
+		}
+		seen[currentID] = struct{}{}
+		node, ok := nodes[currentID]
+		if !ok || node.ParentID == nil {
+			return false
+		}
+		currentID = *node.ParentID
+	}
+	return false
+}
+
+func permissionOrganizationScopeFromSets[T any](readable, writable map[uuid.UUID]T) PermissionOrganizationScope {
+	return PermissionOrganizationScope{
+		ReadableOrganizationIDs: sortedOrganizationIDs(readable),
+		WritableOrganizationIDs: sortedOrganizationIDs(writable),
+	}
+}
+
+func sortedOrganizationIDs[T any](ids map[uuid.UUID]T) []uuid.UUID {
+	result := make([]uuid.UUID, 0, len(ids))
+	for organizationID := range ids {
+		result = append(result, organizationID)
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].String() < result[j].String() })
+	return result
+}
+
+func containsOrganizationID(ids []uuid.UUID, organizationID uuid.UUID) bool {
+	for _, id := range ids {
+		if id == organizationID {
 			return true
 		}
 	}

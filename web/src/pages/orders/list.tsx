@@ -1,32 +1,19 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { OrderListTemplate } from '@/components/ui';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
-import { Result } from 'antd';
+import { message, Result } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import AbnormalCasePanel, {
-  type AbnormalCasePanelRef,
-} from './abnormal-case-panel';
-import {
-  paymentTermOptions,
-  parseOrderKind,
-  shipmentTypeOptions,
-  tradeDirectionOptions,
-  tradeTermOptions,
-} from './common';
-import { orderStatusTabs } from './list-constants';
-import { queryOrderList } from './list-query';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { OrderListTemplate } from '@/components/ui';
+import type { OrderListItem } from '@/components/ui/order-list-template/types';
 import {
   orderTagServiceBatchAssignOrderTags,
   orderTagServiceBatchRemoveOrderTags,
   orderTagServiceListOrderTagOptions,
 } from '@/services/roncin/orderTagService';
-import { message } from 'antd';
-import type { OrderListItem } from '@/components/ui/order-list-template/types';
-import { useOrderListResources } from './list-resources';
-import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
-import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import AbnormalCasePanel, {
+  type AbnormalCasePanelRef,
+} from './abnormal-case-panel';
 import AttachmentDrawer, {
   type AttachmentDrawerRef,
 } from './components/drawers/AttachmentDrawer';
@@ -48,27 +35,24 @@ import PersonnelDrawer, {
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
-import SeaCargoAllocationDrawer, {
-  type SeaCargoAllocationDrawerRef,
-} from './components/drawers/SeaCargoAllocationDrawer';
-import EditOrderModal, {
-  type EditOrderModalRef,
-} from './components/modals/EditOrderModal';
 import TransitionModal, {
   type TransitionModalRef,
 } from './components/modals/TransitionModal';
-import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import {
   getDocumentsActionLabel,
   openOrderDocuments,
 } from './list-documents-action';
+import { queryOrderList } from './list-query';
+import { useOrderListResources } from './list-resources';
+import { getOrderKindDefinition } from './order-kinds/registry';
+import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
+import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 export default function OrderListPage() {
   const location = useLocation();
-  const config = parseOrderKind(location.pathname);
+  const definition = getOrderKindDefinition(location.pathname);
 
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const editOrderModalRef = useRef<EditOrderModalRef | null>(null);
   const transitionModalRef = useRef<TransitionModalRef | null>(null);
   const milestoneDrawerRef = useRef<MilestoneDrawerRef | null>(null);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
@@ -76,10 +60,9 @@ export default function OrderListPage() {
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
   const consolidationDrawerRef = useRef<ConsolidationDrawerRef | null>(null);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
-  const shippingDocumentDrawerRef =
-    useRef<ShippingDocumentDrawerRef | null>(null);
-  const seaCargoAllocationDrawerRef =
-    useRef<SeaCargoAllocationDrawerRef | null>(null);
+  const shippingDocumentDrawerRef = useRef<ShippingDocumentDrawerRef | null>(
+    null,
+  );
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
@@ -92,17 +75,20 @@ export default function OrderListPage() {
   >([]);
 
   useEffect(() => {
-    if (!config) return;
+    if (!definition) return;
     void orderTagServiceListOrderTagOptions({
-      businessType: config.businessType as number,
+      businessType: definition.businessType as number,
       page: 1,
       pageSize: 200,
     }).then((response) => {
       setTagFilterOptions(
-        (response.tags ?? []).map((tag) => ({ label: tag.name ?? '', value: tag.id ?? '' })),
+        (response.tags ?? []).map((tag) => ({
+          label: tag.name ?? '',
+          value: tag.id ?? '',
+        })),
       );
     });
-  }, [config?.businessType]);
+  }, [definition?.businessType]);
   const {
     masterOptions,
     ports,
@@ -110,17 +96,13 @@ export default function OrderListPage() {
     customerMap,
     containerSpecOptions,
     containerSpecMap,
-    serviceTypeOptions,
-    cargoCategoryOptions,
-    locationOptions,
-    searchLocations,
     searchCustomers,
     searchOrderPorts,
     searchOrderCarriers,
     searchOrderPersonnel,
-  } = useOrderListResources(config);
+  } = useOrderListResources(definition);
 
-  if (!config) {
+  if (!definition) {
     return (
       <PageContainer>
         <Result
@@ -136,10 +118,8 @@ export default function OrderListPage() {
     <>
       <OrderListTemplate
         actionRef={actionRef}
-        orderKind={config.kind as any}
-        title={config.title}
-        subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
-        statusTabs={orderStatusTabs}
+        title={definition.title}
+        subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         options={{
           loadPorts: searchOrderPorts,
           loadPartners: searchCustomers,
@@ -147,7 +127,7 @@ export default function OrderListPage() {
           loadPersonnel: searchOrderPersonnel,
           tags: tagFilterOptions,
         }}
-        showManageTags={access.canOrder(config.businessType, 'update')}
+        showManageTags={access.canOrder(definition.businessType, 'update')}
         onBatchAction={(actionKey, rows) => {
           if (actionKey === 'manage-tags') {
             setTagRows(rows);
@@ -155,19 +135,16 @@ export default function OrderListPage() {
           }
         }}
         queryOrders={(params) =>
-          queryOrderList(params, config, {
+          queryOrderList(params, definition, {
             ports,
             airports,
             customerMap,
             containerSpecMap,
           })
         }
-        onCreateOrder={() => history.push(`/orders/${config.kind}/new`)}
+        onCreateOrder={() => history.push(`/orders/${definition.kind}/new`)}
         onViewDetail={(item) =>
-          history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)
-        }
-        onEditOrder={(item) =>
-          item.rawRecord && editOrderModalRef.current?.open(item.rawRecord)
+          history.push(`/orders/${item.orderKind || definition.kind}/${item.id}`)
         }
         onOpenFees={(item) =>
           item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
@@ -175,11 +152,11 @@ export default function OrderListPage() {
         onOpenMilestones={(item) =>
           item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord)
         }
-        documentsActionLabel={getDocumentsActionLabel(config.businessType)}
+        documentsActionLabel={getDocumentsActionLabel(definition.businessType)}
         onOpenDocuments={(item) =>
           openOrderDocuments(
-            config.businessType,
-            config.kind,
+            definition.businessType,
+            definition.kind,
             item,
             (path) => history.push(path),
             (record) => shippingDocumentDrawerRef.current?.open(record),
@@ -191,22 +168,6 @@ export default function OrderListPage() {
         onOpenCargo={(item) =>
           item.rawRecord && cargoItemDrawerRef.current?.open(item.rawRecord)
         }
-        onOpenCargoAllocation={
-          config.businessType === OrderBusinessType.BUSINESS_TYPE_SE
-            ? (item) => {
-                if (
-                  item.rawRecord?.seaDocumentStructure ===
-                  SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-                ) {
-                  seaCargoAllocationDrawerRef.current?.open(item.rawRecord);
-                }
-              }
-            : undefined
-        }
-        canOpenCargoAllocation={(item) =>
-          item.rawRecord?.seaDocumentStructure ===
-          SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-        }
         onOpenAttachments={(item) =>
           item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord)
         }
@@ -214,8 +175,7 @@ export default function OrderListPage() {
           item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord)
         }
         onOpenConsolidations={(item) =>
-          item.rawRecord &&
-          consolidationDrawerRef.current?.open(item.rawRecord)
+          item.rawRecord && consolidationDrawerRef.current?.open(item.rawRecord)
         }
         onOpenAbnormal={(item) =>
           item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)
@@ -225,21 +185,6 @@ export default function OrderListPage() {
         }
       />
 
-      <EditOrderModal
-        ref={editOrderModalRef}
-        category={config.category}
-        tradeDirectionOptions={tradeDirectionOptions}
-        tradeTermOptions={tradeTermOptions}
-        paymentTermOptions={paymentTermOptions}
-        shipmentTypeOptions={shipmentTypeOptions}
-        locationOptions={locationOptions}
-        searchLocations={searchLocations}
-        serviceTypeOptions={serviceTypeOptions}
-        cargoCategoryOptions={cargoCategoryOptions}
-        containerSpecOptions={containerSpecOptions}
-        searchCustomers={searchCustomers}
-        onSuccess={() => actionRef.current?.reload()}
-      />
       <TransitionModal
         ref={transitionModalRef}
         onSuccess={() => actionRef.current?.reload()}
@@ -249,25 +194,27 @@ export default function OrderListPage() {
         loadOptions={(params) =>
           orderTagServiceListOrderTagOptions({
             ...params,
-            businessType: config.businessType as number,
+            businessType: definition.businessType as number,
           })
         }
         targetCount={tagRows.length}
-        existingTags={tagRows.flatMap((row) => row.rawRecord?.tags ?? row.tags ?? [])}
+        existingTags={tagRows.flatMap(
+          (row) => row.rawRecord?.tags ?? row.tags ?? [],
+        )}
         canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
         onSubmit={async (mode, tagIds) => {
           if (!tagRows.length) return;
           const orderIds = tagRows.map((row) => row.id);
           if (mode === 'assign') {
             await orderTagServiceBatchAssignOrderTags({
-              businessType: config.businessType as number,
+              businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
             message.success(`已为 ${orderIds.length} 个订单添加标签`);
           } else {
             await orderTagServiceBatchRemoveOrderTags({
-              businessType: config.businessType as number,
+              businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
@@ -279,53 +226,48 @@ export default function OrderListPage() {
       />
       <MilestoneDrawer
         ref={milestoneDrawerRef}
-        canSet={access.canOrder(config.businessType, 'milestone.set')}
+        canSet={access.canOrder(definition.businessType, 'milestone.set')}
       />
       <AttachmentDrawer
         ref={attachmentDrawerRef}
         canRegister={access.canOrder(
-          config.businessType,
+          definition.businessType,
           'attachment.register',
         )}
       />
       <PersonnelDrawer
         ref={personnelDrawerRef}
-        canAssign={access.canOrder(config.businessType, 'personnel.assign')}
-        canRemove={access.canOrder(config.businessType, 'personnel.remove')}
+        canAssign={access.canOrder(definition.businessType, 'personnel.assign')}
+        canRemove={access.canOrder(definition.businessType, 'personnel.remove')}
       />
       <ContainerDrawer
         ref={containerDrawerRef}
-        canCreate={access.canOrder(config.businessType, 'container.create')}
-        canUpdate={access.canOrder(config.businessType, 'container.update')}
-        canRemove={access.canOrder(config.businessType, 'container.delete')}
+        canCreate={access.canOrder(definition.businessType, 'container.create')}
+        canUpdate={access.canOrder(definition.businessType, 'container.update')}
+        canRemove={access.canOrder(definition.businessType, 'container.delete')}
         containerSpecOptions={containerSpecOptions}
         containerSpecMap={containerSpecMap}
       />
       <ConsolidationDrawer ref={consolidationDrawerRef} />
       <CargoItemDrawer
         ref={cargoItemDrawerRef}
-        canCreate={access.canOrder(config.businessType, 'cargo_item.create')}
-        canUpdate={access.canOrder(config.businessType, 'cargo_item.update')}
-        canRemove={access.canOrder(config.businessType, 'cargo_item.delete')}
+        canCreate={access.canOrder(definition.businessType, 'cargo_item.create')}
+        canUpdate={access.canOrder(definition.businessType, 'cargo_item.update')}
+        canRemove={access.canOrder(definition.businessType, 'cargo_item.delete')}
       />
       <ShippingDocumentDrawer
         ref={shippingDocumentDrawerRef}
-        canManage={access.canOrder(config.businessType, 'update')}
-        category={config.category}
-      />
-      <SeaCargoAllocationDrawer
-        ref={seaCargoAllocationDrawerRef}
-        canManage={access.canOrder(config.businessType, 'update')}
-        onSuccess={() => actionRef.current?.reload()}
+        canManage={access.canOrder(definition.businessType, 'update')}
+        transportMode={definition.transportMode}
       />
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canOrder(config.businessType, 'release_pod.create')}
+        canManage={access.canOrder(definition.businessType, 'release_pod.create')}
       />
       <OrderFeePanel ref={orderFeePanelRef} />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
+        canManage={access.canOrder(definition.businessType, 'abnormal_case.create')}
         masterOptions={masterOptions}
       />
     </>

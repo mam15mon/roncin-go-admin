@@ -21,26 +21,6 @@ func NewOrderReleasePodRepo(data *Data) biz.OrderReleasePodRepo {
 	return &orderReleasePodRepo{data: data}
 }
 
-func ensureReleasePodOrderEditable(ctx context.Context, client *ent.Client, existing *ent.Order) error {
-	if existing == nil {
-		return nil
-	}
-	if _, err := orderAccessBusinessType(existing.BusinessType); err != nil {
-		return err
-	}
-	if existing.LockedAt == nil {
-		return nil
-	}
-	var lockedByName string
-	if existing.LockedBy != nil {
-		user, err := client.User.Get(ctx, *existing.LockedBy)
-		if err == nil && user != nil {
-			lockedByName = user.DisplayName
-		}
-	}
-	return biz.NewErrOrderBusinessLocked(existing.ID, existing.OrderNo, existing.LockGeneration, *existing.LockedAt, lockedByName)
-}
-
 func (r *orderReleasePodRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) (*ent.Order, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -137,7 +117,7 @@ func validateReleasePodDocumentReference(ctx context.Context, client *ent.Client
 			}
 			return queryErr
 		}
-		if hb.Status == seahousebillent.StatusVOIDED || hb.Status == seahousebillent.StatusREPLACED {
+		if hb.Status == seahousebillent.StatusVOIDED {
 			return biz.ErrOrderReleasePodDocumentInvalid
 		}
 	default:
@@ -180,7 +160,7 @@ func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID u
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderReleasePodNotFound, nil)
 		}
-		if err := ensureReleasePodOrderEditable(txCtx, client, order); err != nil {
+		if err := ensureOrderBusinessContentEditable(txCtx, client.User, order); err != nil {
 			return err
 		}
 		if err := validateReleasePodDocumentReference(txCtx, client, order, input); err != nil {
@@ -250,7 +230,7 @@ func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderI
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderReleasePodNotFound, nil)
 		}
-		if err := ensureReleasePodOrderEditable(txCtx, client, order); err != nil {
+		if err := ensureOrderBusinessContentEditable(txCtx, client.User, order); err != nil {
 			return err
 		}
 		if err := validateReleasePodDocumentReference(txCtx, client, order, input); err != nil {
@@ -306,7 +286,7 @@ func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, or
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderReleasePodNotFound, nil)
 		}
-		if err := ensureReleasePodOrderEditable(txCtx, client, order); err != nil {
+		if err := ensureOrderBusinessContentEditable(txCtx, client.User, order); err != nil {
 			return err
 		}
 		item, err := client.OrderReleasePod.Query().Where(orderreleasepodent.IDEQ(id), orderreleasepodent.OrderIDEQ(orderID)).ForUpdate().Only(txCtx)
@@ -350,7 +330,7 @@ func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderI
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderReleasePodNotFound, nil)
 		}
-		if err := ensureReleasePodOrderEditable(txCtx, client, order); err != nil {
+		if err := ensureOrderBusinessContentEditable(txCtx, client.User, order); err != nil {
 			return err
 		}
 		item, err := client.OrderReleasePod.Query().Where(orderreleasepodent.IDEQ(id), orderreleasepodent.OrderIDEQ(orderID)).ForUpdate().Only(txCtx)

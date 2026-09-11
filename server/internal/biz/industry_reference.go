@@ -75,6 +75,8 @@ type Airline struct {
 	CountryCode    string
 	CargoOnly      bool
 	Source         string
+	SourceVersion  *string
+	SourceHash     *string
 	SortOrder      int
 	Enabled        bool
 	CreatedAt      time.Time
@@ -333,10 +335,19 @@ func normalizeAirline(input *Airline, creating bool) (*Airline, error) {
 	output.ICAOCode = normalizedUpperOptionalString(output.ICAOCode)
 	output.AWBPrefix = strings.TrimSpace(output.AWBPrefix)
 	output.CountryCode = strings.ToUpper(strings.TrimSpace(output.CountryCode))
-	if err := normalizeIndustryNames(&output.NameZH, &output.NameEN, &output.Source, output.SortOrder); err != nil {
-		return nil, err
+	output.NameZH = strings.TrimSpace(output.NameZH)
+	output.NameEN = strings.TrimSpace(output.NameEN)
+	output.Source = strings.TrimSpace(output.Source)
+	if output.Source == "" {
+		output.Source = "manual"
 	}
-	if creating && !iataAirlinePattern.MatchString(output.IATACode) || output.ICAOCode != nil && !icaoAirlinePattern.MatchString(*output.ICAOCode) || !awbPrefixCodePattern.MatchString(output.AWBPrefix) || !countryCodePattern.MatchString(output.CountryCode) {
+	if output.NameEN == "" || utf8.RuneCountInString(output.NameZH) > 200 || utf8.RuneCountInString(output.NameEN) > 200 || utf8.RuneCountInString(output.Source) > 100 || output.SortOrder < 0 {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if output.AWBPrefix != "" && !awbPrefixCodePattern.MatchString(output.AWBPrefix) {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if creating && !iataAirlinePattern.MatchString(output.IATACode) || output.ICAOCode != nil && !icaoAirlinePattern.MatchString(*output.ICAOCode) || !countryCodePattern.MatchString(output.CountryCode) {
 		return nil, ErrMasterDataInvalidArgument
 	}
 	return &output, nil

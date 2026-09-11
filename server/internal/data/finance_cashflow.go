@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	financeverification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	partner "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -23,14 +24,12 @@ type financeCashflowSummaryRow struct {
 	BaseAmount   string `json:"base_amount"`
 }
 
-type financeCashflowVerifiedSummaryRow struct {
-	Active             bool   `json:"active"`
-	VerifiedBaseAmount string `json:"verified_base_amount"`
-}
-
 func NewFinanceCashflowRepo(d *Data) biz.FinanceCashflowRepo { return &financeCashflowRepo{d} }
 func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
-	p := []predicate.FinanceCashflow{cash.OrganizationIDEQ(org)}
+	return r.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
+	p := []predicate.FinanceCashflow{cash.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
 		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword)))
 	}
@@ -46,51 +45,66 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 	if f.Currency != "" {
 		p = append(p, cash.CurrencyEQ(f.Currency))
 	}
-	q := r.data.db.FinanceCashflow.Query().Where(p...)
+	if f.OnlyUnverified {
+		p = append(p, cashflowUnverifiedPredicate())
+	}
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return nil, clientErr
+	}
+	q := client.FinanceCashflow.Query().WithOrganization().Where(p...)
 	n, e := q.Clone().Count(ctx)
 	if e != nil {
 		return nil, e
 	}
+	summaryPredicates := append([]predicate.FinanceCashflow{}, p...)
+	summaryPredicates = append(summaryPredicates, cash.StatusEQ(cash.StatusCONFIRMED))
+	summaryQuery := client.FinanceCashflow.Query().WithOrganization().Where(summaryPredicates...)
 	summaryRows := make([]financeCashflowSummaryRow, 0)
-	if e := q.Clone().
+	if e := summaryQuery.Clone().
 		GroupBy(cash.FieldDirection, cash.FieldBaseCurrency).
 		Aggregate(ent.As(ent.Sum(cash.FieldBaseAmount), "base_amount")).
 		Scan(ctx, &summaryRows); e != nil {
 		return nil, e
 	}
-	summary := biz.FinanceCashflowSummary{
-		ReceivableBaseAmount: decimal.Zero,
-		PayableBaseAmount:    decimal.Zero,
-		UnverifiedBaseAmount: decimal.Zero,
-	}
+	summary := biz.FinanceCashflowSummary{}
+	amountsByBaseCurrency := make(map[string]*biz.FinanceBaseCurrencyAmount, len(summaryRows))
 	for _, row := range summaryRows {
-		amount, parseErr := decimalOf(row.BaseAmount)
+		value, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		summary.BaseCurrency = row.BaseCurrency
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, row.BaseCurrency)
 		if row.Direction == string(cash.DirectionRECEIVABLE) {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(value)
 		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(value)
 		}
 	}
-	verifiedRows := make([]financeCashflowVerifiedSummaryRow, 0, 1)
-	if e := r.data.db.FinanceVerificationAllocation.Query().
-		Where(allocation.ActiveEQ(true), allocation.HasCashflowWith(p...)).
-		GroupBy(allocation.FieldActive).
-		Aggregate(ent.As(ent.Sum(allocation.FieldCashflowBaseAmount), "verified_base_amount")).
-		Scan(ctx, &verifiedRows); e != nil {
+	for _, bucket := range amountsByBaseCurrency {
+		bucket.UnverifiedBaseAmount = bucket.ReceivableBaseAmount.Add(bucket.PayableBaseAmount)
+	}
+	allocations, e := client.FinanceVerificationAllocation.Query().
+		Where(allocation.ActiveEQ(true), allocation.HasCashflowWith(summaryPredicates...)).
+		WithCashflow(func(query *ent.FinanceCashflowQuery) {
+			query.Select(cash.FieldID, cash.FieldBaseCurrency)
+		}).All(ctx)
+	if e != nil {
 		return nil, e
 	}
-	verifiedBaseAmount := decimal.Zero
-	if len(verifiedRows) > 0 {
-		verifiedBaseAmount, e = decimalOf(verifiedRows[0].VerifiedBaseAmount)
-		if e != nil {
-			return nil, e
+	for _, item := range allocations {
+		amount, parseErr := decimalOf(item.CashflowBaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
 		}
+		cashflow, edgeErr := item.Edges.CashflowOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		bucket := financeBaseCurrencyAmountFor(amountsByBaseCurrency, cashflow.BaseCurrency)
+		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
 	}
-	summary.UnverifiedBaseAmount = summary.ReceivableBaseAmount.Add(summary.PayableBaseAmount).Sub(verifiedBaseAmount)
+	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
 	xs, e := q.Order(cash.ByTransactionDate(entsql.OrderDesc()), cash.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if e != nil {
 		return nil, e
@@ -109,7 +123,14 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 	return out, nil
 }
 func (r *financeCashflowRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
-	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
+	return r.GetScoped(ctx, []uuid.UUID{org}, id)
+}
+func (r *financeCashflowRepo) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCashflow, error) {
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return nil, clientErr
+	}
+	x, e := client.FinanceCashflow.Query().WithOrganization().Where(cash.IDEQ(id), cash.OrganizationIDIn(organizationIDs...)).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrFinanceCashflowNotFound, nil)
 	}
@@ -135,7 +156,11 @@ func (r *financeCashflowRepo) enrichVerificationAmounts(ctx context.Context, cas
 		cashflow.VerifiedAmount = decimal.Zero
 		cashflow.UnverifiedAmount = cashflow.Amount
 	}
-	allocations, err := r.data.db.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDIn(ids...), allocation.ActiveEQ(true)).All(ctx)
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return clientErr
+	}
+	allocations, err := client.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDIn(ids...), allocation.ActiveEQ(true)).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -156,8 +181,32 @@ func (r *financeCashflowRepo) enrichVerificationAmounts(ctx context.Context, cas
 	}
 	return nil
 }
+
+// cashflowUnverifiedPredicate 是资金流水「未核销完」的 SQL 侧定义：
+// 流水金额 > 有效核销分摊合计（allocation active 且父核销单 ACTIVE，原值比较，不钳负）。
+// 展示侧的等价定义在 enrichVerificationAmounts（UnverifiedAmount 负值钳零），两处口径须同步维护。
+// 谓词必须进入 Count 与分页 Query 的共用条件，保证候选过滤发生在 LIMIT 之前。
+func cashflowUnverifiedPredicate() predicate.FinanceCashflow {
+	return func(selector *entsql.Selector) {
+		cashflowID := selector.C(cash.FieldID)
+		amount := selector.C(cash.FieldAmount)
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			builder.WriteString("(")
+			builder.Ident(amount)
+			builder.WriteString(" > COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.cashflow_id = ")
+			builder.Ident(cashflowID)
+			builder.WriteString(" AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
+			builder.WriteString("), 0))")
+		}))
+	}
+}
+
 func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCashflow, error) {
-	x, e := r.data.db.FinanceCashflow.Query().Where(cash.OrganizationIDEQ(org), cash.IdempotencyKeyEQ(key)).Only(ctx)
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return nil, clientErr
+	}
+	x, e := client.FinanceCashflow.Query().WithOrganization().Where(cash.OrganizationIDEQ(org), cash.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(e) {
 		return nil, nil
 	}
@@ -167,7 +216,11 @@ func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.
 	return cashflowToBiz(x)
 }
 func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUID) (string, error) {
-	x, e := r.data.db.Partner.Query().Where(partner.IDEQ(id), partner.OrganizationIDEQ(org), partner.EnabledEQ(true)).Only(ctx)
+	client, clientErr := r.data.client(ctx)
+	if clientErr != nil {
+		return "", clientErr
+	}
+	x, e := client.Partner.Query().Where(partner.IDEQ(id), partner.OrganizationIDEQ(org), partner.EnabledEQ(true)).Only(ctx)
 	if e != nil {
 		return "", mapEntError(e, biz.ErrOrderFeePartyInvalid, nil)
 	}
@@ -255,7 +308,11 @@ func cashflowToBiz(x *ent.FinanceCashflow) (*biz.FinanceCashflow, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &biz.FinanceCashflow{ID: x.ID, OrganizationID: x.OrganizationID, FlowNo: x.FlowNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceCashflowStatus(x.Status), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, ExchangeRate: rate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrency: x.BaseCurrency, BaseAmount: base, TransactionDate: x.TransactionDate, OurAccount: x.OurAccount, CounterpartyAccount: x.CounterpartyAccount, PaymentMethod: x.PaymentMethod, BankReferenceNo: x.BankReferenceNo, Note: x.Note, Version: x.Version, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
+	result := &biz.FinanceCashflow{ID: x.ID, OrganizationID: x.OrganizationID, FlowNo: x.FlowNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceCashflowStatus(x.Status), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, ExchangeRate: rate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrency: x.BaseCurrency, BaseAmount: base, TransactionDate: x.TransactionDate, OurAccount: x.OurAccount, CounterpartyAccount: x.CounterpartyAccount, PaymentMethod: x.PaymentMethod, BankReferenceNo: x.BankReferenceNo, Note: x.Note, Version: x.Version, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	if organization, edgeErr := x.Edges.OrganizationOrErr(); edgeErr == nil {
+		result.OrganizationName = organization.Name
+	}
+	return result, nil
 }
 
 var _ biz.FinanceCashflowRepo = (*financeCashflowRepo)(nil)

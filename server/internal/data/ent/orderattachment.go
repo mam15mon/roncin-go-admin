@@ -49,9 +49,21 @@ type OrderAttachmentEdges struct {
 	Asset *OrderAttachmentAsset `json:"asset,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// SeaMasterBillVersions holds the value of the sea_master_bill_versions edge.
+	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
+	// SeaHouseBillVersions holds the value of the sea_house_bill_versions edge.
+	SeaHouseBillVersions []*SeaHouseBillVersion `json:"sea_house_bill_versions,omitempty"`
+	// SeaOrderReassignmentEvents holds the value of the sea_order_reassignment_events edge.
+	SeaOrderReassignmentEvents []*SeaOrderReassignmentEvent `json:"sea_order_reassignment_events,omitempty"`
+	// SeaDocumentVoidEvents holds the value of the sea_document_void_events edge.
+	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
+	// SeaDocumentModeChangeEvents holds the value of the sea_document_mode_change_events edge.
+	SeaDocumentModeChangeEvents []*SeaDocumentModeChangeEvent `json:"sea_document_mode_change_events,omitempty"`
+	// SeaTransportExecutionVersions holds the value of the sea_transport_execution_versions edge.
+	SeaTransportExecutionVersions []*SeaTransportExecutionVersion `json:"sea_transport_execution_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [9]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -85,6 +97,60 @@ func (e OrderAttachmentEdges) CreatorOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "creator"}
+}
+
+// SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[3] {
+		return e.SeaMasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
+}
+
+// SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
+	if e.loadedTypes[4] {
+		return e.SeaHouseBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
+}
+
+// SeaOrderReassignmentEventsOrErr returns the SeaOrderReassignmentEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
+	if e.loadedTypes[5] {
+		return e.SeaOrderReassignmentEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
+}
+
+// SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
+	if e.loadedTypes[6] {
+		return e.SeaDocumentVoidEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_document_void_events"}
+}
+
+// SeaDocumentModeChangeEventsOrErr returns the SeaDocumentModeChangeEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
+	if e.loadedTypes[7] {
+		return e.SeaDocumentModeChangeEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_document_mode_change_events"}
+}
+
+// SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderAttachmentEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
+	if e.loadedTypes[8] {
+		return e.SeaTransportExecutionVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -190,6 +256,36 @@ func (_m *OrderAttachment) QueryAsset() *OrderAttachmentAssetQuery {
 // QueryCreator queries the "creator" edge of the OrderAttachment entity.
 func (_m *OrderAttachment) QueryCreator() *UserQuery {
 	return NewOrderAttachmentClient(_m.config).QueryCreator(_m)
+}
+
+// QuerySeaMasterBillVersions queries the "sea_master_bill_versions" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaMasterBillVersions(_m)
+}
+
+// QuerySeaHouseBillVersions queries the "sea_house_bill_versions" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaHouseBillVersions() *SeaHouseBillVersionQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaHouseBillVersions(_m)
+}
+
+// QuerySeaOrderReassignmentEvents queries the "sea_order_reassignment_events" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaOrderReassignmentEvents() *SeaOrderReassignmentEventQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaOrderReassignmentEvents(_m)
+}
+
+// QuerySeaDocumentVoidEvents queries the "sea_document_void_events" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaDocumentVoidEvents() *SeaDocumentVoidEventQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaDocumentVoidEvents(_m)
+}
+
+// QuerySeaDocumentModeChangeEvents queries the "sea_document_mode_change_events" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaDocumentModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaDocumentModeChangeEvents(_m)
+}
+
+// QuerySeaTransportExecutionVersions queries the "sea_transport_execution_versions" edge of the OrderAttachment entity.
+func (_m *OrderAttachment) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	return NewOrderAttachmentClient(_m.config).QuerySeaTransportExecutionVersions(_m)
 }
 
 // Update returns a builder for updating this OrderAttachment.

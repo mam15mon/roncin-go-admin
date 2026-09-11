@@ -3,6 +3,7 @@
 package financebillbatch
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,8 @@ const (
 	FieldSplitByOrder = "split_by_order"
 	// FieldSplitByTaxRate holds the string denoting the split_by_tax_rate field in the database.
 	FieldSplitByTaxRate = "split_by_tax_rate"
+	// FieldGroupingMode holds the string denoting the grouping_mode field in the database.
+	FieldGroupingMode = "grouping_mode"
 	// FieldFeeCount holds the string denoting the fee_count field in the database.
 	FieldFeeCount = "fee_count"
 	// FieldBillCount holds the string denoting the bill_count field in the database.
@@ -47,6 +50,8 @@ const (
 	EdgeCreator = "creator"
 	// EdgeBills holds the string denoting the bills edge name in mutations.
 	EdgeBills = "bills"
+	// EdgeNettings holds the string denoting the nettings edge name in mutations.
+	EdgeNettings = "nettings"
 	// Table holds the table name of the financebillbatch in the database.
 	Table = "finance_bill_batches"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -70,6 +75,13 @@ const (
 	BillsInverseTable = "finance_bills"
 	// BillsColumn is the table column denoting the bills relation/edge.
 	BillsColumn = "batch_id"
+	// NettingsTable is the table that holds the nettings relation/edge.
+	NettingsTable = "finance_nettings"
+	// NettingsInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	NettingsInverseTable = "finance_nettings"
+	// NettingsColumn is the table column denoting the nettings relation/edge.
+	NettingsColumn = "batch_id"
 )
 
 // Columns holds all SQL columns for financebillbatch fields.
@@ -83,6 +95,7 @@ var Columns = []string{
 	FieldRequestHash,
 	FieldSplitByOrder,
 	FieldSplitByTaxRate,
+	FieldGroupingMode,
 	FieldFeeCount,
 	FieldBillCount,
 	FieldTotalBaseAmount,
@@ -126,6 +139,32 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// GroupingMode defines the type for the "grouping_mode" enum field.
+type GroupingMode string
+
+// GroupingModeNORMAL is the default value of the GroupingMode enum.
+const DefaultGroupingMode = GroupingModeNORMAL
+
+// GroupingMode values.
+const (
+	GroupingModeNORMAL  GroupingMode = "NORMAL"
+	GroupingModeNETTING GroupingMode = "NETTING"
+)
+
+func (gm GroupingMode) String() string {
+	return string(gm)
+}
+
+// GroupingModeValidator is a validator for the "grouping_mode" field enum values. It is called by the builders before save.
+func GroupingModeValidator(gm GroupingMode) error {
+	switch gm {
+	case GroupingModeNORMAL, GroupingModeNETTING:
+		return nil
+	default:
+		return fmt.Errorf("financebillbatch: invalid enum value for grouping_mode field: %q", gm)
+	}
+}
 
 // OrderOption defines the ordering options for the FinanceBillBatch queries.
 type OrderOption func(*sql.Selector)
@@ -173,6 +212,11 @@ func BySplitByOrder(opts ...sql.OrderTermOption) OrderOption {
 // BySplitByTaxRate orders the results by the split_by_tax_rate field.
 func BySplitByTaxRate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSplitByTaxRate, opts...).ToFunc()
+}
+
+// ByGroupingMode orders the results by the grouping_mode field.
+func ByGroupingMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupingMode, opts...).ToFunc()
 }
 
 // ByFeeCount orders the results by the fee_count field.
@@ -227,6 +271,20 @@ func ByBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNettingsCount orders the results by nettings count.
+func ByNettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNettingsStep(), opts...)
+	}
+}
+
+// ByNettings orders the results by nettings terms.
+func ByNettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -246,5 +304,12 @@ func newBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, BillsTable, BillsColumn),
+	)
+}
+func newNettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NettingsTable, NettingsColumn),
 	)
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ORDER_KIND_CONFIGS } from './common';
+import { OrderTerminationStatus } from '@/enums.generated';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { queryOrderList } from './list-query';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
@@ -13,6 +14,26 @@ describe('queryOrderList', () => {
     listOrdersMock.mockReset();
   });
 
+  it.each([
+    ['customer_reference', 4],
+    ['booking', 5],
+  ] as const)('映射新增号码筛选类型 %s', async (numberType, expectedType) => {
+    listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
+
+    await queryOrderList(
+      { numberType, numberKeyword: 'REF-001' },
+      seaExportDefinition,
+      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+    );
+
+    expect(listOrdersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        numberType: expectedType,
+        numberKeyword: 'REF-001',
+      }),
+    );
+  });
+
   it('将页面筛选条件映射为订单查询参数', async () => {
     listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
 
@@ -20,14 +41,14 @@ describe('queryOrderList', () => {
       {
         page: 2,
         pageSize: 50,
-        stage: 'abnormal',
+        stage: 'returned',
         numberType: 'consolidated_master',
         numberKeyword: 'MBL-001',
         isLocked: 'locked',
         shareStatus: 'unshared',
         tagIds: ['tag-1'],
       },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
       { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
     );
 
@@ -36,7 +57,8 @@ describe('queryOrderList', () => {
         page: 2,
         pageSize: 50,
         businessType: 1,
-        hasActiveException: true,
+        terminationStatus:
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
         numberType: 3,
         numberKeyword: 'MBL-001',
         isLocked: true,
@@ -69,7 +91,7 @@ describe('queryOrderList', () => {
 
     const result = await queryOrderList(
       { page: 1, pageSize: 20 },
-      ORDER_KIND_CONFIGS['sea-export'],
+      seaExportDefinition,
       {
         ports: [
           {
@@ -98,6 +120,8 @@ describe('queryOrderList', () => {
           id: 'order-1',
           orderNo: 'SE-001',
           customerName: '示例客户 (CUS001)',
+          orderKind: 'sea-export',
+          businessType: '海运出口',
           originPortName: '上海港',
           originPortCode: 'CNSHA',
           destinationPortName: '洛杉矶机场',
@@ -112,5 +136,19 @@ describe('queryOrderList', () => {
       total: 1,
       success: true,
     });
+  });
+
+  it('业务类型列展示注册定义的导航标题而非页面主标题', async () => {
+    listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
+
+    const result = await queryOrderList(
+      { page: 1, pageSize: 20 },
+      seaExportDefinition,
+      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+    );
+
+    expect(result.data).toEqual([]);
+    expect(seaExportDefinition.title).toBe('海运出口订单');
+    expect(seaExportDefinition.navigationTitle).toBe('海运出口');
   });
 });

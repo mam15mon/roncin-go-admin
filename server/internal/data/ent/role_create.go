@@ -16,7 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -149,19 +149,19 @@ func (_c *RoleCreate) AddAssignments(v ...*RoleAssignment) *RoleCreate {
 	return _c.AddAssignmentIDs(ids...)
 }
 
-// AddOrderOrganizationAccessIDs adds the "order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by IDs.
-func (_c *RoleCreate) AddOrderOrganizationAccessIDs(ids ...uuid.UUID) *RoleCreate {
-	_c.mutation.AddOrderOrganizationAccessIDs(ids...)
+// AddOrganizationAccessIDs adds the "organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
+func (_c *RoleCreate) AddOrganizationAccessIDs(ids ...uuid.UUID) *RoleCreate {
+	_c.mutation.AddOrganizationAccessIDs(ids...)
 	return _c
 }
 
-// AddOrderOrganizationAccesses adds the "order_organization_accesses" edges to the RoleOrderOrganizationAccess entity.
-func (_c *RoleCreate) AddOrderOrganizationAccesses(v ...*RoleOrderOrganizationAccess) *RoleCreate {
+// AddOrganizationAccesses adds the "organization_accesses" edges to the RoleOrganizationAccess entity.
+func (_c *RoleCreate) AddOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddOrderOrganizationAccessIDs(ids...)
+	return _c.AddOrganizationAccessIDs(ids...)
 }
 
 // AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
@@ -385,15 +385,15 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.OrderOrganizationAccessesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.OrganizationAccessesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   role.OrderOrganizationAccessesTable,
-			Columns: []string{role.OrderOrganizationAccessesColumn},
+			Table:   role.OrganizationAccessesTable,
+			Columns: []string{role.OrganizationAccessesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

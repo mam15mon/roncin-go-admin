@@ -1,0 +1,3 @@
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"复核草稿生命周期实现与项目级状态规范一致"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"按公共组件风险执行定向检查和一次最终门禁"}
+{"file":".trellis/tasks/09-09-consolidate-order-draft-lifecycle/research/evidence.md","reason":"核对评审结论是否符合真实调用方与 Hook 契约"}

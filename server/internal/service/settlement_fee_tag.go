@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
@@ -29,19 +31,55 @@ func (s *SettlementService) ListFinanceFeeTagOptions(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	items, total, err := s.tagUsecase.ListTagOptions(ctx, principal.Organization.ID, request.GetKeyword(), page, pageSize)
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceFeeRead, false, request.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	items, total, err := s.tagUsecase.ListTagOptions(ctx, organizationIDs[0], request.GetKeyword(), page, pageSize)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.ListFinanceFeeTagOptionsResponse{Tags: businessTagSummariesToFinanceAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *SettlementService) BatchAssignFinanceFeeTags(ctx context.Context, request *v1.BatchAssignFinanceFeeTagsRequest) (*v1.BatchAssignFinanceFeeTagsResponse, error) {
-	principal, feeIDs, tagIDs, err := financeFeeTagRequest(ctx, request)
+// ListFinanceFeeTagAssignmentOptions 只为费用标签写入提供候选。读取筛选继续复用
+// ListFinanceFeeTagOptions 的 fee.read 范围，不能借此接口扩大写入范围。
+func (s *SettlementService) ListFinanceFeeTagAssignmentOptions(ctx context.Context, request *v1.ListFinanceFeeTagAssignmentOptionsRequest) (*v1.ListFinanceFeeTagAssignmentOptionsResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
-	affected, err := s.tagUsecase.AssignOrderFeesInLedger(ctx, principal.Organization.ID, principal.UserID, feeIDs, tagIDs)
+	rawOrganizationID := request.GetOrganizationId()
+	if strings.TrimSpace(rawOrganizationID) == "" {
+		return nil, biz.ErrBusinessTagInvalidArgument
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceFeeTag, true, &rawOrganizationID)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrBusinessTagInvalidArgument
+	}
+	items, total, err := s.tagUsecase.ListTagOptions(ctx, organizationIDs[0], request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListFinanceFeeTagAssignmentOptionsResponse{Tags: businessTagSummariesToFinanceAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) BatchAssignFinanceFeeTags(ctx context.Context, request *v1.BatchAssignFinanceFeeTagsRequest) (*v1.BatchAssignFinanceFeeTagsResponse, error) {
+	principal, feeIDs, tagIDs, organizationID, err := s.financeFeeTagRequest(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	affected, err := s.tagUsecase.AssignOrderFeesInLedger(ctx, organizationID, principal.UserID, feeIDs, tagIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -49,28 +87,47 @@ func (s *SettlementService) BatchAssignFinanceFeeTags(ctx context.Context, reque
 }
 
 func (s *SettlementService) BatchRemoveFinanceFeeTags(ctx context.Context, request *v1.BatchRemoveFinanceFeeTagsRequest) (*v1.BatchRemoveFinanceFeeTagsResponse, error) {
-	principal, feeIDs, tagIDs, err := financeFeeTagRequest(ctx, request)
+	principal, feeIDs, tagIDs, organizationID, err := s.financeFeeTagRequest(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	affected, err := s.tagUsecase.RemoveOrderFeesInLedger(ctx, principal.Organization.ID, principal.UserID, feeIDs, tagIDs)
+	affected, err := s.tagUsecase.RemoveOrderFeesInLedger(ctx, organizationID, principal.UserID, feeIDs, tagIDs)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.BatchRemoveFinanceFeeTagsResponse{RemovedCount: int32(affected), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func financeFeeTagRequest[Req interface {
+func (s *SettlementService) financeFeeTagRequest(ctx context.Context, request interface {
 	GetFeeIds() []string
 	GetTagIds() []string
-}](ctx context.Context, request Req) (*biz.Principal, []uuid.UUID, []uuid.UUID, error) {
+	GetOrganizationId() string
+}) (*biz.Principal, []uuid.UUID, []uuid.UUID, uuid.UUID, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
-		return nil, nil, nil, principalErr
+		return nil, nil, nil, uuid.Nil, principalErr
 	}
 	feeIDs, tagIDs, err := orderTagBatchIDs(request.GetFeeIds(), request.GetTagIds())
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, uuid.Nil, err
 	}
-	return principal, feeIDs, tagIDs, nil
+	organizationID, parseErr := uuid.Parse(strings.TrimSpace(request.GetOrganizationId()))
+	if parseErr != nil {
+		return nil, nil, nil, uuid.Nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(principal, access.FinanceFeeTag, true)
+	if scopeErr != nil {
+		return nil, nil, nil, uuid.Nil, scopeErr
+	}
+	if !uuidIn(organizationID, organizationIDs) {
+		return nil, nil, nil, uuid.Nil, biz.ErrPermissionDenied
+	}
+	resolvedID, resolveErr := s.usecase.ResolveFeeLedgerOrganization(ctx, organizationIDs, feeIDs)
+	if resolveErr != nil {
+		return nil, nil, nil, uuid.Nil, resolveErr
+	}
+	if resolvedID != organizationID {
+		return nil, nil, nil, uuid.Nil, biz.ErrPermissionDenied
+	}
+	return principal, feeIDs, tagIDs, organizationID, nil
 }

@@ -57,9 +57,19 @@ type ShippingLineEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// ContainerPrefixes holds the value of the container_prefixes edge.
 	ContainerPrefixes []*ShippingLineContainerPrefix `json:"container_prefixes,omitempty"`
+	// Orders holds the value of the orders edge.
+	Orders []*Order `json:"orders,omitempty"`
+	// SeaTransportExecutions holds the value of the sea_transport_executions edge.
+	SeaTransportExecutions []*SeaTransportExecution `json:"sea_transport_executions,omitempty"`
+	// SeaTransportExecutionVersions holds the value of the sea_transport_execution_versions edge.
+	SeaTransportExecutionVersions []*SeaTransportExecutionVersion `json:"sea_transport_execution_versions,omitempty"`
+	// SeaMasterBills holds the value of the sea_master_bills edge.
+	SeaMasterBills []*SeaMasterBill `json:"sea_master_bills,omitempty"`
+	// SeaMasterBillVersions holds the value of the sea_master_bill_versions edge.
+	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -80,6 +90,51 @@ func (e ShippingLineEdges) ContainerPrefixesOrErr() ([]*ShippingLineContainerPre
 		return e.ContainerPrefixes, nil
 	}
 	return nil, &NotLoadedError{edge: "container_prefixes"}
+}
+
+// OrdersOrErr returns the Orders value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) OrdersOrErr() ([]*Order, error) {
+	if e.loadedTypes[2] {
+		return e.Orders, nil
+	}
+	return nil, &NotLoadedError{edge: "orders"}
+}
+
+// SeaTransportExecutionsOrErr returns the SeaTransportExecutions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) SeaTransportExecutionsOrErr() ([]*SeaTransportExecution, error) {
+	if e.loadedTypes[3] {
+		return e.SeaTransportExecutions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_transport_executions"}
+}
+
+// SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
+	if e.loadedTypes[4] {
+		return e.SeaTransportExecutionVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
+}
+
+// SeaMasterBillsOrErr returns the SeaMasterBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
+	if e.loadedTypes[5] {
+		return e.SeaMasterBills, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bills"}
+}
+
+// SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingLineEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
+	if e.loadedTypes[6] {
+		return e.SeaMasterBillVersions, nil
+	}
+	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -219,6 +274,31 @@ func (_m *ShippingLine) QueryOrganization() *OrganizationQuery {
 // QueryContainerPrefixes queries the "container_prefixes" edge of the ShippingLine entity.
 func (_m *ShippingLine) QueryContainerPrefixes() *ShippingLineContainerPrefixQuery {
 	return NewShippingLineClient(_m.config).QueryContainerPrefixes(_m)
+}
+
+// QueryOrders queries the "orders" edge of the ShippingLine entity.
+func (_m *ShippingLine) QueryOrders() *OrderQuery {
+	return NewShippingLineClient(_m.config).QueryOrders(_m)
+}
+
+// QuerySeaTransportExecutions queries the "sea_transport_executions" edge of the ShippingLine entity.
+func (_m *ShippingLine) QuerySeaTransportExecutions() *SeaTransportExecutionQuery {
+	return NewShippingLineClient(_m.config).QuerySeaTransportExecutions(_m)
+}
+
+// QuerySeaTransportExecutionVersions queries the "sea_transport_execution_versions" edge of the ShippingLine entity.
+func (_m *ShippingLine) QuerySeaTransportExecutionVersions() *SeaTransportExecutionVersionQuery {
+	return NewShippingLineClient(_m.config).QuerySeaTransportExecutionVersions(_m)
+}
+
+// QuerySeaMasterBills queries the "sea_master_bills" edge of the ShippingLine entity.
+func (_m *ShippingLine) QuerySeaMasterBills() *SeaMasterBillQuery {
+	return NewShippingLineClient(_m.config).QuerySeaMasterBills(_m)
+}
+
+// QuerySeaMasterBillVersions queries the "sea_master_bill_versions" edge of the ShippingLine entity.
+func (_m *ShippingLine) QuerySeaMasterBillVersions() *SeaMasterBillVersionQuery {
+	return NewShippingLineClient(_m.config).QuerySeaMasterBillVersions(_m)
 }
 
 // Update returns a builder for updating this ShippingLine.

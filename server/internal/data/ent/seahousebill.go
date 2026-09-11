@@ -99,8 +99,8 @@ type SeaHouseBillEdges struct {
 	IssuerOrganization *Organization `json:"issuer_organization,omitempty"`
 	// IssuerPartner holds the value of the issuer_partner edge.
 	IssuerPartner *Partner `json:"issuer_partner,omitempty"`
-	// CargoAllocations holds the value of the cargo_allocations edge.
-	CargoAllocations []*SeaCargoAllocation `json:"cargo_allocations,omitempty"`
+	// SharedContainerAllocations holds the value of the shared_container_allocations edge.
+	SharedContainerAllocations []*SeaSharedContainerAllocation `json:"shared_container_allocations,omitempty"`
 	// CurrentVersion holds the value of the current_version edge.
 	CurrentVersion *SeaHouseBillVersion `json:"current_version,omitempty"`
 	// Versions holds the value of the versions edge.
@@ -109,10 +109,10 @@ type SeaHouseBillEdges struct {
 	LockSnapshots []*OrderLockHouseBillSnapshot `json:"lock_snapshots,omitempty"`
 	// VoidEvents holds the value of the void_events edge.
 	VoidEvents []*SeaDocumentVoidEvent `json:"void_events,omitempty"`
-	// OldSwitchEvents holds the value of the old_switch_events edge.
-	OldSwitchEvents []*SeaHouseBillSwitchEvent `json:"old_switch_events,omitempty"`
-	// NewSwitchEvents holds the value of the new_switch_events edge.
-	NewSwitchEvents []*SeaHouseBillSwitchEvent `json:"new_switch_events,omitempty"`
+	// PreviousModeChangeEvents holds the value of the previous_mode_change_events edge.
+	PreviousModeChangeEvents []*SeaDocumentModeChangeEvent `json:"previous_mode_change_events,omitempty"`
+	// TargetModeChangeEvents holds the value of the target_mode_change_events edge.
+	TargetModeChangeEvents []*SeaDocumentModeChangeEvent `json:"target_mode_change_events,omitempty"`
 	// ReleasePods holds the value of the release_pods edge.
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -175,13 +175,13 @@ func (e SeaHouseBillEdges) IssuerPartnerOrErr() (*Partner, error) {
 	return nil, &NotLoadedError{edge: "issuer_partner"}
 }
 
-// CargoAllocationsOrErr returns the CargoAllocations value or an error if the edge
+// SharedContainerAllocationsOrErr returns the SharedContainerAllocations value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaHouseBillEdges) CargoAllocationsOrErr() ([]*SeaCargoAllocation, error) {
+func (e SeaHouseBillEdges) SharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
 	if e.loadedTypes[5] {
-		return e.CargoAllocations, nil
+		return e.SharedContainerAllocations, nil
 	}
-	return nil, &NotLoadedError{edge: "cargo_allocations"}
+	return nil, &NotLoadedError{edge: "shared_container_allocations"}
 }
 
 // CurrentVersionOrErr returns the CurrentVersion value or an error if the edge
@@ -222,22 +222,22 @@ func (e SeaHouseBillEdges) VoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
 	return nil, &NotLoadedError{edge: "void_events"}
 }
 
-// OldSwitchEventsOrErr returns the OldSwitchEvents value or an error if the edge
+// PreviousModeChangeEventsOrErr returns the PreviousModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaHouseBillEdges) OldSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+func (e SeaHouseBillEdges) PreviousModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
 	if e.loadedTypes[10] {
-		return e.OldSwitchEvents, nil
+		return e.PreviousModeChangeEvents, nil
 	}
-	return nil, &NotLoadedError{edge: "old_switch_events"}
+	return nil, &NotLoadedError{edge: "previous_mode_change_events"}
 }
 
-// NewSwitchEventsOrErr returns the NewSwitchEvents value or an error if the edge
+// TargetModeChangeEventsOrErr returns the TargetModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
-func (e SeaHouseBillEdges) NewSwitchEventsOrErr() ([]*SeaHouseBillSwitchEvent, error) {
+func (e SeaHouseBillEdges) TargetModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
 	if e.loadedTypes[11] {
-		return e.NewSwitchEvents, nil
+		return e.TargetModeChangeEvents, nil
 	}
-	return nil, &NotLoadedError{edge: "new_switch_events"}
+	return nil, &NotLoadedError{edge: "target_mode_change_events"}
 }
 
 // ReleasePodsOrErr returns the ReleasePods value or an error if the edge
@@ -518,9 +518,9 @@ func (_m *SeaHouseBill) QueryIssuerPartner() *PartnerQuery {
 	return NewSeaHouseBillClient(_m.config).QueryIssuerPartner(_m)
 }
 
-// QueryCargoAllocations queries the "cargo_allocations" edge of the SeaHouseBill entity.
-func (_m *SeaHouseBill) QueryCargoAllocations() *SeaCargoAllocationQuery {
-	return NewSeaHouseBillClient(_m.config).QueryCargoAllocations(_m)
+// QuerySharedContainerAllocations queries the "shared_container_allocations" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QuerySharedContainerAllocations() *SeaSharedContainerAllocationQuery {
+	return NewSeaHouseBillClient(_m.config).QuerySharedContainerAllocations(_m)
 }
 
 // QueryCurrentVersion queries the "current_version" edge of the SeaHouseBill entity.
@@ -543,14 +543,14 @@ func (_m *SeaHouseBill) QueryVoidEvents() *SeaDocumentVoidEventQuery {
 	return NewSeaHouseBillClient(_m.config).QueryVoidEvents(_m)
 }
 
-// QueryOldSwitchEvents queries the "old_switch_events" edge of the SeaHouseBill entity.
-func (_m *SeaHouseBill) QueryOldSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewSeaHouseBillClient(_m.config).QueryOldSwitchEvents(_m)
+// QueryPreviousModeChangeEvents queries the "previous_mode_change_events" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryPreviousModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewSeaHouseBillClient(_m.config).QueryPreviousModeChangeEvents(_m)
 }
 
-// QueryNewSwitchEvents queries the "new_switch_events" edge of the SeaHouseBill entity.
-func (_m *SeaHouseBill) QueryNewSwitchEvents() *SeaHouseBillSwitchEventQuery {
-	return NewSeaHouseBillClient(_m.config).QueryNewSwitchEvents(_m)
+// QueryTargetModeChangeEvents queries the "target_mode_change_events" edge of the SeaHouseBill entity.
+func (_m *SeaHouseBill) QueryTargetModeChangeEvents() *SeaDocumentModeChangeEventQuery {
+	return NewSeaHouseBillClient(_m.config).QueryTargetModeChangeEvents(_m)
 }
 
 // QueryReleasePods queries the "release_pods" edge of the SeaHouseBill entity.

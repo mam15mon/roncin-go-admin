@@ -10,407 +10,335 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
-type SeaCargoAllocationService struct {
-	v1.UnimplementedSeaCargoAllocationServiceServer
-	usecase *biz.SeaCargoAllocationUsecase
+type SeaSharedContainerService struct {
+	v1.UnimplementedSeaSharedContainerServiceServer
+	usecase *biz.SeaSharedContainerUsecase
 }
 
-func NewSeaCargoAllocationService(usecase *biz.SeaCargoAllocationUsecase) *SeaCargoAllocationService {
-	return &SeaCargoAllocationService{usecase: usecase}
+func NewSeaSharedContainerService(usecase *biz.SeaSharedContainerUsecase) *SeaSharedContainerService {
+	return &SeaSharedContainerService{usecase: usecase}
 }
 
-var _ v1.SeaCargoAllocationServiceServer = (*SeaCargoAllocationService)(nil)
+var _ v1.SeaSharedContainerServiceServer = (*SeaSharedContainerService)(nil)
 
-func (s *SeaCargoAllocationService) GetSeaCargoAllocation(ctx context.Context, req *v1.GetSeaCargoAllocationRequest) (*v1.GetSeaCargoAllocationResponse, error) {
+func (s *SeaSharedContainerService) ListSeaSharedContainers(ctx context.Context, request *v1.ListSeaSharedContainersRequest) (*v1.ListSeaSharedContainersResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-
-	agg, err := s.usecase.GetSeaCargoAllocation(ctx, principal.Organization.ID, orderID)
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
 	if err != nil {
 		return nil, err
 	}
-
-	return ok(ctx, &v1.GetSeaCargoAllocationResponse{
-		Data: seaCargoAllocationAggregateToAPI(agg),
-	}), nil
+	executionID, err := uuid.Parse(request.GetTransportExecutionId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrSeaSharedContainerInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.usecase.List(ctx, principal.Organization.ID, anchorOrder, executionID, request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.SeaSharedContainer, 0, len(items))
+	for _, item := range items {
+		data = append(data, seaSharedContainerToAPI(item))
+	}
+	return okList(ctx, &v1.ListSeaSharedContainersResponse{Data: data, Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}), nil
 }
 
-func (s *SeaCargoAllocationService) SaveSeaCargoAllocationDraft(ctx context.Context, req *v1.SaveSeaCargoAllocationDraftRequest) (*v1.SaveSeaCargoAllocationDraftResponse, error) {
+func (s *SeaSharedContainerService) GetSeaSharedContainer(ctx context.Context, request *v1.GetSeaSharedContainerRequest) (*v1.GetSeaSharedContainerResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orderID, err := uuid.Parse(req.GetOrderId())
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
 	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
+		return nil, err
 	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	item, err := s.usecase.Get(ctx, principal.Organization.ID, anchorOrder, id)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.GetSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
 
-	inputs := make([]*biz.SeaCargoAllocationInput, 0, len(req.GetAllocations()))
-	for _, a := range req.GetAllocations() {
-		cargoItemID, err := uuid.Parse(a.GetCargoItemId())
-		if err != nil {
-			return nil, biz.ErrSeaCargoAllocationInvalidArgument
-		}
-		houseBillID, err := uuid.Parse(a.GetHouseBillId())
-		if err != nil {
-			return nil, biz.ErrSeaCargoAllocationInvalidArgument
-		}
-		var containerID *uuid.UUID
-		if a.GetContainerId() != "" {
-			cid, err := uuid.Parse(a.GetContainerId())
-			if err != nil {
-				return nil, biz.ErrSeaCargoAllocationInvalidArgument
-			}
-			containerID = &cid
-		}
+func (s *SeaSharedContainerService) ListSeaSharedContainerCandidates(ctx context.Context, request *v1.ListSeaSharedContainerCandidatesRequest) (*v1.ListSeaSharedContainerCandidatesResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	executionID, err := uuid.Parse(request.GetTransportExecutionId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrSeaSharedContainerInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.usecase.ListCandidates(ctx, principal.Organization.ID, anchorOrder, executionID, request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.SeaSharedContainerCandidateOrder, 0, len(items))
+	for _, item := range items {
+		data = append(data, seaSharedContainerCandidateToAPI(item))
+	}
+	return okList(ctx, &v1.ListSeaSharedContainerCandidatesResponse{Data: data, Total: int32(total), Page: int32(page), PageSize: int32(pageSize)}), nil
+}
 
-		weight, err := biz.ParseAndValidateWeight(a.GetGrossWeightKg())
+func (s *SeaSharedContainerService) CreateSeaSharedContainer(ctx context.Context, request *v1.CreateSeaSharedContainerRequest) (*v1.CreateSeaSharedContainerResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	input, err := seaSharedContainerInputFromAPI(request.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, anchorOrder, input)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.CreateSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+func (s *SeaSharedContainerService) UpdateSeaSharedContainer(ctx context.Context, request *v1.UpdateSeaSharedContainerRequest) (*v1.UpdateSeaSharedContainerResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	input, err := seaSharedContainerInputFromAPI(request.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), input)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.UpdateSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+func (s *SeaSharedContainerService) DeleteSeaSharedContainer(ctx context.Context, request *v1.DeleteSeaSharedContainerRequest) (*v1.DeleteSeaSharedContainerResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	if err := s.usecase.Delete(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion()); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.DeleteSeaSharedContainerResponse{}), nil
+}
+
+func (s *SeaSharedContainerService) SaveSeaSharedContainerAllocationsDraft(ctx context.Context, request *v1.SaveSeaSharedContainerAllocationsDraftRequest) (*v1.SaveSeaSharedContainerAllocationsDraftResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	allocations, err := seaSharedAllocationInputsFromAPI(request.GetAllocations())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.usecase.SaveDraft(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), allocations)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.SaveSeaSharedContainerAllocationsDraftResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+func (s *SeaSharedContainerService) ConfirmSeaSharedContainer(ctx context.Context, request *v1.ConfirmSeaSharedContainerRequest) (*v1.ConfirmSeaSharedContainerResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	var allocations []*biz.SeaSharedContainerAllocationInput
+	if request.GetAllocations() != nil {
+		allocations, err = seaSharedAllocationInputsFromAPI(request.GetAllocations())
 		if err != nil {
 			return nil, err
 		}
-		volume, err := biz.ParseAndValidateVolume(a.GetVolumeCbm())
+	}
+	item, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion(), allocations)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.ConfirmSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+func (s *SeaSharedContainerService) WithdrawSeaSharedContainer(ctx context.Context, request *v1.WithdrawSeaSharedContainerRequest) (*v1.WithdrawSeaSharedContainerResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	anchorOrder, err := anchorOrderID(request.GetOrderId())
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	item, err := s.usecase.Withdraw(ctx, principal.Organization.ID, principal.UserID, anchorOrder, id, request.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.WithdrawSeaSharedContainerResponse{Data: seaSharedContainerToAPI(item)}), nil
+}
+
+// anchorOrderID 校验授权锚点订单：中间件按该订单确定业务类型与组织上下文
+func anchorOrderID(raw string) (uuid.UUID, error) {
+	id, err := uuid.Parse(raw)
+	if err != nil || id == uuid.Nil {
+		return uuid.Nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	return id, nil
+}
+
+func seaSharedContainerInputFromAPI(input *v1.SeaSharedContainerInput) (*biz.SeaSharedContainer, error) {
+	if input == nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	executionID, err := uuid.Parse(input.GetTransportExecutionId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	specID, err := uuid.Parse(input.GetContainerSpecId())
+	if err != nil {
+		return nil, biz.ErrSeaSharedContainerInvalidArgument
+	}
+	weight, err := biz.ParseSharedWeight(input.GetGrossWeightKg())
+	if err != nil {
+		return nil, err
+	}
+	volume, err := biz.ParseSharedVolume(input.GetVolumeCbm())
+	if err != nil {
+		return nil, err
+	}
+	return &biz.SeaSharedContainer{TransportExecutionID: executionID, ContainerNo: input.GetContainerNo(), ContainerSpecID: specID, SealNo: input.SealNo, PackageCount: input.GetPackageCount(), GrossWeightKg: weight, VolumeCbm: volume, Note: input.Note}, nil
+}
+
+func seaSharedAllocationInputsFromAPI(inputs []*v1.SeaSharedContainerAllocationInput) ([]*biz.SeaSharedContainerAllocationInput, error) {
+	result := make([]*biz.SeaSharedContainerAllocationInput, 0, len(inputs))
+	for _, input := range inputs {
+		if input == nil {
+			return nil, biz.ErrSeaSharedContainerInvalidArgument
+		}
+		orderID, err := uuid.Parse(input.GetOrderId())
+		if err != nil {
+			return nil, biz.ErrSeaSharedContainerInvalidArgument
+		}
+		houseBillID, err := uuid.Parse(input.GetHouseBillId())
+		if err != nil {
+			return nil, biz.ErrSeaSharedContainerInvalidArgument
+		}
+		cargoID, err := uuid.Parse(input.GetCargoItemId())
+		if err != nil {
+			return nil, biz.ErrSeaSharedContainerInvalidArgument
+		}
+		weight, err := biz.ParseSharedWeight(input.GetGrossWeightKg())
 		if err != nil {
 			return nil, err
 		}
-
-		var id *uuid.UUID
-		if a.GetId() != "" {
-			parsedID, err := uuid.Parse(a.GetId())
-			if err != nil {
-				return nil, biz.ErrSeaCargoAllocationInvalidArgument
-			}
-			id = &parsedID
+		volume, err := biz.ParseSharedVolume(input.GetVolumeCbm())
+		if err != nil {
+			return nil, err
 		}
-
-		inputs = append(inputs, &biz.SeaCargoAllocationInput{
-			ID:            id,
-			CargoItemID:   cargoItemID,
-			HouseBillID:   houseBillID,
-			ContainerID:   containerID,
-			PackageCount:  a.GetPackageCount(),
-			GrossWeightKg: weight,
-			VolumeCbm:     volume,
-		})
+		result = append(result, &biz.SeaSharedContainerAllocationInput{OrderID: orderID, HouseBillID: houseBillID, CargoItemID: cargoID, PackageCount: input.GetPackageCount(), GrossWeightKg: weight, VolumeCbm: volume})
+		result[len(result)-1].ExpectedOrderVersion = input.GetExpectedOrderVersion()
+		result[len(result)-1].ExpectedLinkVersion = input.GetExpectedLinkVersion()
+		result[len(result)-1].ExpectedHouseBillVersion = input.GetExpectedHouseBillVersion()
+		result[len(result)-1].ExpectedCargoItemVersion = input.GetExpectedCargoItemVersion()
 	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	agg, err := s.usecase.SaveDraft(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedAllocationVersion(), inputs, audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.SaveSeaCargoAllocationDraftResponse{
-		Data: seaCargoAllocationAggregateToAPI(agg),
-	}), nil
+	return result, nil
 }
 
-func (s *SeaCargoAllocationService) ConfirmSeaCargoAllocation(ctx context.Context, req *v1.ConfirmSeaCargoAllocationRequest) (*v1.ConfirmSeaCargoAllocationResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	agg, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedAllocationVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.ConfirmSeaCargoAllocationResponse{
-		Data: seaCargoAllocationAggregateToAPI(agg),
-	}), nil
-}
-
-func (s *SeaCargoAllocationService) WithdrawSeaCargoAllocation(ctx context.Context, req *v1.WithdrawSeaCargoAllocationRequest) (*v1.WithdrawSeaCargoAllocationResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	agg, err := s.usecase.Withdraw(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedAllocationVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.WithdrawSeaCargoAllocationResponse{
-		Data: seaCargoAllocationAggregateToAPI(agg),
-	}), nil
-}
-
-func (s *SeaCargoAllocationService) ApplySeaHouseBillAllocationSummary(ctx context.Context, req *v1.ApplySeaHouseBillAllocationSummaryRequest) (*v1.ApplySeaHouseBillAllocationSummaryResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-	houseBillID, err := uuid.Parse(req.GetHouseBillId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	hb, err := s.usecase.ApplyHouseBillSummary(ctx, principal.Organization.ID, principal.UserID, orderID, houseBillID, req.GetExpectedAllocationVersion(), req.GetExpectedHouseBillVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.ApplySeaHouseBillAllocationSummaryResponse{
-		Data: seaHouseBillToAPI(hb),
-	}), nil
-}
-
-func (s *SeaCargoAllocationService) ApplySeaOrderCargoSummaryToMasterBill(ctx context.Context, req *v1.ApplySeaOrderCargoSummaryToMasterBillRequest) (*v1.ApplySeaOrderCargoSummaryToMasterBillResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, err := uuid.Parse(req.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrSeaCargoAllocationInvalidArgument
-	}
-
-	audit := &biz.AuditEvent{
-		OrganizationID: &principal.Organization.ID,
-		UserID:         &principal.UserID,
-		Result:         "success",
-	}
-
-	mbl, err := s.usecase.ApplyMasterBillSummary(ctx, principal.Organization.ID, principal.UserID, orderID, req.GetExpectedMblVersion(), audit)
-	if err != nil {
-		return nil, err
-	}
-
-	return ok(ctx, &v1.ApplySeaOrderCargoSummaryToMasterBillResponse{
-		Data: seaMasterBillDetailToAPI(mbl),
-	}), nil
-}
-
-func seaCargoAllocationAggregateToAPI(agg *biz.SeaCargoAllocationAggregate) *v1.SeaCargoAllocationAggregate {
-	if agg == nil {
+func seaSharedContainerToAPI(item *biz.SeaSharedContainer) *v1.SeaSharedContainer {
+	if item == nil {
 		return nil
 	}
-
-	var confirmedAt *string
-	if agg.ConfirmedAt != nil {
-		s := agg.ConfirmedAt.UTC().Format(time.RFC3339)
-		confirmedAt = &s
+	result := &v1.SeaSharedContainer{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), TransportExecutionId: item.TransportExecutionID.String(), ContainerNo: item.ContainerNo, ContainerSpecId: item.ContainerSpecID.String(), ContainerSpecName: item.ContainerSpecName, SealNo: item.SealNo, PackageCount: item.PackageCount, GrossWeightKg: item.GrossWeightKg.StringFixed(3), VolumeCbm: item.VolumeCbm.StringFixed(6), Status: seaSharedContainerStatusToAPI(item.Status), Note: item.Note, Version: item.Version, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	if item.ConfirmedAt != nil {
+		value := item.ConfirmedAt.UTC().Format(time.RFC3339)
+		result.ConfirmedAt = &value
 	}
-	var confirmedBy *string
-	if agg.ConfirmedBy != nil {
-		s := agg.ConfirmedBy.String()
-		confirmedBy = &s
+	if item.ConfirmedBy != nil {
+		value := item.ConfirmedBy.String()
+		result.ConfirmedBy = &value
 	}
-	var confirmedByName *string
-	if agg.ConfirmedByName != "" {
-		s := agg.ConfirmedByName
-		confirmedByName = &s
+	if item.ConfirmedByName != "" {
+		value := item.ConfirmedByName
+		result.ConfirmedByName = &value
 	}
-
-	cargoItems := make([]*v1.OrderCargoItem, 0, len(agg.CargoItems))
-	for _, ci := range agg.CargoItems {
-		cargoItems = append(cargoItems, orderCargoItemToAPI(ci))
+	for _, allocation := range item.Allocations {
+		result.Allocations = append(result.Allocations, &v1.SeaSharedContainerAllocation{Id: allocation.ID.String(), SharedContainerId: allocation.SharedContainerID.String(), OrderId: allocation.OrderID.String(), OrderNo: allocation.OrderNo, HouseBillId: allocation.HouseBillID.String(), HouseNo: allocation.HouseNo, CargoItemId: allocation.CargoItemID.String(), CargoName: allocation.CargoName, PackageCount: allocation.PackageCount, GrossWeightKg: allocation.GrossWeightKg.StringFixed(3), VolumeCbm: allocation.VolumeCbm.StringFixed(6), Version: allocation.Version, CreatedAt: allocation.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: allocation.UpdatedAt.UTC().Format(time.RFC3339), OrderVersion: allocation.OrderVersion, LinkVersion: allocation.LinkVersion, HouseBillVersion: allocation.HouseBillVersion, CargoItemVersion: allocation.CargoItemVersion})
 	}
-
-	containers := make([]*v1.OrderContainer, 0, len(agg.Containers))
-	for _, c := range agg.Containers {
-		containers = append(containers, orderContainerToAPI(c))
+	if item.Progress != nil {
+		result.Progress = &v1.SeaSharedContainerProgress{AllocatedPackageCount: item.Progress.AllocatedPackageCount, AllocatedGrossWeightKg: item.Progress.AllocatedGrossWeightKg.StringFixed(3), AllocatedVolumeCbm: item.Progress.AllocatedVolumeCbm.StringFixed(6), RemainingPackageCount: item.Progress.RemainingPackageCount, RemainingGrossWeightKg: item.Progress.RemainingGrossWeightKg.StringFixed(3), RemainingVolumeCbm: item.Progress.RemainingVolumeCbm.StringFixed(6), ContainerBalanced: item.Progress.ContainerBalanced, CargoBalanced: item.Progress.CargoBalanced}
 	}
-
-	houseBills := make([]*v1.SeaHouseBill, 0, len(agg.HouseBills))
-	for _, hb := range agg.HouseBills {
-		houseBills = append(houseBills, seaHouseBillToAPI(hb))
-	}
-
-	allocations := make([]*v1.SeaCargoAllocationItem, 0, len(agg.Allocations))
-	for _, a := range agg.Allocations {
-		var cid *string
-		if a.ContainerID != nil {
-			s := a.ContainerID.String()
-			cid = &s
-		}
-		allocations = append(allocations, &v1.SeaCargoAllocationItem{
-			Id:            a.ID.String(),
-			CargoItemId:   a.CargoItemID.String(),
-			HouseBillId:   a.HouseBillID.String(),
-			ContainerId:   cid,
-			PackageCount:  a.PackageCount,
-			GrossWeightKg: a.GrossWeightKg.StringFixed(3),
-			VolumeCbm:     a.VolumeCbm.StringFixed(6),
-		})
-	}
-
-	allowedActions := make([]v1.SeaCargoAllocationAction, 0, len(agg.AllowedActions))
-	for _, act := range agg.AllowedActions {
-		allowedActions = append(allowedActions, seaCargoAllocationActionToAPI(act))
-	}
-
-	return &v1.SeaCargoAllocationAggregate{
-		OrderId:           agg.OrderID.String(),
-		DocumentStructure: seaDocumentStructureToAPI(agg.DocumentStructure),
-		ShipmentType:      agg.ShipmentType,
-		AllocationStatus:  seaCargoAllocationStatusToAPI(agg.AllocationStatus),
-		AllocationVersion: agg.AllocationVersion,
-		ConfirmedAt:       confirmedAt,
-		ConfirmedBy:       confirmedBy,
-		ConfirmedByName:   confirmedByName,
-		CargoItems:        cargoItems,
-		Containers:        containers,
-		HouseBills:        houseBills,
-		Allocations:       allocations,
-		Progress:          seaCargoAllocationProgressToAPI(agg.Progress),
-		AllowedActions:    allowedActions,
-	}
+	return result
 }
 
-func seaCargoAllocationProgressToAPI(p *biz.SeaCargoAllocationProgress) *v1.SeaCargoAllocationProgress {
-	if p == nil {
-		return nil
+func seaSharedContainerCandidateToAPI(item *biz.SeaSharedContainerCandidateOrder) *v1.SeaSharedContainerCandidateOrder {
+	result := &v1.SeaSharedContainerCandidateOrder{OrderId: item.OrderID.String(), OrderNo: item.OrderNo, HouseBillId: item.HouseBillID.String(), HouseNo: item.HouseNo, OrderVersion: item.OrderVersion, LinkVersion: item.LinkVersion, HouseBillVersion: item.HouseBillVersion}
+	for _, cargo := range item.CargoItems {
+		result.CargoItems = append(result.CargoItems, &v1.SeaSharedContainerCandidateCargoItem{Id: cargo.ID.String(), CargoName: cargo.CargoName, PackageCount: cargo.PackageCount, GrossWeightKg: cargo.GrossWeightKg.StringFixed(3), VolumeCbm: cargo.VolumeCbm.StringFixed(6), Version: cargo.Version})
 	}
-
-	cargoSummaries := make([]*v1.SeaCargoAllocationCargoItemSummary, 0, len(p.CargoSummaries))
-	for _, cs := range p.CargoSummaries {
-		cargoSummaries = append(cargoSummaries, &v1.SeaCargoAllocationCargoItemSummary{
-			CargoItemId:            cs.CargoItemID.String(),
-			CargoName:              cs.CargoName,
-			BaselinePackageCount:   cs.BaselinePackageCount,
-			AllocatedPackageCount:  cs.AllocatedPackageCount,
-			RemainingPackageCount:  cs.RemainingPackageCount,
-			BaselineGrossWeightKg:  cs.BaselineGrossWeightKg.StringFixed(3),
-			AllocatedGrossWeightKg: cs.AllocatedGrossWeightKg.StringFixed(3),
-			RemainingGrossWeightKg: cs.RemainingGrossWeightKg.StringFixed(3),
-			BaselineVolumeCbm:      cs.BaselineVolumeCbm.StringFixed(6),
-			AllocatedVolumeCbm:     cs.AllocatedVolumeCbm.StringFixed(6),
-			RemainingVolumeCbm:     cs.RemainingVolumeCbm.StringFixed(6),
-			Status:                 string(cs.Status),
-		})
-	}
-
-	containerSummaries := make([]*v1.SeaCargoAllocationContainerSummary, 0, len(p.ContainerSummaries))
-	for _, cns := range p.ContainerSummaries {
-		containerSummaries = append(containerSummaries, &v1.SeaCargoAllocationContainerSummary{
-			ContainerId:            cns.ContainerID.String(),
-			ContainerNo:            cns.ContainerNo,
-			BaselinePackageCount:   cns.BaselinePackageCount,
-			AllocatedPackageCount:  cns.AllocatedPackageCount,
-			RemainingPackageCount:  cns.RemainingPackageCount,
-			BaselineGrossWeightKg:  cns.BaselineGrossWeightKg.StringFixed(3),
-			AllocatedGrossWeightKg: cns.AllocatedGrossWeightKg.StringFixed(3),
-			RemainingGrossWeightKg: cns.RemainingGrossWeightKg.StringFixed(3),
-			BaselineVolumeCbm:      cns.BaselineVolumeCbm.StringFixed(6),
-			AllocatedVolumeCbm:     cns.AllocatedVolumeCbm.StringFixed(6),
-			RemainingVolumeCbm:     cns.RemainingVolumeCbm.StringFixed(6),
-			Status:                 string(cns.Status),
-		})
-	}
-
-	houseBillSummaries := make([]*v1.SeaCargoAllocationHouseBillSummary, 0, len(p.HouseBillSummaries))
-	for _, hbs := range p.HouseBillSummaries {
-		var dispPkg *int32
-		if hbs.DisplayPackageCount != nil {
-			v := *hbs.DisplayPackageCount
-			dispPkg = &v
-		}
-		var dispWeight *string
-		if hbs.DisplayGrossWeightKg != nil {
-			s := hbs.DisplayGrossWeightKg.StringFixed(3)
-			dispWeight = &s
-		}
-		var dispVol *string
-		if hbs.DisplayVolumeCbm != nil {
-			s := hbs.DisplayVolumeCbm.StringFixed(6)
-			dispVol = &s
-		}
-		houseBillSummaries = append(houseBillSummaries, &v1.SeaCargoAllocationHouseBillSummary{
-			HouseBillId:                 hbs.HouseBillID.String(),
-			HouseNo:                     hbs.HouseNo,
-			AllocatedPackageCount:       hbs.AllocatedPackageCount,
-			AllocatedGrossWeightKg:      hbs.AllocatedGrossWeightKg.StringFixed(3),
-			AllocatedVolumeCbm:          hbs.AllocatedVolumeCbm.StringFixed(6),
-			OrderRemainingPackageCount:  hbs.OrderRemainingPackageCount,
-			OrderRemainingGrossWeightKg: hbs.OrderRemainingGrossWeightKg.StringFixed(3),
-			OrderRemainingVolumeCbm:     hbs.OrderRemainingVolumeCbm.StringFixed(6),
-			DisplayPackageCount:         dispPkg,
-			DisplayGrossWeightKg:        dispWeight,
-			DisplayVolumeCbm:            dispVol,
-			DiffPackageCount:            hbs.DiffPackageCount,
-			DiffGrossWeightKg:           hbs.DiffGrossWeightKg.StringFixed(3),
-			DiffVolumeCbm:               hbs.DiffVolumeCbm.StringFixed(6),
-			DisplayMatches:              hbs.DisplayMatches,
-		})
-	}
-
-	return &v1.SeaCargoAllocationProgress{
-		CargoSummaries:              cargoSummaries,
-		ContainerSummaries:          containerSummaries,
-		HouseBillSummaries:          houseBillSummaries,
-		OrderRemainingPackageCount:  p.OrderRemainingPackageCount,
-		OrderRemainingGrossWeightKg: p.OrderRemainingGrossWeightKg.StringFixed(3),
-		OrderRemainingVolumeCbm:     p.OrderRemainingVolumeCbm.StringFixed(6),
-	}
+	return result
 }
 
-func seaCargoAllocationStatusToAPI(s biz.SeaCargoAllocationStatus) v1.SeaCargoAllocationStatus {
-	switch s {
-	case biz.SeaCargoAllocationStatusDraft:
-		return v1.SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_DRAFT
-	case biz.SeaCargoAllocationStatusConfirmed:
-		return v1.SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_CONFIRMED
+func seaSharedContainerStatusToAPI(status biz.SeaSharedContainerStatus) v1.SeaSharedContainerStatus {
+	switch status {
+	case biz.SeaSharedContainerStatusDraft:
+		return v1.SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_DRAFT
+	case biz.SeaSharedContainerStatusConfirmed:
+		return v1.SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_CONFIRMED
 	default:
-		return v1.SeaCargoAllocationStatus_SEA_CARGO_ALLOCATION_STATUS_UNSPECIFIED
-	}
-}
-
-func seaCargoAllocationActionToAPI(a biz.SeaCargoAllocationAction) v1.SeaCargoAllocationAction {
-	switch a {
-	case biz.SeaCargoAllocationActionSaveDraft:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_SAVE_DRAFT
-	case biz.SeaCargoAllocationActionConfirm:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_CONFIRM
-	case biz.SeaCargoAllocationActionWithdraw:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_WITHDRAW
-	case biz.SeaCargoAllocationActionApplyHouseBillSummary:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_APPLY_HOUSE_BILL_SUMMARY
-	case biz.SeaCargoAllocationActionApplyMasterBillSummary:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_APPLY_MASTER_BILL_SUMMARY
-	default:
-		return v1.SeaCargoAllocationAction_SEA_CARGO_ALLOCATION_ACTION_UNSPECIFIED
+		return v1.SeaSharedContainerStatus_SEA_SHARED_CONTAINER_STATUS_UNSPECIFIED
 	}
 }

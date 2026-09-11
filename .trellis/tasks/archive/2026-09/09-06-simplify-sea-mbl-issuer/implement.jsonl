@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"共享 MBL、运输执行、候选关联、拆票改配与 HBL 边界"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"共享 MBL 写入固定锁序、成员订单锁与不可变快照"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"事务、并发、唯一索引与真实 PostgreSQL 验证"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"海运表单组件状态与页面交互边界"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"开发阶段定向验证和最终一次完整门禁"}

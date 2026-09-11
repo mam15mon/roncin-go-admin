@@ -1,11 +1,4 @@
-import {
-  AppstoreOutlined,
-  CopyOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from '@ant-design/icons';
+import { SaveOutlined, SwapOutlined } from '@ant-design/icons';
 import {
   ProFormDigit,
   ProFormText,
@@ -19,13 +12,16 @@ import {
   Card,
   Col,
   Form,
+  Modal,
   Radio,
   Row,
   Space,
+  Table,
   Tabs,
   Tag,
   Typography,
 } from 'antd';
+import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
@@ -38,26 +34,21 @@ import {
 } from '@/enums.generated';
 import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
 import {
-  seaCargoAllocationServiceApplySeaHouseBillAllocationSummary,
-  seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill,
-  seaCargoAllocationServiceGetSeaCargoAllocation,
-} from '@/services/roncin/seaCargoAllocationService';
-import {
-  seaDocumentServiceAddSeaHouseBill,
-  seaDocumentServiceCancelSeaOrderDirect,
+  seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
-  seaDocumentServiceMarkSeaOrderDirect,
-  seaDocumentServiceRemoveSeaHouseBill,
+  seaDocumentServicePreviewChangeSeaDocumentMode,
   seaDocumentServiceUpdateSeaHouseBill,
   seaDocumentServiceUpdateSeaMasterBillContent,
 } from '@/services/roncin/seaDocumentService';
 import { searchPartnerOptions } from '@/utils/options';
-import SeaCargoAllocationDrawer, {
-  type SeaCargoAllocationDrawerRef,
-} from '../../../components/drawers/SeaCargoAllocationDrawer';
+import { generateUUID } from '@/utils/uuid';
+import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
-import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
+import SeaExternalConfirmationFields, {
+  buildSeaExternalConfirmation,
+  type SeaExternalConfirmationFormValues,
+} from './SeaExternalConfirmationFields';
 
 const { Text } = Typography;
 
@@ -142,7 +133,6 @@ export function SeaBillContentFormFields({
           fieldProps={{ rows: 3 }}
         />
       </Col>
-
       <Col xs={12} lg={6}>
         <ProFormDigit
           name={[...namePathPrefix, 'packageCount']}
@@ -180,7 +170,6 @@ export function SeaBillContentFormFields({
           fieldProps={{ precision: 3 }}
         />
       </Col>
-
       <Col xs={12} lg={6}>
         <ProFormText
           name={[...namePathPrefix, 'freightTerms']}
@@ -226,31 +215,138 @@ export function SeaBillContentFormFields({
   );
 }
 
-function HouseBillTabTitle({ index }: { index: number }) {
-  const form = Form.useFormInstance();
-  const houseNo = Form.useWatch(['seaHouseBills', index, 'houseNo'], form);
+type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
 
+function HouseBillIdentityFields({
+  fieldKey,
+  disabled = false,
+}: {
+  fieldKey: HouseBillFormKey;
+  disabled?: boolean;
+}) {
+  const form = Form.useFormInstance();
   return (
-    <span>
-      分单 {index + 1}{' '}
-      {houseNo ? (
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          ({houseNo})
-        </Text>
-      ) : (
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          (未编号)
-        </Text>
-      )}
-    </span>
+    <Row gutter={[16, 0]}>
+      <Col xs={24} md={8}>
+        <ProFormText
+          name={[fieldKey, 'houseNo']}
+          label="分单号 (HBL No.)"
+          placeholder="请输入分单号"
+          disabled={disabled}
+          rules={[
+            { required: true, whitespace: true, message: '分单号不能为空' },
+          ]}
+          fieldProps={{ maxLength: 128 }}
+        />
+      </Col>
+      <Col xs={24} md={16}>
+        <Form.Item label="签发主体" required style={{ marginBottom: 24 }}>
+          <Form.Item
+            name={[fieldKey, 'issuerSource']}
+            noStyle
+            rules={[{ required: true, message: '请选择签发主体' }]}
+          >
+            <Radio.Group
+              disabled={disabled}
+              onChange={() =>
+                form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
+              }
+            >
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
+                }
+              >
+                本公司
+              </Radio>
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+                }
+              >
+                委托单位
+              </Radio>
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+                }
+              >
+                其他主体
+              </Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(previous, current) =>
+              previous?.[fieldKey]?.issuerSource !==
+              current?.[fieldKey]?.issuerSource
+            }
+          >
+            {({ getFieldValue }) => {
+              const issuerSource = getFieldValue([fieldKey, 'issuerSource']);
+              if (
+                issuerSource ===
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
+              ) {
+                return (
+                  <div style={{ marginTop: 6 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      由所属公司或总部统一签发
+                    </Text>
+                  </div>
+                );
+              }
+              if (
+                issuerSource ===
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+              ) {
+                return (
+                  <div style={{ marginTop: 6 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      使用当前订单委托单位作为签发主体
+                    </Text>
+                  </div>
+                );
+              }
+              if (
+                issuerSource ===
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+              ) {
+                return (
+                  <div style={{ marginTop: 8 }}>
+                    <ProFormSearchableSelect
+                      name={[fieldKey, 'issuerPartnerId']}
+                      placeholder="请选择签发主体合作伙伴"
+                      disabled={disabled}
+                      rules={[{ required: true, message: '请选择合作伙伴' }]}
+                      request={async ({ keyWords }) =>
+                        searchPartnerOptions(keyWords)
+                      }
+                      fieldProps={{ filterOption: false }}
+                    />
+                  </div>
+                );
+              }
+              return null;
+            }}
+          </Form.Item>
+        </Form.Item>
+      </Col>
+      <Col xs={24}>
+        <ProFormText
+          name={[fieldKey, 'note']}
+          label="分单备注"
+          placeholder="请输入分单备注"
+          disabled={disabled}
+          fieldProps={{ maxLength: 500 }}
+        />
+      </Col>
+    </Row>
   );
 }
 
 function isTerminalHouseBill(status?: number) {
-  return (
-    status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED ||
-    status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_REPLACED
-  );
+  return status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED;
 }
 
 function houseBillStatusPresentation(status?: number) {
@@ -261,11 +357,97 @@ function houseBillStatusPresentation(status?: number) {
       return { color: 'blue', text: '已确认' };
     case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED:
       return { color: 'error', text: '已作废' };
-    case SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_REPLACED:
-      return { color: 'warning', text: '已替代' };
     default:
       return { color: 'default', text: '草稿' };
   }
+}
+
+type ModeChangeFormValues = SeaExternalConfirmationFormValues & {
+  reason?: string;
+  newHouseBill?: Partial<API.SeaHouseBillInput>;
+};
+
+function buildHouseBillInput(
+  values?: Partial<API.SeaHouseBillInput>,
+): API.SeaHouseBillInput | undefined {
+  if (!values) return undefined;
+  return {
+    id: values.id,
+    houseNo: values.houseNo?.trim() ?? '',
+    issuerSource:
+      values.issuerSource ??
+      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_UNSPECIFIED,
+    issuerPartnerId:
+      values.issuerSource ===
+      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+        ? values.issuerPartnerId
+        : undefined,
+    note: values.note?.trim() || undefined,
+    content: values.content,
+    expectedVersion: values.expectedVersion,
+  };
+}
+
+function isDocumentStructure(
+  value: number | undefined,
+): value is SeaDocumentStructure {
+  return (
+    value === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE ||
+    value === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+  );
+}
+
+function ModeChangePreviewResult({
+  preview,
+}: {
+  preview: API.SeaDocumentModeChangePreview;
+}) {
+  return (
+    <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+      <Alert
+        showIcon
+        type={preview.executable ? 'success' : 'error'}
+        title={preview.executable ? '预览通过，可以执行' : '当前变更不可执行'}
+        description="离港时间、财务和放货事实只作为影响提示；执行不会自动改写这些下游事实。"
+      />
+      <Table<API.SeaDocumentFieldDifference>
+        size="small"
+        rowKey={(row) => `${row.field ?? ''}-${row.label ?? ''}`}
+        pagination={false}
+        dataSource={preview.differences ?? []}
+        columns={[
+          { title: '字段', dataIndex: 'label', width: 140 },
+          { title: '变更前', dataIndex: 'beforeValue' },
+          { title: '变更后', dataIndex: 'afterValue' },
+        ]}
+      />
+      {(preview.impacts?.length ?? 0) > 0 ? (
+        <Table<API.SeaDocumentDownstreamImpact>
+          size="small"
+          rowKey={(row) =>
+            `${row.factType ?? ''}-${row.referenceId ?? ''}-${row.referenceNo ?? ''}`
+          }
+          pagination={false}
+          dataSource={preview.impacts ?? []}
+          columns={[
+            { title: '事实类型', dataIndex: 'factType', width: 130 },
+            { title: '编号', dataIndex: 'referenceNo', width: 150 },
+            { title: '影响', dataIndex: 'message' },
+            {
+              title: '结论',
+              dataIndex: 'blocksExecution',
+              width: 80,
+              render: (blocked: boolean) => (
+                <Tag color={blocked ? 'error' : 'success'}>
+                  {blocked ? '阻断' : '提示'}
+                </Tag>
+              ),
+            },
+          ]}
+        />
+      ) : null}
+    </Space>
+  );
 }
 
 export function SeaDocumentSectionComponent({
@@ -278,135 +460,189 @@ export function SeaDocumentSectionComponent({
   onOrderDataChanged?: () => Promise<void> | void;
 }) {
   const form = Form.useFormInstance();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const access = useAccess();
-
-  const [activeTabKey, setActiveTabKey] = useState<string>('mbl');
-  const [docStructure, setDocStructure] = useState<SeaDocumentStructure>(
-    SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-  );
-  const [linkVersion, setLinkVersion] = useState<string>('0');
+  const [modeForm] = Form.useForm<ModeChangeFormValues>();
+  const [activeTabKey, setActiveTabKey] = useState('mbl');
+  const [loadedStructure, setLoadedStructure] =
+    useState<SeaDocumentStructure>();
+  const [linkVersion, setLinkVersion] = useState('0');
   const [mblDetail, setMblDetail] = useState<API.SeaMasterBillDetail | null>(
     null,
   );
-  const [houseBills, setHouseBills] = useState<API.SeaHouseBill[]>([]);
+  const [houseBill, setHouseBill] = useState<API.SeaHouseBill | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [releasePods, setReleasePods] = useState<API.OrderReleasePod[]>([]);
   const [releasePodsError, setReleasePodsError] = useState<string | null>(null);
-  const [applyingHblId, setApplyingHblId] = useState<string | null>(null);
-  const [applyingMbl, setApplyingMbl] = useState(false);
-  const allocationDrawerRef = useRef<SeaCargoAllocationDrawerRef>(null);
+  const [modeModalOpen, setModeModalOpen] = useState(false);
+  const [modeTarget, setModeTarget] = useState<SeaDocumentStructure>();
+  const [modePreview, setModePreview] =
+    useState<API.SeaDocumentModeChangePreview | null>(null);
+  const [modePreviewing, setModePreviewing] = useState(false);
+  const [modeExecuting, setModeExecuting] = useState(false);
+  const [modeIdempotencyKey, setModeIdempotencyKey] = useState('');
+  const documentRequestSequenceRef = useRef(0);
+  const releasePodRequestSequenceRef = useRef(0);
+  const activeOrderIdRef = useRef('');
 
-  const orderId = Form.useWatch('id', form) || form.getFieldValue('id');
+  const orderIdValue = Form.useWatch('id', form) ?? form.getFieldValue('id');
+  const orderId = orderIdValue ? String(orderIdValue) : '';
   const orderVersion =
-    Form.useWatch('version', form) || form.getFieldValue('version');
+    Form.useWatch('version', form) ?? form.getFieldValue('version');
+  const watchedStructure = Form.useWatch('seaDocumentStructure', form) as
+    | number
+    | undefined;
+  const watchedHouseNo = Form.useWatch(['seaHouseBill', 'houseNo'], form) as
+    | string
+    | undefined;
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
+  const docStructure = isDocumentStructure(watchedStructure)
+    ? watchedStructure
+    : loadedStructure;
+  activeOrderIdRef.current = orderId;
+
   const canReadReleasePods = access.canOrder(
     OrderBusinessType.BUSINESS_TYPE_SE,
     'release_pod.read',
   );
-  const canDeleteReleasePods = access.canOrder(
+  const canChangeMode = access.canOrder(
     OrderBusinessType.BUSINESS_TYPE_SE,
-    'release_pod.delete',
+    'update',
   );
 
   const loadReleasePods = useCallback(async () => {
-    if (!orderId || !isDetail || !canReadReleasePods) {
+    const requestedOrderId = orderId;
+    const requestSequence = ++releasePodRequestSequenceRef.current;
+    if (!requestedOrderId || !isDetail || !canReadReleasePods) {
       setReleasePods([]);
       setReleasePodsError(null);
       return;
     }
     try {
-      setReleasePodsError(null);
       const response = await orderReleasePodServiceListReleasePods({
-        orderId: String(orderId),
+        orderId: requestedOrderId,
       });
+      if (
+        requestedOrderId !== activeOrderIdRef.current ||
+        requestSequence !== releasePodRequestSequenceRef.current
+      )
+        return;
+      setReleasePodsError(null);
       setReleasePods(response.data ?? []);
     } catch (error: unknown) {
+      if (
+        requestedOrderId !== activeOrderIdRef.current ||
+        requestSequence !== releasePodRequestSequenceRef.current
+      )
+        return;
       setReleasePods([]);
       setReleasePodsError(
         error instanceof Error ? error.message : '放货记录加载失败',
       );
     }
-  }, [orderId, isDetail, canReadReleasePods]);
+  }, [canReadReleasePods, isDetail, orderId]);
 
-  // 详情页加载单证聚合数据
   const loadOrderDocuments = useCallback(async () => {
-    if (!orderId || !isDetail) return;
+    const requestedOrderId = orderId;
+    const requestSequence = ++documentRequestSequenceRef.current;
+    if (!requestedOrderId || !isDetail) return;
     try {
-      setFetchError(null);
-      const res = await seaDocumentServiceGetSeaOrderDocuments({
-        orderId: String(orderId),
+      const response = await seaDocumentServiceGetSeaOrderDocuments({
+        orderId: requestedOrderId,
       });
-      if (!res.data) {
-        throw new Error('接口未返回海运单证数据');
+      if (
+        requestedOrderId !== activeOrderIdRef.current ||
+        requestSequence !== documentRequestSequenceRef.current
+      )
+        return;
+      if (!response.data) throw new Error('接口未返回海运单证数据');
+      const structure = response.data.documentStructure;
+      if (!isDocumentStructure(structure))
+        throw new Error('海运订单缺少明确的 HOUSE/DIRECT 单证模式');
+      const currentHouseBill = response.data.houseBill ?? null;
+      if (
+        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
+          !currentHouseBill) ||
+        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
+          currentHouseBill)
+      ) {
+        throw new Error('海运单证模式与当前 HBL 不一致');
       }
 
-      const structure =
-        (res.data.documentStructure as SeaDocumentStructure) ??
-        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED;
-      setDocStructure(structure);
-      setLinkVersion(String(res.data.linkVersion ?? '0'));
-      setMblDetail(res.data.masterBill ?? null);
-      const hbs = res.data.houseBills ?? [];
-      setHouseBills(hbs);
-
+      setFetchError(null);
+      setLoadedStructure(structure);
+      setLinkVersion(String(response.data.linkVersion ?? '0'));
+      setMblDetail(response.data.masterBill ?? null);
+      setHouseBill(currentHouseBill);
       form.setFieldValue('seaDocumentStructure', structure);
       form.setFieldValue(
         'seaMasterBillContent',
-        res.data.masterBill?.content || {},
+        response.data.masterBill?.content ?? {},
       );
       form.setFieldValue(
-        'seaHouseBills',
-        hbs.map((hb) => ({
-          id: hb.id,
-          houseNo: hb.houseNo,
-          issuerSource: hb.issuerSource,
-          issuerPartnerId:
-            hb.issuerSource ===
-            SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-              ? hb.issuerPartnerId
-              : undefined,
-          issuerOrganizationId: hb.issuerOrganizationId,
-          note: hb.note,
-          content: hb.content || {},
-          expectedVersion: hb.version,
-          status: hb.status,
-        })),
+        'seaHouseBill',
+        currentHouseBill
+          ? {
+              id: currentHouseBill.id,
+              houseNo: currentHouseBill.houseNo,
+              issuerSource: currentHouseBill.issuerSource,
+              issuerPartnerId:
+                currentHouseBill.issuerSource ===
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+                  ? currentHouseBill.issuerPartnerId
+                  : undefined,
+              note: currentHouseBill.note,
+              content: currentHouseBill.content ?? {},
+              expectedVersion: currentHouseBill.version,
+            }
+          : undefined,
       );
-    } catch (err: unknown) {
-      const errMsg =
-        err instanceof Error ? err.message : '获取海运单证信息失败';
-      setDocStructure(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED);
+    } catch (error: unknown) {
+      if (
+        requestedOrderId !== activeOrderIdRef.current ||
+        requestSequence !== documentRequestSequenceRef.current
+      )
+        return;
+      const errorMessage =
+        error instanceof Error ? error.message : '获取海运单证信息失败';
+      setLoadedStructure(undefined);
       setLinkVersion('0');
       setMblDetail(null);
-      setHouseBills([]);
+      setHouseBill(null);
       form.setFieldValue('seaMasterBillContent', {});
-      form.setFieldValue('seaHouseBills', []);
-      setFetchError(errMsg);
-      message.error(errMsg);
+      form.setFieldValue('seaHouseBill', undefined);
+      setFetchError(errorMessage);
+      message.error(errorMessage);
     }
-  }, [orderId, isDetail, form, message]);
+  }, [form, isDetail, message, orderId]);
 
   useEffect(() => {
-    if (isDetail && orderId) {
-      loadOrderDocuments();
-      loadReleasePods();
-    }
-  }, [isDetail, orderId, loadOrderDocuments, loadReleasePods]);
+    if (!isDetail) return;
+    setFetchError(null);
+    setReleasePodsError(null);
+    setLoadedStructure(undefined);
+    setMblDetail(null);
+    setHouseBill(null);
+    setActiveTabKey('mbl');
+    void loadOrderDocuments();
+    void loadReleasePods();
+  }, [isDetail, loadOrderDocuments, loadReleasePods]);
+
+  useEffect(() => {
+    if (docStructure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
+      setActiveTabKey('mbl');
+  }, [docStructure]);
 
   useEffect(() => {
     const handleChanged = (event: Event) => {
       const changedOrderId = (event as CustomEvent<{ orderId?: string }>).detail
         ?.orderId;
-      if (changedOrderId === String(orderId)) {
-        void loadReleasePods();
-      }
+      if (changedOrderId === orderId) void loadReleasePods();
     };
     window.addEventListener(RELEASE_PODS_CHANGED_EVENT, handleChanged);
     return () =>
       window.removeEventListener(RELEASE_PODS_CHANGED_EVENT, handleChanged);
-  }, [orderId, loadReleasePods]);
+  }, [loadReleasePods, orderId]);
 
   const relatedReleasePods = (documentType: number, documentId?: string) =>
     documentId
@@ -441,9 +677,11 @@ export function SeaDocumentSectionComponent({
                 <Text>放货编号：{item.releaseNo || '-'}</Text>
                 <Text>回单编号：{item.podNo || '-'}</Text>
                 <Tag>
-                  {item.status === OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED
+                  {item.status ===
+                  OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED
                     ? '已回单'
-                    : item.status === OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED
+                    : item.status ===
+                        OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED
                       ? '已签收'
                       : '待签收'}
                 </Tag>
@@ -455,521 +693,277 @@ export function SeaDocumentSectionComponent({
     );
   };
 
-  // 操作：标记直单
-  const handleMarkDirect = async () => {
-    if (houseBills.length > 0) {
-      message.error('存在分单时不可标记为直单');
-      return;
-    }
-    if (isDetail && orderId) {
-      try {
-        const res = await seaDocumentServiceMarkSeaOrderDirect(
-          { orderId: String(orderId) },
-          { orderId: String(orderId), expectedLinkVersion: linkVersion },
-        );
-        message.success('已标记为直单');
-        if (res.data) {
-          setDocStructure(res.data.documentStructure as SeaDocumentStructure);
-          setLinkVersion(String(res.data.linkVersion ?? '0'));
-        }
-        await loadOrderDocuments();
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : '标记直单失败';
-        message.error(msg);
-      }
+  const changeCreateMode = (nextMode: SeaDocumentStructure) => {
+    setLoadedStructure(nextMode);
+    form.setFieldValue('seaDocumentStructure', nextMode);
+    if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
+      form.setFieldValue('seaHouseBill', { content: {} });
+      setActiveTabKey('hbl');
     } else {
-      setDocStructure(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT);
-      form.setFieldValue(
-        'seaDocumentStructure',
-        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-      );
-      message.success('已切换为直单模式');
+      form.setFieldValue('seaHouseBill', undefined);
+      setActiveTabKey('mbl');
     }
   };
 
-  // 操作：取消直单
-  const handleCancelDirect = async () => {
-    if (isDetail && orderId) {
-      try {
-        const res = await seaDocumentServiceCancelSeaOrderDirect(
-          { orderId: String(orderId) },
-          { orderId: String(orderId), expectedLinkVersion: linkVersion },
-        );
-        message.success('已取消直单标记，回到未确定状态');
-        if (res.data) {
-          setDocStructure(res.data.documentStructure as SeaDocumentStructure);
-          setLinkVersion(String(res.data.linkVersion ?? '0'));
-        }
-        await loadOrderDocuments();
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : '取消直单失败';
-        message.error(msg);
-      }
-    } else {
-      setDocStructure(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED);
-      form.setFieldValue(
-        'seaDocumentStructure',
-        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-      );
-      message.success('已回到未确定状态');
-    }
-  };
-
-  // 操作：添加分单
-  const handleAddHouseBill = () => {
-    if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) {
-      message.error('当前为直单，请先取消直单标记后再添加分单');
-      return;
-    }
-
-    const newIndex = houseBills.length;
-    const newHB: API.SeaHouseBill = {
-      houseNo: '',
-      issuerSource:
-        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_UNSPECIFIED,
-      status: SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_DRAFT,
-      version: '1',
-      content: {},
-    };
-
-    const nextHBs = [...houseBills, newHB];
-    setHouseBills(nextHBs);
-    setDocStructure(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
-    form.setFieldValue(
-      'seaDocumentStructure',
-      SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-    );
-    form.setFieldValue(['seaHouseBills', newIndex], {
-      houseNo: '',
-      issuerSource: undefined,
-      status: SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_DRAFT,
-      version: '1',
-      content: {},
-    });
-    setActiveTabKey(`hbl-${newIndex}`);
-  };
-
-  // 操作：复制上一张分单内容
-  const handleCopyPreviousContent = (currentIndex: number) => {
-    if (currentIndex <= 0) return;
-    const prevFormValues = form.getFieldValue([
-      'seaHouseBills',
-      currentIndex - 1,
-    ]) as API.SeaHouseBillInput | undefined;
-    const prevContent =
-      prevFormValues?.content || houseBills[currentIndex - 1]?.content;
-    if (!prevContent) {
-      message.warning('上一张分单尚无内容可复制');
-      return;
-    }
-
-    const copiedContent: API.SeaBillContent = {};
-    SEA_DOCUMENT_CONTENT_FIELDS.forEach((f) => {
-      if (prevContent[f] !== undefined) {
-        (copiedContent as Record<string, unknown>)[f] = prevContent[f];
-      }
-    });
-
-    form.setFieldValue(
-      ['seaHouseBills', currentIndex, 'content'],
-      copiedContent,
-    );
-    message.success(`已复制分单 ${currentIndex} 的提单内容`);
-  };
-
-  // 操作：删除分单
-  const handleRemoveHouseBill = async (index: number) => {
-    const targetHB = houseBills[index];
-    const isLast = houseBills.length === 1;
-    const relatedPods = relatedReleasePods(
-      SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
-      targetHB.id,
-    );
-    const returnedPods = relatedPods.filter(
-      (item) =>
-        item.status ===
-        OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED,
-    );
-
-    if (returnedPods.length > 0) {
-      modal.error({
-        title: '该分单不能删除',
-        content: `存在已回单记录：${returnedPods
-          .map((item) => item.releaseNo || item.podNo || item.id)
-          .join('、')}`,
-      });
-      return;
-    }
-    if (relatedPods.length > 0 && !canDeleteReleasePods) {
-      message.error('该分单有关联放货记录，请联系具备放货记录删除权限的人员处理');
-      return;
-    }
-
-    const performDelete = async () => {
-      if (isDetail && orderId && targetHB.id) {
-        if (!targetHB.version || Number(targetHB.version) <= 0) {
-          message.error('分单版本缺失，请刷新后重试');
-          return;
-        }
-        if (!Number.isSafeInteger(Number(linkVersion)) || Number(linkVersion) <= 0) {
-          message.error('单证结构版本缺失，请刷新后重试');
-          return;
-        }
-        try {
-          await seaDocumentServiceRemoveSeaHouseBill({
-            orderId: String(orderId),
-            id: targetHB.id,
-            expectedVersion: String(targetHB.version),
-            expectedLinkVersion: linkVersion,
-            returnToUndetermined: isLast,
-            removeRelatedReleasePods: relatedPods.length > 0,
-          });
-          message.success('分单已删除');
-          await loadOrderDocuments();
-          await loadReleasePods();
-          setActiveTabKey('mbl');
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : '删除分单失败';
-          message.error(msg);
-          await Promise.all([loadOrderDocuments(), loadReleasePods()]);
-        }
-      } else {
-        const nextHBs = houseBills.filter((_, i) => i !== index);
-        setHouseBills(nextHBs);
-        // 重排表单值
-        const curFormHBs = (form.getFieldValue('seaHouseBills') ||
-          []) as API.SeaHouseBillInput[];
-        const nextFormHBs = curFormHBs.filter((_, i) => i !== index);
-        form.setFieldValue('seaHouseBills', nextFormHBs);
-        if (nextHBs.length === 0) {
-          setDocStructure(
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-          );
-          form.setFieldValue(
-            'seaDocumentStructure',
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED,
-          );
-          setActiveTabKey('mbl');
-        } else {
-          setActiveTabKey('hbl-0');
-        }
-        message.success('分单已移除');
-      }
-    };
-
-    if (relatedPods.length > 0) {
-      modal.confirm({
-        title: '确认删除分单及关联放货记录',
-        icon: <ExclamationCircleOutlined />,
-        content: (
-          <Space direction="vertical">
-            <Text>以下待签收/已签收记录将与分单一起删除：</Text>
-            {relatedPods.map((item) => (
-              <Text key={item.id}>
-                {item.releaseNo || '-'} / {item.podNo || '-'}
-              </Text>
-            ))}
-            {isLast ? <Text>同时单证结构将回到未确定状态。</Text> : null}
-          </Space>
-        ),
-        okText: '确认一并删除',
-        okType: 'danger',
-        cancelText: '取消',
-        onOk: performDelete,
-      });
-    } else if (isLast) {
-      modal.confirm({
-        title: '删除最后一张分单确认',
-        icon: <ExclamationCircleOutlined />,
-        content: '删除最后一张分单将使单证结构回到未确定状态，是否确认？',
-        okText: '确认删除并回到未确定',
-        okType: 'danger',
-        cancelText: '取消',
-        onOk: performDelete,
-      });
-    } else {
-      modal.confirm({
-        title: '确认删除分单',
-        content: `确定要删除分单 ${targetHB.houseNo || index + 1} 吗？`,
-        okText: '删除',
-        okType: 'danger',
-        cancelText: '取消',
-        onOk: performDelete,
-      });
-    }
-  };
-
-  // 详情模式：保存单独分单
-  const handleSaveHouseBill = async (index: number) => {
-    if (!orderId || !isDetail) return;
-    const hbValues = form.getFieldValue(['seaHouseBills', index]) as
-      | API.SeaHouseBillInput
-      | undefined;
-    if (!hbValues?.houseNo) {
-      message.error('请输入分单号');
-      return;
-    }
-    if (!hbValues?.issuerSource) {
-      message.error('请选择签发主体');
-      return;
-    }
-    if (
-      hbValues.issuerSource ===
-        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER &&
-      !hbValues.issuerPartnerId
-    ) {
-      message.error('其他主体签发必须选择合作伙伴');
-      return;
-    }
-
-    const hbInput: API.SeaHouseBillInput = {
-      id: hbValues.id,
-      houseNo: hbValues.houseNo,
-      issuerSource: hbValues.issuerSource,
-      issuerPartnerId:
-        hbValues.issuerSource ===
-        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-          ? hbValues.issuerPartnerId
-          : undefined,
-      note: hbValues.note?.trim() || undefined,
-      content: hbValues.content,
-      expectedVersion: hbValues.expectedVersion,
-    };
-
+  const handleSaveHouseBill = async () => {
+    if (!orderId || !isDetail || !houseBill?.id) return;
     try {
-      if (hbValues.id) {
-        await seaDocumentServiceUpdateSeaHouseBill(
-          { orderId: String(orderId), id: hbValues.id },
-          {
-            orderId: String(orderId),
-            id: hbValues.id,
-            expectedVersion: String(hbValues.expectedVersion || '1'),
-            expectedLinkVersion: linkVersion,
-            houseBill: hbInput,
-          },
-        );
-        message.success('分单更新成功');
-      } else {
-        await seaDocumentServiceAddSeaHouseBill(
-          { orderId: String(orderId) },
-          {
-            orderId: String(orderId),
-            expectedLinkVersion: linkVersion,
-            houseBill: hbInput,
-          },
-        );
-        message.success('分单添加成功');
-      }
+      await form.validateFields([
+        ['seaHouseBill', 'houseNo'],
+        ['seaHouseBill', 'issuerSource'],
+        ['seaHouseBill', 'issuerPartnerId'],
+      ]);
+      const input = buildHouseBillInput(
+        form.getFieldValue('seaHouseBill') as
+          | Partial<API.SeaHouseBillInput>
+          | undefined,
+      );
+      if (!input) return;
+      await seaDocumentServiceUpdateSeaHouseBill(
+        { orderId, id: houseBill.id },
+        {
+          orderId,
+          id: houseBill.id,
+          expectedVersion: String(houseBill.version ?? ''),
+          expectedLinkVersion: linkVersion,
+          houseBill: input,
+        },
+      );
+      message.success('分单更新成功');
       await loadOrderDocuments();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '保存分单失败';
-      message.error(msg);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        message.error(error.message || '保存分单失败');
     }
   };
 
-  // 详情模式：保存共享 MBL 内容
   const handleSaveMblContent = async () => {
     if (!orderId || !isDetail || !mblDetail?.id) return;
-    const contentValues = form.getFieldValue(
-      'seaMasterBillContent',
-    ) as API.SeaBillContent;
     try {
+      const content = (form.getFieldValue('seaMasterBillContent') ??
+        {}) as API.SeaBillContent;
       await seaDocumentServiceUpdateSeaMasterBillContent(
-        { orderId: String(orderId) },
+        { orderId },
         {
-          orderId: String(orderId),
-          expectedMblVersion: String(mblDetail.version || '1'),
-          content: contentValues,
+          orderId,
+          expectedMblVersion: String(mblDetail.version ?? ''),
+          content,
         },
       );
       message.success('主单内容保存成功');
       await loadOrderDocuments();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '保存主单内容失败';
-      message.error(msg);
-    }
-  };
-
-  // 显式用分配汇总填入目标 HBL
-  const handleApplyHblSummary = async (
-    houseBillId: string,
-    houseBillVersion: number,
-  ) => {
-    if (!orderId || !isDetail) return;
-    setApplyingHblId(houseBillId);
-    try {
-      const allocRes = await seaCargoAllocationServiceGetSeaCargoAllocation({
-        orderId: String(orderId),
-      });
-      const allocVersion = allocRes.data?.allocationVersion;
-      if (!allocVersion) {
-        throw new Error('箱货分配版本缺失，请刷新后重试');
-      }
-      await seaCargoAllocationServiceApplySeaHouseBillAllocationSummary(
-        { orderId: String(orderId), houseBillId },
-        {
-          orderId: String(orderId),
-          houseBillId,
-          expectedAllocationVersion: allocVersion,
-          expectedHouseBillVersion: String(houseBillVersion),
-        },
+    } catch (error: unknown) {
+      message.error(
+        error instanceof Error ? error.message : '保存主单内容失败',
       );
-      message.success('已用分配汇总填入本张分单件重尺');
-      await loadOrderDocuments();
-    } catch (err: any) {
-      message.error(err.message || '填入分单汇总失败');
-    } finally {
-      setApplyingHblId(null);
     }
   };
 
-  // DIRECT 下显式用操作票货物汇总填入 MBL
-  const handleApplyMblSummary = async () => {
-    if (!orderId || !isDetail || !mblDetail) return;
-    setApplyingMbl(true);
-    if (!mblDetail.version) {
-      message.error('主单版本缺失，请刷新后重试');
+  const openModeChange = () => {
+    if (!isDocumentStructure(docStructure)) {
+      message.error('当前单证模式缺失，请刷新后重试');
       return;
     }
+    const targetMode =
+      docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+        ? SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+        : SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE;
+    setModeTarget(targetMode);
+    setModePreview(null);
+    setModeIdempotencyKey(`sea-document-mode:${generateUUID()}`);
+    modeForm.resetFields();
+    modeForm.setFieldsValue({ confirmedAt: dayjs() });
+    setModeModalOpen(true);
+  };
+
+  const buildModeChangeHouseBill = (values: ModeChangeFormValues) =>
+    modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+      ? buildHouseBillInput(values.newHouseBill)
+      : undefined;
+
+  const previewModeChange = async () => {
+    if (!orderId || !modeTarget) return;
+    setModePreviewing(true);
     try {
-      await seaCargoAllocationServiceApplySeaOrderCargoSummaryToMasterBill(
-        { orderId: String(orderId) },
+      const values = await modeForm.validateFields();
+      const response = await seaDocumentServicePreviewChangeSeaDocumentMode(
+        { orderId },
         {
-          orderId: String(orderId),
-          expectedMblVersion: String(mblDetail.version),
+          orderId,
+          targetMode: modeTarget,
+          newHouseBill: buildModeChangeHouseBill(values),
+          reason: values.reason?.trim() ?? '',
         },
       );
-      message.success('已用操作票货物汇总填入主单件重尺');
-      await loadOrderDocuments();
-    } catch (err: any) {
-      message.error(err.message || '填入主单汇总失败');
+      if (!response.data) throw new Error('接口未返回模式切换预览');
+      setModePreview(response.data);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        message.error(error.message || '模式切换预览失败');
     } finally {
-      setApplyingMbl(false);
+      setModePreviewing(false);
     }
   };
 
-  // 顶部结构 Tag
+  const executeModeChange = async () => {
+    if (!orderId || !modeTarget || !modePreview?.executable) return;
+    setModeExecuting(true);
+    try {
+      const values = await modeForm.validateFields();
+      if (!orderVersion || linkVersion === '0')
+        throw new Error('订单或单证版本缺失，请刷新后重试');
+      if (
+        docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
+        (!houseBill?.version || !houseBill.currentVersionId)
+      ) {
+        throw new Error('当前分单版本缺失，请刷新后重试');
+      }
+      await seaDocumentServiceExecuteChangeSeaDocumentMode(
+        { orderId },
+        {
+          orderId,
+          expectedOrderVersion: String(orderVersion),
+          expectedLinkVersion: linkVersion,
+          expectedHouseBillVersion:
+            docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+              ? String(houseBill?.version ?? '')
+              : undefined,
+          expectedCurrentVersionId:
+            docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+              ? houseBill?.currentVersionId
+              : undefined,
+          targetMode: modeTarget,
+          newHouseBill: buildModeChangeHouseBill(values),
+          reason: values.reason?.trim() ?? '',
+          confirmation: buildSeaExternalConfirmation(values),
+          idempotencyKey: modeIdempotencyKey,
+        },
+      );
+      message.success(
+        modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+          ? '已切换为 HOUSE 并建立当前 HBL'
+          : '已切换为 DIRECT，原 HBL 已形成作废历史',
+      );
+      setModeModalOpen(false);
+      setModePreview(null);
+      await onOrderDataChanged?.();
+      await Promise.all([loadOrderDocuments(), loadReleasePods()]);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        message.error(error.message || '执行模式切换失败');
+    } finally {
+      setModeExecuting(false);
+    }
+  };
+
   const renderStructureTag = () => {
-    switch (docStructure) {
-      case SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT:
-        return <Tag color="success">直单 (DIRECT)</Tag>;
-      case SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE:
-        return <Tag color="processing">分单 (HOUSE)</Tag>;
-      default:
-        return <Tag color="default">未确定 (UNDETERMINED)</Tag>;
+    if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) {
+      return <Tag color="success">直单 (DIRECT)</Tag>;
     }
+    if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
+      return <Tag color="processing">分单 (HOUSE)</Tag>;
+    }
+    return <Tag>请选择单证模式</Tag>;
   };
 
-  // Tab 项构造
-  const tabItems = [
-    {
-      key: 'mbl',
-      label: (
-        <span>
-          主单 (MBL){' '}
-          {mblMasterNo ? (
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              ({mblMasterNo})
-            </Text>
-          ) : null}
-        </span>
-      ),
-      children: (
-        <Card
-          size="small"
-          variant="borderless"
-          style={{ background: '#fafafa', borderRadius: 4 }}
-        >
-          {isDetail && mblDetail ? (
-            <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
-              <Col xs={24} md={6}>
-                <Text type="secondary">主单号：</Text>
-                <Text strong>{mblDetail.masterNo}</Text>
-              </Col>
-              <Col xs={24} md={6}>
-                <Text type="secondary">签发主体：</Text>
-                <Text strong>{mblDetail.issuerPartnerName || '-'}</Text>
-              </Col>
-              <Col xs={24} md={6}>
-                <Text type="secondary">共享订单数：</Text>
-                <Tag color="blue">{mblDetail.memberCount ?? 1} 票</Tag>
-              </Col>
-              <Col xs={24} md={6}>
-                <Text type="secondary">主单版本：</Text>
-                <Tag>v{mblDetail.version}</Tag>
-              </Col>
-              <Col span={24} style={{ textAlign: 'right' }}>
-                <SeaDocumentHistoryActions
-                  orderId={String(orderId)}
-                  orderVersion={String(orderVersion ?? '')}
-                  documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
-                  documentId={mblDetail.id ?? ''}
-                  documentNo={mblDetail.masterNo ?? ''}
-                  documentVersion={String(mblDetail.version ?? '')}
-                  currentVersionId={mblDetail.currentVersionId}
-                  documentStatus={mblDetail.status}
-                  getAmendmentInput={() => ({
-                    masterBillContent:
-                      (form.getFieldValue(
-                        'seaMasterBillContent',
-                      ) as API.SeaBillContent) ?? {},
-                  })}
-                  disabled={disabled}
-                  onSuccess={async () => {
-                    await onOrderDataChanged?.();
-                    await loadOrderDocuments();
-                  }}
-                />
-              </Col>
-            </Row>
-          ) : null}
+  const masterBillTab = {
+    key: 'mbl',
+    label: (
+      <span>
+        主单 (MBL){' '}
+        {mblMasterNo ? (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            ({mblMasterNo})
+          </Text>
+        ) : null}
+      </span>
+    ),
+    children: (
+      <Card
+        size="small"
+        variant="borderless"
+        style={{ background: '#fafafa', borderRadius: 4 }}
+      >
+        {isDetail && mblDetail ? (
+          <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
+            <Col xs={24} md={8}>
+              <Text type="secondary">主单号：</Text>
+              <Text strong>{mblDetail.masterNo}</Text>
+            </Col>
+            <Col xs={24} md={8}>
+              <Text type="secondary">共享订单数：</Text>
+              <Tag color="blue">{mblDetail.memberCount ?? 1} 票</Tag>
+            </Col>
+            <Col xs={24} md={8}>
+              <Text type="secondary">主单版本：</Text>
+              <Tag>v{mblDetail.version}</Tag>
+            </Col>
+            <Col span={24} style={{ textAlign: 'right' }}>
+              <SeaDocumentHistoryActions
+                orderId={orderId}
+                orderVersion={String(orderVersion ?? '')}
+                documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
+                documentId={mblDetail.id ?? ''}
+                documentNo={mblDetail.masterNo ?? ''}
+                documentVersion={String(mblDetail.version ?? '')}
+                currentVersionId={mblDetail.currentVersionId}
+                documentStatus={mblDetail.status}
+                getAmendmentInput={() => ({
+                  masterBillContent: (form.getFieldValue(
+                    'seaMasterBillContent',
+                  ) ?? {}) as API.SeaBillContent,
+                })}
+                disabled={disabled}
+                onSuccess={async () => {
+                  await onOrderDataChanged?.();
+                  await loadOrderDocuments();
+                }}
+              />
+            </Col>
+          </Row>
+        ) : null}
+        <SeaBillContentFormFields
+          namePathPrefix={['seaMasterBillContent']}
+          disabled={disabled || mblDetail?.status === 'VOIDED'}
+        />
+        {renderReleasePods(
+          relatedReleasePods(
+            SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+            mblDetail?.id,
+          ),
+        )}
+        {isDetail && mblDetail && mblDetail.status !== 'VOIDED' && !disabled ? (
+          <div style={{ textAlign: 'right', marginTop: 12 }}>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={handleSaveMblContent}
+            >
+              保存主单内容
+            </Button>
+          </div>
+        ) : null}
+      </Card>
+    ),
+  };
 
-          <SeaBillContentFormFields
-            namePathPrefix={['seaMasterBillContent']}
-            disabled={disabled || mblDetail?.status === 'VOIDED'}
-          />
-          {renderReleasePods(
-            relatedReleasePods(
-              SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
-              mblDetail?.id,
-            ),
-          )}
-
-          {isDetail &&
-          mblDetail &&
-          mblDetail.status !== 'VOIDED' &&
-          !disabled ? (
-            <div style={{ textAlign: 'right', marginTop: 12 }}>
-              <Space>
-                {docStructure ===
-                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (
-                  <Button loading={applyingMbl} onClick={handleApplyMblSummary}>
-                    用操作票货物汇总填入 MBL
-                  </Button>
-                ) : null}
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={handleSaveMblContent}
-                >
-                  保存主单内容
-                </Button>
-              </Space>
-            </div>
-          ) : null}
-        </Card>
-      ),
-    },
-    ...houseBills.map((hb, idx) => ({
-      key: `hbl-${idx}`,
-      label: <HouseBillTabTitle index={idx} />,
-      children: (
-        <Card
-          size="small"
-          variant="borderless"
-          style={{ background: '#fafafa', borderRadius: 4 }}
-        >
-          {/* HBL 头部状态与操作 */}
+  const houseBillTab = {
+    key: 'hbl',
+    label: (
+      <span>
+        分单 (HBL){' '}
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          ({watchedHouseNo || houseBill?.houseNo || '未编号'})
+        </Text>
+      </span>
+    ),
+    children: (
+      <Card
+        size="small"
+        variant="borderless"
+        style={{ background: '#fafafa', borderRadius: 4 }}
+      >
+        {isDetail && houseBill ? (
           <Row
             justify="space-between"
             align="middle"
@@ -978,250 +972,89 @@ export function SeaDocumentSectionComponent({
             <Col>
               <Space>
                 <Text strong style={{ fontSize: 15 }}>
-                  分单 #{idx + 1}
+                  当前分单
                 </Text>
-                {hb.status ? (
-                  <Tag color={houseBillStatusPresentation(hb.status).color}>
-                    {houseBillStatusPresentation(hb.status).text}
-                  </Tag>
-                ) : null}
-                {hb.version ? <Tag>v{hb.version}</Tag> : null}
+                <Tag
+                  color={houseBillStatusPresentation(houseBill.status).color}
+                >
+                  {houseBillStatusPresentation(houseBill.status).text}
+                </Tag>
+                {houseBill.version ? <Tag>v{houseBill.version}</Tag> : null}
               </Space>
             </Col>
             <Col>
-              <Space>
-                {isDetail && hb.id ? (
-                  <SeaDocumentHistoryActions
-                    orderId={String(orderId)}
-                    orderVersion={String(orderVersion ?? '')}
-                    documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL}
-                    documentId={hb.id}
-                    documentNo={hb.houseNo ?? ''}
-                    documentVersion={String(hb.version ?? '')}
-                    currentVersionId={hb.currentVersionId}
-                    currentHouseBill={hb}
-                    getAmendmentInput={() => {
-                      const input = form.getFieldValue([
-                        'seaHouseBills',
-                        idx,
-                      ]) as API.SeaHouseBillInput;
-                      return {
-                        houseBill: {
-                          ...input,
-                          id: hb.id,
-                          houseNo: input?.houseNo ?? hb.houseNo ?? '',
-                          issuerSource:
-                            input?.issuerSource ?? hb.issuerSource ?? 0,
-                          content: input?.content ?? hb.content ?? {},
-                          expectedVersion: hb.version,
-                        },
-                      };
-                    }}
-                    disabled={disabled}
-                    onSuccess={async () => {
-                      await onOrderDataChanged?.();
-                      await loadOrderDocuments();
-                    }}
-                  />
-                ) : null}
-                {idx > 0 && !disabled && !isTerminalHouseBill(hb.status) ? (
-                  <Button
-                    size="small"
-                    icon={<CopyOutlined />}
-                    onClick={() => handleCopyPreviousContent(idx)}
-                  >
-                    复制上一张内容
-                  </Button>
-                ) : null}
-                {!disabled && !isTerminalHouseBill(hb.status) ? (
-                  <Button
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleRemoveHouseBill(idx)}
-                  >
-                    删除分单
-                  </Button>
-                ) : null}
-              </Space>
-            </Col>
-          </Row>
-
-          {/* HBL 基础信息（号、签发主体、备注） */}
-          <Row gutter={[16, 0]}>
-            <Col xs={24} md={8}>
-              <ProFormText
-                name={['seaHouseBills', idx, 'houseNo']}
-                label="分单号 (HBL No.)"
-                placeholder="请输入分单号"
-                disabled={disabled || isTerminalHouseBill(hb.status)}
-                rules={[{ required: true, message: '分单号不能为空' }]}
-                fieldProps={{ maxLength: 128 }}
-              />
-            </Col>
-            <Col xs={24} md={16}>
-              <Form.Item label="签发主体" required style={{ marginBottom: 24 }}>
-                <Form.Item
-                  name={['seaHouseBills', idx, 'issuerSource']}
-                  noStyle
-                  rules={[{ required: true, message: '请选择签发主体' }]}
-                >
-                  <Radio.Group
-                    disabled={disabled || isTerminalHouseBill(hb.status)}
-                    onChange={() =>
-                      form.setFieldValue(
-                        ['seaHouseBills', idx, 'issuerPartnerId'],
-                        undefined,
-                      )
-                    }
-                  >
-                    <Radio
-                      value={
-                        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                      }
-                    >
-                      本公司
-                    </Radio>
-                    <Radio
-                      value={
-                        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                      }
-                    >
-                      委托单位
-                    </Radio>
-                    <Radio
-                      value={
-                        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                      }
-                    >
-                      其他主体
-                    </Radio>
-                  </Radio.Group>
-                </Form.Item>
-
-                <Form.Item
-                  noStyle
-                  shouldUpdate={(prev, cur) =>
-                    prev?.seaHouseBills?.[idx]?.issuerSource !==
-                    cur?.seaHouseBills?.[idx]?.issuerSource
-                  }
-                >
-                  {({ getFieldValue }) => {
-                    const src = getFieldValue([
-                      'seaHouseBills',
-                      idx,
-                      'issuerSource',
-                    ]);
-                    if (
-                      src ===
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                    ) {
-                      return (
-                        <div style={{ marginTop: 6 }}>
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            💡 由所属公司或总部自动统一签发
-                          </Text>
-                        </div>
-                      );
-                    }
-                    if (
-                      src ===
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                    ) {
-                      return (
-                        <div style={{ marginTop: 6 }}>
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            💡 使用当前订单委托单位作为签发主体
-                          </Text>
-                        </div>
-                      );
-                    }
-                    if (
-                      src ===
-                      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                    ) {
-                      return (
-                        <div style={{ marginTop: 8 }}>
-                          <ProFormSearchableSelect
-                            name={['seaHouseBills', idx, 'issuerPartnerId']}
-                            placeholder="请选择签发主体合作伙伴"
-                            disabled={
-                              disabled || isTerminalHouseBill(hb.status)
-                            }
-                            rules={[
-                              { required: true, message: '请选择合作伙伴' },
-                            ]}
-                            request={async ({ keyWords }) =>
-                              searchPartnerOptions(keyWords)
-                            }
-                            fieldProps={{ filterOption: false }}
-                          />
-                        </div>
-                      );
-                    }
-                    return null;
+              {houseBill.id ? (
+                <SeaDocumentHistoryActions
+                  orderId={orderId}
+                  orderVersion={String(orderVersion ?? '')}
+                  documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL}
+                  documentId={houseBill.id}
+                  documentNo={houseBill.houseNo ?? ''}
+                  documentVersion={String(houseBill.version ?? '')}
+                  currentVersionId={houseBill.currentVersionId}
+                  currentHouseBill={houseBill}
+                  getAmendmentInput={() => ({
+                    houseBill: buildHouseBillInput(
+                      form.getFieldValue('seaHouseBill') as
+                        | Partial<API.SeaHouseBillInput>
+                        | undefined,
+                    ),
+                  })}
+                  disabled={disabled}
+                  onSuccess={async () => {
+                    await onOrderDataChanged?.();
+                    await loadOrderDocuments();
                   }}
-                </Form.Item>
-              </Form.Item>
-            </Col>
-            <Col xs={24}>
-              <ProFormText
-                name={['seaHouseBills', idx, 'note']}
-                label="分单备注"
-                placeholder="请输入分单备注"
-                disabled={disabled || isTerminalHouseBill(hb.status)}
-                fieldProps={{ maxLength: 500 }}
-              />
+                />
+              ) : null}
             </Col>
           </Row>
-
-          {/* HBL 15 个提单内容字段 */}
-          <div style={{ marginTop: 12 }}>
-            <Text strong style={{ display: 'block', marginBottom: 8 }}>
-              提单正文内容
-            </Text>
-            <SeaBillContentFormFields
-              namePathPrefix={['seaHouseBills', idx, 'content']}
-              disabled={disabled || isTerminalHouseBill(hb.status)}
-            />
+        ) : null}
+        <HouseBillIdentityFields
+          fieldKey="seaHouseBill"
+          disabled={disabled || isTerminalHouseBill(houseBill?.status)}
+        />
+        <div style={{ marginTop: 12 }}>
+          <Text strong style={{ display: 'block', marginBottom: 8 }}>
+            提单正文内容
+          </Text>
+          <SeaBillContentFormFields
+            namePathPrefix={['seaHouseBill', 'content']}
+            disabled={disabled || isTerminalHouseBill(houseBill?.status)}
+          />
+        </div>
+        {renderReleasePods(
+          relatedReleasePods(
+            SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
+            houseBill?.id,
+          ),
+        )}
+        {isDetail &&
+        houseBill &&
+        !disabled &&
+        !isTerminalHouseBill(houseBill.status) ? (
+          <div style={{ textAlign: 'right', marginTop: 12 }}>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={handleSaveHouseBill}
+            >
+              保存分单
+            </Button>
           </div>
-          {renderReleasePods(
-            relatedReleasePods(
-              SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
-              hb.id,
-            ),
-          )}
+        ) : null}
+      </Card>
+    ),
+  };
 
-          {isDetail && !disabled && !isTerminalHouseBill(hb.status) ? (
-            <div style={{ textAlign: 'right', marginTop: 12 }}>
-              <Space>
-                {hb.id ? (
-                  <Button
-                    loading={applyingHblId === hb.id}
-                    onClick={() => {
-                      const targetHbId = hb.id;
-                      if (targetHbId) {
-                        handleApplyHblSummary(targetHbId, Number(hb.version));
-                      }
-                    }}
-                  >
-                    用分配汇总填入本张 HBL
-                  </Button>
-                ) : null}
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={() => handleSaveHouseBill(idx)}
-                >
-                  保存此分单
-                </Button>
-              </Space>
-            </div>
-          ) : null}
-        </Card>
-      ),
-    })),
-  ];
+  const modeChangeReady = Boolean(
+    isDetail &&
+      orderId &&
+      orderVersion &&
+      linkVersion !== '0' &&
+      isDocumentStructure(docStructure) &&
+      !fetchError,
+  );
 
   return (
     <Col span={24}>
@@ -1235,109 +1068,203 @@ export function SeaDocumentSectionComponent({
         />
       ) : null}
 
-      {/* 单证结构状态与顶栏动作 */}
       <Card
         size="small"
         variant="outlined"
         style={{ marginBottom: 16, borderColor: '#f0f0f0' }}
       >
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space size="middle">
-              <Text strong>单证结构：</Text>
-              {renderStructureTag()}
-              {linkVersion && linkVersion !== '0' ? (
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  (单证版本 v{linkVersion})
-                </Text>
-              ) : null}
-            </Space>
-          </Col>
-          <Col>
-            <Space>
-              {docStructure ===
-                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNDETERMINED &&
-              !disabled &&
-              !fetchError ? (
-                <>
-                  <Button onClick={handleMarkDirect}>标记为直单</Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddHouseBill}
-                  >
-                    添加首张分单
-                  </Button>
-                </>
-              ) : null}
-
-              {docStructure ===
-                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
-              !disabled &&
-              !fetchError ? (
-                <Button onClick={handleCancelDirect}>
-                  取消直单标记 (回未确定)
+        {isDetail ? (
+          <Row justify="space-between" align="middle" gutter={[12, 12]}>
+            <Col>
+              <Space size="middle">
+                <Text strong>单证模式：</Text>
+                {renderStructureTag()}
+                {linkVersion !== '0' ? (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    (单证版本 v{linkVersion})
+                  </Text>
+                ) : null}
+              </Space>
+            </Col>
+            <Col>
+              {canChangeMode ? (
+                <Button
+                  icon={<SwapOutlined />}
+                  disabled={!modeChangeReady}
+                  onClick={openModeChange}
+                >
+                  {docStructure ===
+                  SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                    ? '切换为 DIRECT'
+                    : '切换为 HOUSE'}
                 </Button>
               ) : null}
-
-              {docStructure ===
-                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
-              !disabled &&
-              !fetchError ? (
-                <>
-                  <Button
-                    icon={<AppstoreOutlined />}
-                    onClick={() => {
-                      if (orderId && allocationDrawerRef.current) {
-                        allocationDrawerRef.current.open({
-                          id: String(orderId),
-                          orderNo: form.getFieldValue('orderNo'),
-                        });
-                      }
-                    }}
-                  >
-                    箱货分配
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddHouseBill}
-                  >
-                    添加分单 (HBL)
-                  </Button>
-                </>
-              ) : null}
-            </Space>
-          </Col>
-        </Row>
+            </Col>
+          </Row>
+        ) : (
+          <Form.Item
+            name="seaDocumentStructure"
+            label="单证模式"
+            rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
+            style={{ marginBottom: 0 }}
+          >
+            <Radio.Group
+              disabled={disabled}
+              onChange={(event) =>
+                changeCreateMode(event.target.value as SeaDocumentStructure)
+              }
+            >
+              <Radio.Button
+                value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
+              >
+                HOUSE（签发 HBL）
+              </Radio.Button>
+              <Radio.Button
+                value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+              >
+                DIRECT（直接交付 MBL）
+              </Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+        )}
 
         {docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (
           <Alert
             style={{ marginTop: 12 }}
             type="info"
             showIcon
-            title="当前为直单（DIRECT）结构"
-            description="主单直接签发给最终收货人，禁止添加分单。如需签发分单，请先点击右上角『取消直单标记』回到未确定状态。"
+            title="当前为直单（DIRECT）"
+            description="本订单不签发 HBL，直接向客户交付船公司或船代提供的 MBL。"
+          />
+        ) : null}
+        {!isDetail && !docStructure ? (
+          <Alert
+            style={{ marginTop: 12 }}
+            type="warning"
+            showIcon
+            title="请先选择单证模式"
+            description="HOUSE 必须随订单提交唯一 HBL；DIRECT 不提交 HBL。"
           />
         ) : null}
       </Card>
 
-      {/* MBL / HBL Tabs */}
       <Tabs
         type="card"
         activeKey={activeTabKey}
         onChange={setActiveTabKey}
-        items={tabItems}
+        items={[
+          masterBillTab,
+          ...(docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+            ? [houseBillTab]
+            : []),
+        ]}
       />
 
-      <SeaCargoAllocationDrawer
-        ref={allocationDrawerRef}
-        canManage={
-          !disabled &&
-          access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'update')
+      <Modal
+        title={
+          modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+            ? '切换为 HOUSE'
+            : '切换为 DIRECT'
         }
-        onSuccess={loadOrderDocuments}
-      />
+        width={860}
+        open={modeModalOpen}
+        destroyOnHidden
+        mask={{ closable: false }}
+        onCancel={() => {
+          if (modeExecuting) return;
+          setModeModalOpen(false);
+          setModePreview(null);
+        }}
+        footer={[
+          <Button
+            key="cancel"
+            disabled={modeExecuting}
+            onClick={() => setModeModalOpen(false)}
+          >
+            取消
+          </Button>,
+          modePreview ? (
+            <Button
+              key="preview-again"
+              disabled={modeExecuting}
+              loading={modePreviewing}
+              onClick={previewModeChange}
+            >
+              重新预览
+            </Button>
+          ) : null,
+          modePreview ? (
+            <Button
+              key="execute"
+              type="primary"
+              disabled={!modePreview.executable}
+              loading={modeExecuting}
+              onClick={executeModeChange}
+            >
+              确认执行
+            </Button>
+          ) : (
+            <Button
+              key="preview"
+              type="primary"
+              loading={modePreviewing}
+              onClick={previewModeChange}
+            >
+              预览切换影响
+            </Button>
+          ),
+        ]}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          title="模式切换以外部确认结果为准"
+          description={
+            modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+              ? '执行后会建立一张新的当前 HBL；请先录入已取得的分单号和签发主体。'
+              : '执行后当前 HBL 会作废并保留历史；已有放货、账单等事实不会被删除或搬移。'
+          }
+          style={{ marginBottom: 16 }}
+        />
+        <Form<ModeChangeFormValues>
+          form={modeForm}
+          layout="vertical"
+          preserve={false}
+          onValuesChange={(changedValues) => {
+            if (Object.keys(changedValues).length === 0) return;
+            setModePreview(null);
+            setModeIdempotencyKey(`sea-document-mode:${generateUUID()}`);
+          }}
+        >
+          {modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE ? (
+            <HouseBillIdentityFields fieldKey="newHouseBill" />
+          ) : null}
+          <Form.Item
+            name="reason"
+            label="切换原因"
+            rules={[
+              { required: true, whitespace: true, message: '请输入切换原因' },
+            ]}
+          >
+            <ProFormTextArea
+              noStyle
+              placeholder="说明客户请求及本次 HOUSE/DIRECT 切换原因"
+              fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+            />
+          </Form.Item>
+          <div style={{ marginTop: 12, marginBottom: 12 }}>
+            <Text strong>外部确认留痕</Text>
+            <br />
+            <Text type="secondary">
+              请先完整填写确认信息再预览；确认信息变化后必须重新预览。
+            </Text>
+          </div>
+          <SeaExternalConfirmationFields orderId={orderId} />
+          {modePreview ? (
+            <ModeChangePreviewResult preview={modePreview} />
+          ) : null}
+        </Form>
+      </Modal>
     </Col>
   );
 }

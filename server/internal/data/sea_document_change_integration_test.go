@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"testing"
+	"time"
 
 	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -11,9 +12,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
-	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
-	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -21,18 +20,21 @@ import (
 )
 
 type seaDocumentChangeFixture struct {
-	data      *Data
-	orgID     uuid.UUID
-	actorID   uuid.UUID
-	partnerID uuid.UUID
-	orderID   uuid.UUID
-	mblID     uuid.UUID
-	mblVerID  uuid.UUID
-	hblID     uuid.UUID
-	hblVerID  uuid.UUID
-	switchID  uuid.UUID
-	switchVer uuid.UUID
+	data           *Data
+	orgID          uuid.UUID
+	actorID        uuid.UUID
+	partnerID      uuid.UUID
+	orderID        uuid.UUID
+	mblID          uuid.UUID
+	mblVerID       uuid.UUID
+	hblID          uuid.UUID
+	hblVerID       uuid.UUID
+	hblNo          string
+	linkID         uuid.UUID
+	currentHBLLock *uint64
 }
+
+func stringPtr(s string) *string { return &s }
 
 func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 	t.Helper()
@@ -54,6 +56,14 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetLegalName("单证变更测试合作伙伴").
 		SetNormalizedName("单证变更测试合作伙伴").
 		SaveX(ctx)
+	shippingLine := data.db.ShippingLine.Create().
+		SetOrganizationID(org.ID).
+		SetScacCode("DCTL").
+		SetNameZh("单证变更测试船公司").
+		SetNameEn("Document Change Test Shipping Line").
+		SetCountryCode("CN").
+		SetEnabled(true).
+		SaveX(ctx)
 	order := data.db.Order.Create().
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-DOC-" + suffix).
@@ -62,53 +72,54 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetTradeDirection("export").
 		SetTradeTerm("FOB").
 		SetPaymentTerm("PREPAID").
+		SetFlowStatus("DRAFT").
+		SetVersion(1).
 		SaveX(ctx)
 	exec := data.db.SeaTransportExecution.Create().
 		SetOrganizationID(org.ID).
+		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER TEST").
 		SetVoyageNo("V001").
+		SetVersion(1).
 		SaveX(ctx)
 	mbl := data.db.SeaMasterBill.Create().
 		SetOrganizationID(org.ID).
-		SetIssuerPartnerID(partner.ID).
-		SetTransportExecutionID(exec.ID).
-		SetMasterNo("MBL-" + suffix).
-		SetNormalizedMasterNo("MBL-" + suffix).
+		SetShippingLineID(shippingLine.ID).
+		SetMasterNo("MBLDOC" + suffix).
+		SetNormalizedMasterNo("MBLDOC" + suffix).
 		SetShipperText("旧主单发货人").
+		SetVersion(1).
 		SaveX(ctx)
-	data.db.SeaMasterBillOrderLink.Create().
+	link := data.db.SeaMasterBillOrderLink.Create().
 		SetOrganizationID(org.ID).
 		SetOrderID(order.ID).
 		SetMasterBillID(mbl.ID).
+		SetTransportExecutionID(exec.ID).
 		SetStatus(seamasterbillorderlinkent.StatusACTIVE).
 		SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+		SetVersion(1).
 		SaveX(ctx)
-	newHouseBill := func(no string) *ent.SeaHouseBill {
-		return data.db.SeaHouseBill.Create().
-			SetOrganizationID(org.ID).
-			SetOrderID(order.ID).
-			SetMasterBillID(mbl.ID).
-			SetHouseNo(no).
-			SetNormalizedHouseNo(no).
-			SetIssuerSource(seahousebillent.IssuerSourceCUSTOMER_PARTNER).
-			SetIssuerPartnerID(partner.ID).
-			SetShipperText("旧分单发货人").
-			SaveX(ctx)
-	}
-	hbl := newHouseBill("HBL-A-" + suffix)
-	switchHBL := newHouseBill("HBL-S-" + suffix)
+	hblNo := "HBLDOC" + suffix
+	hbl := data.db.SeaHouseBill.Create().
+		SetOrganizationID(org.ID).
+		SetOrderID(order.ID).
+		SetMasterBillID(mbl.ID).
+		SetHouseNo(hblNo).
+		SetNormalizedHouseNo(hblNo).
+		SetIssuerSource(seahousebillent.IssuerSourceCUSTOMER_PARTNER).
+		SetIssuerPartnerID(partner.ID).
+		SetShipperText("旧分单发货人").
+		SetStatus(seahousebillent.StatusDRAFT).
+		SetVersion(1).
+		SaveX(ctx)
 
-	f := &seaDocumentChangeFixture{data: data, orgID: org.ID, actorID: actor.ID, partnerID: partner.ID, orderID: order.ID, mblID: mbl.ID, hblID: hbl.ID, switchID: switchHBL.ID}
+	f := &seaDocumentChangeFixture{data: data, orgID: org.ID, actorID: actor.ID, partnerID: partner.ID, orderID: order.ID, mblID: mbl.ID, hblID: hbl.ID, hblNo: hblNo, linkID: link.ID}
 	err := data.WithTx(ctx, func(tx *ent.Tx) error {
 		txMBL, err := tx.SeaMasterBill.Get(ctx, mbl.ID)
 		if err != nil {
 			return err
 		}
-		txExec, err := tx.SeaTransportExecution.Get(ctx, exec.ID)
-		if err != nil {
-			return err
-		}
-		mblVersion, err := createMasterVersion(ctx, tx, txMBL, txExec, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil)
+		mblVersion, err := createMasterVersion(ctx, tx, txMBL, exec, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -116,23 +127,18 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 			return err
 		}
 		f.mblVerID = mblVersion.ID
-		for _, item := range []struct {
-			id     uuid.UUID
-			result *uuid.UUID
-		}{{hbl.ID, &f.hblVerID}, {switchHBL.ID, &f.switchVer}} {
-			txHBL, err := tx.SeaHouseBill.Get(ctx, item.id)
-			if err != nil {
-				return err
-			}
-			version, err := createHouseVersion(ctx, tx, txHBL, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil)
-			if err != nil {
-				return err
-			}
-			if _, err = txHBL.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
-				return err
-			}
-			*item.result = version.ID
+		txHBL, err := tx.SeaHouseBill.Get(ctx, hbl.ID)
+		if err != nil {
+			return err
 		}
+		hblVersion, err := createHouseVersion(ctx, tx, txHBL, actor.ID, biz.VersionSourceOrderLock, nil, nil, nil, nil)
+		if err != nil {
+			return err
+		}
+		if _, err = txHBL.Update().SetCurrentVersionID(hblVersion.ID).Save(ctx); err != nil {
+			return err
+		}
+		f.hblVerID = hblVersion.ID
 		return nil
 	})
 	if err != nil {
@@ -145,23 +151,34 @@ func (f *seaDocumentChangeFixture) audit() *biz.AuditEvent {
 	return &biz.AuditEvent{OrganizationID: &f.orgID, UserID: &f.actorID, Result: "success"}
 }
 
+func (f *seaDocumentChangeFixture) confirmation() *biz.SeaExternalConfirmation {
+	return &biz.SeaExternalConfirmation{
+		ConfirmedByParty: "船代确认窗口",
+		ConfirmedAt:      time.Now().UTC().Truncate(time.Second),
+		ConfirmationNote: "船代邮件确认可以变更",
+	}
+}
+
 func TestSeaDocumentChangePostgresFlows(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 
 	t.Run("MBL 单改追加不可变版本且幂等", func(t *testing.T) {
+		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+		order := f.data.db.Order.GetX(ctx, f.orderID)
 		cmd := &biz.SeaDocumentAmendmentCommand{
 			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
-			ExpectedOrderVersion: 1, ExpectedDocumentVersion: 1, ExpectedCurrentVersionID: f.mblVerID,
+			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
 			Reason: "客户更正发货人", IdempotencyKey: "mbl-amend-" + uuid.NewString(),
-			Input: &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPointer("新主单发货人")}},
+			Input:        &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPtr("新主单发货人")}},
+			Confirmation: f.confirmation(),
 		}
-		preview, err := repo.PreviewAmendment(ctx, f.orgID, cmd)
-		if err != nil || !preview.Executable || len(preview.Differences) != 1 || preview.BaseVersion.ID != f.mblVerID {
+		preview, err := uc.PreviewAmendment(ctx, f.orgID, cmd)
+		if err != nil || !preview.Executable || preview.BaseVersion.ID != f.mblVerID {
 			t.Fatalf("MBL改单预览不符合预期: preview=%+v err=%v", preview, err)
 		}
-		result, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
+		result, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
 		if err != nil {
 			t.Fatalf("执行 MBL 单改失败: %v", err)
 		}
@@ -176,199 +193,206 @@ func TestSeaDocumentChangePostgresFlows(t *testing.T) {
 		if current.CurrentVersionID == nil || *current.CurrentVersionID != result.ID {
 			t.Fatalf("MBL current_version_id 未切换到新版本")
 		}
-		idempotent, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
+		idempotent, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
 		if err != nil || idempotent.ID != result.ID {
 			t.Fatalf("MBL 单改幂等重试失败: result=%+v err=%v", idempotent, err)
 		}
-		f.mblVerID = result.ID
 	})
 
-	t.Run("HBL 单改与作废保留完整历史", func(t *testing.T) {
-		hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	t.Run("MBL 作废携带外部确认且幂等", func(t *testing.T) {
+		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
 		order := f.data.db.Order.GetX(ctx, f.orderID)
-		cmd := &biz.SeaDocumentAmendmentCommand{
-			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: f.hblID,
+		cmd := &biz.SeaDocumentVoidCommand{
+			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
+			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
+			Reason: "船公司确认主单作废", IdempotencyKey: "mbl-void-" + uuid.NewString(),
+			Confirmation: f.confirmation(),
+		}
+		preview, err := uc.PreviewVoid(ctx, f.orgID, cmd)
+		if err != nil || !preview.Executable {
+			t.Fatalf("MBL作废预览不符合预期: preview=%+v err=%v", preview, err)
+		}
+		event, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit())
+		if err != nil {
+			t.Fatalf("执行 MBL 作废失败: %v", err)
+		}
+		mbl = f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+		if mbl.Status != seamasterbillent.StatusVOIDED || event.ResultVersionID == nil || *mbl.CurrentVersionID != *event.ResultVersionID {
+			t.Fatalf("MBL作废身份或版本指针错误: mbl=%+v event=%+v", mbl, event)
+		}
+		old := f.data.db.SeaMasterBillVersion.GetX(ctx, f.mblVerID)
+		if old.Status == "VOIDED" {
+			t.Fatal("旧 MBL 不可变版本被覆盖为 VOIDED")
+		}
+		idempotent, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit())
+		if err != nil || idempotent.ID != event.ID {
+			t.Fatalf("MBL 作废幂等重试失败: event=%+v err=%v", idempotent, err)
+		}
+	})
+
+	t.Run("HBL 单改保留完整历史且独立作废被拒绝", func(t *testing.T) {
+		vef := newSeaDocumentChangeFixture(t)
+		vefUC := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(vef.data))
+		hbl := vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		order := vef.data.db.Order.GetX(ctx, vef.orderID)
+		amendCmd := &biz.SeaDocumentAmendmentCommand{
+			OrderID: vef.orderID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: vef.hblID,
 			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: hbl.Version, ExpectedCurrentVersionID: *hbl.CurrentVersionID,
 			Reason: "客户更正分单发货人", IdempotencyKey: "hbl-amend-" + uuid.NewString(),
 			Input: &biz.SeaDocumentAmendmentInput{HouseBill: &biz.SeaHouseBillInput{
 				HouseNo: hbl.HouseNo, IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner,
-				Content: &biz.SeaBillContent{ShipperText: stringPointer("新分单发货人")},
+				Content: &biz.SeaBillContent{ShipperText: stringPtr("新分单发货人")},
 			}},
+			Confirmation: vef.confirmation(),
 		}
-		preview, err := repo.PreviewAmendment(ctx, f.orgID, cmd)
-		if err != nil || !preview.Executable || len(preview.Differences) != 1 {
-			t.Fatalf("HBL改单预览不符合预期: preview=%+v err=%v", preview, err)
-		}
-		amended, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
+		amended, err := vefUC.ExecuteAmendment(ctx, vef.orgID, vef.actorID, amendCmd, vef.audit())
 		if err != nil {
 			t.Fatalf("执行 HBL 单改失败: %v", err)
 		}
-		old := f.data.db.SeaHouseBillVersion.GetX(ctx, f.hblVerID)
+		old := vef.data.db.SeaHouseBillVersion.GetX(ctx, vef.hblVerID)
 		if old.ShipperText == nil || *old.ShipperText != "旧分单发货人" {
 			t.Fatal("旧 HBL 版本被修改")
 		}
-
-		hbl = f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
-		order = f.data.db.Order.GetX(ctx, f.orderID)
+		hbl = vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		order = vef.data.db.Order.GetX(ctx, vef.orderID)
 		voidCmd := &biz.SeaDocumentVoidCommand{
-			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: f.hblID,
+			OrderID: vef.orderID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: vef.hblID,
 			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: hbl.Version, ExpectedCurrentVersionID: amended.ID,
 			Reason: "客户确认作废", IdempotencyKey: "hbl-void-" + uuid.NewString(),
+			Confirmation: vef.confirmation(),
 		}
-		voidPreview, err := repo.PreviewVoid(ctx, f.orgID, voidCmd)
-		if err != nil || !voidPreview.Executable || len(voidPreview.Differences) != 1 {
-			t.Fatalf("HBL作废预览不符合预期: preview=%+v err=%v", voidPreview, err)
+		if _, err = vefUC.ExecuteVoid(ctx, vef.orgID, vef.actorID, voidCmd, vef.audit()); kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentStructureConflict.Reason {
+			t.Fatalf("HBL 独立作废必须走模式切换，错误=%v", err)
 		}
-		event, err := repo.ExecuteVoid(ctx, f.orgID, f.actorID, voidCmd, f.audit())
-		if err != nil {
-			t.Fatalf("执行 HBL 作废失败: %v", err)
+	})
+
+	t.Run("HOUSE 切换 DIRECT 作废当前 HBL 且保留模式事件", func(t *testing.T) {
+		vef := newSeaDocumentChangeFixture(t)
+		vefUC := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(vef.data))
+		hbl := vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		order := vef.data.db.Order.GetX(ctx, vef.orderID)
+		hblVersion := hbl.Version
+		cmd := &biz.SeaDocumentModeChangeCommand{
+			OrderID: vef.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+			ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+			TargetMode: biz.SeaDocumentStructureDirect,
+			Reason:     "客户改直单", IdempotencyKey: "mode-h2d-" + uuid.NewString(),
+			Confirmation: vef.confirmation(),
 		}
-		hbl = f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
-		if hbl.Status != seahousebillent.StatusVOIDED || hbl.CurrentVersionID == nil || event.ResultVersionID == nil || *hbl.CurrentVersionID != *event.ResultVersionID {
-			t.Fatalf("HBL作废状态或当前版本错误: hbl=%+v event=%+v", hbl, event)
+		if err := vefUC.ExecuteModeChange(ctx, vef.orgID, vef.actorID, cmd, vef.audit()); err != nil {
+			t.Fatalf("HOUSE 切换 DIRECT 失败: %v", err)
 		}
-		if count := f.data.db.SeaHouseBillVersion.Query().Where().CountX(ctx); count < 4 {
-			t.Fatalf("作废未追加不可变版本，当前版本总数=%d", count)
+		hbl = vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		if hbl.Status != seahousebillent.StatusVOIDED {
+			t.Fatalf("原当前 HBL 应为 VOIDED, 实际: %s", hbl.Status)
 		}
-		link := f.data.db.SeaMasterBillOrderLink.Query().Where(
-			seamasterbillorderlinkent.OrderIDEQ(f.orderID),
-			seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
-		).OnlyX(ctx)
-		documentRepo := NewSeaDocumentRepo(f.data)
-		_, err = documentRepo.UpdateSeaHouseBill(ctx, f.orgID, f.actorID, f.orderID, hbl.ID, hbl.Version, link.Version, &biz.SeaHouseBillInput{HouseNo: hbl.HouseNo, IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner, Content: &biz.SeaBillContent{}}, f.audit())
+		link := vef.data.db.SeaMasterBillOrderLink.GetX(ctx, vef.linkID)
+		if link.DocumentStructure != seamasterbillorderlinkent.DocumentStructureDIRECT {
+			t.Fatalf("Link 模式应为 DIRECT, 实际: %s", link.DocumentStructure)
+		}
+		events, total, err := vefUC.ListDocumentEvents(ctx, vef.orgID, vef.orderID, 1, 50)
+		if err != nil || total == 0 {
+			t.Fatalf("模式切换事件未记录: total=%d err=%v", total, err)
+		}
+		foundModeChange := false
+		for _, event := range events {
+			if event.EventType == biz.SeaDocumentEventTypeModeChange {
+				foundModeChange = true
+				if event.Confirmation == nil || event.Confirmation.ConfirmedByParty == "" {
+					t.Fatalf("模式事件缺少外部确认: %+v", event)
+				}
+			}
+		}
+		if !foundModeChange {
+			t.Fatal("事件历史中缺少模式切换事件")
+		}
+		// 幂等重试
+		if err := vefUC.ExecuteModeChange(ctx, vef.orgID, vef.actorID, cmd, vef.audit()); err != nil {
+			t.Fatalf("模式切换幂等重试失败: %v", err)
+		}
+		// VOIDED HBL 不可再走普通编辑
+		link = vef.data.db.SeaMasterBillOrderLink.GetX(ctx, vef.linkID)
+		_, err = NewSeaDocumentRepo(vef.data).UpdateSeaHouseBill(ctx, vef.orgID, vef.actorID, vef.orderID, hbl.ID, hbl.Version, link.Version, &biz.SeaHouseBillInput{HouseNo: hbl.HouseNo, IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner, Content: &biz.SeaBillContent{}}, vef.audit())
 		if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
 			t.Fatalf("VOIDED HBL 仍可走普通编辑，错误=%v", err)
 		}
-		err = documentRepo.RemoveSeaHouseBill(ctx, f.orgID, f.actorID, f.orderID, hbl.ID, hbl.Version, link.Version, true, false, f.audit())
-		if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
-			t.Fatalf("VOIDED HBL 仍可走普通删除，错误=%v", err)
+	})
+
+	t.Run("DIRECT 切换 HOUSE 建立新当前 HBL", func(t *testing.T) {
+		vef := newSeaDocumentChangeFixture(t)
+		vefUC := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(vef.data))
+		hbl := vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		order := vef.data.db.Order.GetX(ctx, vef.orderID)
+		hblVersion := hbl.Version
+		toDirect := &biz.SeaDocumentModeChangeCommand{
+			OrderID: vef.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+			ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+			TargetMode: biz.SeaDocumentStructureDirect,
+			Reason:     "客户改直单", IdempotencyKey: "mode-d1-" + uuid.NewString(),
+			Confirmation: vef.confirmation(),
 		}
-		_, err = NewSeaCargoAllocationRepo(f.data).ApplyHouseBillSummary(ctx, f.orgID, f.actorID, f.orderID, hbl.ID, link.CargoAllocationVersion, hbl.Version, f.audit())
-		if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
-			t.Fatalf("VOIDED HBL 仍可通过箱货汇总改写，错误=%v", err)
+		if err := vefUC.ExecuteModeChange(ctx, vef.orgID, vef.actorID, toDirect, vef.audit()); err != nil {
+			t.Fatalf("切换 DIRECT 失败: %v", err)
+		}
+		order = vef.data.db.Order.GetX(ctx, vef.orderID)
+		newHouseNo := "HBLNEW" + uuid.NewString()[:8]
+		toHouse := &biz.SeaDocumentModeChangeCommand{
+			OrderID: vef.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 2,
+			TargetMode: biz.SeaDocumentStructureHouse,
+			NewHouseBill: &biz.SeaHouseBillInput{
+				HouseNo: newHouseNo, IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
+			},
+			Reason: "客户恢复 HOUSE", IdempotencyKey: "mode-d2h-" + uuid.NewString(),
+			Confirmation: vef.confirmation(),
+		}
+		if err := vefUC.ExecuteModeChange(ctx, vef.orgID, vef.actorID, toHouse, vef.audit()); err != nil {
+			t.Fatalf("DIRECT 切换 HOUSE 失败: %v", err)
+		}
+		newHBL, err := vef.data.db.SeaHouseBill.Query().
+			Where(seahousebillent.OrderIDEQ(vef.orderID), seahousebillent.StatusNEQ(seahousebillent.StatusVOIDED)).
+			Only(ctx)
+		if err != nil || newHBL.HouseNo != newHouseNo || newHBL.Status != seahousebillent.StatusDRAFT || newHBL.Version != 1 {
+			t.Fatalf("新当前 HBL 不符合预期: hbl=%+v err=%v", newHBL, err)
+		}
+		link := vef.data.db.SeaMasterBillOrderLink.GetX(ctx, vef.linkID)
+		if link.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE {
+			t.Fatalf("Link 模式应回到 HOUSE, 实际: %s", link.DocumentStructure)
 		}
 	})
 
-	t.Run("Switch 创建真实 HBL 并形成唯一替代链", func(t *testing.T) {
-		old := f.data.db.SeaHouseBill.GetX(ctx, f.switchID)
-		originalOldNo := old.HouseNo
-		order := f.data.db.Order.GetX(ctx, f.orderID)
-		cmd := &biz.SeaHouseBillSwitchCommand{
-			OrderID: f.orderID, OldHouseBillID: old.ID, ExpectedOrderVersion: order.Version,
-			ExpectedHouseBillVersion: old.Version, ExpectedCurrentVersionID: *old.CurrentVersionID,
-			Reason: "船公司要求换单", IdempotencyKey: "hbl-switch-" + uuid.NewString(),
-			NewHouseBill: &biz.SeaHouseBillInput{HouseNo: " hbl-new-001 ", IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner, Content: &biz.SeaBillContent{ShipperText: stringPointer("新换单发货人")}},
+	t.Run("模式切换缺少外部确认返回参数错误", func(t *testing.T) {
+		vef := newSeaDocumentChangeFixture(t)
+		vefUC := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(vef.data))
+		hbl := vef.data.db.SeaHouseBill.GetX(ctx, vef.hblID)
+		order := vef.data.db.Order.GetX(ctx, vef.orderID)
+		hblVersion := hbl.Version
+		cmd := &biz.SeaDocumentModeChangeCommand{
+			OrderID: vef.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+			ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+			TargetMode:     biz.SeaDocumentStructureDirect,
+			Reason:         "缺少确认",
+			IdempotencyKey: "mode-noconfirm-" + uuid.NewString(),
 		}
-		preview, err := repo.PreviewSwitch(ctx, f.orgID, cmd)
-		if err != nil || !preview.Executable || len(preview.Differences) == 0 {
-			t.Fatalf("Switch预览不符合预期: preview=%+v err=%v", preview, err)
-		}
-		result, err := repo.ExecuteSwitch(ctx, f.orgID, f.actorID, cmd, f.audit())
-		if err != nil {
-			t.Fatalf("执行 Switch 失败: %v", err)
-		}
-		old = f.data.db.SeaHouseBill.GetX(ctx, f.switchID)
-		if old.Status != seahousebillent.StatusREPLACED || result.NewHouseBill == nil || result.NewHouseBill.ID == old.ID || result.NewHouseBill.NormalizedHouseNo != "HBL-NEW-001" {
-			t.Fatalf("Switch 新旧 HBL 状态错误: old=%+v result=%+v", old, result)
-		}
-		firstNewNo := result.NewHouseBill.HouseNo
-		idempotent, err := repo.ExecuteSwitch(ctx, f.orgID, f.actorID, cmd, f.audit())
-		if err != nil || idempotent.Event.ID != result.Event.ID || idempotent.NewHouseBill.ID != result.NewHouseBill.ID {
-			t.Fatalf("Switch 幂等重试失败: result=%+v err=%v", idempotent, err)
-		}
-		current := f.data.db.SeaHouseBill.GetX(ctx, result.NewHouseBill.ID)
-		order = f.data.db.Order.GetX(ctx, f.orderID)
-		secondCmd := &biz.SeaHouseBillSwitchCommand{
-			OrderID: f.orderID, OldHouseBillID: current.ID, ExpectedOrderVersion: order.Version,
-			ExpectedHouseBillVersion: current.Version, ExpectedCurrentVersionID: *current.CurrentVersionID,
-			Reason: "再次换单", IdempotencyKey: "hbl-switch-second-" + uuid.NewString(),
-			NewHouseBill: &biz.SeaHouseBillInput{HouseNo: "HBL-NEW-002", IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner, Content: &biz.SeaBillContent{ShipperText: stringPointer("二次换单发货人")}},
-		}
-		second, err := repo.ExecuteSwitch(ctx, f.orgID, f.actorID, secondCmd, f.audit())
-		if err != nil {
-			t.Fatalf("执行二次 Switch 失败: %v", err)
-		}
-		if second.Event.ChainID == nil || result.Event.ChainID == nil || *second.Event.ChainID != *result.Event.ChainID || second.Event.Sequence == nil || *second.Event.Sequence != 2 {
-			t.Fatalf("二次 Switch 未延续唯一替代链: first=%+v second=%+v", result.Event, second.Event)
-		}
-		current = f.data.db.SeaHouseBill.GetX(ctx, current.ID)
-		if current.Status != seahousebillent.StatusREPLACED {
-			t.Fatalf("替代链中间 HBL 未置为 REPLACED: %s", current.Status)
-		}
-		// 即使工作身份字段被底层维护改动，历史事件仍必须只读取事件绑定的不可变版本。
-		f.data.db.SeaHouseBill.UpdateOneID(old.ID).SetHouseNo("MUTATED-OLD").SetNormalizedHouseNo("MUTATED-OLD").ExecX(ctx)
-		f.data.db.SeaHouseBill.UpdateOneID(current.ID).SetHouseNo("MUTATED-MIDDLE").SetNormalizedHouseNo("MUTATED-MIDDLE").ExecX(ctx)
-		events, total, err := repo.ListDocumentEvents(ctx, f.orgID, f.orderID, 1, 200)
-		if err != nil || total < 5 || len(events) != total {
-			t.Fatalf("事件历史查询失败: total=%d len=%d err=%v", total, len(events), err)
-		}
-		for _, event := range events {
-			if event.EventType != biz.SeaDocumentEventTypeSwitch || event.Sequence == nil {
-				continue
-			}
-			if *event.Sequence == 1 && (event.OldHouseNo == nil || *event.OldHouseNo != originalOldNo || event.NewHouseNo == nil || *event.NewHouseNo != firstNewNo) {
-				t.Fatalf("Switch 事件未读取首轮不可变版本号: %+v", event)
-			}
-			if *event.Sequence == 2 && (event.OldHouseNo == nil || *event.OldHouseNo != firstNewNo) {
-				t.Fatalf("二次 Switch 事件未读取链中不可变版本号: %+v", event)
-			}
-		}
-	})
-
-	t.Run("财务事实明确阻断且返回类型和编号", func(t *testing.T) {
-		f.data.db.OrderFee.Create().
-			SetOrderID(f.orderID).
-			SetIdempotencyKey("confirmed-fee").
-			SetDirection(orderfeeent.DirectionRECEIVABLE).
-			SetStatus(orderfeeent.StatusCONFIRMED).
-			SetFeeCode("DOC-FEE-001").
-			SetFeeName("单证测试费用").
-			SetSettlementPartyID(f.partnerID).
-			SetBillingUnit("BILL").
-			SetQuantity("1").
-			SetUnitPrice("100").
-			SetTotalAmount("100").
-			SetNetAmount("100").
-			SetTaxAmount("0").
-			SetCurrency("CNY").
-			SetExchangeRate("1").
-			SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
-			SetExchangeRateDate("2026-09-04").
-			SetBaseCurrency("CNY").
-			SetBaseCurrencyAmount("100").
-			SetExpenseDate("2026-09-04").
-			SaveX(ctx)
-		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
-		order := f.data.db.Order.GetX(ctx, f.orderID)
-		cmd := &biz.SeaDocumentVoidCommand{OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID, ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID, Reason: "尝试作废主单", IdempotencyKey: "blocked-void-" + uuid.NewString()}
-		preview, err := repo.PreviewVoid(ctx, f.orgID, cmd)
-		if err != nil || preview.Executable || len(preview.Impacts) == 0 || preview.Impacts[0].FactType != "ORDER_FEE" || preview.Impacts[0].ReferenceNo != "DOC-FEE-001" {
-			t.Fatalf("财务阻断预览不符合预期: preview=%+v err=%v", preview, err)
-		}
-		_, err = repo.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit())
-		if !kratoserrors.IsConflict(err) {
-			t.Fatalf("财务阻断执行应返回冲突: %v", err)
-		}
-		metadata := kratoserrors.FromError(err).Metadata
-		if metadata["fact_type"] != "ORDER_FEE" || metadata["reference_no"] != "DOC-FEE-001" {
-			t.Fatalf("财务阻断错误缺少事实类型或编号: %+v", metadata)
+		if err := vefUC.ExecuteModeChange(ctx, vef.orgID, vef.actorID, cmd, vef.audit()); kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentInvalidArgument.Reason {
+			t.Fatalf("缺少外部确认应返回参数错误，实际: %v", err)
 		}
 	})
 }
 
-func TestSeaMasterBillVoidPostgresFlow(t *testing.T) {
+func TestSeaDocumentAmendmentAuditRollback(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
 	order := f.data.db.Order.GetX(ctx, f.orderID)
 	failedAudit := f.audit()
 	failedAudit.Result = "invalid-result"
-	_, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, &biz.SeaDocumentAmendmentCommand{
+	_, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, &biz.SeaDocumentAmendmentCommand{
 		OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
 		ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
 		Reason: "审计失败回滚验证", IdempotencyKey: "audit-rollback-" + uuid.NewString(),
-		Input: &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPointer("不应落库")}},
+		Input:        &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPtr("不应落库")}},
+		Confirmation: f.confirmation(),
 	}, failedAudit)
 	if err == nil {
 		t.Fatal("审计写入失败时改单事务应回滚")
@@ -377,47 +401,19 @@ func TestSeaMasterBillVoidPostgresFlow(t *testing.T) {
 	if mbl.Version != 1 || mbl.CurrentVersionID == nil || *mbl.CurrentVersionID != f.mblVerID || f.data.db.SeaMasterBillVersion.Query().CountX(ctx) != 1 {
 		t.Fatalf("审计失败后工作实体或不可变版本未回滚: mbl=%+v", mbl)
 	}
-	cmd := &biz.SeaDocumentVoidCommand{
-		OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
-		ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
-		Reason: "船公司确认主单作废", IdempotencyKey: "mbl-void-" + uuid.NewString(),
-	}
-	preview, err := repo.PreviewVoid(ctx, f.orgID, cmd)
-	if err != nil || !preview.Executable || len(preview.Differences) != 1 || preview.BaseVersion.ID != f.mblVerID {
-		t.Fatalf("MBL作废预览不符合预期: preview=%+v err=%v", preview, err)
-	}
-	event, err := repo.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit())
-	if err != nil {
-		t.Fatalf("执行 MBL 作废失败: %v", err)
-	}
-	mbl = f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
-	if string(mbl.Status) != "VOIDED" || mbl.CurrentVersionID == nil || event.ResultVersionID == nil || *mbl.CurrentVersionID != *event.ResultVersionID || event.PreviousVersionID == nil || *event.PreviousVersionID != f.mblVerID {
-		t.Fatalf("MBL作废身份、版本指针或事件错误: mbl=%+v event=%+v", mbl, event)
-	}
-	old := f.data.db.SeaMasterBillVersion.GetX(ctx, f.mblVerID)
-	if string(old.Status) == "VOIDED" {
-		t.Fatal("旧 MBL 不可变版本被覆盖为 VOIDED")
-	}
-	_, err = NewSeaCargoAllocationRepo(f.data).ApplyMasterBillSummary(ctx, f.orgID, f.actorID, f.orderID, mbl.Version, f.audit())
-	if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentVoided.Reason {
-		t.Fatalf("VOIDED MBL 仍可通过箱货汇总改写，错误=%v", err)
-	}
-	idempotent, err := repo.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit())
-	if err != nil || idempotent.ID != event.ID {
-		t.Fatalf("MBL 作废幂等重试失败: event=%+v err=%v", idempotent, err)
-	}
 }
 
 func TestSeaDocumentAmendmentConcurrentPublish(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	makeCommand := func(value string) *biz.SeaDocumentAmendmentCommand {
 		return &biz.SeaDocumentAmendmentCommand{
 			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
 			ExpectedOrderVersion: 1, ExpectedDocumentVersion: 1, ExpectedCurrentVersionID: f.mblVerID,
 			Reason: "并发改单", IdempotencyKey: "concurrent-" + uuid.NewString(),
-			Input: &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPointer(value)}},
+			Input:        &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPtr(value)}},
+			Confirmation: f.confirmation(),
 		}
 	}
 	errs := make(chan error, 2)
@@ -427,7 +423,7 @@ func TestSeaDocumentAmendmentConcurrentPublish(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, makeCommand(value), f.audit())
+			_, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, makeCommand(value), f.audit())
 			errs <- err
 		}()
 	}
@@ -454,12 +450,13 @@ func TestSeaDocumentAmendmentConcurrentPublish(t *testing.T) {
 func TestSeaDocumentAmendmentConcurrentIdempotentReplay(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	cmd := &biz.SeaDocumentAmendmentCommand{
 		OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
 		ExpectedOrderVersion: 1, ExpectedDocumentVersion: 1, ExpectedCurrentVersionID: f.mblVerID,
 		Reason: "并发幂等改单", IdempotencyKey: "concurrent-idempotent-" + uuid.NewString(),
-		Input: &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPointer("并发幂等版本")}},
+		Input:        &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPtr("并发幂等版本")}},
+		Confirmation: f.confirmation(),
 	}
 	type result struct {
 		versionID uuid.UUID
@@ -471,7 +468,7 @@ func TestSeaDocumentAmendmentConcurrentIdempotentReplay(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			version, err := repo.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
+			version, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit())
 			var id uuid.UUID
 			if version != nil {
 				id = version.ID
@@ -497,49 +494,6 @@ func TestSeaDocumentAmendmentConcurrentIdempotentReplay(t *testing.T) {
 	}
 }
 
-func TestSeaHouseBillSwitchConcurrentSingleSuccess(t *testing.T) {
-	ctx := context.Background()
-	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
-	old := f.data.db.SeaHouseBill.GetX(ctx, f.switchID)
-	makeCommand := func(houseNo string) *biz.SeaHouseBillSwitchCommand {
-		return &biz.SeaHouseBillSwitchCommand{
-			OrderID: f.orderID, OldHouseBillID: old.ID, ExpectedOrderVersion: 1,
-			ExpectedHouseBillVersion: old.Version, ExpectedCurrentVersionID: *old.CurrentVersionID,
-			Reason: "并发换单", IdempotencyKey: "concurrent-switch-" + uuid.NewString(),
-			NewHouseBill: &biz.SeaHouseBillInput{HouseNo: houseNo, IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner, Content: &biz.SeaBillContent{}},
-		}
-	}
-	errs := make(chan error, 2)
-	var wg sync.WaitGroup
-	for _, no := range []string{"CONCURRENT-SWITCH-A", "CONCURRENT-SWITCH-B"} {
-		wg.Add(1)
-		go func(houseNo string) {
-			defer wg.Done()
-			_, err := repo.ExecuteSwitch(ctx, f.orgID, f.actorID, makeCommand(houseNo), f.audit())
-			errs <- err
-		}(no)
-	}
-	wg.Wait()
-	close(errs)
-	successes, conflicts := 0, 0
-	for err := range errs {
-		if err == nil {
-			successes++
-		} else if kratoserrors.IsConflict(err) {
-			conflicts++
-		} else {
-			t.Fatalf("并发 Switch 返回非预期错误: %v", err)
-		}
-	}
-	if successes != 1 || conflicts != 1 {
-		t.Fatalf("并发 Switch 应只有一个成功: success=%d conflict=%d", successes, conflicts)
-	}
-	if count := f.data.db.SeaHouseBillSwitchEvent.Query().CountX(ctx); count != 1 {
-		t.Fatalf("并发 Switch 产生重复事件: count=%d", count)
-	}
-}
-
 func TestSeaMasterBillMemberSetRevalidatedAfterLock(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
@@ -548,7 +502,8 @@ func TestSeaMasterBillMemberSetRevalidatedAfterLock(t *testing.T) {
 		t.Fatalf("定位初始 MBL 成员失败: %v", err)
 	}
 	member := f.data.db.Order.Create().SetOrganizationID(f.orgID).SetOrderNo("SE-MEMBER-" + uuid.NewString()[:8]).SetCustomerID(f.partnerID).SetBusinessType("SE").SetTradeDirection("export").SetTradeTerm("FOB").SetPaymentTerm("PREPAID").SaveX(ctx)
-	f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.orgID).SetOrderID(member.ID).SetMasterBillID(f.mblID).SetStatus(seamasterbillorderlinkent.StatusACTIVE).SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).SaveX(ctx)
+	extraLink := f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.orgID).SetOrderID(member.ID).SetMasterBillID(f.mblID).SetTransportExecutionID(f.data.db.SeaMasterBillOrderLink.GetX(ctx, activeLinkID).TransportExecutionID).SetStatus(seamasterbillorderlinkent.StatusACTIVE).SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).SaveX(ctx)
+	t.Cleanup(func() { _ = f.data.db.SeaMasterBillOrderLink.DeleteOneID(extraLink.ID).Exec(ctx) })
 	err = f.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(f.mblID)).ForUpdate().Only(ctx); err != nil {
 			return err
@@ -561,22 +516,22 @@ func TestSeaMasterBillMemberSetRevalidatedAfterLock(t *testing.T) {
 	}
 }
 
-func TestSeaDocumentHistoricalInvoiceAndVerificationBlockChange(t *testing.T) {
+func TestSeaDocumentHistoricalFactsAppearAsImpactsWithoutBlocking(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
-	repo := NewSeaDocumentChangeRepo(f.data)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	suffix := uuid.NewString()[:8]
-	fee := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("historical-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusDRAFT).SetFeeCode("HIS-FEE-" + suffix).SetFeeName("历史财务事实费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
-	bill := f.data.db.FinanceBill.Create().SetOrganizationID(f.orgID).SetBillNo("HIS-BILL-" + suffix).SetIdempotencyKey("historical-bill-" + suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetBaseCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBaseCurrencyAmount("100").SetFeeCount(1).SetBillDate("2026-09-04").SaveX(ctx)
-	f.data.db.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderID(f.orderID).SetOrderFeeID(fee.ID).SetOrderNo("HISTORICAL").SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetBaseCurrencyAmount("100").SetBaseCurrency("CNY").SetActive(false).SaveX(ctx)
+	fee := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("historical-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusCONFIRMED).SetFeeCode("HIS-FEE-" + suffix).SetFeeName("历史财务事实费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
+	billCreate := f.data.db.FinanceBill.Create().SetOrganizationID(f.orgID).SetBillNo("HIS-BILL-" + suffix).SetIdempotencyKey("historical-bill-" + suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetBaseCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBaseCurrencyAmount("100").SetFeeCount(1).SetBillDate("2026-09-04")
+	bill := withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY").SaveX(ctx)
+	f.data.db.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderID(f.orderID).SetOrderFeeID(fee.ID).SetOrderNo("HISTORICAL").SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetBaseCurrencyAmount("100").SetBaseCurrency("CNY").SetActive(true).SaveX(ctx)
 	invoice := f.data.db.FinanceInvoice.Create().SetOrganizationID(f.orgID).SetRecordNo("HIS-INV-" + suffix).SetIdempotencyKey("historical-invoice-" + suffix).SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBillCount(1).SaveX(ctx)
-	f.data.db.FinanceInvoiceBill.Create().SetInvoiceID(invoice.ID).SetBillID(bill.ID).SetBillNo(bill.BillNo).SetAmount("100").SetTaxAmount("0").SetActive(false).SaveX(ctx)
-	cashflow := f.data.db.FinanceCashflow.Create().SetOrganizationID(f.orgID).SetFlowNo("HIS-FLOW-" + suffix).SetIdempotencyKey("historical-flow-" + suffix).SetDirection(financecashflowent.DirectionRECEIVABLE).SetStatus(financecashflowent.StatusDRAFT).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetAmount("100").SetExchangeRate("1").SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseAmount("100").SetTransactionDate("2026-09-04").SetOurAccount("历史账户").SetPaymentMethod("BANK_TRANSFER").SaveX(ctx)
-	verification := f.data.db.FinanceVerification.Create().SetOrganizationID(f.orgID).SetVerificationNo("HIS-VER-" + suffix).SetIdempotencyKey("historical-verification-" + suffix).SetStatus(financeverificationent.StatusACTIVE).SetDirection(financeverificationent.DirectionRECEIVABLE).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetAmount("100").SetBaseCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(financeverificationent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetBaseAmount("100").SetBillBaseAmount("100").SetCashflowBaseAmount("100").SetExchangeGainLoss("0").SetVerificationDate("2026-09-04").SaveX(ctx)
-	f.data.db.FinanceVerificationAllocation.Create().SetVerificationID(verification.ID).SetCashflowID(cashflow.ID).SetBillID(bill.ID).SetCashflowNo(cashflow.FlowNo).SetBillNo(bill.BillNo).SetAmount("100").SetBillBaseAmount("100").SetCashflowBaseAmount("100").SetWriteOffBaseAmount("100").SetExchangeGainLoss("0").SetActive(false).SaveX(ctx)
+	f.data.db.FinanceInvoiceBill.Create().SetInvoiceID(invoice.ID).SetBillID(bill.ID).SetBillNo(bill.BillNo).SetAmount("100").SetTaxAmount("0").SetActive(true).SaveX(ctx)
 
-	cmd := &biz.SeaDocumentVoidCommand{OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID, ExpectedOrderVersion: 1, ExpectedDocumentVersion: 1, ExpectedCurrentVersionID: f.mblVerID, Reason: "历史事实门禁", IdempotencyKey: "historical-block-" + suffix}
-	preview, err := repo.PreviewVoid(ctx, f.orgID, cmd)
+	mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+	order := f.data.db.Order.GetX(ctx, f.orderID)
+	cmd := &biz.SeaDocumentVoidCommand{OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID, ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID, Reason: "历史事实影响摘要", IdempotencyKey: "historical-impact-" + suffix, Confirmation: f.confirmation()}
+	preview, err := uc.PreviewVoid(ctx, f.orgID, cmd)
 	if err != nil {
 		t.Fatalf("历史财务事实预览失败: %v", err)
 	}
@@ -584,7 +539,18 @@ func TestSeaDocumentHistoricalInvoiceAndVerificationBlockChange(t *testing.T) {
 	for _, impact := range preview.Impacts {
 		facts[impact.FactType] = impact.ReferenceNo
 	}
-	if preview.Executable || facts["FINANCE_INVOICE"] != invoice.RecordNo || facts["FINANCE_VERIFICATION"] != verification.VerificationNo {
-		t.Fatalf("历史发票/核销未被直接门禁: executable=%v facts=%+v", preview.Executable, facts)
+	if facts["ORDER_FEE"] != fee.FeeCode || facts["FINANCE_BILL"] != bill.BillNo || facts["FINANCE_INVOICE"] != invoice.RecordNo {
+		t.Fatalf("历史费用/账单/发票未进入影响摘要: %+v", facts)
+	}
+	if !preview.Executable {
+		t.Fatalf("下游财务事实只提示不一概阻断: %+v", preview.Impacts)
+	}
+	if _, err = uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); err != nil {
+		t.Fatalf("存在历史财务事实时携带确认的作废应可执行: %v", err)
+	}
+	// 财务事实保持原归属不被改写
+	feeAfter := f.data.db.OrderFee.GetX(ctx, fee.ID)
+	if feeAfter.OrderID != f.orderID || feeAfter.Status != orderfeeent.StatusCONFIRMED {
+		t.Fatalf("作废改写了财务事实: %+v", feeAfter)
 	}
 }

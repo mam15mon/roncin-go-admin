@@ -81,8 +81,8 @@ const (
 type SeaTransportExecution struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
-	CarrierID             uuid.UUID
-	CarrierName           string
+	ShippingLineID        uuid.UUID
+	ShippingLineName      string
 	OriginLocationID      uuid.UUID
 	OriginLocationName    string
 	DischargeLocationID   uuid.UUID
@@ -102,8 +102,8 @@ type SeaTransportExecution struct {
 type SeaMasterBill struct {
 	ID                   uuid.UUID
 	OrganizationID       uuid.UUID
-	IssuerPartnerID      uuid.UUID
-	IssuerPartnerName    string
+	ShippingLineID       uuid.UUID
+	ShippingLineName     string
 	TransportExecutionID uuid.UUID
 	TransportExecution   *SeaTransportExecution
 	MasterNo             string
@@ -131,11 +131,12 @@ type SeaMasterBillOrderLink struct {
 
 // SeaMasterBillInput 表单提交的海运主单输入。
 type SeaMasterBillInput struct {
-	MasterNo                 string
-	IssuerPartnerID          uuid.UUID
-	CandidateID              *uuid.UUID
-	ExpectedCandidateVersion *uint64
-	CorrectionReason         string
+	MasterNo                   string
+	CandidateID                *uuid.UUID
+	ExpectedCandidateVersion   *uint64
+	CandidateTEID              *uuid.UUID
+	ExpectedCandidateTEVersion *uint64
+	CorrectionReason           string
 }
 
 // SeaVoyageConflict 航程冲突项。
@@ -155,14 +156,14 @@ type SeaMasterBillMemberSummary struct {
 
 // SeaMasterBillCandidate 已有共享主单候选。
 type SeaMasterBillCandidate struct {
-	ID                 uuid.UUID
-	Version            uint64
-	MasterNo           string
-	IssuerPartnerID    uuid.UUID
-	IssuerPartnerName  string
-	TransportExecution *SeaTransportExecution
-	MemberCount        int
-	Members            []*SeaMasterBillMemberSummary
+	ID                  uuid.UUID
+	Version             uint64
+	MasterNo            string
+	ShippingLineID      uuid.UUID
+	ShippingLineName    string
+	TransportExecutions []*SeaTransportExecution
+	MemberCount         int
+	Members             []*SeaMasterBillMemberSummary
 }
 
 // SeaMasterBillMatchResult 候选匹配结果。
@@ -176,12 +177,10 @@ type SeaMasterBillMatchResult struct {
 type SeaMasterBillSummary struct {
 	MasterBillID              uuid.UUID
 	MasterNo                  string
-	IssuerPartnerID           uuid.UUID
-	IssuerPartnerName         string
+	ShippingLineID            uuid.UUID
+	ShippingLineName          string
 	TransportExecutionID      uuid.UUID
 	TransportExecutionVersion uint64
-	CarrierID                 *uuid.UUID
-	CarrierName               string
 	OriginLocationID          *uuid.UUID
 	OriginLocationName        string
 	DischargeLocationID       *uuid.UUID
@@ -205,13 +204,13 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 		return conflicts
 	}
 
-	// 0. 承运人（双方均有值时比对）
-	if masterVoyage.CarrierID != uuid.Nil && orderVoyage.CarrierID != uuid.Nil {
-		if masterVoyage.CarrierID != orderVoyage.CarrierID {
+	// 0. 船公司（双方均有值时比对）
+	if masterVoyage.ShippingLineID != uuid.Nil && orderVoyage.ShippingLineID != uuid.Nil {
+		if masterVoyage.ShippingLineID != orderVoyage.ShippingLineID {
 			conflicts = append(conflicts, &SeaVoyageConflict{
-				Field:       "carrier_id",
-				MasterValue: masterVoyage.CarrierID.String(),
-				OrderValue:  orderVoyage.CarrierID.String(),
+				Field:       "shipping_line_id",
+				MasterValue: masterVoyage.ShippingLineID.String(),
+				OrderValue:  orderVoyage.ShippingLineID.String(),
 				Message:     "承运人/船公司不一致",
 			})
 		}
@@ -278,11 +277,13 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 		}
 	}
 
-	// 6. ETD（双方有值时匹配）
+	// 6. ETD（双方有值时匹配）。日期必须先统一到 UTC 再比较：数据库往返的
+	// timestamptz 可能携带会话时区，而订单输入按 RFC3339 偏移解析，同一瞬间在
+	// 两个时区可能落在不同自然日，未归一化会产生假冲突。
 	if masterVoyage.ETD != nil && !masterVoyage.ETD.IsZero() &&
 		orderVoyage.ETD != nil && !orderVoyage.ETD.IsZero() {
-		masterDate := masterVoyage.ETD.Format("2006-01-02")
-		orderDate := orderVoyage.ETD.Format("2006-01-02")
+		masterDate := masterVoyage.ETD.UTC().Format("2006-01-02")
+		orderDate := orderVoyage.ETD.UTC().Format("2006-01-02")
 		if masterDate != orderDate {
 			conflicts = append(conflicts, &SeaVoyageConflict{
 				Field:       "etd",
@@ -293,11 +294,11 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 		}
 	}
 
-	// 7. ETA（双方有值时匹配）
+	// 7. ETA（双方有值时匹配，与 ETD 同样先归一化到 UTC）。
 	if masterVoyage.ETA != nil && !masterVoyage.ETA.IsZero() &&
 		orderVoyage.ETA != nil && !orderVoyage.ETA.IsZero() {
-		masterDate := masterVoyage.ETA.Format("2006-01-02")
-		orderDate := orderVoyage.ETA.Format("2006-01-02")
+		masterDate := masterVoyage.ETA.UTC().Format("2006-01-02")
+		orderDate := orderVoyage.ETA.UTC().Format("2006-01-02")
 		if masterDate != orderDate {
 			conflicts = append(conflicts, &SeaVoyageConflict{
 				Field:       "eta",
@@ -312,7 +313,7 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 }
 
 type SeaMasterBillRepo interface {
-	MatchCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, normalizedMasterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error)
+	MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error)
 	GetSummaryByOrderID(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaMasterBillSummary, error)
 	GetSummariesByOrderIDs(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*SeaMasterBillSummary, error)
 }

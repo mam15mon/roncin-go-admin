@@ -143,7 +143,21 @@ func (r *industryReferenceRepo) CreateAirline(ctx context.Context, organizationI
 	var created *ent.Airline
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var err error
-		created, err = tx.Airline.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+		create := tx.Airline.Create().
+			SetOrganizationID(organizationID).
+			SetIataCode(input.IATACode).
+			SetNillableIcaoCode(input.ICAOCode).
+			SetNillableAwbPrefix(optionalString(input.AWBPrefix)).
+			SetNillableNameZh(optionalString(input.NameZH)).
+			SetNameEn(input.NameEN).
+			SetCountryCode(input.CountryCode).
+			SetCargoOnly(input.CargoOnly).
+			SetSource(input.Source).
+			SetNillableSourceVersion(input.SourceVersion).
+			SetNillableSourceHash(input.SourceHash).
+			SetSortOrder(input.SortOrder).
+			SetEnabled(true)
+		created, err = create.Save(ctx)
 		if err != nil {
 			return mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
 		}
@@ -162,7 +176,23 @@ func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationI
 		if err != nil {
 			return mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
 		}
-		update := existing.Update().SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
+		update := existing.Update().
+			SetNameEn(input.NameEN).
+			SetCountryCode(input.CountryCode).
+			SetCargoOnly(input.CargoOnly).
+			SetSource(input.Source).
+			SetSortOrder(input.SortOrder).
+			SetEnabled(input.Enabled)
+		if input.AWBPrefix == "" {
+			update.ClearAwbPrefix()
+		} else {
+			update.SetAwbPrefix(input.AWBPrefix)
+		}
+		if input.NameZH == "" {
+			update.ClearNameZh()
+		} else {
+			update.SetNameZh(input.NameZH)
+		}
 		if input.ICAOCode == nil {
 			update.ClearIcaoCode()
 		} else {
@@ -272,7 +302,24 @@ func airportToBiz(item *ent.Airport) *biz.Airport {
 }
 
 func airlineToBiz(item *ent.Airline) *biz.Airline {
-	return &biz.Airline{ID: item.ID, OrganizationID: item.OrganizationID, IATACode: item.IataCode, ICAOCode: item.IcaoCode, AWBPrefix: item.AwbPrefix, NameZH: item.NameZh, NameEN: item.NameEn, CountryCode: item.CountryCode, CargoOnly: item.CargoOnly, Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.Airline{
+		ID:             item.ID,
+		OrganizationID: item.OrganizationID,
+		IATACode:       item.IataCode,
+		ICAOCode:       item.IcaoCode,
+		AWBPrefix:      stringValue(item.AwbPrefix),
+		NameZH:         stringValue(item.NameZh),
+		NameEN:         item.NameEn,
+		CountryCode:    item.CountryCode,
+		CargoOnly:      item.CargoOnly,
+		Source:         item.Source,
+		SourceVersion:  item.SourceVersion,
+		SourceHash:     item.SourceHash,
+		SortOrder:      item.SortOrder,
+		Enabled:        item.Enabled,
+		CreatedAt:      item.CreatedAt,
+		UpdatedAt:      item.UpdatedAt,
+	}
 }
 
 func shippingLineToBiz(item *ent.ShippingLine) *biz.ShippingLine {

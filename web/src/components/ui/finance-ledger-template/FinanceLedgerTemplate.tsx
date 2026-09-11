@@ -5,7 +5,11 @@ import {
   FileDoneOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { type ActionType, ProTable } from '@ant-design/pro-components';
+import {
+  type ActionType,
+  PageContainer,
+  ProTable,
+} from '@ant-design/pro-components';
 import {
   App,
   Button,
@@ -210,8 +214,8 @@ export const ResizableHeaderCell: React.FC<ResizableHeaderCellProps> = ({
           backgroundColor: isDragging
             ? '#1677ff'
             : isHovered
-            ? 'rgba(22, 119, 255, 0.45)'
-            : 'transparent',
+              ? 'rgba(22, 119, 255, 0.45)'
+              : 'transparent',
           transition: 'background-color 0.15s',
         }}
         onMouseEnter={() => setIsHovered(true)}
@@ -228,6 +232,8 @@ export const ResizableHeaderCell: React.FC<ResizableHeaderCellProps> = ({
 export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
 >({
+  pageTitle: _pageTitle,
+  pageSubTitle: _pageSubTitle,
   headerTitle = '财务明细台账',
   columns,
   rowKey = 'id',
@@ -351,223 +357,246 @@ export function FinanceLedgerTemplate<
   };
 
   return (
-    <div
-      style={{
-        paddingBottom: 24,
-        width: '100%',
-        maxWidth: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
+    <PageContainer
+      header={{ title: undefined, breadcrumb: undefined }}
+      style={{ minHeight: 'calc(100vh - 48px)', backgroundColor: '#f5f7fa' }}
     >
-      {/* 1. 顶部宏观统计指标卡 */}
-      {metricCards && metricCards.length > 0 && (
-        <Row gutter={12} style={{ marginBottom: 12 }}>
-          {metricCards.map((card) => (
-            <Col
-              key={card.key}
-              span={Math.floor(24 / Math.min(metricCards.length, 6))}
-            >
-              <Card size="small">
-                <Statistic
-                  title={card.title}
-                  value={card.value}
-                  precision={card.precision}
-                  suffix={card.suffix}
-                  styles={
-                    card.valueColor
-                      ? { content: { color: card.valueColor } }
-                      : undefined
-                  }
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      )}
-
-      {/* 2. 自定义嵌入式搜索筛选栏（位于指标统计卡与表格台账之间） */}
-      {customSearch}
-
-      {/* 3. ProTable 宽表主体 */}
-      <ProTable<T>
-        headerTitle={headerTitle}
-        actionRef={actionRef}
-        rowKey={rowKey}
-        columns={resizableColumns}
-        components={{
-          header: {
-            cell: ResizableHeaderCell,
-          },
+      <div
+        style={{
+          paddingBottom: 24,
+          width: '100%',
+          maxWidth: '100%',
+          overflow: 'hidden',
+          position: 'relative',
         }}
-        bordered
-        size={densitySize}
-        onSizeChange={(size) => setDensitySize(size || 'small')}
-        scroll={{ x: scrollX }}
-        pagination={{ defaultPageSize: 40, showSizeChanger: true }}
-        search={
-          search === false
-            ? false
-            : {
-                labelWidth: 80,
-                defaultCollapsed: false,
-                searchText: '查询',
-                resetText: '重置',
-                span: { xs: 24, sm: 12, md: 8, lg: 6, xl: 6, xxl: 6 },
-                ...search,
-              }
-        }
-        onRow={(record) => {
-          const style: React.CSSProperties = {};
-          if (onRowClick) {
-            style.cursor = 'pointer';
+      >
+        {/* 1. 顶部宏观统计指标卡 */}
+        {metricCards && metricCards.length > 0 && (
+          <Row gutter={12} style={{ marginBottom: 12 }}>
+            {metricCards.map((card) => (
+              <Col
+                key={card.key}
+                span={Math.floor(24 / Math.min(metricCards.length, 6))}
+              >
+                <Card
+                  size="small"
+                  style={{
+                    borderRadius: 8,
+                    border: '1px solid #f0f0f0',
+                  }}
+                >
+                  <Statistic
+                    title={card.title}
+                    value={card.value}
+                    precision={card.precision}
+                    suffix={card.suffix}
+                    styles={
+                      card.valueColor
+                        ? { content: { color: card.valueColor } }
+                        : undefined
+                    }
+                  />
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+
+        {/* 2. 自定义嵌入式搜索筛选栏（位于指标统计卡与表格台账之间） */}
+        {customSearch}
+
+        {/* 3. ProTable 宽表主体 */}
+        <ProTable<T>
+          headerTitle={headerTitle}
+          actionRef={actionRef}
+          rowKey={rowKey}
+          columns={resizableColumns}
+          components={{
+            header: {
+              cell: ResizableHeaderCell,
+            },
+          }}
+          cardProps={{
+            style: {
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+            },
+          }}
+          size={densitySize}
+          onSizeChange={(size) => setDensitySize(size || 'small')}
+          scroll={{ x: scrollX }}
+          pagination={{ defaultPageSize: 40, showSizeChanger: true }}
+          search={
+            search === false
+              ? false
+              : {
+                  labelWidth: 80,
+                  defaultCollapsed: false,
+                  searchText: '查询',
+                  resetText: '重置',
+                  span: { xs: 24, sm: 12, md: 8, lg: 6, xl: 6, xxl: 6 },
+                  ...search,
+                }
           }
-          if (rowColors && getRowStatusColorKey) {
-            const statusKey = getRowStatusColorKey(record);
-            if (statusKey) {
-              const bgColor = (rowColors as any)[statusKey];
-              if (bgColor && bgColor !== '#FFFFFF') {
-                style.backgroundColor = bgColor;
+          onRow={(record) => {
+            const style: React.CSSProperties = {};
+            if (onRowClick) {
+              style.cursor = 'pointer';
+            }
+            if (rowColors && getRowStatusColorKey) {
+              const statusKey = getRowStatusColorKey(record);
+              if (statusKey) {
+                const bgColor = (rowColors as any)[statusKey];
+                if (bgColor && bgColor !== '#FFFFFF') {
+                  style.backgroundColor = bgColor;
+                }
               }
             }
-          }
-          return {
-            style,
-            onClick: (event: React.MouseEvent) => {
-              if (!onRowClick) return;
-              const target = event.target as HTMLElement | null;
-              if (
-                target?.closest('input') ||
-                target?.closest('button') ||
-                target?.closest('a') ||
-                target?.closest('.ant-table-selection-column') ||
-                target?.closest('.ant-checkbox-wrapper') ||
-                target?.closest('.ant-typography-copy')
-              ) {
-                return;
-              }
-              onRowClick(record, event);
-            },
-          };
-        }}
-        toolBarRender={() => [
-          onPrimaryAction && (
-            <Button
-              key="primary-action"
-              type="primary"
-              icon={primaryActionIcon}
-              disabled={
-                primaryActionRequiresSelection && selectedRowKeys.length === 0
-              }
-              onClick={() => onPrimaryAction(selectedRowKeys, selectedRows)}
-            >
-              {primaryActionText}{' '}
-              {primaryActionRequiresSelection && selectedRowKeys.length > 0
-                ? `(${selectedRowKeys.length})`
-                : ''}
-            </Button>
-          ),
-          batchActions.length > 0 && (
-            <Dropdown
-              key="batch-actions"
-              menu={{
-                items: batchActions.map((act) => ({
-                  key: act.key,
-                  label: act.label,
-                  disabled: act.disabled || selectedRowKeys.length === 0,
-                  onClick: () => act.onClick(selectedRowKeys, selectedRows),
-                })),
-              }}
-            >
-              <Button>
-                批量操作 <DownOutlined />
-              </Button>
-            </Dropdown>
-          ),
-          <Button
-            key="export"
-            icon={<DownloadOutlined />}
-            onClick={handleDefaultExport}
-          >
-            导出清单
-          </Button>,
-          onImport && (
-            <Tooltip
-              key="import-tip"
-              title="支持通过 Excel 标准模板批量导入数据"
-            >
-              <Button
-                key="import"
-                icon={<CloudUploadOutlined />}
-                style={{
-                  backgroundColor: '#faad14',
-                  borderColor: '#faad14',
-                  color: '#fff',
-                }}
-                onClick={onImport}
-              >
-                导入数据
-              </Button>
-            </Tooltip>
-          ),
-          onOpenColumnConfig && (
-            <Tooltip key="col-config" title="列设置与表头排序">
-              <Button
-                type="text"
-                icon={<SettingOutlined style={{ fontSize: 16, color: '#595959' }} />}
-                onClick={onOpenColumnConfig}
-                style={{ padding: '4px 6px' }}
-              />
-            </Tooltip>
-          ),
-          ...extraToolBarActions,
-        ].filter(Boolean)}
-        options={{
-          fullScreen: true,
-          reload: true,
-          density: true,
-          setting: false,
-        }}
-        rowSelection={
-          rowSelection === false
-            ? undefined
-            : {
-                selectedRowKeys,
-                preserveSelectedRowKeys: true,
-                onChange: (keys, rows, info) => {
-                  setSelectedRowKeys(keys);
-                  setSelectedRows(rows);
-                  if (
-                    typeof rowSelection === 'object' &&
-                    rowSelection?.onChange
-                  ) {
-                    rowSelection.onChange(keys, rows, info);
+            return {
+              style,
+              onClick: (event: React.MouseEvent) => {
+                if (!onRowClick) return;
+                const target = event.target as HTMLElement | null;
+                if (
+                  target?.closest('input') ||
+                  target?.closest('button') ||
+                  target?.closest('a') ||
+                  target?.closest('.ant-table-selection-column') ||
+                  target?.closest('.ant-checkbox-wrapper') ||
+                  target?.closest('.ant-typography-copy')
+                ) {
+                  return;
+                }
+                onRowClick(record, event);
+              },
+            };
+          }}
+          toolBarRender={() =>
+            [
+              onPrimaryAction && (
+                <Button
+                  key="primary-action"
+                  type="primary"
+                  icon={primaryActionIcon}
+                  disabled={
+                    primaryActionRequiresSelection &&
+                    selectedRowKeys.length === 0
                   }
-                },
-                ...(typeof rowSelection === 'object' ? rowSelection : {}),
-              }
-        }
-        request={async (params) => {
-          const res = await request(params);
-          const page = unwrapPage(res);
-          setCurrentData(page.data);
-          setTotalCount(page.total);
-          if (res.summary) {
-            setGlobalSummary(res.summary);
+                  onClick={() => onPrimaryAction(selectedRowKeys, selectedRows)}
+                >
+                  {primaryActionText}{' '}
+                  {primaryActionRequiresSelection && selectedRowKeys.length > 0
+                    ? `(${selectedRowKeys.length})`
+                    : ''}
+                </Button>
+              ),
+              batchActions.length > 0 && (
+                <Dropdown
+                  key="batch-actions"
+                  menu={{
+                    items: batchActions.map((act) => ({
+                      key: act.key,
+                      label: act.label,
+                      disabled: act.disabled || selectedRowKeys.length === 0,
+                      onClick: () => act.onClick(selectedRowKeys, selectedRows),
+                    })),
+                  }}
+                >
+                  <Button>
+                    批量操作 <DownOutlined />
+                  </Button>
+                </Dropdown>
+              ),
+              <Button
+                key="export"
+                icon={<DownloadOutlined />}
+                onClick={handleDefaultExport}
+              >
+                导出清单
+              </Button>,
+              onImport && (
+                <Tooltip
+                  key="import-tip"
+                  title="支持通过 Excel 标准模板批量导入数据"
+                >
+                  <Button
+                    key="import"
+                    icon={<CloudUploadOutlined />}
+                    style={{
+                      backgroundColor: '#faad14',
+                      borderColor: '#faad14',
+                      color: '#fff',
+                    }}
+                    onClick={onImport}
+                  >
+                    导入数据
+                  </Button>
+                </Tooltip>
+              ),
+              onOpenColumnConfig && (
+                <Tooltip key="col-config" title="列设置与表头排序">
+                  <Button
+                    type="text"
+                    icon={
+                      <SettingOutlined
+                        style={{ fontSize: 16, color: '#595959' }}
+                      />
+                    }
+                    onClick={onOpenColumnConfig}
+                    style={{ padding: '4px 6px' }}
+                  />
+                </Tooltip>
+              ),
+              ...extraToolBarActions,
+            ].filter(Boolean)
           }
-          return toTableRequest(res);
-        }}
-      />
-
-      {/* 3. 底部双层多币种动态汇总底栏 */}
-      {showSummaryBoard && (
-        <FinanceSummaryBoard
-          selectedRows={selectedRows}
-          allRows={currentData}
-          totalCount={totalCount}
-          globalSummary={globalSummary}
+          options={{
+            fullScreen: true,
+            reload: true,
+            density: true,
+            setting: false,
+          }}
+          rowSelection={
+            rowSelection === false
+              ? undefined
+              : {
+                  selectedRowKeys,
+                  preserveSelectedRowKeys: true,
+                  onChange: (keys, rows, info) => {
+                    setSelectedRowKeys(keys);
+                    setSelectedRows(rows);
+                    if (
+                      typeof rowSelection === 'object' &&
+                      rowSelection?.onChange
+                    ) {
+                      rowSelection.onChange(keys, rows, info);
+                    }
+                  },
+                  ...(typeof rowSelection === 'object' ? rowSelection : {}),
+                }
+          }
+          request={async (params) => {
+            const res = await request(params);
+            const page = unwrapPage(res);
+            setCurrentData(page.data);
+            setTotalCount(page.total);
+            if (res.summary) {
+              setGlobalSummary(res.summary);
+            }
+            return toTableRequest(res);
+          }}
         />
-      )}
-    </div>
+
+        {/* 3. 底部双层多币种动态汇总底栏 */}
+        {showSummaryBoard && (
+          <FinanceSummaryBoard
+            selectedRows={selectedRows}
+            allRows={currentData}
+            totalCount={totalCount}
+            globalSummary={globalSummary}
+          />
+        )}
+      </div>
+    </PageContainer>
   );
 }

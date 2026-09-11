@@ -4,26 +4,35 @@ import {
   ProFormDependency,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import {
+  Alert,
+  App,
+  Button,
+  Descriptions,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { Alert, App, Button, Descriptions, Space, Table, Typography } from 'antd';
-import React, { useRef, useState } from 'react';
-import { FinanceVerificationStatus } from '@/enums.generated';
+import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceCreateCommission,
   settlementServiceListCommissionCandidates,
-  settlementServiceListCommissionRules,
-  settlementServiceListVerifications,
+  settlementServiceListCommissionRuleCandidates,
+  settlementServiceListCommissionVerificationCandidates,
+  settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import {
+  type CreateValues,
   calculationBasisText,
   calculationSignature,
   cnyExchangeRateSourceText,
   decimalText,
   personnelRoleText,
-  type CreateValues,
 } from '../types';
 import { previewColumns, renderExpandedFees } from './CommissionLineTable';
 
@@ -46,6 +55,28 @@ export default function CommissionCreateModal({
   const [createIdempotencyKey, setCreateIdempotencyKey] = useState(() =>
     generateUUID(),
   );
+  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationOptions, setOrganizationOptions] = useState<
+    API.FinanceOrganizationOption[]
+  >([]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void settlementServiceListFinanceOrganizationOptions({
+      purpose:
+        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE,
+    })
+      .then((response) => {
+        if (!cancelled) setOrganizationOptions(response.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) message.warning('提成创建公司候选加载失败');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [message, open]);
 
   return (
     <ModalForm<CreateValues>
@@ -102,33 +133,59 @@ export default function CommissionCreateModal({
       }}
     >
       <ProFormSearchableSelect
-        name="verificationId"
-        label="有效应收核销"
-        rules={[{ required: true, message: '请选择有效应收核销单' }]}
-        request={async () => {
-          const response = await settlementServiceListVerifications({
-            page: 1,
-            pageSize: 200,
-            status:
-              FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE,
-          });
-          return unwrapList(response)
-            .filter((item) => item.direction === 'RECEIVABLE')
-            .map((item) => ({
-              label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
-              value: item.id,
-            }));
+        name="organizationId"
+        label="所属公司"
+        rules={[{ required: true, message: '请选择所属公司' }]}
+        options={organizationOptions.map((item) => ({
+          value: item.id ?? '',
+          label: item.name ?? item.code ?? item.id ?? '',
+        }))}
+        fieldProps={{
+          onChange: (value) => {
+            setOrganizationId(value);
+            setPreview(undefined);
+            setPreviewSignature('');
+            setCreateIdempotencyKey(generateUUID());
+            formRef.current?.setFieldsValue({
+              verificationId: undefined,
+              ruleId: undefined,
+              employeeId: undefined,
+            });
+          },
         }}
       />
       <ProFormSearchableSelect
+        key={organizationId || 'no-organization'}
+        name="verificationId"
+        label="有效应收核销"
+        rules={[{ required: true, message: '请选择有效应收核销单' }]}
+        disabled={!organizationId}
+        request={async () => {
+          if (!organizationId) return [];
+          const response =
+            await settlementServiceListCommissionVerificationCandidates({
+              page: 1,
+              pageSize: 200,
+              organizationId,
+            });
+          return unwrapList(response).map((item) => ({
+            label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
+            value: item.id,
+          }));
+        }}
+      />
+      <ProFormSearchableSelect
+        key={`rule-${organizationId || 'no-organization'}`}
         name="ruleId"
         label="考核规则"
         rules={[{ required: true, message: '请选择考核规则' }]}
+        disabled={!organizationId}
         request={async () => {
-          const response = await settlementServiceListCommissionRules({
+          if (!organizationId) return [];
+          const response = await settlementServiceListCommissionRuleCandidates({
             page: 1,
             pageSize: 200,
-            enabled: true,
+            organizationId,
           });
           return unwrapList(response).map((item) => ({
             label: `${item.name}｜${personnelRoleText(item.personnelRole)}｜${calculationBasisText(item.calculationBasis)} × ${decimalText(item.ratePercent)}%`,
@@ -136,21 +193,27 @@ export default function CommissionCreateModal({
           }));
         }}
       />
-      <ProFormDependency name={['verificationId', 'ruleId']}>
-        {({ verificationId, ruleId }) => (
+      <ProFormDependency name={['verificationId', 'ruleId', 'organizationId']}>
+        {({
+          verificationId,
+          ruleId,
+          organizationId: selectedOrganizationID,
+        }) => (
           <ProFormSearchableSelect
             key={`${verificationId || ''}-${ruleId || ''}`}
             name="employeeId"
             label="符合规则的候选人员"
             rules={[{ required: true, message: '请选择符合角色的候选人员' }]}
-            disabled={!verificationId || !ruleId}
+            disabled={!verificationId || !ruleId || !selectedOrganizationID}
             request={async () => {
-              if (!verificationId || !ruleId) return [];
+              if (!verificationId || !ruleId || !selectedOrganizationID)
+                return [];
               const response = await settlementServiceListCommissionCandidates({
                 verificationId,
                 ruleId,
                 page: 1,
                 pageSize: 200,
+                organizationId: selectedOrganizationID,
               });
               return unwrapList(response).map((item) => ({
                 label: `${item.employeeName}｜${item.customerCount ?? 0}个客户｜${item.orderCount ?? 0}票订单｜预计 ${decimalText(item.commissionAmount)} ${item.baseCurrency}`,
@@ -320,7 +383,9 @@ export default function CommissionCreateModal({
           计算比例、角色与口径均取自已启用且在核销日期生效的考核规则。
         </span>
         <span>亏损订单逐票按 0 计提，但仍保留真实负毛利快照。</span>
-        <span>草稿确认时会重新校验客户人员与费用来源；来源变化后必须取消并重新生成。</span>
+        <span>
+          草稿确认时会重新校验客户人员与费用来源；来源变化后必须取消并重新生成。
+        </span>
       </Space>
     </ModalForm>
   );

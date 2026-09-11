@@ -38,6 +38,7 @@ type VerificationAllocation struct {
 type FinanceVerification struct {
 	ID, OrganizationID, SettlementPartyID uuid.UUID
 	VerificationNo, IdempotencyKey        string
+	OrganizationName                      string
 	Status                                VerificationStatus
 	Direction                             OrderFeeDirection
 	SettlementPartyName, Currency         string
@@ -67,22 +68,37 @@ type VerificationFilter struct {
 	Page, PageSize int
 	Keyword        string
 	Status         VerificationStatus
+	Direction      OrderFeeDirection
 }
 type VerificationListResult struct {
 	Items   []*FinanceVerification
 	Total   int64
 	Summary VerificationSummary
 }
+
+// VerificationCreationCandidateFilter 是核销创建工作台的单组织候选约束。
+// 最终创建仍在事务内重读并锁定资金流水与账单，不以候选结果作为写入依据。
+type VerificationCreationCandidateFilter struct {
+	Direction         OrderFeeDirection
+	SettlementPartyID uuid.UUID
+	Currency          string
+}
+type VerificationCreationCandidates struct {
+	Cashflows []*FinanceCashflow
+	Bills     []*FinanceBill
+}
 type VerificationSummary struct {
-	ReceivableBaseAmount decimal.Decimal
-	PayableBaseAmount    decimal.Decimal
-	BaseCurrency         string
+	AmountsByBaseCurrency []FinanceBaseCurrencyAmount
 }
 type VerificationRepo interface {
 	List(context.Context, uuid.UUID, VerificationFilter) (*VerificationListResult, error)
+	ListScoped(context.Context, []uuid.UUID, VerificationFilter) (*VerificationListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceVerification, error)
+	GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceVerification, error)
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceVerification, error)
 	LoadCashflowContext(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
+	LoadCashflowContextScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
+	ListCreationCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceVerification, *AuditEvent) (*FinanceVerification, error)
 	Reverse(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceVerification, error)
 }
@@ -96,11 +112,55 @@ func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecas
 	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate, transactor: transactor}
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
+	return u.ListScoped(ctx, []uuid.UUID{org}, f)
+}
+func (u *VerificationUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) {
+	if !validFinanceVerificationOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) {
 		return nil, ErrVerificationInvalid
 	}
-	return u.repo.List(ctx, org, f)
+	return u.repo.ListScoped(ctx, organizationIDs, f)
+}
+
+func (u *VerificationUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceVerification, error) {
+	if !validFinanceVerificationOrganizationIDs(organizationIDs) || id == uuid.Nil {
+		return nil, ErrVerificationInvalid
+	}
+	return u.repo.GetScoped(ctx, organizationIDs, id)
+}
+
+func (u *VerificationUsecase) LoadCashflowContextScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCashflow, error) {
+	if !validFinanceVerificationOrganizationIDs(organizationIDs) || id == uuid.Nil {
+		return nil, ErrVerificationInvalid
+	}
+	return u.repo.LoadCashflowContextScoped(ctx, organizationIDs, id)
+}
+
+func (u *VerificationUsecase) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error) {
+	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
+	if organizationID == uuid.Nil || filter.SettlementPartyID == uuid.Nil ||
+		(filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) ||
+		!financeBillCurrencyPattern.MatchString(filter.Currency) {
+		return nil, ErrVerificationInvalid
+	}
+	return u.repo.ListCreationCandidates(ctx, organizationID, filter)
+}
+
+func validFinanceVerificationOrganizationIDs(organizationIDs []uuid.UUID) bool {
+	if len(organizationIDs) == 0 {
+		return false
+	}
+	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return false
+		}
+		if _, exists := seen[organizationID]; exists {
+			return false
+		}
+		seen[organizationID] = struct{}{}
+	}
+	return true
 }
 func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput) (*FinanceVerification, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)

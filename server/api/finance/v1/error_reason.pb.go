@@ -36,6 +36,7 @@ const (
 	ErrorReason_ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES      ErrorReason = 8
 	ErrorReason_ERROR_REASON_FINANCE_COMMISSION_TRANSITION            ErrorReason = 9
 	ErrorReason_ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT         ErrorReason = 10
+	ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID  ErrorReason = 11
 )
 
 // Enum value maps for ErrorReason.
@@ -52,6 +53,7 @@ var (
 		8:  "ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES",
 		9:  "ERROR_REASON_FINANCE_COMMISSION_TRANSITION",
 		10: "ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT",
+		11: "ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_FINANCE_UNSPECIFIED":                      0,
@@ -65,6 +67,7 @@ var (
 		"ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES":      8,
 		"ERROR_REASON_FINANCE_COMMISSION_TRANSITION":            9,
 		"ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT":         10,
+		"ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID":  11,
 	}
 )
 
@@ -100,7 +103,7 @@ var File_finance_v1_error_reason_proto protoreflect.FileDescriptor
 const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dfinance/v1/error_reason.proto\x12\n" +
-	"finance.v1*\xaa\x04\n" +
+	"finance.v1*\xe4\x04\n" +
 	"\vErrorReason\x12$\n" +
 	" ERROR_REASON_FINANCE_UNSPECIFIED\x10\x00\x12*\n" +
 	"&ERROR_REASON_FEE_EXCHANGE_RATE_MISSING\x10\x01\x12)\n" +
@@ -113,7 +116,8 @@ const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"0ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES\x10\b\x12.\n" +
 	"*ERROR_REASON_FINANCE_COMMISSION_TRANSITION\x10\t\x121\n" +
 	"-ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT\x10\n" +
-	"B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"\x128\n" +
+	"4ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID\x10\vB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_error_reason_proto_rawDescOnce sync.Once

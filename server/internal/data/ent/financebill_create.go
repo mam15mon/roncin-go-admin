@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -118,6 +119,98 @@ func (_c *FinanceBillCreate) SetSettlementPartyID(v uuid.UUID) *FinanceBillCreat
 // SetSettlementPartyName sets the "settlement_party_name" field.
 func (_c *FinanceBillCreate) SetSettlementPartyName(v string) *FinanceBillCreate {
 	_c.mutation.SetSettlementPartyName(v)
+	return _c
+}
+
+// SetSettlementAccountID sets the "settlement_account_id" field.
+func (_c *FinanceBillCreate) SetSettlementAccountID(v uuid.UUID) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountID(v)
+	return _c
+}
+
+// SetSettlementAccountName sets the "settlement_account_name" field.
+func (_c *FinanceBillCreate) SetSettlementAccountName(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountName(v)
+	return _c
+}
+
+// SetSettlementAccountHolder sets the "settlement_account_holder" field.
+func (_c *FinanceBillCreate) SetSettlementAccountHolder(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountHolder(v)
+	return _c
+}
+
+// SetSettlementBankName sets the "settlement_bank_name" field.
+func (_c *FinanceBillCreate) SetSettlementBankName(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementBankName(v)
+	return _c
+}
+
+// SetSettlementBankAccount sets the "settlement_bank_account" field.
+func (_c *FinanceBillCreate) SetSettlementBankAccount(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementBankAccount(v)
+	return _c
+}
+
+// SetSettlementAccountCurrency sets the "settlement_account_currency" field.
+func (_c *FinanceBillCreate) SetSettlementAccountCurrency(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementAccountCurrency(v)
+	return _c
+}
+
+// SetSettlementSwiftCode sets the "settlement_swift_code" field.
+func (_c *FinanceBillCreate) SetSettlementSwiftCode(v string) *FinanceBillCreate {
+	_c.mutation.SetSettlementSwiftCode(v)
+	return _c
+}
+
+// SetNillableSettlementSwiftCode sets the "settlement_swift_code" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableSettlementSwiftCode(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetSettlementSwiftCode(*v)
+	}
+	return _c
+}
+
+// SetEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceCurrency(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceCurrency(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceCurrency sets the "estimated_invoice_currency" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceCurrency(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceCurrency(*v)
+	}
+	return _c
+}
+
+// SetEstimatedInvoiceRate sets the "estimated_invoice_rate" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceRate(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceRate(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceRate sets the "estimated_invoice_rate" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceRate(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceRate(*v)
+	}
+	return _c
+}
+
+// SetEstimatedInvoiceAmount sets the "estimated_invoice_amount" field.
+func (_c *FinanceBillCreate) SetEstimatedInvoiceAmount(v string) *FinanceBillCreate {
+	_c.mutation.SetEstimatedInvoiceAmount(v)
+	return _c
+}
+
+// SetNillableEstimatedInvoiceAmount sets the "estimated_invoice_amount" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableEstimatedInvoiceAmount(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetEstimatedInvoiceAmount(*v)
+	}
 	return _c
 }
 
@@ -453,6 +546,21 @@ func (_c *FinanceBillCreate) AddVerificationAllocations(v ...*FinanceVerificatio
 	return _c.AddVerificationAllocationIDs(ids...)
 }
 
+// AddNettingAllocationIDs adds the "netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_c *FinanceBillCreate) AddNettingAllocationIDs(ids ...uuid.UUID) *FinanceBillCreate {
+	_c.mutation.AddNettingAllocationIDs(ids...)
+	return _c
+}
+
+// AddNettingAllocations adds the "netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_c *FinanceBillCreate) AddNettingAllocations(v ...*FinanceNettingAllocation) *FinanceBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNettingAllocationIDs(ids...)
+}
+
 // AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
 func (_c *FinanceBillCreate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillCreate {
 	_c.mutation.AddEnterpriseTagLinkIDs(ids...)
@@ -577,6 +685,59 @@ func (_c *FinanceBillCreate) check() error {
 	if v, ok := _c.mutation.SettlementPartyName(); ok {
 		if err := financebill.SettlementPartyNameValidator(v); err != nil {
 			return &ValidationError{Name: "settlement_party_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_party_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementAccountID(); !ok {
+		return &ValidationError{Name: "settlement_account_id", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_id"`)}
+	}
+	if _, ok := _c.mutation.SettlementAccountName(); !ok {
+		return &ValidationError{Name: "settlement_account_name", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_name"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountName(); ok {
+		if err := financebill.SettlementAccountNameValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementAccountHolder(); !ok {
+		return &ValidationError{Name: "settlement_account_holder", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_holder"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountHolder(); ok {
+		if err := financebill.SettlementAccountHolderValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_holder", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_holder": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementBankName(); !ok {
+		return &ValidationError{Name: "settlement_bank_name", err: errors.New(`ent: missing required field "FinanceBill.settlement_bank_name"`)}
+	}
+	if v, ok := _c.mutation.SettlementBankName(); ok {
+		if err := financebill.SettlementBankNameValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_bank_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_bank_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementBankAccount(); !ok {
+		return &ValidationError{Name: "settlement_bank_account", err: errors.New(`ent: missing required field "FinanceBill.settlement_bank_account"`)}
+	}
+	if v, ok := _c.mutation.SettlementBankAccount(); ok {
+		if err := financebill.SettlementBankAccountValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_bank_account", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_bank_account": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SettlementAccountCurrency(); !ok {
+		return &ValidationError{Name: "settlement_account_currency", err: errors.New(`ent: missing required field "FinanceBill.settlement_account_currency"`)}
+	}
+	if v, ok := _c.mutation.SettlementAccountCurrency(); ok {
+		if err := financebill.SettlementAccountCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_account_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_account_currency": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SettlementSwiftCode(); ok {
+		if err := financebill.SettlementSwiftCodeValidator(v); err != nil {
+			return &ValidationError{Name: "settlement_swift_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.settlement_swift_code": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.EstimatedInvoiceCurrency(); ok {
+		if err := financebill.EstimatedInvoiceCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "estimated_invoice_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.estimated_invoice_currency": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Currency(); !ok {
@@ -738,6 +899,46 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SettlementPartyName(); ok {
 		_spec.SetField(financebill.FieldSettlementPartyName, field.TypeString, value)
 		_node.SettlementPartyName = value
+	}
+	if value, ok := _c.mutation.SettlementAccountID(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountID, field.TypeUUID, value)
+		_node.SettlementAccountID = value
+	}
+	if value, ok := _c.mutation.SettlementAccountName(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountName, field.TypeString, value)
+		_node.SettlementAccountName = value
+	}
+	if value, ok := _c.mutation.SettlementAccountHolder(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountHolder, field.TypeString, value)
+		_node.SettlementAccountHolder = value
+	}
+	if value, ok := _c.mutation.SettlementBankName(); ok {
+		_spec.SetField(financebill.FieldSettlementBankName, field.TypeString, value)
+		_node.SettlementBankName = value
+	}
+	if value, ok := _c.mutation.SettlementBankAccount(); ok {
+		_spec.SetField(financebill.FieldSettlementBankAccount, field.TypeString, value)
+		_node.SettlementBankAccount = value
+	}
+	if value, ok := _c.mutation.SettlementAccountCurrency(); ok {
+		_spec.SetField(financebill.FieldSettlementAccountCurrency, field.TypeString, value)
+		_node.SettlementAccountCurrency = value
+	}
+	if value, ok := _c.mutation.SettlementSwiftCode(); ok {
+		_spec.SetField(financebill.FieldSettlementSwiftCode, field.TypeString, value)
+		_node.SettlementSwiftCode = value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceCurrency(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceCurrency, field.TypeString, value)
+		_node.EstimatedInvoiceCurrency = &value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceRate(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceRate, field.TypeString, value)
+		_node.EstimatedInvoiceRate = &value
+	}
+	if value, ok := _c.mutation.EstimatedInvoiceAmount(); ok {
+		_spec.SetField(financebill.FieldEstimatedInvoiceAmount, field.TypeString, value)
+		_node.EstimatedInvoiceAmount = &value
 	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financebill.FieldCurrency, field.TypeString, value)
@@ -945,6 +1146,22 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.NettingAllocationsTable,
+			Columns: []string{financebill.NettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

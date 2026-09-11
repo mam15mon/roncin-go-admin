@@ -33,7 +33,7 @@ func (OrderCargoItem) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("order_cargo_items").Field("organization_id").Unique().Required(),
 		edge.From("order", Order.Type).Ref("cargo_items").Field("order_id").Unique().Required(),
-		edge.To("cargo_allocations", SeaCargoAllocation.Type),
+		edge.To("shared_container_allocations", SeaSharedContainerAllocation.Type),
 	}
 }
 

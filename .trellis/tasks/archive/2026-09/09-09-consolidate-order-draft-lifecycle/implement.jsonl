@@ -1,0 +1,4 @@
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"订单草稿身份、命名空间、恢复与关闭守卫的现行契约"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"订单公共模板与业务页面的组件职责边界"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向验证、最终门禁与 pnpm 命令约束"}
+{"file":".trellis/tasks/09-09-consolidate-order-draft-lifecycle/research/evidence.md","reason":"当前调用方、Hook 异常契约和已确认技术取舍"}

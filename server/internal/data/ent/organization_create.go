@@ -31,6 +31,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -52,11 +53,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seacargoallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillswitchevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -64,7 +64,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
@@ -243,19 +246,19 @@ func (_c *OrganizationCreate) AddRoles(v ...*Role) *OrganizationCreate {
 	return _c.AddRoleIDs(ids...)
 }
 
-// AddRoleOrderOrganizationAccessIDs adds the "role_order_organization_accesses" edge to the RoleOrderOrganizationAccess entity by IDs.
-func (_c *OrganizationCreate) AddRoleOrderOrganizationAccessIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddRoleOrderOrganizationAccessIDs(ids...)
+// AddRoleOrganizationAccessIDs adds the "role_organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
+func (_c *OrganizationCreate) AddRoleOrganizationAccessIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddRoleOrganizationAccessIDs(ids...)
 	return _c
 }
 
-// AddRoleOrderOrganizationAccesses adds the "role_order_organization_accesses" edges to the RoleOrderOrganizationAccess entity.
-func (_c *OrganizationCreate) AddRoleOrderOrganizationAccesses(v ...*RoleOrderOrganizationAccess) *OrganizationCreate {
+// AddRoleOrganizationAccesses adds the "role_organization_accesses" edges to the RoleOrganizationAccess entity.
+func (_c *OrganizationCreate) AddRoleOrganizationAccesses(v ...*RoleOrganizationAccess) *OrganizationCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddRoleOrderOrganizationAccessIDs(ids...)
+	return _c.AddRoleOrganizationAccessIDs(ids...)
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
@@ -558,21 +561,6 @@ func (_c *OrganizationCreate) AddOrderContainers(v ...*OrderContainer) *Organiza
 	return _c.AddOrderContainerIDs(ids...)
 }
 
-// AddSeaCargoAllocationIDs adds the "sea_cargo_allocations" edge to the SeaCargoAllocation entity by IDs.
-func (_c *OrganizationCreate) AddSeaCargoAllocationIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddSeaCargoAllocationIDs(ids...)
-	return _c
-}
-
-// AddSeaCargoAllocations adds the "sea_cargo_allocations" edges to the SeaCargoAllocation entity.
-func (_c *OrganizationCreate) AddSeaCargoAllocations(v ...*SeaCargoAllocation) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddSeaCargoAllocationIDs(ids...)
-}
-
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
 func (_c *OrganizationCreate) AddOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationCreate {
 	_c.mutation.AddOrderPersonnelIDs(ids...)
@@ -691,6 +679,21 @@ func (_c *OrganizationCreate) AddFinanceVerifications(v ...*FinanceVerification)
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceVerificationIDs(ids...)
+}
+
+// AddFinanceNettingIDs adds the "finance_nettings" edge to the FinanceNetting entity by IDs.
+func (_c *OrganizationCreate) AddFinanceNettingIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceNettingIDs(ids...)
+	return _c
+}
+
+// AddFinanceNettings adds the "finance_nettings" edges to the FinanceNetting entity.
+func (_c *OrganizationCreate) AddFinanceNettings(v ...*FinanceNetting) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceNettingIDs(ids...)
 }
 
 // AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
@@ -1068,19 +1071,64 @@ func (_c *OrganizationCreate) AddSeaDocumentVoidEvents(v ...*SeaDocumentVoidEven
 	return _c.AddSeaDocumentVoidEventIDs(ids...)
 }
 
-// AddSeaHouseBillSwitchEventIDs adds the "sea_house_bill_switch_events" edge to the SeaHouseBillSwitchEvent entity by IDs.
-func (_c *OrganizationCreate) AddSeaHouseBillSwitchEventIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddSeaHouseBillSwitchEventIDs(ids...)
+// AddSeaTransportExecutionVersionIDs adds the "sea_transport_execution_versions" edge to the SeaTransportExecutionVersion entity by IDs.
+func (_c *OrganizationCreate) AddSeaTransportExecutionVersionIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaTransportExecutionVersionIDs(ids...)
 	return _c
 }
 
-// AddSeaHouseBillSwitchEvents adds the "sea_house_bill_switch_events" edges to the SeaHouseBillSwitchEvent entity.
-func (_c *OrganizationCreate) AddSeaHouseBillSwitchEvents(v ...*SeaHouseBillSwitchEvent) *OrganizationCreate {
+// AddSeaTransportExecutionVersions adds the "sea_transport_execution_versions" edges to the SeaTransportExecutionVersion entity.
+func (_c *OrganizationCreate) AddSeaTransportExecutionVersions(v ...*SeaTransportExecutionVersion) *OrganizationCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddSeaHouseBillSwitchEventIDs(ids...)
+	return _c.AddSeaTransportExecutionVersionIDs(ids...)
+}
+
+// AddSeaDocumentModeChangeEventIDs adds the "sea_document_mode_change_events" edge to the SeaDocumentModeChangeEvent entity by IDs.
+func (_c *OrganizationCreate) AddSeaDocumentModeChangeEventIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaDocumentModeChangeEventIDs(ids...)
+	return _c
+}
+
+// AddSeaDocumentModeChangeEvents adds the "sea_document_mode_change_events" edges to the SeaDocumentModeChangeEvent entity.
+func (_c *OrganizationCreate) AddSeaDocumentModeChangeEvents(v ...*SeaDocumentModeChangeEvent) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaDocumentModeChangeEventIDs(ids...)
+}
+
+// AddSeaSharedContainerIDs adds the "sea_shared_containers" edge to the SeaSharedContainer entity by IDs.
+func (_c *OrganizationCreate) AddSeaSharedContainerIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaSharedContainerIDs(ids...)
+	return _c
+}
+
+// AddSeaSharedContainers adds the "sea_shared_containers" edges to the SeaSharedContainer entity.
+func (_c *OrganizationCreate) AddSeaSharedContainers(v ...*SeaSharedContainer) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaSharedContainerIDs(ids...)
+}
+
+// AddSeaSharedContainerAllocationIDs adds the "sea_shared_container_allocations" edge to the SeaSharedContainerAllocation entity by IDs.
+func (_c *OrganizationCreate) AddSeaSharedContainerAllocationIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaSharedContainerAllocationIDs(ids...)
+	return _c
+}
+
+// AddSeaSharedContainerAllocations adds the "sea_shared_container_allocations" edges to the SeaSharedContainerAllocation entity.
+func (_c *OrganizationCreate) AddSeaSharedContainerAllocations(v ...*SeaSharedContainerAllocation) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaSharedContainerAllocationIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1327,15 +1375,15 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.RoleOrderOrganizationAccessesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.RoleOrganizationAccessesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.RoleOrderOrganizationAccessesTable,
-			Columns: []string{organization.RoleOrderOrganizationAccessesColumn},
+			Table:   organization.RoleOrganizationAccessesTable,
+			Columns: []string{organization.RoleOrganizationAccessesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorderorganizationaccess.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1663,22 +1711,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.SeaCargoAllocationsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.SeaCargoAllocationsTable,
-			Columns: []string{organization.SeaCargoAllocationsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seacargoallocation.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.OrderPersonnelIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1800,6 +1832,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceNettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceNettingsTable,
+			Columns: []string{organization.FinanceNettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2207,15 +2255,63 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.SeaHouseBillSwitchEventsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SeaTransportExecutionVersionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   organization.SeaHouseBillSwitchEventsTable,
-			Columns: []string{organization.SeaHouseBillSwitchEventsColumn},
+			Table:   organization.SeaTransportExecutionVersionsTable,
+			Columns: []string{organization.SeaTransportExecutionVersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seahousebillswitchevent.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(seatransportexecutionversion.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaDocumentModeChangeEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaDocumentModeChangeEventsTable,
+			Columns: []string{organization.SeaDocumentModeChangeEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seadocumentmodechangeevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaSharedContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaSharedContainersTable,
+			Columns: []string{organization.SeaSharedContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaSharedContainerAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaSharedContainerAllocationsTable,
+			Columns: []string{organization.SeaSharedContainerAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainerallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

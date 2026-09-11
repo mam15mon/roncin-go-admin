@@ -51,6 +51,29 @@ func (s *financeBillTransactionRepoStub) LoadBillableFees(ctx context.Context, _
 	return []*FinanceBillableFee{s.fee}, nil
 }
 
+func (s *financeBillTransactionRepoStub) ValidateBillCurrencies(ctx context.Context, _ []string) error {
+	if err := requireFinanceBillTransaction(ctx); err != nil {
+		return err
+	}
+	s.transactionCalls++
+	return nil
+}
+
+func (s *financeBillTransactionRepoStub) HydrateBillSettlementAccounts(ctx context.Context, bills []*FinanceBill) error {
+	if err := requireFinanceBillTransaction(ctx); err != nil {
+		return err
+	}
+	s.transactionCalls++
+	for _, bill := range bills {
+		bill.SettlementAccountName = "测试账户"
+		bill.SettlementAccountHolder = "测试客户"
+		bill.SettlementBankName = "测试银行"
+		bill.SettlementBankAccount = "001"
+		bill.SettlementAccountCurrency = bill.Currency
+	}
+	return nil
+}
+
 func (s *financeBillTransactionRepoStub) Create(ctx context.Context, bill *FinanceBill, _ *AuditEvent) (*FinanceBill, error) {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
 		return nil, err
@@ -61,7 +84,7 @@ func (s *financeBillTransactionRepoStub) Create(ctx context.Context, bill *Finan
 	return bill, nil
 }
 
-func (s *financeBillTransactionRepoStub) Get(ctx context.Context, _, _ uuid.UUID) (*FinanceBill, error) {
+func (s *financeBillTransactionRepoStub) Get(ctx context.Context, _ []uuid.UUID, _ uuid.UUID) (*FinanceBill, error) {
 	if active, _ := ctx.Value(financeBillTransactionContextKey{}).(bool); active {
 		return nil, errors.New("完整账单响应不能在写事务内读取")
 	}
@@ -123,7 +146,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
-		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test",
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test", SettlementAccountID: uuid.New(),
 	})
 	if err != nil {
 		t.Fatalf("创建账单失败: %v", err)
@@ -134,8 +157,8 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	if transactor.calls != 1 {
 		t.Fatalf("共享事务调用次数 = %d，期望 1", transactor.calls)
 	}
-	if repo.transactionCalls != 3 {
-		t.Fatalf("账单仓储事务内调用次数 = %d，期望 3", repo.transactionCalls)
+	if repo.transactionCalls != 5 {
+		t.Fatalf("账单仓储事务内调用次数 = %d，期望 5", repo.transactionCalls)
 	}
 	if repo.responseReads != 1 {
 		t.Fatalf("提交后账单读取次数 = %d，期望 1", repo.responseReads)

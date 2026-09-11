@@ -156,17 +156,50 @@ const customerResponse = await request('/api/v1/partners', {
 });
 const customer = customerResponse.data;
 assert(customer?.id, '验收客户创建失败');
+// 账单必须固化结算账户快照：为客户创建 CNY 应收结算账户。
+const accountResponse = await request(`/api/v1/partners/${customer.id}/accounts`, {
+  method: 'POST',
+  body: JSON.stringify({
+    partnerId: customer.id,
+    account: {
+      name: `验收结算账户${stamp}`,
+      accountHolder: customer.legalName,
+      currency: 'CNY',
+      bankName: '验收银行',
+      accountNo: `ACC${stamp}`,
+      usage: 1, // PARTNER_ACCOUNT_USAGE_RECEIVABLE
+      isDefaultReceivable: true,
+      enabled: true,
+    },
+  }),
+});
+const settlementAccount = accountResponse.data;
+assert(settlementAccount?.id, '验收结算账户创建失败');
+// 海运出口订单必须选择船公司并提供主单信息（047b3e79 起为强约束）。
+const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+  method: 'POST',
+  body: JSON.stringify({
+    scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
+    nameZh: `验收船公司${stamp}`,
+    nameEn: `Acceptance Carrier ${stamp}`,
+    countryCode: 'CN',
+  }),
+});
+const shippingLine = shippingLineResponse.data;
+assert(shippingLine?.id, '验收船公司创建失败');
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
     customerId: customer.id,
+    shippingLineId: shippingLine.id,
+    seaMasterBill: { masterNo: `ACCMB${stamp}` },
+    seaDocument: { documentStructure: 2 }, // SEA_DOCUMENT_STRUCTURE_DIRECT 直单
     businessType: 1,
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
     shipmentMode: 1,
-    loadingTerms: 'CFS-CFS',
     goodsDescription: '财务批量转账单自动验收货物',
     totalPackages: 2,
     totalGrossWeightKg: 200,
@@ -350,23 +383,47 @@ assert(
     ),
   '费用台账未同时返回或按委托单位、结算单位正确筛选',
 );
+const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
+  method: 'POST',
+  body: JSON.stringify({
+    feeIds,
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+  }),
+});
+assert(
+  initialPreview.data?.length === 1,
+  `同订单同税率费用应拆成 1 组，实际 ${initialPreview.data?.length || 0}`,
+);
+assert(
+  initialPreview.data[0].fees?.length === 2,
+  '初次预览分组未包含全部费用',
+);
+assert(
+  initialPreview.data[0].configurationComplete !== true,
+  '初次预览未配置日期与账户时应为待补齐状态',
+);
+assert(!initialPreview.previewToken, '初次预览不应签发创建令牌');
+
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
   body: JSON.stringify({
     feeIds,
-    groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+    groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    organizationId: me.data.currentOrganization.id,
+    groupConfigs: initialPreview.data.map((group) => ({
+      groupKey: group.groupKey,
+      billDate: today,
+      settlementAccountId: settlementAccount.id,
+    })),
   }),
 });
-assert(preview.previewToken?.length === 64, '批量建单预览未返回有效快照令牌');
-assert(
-  preview.data?.length === 1,
-  `同订单同税率费用应拆成 1 组，实际 ${preview.data?.length || 0}`,
-);
-assert(preview.data[0].fees?.length === 2, '预览分组未包含全部费用');
+assert(preview.previewToken, '配置账单日期与账户后预览未签发创建令牌');
 
 const createBody = (idempotencyKey) => ({
   feeIds,
-  groupingPolicy: { splitByOrder: true, splitByTaxRate: true },
+  groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+  organizationId: me.data.currentOrganization.id,
   previewToken: preview.previewToken,
   idempotencyKey,
   groups: preview.data.map((group) => ({
@@ -374,6 +431,7 @@ const createBody = (idempotencyKey) => ({
     statementTitle: customer.legalName,
     billDate: today,
     paymentTermsDays: 30,
+    settlementAccountId: settlementAccount.id,
     note: '财务批量转账单自动验收',
   })),
 });
@@ -612,6 +670,7 @@ assert(
   `验收账单金额应为 125.00000000，实际 ${confirmedBill.totalAmount}`,
 );
 const cashflowBody = (amount, idempotencyKey) => ({
+  organizationId: me.data.currentOrganization.id,
   direction: 'RECEIVABLE',
   settlementPartyId: customer.id,
   currency: confirmedBill.currency,
@@ -749,6 +808,7 @@ const commissionRuleResponse = await request(
   {
     method: 'POST',
     body: JSON.stringify({
+      organizationId: me.data.currentOrganization.id,
       rule: {
         name: `ACC-COMMISSION-${stamp}`,
         personnelRole: 'SALES',

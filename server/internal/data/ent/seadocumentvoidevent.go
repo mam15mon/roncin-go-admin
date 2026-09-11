@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -59,6 +60,14 @@ type SeaDocumentVoidEvent struct {
 	IdempotencyKey string `json:"idempotency_key,omitempty"`
 	// RequestFingerprint holds the value of the "request_fingerprint" field.
 	RequestFingerprint string `json:"request_fingerprint,omitempty"`
+	// ConfirmedByParty holds the value of the "confirmed_by_party" field.
+	ConfirmedByParty string `json:"confirmed_by_party,omitempty"`
+	// ConfirmedAt holds the value of the "confirmed_at" field.
+	ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
+	// ConfirmationNote holds the value of the "confirmation_note" field.
+	ConfirmationNote string `json:"confirmation_note,omitempty"`
+	// ConfirmationAttachmentID holds the value of the "confirmation_attachment_id" field.
+	ConfirmationAttachmentID *uuid.UUID `json:"confirmation_attachment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaDocumentVoidEventQuery when eager-loading is set.
 	Edges        SeaDocumentVoidEventEdges `json:"edges"`
@@ -85,9 +94,11 @@ type SeaDocumentVoidEventEdges struct {
 	PreviousHouseBillVersion *SeaHouseBillVersion `json:"previous_house_bill_version,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
+	// ConfirmationAttachment holds the value of the confirmation_attachment edge.
+	ConfirmationAttachment *OrderAttachment `json:"confirmation_attachment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -189,16 +200,27 @@ func (e SeaDocumentVoidEventEdges) CreatorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "creator"}
 }
 
+// ConfirmationAttachmentOrErr returns the ConfirmationAttachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeaDocumentVoidEventEdges) ConfirmationAttachmentOrErr() (*OrderAttachment, error) {
+	if e.ConfirmationAttachment != nil {
+		return e.ConfirmationAttachment, nil
+	} else if e.loadedTypes[9] {
+		return nil, &NotFoundError{label: orderattachment.Label}
+	}
+	return nil, &NotLoadedError{edge: "confirmation_attachment"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaDocumentVoidEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seadocumentvoidevent.FieldMasterBillID, seadocumentvoidevent.FieldMasterBillVersionID, seadocumentvoidevent.FieldPreviousMasterBillVersionID, seadocumentvoidevent.FieldHouseBillID, seadocumentvoidevent.FieldHouseBillVersionID, seadocumentvoidevent.FieldPreviousHouseBillVersionID:
+		case seadocumentvoidevent.FieldMasterBillID, seadocumentvoidevent.FieldMasterBillVersionID, seadocumentvoidevent.FieldPreviousMasterBillVersionID, seadocumentvoidevent.FieldHouseBillID, seadocumentvoidevent.FieldHouseBillVersionID, seadocumentvoidevent.FieldPreviousHouseBillVersionID, seadocumentvoidevent.FieldConfirmationAttachmentID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case seadocumentvoidevent.FieldDocumentType, seadocumentvoidevent.FieldPreviousStatus, seadocumentvoidevent.FieldVoidedStatus, seadocumentvoidevent.FieldReason, seadocumentvoidevent.FieldImpactSummary, seadocumentvoidevent.FieldIdempotencyKey, seadocumentvoidevent.FieldRequestFingerprint:
+		case seadocumentvoidevent.FieldDocumentType, seadocumentvoidevent.FieldPreviousStatus, seadocumentvoidevent.FieldVoidedStatus, seadocumentvoidevent.FieldReason, seadocumentvoidevent.FieldImpactSummary, seadocumentvoidevent.FieldIdempotencyKey, seadocumentvoidevent.FieldRequestFingerprint, seadocumentvoidevent.FieldConfirmedByParty, seadocumentvoidevent.FieldConfirmationNote:
 			values[i] = new(sql.NullString)
-		case seadocumentvoidevent.FieldCreatedAt:
+		case seadocumentvoidevent.FieldCreatedAt, seadocumentvoidevent.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
 		case seadocumentvoidevent.FieldID, seadocumentvoidevent.FieldOrganizationID, seadocumentvoidevent.FieldOrderID, seadocumentvoidevent.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
@@ -332,6 +354,31 @@ func (_m *SeaDocumentVoidEvent) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.RequestFingerprint = value.String
 			}
+		case seadocumentvoidevent.FieldConfirmedByParty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_by_party", values[i])
+			} else if value.Valid {
+				_m.ConfirmedByParty = value.String
+			}
+		case seadocumentvoidevent.FieldConfirmedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmed_at", values[i])
+			} else if value.Valid {
+				_m.ConfirmedAt = value.Time
+			}
+		case seadocumentvoidevent.FieldConfirmationNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_note", values[i])
+			} else if value.Valid {
+				_m.ConfirmationNote = value.String
+			}
+		case seadocumentvoidevent.FieldConfirmationAttachmentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field confirmation_attachment_id", values[i])
+			} else if value.Valid {
+				_m.ConfirmationAttachmentID = new(uuid.UUID)
+				*_m.ConfirmationAttachmentID = *value.S.(*uuid.UUID)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -388,6 +435,11 @@ func (_m *SeaDocumentVoidEvent) QueryPreviousHouseBillVersion() *SeaHouseBillVer
 // QueryCreator queries the "creator" edge of the SeaDocumentVoidEvent entity.
 func (_m *SeaDocumentVoidEvent) QueryCreator() *UserQuery {
 	return NewSeaDocumentVoidEventClient(_m.config).QueryCreator(_m)
+}
+
+// QueryConfirmationAttachment queries the "confirmation_attachment" edge of the SeaDocumentVoidEvent entity.
+func (_m *SeaDocumentVoidEvent) QueryConfirmationAttachment() *OrderAttachmentQuery {
+	return NewSeaDocumentVoidEventClient(_m.config).QueryConfirmationAttachment(_m)
 }
 
 // Update returns a builder for updating this SeaDocumentVoidEvent.
@@ -477,6 +529,20 @@ func (_m *SeaDocumentVoidEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("request_fingerprint=")
 	builder.WriteString(_m.RequestFingerprint)
+	builder.WriteString(", ")
+	builder.WriteString("confirmed_by_party=")
+	builder.WriteString(_m.ConfirmedByParty)
+	builder.WriteString(", ")
+	builder.WriteString("confirmed_at=")
+	builder.WriteString(_m.ConfirmedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("confirmation_note=")
+	builder.WriteString(_m.ConfirmationNote)
+	builder.WriteString(", ")
+	if v := _m.ConfirmationAttachmentID; v != nil {
+		builder.WriteString("confirmation_attachment_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -23,6 +23,15 @@ func (approvalTokenStub) enterpriseAccessToken(context.Context) (string, error) 
 	return "test-token", nil
 }
 
+func TestDingTalkApprovalGatewayEnabledFollowsTokenProvider(t *testing.T) {
+	if !(&dingTalkApprovalGateway{tokens: approvalTokenStub{}}).Enabled() {
+		t.Fatal("令牌提供方启用时审批网关应启用")
+	}
+	if (&dingTalkApprovalGateway{}).Enabled() {
+		t.Fatal("缺少令牌提供方时审批网关不应启用")
+	}
+}
+
 func testApprovalCreateCommand() *biz.DingTalkApprovalCreateCommand {
 	return &biz.DingTalkApprovalCreateCommand{
 		ProcessCode:          "PROC",

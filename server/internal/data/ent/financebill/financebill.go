@@ -36,6 +36,26 @@ const (
 	FieldSettlementPartyID = "settlement_party_id"
 	// FieldSettlementPartyName holds the string denoting the settlement_party_name field in the database.
 	FieldSettlementPartyName = "settlement_party_name"
+	// FieldSettlementAccountID holds the string denoting the settlement_account_id field in the database.
+	FieldSettlementAccountID = "settlement_account_id"
+	// FieldSettlementAccountName holds the string denoting the settlement_account_name field in the database.
+	FieldSettlementAccountName = "settlement_account_name"
+	// FieldSettlementAccountHolder holds the string denoting the settlement_account_holder field in the database.
+	FieldSettlementAccountHolder = "settlement_account_holder"
+	// FieldSettlementBankName holds the string denoting the settlement_bank_name field in the database.
+	FieldSettlementBankName = "settlement_bank_name"
+	// FieldSettlementBankAccount holds the string denoting the settlement_bank_account field in the database.
+	FieldSettlementBankAccount = "settlement_bank_account"
+	// FieldSettlementAccountCurrency holds the string denoting the settlement_account_currency field in the database.
+	FieldSettlementAccountCurrency = "settlement_account_currency"
+	// FieldSettlementSwiftCode holds the string denoting the settlement_swift_code field in the database.
+	FieldSettlementSwiftCode = "settlement_swift_code"
+	// FieldEstimatedInvoiceCurrency holds the string denoting the estimated_invoice_currency field in the database.
+	FieldEstimatedInvoiceCurrency = "estimated_invoice_currency"
+	// FieldEstimatedInvoiceRate holds the string denoting the estimated_invoice_rate field in the database.
+	FieldEstimatedInvoiceRate = "estimated_invoice_rate"
+	// FieldEstimatedInvoiceAmount holds the string denoting the estimated_invoice_amount field in the database.
+	FieldEstimatedInvoiceAmount = "estimated_invoice_amount"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
@@ -96,6 +116,8 @@ const (
 	EdgeInvoiceLinks = "invoice_links"
 	// EdgeVerificationAllocations holds the string denoting the verification_allocations edge name in mutations.
 	EdgeVerificationAllocations = "verification_allocations"
+	// EdgeNettingAllocations holds the string denoting the netting_allocations edge name in mutations.
+	EdgeNettingAllocations = "netting_allocations"
 	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
 	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// Table holds the table name of the financebill in the database.
@@ -156,6 +178,13 @@ const (
 	VerificationAllocationsInverseTable = "finance_verification_allocations"
 	// VerificationAllocationsColumn is the table column denoting the verification_allocations relation/edge.
 	VerificationAllocationsColumn = "bill_id"
+	// NettingAllocationsTable is the table that holds the netting_allocations relation/edge.
+	NettingAllocationsTable = "finance_netting_allocations"
+	// NettingAllocationsInverseTable is the table name for the FinanceNettingAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financenettingallocation" package.
+	NettingAllocationsInverseTable = "finance_netting_allocations"
+	// NettingAllocationsColumn is the table column denoting the netting_allocations relation/edge.
+	NettingAllocationsColumn = "bill_id"
 	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
 	EnterpriseTagLinksTable = "finance_bill_enterprise_tags"
 	// EnterpriseTagLinksInverseTable is the table name for the FinanceBillEnterpriseTag entity.
@@ -178,6 +207,16 @@ var Columns = []string{
 	FieldStatus,
 	FieldSettlementPartyID,
 	FieldSettlementPartyName,
+	FieldSettlementAccountID,
+	FieldSettlementAccountName,
+	FieldSettlementAccountHolder,
+	FieldSettlementBankName,
+	FieldSettlementBankAccount,
+	FieldSettlementAccountCurrency,
+	FieldSettlementSwiftCode,
+	FieldEstimatedInvoiceCurrency,
+	FieldEstimatedInvoiceRate,
+	FieldEstimatedInvoiceAmount,
 	FieldCurrency,
 	FieldBaseCurrency,
 	FieldExchangeRate,
@@ -225,6 +264,20 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
 	SettlementPartyNameValidator func(string) error
+	// SettlementAccountNameValidator is a validator for the "settlement_account_name" field. It is called by the builders before save.
+	SettlementAccountNameValidator func(string) error
+	// SettlementAccountHolderValidator is a validator for the "settlement_account_holder" field. It is called by the builders before save.
+	SettlementAccountHolderValidator func(string) error
+	// SettlementBankNameValidator is a validator for the "settlement_bank_name" field. It is called by the builders before save.
+	SettlementBankNameValidator func(string) error
+	// SettlementBankAccountValidator is a validator for the "settlement_bank_account" field. It is called by the builders before save.
+	SettlementBankAccountValidator func(string) error
+	// SettlementAccountCurrencyValidator is a validator for the "settlement_account_currency" field. It is called by the builders before save.
+	SettlementAccountCurrencyValidator func(string) error
+	// SettlementSwiftCodeValidator is a validator for the "settlement_swift_code" field. It is called by the builders before save.
+	SettlementSwiftCodeValidator func(string) error
+	// EstimatedInvoiceCurrencyValidator is a validator for the "estimated_invoice_currency" field. It is called by the builders before save.
+	EstimatedInvoiceCurrencyValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
@@ -383,6 +436,56 @@ func BySettlementPartyID(opts ...sql.OrderTermOption) OrderOption {
 // BySettlementPartyName orders the results by the settlement_party_name field.
 func BySettlementPartyName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementPartyName, opts...).ToFunc()
+}
+
+// BySettlementAccountID orders the results by the settlement_account_id field.
+func BySettlementAccountID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountID, opts...).ToFunc()
+}
+
+// BySettlementAccountName orders the results by the settlement_account_name field.
+func BySettlementAccountName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountName, opts...).ToFunc()
+}
+
+// BySettlementAccountHolder orders the results by the settlement_account_holder field.
+func BySettlementAccountHolder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountHolder, opts...).ToFunc()
+}
+
+// BySettlementBankName orders the results by the settlement_bank_name field.
+func BySettlementBankName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementBankName, opts...).ToFunc()
+}
+
+// BySettlementBankAccount orders the results by the settlement_bank_account field.
+func BySettlementBankAccount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementBankAccount, opts...).ToFunc()
+}
+
+// BySettlementAccountCurrency orders the results by the settlement_account_currency field.
+func BySettlementAccountCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementAccountCurrency, opts...).ToFunc()
+}
+
+// BySettlementSwiftCode orders the results by the settlement_swift_code field.
+func BySettlementSwiftCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettlementSwiftCode, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceCurrency orders the results by the estimated_invoice_currency field.
+func ByEstimatedInvoiceCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceCurrency, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceRate orders the results by the estimated_invoice_rate field.
+func ByEstimatedInvoiceRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceRate, opts...).ToFunc()
+}
+
+// ByEstimatedInvoiceAmount orders the results by the estimated_invoice_amount field.
+func ByEstimatedInvoiceAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEstimatedInvoiceAmount, opts...).ToFunc()
 }
 
 // ByCurrency orders the results by the currency field.
@@ -572,6 +675,20 @@ func ByVerificationAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) Order
 	}
 }
 
+// ByNettingAllocationsCount orders the results by netting_allocations count.
+func ByNettingAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNettingAllocationsStep(), opts...)
+	}
+}
+
+// ByNettingAllocations orders the results by netting_allocations terms.
+func ByNettingAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNettingAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
 func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -639,6 +756,13 @@ func newVerificationAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VerificationAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VerificationAllocationsTable, VerificationAllocationsColumn),
+	)
+}
+func newNettingAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NettingAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NettingAllocationsTable, NettingAllocationsColumn),
 	)
 }
 func newEnterpriseTagLinksStep() *sqlgraph.Step {

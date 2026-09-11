@@ -1,6 +1,6 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
-import { Button, Divider, Space, Typography } from 'antd';
+import { Button, Tooltip, Typography } from 'antd';
 import React from 'react';
 import type { PageHeaderShellProps } from './types';
 
@@ -18,22 +18,12 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
   style,
   className,
 }) => {
+  const hasBreadcrumbs = Boolean(breadcrumbs && breadcrumbs.length > 0);
+
   return (
     <div
-      className={`roncin-page-header-shell ${className || ''}`}
+      className={`roncin-page-header-shell ${hasBreadcrumbs ? 'roncin-page-header-has-breadcrumbs' : ''} ${className || ''}`}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 12,
-        minHeight: 52,
-        padding: '0 16px',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #f0f0f0',
-        marginBottom: 12,
-        borderRadius: 6,
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
         ...(sticky
           ? {
               position: 'sticky',
@@ -44,79 +34,75 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
         ...style,
       }}
     >
-      {/* Left: Navigation & Title */}
-      <Space size={8} align="center" style={{ minWidth: 0, flex: 1 }}>
-        {onBack && (
-          <>
-            <Button
-              type="text"
-              size="small"
-              icon={<ArrowLeftOutlined />}
-              onClick={onBack}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                fontWeight: 500,
-                color: 'rgba(0, 0, 0, 0.65)',
-                padding: '2px 6px',
-              }}
-            >
-              {backText}
-            </Button>
-            <Divider vertical style={{ margin: '0 4px' }} />
-          </>
-        )}
+      {/* 1. 顶层面包屑行 */}
+      {hasBreadcrumbs && (
+        <div className="roncin-page-header-breadcrumbs">
+          {breadcrumbs?.map((crumb, idx) => {
+            const isLast = idx === (breadcrumbs?.length ?? 0) - 1;
+            return (
+              <React.Fragment key={crumb.label || idx}>
+                {crumb.href ? (
+                  <Link
+                    to={crumb.href}
+                    className="roncin-page-header-crumb-link"
+                    onClick={crumb.onClick}
+                  >
+                    {crumb.label}
+                  </Link>
+                ) : crumb.onClick ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    className="roncin-page-header-crumb-btn"
+                    onClick={crumb.onClick}
+                  >
+                    {crumb.label}
+                  </Button>
+                ) : (
+                  <span className="roncin-page-header-crumb-text">
+                    {crumb.label}
+                  </span>
+                )}
+                {!isLast && (
+                  <span className="roncin-page-header-crumb-sep">/</span>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
 
-        {breadcrumbs &&
-          breadcrumbs.length > 0 &&
-          breadcrumbs.map((crumb, idx) => (
-            <React.Fragment key={crumb.label || idx}>
-              {crumb.href ? (
-                <Link
-                  to={crumb.href}
-                  style={{
-                    color: 'rgba(0, 0, 0, 0.45)',
-                    fontSize: 13,
-                    textDecoration: 'none',
-                    lineHeight: 'normal',
-                  }}
-                  onClick={crumb.onClick}
-                >
-                  {crumb.label}
-                </Link>
-              ) : crumb.onClick ? (
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ padding: 0, color: 'rgba(0, 0, 0, 0.45)', height: 'auto' }}
-                  onClick={crumb.onClick}
-                >
-                  {crumb.label}
-                </Button>
-              ) : (
-                <Text type="secondary" style={{ fontSize: 13 }}>
-                  {crumb.label}
-                </Text>
-              )}
-              <span style={{ color: 'rgba(0, 0, 0, 0.3)' }}>/</span>
-            </React.Fragment>
-          ))}
+      {/* 2. 底层主体行 */}
+      <div className="roncin-page-header-main-row">
+        <div className="roncin-page-header-title-area">
+          {onBack && (
+            <Tooltip title={backText}>
+              <Button
+                type="text"
+                size="small"
+                className="roncin-page-header-back-btn"
+                icon={<ArrowLeftOutlined />}
+                onClick={onBack}
+                aria-label={backText}
+              />
+            </Tooltip>
+          )}
 
-        <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
-          {title}
-        </Text>
-
-        {subTitle && (
-          <Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
-            {subTitle}
+          <Text strong className="roncin-page-header-heading-title">
+            {title}
           </Text>
-        )}
 
-        {tags && <span style={{ marginLeft: 4 }}>{tags}</span>}
-      </Space>
+          {tags && <div className="roncin-page-header-tags">{tags}</div>}
 
-      {/* Right: Actions */}
-      {extra && <Space size={8} align="center">{extra}</Space>}
+          {subTitle && (
+            <Text className="roncin-page-header-subtitle">
+              {subTitle}
+            </Text>
+          )}
+        </div>
+
+        {extra && <div className="roncin-page-header-extra">{extra}</div>}
+      </div>
     </div>
   );
 };

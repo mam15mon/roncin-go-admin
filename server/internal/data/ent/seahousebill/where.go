@@ -1871,21 +1871,21 @@ func HasIssuerPartnerWith(preds ...predicate.Partner) predicate.SeaHouseBill {
 	})
 }
 
-// HasCargoAllocations applies the HasEdge predicate on the "cargo_allocations" edge.
-func HasCargoAllocations() predicate.SeaHouseBill {
+// HasSharedContainerAllocations applies the HasEdge predicate on the "shared_container_allocations" edge.
+func HasSharedContainerAllocations() predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CargoAllocationsTable, CargoAllocationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, SharedContainerAllocationsTable, SharedContainerAllocationsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCargoAllocationsWith applies the HasEdge predicate on the "cargo_allocations" edge with a given conditions (other predicates).
-func HasCargoAllocationsWith(preds ...predicate.SeaCargoAllocation) predicate.SeaHouseBill {
+// HasSharedContainerAllocationsWith applies the HasEdge predicate on the "shared_container_allocations" edge with a given conditions (other predicates).
+func HasSharedContainerAllocationsWith(preds ...predicate.SeaSharedContainerAllocation) predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
-		step := newCargoAllocationsStep()
+		step := newSharedContainerAllocationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1986,21 +1986,21 @@ func HasVoidEventsWith(preds ...predicate.SeaDocumentVoidEvent) predicate.SeaHou
 	})
 }
 
-// HasOldSwitchEvents applies the HasEdge predicate on the "old_switch_events" edge.
-func HasOldSwitchEvents() predicate.SeaHouseBill {
+// HasPreviousModeChangeEvents applies the HasEdge predicate on the "previous_mode_change_events" edge.
+func HasPreviousModeChangeEvents() predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, OldSwitchEventsTable, OldSwitchEventsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, PreviousModeChangeEventsTable, PreviousModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasOldSwitchEventsWith applies the HasEdge predicate on the "old_switch_events" edge with a given conditions (other predicates).
-func HasOldSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaHouseBill {
+// HasPreviousModeChangeEventsWith applies the HasEdge predicate on the "previous_mode_change_events" edge with a given conditions (other predicates).
+func HasPreviousModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
-		step := newOldSwitchEventsStep()
+		step := newPreviousModeChangeEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -2009,21 +2009,21 @@ func HasOldSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicat
 	})
 }
 
-// HasNewSwitchEvents applies the HasEdge predicate on the "new_switch_events" edge.
-func HasNewSwitchEvents() predicate.SeaHouseBill {
+// HasTargetModeChangeEvents applies the HasEdge predicate on the "target_mode_change_events" edge.
+func HasTargetModeChangeEvents() predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, NewSwitchEventsTable, NewSwitchEventsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TargetModeChangeEventsTable, TargetModeChangeEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNewSwitchEventsWith applies the HasEdge predicate on the "new_switch_events" edge with a given conditions (other predicates).
-func HasNewSwitchEventsWith(preds ...predicate.SeaHouseBillSwitchEvent) predicate.SeaHouseBill {
+// HasTargetModeChangeEventsWith applies the HasEdge predicate on the "target_mode_change_events" edge with a given conditions (other predicates).
+func HasTargetModeChangeEventsWith(preds ...predicate.SeaDocumentModeChangeEvent) predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(func(s *sql.Selector) {
-		step := newNewSwitchEventsStep()
+		step := newTargetModeChangeEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

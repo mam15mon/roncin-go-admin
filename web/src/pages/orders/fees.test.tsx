@@ -27,14 +27,20 @@ vi.mock('@/components/ui', () => ({
 }));
 
 vi.mock('@/pages/finance/bills/components/BillCreationWorkbench', () => ({
-  default: ({ open, initialFeeIds, sourceLabel }: any) => {
+  default: ({
+    open,
+    initialFeeIds,
+    initialOrganizationId,
+    sourceLabel,
+  }: any) => {
     const [workbenchFeeIds, setWorkbenchFeeIds] = React.useState<string[]>([]);
     React.useEffect(() => {
       if (open) setWorkbenchFeeIds(initialFeeIds);
     }, [initialFeeIds, open]);
     return (
       <div data-testid="bill-workbench">
-        {String(open)}|{workbenchFeeIds.join(',')}|{sourceLabel}
+        {String(open)}|{workbenchFeeIds.join(',')}|{initialOrganizationId}|
+        {sourceLabel}
         {open && <button type="button">提交账单</button>}
       </div>
     );
@@ -57,7 +63,11 @@ vi.mock('./use-order-fee-options', () => ({
   useOrderFeeOptions: (orderId?: string) => ({
     loading: false,
     order: orderId
-      ? { id: orderId, orderNo: orderId.replace('order-', 'ORDER-') }
+      ? {
+          id: orderId,
+          orderNo: orderId.replace('order-', 'ORDER-'),
+          organizationId: `organization-${orderId}`,
+        }
       : undefined,
     currencies: [],
     settlementParties: [],
@@ -266,7 +276,7 @@ describe('订单费用页跨订单状态隔离', () => {
       'receivable-order-A,payable-order-A|receivable-order-A,payable-order-A',
     );
     expect(screen.getByTestId('bill-workbench')).toHaveTextContent(
-      'true|receivable-order-A|订单 ORDER-A',
+      'true|receivable-order-A|organization-order-A|订单 ORDER-A',
     );
     expect(
       screen.getByRole('button', { name: '提交账单' }),
@@ -293,7 +303,7 @@ describe('订单费用页跨订单状态隔离', () => {
         '|',
       );
       expect(screen.getByTestId('bill-workbench')).toHaveTextContent(
-        'false||订单 ORDER-B',
+        'false|||订单 ORDER-B',
       );
       expect(
         screen.queryByRole('button', { name: '提交账单' }),

@@ -156,6 +156,26 @@ func CreatedBy(v uuid.UUID) predicate.SeaOrderReassignmentEvent {
 	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldCreatedBy, v))
 }
 
+// ConfirmedByParty applies equality check predicate on the "confirmed_by_party" field. It's identical to ConfirmedByPartyEQ.
+func ConfirmedByParty(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAt applies equality check predicate on the "confirmed_at" field. It's identical to ConfirmedAtEQ.
+func ConfirmedAt(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmationNote applies equality check predicate on the "confirmation_note" field. It's identical to ConfirmationNoteEQ.
+func ConfirmationNote(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentID applies equality check predicate on the "confirmation_attachment_id" field. It's identical to ConfirmationAttachmentIDEQ.
+func ConfirmationAttachmentID(v uuid.UUID) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmationAttachmentID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.SeaOrderReassignmentEvent {
 	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldCreatedAt, v))
@@ -991,6 +1011,206 @@ func CreatedByNotNil() predicate.SeaOrderReassignmentEvent {
 	return predicate.SeaOrderReassignmentEvent(sql.FieldNotNull(FieldCreatedBy))
 }
 
+// ConfirmedByPartyEQ applies the EQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEQ(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyNEQ applies the NEQ predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNEQ(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNEQ(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyIn applies the In predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyIn(vs ...string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyNotIn applies the NotIn predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyNotIn(vs ...string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNotIn(FieldConfirmedByParty, vs...))
+}
+
+// ConfirmedByPartyGT applies the GT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGT(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyGTE applies the GTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyGTE(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLT applies the LT predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLT(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLT(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyLTE applies the LTE predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyLTE(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLTE(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContains applies the Contains predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContains(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldContains(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasPrefix applies the HasPrefix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasPrefix(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldHasPrefix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyHasSuffix applies the HasSuffix predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyHasSuffix(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldHasSuffix(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyEqualFold applies the EqualFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyEqualFold(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEqualFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedByPartyContainsFold applies the ContainsFold predicate on the "confirmed_by_party" field.
+func ConfirmedByPartyContainsFold(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldContainsFold(FieldConfirmedByParty, v))
+}
+
+// ConfirmedAtEQ applies the EQ predicate on the "confirmed_at" field.
+func ConfirmedAtEQ(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtNEQ applies the NEQ predicate on the "confirmed_at" field.
+func ConfirmedAtNEQ(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNEQ(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtIn applies the In predicate on the "confirmed_at" field.
+func ConfirmedAtIn(vs ...time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtNotIn applies the NotIn predicate on the "confirmed_at" field.
+func ConfirmedAtNotIn(vs ...time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNotIn(FieldConfirmedAt, vs...))
+}
+
+// ConfirmedAtGT applies the GT predicate on the "confirmed_at" field.
+func ConfirmedAtGT(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtGTE applies the GTE predicate on the "confirmed_at" field.
+func ConfirmedAtGTE(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGTE(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLT applies the LT predicate on the "confirmed_at" field.
+func ConfirmedAtLT(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLT(FieldConfirmedAt, v))
+}
+
+// ConfirmedAtLTE applies the LTE predicate on the "confirmed_at" field.
+func ConfirmedAtLTE(v time.Time) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLTE(FieldConfirmedAt, v))
+}
+
+// ConfirmationNoteEQ applies the EQ predicate on the "confirmation_note" field.
+func ConfirmationNoteEQ(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteNEQ applies the NEQ predicate on the "confirmation_note" field.
+func ConfirmationNoteNEQ(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNEQ(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteIn applies the In predicate on the "confirmation_note" field.
+func ConfirmationNoteIn(vs ...string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteNotIn applies the NotIn predicate on the "confirmation_note" field.
+func ConfirmationNoteNotIn(vs ...string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNotIn(FieldConfirmationNote, vs...))
+}
+
+// ConfirmationNoteGT applies the GT predicate on the "confirmation_note" field.
+func ConfirmationNoteGT(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteGTE applies the GTE predicate on the "confirmation_note" field.
+func ConfirmationNoteGTE(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldGTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLT applies the LT predicate on the "confirmation_note" field.
+func ConfirmationNoteLT(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLT(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteLTE applies the LTE predicate on the "confirmation_note" field.
+func ConfirmationNoteLTE(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldLTE(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContains applies the Contains predicate on the "confirmation_note" field.
+func ConfirmationNoteContains(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldContains(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasPrefix applies the HasPrefix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasPrefix(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldHasPrefix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteHasSuffix applies the HasSuffix predicate on the "confirmation_note" field.
+func ConfirmationNoteHasSuffix(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldHasSuffix(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteEqualFold applies the EqualFold predicate on the "confirmation_note" field.
+func ConfirmationNoteEqualFold(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEqualFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationNoteContainsFold applies the ContainsFold predicate on the "confirmation_note" field.
+func ConfirmationNoteContainsFold(v string) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldContainsFold(FieldConfirmationNote, v))
+}
+
+// ConfirmationAttachmentIDEQ applies the EQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDEQ(v uuid.UUID) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDNEQ applies the NEQ predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNEQ(v uuid.UUID) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNEQ(FieldConfirmationAttachmentID, v))
+}
+
+// ConfirmationAttachmentIDIn applies the In predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIn(vs ...uuid.UUID) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDNotIn applies the NotIn predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotIn(vs ...uuid.UUID) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNotIn(FieldConfirmationAttachmentID, vs...))
+}
+
+// ConfirmationAttachmentIDIsNil applies the IsNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDIsNil() predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldIsNull(FieldConfirmationAttachmentID))
+}
+
+// ConfirmationAttachmentIDNotNil applies the NotNil predicate on the "confirmation_attachment_id" field.
+func ConfirmationAttachmentIDNotNil() predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(sql.FieldNotNull(FieldConfirmationAttachmentID))
+}
+
 // HasOrganization applies the HasEdge predicate on the "organization" edge.
 func HasOrganization() predicate.SeaOrderReassignmentEvent {
 	return predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
@@ -1167,6 +1387,29 @@ func HasCreator() predicate.SeaOrderReassignmentEvent {
 func HasCreatorWith(preds ...predicate.User) predicate.SeaOrderReassignmentEvent {
 	return predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
 		step := newCreatorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConfirmationAttachment applies the HasEdge predicate on the "confirmation_attachment" edge.
+func HasConfirmationAttachment() predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConfirmationAttachmentTable, ConfirmationAttachmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmationAttachmentWith applies the HasEdge predicate on the "confirmation_attachment" edge with a given conditions (other predicates).
+func HasConfirmationAttachmentWith(preds ...predicate.OrderAttachment) predicate.SeaOrderReassignmentEvent {
+	return predicate.SeaOrderReassignmentEvent(func(s *sql.Selector) {
+		step := newConfirmationAttachmentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

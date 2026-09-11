@@ -10,12 +10,9 @@ import {
 } from '@/enums.generated';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
-import {
-  paymentTermOptions,
-  tradeTermOptions,
-  type OrderKindConfig,
-} from './common';
+import { paymentTermOptions, tradeTermOptions } from './common';
 import { lifecycleFiltersByStage } from './list-constants';
+import type { OrderKindDefinition } from './order-kinds/types';
 
 interface OrderListQueryContext {
   ports: API.Port[];
@@ -27,7 +24,7 @@ interface OrderListQueryContext {
 /** 将模板筛选参数映射为订单列表查询请求，并把响应整理为模板行数据。 */
 export async function queryOrderList(
   params: OrderListFilterParams,
-  config: OrderKindConfig,
+  definition: OrderKindDefinition,
   ctx: OrderListQueryContext,
 ) {
   const lifecycleFilters = lifecycleFiltersByStage[params.stage ?? ''] ?? {};
@@ -41,10 +38,14 @@ export async function queryOrderList(
           ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_MASTER
           : params.numberType === 'consolidated_master'
             ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER
-            : undefined,
+            : params.numberType === 'customer_reference'
+              ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_CUSTOMER_REFERENCE
+              : params.numberType === 'booking'
+                ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_BOOKING
+                : undefined,
     numberKeyword: params.numberKeyword,
     ...lifecycleFilters,
-    businessType: config.businessType,
+    businessType: definition.businessType,
     customerId: params.customerId,
     createdAtFrom: params.createdAtRange?.[0],
     createdAtTo: params.createdAtRange?.[1],
@@ -58,7 +59,7 @@ export async function queryOrderList(
     lockedAtTo: params.lockedAtRange?.[1],
     originLocationId: params.originLocationId,
     destinationLocationId: params.destinationLocationId,
-    carrierId: params.carrierId,
+    shippingLineId: params.shippingLineId,
     consigneeShortName: params.consignee,
     shipperShortName: params.shipper,
     operatorId: params.operatorId,
@@ -120,8 +121,8 @@ export async function queryOrderList(
     return {
       id: order.id || '',
       orderNo: order.orderNo || '',
-      orderKind: config.kind as any,
-      businessType: config.title,
+      orderKind: definition.kind,
+      businessType: definition.navigationTitle,
       stage:
         order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
           ? '已完结'

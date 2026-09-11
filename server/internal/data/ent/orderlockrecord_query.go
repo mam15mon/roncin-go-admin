@@ -22,26 +22,30 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderLockRecordQuery is the builder for querying OrderLockRecord entities.
 type OrderLockRecordQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []orderlockrecord.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.OrderLockRecord
-	withOrganization         *OrganizationQuery
-	withOrder                *OrderQuery
-	withLockedByUser         *UserQuery
-	withUnlockedByUser       *UserQuery
-	withMasterBill           *SeaMasterBillQuery
-	withMasterBillVersion    *SeaMasterBillVersionQuery
-	withUnlockRequests       *OrderUnlockRequestQuery
-	withAppliedUnlockRequest *OrderUnlockRequestQuery
-	withHouseBillSnapshots   *OrderLockHouseBillSnapshotQuery
-	modifiers                []func(*sql.Selector)
+	ctx                           *QueryContext
+	order                         []orderlockrecord.OrderOption
+	inters                        []Interceptor
+	predicates                    []predicate.OrderLockRecord
+	withOrganization              *OrganizationQuery
+	withOrder                     *OrderQuery
+	withLockedByUser              *UserQuery
+	withUnlockedByUser            *UserQuery
+	withMasterBill                *SeaMasterBillQuery
+	withMasterBillVersion         *SeaMasterBillVersionQuery
+	withTransportExecution        *SeaTransportExecutionQuery
+	withTransportExecutionVersion *SeaTransportExecutionVersionQuery
+	withUnlockRequests            *OrderUnlockRequestQuery
+	withAppliedUnlockRequest      *OrderUnlockRequestQuery
+	withHouseBillSnapshots        *OrderLockHouseBillSnapshotQuery
+	modifiers                     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -203,6 +207,50 @@ func (_q *OrderLockRecordQuery) QueryMasterBillVersion() *SeaMasterBillVersionQu
 			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
 			sqlgraph.To(seamasterbillversion.Table, seamasterbillversion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.MasterBillVersionTable, orderlockrecord.MasterBillVersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTransportExecution chains the current query on the "transport_execution" edge.
+func (_q *OrderLockRecordQuery) QueryTransportExecution() *SeaTransportExecutionQuery {
+	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
+			sqlgraph.To(seatransportexecution.Table, seatransportexecution.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TransportExecutionTable, orderlockrecord.TransportExecutionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTransportExecutionVersion chains the current query on the "transport_execution_version" edge.
+func (_q *OrderLockRecordQuery) QueryTransportExecutionVersion() *SeaTransportExecutionVersionQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
+			sqlgraph.To(seatransportexecutionversion.Table, seatransportexecutionversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TransportExecutionVersionTable, orderlockrecord.TransportExecutionVersionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -463,20 +511,22 @@ func (_q *OrderLockRecordQuery) Clone() *OrderLockRecordQuery {
 		return nil
 	}
 	return &OrderLockRecordQuery{
-		config:                   _q.config,
-		ctx:                      _q.ctx.Clone(),
-		order:                    append([]orderlockrecord.OrderOption{}, _q.order...),
-		inters:                   append([]Interceptor{}, _q.inters...),
-		predicates:               append([]predicate.OrderLockRecord{}, _q.predicates...),
-		withOrganization:         _q.withOrganization.Clone(),
-		withOrder:                _q.withOrder.Clone(),
-		withLockedByUser:         _q.withLockedByUser.Clone(),
-		withUnlockedByUser:       _q.withUnlockedByUser.Clone(),
-		withMasterBill:           _q.withMasterBill.Clone(),
-		withMasterBillVersion:    _q.withMasterBillVersion.Clone(),
-		withUnlockRequests:       _q.withUnlockRequests.Clone(),
-		withAppliedUnlockRequest: _q.withAppliedUnlockRequest.Clone(),
-		withHouseBillSnapshots:   _q.withHouseBillSnapshots.Clone(),
+		config:                        _q.config,
+		ctx:                           _q.ctx.Clone(),
+		order:                         append([]orderlockrecord.OrderOption{}, _q.order...),
+		inters:                        append([]Interceptor{}, _q.inters...),
+		predicates:                    append([]predicate.OrderLockRecord{}, _q.predicates...),
+		withOrganization:              _q.withOrganization.Clone(),
+		withOrder:                     _q.withOrder.Clone(),
+		withLockedByUser:              _q.withLockedByUser.Clone(),
+		withUnlockedByUser:            _q.withUnlockedByUser.Clone(),
+		withMasterBill:                _q.withMasterBill.Clone(),
+		withMasterBillVersion:         _q.withMasterBillVersion.Clone(),
+		withTransportExecution:        _q.withTransportExecution.Clone(),
+		withTransportExecutionVersion: _q.withTransportExecutionVersion.Clone(),
+		withUnlockRequests:            _q.withUnlockRequests.Clone(),
+		withAppliedUnlockRequest:      _q.withAppliedUnlockRequest.Clone(),
+		withHouseBillSnapshots:        _q.withHouseBillSnapshots.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -546,6 +596,28 @@ func (_q *OrderLockRecordQuery) WithMasterBillVersion(opts ...func(*SeaMasterBil
 		opt(query)
 	}
 	_q.withMasterBillVersion = query
+	return _q
+}
+
+// WithTransportExecution tells the query-builder to eager-load the nodes that are connected to
+// the "transport_execution" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderLockRecordQuery) WithTransportExecution(opts ...func(*SeaTransportExecutionQuery)) *OrderLockRecordQuery {
+	query := (&SeaTransportExecutionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTransportExecution = query
+	return _q
+}
+
+// WithTransportExecutionVersion tells the query-builder to eager-load the nodes that are connected to
+// the "transport_execution_version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderLockRecordQuery) WithTransportExecutionVersion(opts ...func(*SeaTransportExecutionVersionQuery)) *OrderLockRecordQuery {
+	query := (&SeaTransportExecutionVersionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTransportExecutionVersion = query
 	return _q
 }
 
@@ -660,13 +732,15 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderLockRecord{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [11]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withLockedByUser != nil,
 			_q.withUnlockedByUser != nil,
 			_q.withMasterBill != nil,
 			_q.withMasterBillVersion != nil,
+			_q.withTransportExecution != nil,
+			_q.withTransportExecutionVersion != nil,
 			_q.withUnlockRequests != nil,
 			_q.withAppliedUnlockRequest != nil,
 			_q.withHouseBillSnapshots != nil,
@@ -726,6 +800,18 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withMasterBillVersion; query != nil {
 		if err := _q.loadMasterBillVersion(ctx, query, nodes, nil,
 			func(n *OrderLockRecord, e *SeaMasterBillVersion) { n.Edges.MasterBillVersion = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTransportExecution; query != nil {
+		if err := _q.loadTransportExecution(ctx, query, nodes, nil,
+			func(n *OrderLockRecord, e *SeaTransportExecution) { n.Edges.TransportExecution = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTransportExecutionVersion; query != nil {
+		if err := _q.loadTransportExecutionVersion(ctx, query, nodes, nil,
+			func(n *OrderLockRecord, e *SeaTransportExecutionVersion) { n.Edges.TransportExecutionVersion = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -939,6 +1025,70 @@ func (_q *OrderLockRecordQuery) loadMasterBillVersion(ctx context.Context, query
 	}
 	return nil
 }
+func (_q *OrderLockRecordQuery) loadTransportExecution(ctx context.Context, query *SeaTransportExecutionQuery, nodes []*OrderLockRecord, init func(*OrderLockRecord), assign func(*OrderLockRecord, *SeaTransportExecution)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
+	for i := range nodes {
+		if nodes[i].TransportExecutionID == nil {
+			continue
+		}
+		fk := *nodes[i].TransportExecutionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seatransportexecution.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "transport_execution_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderLockRecordQuery) loadTransportExecutionVersion(ctx context.Context, query *SeaTransportExecutionVersionQuery, nodes []*OrderLockRecord, init func(*OrderLockRecord), assign func(*OrderLockRecord, *SeaTransportExecutionVersion)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
+	for i := range nodes {
+		if nodes[i].TransportExecutionVersionID == nil {
+			continue
+		}
+		fk := *nodes[i].TransportExecutionVersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(seatransportexecutionversion.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "transport_execution_version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *OrderLockRecordQuery) loadUnlockRequests(ctx context.Context, query *OrderUnlockRequestQuery, nodes []*OrderLockRecord, init func(*OrderLockRecord), assign func(*OrderLockRecord, *OrderUnlockRequest)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*OrderLockRecord)
@@ -1077,6 +1227,12 @@ func (_q *OrderLockRecordQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withMasterBillVersion != nil {
 			_spec.Node.AddColumnOnce(orderlockrecord.FieldMasterBillVersionID)
+		}
+		if _q.withTransportExecution != nil {
+			_spec.Node.AddColumnOnce(orderlockrecord.FieldTransportExecutionID)
+		}
+		if _q.withTransportExecutionVersion != nil {
+			_spec.Node.AddColumnOnce(orderlockrecord.FieldTransportExecutionVersionID)
 		}
 		if _q.withAppliedUnlockRequest != nil {
 			_spec.Node.AddColumnOnce(orderlockrecord.FieldUnlockRequestID)
