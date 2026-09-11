@@ -50,7 +50,6 @@ const (
 	ErrorReason_ERROR_REASON_PARTNER_ATTACHMENT_NOT_FOUND             ErrorReason = 23
 	ErrorReason_ERROR_REASON_PARTNER_ATTACHMENT_EXISTS                ErrorReason = 24
 	ErrorReason_ERROR_REASON_PARTNER_ATTACHMENT_INVALID_ARGUMENT      ErrorReason = 25
-	ErrorReason_ERROR_REASON_PARTNER_TAX_IDENTIFIER_REQUIRED          ErrorReason = 26
 )
 
 // Enum value maps for ErrorReason.
@@ -82,7 +81,6 @@ var (
 		23: "ERROR_REASON_PARTNER_ATTACHMENT_NOT_FOUND",
 		24: "ERROR_REASON_PARTNER_ATTACHMENT_EXISTS",
 		25: "ERROR_REASON_PARTNER_ATTACHMENT_INVALID_ARGUMENT",
-		26: "ERROR_REASON_PARTNER_TAX_IDENTIFIER_REQUIRED",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_PARTNER_UNSPECIFIED":                      0,
@@ -111,7 +109,6 @@ var (
 		"ERROR_REASON_PARTNER_ATTACHMENT_NOT_FOUND":             23,
 		"ERROR_REASON_PARTNER_ATTACHMENT_EXISTS":                24,
 		"ERROR_REASON_PARTNER_ATTACHMENT_INVALID_ARGUMENT":      25,
-		"ERROR_REASON_PARTNER_TAX_IDENTIFIER_REQUIRED":          26,
 	}
 )
 
@@ -147,7 +144,7 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*\xec\t\n" +
+	"partner.v1*\xba\t\n" +
 	"\vErrorReason\x12$\n" +
 	" ERROR_REASON_PARTNER_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eERROR_REASON_PARTNER_NOT_FOUND\x10\x01\x12$\n" +
@@ -175,8 +172,7 @@ const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"5ERROR_REASON_PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT\x10\x16\x12-\n" +
 	")ERROR_REASON_PARTNER_ATTACHMENT_NOT_FOUND\x10\x17\x12*\n" +
 	"&ERROR_REASON_PARTNER_ATTACHMENT_EXISTS\x10\x18\x124\n" +
-	"0ERROR_REASON_PARTNER_ATTACHMENT_INVALID_ARGUMENT\x10\x19\x120\n" +
-	",ERROR_REASON_PARTNER_TAX_IDENTIFIER_REQUIRED\x10\x1aB<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"0ERROR_REASON_PARTNER_ATTACHMENT_INVALID_ARGUMENT\x10\x19B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once

@@ -40,11 +40,9 @@ const searchPartners = vi.fn<
 
 function TestHost({
   disabled = false,
-  taxIdentifierRequired = false,
   onPartnerChange,
 }: {
   disabled?: boolean;
-  taxIdentifierRequired?: boolean;
   onPartnerChange?: (option: PartnerSelectOption | undefined) => void;
 }) {
   const [form] = Form.useForm();
@@ -63,7 +61,6 @@ function TestHost({
           createRoute="/partners/customers/create"
           searchPartners={searchPartners}
           required
-          taxIdentifierRequired={taxIdentifierRequired}
           disabled={disabled}
           onPartnerChange={(option) => {
             form.setFieldValue('customerCode', option?.code);
@@ -140,7 +137,6 @@ describe('PartnerQuickAddSelect', () => {
       expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
         {
           legalName: '新测试单位',
-          unifiedSocialCreditCode: undefined,
           roles: [
             {
               type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
@@ -215,50 +211,6 @@ describe('PartnerQuickAddSelect', () => {
       '/partners/customers/create?legalName=AB%20C%E5%85%AC%E5%8F%B8',
     );
     expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
-  });
-
-  it('taxIdentifierRequired 时校验并提交纳税人识别号', async () => {
-    vi.mocked(partnerServiceCreatePartner).mockResolvedValue({
-      data: { id: 'partner-9', legalName: '带税号单位' } as never,
-    });
-    render(<TestHost taxIdentifierRequired />);
-    await openDropdown();
-
-    fireEvent.click(screen.getByText('新增 委托单位'));
-    await screen.findByLabelText('公司抬头');
-    fireEvent.change(screen.getByLabelText('公司抬头'), {
-      target: { value: '带税号单位' },
-    });
-    // 非法税号阻断提交
-    fireEvent.change(screen.getByLabelText('纳税人识别号'), {
-      target: { value: '123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
-    expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
-    expect(
-      await screen.findByText('请输入正确的18位统一社会信用代码'),
-    ).toBeInTheDocument();
-
-    // 合法税号后提交并大写化
-    fireEvent.change(screen.getByLabelText('纳税人识别号'), {
-      target: { value: '  91310000ma1fl7a21q  ' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
-    await waitFor(() =>
-      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
-        {
-          legalName: '带税号单位',
-          unifiedSocialCreditCode: '91310000MA1FL7A21Q',
-          roles: [
-            {
-              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-              enabled: true,
-            },
-          ],
-        },
-        { signal: expect.any(AbortSignal) },
-      ),
-    );
   });
 
   it('组织切换后本地新建选项被清理', async () => {

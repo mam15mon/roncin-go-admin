@@ -14,7 +14,7 @@ describe('QuickAddPartnerModal', () => {
     vi.mocked(partnerServiceCreatePartner).mockReset();
   });
 
-  it('以规范化税号和启用角色创建伙伴并回填', async () => {
+  it('以启用角色创建伙伴并回填，不强制统一社会信用代码', async () => {
     vi.mocked(partnerServiceCreatePartner).mockResolvedValue({
       data: {
         id: 'partner-1',
@@ -33,9 +33,6 @@ describe('QuickAddPartnerModal', () => {
     fireEvent.change(screen.getByLabelText('单位全称'), {
       target: { value: '  费用测试单位  ' },
     });
-    fireEvent.change(screen.getByLabelText('统一社会信用代码'), {
-      target: { value: '  91310000ma1fl7a21q  ' },
-    });
     fireEvent.mouseDown(screen.getByLabelText('客商类型'));
     fireEvent.click(await screen.findByText('客户 (委托单位/收发通)'));
     fireEvent.click(screen.getByRole('button', { name: '保存并选用' }));
@@ -43,7 +40,6 @@ describe('QuickAddPartnerModal', () => {
     await waitFor(() =>
       expect(partnerServiceCreatePartner).toHaveBeenCalledWith({
         legalName: '费用测试单位',
-        unifiedSocialCreditCode: '91310000MA1FL7A21Q',
         roles: [
           {
             type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
@@ -57,28 +53,5 @@ describe('QuickAddPartnerModal', () => {
       name: '费用测试单位',
       code: 'P00000001',
     });
-  });
-
-  it('缺少或填写非法统一社会信用代码时阻止提交', async () => {
-    render(
-      <App>
-        <QuickAddPartnerModal open onCancel={vi.fn()} onSuccess={vi.fn()} />
-      </App>,
-    );
-
-    fireEvent.change(screen.getByLabelText('单位全称'), {
-      target: { value: '费用测试单位' },
-    });
-    fireEvent.change(screen.getByLabelText('统一社会信用代码'), {
-      target: { value: '123' },
-    });
-    fireEvent.mouseDown(screen.getByLabelText('客商类型'));
-    fireEvent.click(await screen.findByText('供应商 (船东/车队/报关行/码头)'));
-    fireEvent.click(screen.getByRole('button', { name: '保存并选用' }));
-
-    expect(
-      await screen.findByText('请输入正确的18位统一社会信用代码'),
-    ).toBeInTheDocument();
-    expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
   });
 });

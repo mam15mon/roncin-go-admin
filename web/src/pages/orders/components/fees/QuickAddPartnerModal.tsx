@@ -9,7 +9,6 @@ import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 
 type QuickAddPartnerFormValues = {
   legalName: string;
-  unifiedSocialCreditCode: string;
   roles: PartnerRoleTypeValue[];
 };
 
@@ -41,9 +40,6 @@ export default function QuickAddPartnerModal({
       onSubmit={async (values) => {
         const res = await partnerServiceCreatePartner({
           legalName: values.legalName.trim(),
-          unifiedSocialCreditCode: values.unifiedSocialCreditCode
-            .trim()
-            .toUpperCase(),
           roles: values.roles.map((type) => ({ type, enabled: true })),
         });
         if (res.data?.id) {
@@ -67,28 +63,6 @@ export default function QuickAddPartnerModal({
             ]}
           >
             <Input placeholder="工商登记全称或客商名称" maxLength={200} />
-          </Form.Item>
-        </Col>
-        <Col span={24}>
-          <Form.Item
-            name="unifiedSocialCreditCode"
-            label="统一社会信用代码"
-            normalize={(value) =>
-              typeof value === 'string' ? value.trim().toUpperCase() : value
-            }
-            rules={[
-              {
-                required: true,
-                whitespace: true,
-                message: '请输入统一社会信用代码',
-              },
-              {
-                pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
-                message: '请输入正确的18位统一社会信用代码',
-              },
-            ]}
-          >
-            <Input placeholder="18 位统一社会信用代码" maxLength={18} />
           </Form.Item>
         </Col>
         <Col span={24}>

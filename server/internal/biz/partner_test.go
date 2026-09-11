@@ -350,25 +350,19 @@ func TestPartnerRejectsInvalidUSCCAndDuplicateAlias(t *testing.T) {
 	}
 }
 
-func TestPartnerTaxIdentifierDependsOnActiveRole(t *testing.T) {
+func TestPartnerCreateWithoutTaxIdentifier(t *testing.T) {
 	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
-	for _, roleType := range []PartnerRoleType{PartnerRoleCustomer, PartnerRoleSupplier} {
+	// 个人客户与境外主体没有统一社会信用代码，不填税号时也必须能建档。
+	for _, roleType := range []PartnerRoleType{PartnerRoleCustomer, PartnerRoleSupplier, PartnerRoleForeignAgent} {
 		if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
-			Code: "DOMESTIC", LegalName: "境内往来单位",
+			Code: "NOTAX", LegalName: "无税号往来单位",
 			Roles: []*PartnerRole{{Type: roleType, Enabled: true}},
-		}); err != ErrPartnerTaxIdentifierRequired {
-			t.Fatalf("role %s error = %v, want ErrPartnerTaxIdentifierRequired", roleType, err)
+		}); err != nil {
+			t.Fatalf("role %s create without tax identifier error = %v", roleType, err)
 		}
-	}
-
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
-		Code: "FOREIGN", LegalName: "国外代理",
-		Roles: []*PartnerRole{{Type: PartnerRoleForeignAgent, Enabled: true}},
-	}); err != nil {
-		t.Fatalf("foreign agent without tax identifier error = %v", err)
 	}
 }
 

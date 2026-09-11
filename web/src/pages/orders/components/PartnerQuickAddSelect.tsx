@@ -33,7 +33,6 @@ type PartnerQuickAddSelectProps = {
   /** 按角色过滤的服务端关键字检索函数。 */
   searchPartners: (keyword?: string) => Promise<PartnerSelectOption[]>;
   required?: boolean;
-  /** 客户/供应商角色创建时必须提供纳税人识别号（后端业务规则），国外代理不需要。 */
   taxIdentifierRequired?: boolean;
   /** 有效只读（无编辑动作权限或业务写入关闭）时隐藏快捷新增入口并禁用字段。 */
   disabled?: boolean;
@@ -54,7 +53,6 @@ export default function PartnerQuickAddSelect({
   createRoute,
   searchPartners,
   required = false,
-  taxIdentifierRequired = false,
   disabled = false,
   onPartnerChange,
 }: PartnerQuickAddSelectProps) {
@@ -247,10 +245,7 @@ export default function PartnerQuickAddSelect({
         fieldProps={fieldProps}
       />
 
-      <QuickCreateModal<
-        { legalName: string; unifiedSocialCreditCode?: string },
-        PartnerSelectOption
-      >
+      <QuickCreateModal<{ legalName: string }, PartnerSelectOption>
         key={`${currentOrganizationId ?? 'no-organization'}:${canQuickAdd ? 'enabled' : 'disabled'}`}
         centered
         title={`新增 ${displayName}`}
@@ -283,9 +278,6 @@ export default function PartnerQuickAddSelect({
                 {
                   // 客商代码留空由服务端按组织内唯一规则自动生成。
                   legalName: values.legalName.trim(),
-                  unifiedSocialCreditCode: values.unifiedSocialCreditCode
-                    ?.trim()
-                    .toUpperCase(),
                   roles: [{ type: role, enabled: true }],
                 },
                 { signal },
@@ -334,29 +326,6 @@ export default function PartnerQuickAddSelect({
         >
           <Input placeholder="请输入公司抬头" maxLength={200} />
         </Form.Item>
-        {taxIdentifierRequired && (
-          <Form.Item
-            name="unifiedSocialCreditCode"
-            label="纳税人识别号"
-            tooltip="客户/供应商往来单位必须有统一社会信用代码（后端业务规则）"
-            normalize={(value) =>
-              typeof value === 'string' ? value.trim().toUpperCase() : value
-            }
-            rules={[
-              {
-                required: true,
-                whitespace: true,
-                message: '请输入纳税人识别号',
-              },
-              {
-                pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
-                message: '请输入正确的18位统一社会信用代码',
-              },
-            ]}
-          >
-            <Input placeholder="18 位统一社会信用代码" maxLength={18} />
-          </Form.Item>
-        )}
       </QuickCreateModal>
     </>
   );
