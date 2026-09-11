@@ -19,9 +19,12 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   bodyStyle,
   className,
 }) => {
-  const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState(defaultCollapsed);
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] =
+    useState(defaultCollapsed);
   const isControlled = controlledCollapsed !== undefined;
-  const isCollapsed = isControlled ? controlledCollapsed : uncontrolledCollapsed;
+  const isCollapsed = isControlled
+    ? controlledCollapsed
+    : uncontrolledCollapsed;
 
   const handleToggle = () => {
     if (!collapsible) return;
@@ -57,7 +60,9 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         {title}
       </Text>
       {collapsible && (
-        <span style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', marginLeft: 2 }}>
+        <span
+          style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', marginLeft: 2 }}
+        >
           {isCollapsed ? <RightOutlined /> : <DownOutlined />}
         </span>
       )}

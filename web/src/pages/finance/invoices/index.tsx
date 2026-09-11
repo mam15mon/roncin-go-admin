@@ -40,10 +40,10 @@ import {
 import {
   invoiceCancelSuccessText,
   invoiceIssueActionText,
-  invoiceStateText,
   invoiceStates,
-  isReceivableInvoice,
+  invoiceStateText,
   invoiceVoidSuccessText,
+  isReceivableInvoice,
 } from './components/invoiceConstants';
 
 type CreateValues = {
@@ -180,7 +180,11 @@ export default function FinanceInvoicesPage() {
     try {
       await settlementServiceCancelInvoice(
         { id: cancelTarget.id },
-        { id: cancelTarget.id, expectedVersion: cancelTarget.version, reason: values.reason },
+        {
+          id: cancelTarget.id,
+          expectedVersion: cancelTarget.version,
+          reason: values.reason,
+        },
       );
       message.success(
         issued
@@ -277,7 +281,9 @@ export default function FinanceInvoicesPage() {
           invoiceStates[
             r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
           ];
-        return <Tag color={v?.color}>{invoiceStateText(r.status, r.direction)}</Tag>;
+        return (
+          <Tag color={v?.color}>{invoiceStateText(r.status, r.direction)}</Tag>
+        );
       },
     },
     {
@@ -475,7 +481,9 @@ export default function FinanceInvoicesPage() {
         styles={{ body: { padding: '10px 16px' } }}
       >
         <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+            所属公司：
+          </span>
           <Select
             allowClear
             placeholder="请选择所属公司"

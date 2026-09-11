@@ -65,9 +65,7 @@ export function hasMixedBillDirections(rows: API.FeeLedgerItem[]) {
 // 对冲建账要求同一批费用同时包含应收和应付；单方向费用只能走普通账单，
 // 页面不自动替用户切换模式。
 export function hasBothBillDirections(rows: API.FeeLedgerItem[]) {
-  const directions = new Set(
-    rows.map((row) => row.direction).filter(Boolean),
-  );
+  const directions = new Set(rows.map((row) => row.direction).filter(Boolean));
   return directions.has('RECEIVABLE') && directions.has('PAYABLE');
 }
 
@@ -336,7 +334,9 @@ export default function FinanceFeeLedgerPage() {
       >
         <Space size={16} align="center" wrap>
           <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              所属公司：
+            </span>
             <Select
               allowClear
               placeholder="请选择所属公司"
@@ -358,7 +358,9 @@ export default function FinanceFeeLedgerPage() {
             />
           </Space>
           <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>标签筛选：</span>
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              标签筛选：
+            </span>
             <Select
               mode="multiple"
               allowClear
@@ -366,7 +368,9 @@ export default function FinanceFeeLedgerPage() {
               filterOption={false}
               loading={tagOptionsLoading}
               style={{ minWidth: 280 }}
-              placeholder={organizationId ? '命中任一标签即返回' : '请先选择所属公司'}
+              placeholder={
+                organizationId ? '命中任一标签即返回' : '请先选择所属公司'
+              }
               options={tagOptions}
               value={tagFilterIds}
               disabled={!organizationId}
@@ -437,10 +441,7 @@ export default function FinanceFeeLedgerPage() {
                 {
                   key: 'create-netting-bill',
                   label: '创建对冲账单',
-                  onClick: (
-                    _keys: React.Key[],
-                    rows: API.FeeLedgerItem[],
-                  ) => {
+                  onClick: (_keys: React.Key[], rows: API.FeeLedgerItem[]) => {
                     const invalidRows = rows.filter(
                       (row) => !canCreateBill(row),
                     );
@@ -464,7 +465,9 @@ export default function FinanceFeeLedgerPage() {
                       );
                       return;
                     }
-                    setSelectedFeeIds(rows.map((row) => row.id || '').filter(Boolean));
+                    setSelectedFeeIds(
+                      rows.map((row) => row.id || '').filter(Boolean),
+                    );
                     setSelectedBillOrganizationId(selectedOrganizationID);
                     setBillWorkbenchMode('NETTING');
                     setBillWorkbenchOpen(true);

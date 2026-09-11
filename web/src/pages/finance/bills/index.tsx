@@ -374,7 +374,9 @@ export default function FinanceBillsPage() {
       >
         <Space size={16} align="center" wrap>
           <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              所属公司：
+            </span>
             <Select
               allowClear
               style={{ minWidth: 220 }}
@@ -396,7 +398,9 @@ export default function FinanceBillsPage() {
             />
           </Space>
           <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>标签筛选：</span>
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              标签筛选：
+            </span>
             <Select
               mode="multiple"
               allowClear
@@ -408,7 +412,9 @@ export default function FinanceBillsPage() {
               disabled={!organizationId}
               loading={tagOptionsLoading}
               style={{ minWidth: 280 }}
-              placeholder={organizationId ? '命中任一标签即返回' : '请先选择所属公司'}
+              placeholder={
+                organizationId ? '命中任一标签即返回' : '请先选择所属公司'
+              }
               options={tagOptions}
               value={tagFilterIds}
               onChange={(value) => {

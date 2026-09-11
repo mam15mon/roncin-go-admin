@@ -398,7 +398,9 @@ export default function FinanceCashflowsPage() {
         styles={{ body: { padding: '10px 16px' } }}
       >
         <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+            所属公司：
+          </span>
           <Select
             allowClear
             placeholder="请选择所属公司"

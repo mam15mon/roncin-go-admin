@@ -541,65 +541,65 @@ export default function OrderFeesPage() {
       />
 
       <OrderFeeHeader
-          order={order}
-          kind={definition.kind}
-          orderId={orderId || ''}
-          configTitle={definition.title}
-          customerName={customerName}
-          financeLocked={financeLocked}
-          financeLockReason={financeLockReason}
-          financeLockCommissionNos={financeLockCommissionNos}
-          lockWritePolicy={lockWritePolicy}
-          onRetryLockState={refreshLockState}
-          receivableSummary={receivableSummary}
-          payableSummary={payableSummary}
-          profitCny={profitCny}
-          profitRate={profitRate}
-        />
+        order={order}
+        kind={definition.kind}
+        orderId={orderId || ''}
+        configTitle={definition.title}
+        customerName={customerName}
+        financeLocked={financeLocked}
+        financeLockReason={financeLockReason}
+        financeLockCommissionNos={financeLockCommissionNos}
+        lockWritePolicy={lockWritePolicy}
+        onRetryLockState={refreshLockState}
+        receivableSummary={receivableSummary}
+        payableSummary={payableSummary}
+        profitCny={profitCny}
+        profitRate={profitRate}
+      />
 
-        {/* 3. 费用表格工作区 */}
-        <OrderFeeTableTabs
-          orderId={orderId || ''}
-          receivableActionRef={receivableActionRef}
-          payableActionRef={payableActionRef}
-          receivableSummary={receivableSummary}
-          payableSummary={payableSummary}
-          selectedReceivableFeeIds={selectedReceivableFeeIds}
-          setSelectedReceivableFeeIds={setSelectedReceivableFeeIds}
-          selectedPayableFeeIds={selectedPayableFeeIds}
-          setSelectedPayableFeeIds={setSelectedPayableFeeIds}
-          setAllReceivableItems={setAllReceivableItems}
-          setAllPayableItems={setAllPayableItems}
-          setReceivableSummary={setReceivableSummary}
-          setPayableSummary={setPayableSummary}
-          canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
-          feeWritesDisabled={feeWritesDisabled}
-          onOpenBillWorkbench={(feeIds) => {
-            if (!orderId) return;
-            if (!order.organizationId) {
-              message.warning('无法确定费用所属公司，不能创建账单');
-              return;
-            }
-            setBillWorkbenchContext({
-              orderId,
-              feeIds,
-              organizationId: order.organizationId,
-            });
-          }}
-          onOpenFeeModal={openFeeModal}
-          getTableColumns={getTableColumns}
-        />
+      {/* 3. 费用表格工作区 */}
+      <OrderFeeTableTabs
+        orderId={orderId || ''}
+        receivableActionRef={receivableActionRef}
+        payableActionRef={payableActionRef}
+        receivableSummary={receivableSummary}
+        payableSummary={payableSummary}
+        selectedReceivableFeeIds={selectedReceivableFeeIds}
+        setSelectedReceivableFeeIds={setSelectedReceivableFeeIds}
+        selectedPayableFeeIds={selectedPayableFeeIds}
+        setSelectedPayableFeeIds={setSelectedPayableFeeIds}
+        setAllReceivableItems={setAllReceivableItems}
+        setAllPayableItems={setAllPayableItems}
+        setReceivableSummary={setReceivableSummary}
+        setPayableSummary={setPayableSummary}
+        canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
+        feeWritesDisabled={feeWritesDisabled}
+        onOpenBillWorkbench={(feeIds) => {
+          if (!orderId) return;
+          if (!order.organizationId) {
+            message.warning('无法确定费用所属公司，不能创建账单');
+            return;
+          }
+          setBillWorkbenchContext({
+            orderId,
+            feeIds,
+            organizationId: order.organizationId,
+          });
+        }}
+        onOpenFeeModal={openFeeModal}
+        getTableColumns={getTableColumns}
+      />
 
-        {/* 底部双层多币种动态汇总看板 */}
-        <FinanceSummaryBoard
-          selectedRows={[...allReceivableItems, ...allPayableItems].filter(
-            (f) =>
-              Boolean(f.id) &&
-              (selectedReceivableFeeIds.includes(f.id || '') ||
-                selectedPayableFeeIds.includes(f.id || '')),
-          )}
-          allRows={[...allReceivableItems, ...allPayableItems]}
-        />
+      {/* 底部双层多币种动态汇总看板 */}
+      <FinanceSummaryBoard
+        selectedRows={[...allReceivableItems, ...allPayableItems].filter(
+          (f) =>
+            Boolean(f.id) &&
+            (selectedReceivableFeeIds.includes(f.id || '') ||
+              selectedPayableFeeIds.includes(f.id || '')),
+        )}
+        allRows={[...allReceivableItems, ...allPayableItems]}
+      />
 
       <BillCreationWorkbench
         key={targetOrderId}

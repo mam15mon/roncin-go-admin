@@ -1,7 +1,16 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Card, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
+import {
+  App,
+  Card,
+  Descriptions,
+  Drawer,
+  Select,
+  Space,
+  Table,
+  Tag,
+} from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import {
   type FinanceLedgerMetricCard,
@@ -306,7 +315,9 @@ export default function FinanceVerificationsPage() {
         styles={{ body: { padding: '10px 16px' } }}
       >
         <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+            所属公司：
+          </span>
           <Select
             allowClear
             placeholder="请选择所属公司"

@@ -7,8 +7,6 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
-import { SectionCard } from '@/components/ui';
-import { pcaCascaderOptions } from '@/utils/chinaDivision';
 import {
   Button,
   Cascader,
@@ -24,17 +22,37 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { SectionCard } from '@/components/ui';
 import { PartnerBusinessType, PartnerCustomerType } from '@/enums.generated';
+import { pcaCascaderOptions } from '@/utils/chinaDivision';
 
 const { Text } = Typography;
 
 export const BUSINESS_TYPE_OPTIONS = [
-  { label: 'SE（海运出口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE },
-  { label: 'SI（海运进口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SI },
-  { label: 'AE（空运出口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AE },
-  { label: 'AI（空运进口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AI },
-  { label: 'LAND（陆运业务）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_LAND },
-  { label: 'RAIL（铁路运输）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_RAIL },
+  {
+    label: 'SE（海运出口）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE,
+  },
+  {
+    label: 'SI（海运进口）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SI,
+  },
+  {
+    label: 'AE（空运出口）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AE,
+  },
+  {
+    label: 'AI（空运进口）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AI,
+  },
+  {
+    label: 'LAND（陆运业务）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_LAND,
+  },
+  {
+    label: 'RAIL（铁路运输）',
+    value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_RAIL,
+  },
 ];
 
 export const CUSTOMER_TYPE_OPTIONS = [

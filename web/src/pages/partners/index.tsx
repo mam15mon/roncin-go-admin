@@ -40,9 +40,21 @@ import PartnerSecondary from './partner-secondary';
 const { Text } = Typography;
 
 const roleOptions = [
-  { label: '客户', value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, color: 'blue' },
-  { label: '供应商', value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER, color: 'green' },
-  { label: '国外代理', value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT, color: 'purple' },
+  {
+    label: '客户',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+    color: 'blue',
+  },
+  {
+    label: '供应商',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+    color: 'green',
+  },
+  {
+    label: '国外代理',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
+    color: 'purple',
+  },
 ];
 
 const partnerViews: Record<
@@ -109,7 +121,8 @@ export default function Partners() {
   const { message } = App.useApp();
   const access = useAccess();
   const location = useLocation();
-  const currentView = partnerViews[location.pathname] ?? partnerViews['/partners/customers'];
+  const currentView =
+    partnerViews[location.pathname] ?? partnerViews['/partners/customers'];
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -128,7 +141,9 @@ export default function Partners() {
   const handleExport = async () => {
     try {
       setExporting(true);
-      const response = await partnerServiceExportPartners({ role: currentView.roleType });
+      const response = await partnerServiceExportPartners({
+        role: currentView.roleType,
+      });
       const data = unwrapList(response);
       if (data.length === 0) {
         message.warning('没有可导出的数据');
@@ -201,9 +216,7 @@ export default function Partners() {
       fixed: 'left',
       copyable: true,
       render: (code) => (
-        <Text style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-          {code}
-        </Text>
+        <Text style={{ fontFamily: 'monospace', fontWeight: 600 }}>{code}</Text>
       ),
     },
     {
@@ -218,7 +231,11 @@ export default function Partners() {
       dataIndex: 'role',
       width: 240,
       search: false,
-      render: (_, record) => <Space wrap size={[4, 4]}>{roleTags(record.roles)}</Space>,
+      render: (_, record) => (
+        <Space wrap size={[4, 4]}>
+          {roleTags(record.roles)}
+        </Space>
+      ),
     },
     {
       title: '联系人',
@@ -227,11 +244,7 @@ export default function Partners() {
       search: false,
       render: (_, record) => {
         const count = record.contacts?.length ?? 0;
-        return (
-          <Tag variant="filled">
-            {count} 位
-          </Tag>
-        );
+        return <Tag variant="filled">{count} 位</Tag>;
       },
     },
     {
@@ -241,11 +254,7 @@ export default function Partners() {
       search: false,
       render: (_, record) => {
         const count = record.aliases?.length ?? 0;
-        return (
-          <Tag variant="filled">
-            {count} 个
-          </Tag>
-        );
+        return <Tag variant="filled">{count} 个</Tag>;
       },
     },
     {
@@ -256,9 +265,7 @@ export default function Partners() {
       copyable: true,
       render: (code) =>
         code ? (
-          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
-            {code}
-          </Text>
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{code}</Text>
         ) : (
           <Text type="secondary">-</Text>
         ),
@@ -335,7 +342,10 @@ export default function Partners() {
     },
   ];
 
-  const [searchParams, setSearchParams] = useState<{ keyword?: string; enabled?: boolean }>({});
+  const [searchParams, setSearchParams] = useState<{
+    keyword?: string;
+    enabled?: boolean;
+  }>({});
 
   return (
     <PageContainer
@@ -392,7 +402,12 @@ export default function Partners() {
               </Button>
             )}
             {access.canManagePartners && (
-              <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
                 新增{currentView.title}
               </Button>
             )}
@@ -455,7 +470,8 @@ export default function Partners() {
 
           let items: API.PartnerImportItemInput[];
           try {
-            const raw = typeof values.items === 'string' ? values.items.trim() : '';
+            const raw =
+              typeof values.items === 'string' ? values.items.trim() : '';
             if (!raw) {
               message.error('导入数据不能为空');
               return false;
@@ -572,7 +588,9 @@ export default function Partners() {
               reason: values.reason?.trim() ?? '',
             },
           );
-          message.success(values.blacklisted ? '已加入供应商黑名单' : '已移出供应商黑名单');
+          message.success(
+            values.blacklisted ? '已加入供应商黑名单' : '已移出供应商黑名单',
+          );
           setBlacklistModalOpen(false);
           actionRef.current?.reload();
           return true;
