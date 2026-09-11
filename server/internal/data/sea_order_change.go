@@ -3346,7 +3346,7 @@ func (r *seaOrderChangeRepo) PreviewTransportExecutionUpdate(ctx context.Context
 	for _, member := range links {
 		memberIDs = append(memberIDs, member.OrderID)
 	}
-	impacts, err := collectDocumentImpacts(ctx, client, organizationID, memberIDs, false, uuid.Nil)
+	impacts, err := collectDocumentImpacts(ctx, client, organizationID, memberIDs, uuid.Nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3394,6 +3394,13 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		orders, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(organizationID), orderent.IDIn(memberOrderIDs...)).Order(orderent.ByID()).ForUpdate().All(ctx)
 		if err != nil || len(orders) != len(memberOrderIDs) {
 			return biz.ErrSeaOrderReassignmentVersionConflict
+		}
+		// 共享航程的船期更新属全部成员订单的业务内容写入：逐单执行统一内容门禁，
+		// 任一成员被业务锁定或处于终止/结案状态即整体回滚。
+		for _, memberOrder := range orders {
+			if err := ensureOrderBusinessEditable(ctx, tx, memberOrder); err != nil {
+				return err
+			}
 		}
 		if err := validateConfirmationAttachment(ctx, tx.Client(), organizationID, input.OrderID, input.Confirmation); err != nil {
 			return err
@@ -3777,6 +3784,11 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		}
 		if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
 			return biz.ErrSeaOrderReassignmentBlocked
+		}
+		// 改配属订单业务内容写入：在既有终止/结案检查之上执行统一内容门禁，
+		// 业务锁定的订单不允许改配（ORDER_BUSINESS_LOCKED，409）。
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
 		}
 
 		// C.1: 锁序改造：先无锁定位 Link，仅作 ID 定位
