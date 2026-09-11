@@ -13,6 +13,7 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	financecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -223,6 +224,8 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	return result, nil
 }
 
+// financeLockCommissionNos 返回仍使订单处于财务锁定的提成单号：与台账净额口径
+// 一致，有效提成净额 ≤ 0（已被全额冲减）时不视为锁定，费用编辑锁释放。
 func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizationID, orderID uuid.UUID) ([]string, error) {
 	items, err := r.data.db.FinanceCommissionLine.Query().Where(
 		commissionlineent.OrganizationIDEQ(organizationID),
@@ -231,6 +234,24 @@ func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizatio
 	).WithCommission().All(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if len(items) == 0 {
+		return nil, nil
+	}
+	adjustments, err := r.data.db.FinanceCommissionAdjustment.Query().Where(
+		commissionadjustmentent.OrganizationIDEQ(organizationID),
+		commissionadjustmentent.OrderIDEQ(orderID),
+		commissionadjustmentent.StatusIn(commissionadjustmentent.StatusCONFIRMED, commissionadjustmentent.StatusPAID),
+	).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	netAmount, err := financeCommissionLockNetAmount(items, adjustments)
+	if err != nil {
+		return nil, err
+	}
+	if !netAmount.IsPositive() {
+		return nil, nil
 	}
 	result := make([]string, 0, len(items))
 	seen := make(map[string]struct{}, len(items))
@@ -256,11 +277,9 @@ func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, or
 	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 		return err
 	}
-	locked, err := tx.FinanceCommissionLine.Query().Where(
-		commissionlineent.OrganizationIDEQ(organizationID),
-		commissionlineent.OrderIDEQ(orderID),
-		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
-	).Exist(ctx)
+	// 财务锁复用台账的统一净额谓词（同一 SQL 语义）：有效提成净额 ≤ 0 视为已被
+	// 全额冲减，释放费用编辑锁；净额 > 0 才拒绝写入，避免“列表显示已解锁、写入仍被拒”。
+	locked, err := tx.Order.Query().Where(orderent.IDEQ(orderID), financeLockedOrderPredicate()).Exist(ctx)
 	if err != nil {
 		return err
 	}
