@@ -12,6 +12,8 @@ import (
 
 	"github.com/google/uuid"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
+
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
@@ -98,6 +100,30 @@ func ensureOrderNotBusinessLocked(ctx context.Context, users *ent.UserClient, ex
 // 中完成订单加锁的既有写入口复用；规则真相源在 ensureOrderBusinessContentEditable。
 func ensureOrderBusinessEditable(ctx context.Context, tx *ent.Tx, existing *ent.Order) error {
 	return ensureOrderBusinessContentEditable(ctx, tx.User, existing)
+}
+
+// orderBusinessEditImpact 为预览流程提供单订单业务内容门禁事实：当订单处于终止、结案或业务
+// 锁定状态时返回 BlocksExecution=true 的下游影响对象，便于调用方统一阻断 Executable 并展示原因。
+func orderBusinessEditImpact(ctx context.Context, users *ent.UserClient, o *ent.Order) *biz.SeaDocumentDownstreamImpact {
+	if o == nil {
+		return nil
+	}
+	if err := ensureOrderBusinessContentEditable(ctx, users, o); err != nil {
+		msg := "不可编辑"
+		if ke := kratoserrors.FromError(err); ke != nil && ke.Message != "" {
+			msg = ke.Message
+		} else if err.Error() != "" {
+			msg = err.Error()
+		}
+		return &biz.SeaDocumentDownstreamImpact{
+			FactType:        "ORDER_BUSINESS_LOCK",
+			ReferenceID:     o.ID.String(),
+			ReferenceNo:     o.OrderNo,
+			Message:         "订单 " + o.OrderNo + " " + msg,
+			BlocksExecution: true,
+		}
+	}
+	return nil
 }
 
 // ensureSharedMBLNotLocked 检查共享 MBL 下的所有活动成员订单是否被锁定；任一被锁定则整体阻断。

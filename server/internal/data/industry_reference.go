@@ -30,18 +30,18 @@ func (r *industryReferenceRepo) headquartersOrganizationID(ctx context.Context, 
 }
 
 // writeIndustryLocalCodePrecedence 写入总部共享行的让位条件：本组织已存在同业务
-// 代码的行时，总部行不再参与候选（本组织行优先）。去重下推到 SQL，保证分页
-// 计数、排序与去重结果一致；表名与列名来自代码内固定清单，不接收外部输入。
+// 代码的行时，总部行不再参与候选（本组织行优先，大小写不敏感比对）。去重下推到 SQL，
+// 保证分页计数、排序与去重结果一致；表名与列名来自代码内固定清单，不接收外部输入。
 func writeIndustryLocalCodePrecedence(builder *sql.Builder, selector *sql.Selector, table, codeColumn string, organizationID uuid.UUID) {
 	builder.WriteString("NOT EXISTS (SELECT 1 FROM ")
 	builder.WriteString(table)
 	builder.WriteString(" AS local_precedence WHERE local_precedence.organization_id = ")
 	builder.Arg(organizationID)
-	builder.WriteString(" AND local_precedence.")
+	builder.WriteString(" AND UPPER(local_precedence.")
 	builder.WriteString(codeColumn)
-	builder.WriteString(" = ")
+	builder.WriteString(") = UPPER(")
 	builder.Ident(selector.C(codeColumn))
-	builder.WriteString(")")
+	builder.WriteString("))")
 }
 
 // portOrganizationFilter 返回港口“本组织 + 总部共享”的组织过滤谓词；

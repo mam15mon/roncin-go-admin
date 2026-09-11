@@ -3350,14 +3350,29 @@ func (r *seaOrderChangeRepo) PreviewTransportExecutionUpdate(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
+	if len(memberIDs) > 0 {
+		orders, err := client.Order.Query().Where(
+			orderent.OrganizationIDEQ(organizationID),
+			orderent.IDIn(memberIDs...),
+		).Order(orderent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range orders {
+			if impact := orderBusinessEditImpact(ctx, client.User, o); impact != nil {
+				impacts = append(impacts, impact)
+			}
+		}
+	}
 	differences := transportExecutionDifferences(execution, input.Input)
-	executable := false
+	hasDiff := false
 	for _, difference := range differences {
 		if difference.IsDifferent {
-			executable = true
+			hasDiff = true
 			break
 		}
 	}
+	executable := hasDiff && !hasBlockingImpact(impacts)
 	return &biz.SeaTransportExecutionUpdatePreview{TransportExecutionID: execution.ID, TransportExecutionVersion: execution.Version, MemberOrderIDs: memberIDs, Differences: differences, Impacts: impacts, Executable: executable}, nil
 }
 

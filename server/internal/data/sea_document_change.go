@@ -226,6 +226,17 @@ func (r *seaDocumentChangeRepo) PreviewAmendment(ctx context.Context, orgID uuid
 	if err != nil {
 		return nil, err
 	}
+	if len(orderIDs) > 0 {
+		orders, err := client.Order.Query().Where(orderent.OrganizationIDEQ(orgID), orderent.IDIn(orderIDs...)).Order(orderent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range orders {
+			if impact := orderBusinessEditImpact(ctx, client.User, o); impact != nil {
+				impacts = append(impacts, impact)
+			}
+		}
+	}
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: len(diffs) > 0 && !hasBlockingImpact(impacts)}, nil
 }
 
@@ -249,6 +260,17 @@ func (r *seaDocumentChangeRepo) PreviewVoid(ctx context.Context, orgID uuid.UUID
 	impacts, err := collectDocumentImpacts(ctx, client, orgID, orderIDs, impactHouseBillID)
 	if err != nil {
 		return nil, err
+	}
+	if len(orderIDs) > 0 {
+		orders, err := client.Order.Query().Where(orderent.OrganizationIDEQ(orgID), orderent.IDIn(orderIDs...)).Order(orderent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range orders {
+			if impact := orderBusinessEditImpact(ctx, client.User, o); impact != nil {
+				impacts = append(impacts, impact)
+			}
+		}
 	}
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
 }
@@ -309,6 +331,9 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 	impacts, err := collectDocumentImpacts(ctx, client, orgID, []uuid.UUID{order.ID}, impactHouseBillID)
 	if err != nil {
 		return nil, err
+	}
+	if impact := orderBusinessEditImpact(ctx, client.User, order); impact != nil {
+		impacts = append(impacts, impact)
 	}
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: differences, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
 }

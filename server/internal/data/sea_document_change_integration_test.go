@@ -769,7 +769,25 @@ func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
 		f := newSeaDocumentChangeFixture(t)
 		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 		f.data.db.Order.UpdateOneID(f.orderID).SetLockedAt(time.Now().UTC()).SetLockedBy(f.actorID).SetLockGeneration(1).SaveX(ctx)
-		if _, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, masterAmendCmd(f), f.audit()); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+		cmd := masterAmendCmd(f)
+		preview, err := uc.PreviewAmendment(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("改单预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单改单预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单改单预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+		if _, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
 			t.Fatalf("业务锁定订单改单应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
 		}
 	})
@@ -786,6 +804,23 @@ func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
 			ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
 			TargetMode: biz.SeaDocumentStructureDirect, Reason: "锁定下模式切换",
 			IdempotencyKey: "mode-locked-" + uuid.NewString(), Confirmation: f.confirmation(),
+		}
+		preview, err := uc.PreviewModeChange(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("模式切换预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单模式切换预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单模式切换预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
 		}
 		if err := uc.ExecuteModeChange(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
 			t.Fatalf("业务锁定订单模式切换应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
@@ -820,6 +855,23 @@ func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
 			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
 			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
 			Reason: "结案订单作废", IdempotencyKey: "void-closed-" + uuid.NewString(), Confirmation: f.confirmation(),
+		}
+		preview, err := uc.PreviewVoid(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("作废预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("已结案订单作废预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("已结案订单作废预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
 		}
 		if _, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != biz.ErrOrderClosed.Reason {
 			t.Fatalf("已结案订单作废应返回 ORDER_CLOSED，实际: %v", err)

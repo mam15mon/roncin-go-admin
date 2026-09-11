@@ -1298,9 +1298,14 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 
 	newETD := time.Now().UTC().Add(48 * time.Hour)
 	transportUpdateCmd := func(order *ent.Order) *biz.SeaTransportExecutionUpdateCommand {
+		te, _ := env.data.db.SeaTransportExecution.Get(ctx, env.teID)
+		v := uint64(1)
+		if te != nil {
+			v = te.Version
+		}
 		return &biz.SeaTransportExecutionUpdateCommand{
 			OrderID:                           order.ID,
-			ExpectedTransportExecutionVersion: 1,
+			ExpectedTransportExecutionVersion: v,
 			Input:                             &biz.SeaTransportExecutionUpdateInput{VesselName: "GATED VESSEL", VoyageNo: "999W", ETD: &newETD},
 			Reason:                            "门禁阻断验证",
 			Confirmation:                      &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "确认改船期"},
@@ -1347,6 +1352,25 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 	t.Run("业务锁定订单拒绝共享航程船期更新且零写入", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "900", splitFixtureOptions{})
 		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		defer env.data.db.Order.UpdateOneID(f.order.ID).ClearLockedAt().ClearLockedBy().SetLockGeneration(0).SaveX(ctx)
+		preview, previewErr := env.uc.PreviewTransportExecutionUpdate(ctx, env.orgID, transportUpdateCmd(f.order))
+		if previewErr != nil {
+			t.Fatalf("业务锁定订单船期更新预览不应报错，实际: %v", previewErr)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单船期更新预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单船期更新预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+
 		if _, err := env.uc.ExecuteTransportExecutionUpdate(ctx, env.orgID, env.userID, transportUpdateCmd(f.order)); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
 			t.Fatalf("业务锁定订单的船期更新应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
 		}
@@ -1354,8 +1378,6 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		if teAfter.Version != 2 || teAfter.VesselName != "GATED VESSEL" {
 			t.Fatalf("被阻断的船期更新产生了部分写入: %+v", teAfter)
 		}
-		// 所有子测试共享同一 TE 与 MBL：解除锁定，避免阻断后续子测试的成员集合。
-		env.data.db.Order.UpdateOneID(f.order.ID).ClearLockedAt().ClearLockedBy().SetLockGeneration(0).SaveX(ctx)
 	})
 
 	t.Run("终止流程订单拒绝共享航程船期更新", func(t *testing.T) {
@@ -1373,7 +1395,8 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 	t.Run("业务锁定订单拒绝整票改配且旧关联保持活动", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "902", splitFixtureOptions{})
 		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
-		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reassignmentInput(f.order, f.link)); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+		reasInput := reassignmentInput(f.order, f.link)
+		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reasInput); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
 			t.Fatalf("业务锁定订单的改配应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
 		}
 		linkAfter, _ := env.data.db.SeaMasterBillOrderLink.Get(ctx, f.link.ID)
