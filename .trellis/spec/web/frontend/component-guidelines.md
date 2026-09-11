@@ -106,3 +106,12 @@ if (
 - `OrderDetailFeaturesContext` 只提供业务输入与命令（订单身份、写入口校验、`refreshOrderAndLock`、绑定业务类型的 `canOrder`、搜索函数与候选项）；不暴露草稿键、dirty setter、显式刷新令牌或模板 actions ref。
 - 扩展的普通刷新走 `refreshOrderAndLock`（不清草稿、不 `resetTo`）；显式刷新令牌完全由通用详情页持有（见 state-management.md）。
 - 通用详情组件（`detail.tsx`、`OrderDetailHeader`）不得直接 import Sea 覆盖层或品类服务；类型专属按钮经 `businessActions` 插槽注入，通用 Header 不认识具体业务动作。
+
+## 往来单位选择器与快捷建档（散客契约）
+
+后端契约与完整口径见 `server/backend/partner-casual-contract.md`，此处只约束前端交互：
+
+- **快捷建档角色由上下文决定，单选**：订单侧（`PartnerQuickAddSelect`）按触发字段静默写入单一角色；费用侧（`QuickAddPartnerModal`）客商类型为单选，经 `defaultRole` prop 由调用方按当前费用方向预选（应收→客户、应付→供应商、方向未选默认客户）。多角色勾选属主档维护，快捷弹窗不得提供。
+- **快捷新增弹窗默认勾选「单次合作」**，可取消；提交透传 `isCasual`。
+- **选择器元数据经契约字段渲染，不污染 label**：候选项携带 `isCasual` 时经 `optionRender` 动态渲染 `<Tag>散客</Tag>`；`label` 只拼 `legalName (code)`，禁止拼入散客等业务标注文本（防止单证 / 合同字符串污染，选中值不得出现多余前缀）。
+- **散客交互的软硬边界**：向散客供应商出款时对方账户动态标星必填（服务端刚性）；散客应收账单改大账期只出黄色预警、不阻断提交（刻意弹性，禁止加前端硬拦截）。
