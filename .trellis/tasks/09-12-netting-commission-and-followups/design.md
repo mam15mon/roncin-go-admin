@@ -63,15 +63,32 @@
 - `CommissionCalculation` / `FinanceCommission` 消息：`verification_id/no` 改 optional，
   新增 `netting_id/netting_no`；`make api` 重生成，`generate:web-client` 同步。
 
-## 2.5 PreviewSplit 门禁（sea_order_change.go）
+## 2.5 拆票与操作门禁（sea_order_change.go）
 
 - `PreviewSplit` 在 `GetSplitContext` 取得来源订单后，执行
   `ensureOrderBusinessContentEditable`（复用 `orderBusinessEditBlockReason` 提取文案）；
   未通过 → 向 `preview.ValidationErrors` 追加
   `SeaOrderSplitValidationError{Reason: "ORDER_GATE", Message: "订单 <no> <原因>"}`，
   预览照常返回（不 500）；Execute 既有 409 语义不变。
+- `GetChangeActions` 在检查生命周期之后，执行 `ensureOrderBusinessContentEditable`
+  （或直接检查 `order.BusinessLockStatus == LOCKED`）；若被锁定，将 `CanSplit = false`
+  与 `CanReassign = false`，并在 `SplitBlockedReasons` 与 `ReassignBlockedReasons`
+  中记录 `"订单 " + order.OrderNo + " " + orderBusinessEditBlockReason(err)`，使前端按钮
+  即时禁用并提示锁定原因。
 
-## 2.6 admin 集成测试迁移
+## 2.6 非 CNY 本币提成 CNY 汇率解析与换算修正（finance_commission.go）
+
+- **汇率解析路由**：提成预览与创建时，当 `generation.BaseCurrency != cnyCurrency` 时，
+  调用 `u.exchangeRate.ResolveRate(ctx, org, generation.BaseCurrency, generation.CommissionDate)`；
+  底层 `ResolveContext` 取得总部上下文（BaseCurrency=CNY），在总部查询
+  `From: baseCurrency, To: CNY` 的基准汇率（如 `USD → CNY` = 7.2），彻底解决去向总部反查
+  不存在的 `CNY → USD` 报 `ErrExchangeRateMissing` 的问题。
+- **金额换算函数**：`ResolveCommissionCNYRate(baseCurrency, date, resolvedRate)`
+  在 `baseCurrency != cnyCurrency` 时，直接采用 `resolvedRate` 作为快照汇率
+  （不再做 `1 / resolvedRate` 倒数），`ApplyCommissionAmount` 保持 `commissionAmount * exchangeRate`
+  相乘，得到符合财务定义的正确 CNY 提成总额。
+
+## 2.7 admin 集成测试迁移
 
 - `TestAdminEmployeeLifecyclePostgres`（及其私有夹具）从 `newIntegrationData` +
   `AutoMigrate` 直连 public schema 模式迁到 `getIntegrationData(t)` 隔离 schema 模式；
@@ -95,3 +112,5 @@
 | 对冲 REVERSE 时其提成未支付 | 取消（CANCELLED） |
 | 对冲 REVERSE 时其提成有 PAID/CONFIRMED 敞口 | 生成 CONFIRMED 冲减调整 |
 | 拆票预览遇锁定/终态订单 | ValidationErrors 含原因，正常返回 |
+| change-actions 遇业务锁定订单 | CanSplit=false, CanReassign=false，含锁定原因 |
+| 非 CNY 本币组织计提提成 | 按 baseCurrency→CNY 正向汇率换算，不报错、不颠倒 |

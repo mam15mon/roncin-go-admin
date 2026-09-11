@@ -2,7 +2,7 @@
   "id": "netting-commission-and-followups",
   "name": "netting-commission-and-followups",
   "title": "对冲提成通道与遗留修补",
-  "description": "C2 对冲结清触发提成（来源模型改造+计算口径+冲减联动）、PreviewSplit 锁定预览、admin 集成测试遗留迁移",
+  "description": "C2 对冲结清触发提成（来源模型改造+计算口径+冲减联动）、PreviewSplit 与 GetChangeActions 业务锁感知、非 CNY 本币提成换算修复、admin 集成测试遗留迁移",
   "status": "planning",
   "dev_type": null,
   "scope": null,
