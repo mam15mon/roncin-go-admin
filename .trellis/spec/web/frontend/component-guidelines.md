@@ -11,6 +11,12 @@
 | 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
 | 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 
+## 页面容器与宽度规范 (Container & Width Standards)
+
+- 全站页面统一以 `<PageContainer>` 作为顶级骨架，全局布局遵循 `web/config/defaultSettings.ts` 中的 `contentWidth: 'Fluid'` 流式全屏自适应，底色统一使用 `#f5f7fa`。
+- **严禁在任何页面、工作台或模板中私自硬编码 `maxWidth: 1440` 或自定义水平居中外层容器**。
+- 吸顶页头（`PageHeaderShell`）、业务分节卡片（`SectionCard`）、数据表格与吸底操作栏（`StickyFooterBar`）在任何屏幕分辨率下必须 100% 满屏平铺与贴边对齐，仅保留全局统一的 12px 内容区内边距。
+
 ## 侧边栏
 
 - 折叠收起宽度基准 48px，菜单项固定 36px 居中圆角卡片；折叠时彻底隐藏文本与

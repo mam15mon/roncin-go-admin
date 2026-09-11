@@ -169,6 +169,9 @@ scripts/                  根目录开发与构建辅助脚本
 
 全站页面统一遵循纯白高密度企业级视觉规范，公共模板组件统一由 `@/components/ui` 导出：
 
+- **页面容器与宽度规范 (Container & Width Standards)**：
+  - 全站页面统一以 `<PageContainer>` 作为顶级骨架，全局布局遵循 `web/config/defaultSettings.ts` 中的 `contentWidth: 'Fluid'` 流式全屏自适应，背景统一使用 `#f5f7fa`。
+  - **严禁在任何页面、工作台或模板中私自硬编码 `maxWidth: 1440` 或自定义水平居中外层容器**；吸顶页头（`PageHeaderShell`）、业务分节卡片（`SectionCard`）、数据表格与吸底操作栏（`StickyFooterBar`）必须在任何分辨率下保持 100% 满屏平铺与贴边对齐，仅保留全局统一的 12px 内容区内边距。
 - **整页分节表单与详情页 (Form / Detail Pages)**：
   - 页面顶部统一使用 `PageHeaderShell` 呈现吸顶导航（包含统一「返回列表」操作、层级路径、主副标题、数据编码 Tag 与主要操作按钮组）。
   - 各业务数据区块统一使用 `SectionCard` 包装，保持标题左侧 `3px × 15px` 品牌蓝竖标（`#1677ff`）、纯白卡片背景与细边框（`#f0f0f0`），支持 `collapsible` 折叠与右上角操作插槽。
