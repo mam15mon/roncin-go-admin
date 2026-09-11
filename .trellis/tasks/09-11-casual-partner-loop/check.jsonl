@@ -1,0 +1,8 @@
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"检查伙伴与现金流实现的分层与生成物边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"检查写入口径与事务封装"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"检查散客出款账户必填错误码与中文业务含义"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"检查服务端定向测试覆盖"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"检查快捷弹窗、选择器 Tag 与表单交互规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查 isCasual 契约与生成类型使用"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查前端定向测试与静态分析"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查 proto 到页面的端到端闭环"}

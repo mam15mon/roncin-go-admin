@@ -22,13 +22,16 @@ describe('候选项工具', () => {
   it('按角色和启用状态搜索合作方并统一标签', async () => {
     listPartners.mockResolvedValue({
       data: [
-        { id: 'p1', code: 'CUS001', legalName: '示例客户' },
-        { id: 'p2', code: 'CUS002' },
+        { id: 'p1', code: 'CUS001', legalName: '示例客户', isCasual: true },
+        { id: 'p2', code: 'CUS002', isCasual: false },
       ],
     });
     const { searchPartnerOptions } = await import('./options');
 
-    const result = await searchPartnerOptions('示例', { role: 1, enabled: true });
+    const result = await searchPartnerOptions('示例', {
+      role: 1,
+      enabled: true,
+    });
 
     expect(listPartners).toHaveBeenCalledWith({
       page: 1,
@@ -43,12 +46,14 @@ describe('候选项工具', () => {
         value: 'p1',
         code: 'CUS001',
         name: '示例客户',
+        isCasual: true,
       },
       {
         label: 'CUS002',
         value: 'p2',
         code: 'CUS002',
         name: undefined,
+        isCasual: false,
       },
     ]);
   });

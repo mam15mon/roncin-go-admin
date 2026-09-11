@@ -83,6 +83,15 @@ export default function FinanceCashflowsPage() {
     API.FinanceOrganizationOption[]
   >([]);
   const [organizationId, setOrganizationId] = useState<string>();
+  const [partyCasualMap, setPartyCasualMap] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const currentDirection = Form.useWatch('direction', form);
+  const currentSettlementPartyId = Form.useWatch('settlementPartyId', form);
+  const isCasualSupplierPayable =
+    currentDirection === 'PAYABLE' &&
+    Boolean(partyCasualMap[currentSettlementPartyId]);
 
   useEffect(() => {
     if (!access.canCreateFinanceCashflows) return;
@@ -520,8 +529,18 @@ export default function FinanceCashflowsPage() {
               keyword: keyWords,
               page: 1,
               pageSize: 50,
-            }).then((response) =>
-              (response.data ?? [])
+            }).then((response) => {
+              const items = response.data ?? [];
+              setPartyCasualMap((prev) => {
+                const next = { ...prev };
+                for (const item of items) {
+                  if (item.id) {
+                    next[item.id] = Boolean(item.isCasual);
+                  }
+                }
+                return next;
+              });
+              return items
                 .filter((item) => item.id)
                 .map((item) => ({
                   value: item.id as string,
@@ -529,8 +548,28 @@ export default function FinanceCashflowsPage() {
                     item.name && item.code
                       ? `${item.name} (${item.code})`
                       : item.name || item.code || item.id || '',
-                })),
-            );
+                  isCasual: item.isCasual,
+                }));
+            });
+          }}
+          fieldProps={{
+            optionRender: (option) => (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <span>{option.label}</span>
+                {(option.data as any)?.isCasual && (
+                  <Tag color="orange" style={{ marginInlineEnd: 0 }}>
+                    散客
+                  </Tag>
+                )}
+              </div>
+            ),
           }}
         />
         <ProFormSearchableSelect
@@ -573,7 +612,22 @@ export default function FinanceCashflowsPage() {
           label="我方账户"
           rules={[{ required: true }]}
         />
-        <ProFormText name="counterpartyAccount" label="对方账户" />
+        <ProFormText
+          name="counterpartyAccount"
+          label="对方账户"
+          required={isCasualSupplierPayable}
+          rules={
+            isCasualSupplierPayable
+              ? [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: '向散客供应商出款时，对方收款账户为必填项',
+                  },
+                ]
+              : []
+          }
+        />
         <ProFormSearchableSelect
           name="paymentMethod"
           label="支付方式"

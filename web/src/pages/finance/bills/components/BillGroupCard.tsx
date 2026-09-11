@@ -16,6 +16,7 @@ import {
   Typography,
 } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
+import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
@@ -174,8 +175,24 @@ export default function BillGroupCard({
   directionText,
   onConfigurationChange,
 }: BillGroupCardProps) {
+  const form = Form.useFormInstance();
   const groupKey = group.groupKey || '';
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
+
+  const paymentTermsDays = Form.useWatch(
+    ['groups', groupKey, 'paymentTermsDays'],
+    form,
+  );
+  const billDate = Form.useWatch(['groups', groupKey, 'billDate'], form);
+  const isCasualCustomer = group.isCasual && group.direction === 'RECEIVABLE';
+  const hasCasualWarning =
+    isCasualCustomer &&
+    typeof paymentTermsDays === 'number' &&
+    paymentTermsDays > 0;
+  const derivedDueDate =
+    billDate && typeof paymentTermsDays === 'number'
+      ? dayjs(billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
+      : undefined;
 
   useEffect(() => {
     let cancelled = false;
@@ -201,6 +218,7 @@ export default function BillGroupCard({
             {directionText(group.direction)}
           </Tag>
           <span style={{ fontWeight: 600 }}>{group.settlementPartyName}</span>
+          {group.isCasual && <Tag color="orange">散客</Tag>}
           <Text type="secondary">
             {group.orderNo ? `订单 ${group.orderNo}` : '多订单汇总'}
           </Text>
@@ -225,6 +243,14 @@ export default function BillGroupCard({
               ? '请确认账单日期和结算账户；服务端将按正式账单日期重新解析账单币种至组织本位币的汇率。'
               : '请补齐结算账户或服务端要求的汇率配置后重新预览。'
           }
+        />
+      )}
+      {hasCasualWarning && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          description={`该客户为单次合作散客，建议现结；当前已设置 ${paymentTermsDays} 天账期，请注意资金回款风险`}
         />
       )}
       <Row gutter={16} style={{ marginBottom: 8 }}>
@@ -258,6 +284,17 @@ export default function BillGroupCard({
           <Form.Item
             name={['groups', groupKey, 'paymentTermsDays'] as NamePath}
             label="账期（天）"
+            extra={
+              hasCasualWarning ? (
+                <Text type="warning" style={{ fontSize: 12 }}>
+                  建议现结{derivedDueDate ? ` (到期: ${derivedDueDate})` : ''}
+                </Text>
+              ) : derivedDueDate ? (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  到期: {derivedDueDate}
+                </Text>
+              ) : undefined
+            }
           >
             <InputNumber
               min={0}

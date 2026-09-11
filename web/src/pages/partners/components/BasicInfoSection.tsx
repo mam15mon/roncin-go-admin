@@ -5,6 +5,7 @@ import {
 import {
   ProFormCheckbox,
   ProFormSelect,
+  ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
 import {
@@ -223,7 +224,7 @@ export default function BasicInfoSection({
           </Col>
         </Row>
 
-        {/* Row 5: 性质, 类型, 开发方式, 业务类型 */}
+        {/* Row 5: 性质, 散客标识, 类型, 开发方式, 业务类型 */}
         <Row gutter={[16, 12]} align="middle" style={{ marginTop: 4 }}>
           <Col xs={24} sm={12} md={4}>
             <ProFormSelect
@@ -238,7 +239,16 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={4}>
+            <ProFormSwitch
+              name="isCasual"
+              label="单次合作 (散客)"
+              checkedChildren="散客"
+              unCheckedChildren="正式"
+            />
+          </Col>
+
+          <Col xs={24} sm={12} md={4}>
             <ProFormCheckbox.Group
               name="customerTypes"
               label="类型"
@@ -247,7 +257,7 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={5}>
             <ProFormSelect
               name="developmentMethod"
               label="开发方式"
@@ -256,7 +266,7 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} md={7}>
             <ProFormSelect
               name="businessTypes"
               label="业务类型"

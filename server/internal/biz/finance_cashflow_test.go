@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -9,8 +10,9 @@ import (
 )
 
 type financeCashflowRepoStub struct {
-	created  *FinanceCashflow
 	existing *FinanceCashflow
+	created  *FinanceCashflow
+	isCasual bool
 }
 
 func (*financeCashflowRepoStub) List(context.Context, uuid.UUID, FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
@@ -28,8 +30,8 @@ func (*financeCashflowRepoStub) GetScoped(context.Context, []uuid.UUID, uuid.UUI
 func (s *financeCashflowRepoStub) GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceCashflow, error) {
 	return s.existing, nil
 }
-func (*financeCashflowRepoStub) ResolveParty(context.Context, uuid.UUID, uuid.UUID) (string, error) {
-	return "测试结算单位", nil
+func (s *financeCashflowRepoStub) ResolveParty(context.Context, uuid.UUID, uuid.UUID) (string, bool, error) {
+	return "测试结算单位", s.isCasual, nil
 }
 func (s *financeCashflowRepoStub) Create(_ context.Context, item *FinanceCashflow, _ *AuditEvent) (*FinanceCashflow, error) {
 	s.created = item
@@ -174,4 +176,120 @@ func TestCreateFinanceCashflowReplaysBeforeResolvingCurrentRate(t *testing.T) {
 	if replayed != existing {
 		t.Fatal("幂等重放应返回原资金流水")
 	}
+}
+
+func TestFinanceCashflow_CasualSupplierAccountConstraint(t *testing.T) {
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	partyID := uuid.New()
+	settingID := uuid.New()
+	exchangeRepo := &exchangeRateRepoStub{
+		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}}},
+		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("1"), Source: "SYSTEM", RateDate: "2026-08-27", SettingID: &settingID},
+	}
+	rateUsecase := NewExchangeRateUsecase(exchangeRepo)
+
+	t.Run("散客供应商付款无对方账户直接拒绝", func(t *testing.T) {
+		repo := &financeCashflowRepoStub{isCasual: true}
+		usecase := NewFinanceCashflowUsecase(repo, rateUsecase)
+		_, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+			Direction:         OrderFeePayable,
+			SettlementPartyID: partyID,
+			Currency:          "CNY",
+			Amount:            decimal.RequireFromString("500"),
+			TransactionDate:   "2026-08-27",
+			OurAccount:        "基本户",
+			PaymentMethod:     "银行转账",
+			IdempotencyKey:    "casual-payable-no-account",
+		}, false)
+		if !errors.Is(err, ErrFinanceCashflowCasualSupplierAccountRequired) {
+			t.Fatalf("散客供应商出款无账户应返回 ErrFinanceCashflowCasualSupplierAccountRequired, 得到: %v", err)
+		}
+	})
+
+	t.Run("散客供应商付款对方账户为空白字符时直接拒绝", func(t *testing.T) {
+		repo := &financeCashflowRepoStub{isCasual: true}
+		usecase := NewFinanceCashflowUsecase(repo, rateUsecase)
+		blank := "   "
+		_, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+			Direction:           OrderFeePayable,
+			SettlementPartyID:   partyID,
+			Currency:            "CNY",
+			Amount:              decimal.RequireFromString("500"),
+			TransactionDate:     "2026-08-27",
+			OurAccount:          "基本户",
+			PaymentMethod:       "银行转账",
+			CounterpartyAccount: &blank,
+			IdempotencyKey:      "casual-payable-blank-account",
+		}, false)
+		if !errors.Is(err, ErrFinanceCashflowCasualSupplierAccountRequired) {
+			t.Fatalf("散客供应商出款账户为空白应返回 ErrFinanceCashflowCasualSupplierAccountRequired, 得到: %v", err)
+		}
+	})
+
+	t.Run("散客供应商付款有对方账户允许成功", func(t *testing.T) {
+		repo := &financeCashflowRepoStub{isCasual: true}
+		usecase := NewFinanceCashflowUsecase(repo, rateUsecase)
+		acc := "6222021234567890"
+		created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+			Direction:           OrderFeePayable,
+			SettlementPartyID:   partyID,
+			Currency:            "CNY",
+			Amount:              decimal.RequireFromString("500"),
+			TransactionDate:     "2026-08-27",
+			OurAccount:          "基本户",
+			PaymentMethod:       "银行转账",
+			CounterpartyAccount: &acc,
+			IdempotencyKey:      "casual-payable-with-account",
+		}, false)
+		if err != nil {
+			t.Fatalf("散客供应商出款有账户应创建成功: %v", err)
+		}
+		if created == nil || created.CounterpartyAccount == nil || *created.CounterpartyAccount != acc {
+			t.Fatal("创建结果应正确保留对方账户")
+		}
+	})
+
+	t.Run("正式供应商付款无对方账户不受影响", func(t *testing.T) {
+		repo := &financeCashflowRepoStub{isCasual: false}
+		usecase := NewFinanceCashflowUsecase(repo, rateUsecase)
+		created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+			Direction:         OrderFeePayable,
+			SettlementPartyID: partyID,
+			Currency:          "CNY",
+			Amount:            decimal.RequireFromString("500"),
+			TransactionDate:   "2026-08-27",
+			OurAccount:        "基本户",
+			PaymentMethod:     "银行转账",
+			IdempotencyKey:    "formal-payable-no-account",
+		}, false)
+		if err != nil {
+			t.Fatalf("正式供应商出款无账户应正常创建: %v", err)
+		}
+		if created == nil {
+			t.Fatal("创建结果不应为空")
+		}
+	})
+
+	t.Run("散客客户收款无对方账户不受影响", func(t *testing.T) {
+		repo := &financeCashflowRepoStub{isCasual: true}
+		usecase := NewFinanceCashflowUsecase(repo, rateUsecase)
+		created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+			Direction:         OrderFeeReceivable,
+			SettlementPartyID: partyID,
+			Currency:          "CNY",
+			Amount:            decimal.RequireFromString("500"),
+			TransactionDate:   "2026-08-27",
+			OurAccount:        "基本户",
+			PaymentMethod:     "银行转账",
+			IdempotencyKey:    "casual-receivable-no-account",
+		}, false)
+		if err != nil {
+			t.Fatalf("散客客户收款方向无账户应正常创建: %v", err)
+		}
+		if created == nil {
+			t.Fatal("创建结果不应为空")
+		}
+	})
 }

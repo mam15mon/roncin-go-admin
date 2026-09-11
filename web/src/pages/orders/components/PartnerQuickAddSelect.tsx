@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { history, useAccess, useModel } from '@umijs/max';
-import { Button, Form, Input } from 'antd';
+import { Button, Checkbox, Form, Input, Tag } from 'antd';
 import React, {
   type ReactNode,
   useCallback,
@@ -19,6 +19,7 @@ export type PartnerSelectOption = {
   label: string;
   value: string | number;
   code?: string;
+  isCasual?: boolean;
 };
 
 type PartnerQuickAddSelectProps = {
@@ -207,6 +208,30 @@ export default function PartnerQuickAddSelect({
       open: selectOpen,
       onOpenChange: setSelectOpen,
       onSearch: triggerLoadOptions,
+      optionRender: (option: {
+        label?: ReactNode;
+        value?: unknown;
+        data?: unknown;
+      }) => {
+        const item = option.data as PartnerSelectOption | undefined;
+        return (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            <span>{option.label}</span>
+            {item?.isCasual && (
+              <Tag color="orange" style={{ marginInlineEnd: 0 }}>
+                散客
+              </Tag>
+            )}
+          </div>
+        );
+      },
       onChange: (value: unknown, option: unknown) => {
         if (value === undefined || value === null) {
           onPartnerChange?.(undefined);
@@ -244,13 +269,19 @@ export default function PartnerQuickAddSelect({
         fieldProps={fieldProps}
       />
 
-      <QuickCreateModal<{ legalName: string }, PartnerSelectOption>
+      <QuickCreateModal<
+        { legalName: string; isCasual?: boolean },
+        PartnerSelectOption
+      >
         key={`${currentOrganizationId ?? 'no-organization'}:${canQuickAdd ? 'enabled' : 'disabled'}`}
         centered
         title={`新增 ${displayName}`}
         open={modalOpen}
         width={520}
         okText="保存"
+        initialValues={{
+          isCasual: true,
+        }}
         onCancel={() => setModalOpen(false)}
         extraAction={{
           text: '添加公司详情',
@@ -278,6 +309,7 @@ export default function PartnerQuickAddSelect({
                   // 客商代码留空由服务端按组织内唯一规则自动生成。
                   legalName: values.legalName.trim(),
                   roles: [{ type: role, enabled: true }],
+                  isCasual: values.isCasual ?? true,
                 },
                 { signal },
               ),
@@ -291,6 +323,7 @@ export default function PartnerQuickAddSelect({
                 label: partner.legalName ?? values.legalName.trim(),
                 value: partner.id,
                 code: partner.code,
+                isCasual: partner.isCasual ?? values.isCasual ?? true,
               };
               orderForm?.setFieldValue(name, option.value);
               createdOptionsRef.current = [
@@ -324,6 +357,9 @@ export default function PartnerQuickAddSelect({
           ]}
         >
           <Input placeholder="请输入公司抬头" maxLength={200} />
+        </Form.Item>
+        <Form.Item name="isCasual" valuePropName="checked">
+          <Checkbox>单次合作往来单位（散客）</Checkbox>
         </Form.Item>
       </QuickCreateModal>
     </>

@@ -22,6 +22,7 @@ func (Partner) Fields() []ent.Field {
 		field.String("unified_social_credit_code").Optional().Nillable().MaxLen(64),
 		field.String("registered_address").Optional().MaxLen(500),
 		field.Bool("enabled").Default(true),
+		field.Bool("is_casual").Default(false).Comment("是否单次合作（散客）"),
 		searchKeywordsField(),
 	}
 }

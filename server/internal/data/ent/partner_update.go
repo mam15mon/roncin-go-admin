@@ -153,6 +153,20 @@ func (_u *PartnerUpdate) SetNillableEnabled(v *bool) *PartnerUpdate {
 	return _u
 }
 
+// SetIsCasual sets the "is_casual" field.
+func (_u *PartnerUpdate) SetIsCasual(v bool) *PartnerUpdate {
+	_u.mutation.SetIsCasual(v)
+	return _u
+}
+
+// SetNillableIsCasual sets the "is_casual" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableIsCasual(v *bool) *PartnerUpdate {
+	if v != nil {
+		_u.SetIsCasual(*v)
+	}
+	return _u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_u *PartnerUpdate) SetSearchKeywords(v string) *PartnerUpdate {
 	_u.mutation.SetSearchKeywords(v)
@@ -1033,6 +1047,9 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsCasual(); ok {
+		_spec.SetField(partner.FieldIsCasual, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(partner.FieldSearchKeywords, field.TypeString, value)
@@ -2117,6 +2134,20 @@ func (_u *PartnerUpdateOne) SetNillableEnabled(v *bool) *PartnerUpdateOne {
 	return _u
 }
 
+// SetIsCasual sets the "is_casual" field.
+func (_u *PartnerUpdateOne) SetIsCasual(v bool) *PartnerUpdateOne {
+	_u.mutation.SetIsCasual(v)
+	return _u
+}
+
+// SetNillableIsCasual sets the "is_casual" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableIsCasual(v *bool) *PartnerUpdateOne {
+	if v != nil {
+		_u.SetIsCasual(*v)
+	}
+	return _u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_u *PartnerUpdateOne) SetSearchKeywords(v string) *PartnerUpdateOne {
 	_u.mutation.SetSearchKeywords(v)
@@ -3027,6 +3058,9 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsCasual(); ok {
+		_spec.SetField(partner.FieldIsCasual, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(partner.FieldSearchKeywords, field.TypeString, value)

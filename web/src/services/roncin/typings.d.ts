@@ -573,6 +573,8 @@ declare namespace API {
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
     estimatedInvoiceAmount?: string;
+    isCasual?: boolean;
+    defaultPaymentTermsDays?: number;
   };
 
   type BillBatchPreviewGroupConfigInput = {
@@ -1426,6 +1428,7 @@ declare namespace API {
     aliases?: PartnerAliasInput[];
     profile?: PartnerProfile;
     assignments?: PartnerAssignmentInput[];
+    isCasual?: boolean;
   };
 
   type CreatePartnerResponse = {
@@ -2693,6 +2696,7 @@ declare namespace API {
     id?: string;
     code?: string;
     name?: string;
+    isCasual?: boolean;
   };
 
   type FinanceVerification = {
@@ -4738,6 +4742,7 @@ declare namespace API {
     updatedAt?: string;
     profile?: PartnerProfile;
     assignments?: PartnerAssignment[];
+    isCasual?: boolean;
   };
 
   type PartnerAccount = {
@@ -5016,6 +5021,7 @@ declare namespace API {
     keyword?: string;
     role?: number;
     enabled?: boolean;
+    isCasual?: boolean;
   };
 
   type PartnerServiceRegisterPartnerAttachmentParams = {
@@ -7520,6 +7526,7 @@ declare namespace API {
     aliases?: PartnerAliasInput[];
     profile?: PartnerProfile;
     assignments?: PartnerAssignmentInput[];
+    isCasual?: boolean;
   };
 
   type UpdatePartnerResponse = {

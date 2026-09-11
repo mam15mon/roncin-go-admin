@@ -34,6 +34,8 @@ const (
 	FieldRegisteredAddress = "registered_address"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldIsCasual holds the string denoting the is_casual field in the database.
+	FieldIsCasual = "is_casual"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
@@ -250,6 +252,7 @@ var Columns = []string{
 	FieldUnifiedSocialCreditCode,
 	FieldRegisteredAddress,
 	FieldEnabled,
+	FieldIsCasual,
 	FieldSearchKeywords,
 }
 
@@ -288,6 +291,8 @@ var (
 	RegisteredAddressValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// DefaultIsCasual holds the default value on creation for the "is_casual" field.
+	DefaultIsCasual bool
 	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
 	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
@@ -345,6 +350,11 @@ func ByRegisteredAddress(opts ...sql.OrderTermOption) OrderOption {
 // ByEnabled orders the results by the enabled field.
 func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
+// ByIsCasual orders the results by the is_casual field.
+func ByIsCasual(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsCasual, opts...).ToFunc()
 }
 
 // BySearchKeywords orders the results by the search_keywords field.

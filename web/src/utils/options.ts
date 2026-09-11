@@ -10,6 +10,7 @@ export type SelectOption = {
   value: string;
   code?: string;
   name?: string;
+  isCasual?: boolean;
 };
 
 type PartnerSearchOptions = {
@@ -39,6 +40,7 @@ export async function searchPartnerOptions(
       value: partner.id || '',
       code: partner.code,
       name: partner.legalName,
+      isCasual: partner.isCasual,
     }))
     .filter((option) => option.value !== '');
 }

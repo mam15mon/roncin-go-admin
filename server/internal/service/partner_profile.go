@@ -45,6 +45,10 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
 	}
+	if request.IsCasual != nil {
+		isCasual := request.GetIsCasual()
+		options.IsCasual = &isCasual
+	}
 	organizationIDs, err := organizationIDsForPermission(principal, access.PartnerRead, false)
 	if err != nil {
 		return nil, err
@@ -111,6 +115,7 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.Partner{
 		Code: request.GetCode(), LegalName: request.GetLegalName(),
 		UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(), RegisteredAddress: request.GetRegisteredAddress(),
+		IsCasual: request.GetIsCasual(),
 		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})
@@ -132,6 +137,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.Partner{
 		LegalName: request.GetLegalName(), UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(),
 		RegisteredAddress: request.GetRegisteredAddress(), Enabled: request.GetEnabled(),
+		IsCasual: request.GetIsCasual(),
 		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})

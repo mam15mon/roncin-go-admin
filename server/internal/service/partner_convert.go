@@ -270,6 +270,7 @@ func partnerToAPI(value *biz.Partner) *v1.Partner {
 		Roles: roles, Contacts: contacts, Aliases: aliases,
 		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
 		Profile: partnerProfileToAPI(value.Profile), Assignments: partnerAssignmentsToAPI(value.Assignments),
+		IsCasual: value.IsCasual,
 	}
 }
 

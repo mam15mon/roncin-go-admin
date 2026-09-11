@@ -1577,6 +1577,7 @@ type Partner struct {
 	UpdatedAt               string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Profile                 *PartnerProfile        `protobuf:"bytes,13,opt,name=profile,proto3" json:"profile,omitempty"`
 	Assignments             []*PartnerAssignment   `protobuf:"bytes,14,rep,name=assignments,proto3" json:"assignments,omitempty"`
+	IsCasual                bool                   `protobuf:"varint,15,opt,name=is_casual,json=isCasual,proto3" json:"is_casual,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -1707,6 +1708,13 @@ func (x *Partner) GetAssignments() []*PartnerAssignment {
 		return x.Assignments
 	}
 	return nil
+}
+
+func (x *Partner) GetIsCasual() bool {
+	if x != nil {
+		return x.IsCasual
+	}
+	return false
 }
 
 type PartnerRoleInput struct {
@@ -1948,6 +1956,7 @@ type ListPartnersRequest struct {
 	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
 	Role          PartnerRoleType        `protobuf:"varint,4,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
 	Enabled       *bool                  `protobuf:"varint,5,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	IsCasual      *bool                  `protobuf:"varint,6,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2017,6 +2026,13 @@ func (x *ListPartnersRequest) GetEnabled() bool {
 	return false
 }
 
+func (x *ListPartnersRequest) GetIsCasual() bool {
+	if x != nil && x.IsCasual != nil {
+		return *x.IsCasual
+	}
+	return false
+}
+
 type CreatePartnerRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 客商代码；留空时由服务端按组织内唯一规则自动生成。
@@ -2029,6 +2045,7 @@ type CreatePartnerRequest struct {
 	Aliases                 []*PartnerAliasInput      `protobuf:"bytes,7,rep,name=aliases,proto3" json:"aliases,omitempty"`
 	Profile                 *PartnerProfile           `protobuf:"bytes,8,opt,name=profile,proto3" json:"profile,omitempty"`
 	Assignments             []*PartnerAssignmentInput `protobuf:"bytes,9,rep,name=assignments,proto3" json:"assignments,omitempty"`
+	IsCasual                *bool                     `protobuf:"varint,10,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -2126,6 +2143,13 @@ func (x *CreatePartnerRequest) GetAssignments() []*PartnerAssignmentInput {
 	return nil
 }
 
+func (x *CreatePartnerRequest) GetIsCasual() bool {
+	if x != nil && x.IsCasual != nil {
+		return *x.IsCasual
+	}
+	return false
+}
+
 type UpdatePartnerRequest struct {
 	state                   protoimpl.MessageState    `protogen:"open.v1"`
 	Id                      string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2138,6 +2162,7 @@ type UpdatePartnerRequest struct {
 	Aliases                 []*PartnerAliasInput      `protobuf:"bytes,8,rep,name=aliases,proto3" json:"aliases,omitempty"`
 	Profile                 *PartnerProfile           `protobuf:"bytes,9,opt,name=profile,proto3" json:"profile,omitempty"`
 	Assignments             []*PartnerAssignmentInput `protobuf:"bytes,10,rep,name=assignments,proto3" json:"assignments,omitempty"`
+	IsCasual                *bool                     `protobuf:"varint,11,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -2240,6 +2265,13 @@ func (x *UpdatePartnerRequest) GetAssignments() []*PartnerAssignmentInput {
 		return x.Assignments
 	}
 	return nil
+}
+
+func (x *UpdatePartnerRequest) GetIsCasual() bool {
+	if x != nil && x.IsCasual != nil {
+		return *x.IsCasual
+	}
+	return false
 }
 
 type PartnerImportItemInput struct {
@@ -7508,7 +7540,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
 	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xcb\x04\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xe8\x04\n" +
 	"\aPartner\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
@@ -7527,7 +7559,8 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\f \x01(\tR\tupdatedAt\x124\n" +
 	"\aprofile\x18\r \x01(\v2\x1a.partner.v1.PartnerProfileR\aprofile\x12?\n" +
-	"\vassignments\x18\x0e \x03(\v2\x1d.partner.v1.PartnerAssignmentR\vassignments\"\xae\x01\n" +
+	"\vassignments\x18\x0e \x03(\v2\x1d.partner.v1.PartnerAssignmentR\vassignments\x12\x1b\n" +
+	"\tis_casual\x18\x0f \x01(\bR\bisCasual\"\xae\x01\n" +
 	"\x10PartnerRoleInput\x12/\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04type\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12O\n" +
@@ -7545,15 +7578,18 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\x02 \x01(\x05R\tsortOrder\"(\n" +
 	"\x11GetPartnerRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbc\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xec\x01\n" +
 	"\x13ListPartnersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12/\n" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
-	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01\x12 \n" +
+	"\tis_casual\x18\x06 \x01(\bH\x01R\bisCasual\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xee\x03\n" +
+	"\b_enabledB\f\n" +
+	"\n" +
+	"_is_casual\"\x9e\x04\n" +
 	"\x14CreatePartnerRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tH\x00R\x04code\x88\x01\x01\x12\"\n" +
 	"\n" +
@@ -7564,8 +7600,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\bcontacts\x18\x06 \x03(\v2\x1f.partner.v1.PartnerContactInputR\bcontacts\x127\n" +
 	"\aaliases\x18\a \x03(\v2\x1d.partner.v1.PartnerAliasInputR\aaliases\x124\n" +
 	"\aprofile\x18\b \x01(\v2\x1a.partner.v1.PartnerProfileR\aprofile\x12D\n" +
-	"\vassignments\x18\t \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignmentsB\a\n" +
-	"\x05_code\"\xfb\x03\n" +
+	"\vassignments\x18\t \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignments\x12 \n" +
+	"\tis_casual\x18\n" +
+	" \x01(\bH\x01R\bisCasual\x88\x01\x01B\a\n" +
+	"\x05_codeB\f\n" +
+	"\n" +
+	"_is_casual\"\xab\x04\n" +
 	"\x14UpdatePartnerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\"\n" +
 	"\n" +
@@ -7578,7 +7618,10 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\aaliases\x18\b \x03(\v2\x1d.partner.v1.PartnerAliasInputR\aaliases\x124\n" +
 	"\aprofile\x18\t \x01(\v2\x1a.partner.v1.PartnerProfileR\aprofile\x12D\n" +
 	"\vassignments\x18\n" +
-	" \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignments\"\xe7\x03\n" +
+	" \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignments\x12 \n" +
+	"\tis_casual\x18\v \x01(\bH\x00R\bisCasual\x88\x01\x01B\f\n" +
+	"\n" +
+	"_is_casual\"\xe7\x03\n" +
 	"\x16PartnerImportItemInput\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\"\n" +
 	"\n" +
@@ -8470,6 +8513,7 @@ func file_partner_v1_partner_proto_init() {
 	}
 	file_partner_v1_partner_proto_msgTypes[16].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[17].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[18].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[22].OneofWrappers = []any{}
 	file_partner_v1_partner_proto_msgTypes[27].OneofWrappers = []any{
 		(*PartnerShippingPreset_Party)(nil),

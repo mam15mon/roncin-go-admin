@@ -167,6 +167,7 @@ type Partner struct {
 	UnifiedSocialCreditCode string
 	RegisteredAddress       string
 	Enabled                 bool
+	IsCasual                bool
 	Roles                   []*PartnerRole
 	Contacts                []*PartnerContact
 	Aliases                 []*PartnerAlias
@@ -182,6 +183,7 @@ type PartnerListOptions struct {
 	Keyword  string
 	Role     PartnerRoleType
 	Enabled  *bool
+	IsCasual *bool
 }
 
 type PartnerList = PagedList[*Partner]
@@ -319,6 +321,9 @@ func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uui
 	normalized := make([]*Partner, 0, len(input.Items))
 	seenCodes := make(map[string]struct{}, len(input.Items))
 	for _, item := range input.Items {
+		if item != nil {
+			item.IsCasual = false
+		}
 		value, err := normalizePartner(item, true)
 		if err != nil {
 			return nil, err

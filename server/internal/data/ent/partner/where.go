@@ -101,6 +101,11 @@ func Enabled(v bool) predicate.Partner {
 	return predicate.Partner(sql.FieldEQ(FieldEnabled, v))
 }
 
+// IsCasual applies equality check predicate on the "is_casual" field. It's identical to IsCasualEQ.
+func IsCasual(v bool) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldIsCasual, v))
+}
+
 // SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
 func SearchKeywords(v string) predicate.Partner {
 	return predicate.Partner(sql.FieldEQ(FieldSearchKeywords, v))
@@ -559,6 +564,16 @@ func EnabledEQ(v bool) predicate.Partner {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.Partner {
 	return predicate.Partner(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// IsCasualEQ applies the EQ predicate on the "is_casual" field.
+func IsCasualEQ(v bool) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldIsCasual, v))
+}
+
+// IsCasualNEQ applies the NEQ predicate on the "is_casual" field.
+func IsCasualNEQ(v bool) predicate.Partner {
+	return predicate.Partner(sql.FieldNEQ(FieldIsCasual, v))
 }
 
 // SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.

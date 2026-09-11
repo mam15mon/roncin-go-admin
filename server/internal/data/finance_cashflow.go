@@ -215,16 +215,16 @@ func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.
 	}
 	return cashflowToBiz(x)
 }
-func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUID) (string, error) {
+func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUID) (string, bool, error) {
 	client, clientErr := r.data.client(ctx)
 	if clientErr != nil {
-		return "", clientErr
+		return "", false, clientErr
 	}
 	x, e := client.Partner.Query().Where(partner.IDEQ(id), partner.OrganizationIDEQ(org), partner.EnabledEQ(true)).Only(ctx)
 	if e != nil {
-		return "", mapEntError(e, biz.ErrOrderFeePartyInvalid, nil)
+		return "", false, mapEntError(e, biz.ErrOrderFeePartyInvalid, nil)
 	}
-	return x.LegalName, nil
+	return x.LegalName, x.IsCasual, nil
 }
 func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
 	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {

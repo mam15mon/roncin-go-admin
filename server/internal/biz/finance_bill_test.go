@@ -256,3 +256,65 @@ func TestFinanceBillListDueDateValidation(t *testing.T) {
 		t.Fatalf("到期日范围倒置应被拒绝，实际错误=%v", err)
 	}
 }
+
+func TestBuildConfiguredFinanceBillBatchPreviewCasualPartnerDefaultTerms(t *testing.T) {
+	orgID := uuid.Must(uuid.NewV7())
+	casualClientID := uuid.Must(uuid.NewV7())
+	regularClientID := uuid.Must(uuid.NewV7())
+	casualSupplierID := uuid.Must(uuid.NewV7())
+
+	// 1. 散客应收费用：预览组应有 IsCasual = true 且 DefaultPaymentTermsDays = 0
+	casualReceivable := financeBillableFeeForTest(casualClientID, "100", "94.33962264", "5.66037736", "100")
+	casualReceivable.SettlementPartyIsCasual = true
+	previewCasual, err := BuildConfiguredFinanceBillBatchPreview(orgID, []*FinanceBillableFee{casualReceivable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
+	if err != nil {
+		t.Fatalf("散客预览失败: %v", err)
+	}
+	if len(previewCasual.Groups) != 1 {
+		t.Fatalf("预期 1 组，实际=%d", len(previewCasual.Groups))
+	}
+	group := previewCasual.Groups[0]
+	if !group.IsCasual {
+		t.Fatalf("散客应收组 IsCasual 预期为 true，实际为 false")
+	}
+	if group.DefaultPaymentTermsDays == nil || *group.DefaultPaymentTermsDays != 0 {
+		t.Fatalf("散客应收组 DefaultPaymentTermsDays 预期为 0，实际=%v", group.DefaultPaymentTermsDays)
+	}
+
+	// 2. 正式客户应收费用：预览组 IsCasual = false 且 DefaultPaymentTermsDays = nil
+	regularReceivable := financeBillableFeeForTest(regularClientID, "100", "94.33962264", "5.66037736", "100")
+	regularReceivable.SettlementPartyIsCasual = false
+	previewRegular, err := BuildConfiguredFinanceBillBatchPreview(orgID, []*FinanceBillableFee{regularReceivable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
+	if err != nil {
+		t.Fatalf("正式客户预览失败: %v", err)
+	}
+	if len(previewRegular.Groups) != 1 {
+		t.Fatalf("预期 1 组，实际=%d", len(previewRegular.Groups))
+	}
+	regGroup := previewRegular.Groups[0]
+	if regGroup.IsCasual {
+		t.Fatalf("正式客户组 IsCasual 预期为 false，实际为 true")
+	}
+	if regGroup.DefaultPaymentTermsDays != nil {
+		t.Fatalf("正式客户组 DefaultPaymentTermsDays 预期为 nil，实际=%v", regGroup.DefaultPaymentTermsDays)
+	}
+
+	// 3. 散客供应商应付费用：预览组 IsCasual = true 且 DefaultPaymentTermsDays = nil（应付不设置默认账期）
+	casualPayable := financeBillableFeeForTest(casualSupplierID, "50", "47.16981132", "2.83018868", "50")
+	casualPayable.Fee.Direction = OrderFeePayable
+	casualPayable.SettlementPartyIsCasual = true
+	previewPayable, err := BuildConfiguredFinanceBillBatchPreview(orgID, []*FinanceBillableFee{casualPayable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
+	if err != nil {
+		t.Fatalf("散客应付预览失败: %v", err)
+	}
+	if len(previewPayable.Groups) != 1 {
+		t.Fatalf("预期 1 组，实际=%d", len(previewPayable.Groups))
+	}
+	payGroup := previewPayable.Groups[0]
+	if !payGroup.IsCasual {
+		t.Fatalf("散客应付组 IsCasual 预期为 true，实际为 false")
+	}
+	if payGroup.DefaultPaymentTermsDays != nil {
+		t.Fatalf("散客应付组 DefaultPaymentTermsDays 预期为 nil，实际=%v", payGroup.DefaultPaymentTermsDays)
+	}
+}

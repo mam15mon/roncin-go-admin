@@ -102579,6 +102579,7 @@ type PartnerMutation struct {
 	unified_social_credit_code           *string
 	registered_address                   *string
 	enabled                              *bool
+	is_casual                            *bool
 	search_keywords                      *string
 	clearedFields                        map[string]struct{}
 	organization                         *uuid.UUID
@@ -103102,6 +103103,42 @@ func (m *PartnerMutation) OldEnabled(ctx context.Context) (v bool, err error) {
 // ResetEnabled resets all changes to the "enabled" field.
 func (m *PartnerMutation) ResetEnabled() {
 	m.enabled = nil
+}
+
+// SetIsCasual sets the "is_casual" field.
+func (m *PartnerMutation) SetIsCasual(b bool) {
+	m.is_casual = &b
+}
+
+// IsCasual returns the value of the "is_casual" field in the mutation.
+func (m *PartnerMutation) IsCasual() (r bool, exists bool) {
+	v := m.is_casual
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsCasual returns the old "is_casual" field's value of the Partner entity.
+// If the Partner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerMutation) OldIsCasual(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsCasual is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsCasual requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsCasual: %w", err)
+	}
+	return oldValue.IsCasual, nil
+}
+
+// ResetIsCasual resets all changes to the "is_casual" field.
+func (m *PartnerMutation) ResetIsCasual() {
+	m.is_casual = nil
 }
 
 // SetSearchKeywords sets the "search_keywords" field.
@@ -104320,7 +104357,7 @@ func (m *PartnerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, partner.FieldCreatedAt)
 	}
@@ -104347,6 +104384,9 @@ func (m *PartnerMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, partner.FieldEnabled)
+	}
+	if m.is_casual != nil {
+		fields = append(fields, partner.FieldIsCasual)
 	}
 	if m.search_keywords != nil {
 		fields = append(fields, partner.FieldSearchKeywords)
@@ -104377,6 +104417,8 @@ func (m *PartnerMutation) Field(name string) (ent.Value, bool) {
 		return m.RegisteredAddress()
 	case partner.FieldEnabled:
 		return m.Enabled()
+	case partner.FieldIsCasual:
+		return m.IsCasual()
 	case partner.FieldSearchKeywords:
 		return m.SearchKeywords()
 	}
@@ -104406,6 +104448,8 @@ func (m *PartnerMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldRegisteredAddress(ctx)
 	case partner.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case partner.FieldIsCasual:
+		return m.OldIsCasual(ctx)
 	case partner.FieldSearchKeywords:
 		return m.OldSearchKeywords(ctx)
 	}
@@ -104479,6 +104523,13 @@ func (m *PartnerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case partner.FieldIsCasual:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsCasual(v)
 		return nil
 	case partner.FieldSearchKeywords:
 		v, ok := value.(string)
@@ -104577,6 +104628,9 @@ func (m *PartnerMutation) ResetField(name string) error {
 		return nil
 	case partner.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case partner.FieldIsCasual:
+		m.ResetIsCasual()
 		return nil
 	case partner.FieldSearchKeywords:
 		m.ResetSearchKeywords()

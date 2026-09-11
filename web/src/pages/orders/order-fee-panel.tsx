@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { PartnerRoleType } from '@/enums.generated';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceBatchAssignOrderFeeTags,
@@ -600,6 +601,13 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
         <QuickAddPartnerModal
           open={quickAddPartnerModalOpen}
+          defaultRole={
+            (editingFee
+              ? feeDirectionCode(editingFee.direction)
+              : RECEIVABLE) === RECEIVABLE
+              ? PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
+              : PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+          }
           onCancel={() => setQuickAddPartnerModalOpen(false)}
           onSuccess={(newOption) => {
             setSettlementParties((prev) => [newOption, ...prev]);

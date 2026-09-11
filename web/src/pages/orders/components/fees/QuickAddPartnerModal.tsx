@@ -1,4 +1,4 @@
-import { Col, Form, Input, Row, Select } from 'antd';
+import { Checkbox, Col, Form, Input, Row, Select } from 'antd';
 import React from 'react';
 import { QuickCreateModal } from '@/components/ui/quick-create-modal';
 import {
@@ -9,17 +9,25 @@ import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 
 type QuickAddPartnerFormValues = {
   legalName: string;
-  roles: PartnerRoleTypeValue[];
+  role: PartnerRoleTypeValue;
+  isCasual?: boolean;
 };
 
 type QuickAddPartnerModalProps = {
   open: boolean;
+  defaultRole?: PartnerRoleTypeValue;
   onCancel: () => void;
-  onSuccess: (newPartner: { id: string; name: string; code?: string }) => void;
+  onSuccess: (newPartner: {
+    id: string;
+    name: string;
+    code?: string;
+    isCasual?: boolean;
+  }) => void;
 };
 
 export default function QuickAddPartnerModal({
   open,
+  defaultRole = PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
   onCancel,
   onSuccess,
 }: QuickAddPartnerModalProps) {
@@ -30,23 +38,30 @@ export default function QuickAddPartnerModal({
         id: string;
         name: string;
         code?: string;
+        isCasual?: boolean;
       }
     >
       title="快捷新建往来单位"
       open={open}
       width={540}
+      initialValues={{
+        role: defaultRole,
+        isCasual: true,
+      }}
       onCancel={onCancel}
       onSuccess={onSuccess}
       onSubmit={async (values) => {
         const res = await partnerServiceCreatePartner({
           legalName: values.legalName.trim(),
-          roles: values.roles.map((type) => ({ type, enabled: true })),
+          roles: [{ type: values.role, enabled: true }],
+          isCasual: values.isCasual ?? true,
         });
         if (res.data?.id) {
           return {
             id: res.data.id,
             name: res.data.legalName ?? values.legalName.trim(),
             code: res.data.code,
+            isCasual: res.data.isCasual ?? values.isCasual ?? true,
           };
         }
         throw new Error('创建结果缺少伙伴 ID，请重试');
@@ -67,12 +82,12 @@ export default function QuickAddPartnerModal({
         </Col>
         <Col span={24}>
           <Form.Item
-            name="roles"
+            name="role"
             label="客商类型"
-            rules={[{ required: true, message: '请选择至少一种类型' }]}
+            rules={[{ required: true, message: '请选择客商类型' }]}
           >
             <Select
-              mode="multiple"
+              placeholder="请选择客商类型"
               options={[
                 {
                   label: '客户 (委托单位/收发通)',
@@ -84,6 +99,11 @@ export default function QuickAddPartnerModal({
                 },
               ]}
             />
+          </Form.Item>
+        </Col>
+        <Col span={24}>
+          <Form.Item name="isCasual" valuePropName="checked">
+            <Checkbox>单次合作往来单位（散客）</Checkbox>
           </Form.Item>
         </Col>
       </Row>

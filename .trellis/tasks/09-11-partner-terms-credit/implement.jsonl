@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"结算规则、自定义设置与财务 Service、Biz、Data 分层边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、Data.client、稳定加锁、版本和唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"信用超额拦截业务错误码与 HTTP 状态映射规范"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端定向测试、集成测试与生成验证"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"自定义设置卡片、建账工作台预警与选择器规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成 API 类型和策略表单类型约束"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome、tsc 与门禁要求"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"跨层数据流、Proto契约到页面字段的端到端一致性"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"余额聚合复用 09-10 核销口径，避免另写余额算法"}

@@ -329,6 +329,7 @@ message Partner {
   string updated_at = 12;
   PartnerProfile profile = 13;
   repeated PartnerAssignment assignments = 14;
+  bool is_casual = 15;
 }
 
 message PartnerRoleInput {
@@ -360,6 +361,7 @@ message ListPartnersRequest {
   string keyword = 3;
   PartnerRoleType role = 4;
   optional bool enabled = 5;
+  optional bool is_casual = 6;
 }
 
 message CreatePartnerRequest {
@@ -373,6 +375,7 @@ message CreatePartnerRequest {
   repeated PartnerAliasInput aliases = 7;
   PartnerProfile profile = 8;
   repeated PartnerAssignmentInput assignments = 9;
+  optional bool is_casual = 10;
 }
 
 message UpdatePartnerRequest {
@@ -386,6 +389,7 @@ message UpdatePartnerRequest {
   repeated PartnerAliasInput aliases = 8;
   PartnerProfile profile = 9;
   repeated PartnerAssignmentInput assignments = 10;
+  optional bool is_casual = 11;
 }
 
 enum PartnerImportMode {

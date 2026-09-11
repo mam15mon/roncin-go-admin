@@ -6023,8 +6023,12 @@ func init() {
 	partnerDescEnabled := partnerFields[6].Descriptor()
 	// partner.DefaultEnabled holds the default value on creation for the enabled field.
 	partner.DefaultEnabled = partnerDescEnabled.Default.(bool)
+	// partnerDescIsCasual is the schema descriptor for is_casual field.
+	partnerDescIsCasual := partnerFields[7].Descriptor()
+	// partner.DefaultIsCasual holds the default value on creation for the is_casual field.
+	partner.DefaultIsCasual = partnerDescIsCasual.Default.(bool)
 	// partnerDescSearchKeywords is the schema descriptor for search_keywords field.
-	partnerDescSearchKeywords := partnerFields[7].Descriptor()
+	partnerDescSearchKeywords := partnerFields[8].Descriptor()
 	// partner.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	partner.DefaultSearchKeywords = partnerDescSearchKeywords.Default.(string)
 	// partnerDescID is the schema descriptor for id field.

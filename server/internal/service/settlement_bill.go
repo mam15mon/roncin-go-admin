@@ -285,7 +285,12 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 		for _, item := range group.Fees {
 			fees = append(fees, financeBillableFeeToAPI(item))
 		}
-		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8)})
+		var defaultPaymentTermsDays *int32
+		if group.DefaultPaymentTermsDays != nil {
+			v := int32(*group.DefaultPaymentTermsDays)
+			defaultPaymentTermsDays = &v
+		}
+		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8), IsCasual: group.IsCasual, DefaultPaymentTermsDays: defaultPaymentTermsDays})
 	}
 	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, NettingPairs: billBatchNettingPairsToAPI(preview.NettingPairs), PreviewToken: preview.PreviewToken}), nil
 }

@@ -617,6 +617,8 @@ message BillBatchPreviewGroup {
   string estimated_invoice_currency = 17;
   string estimated_invoice_rate = 18;
   string estimated_invoice_amount = 19;
+  bool is_casual = 20;
+  optional int32 default_payment_terms_days = 21;
 }
 
 message PreviewBillBatchResponse {
@@ -908,7 +910,7 @@ enum FinanceOrganizationPurpose {
 message FinanceOrganizationOption { string id = 1; string code = 2; string name = 3; string base_currency = 4; }
 message ListFinanceOrganizationOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 2; }
 message ListFinanceOrganizationOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceOrganizationOption data = 4; string trace_id = 5; }
-message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; }
+message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; bool is_casual = 4; }
 message ListFinanceSettlementPartyOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; string organization_id = 2 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 3; int32 page = 4; int32 page_size = 5; }
 message ListFinanceSettlementPartyOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementPartyOption data = 4; int64 total = 5; string trace_id = 6; }
 message FinanceCommission { string id=1; string commission_no=2; string verification_id=3; string verification_no=4; string employee_id=5; string employee_name=6; FinanceCommissionStatus status=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; optional string rule_id=22; optional string rule_name=23; optional string personnel_role=24; optional string calculation_basis=25; uint64 rule_version=26; string calculation_version=27; repeated FinanceCommissionLine lines=28; repeated FinanceCommissionAdjustment adjustments=29; string adjustment_amount=30; string effective_commission_amount=31; int32 customer_count=32; int32 order_count=33; int32 fee_count=34; string commission_base_amount=35; string commission_date=36; string cny_exchange_rate=37; string cny_exchange_rate_source=38; string cny_exchange_rate_date=39; optional string cny_exchange_rate_setting_id=40; string cny_commission_amount=41; string cny_adjustment_amount=42; string cny_effective_commission_amount=43; string organization_id=44; string organization_name=45; optional string confirmed_by=46; optional string paid_by=47; optional string cancelled_by=48; }

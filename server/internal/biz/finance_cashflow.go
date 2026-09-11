@@ -17,6 +17,7 @@ var (
 	ErrFinanceCashflowInvalidTransition     = errors.Conflict("FINANCE_CASHFLOW_INVALID_TRANSITION", "当前流水状态不允许执行该操作")
 	ErrFinanceCashflowIdempotencyConflict   = errors.Conflict("FINANCE_CASHFLOW_IDEMPOTENCY_CONFLICT", "流水请求幂等键已被其他请求使用")
 	ErrFinanceCashflowRateOverrideForbidden = errors.Forbidden("FINANCE_CASHFLOW_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖资金流水汇率")
+	ErrFinanceCashflowCasualSupplierAccountRequired = errors.BadRequest("FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED", "向散客供应商出款时，对方收款账户为必填项")
 )
 
 type FinanceCashflowStatus string
@@ -81,7 +82,7 @@ type FinanceCashflowRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	GetScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceCashflow, error)
-	ResolveParty(context.Context, uuid.UUID, uuid.UUID) (string, error)
+	ResolveParty(context.Context, uuid.UUID, uuid.UUID) (string, bool, error)
 	Create(context.Context, *FinanceCashflow, *AuditEvent) (*FinanceCashflow, error)
 	Confirm(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, *AuditEvent) (*FinanceCashflow, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceCashflow, error)
@@ -179,9 +180,12 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 		return nil, err
 	}
 	in.BaseCurrency = baseCurrency
-	name, e := uc.repo.ResolveParty(ctx, org, in.SettlementPartyID)
+	name, isCasual, e := uc.repo.ResolveParty(ctx, org, in.SettlementPartyID)
 	if e != nil {
 		return nil, e
+	}
+	if in.Direction == OrderFeePayable && isCasual && (in.CounterpartyAccount == nil || strings.TrimSpace(*in.CounterpartyAccount) == "") {
+		return nil, ErrFinanceCashflowCasualSupplierAccountRequired
 	}
 	item := &FinanceCashflow{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: FinanceCashflowDraft, SettlementPartyID: in.SettlementPartyID, SettlementPartyName: name, Currency: in.Currency, Amount: in.Amount, ExchangeRate: resolved.Rate, ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate, ExchangeRateSettingID: resolved.SettingID, BaseCurrency: in.BaseCurrency, BaseAmount: in.Amount.Mul(resolved.Rate).RoundBank(8), TransactionDate: in.TransactionDate, OurAccount: in.OurAccount, PaymentMethod: in.PaymentMethod, CounterpartyAccount: in.CounterpartyAccount, BankReferenceNo: in.BankReferenceNo, Note: in.Note, Version: 1}
 	created, e := uc.repo.Create(ctx, item, cashflowAudit(org, actor, item.ID, "finance.cashflow.create"))

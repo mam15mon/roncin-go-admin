@@ -247,7 +247,7 @@ func (r *settlementRepo) ListFinanceSettlementParties(ctx context.Context, organ
 	}
 	result := make([]*biz.FinanceSettlementPartyOption, 0, len(items))
 	for _, item := range items {
-		result = append(result, &biz.FinanceSettlementPartyOption{ID: item.ID.String(), Code: item.Code, Name: item.LegalName})
+		result = append(result, &biz.FinanceSettlementPartyOption{ID: item.ID.String(), Code: item.Code, Name: item.LegalName, IsCasual: item.IsCasual})
 	}
 	return result, int64(total), nil
 }

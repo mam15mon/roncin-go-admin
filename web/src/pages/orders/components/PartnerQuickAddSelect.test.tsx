@@ -143,6 +143,7 @@ describe('PartnerQuickAddSelect', () => {
               enabled: true,
             },
           ],
+          isCasual: true,
         },
         { signal: expect.any(AbortSignal) },
       ),
@@ -488,5 +489,54 @@ describe('PartnerQuickAddSelect', () => {
       expect(screen.queryByText('远程旧名称')).not.toBeInTheDocument();
     });
     expect(screen.getAllByTitle('新测试单位').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('支持取消单次合作勾选，且散客候选项渲染散客标签', async () => {
+    searchPartners.mockResolvedValue([
+      { label: '散客货代', value: 'partner-c', code: 'PC', isCasual: true },
+      { label: '正式客户', value: 'partner-r', code: 'PR', isCasual: false },
+    ]);
+    vi.mocked(partnerServiceCreatePartner).mockResolvedValue({
+      data: {
+        id: 'partner-new',
+        legalName: '正式新单位',
+        code: 'PN',
+        isCasual: false,
+      } as never,
+    });
+    render(<TestHost />);
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+
+    // 下拉应渲染散客标签
+    await screen.findByText('散客货代');
+    expect(screen.getByText('散客')).toBeInTheDocument();
+
+    // 打开快捷新增
+    fireEvent.click(screen.getByRole('button', { name: /新增 委托单位/ }));
+    const legalNameInput = await screen.findByLabelText('公司抬头');
+    fireEvent.change(legalNameInput, { target: { value: '正式新单位' } });
+
+    const checkbox = screen.getByLabelText('单次合作往来单位（散客）');
+    expect(checkbox).toBeChecked();
+    fireEvent.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
+        {
+          legalName: '正式新单位',
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+          isCasual: false,
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
+    );
   });
 });

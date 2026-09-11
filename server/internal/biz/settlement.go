@@ -137,6 +137,7 @@ type FinanceOrganizationOption struct {
 
 type FinanceSettlementPartyOption struct {
 	ID, Code, Name string
+	IsCasual       bool
 }
 
 func validFinanceOrganizationIDs(organizationIDs []uuid.UUID) bool {

@@ -10756,6 +10756,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "isCasual",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -14751,6 +14758,13 @@
           },
           "estimatedInvoiceAmount": {
             "type": "string"
+          },
+          "isCasual": {
+            "type": "boolean"
+          },
+          "defaultPaymentTermsDays": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -18300,6 +18314,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "isCasual": {
+            "type": "boolean"
           }
         }
       },
@@ -29849,6 +29866,9 @@
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerAssignmentInput"
             }
+          },
+          "isCasual": {
+            "type": "boolean"
           }
         }
       },
@@ -30352,6 +30372,9 @@
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerAssignment"
             }
+          },
+          "isCasual": {
+            "type": "boolean"
           }
         }
       },
@@ -31503,6 +31526,9 @@
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerAssignmentInput"
             }
+          },
+          "isCasual": {
+            "type": "boolean"
           }
         }
       },

@@ -10,7 +10,7 @@ import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { FinanceSummaryBoard } from '@/components/ui';
-import { OrderFlowStatus } from '@/enums.generated';
+import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
@@ -684,6 +684,11 @@ export default function OrderFeesPage() {
       {/* 快捷新建往来单位 Modal */}
       <QuickAddPartnerModal
         open={quickAddPartnerModalOpen}
+        defaultRole={
+          modalDirection === RECEIVABLE
+            ? PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
+            : PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+        }
         onCancel={() => setQuickAddPartnerModalOpen(false)}
         onSuccess={(newOption) => {
           if (!targetOrderId || targetOrderId !== activeFeeOrderIdRef.current) {

@@ -121,10 +121,11 @@ type FinanceBillLine struct {
 }
 
 type FinanceBillableFee struct {
-	Fee            *OrderFee
-	OrganizationID uuid.UUID
-	OrderNo        string
-	BusinessType   string
+	Fee                     *OrderFee
+	OrganizationID          uuid.UUID
+	OrderNo                 string
+	BusinessType            string
+	SettlementPartyIsCasual bool
 }
 
 type FinanceBillFilter struct {
@@ -229,6 +230,8 @@ type FinanceBillBatchPreviewGroup struct {
 	EstimatedInvoiceCurrency                              string
 	EstimatedInvoiceRate                                  decimal.Decimal
 	EstimatedInvoiceAmount                                decimal.Decimal
+	IsCasual                                              bool
+	DefaultPaymentTermsDays                               *int
 	preparedBill                                          *FinanceBill
 	config                                                FinanceBillBatchPreviewGroupConfig
 }
@@ -461,6 +464,13 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 		group := groupsByRawKey[raw]
 		if group == nil {
 			group = &FinanceBillBatchPreviewGroup{GroupKey: financeSHA256(raw), Direction: fee.Direction, SettlementPartyID: fee.SettlementPartyID, SettlementPartyName: fee.SettlementPartyName, Currency: fee.Currency, BaseCurrency: fee.BaseCurrency, Fees: make([]*FinanceBillableFee, 0)}
+			if item.SettlementPartyIsCasual {
+				group.IsCasual = true
+				if fee.Direction == OrderFeeReceivable {
+					zero := 0
+					group.DefaultPaymentTermsDays = &zero
+				}
+			}
 			if policy.SplitByTaxRate {
 				value := *fee.TaxRate
 				group.TaxRate = &value
@@ -471,6 +481,12 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 			}
 			groupsByRawKey[raw] = group
 			rawKeys = append(rawKeys, raw)
+		} else if item.SettlementPartyIsCasual {
+			group.IsCasual = true
+			if fee.Direction == OrderFeeReceivable {
+				zero := 0
+				group.DefaultPaymentTermsDays = &zero
+			}
 		}
 		group.Fees = append(group.Fees, item)
 	}

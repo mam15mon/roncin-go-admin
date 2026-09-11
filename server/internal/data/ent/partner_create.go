@@ -137,6 +137,20 @@ func (_c *PartnerCreate) SetNillableEnabled(v *bool) *PartnerCreate {
 	return _c
 }
 
+// SetIsCasual sets the "is_casual" field.
+func (_c *PartnerCreate) SetIsCasual(v bool) *PartnerCreate {
+	_c.mutation.SetIsCasual(v)
+	return _c
+}
+
+// SetNillableIsCasual sets the "is_casual" field if the given value is not nil.
+func (_c *PartnerCreate) SetNillableIsCasual(v *bool) *PartnerCreate {
+	if v != nil {
+		_c.SetIsCasual(*v)
+	}
+	return _c
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_c *PartnerCreate) SetSearchKeywords(v string) *PartnerCreate {
 	_c.mutation.SetSearchKeywords(v)
@@ -544,6 +558,10 @@ func (_c *PartnerCreate) defaults() error {
 		v := partner.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.IsCasual(); !ok {
+		v := partner.DefaultIsCasual
+		_c.mutation.SetIsCasual(v)
+	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		v := partner.DefaultSearchKeywords
 		_c.mutation.SetSearchKeywords(v)
@@ -605,6 +623,9 @@ func (_c *PartnerCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Partner.enabled"`)}
+	}
+	if _, ok := _c.mutation.IsCasual(); !ok {
+		return &ValidationError{Name: "is_casual", err: errors.New(`ent: missing required field "Partner.is_casual"`)}
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Partner.search_keywords"`)}
@@ -678,6 +699,10 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.IsCasual(); ok {
+		_spec.SetField(partner.FieldIsCasual, field.TypeBool, value)
+		_node.IsCasual = value
 	}
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(partner.FieldSearchKeywords, field.TypeString, value)

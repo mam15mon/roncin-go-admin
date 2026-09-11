@@ -4010,6 +4010,8 @@ type BillBatchPreviewGroup struct {
 	EstimatedInvoiceCurrency string                 `protobuf:"bytes,17,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3" json:"estimated_invoice_currency,omitempty"`
 	EstimatedInvoiceRate     string                 `protobuf:"bytes,18,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3" json:"estimated_invoice_rate,omitempty"`
 	EstimatedInvoiceAmount   string                 `protobuf:"bytes,19,opt,name=estimated_invoice_amount,json=estimatedInvoiceAmount,proto3" json:"estimated_invoice_amount,omitempty"`
+	IsCasual                 bool                   `protobuf:"varint,20,opt,name=is_casual,json=isCasual,proto3" json:"is_casual,omitempty"`
+	DefaultPaymentTermsDays  *int32                 `protobuf:"varint,21,opt,name=default_payment_terms_days,json=defaultPaymentTermsDays,proto3,oneof" json:"default_payment_terms_days,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -4175,6 +4177,20 @@ func (x *BillBatchPreviewGroup) GetEstimatedInvoiceAmount() string {
 		return x.EstimatedInvoiceAmount
 	}
 	return ""
+}
+
+func (x *BillBatchPreviewGroup) GetIsCasual() bool {
+	if x != nil {
+		return x.IsCasual
+	}
+	return false
+}
+
+func (x *BillBatchPreviewGroup) GetDefaultPaymentTermsDays() int32 {
+	if x != nil && x.DefaultPaymentTermsDays != nil {
+		return *x.DefaultPaymentTermsDays
+	}
+	return 0
 }
 
 type PreviewBillBatchResponse struct {
@@ -14974,6 +14990,7 @@ type FinanceSettlementPartyOption struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	IsCasual      bool                   `protobuf:"varint,4,opt,name=is_casual,json=isCasual,proto3" json:"is_casual,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -15027,6 +15044,13 @@ func (x *FinanceSettlementPartyOption) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *FinanceSettlementPartyOption) GetIsCasual() bool {
+	if x != nil {
+		return x.IsCasual
+	}
+	return false
 }
 
 type ListFinanceSettlementPartyOptionsRequest struct {
@@ -18238,7 +18262,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1aestimated_invoice_currency\x18\x04 \x01(\tH\x00R\x18estimatedInvoiceCurrency\x88\x01\x01\x129\n" +
 	"\x16estimated_invoice_rate\x18\x05 \x01(\tH\x01R\x14estimatedInvoiceRate\x88\x01\x01B\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
-	"\x17_estimated_invoice_rate\"\xda\x06\n" +
+	"\x17_estimated_invoice_rate\"\xd8\a\n" +
 	"\x15BillBatchPreviewGroup\x12\x1b\n" +
 	"\tgroup_key\x18\x01 \x01(\tR\bgroupKey\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12.\n" +
@@ -18261,10 +18285,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x16configuration_complete\x18\x10 \x01(\bR\x15configurationComplete\x12<\n" +
 	"\x1aestimated_invoice_currency\x18\x11 \x01(\tR\x18estimatedInvoiceCurrency\x124\n" +
 	"\x16estimated_invoice_rate\x18\x12 \x01(\tR\x14estimatedInvoiceRate\x128\n" +
-	"\x18estimated_invoice_amount\x18\x13 \x01(\tR\x16estimatedInvoiceAmountB\v\n" +
+	"\x18estimated_invoice_amount\x18\x13 \x01(\tR\x16estimatedInvoiceAmount\x12\x1b\n" +
+	"\tis_casual\x18\x14 \x01(\bR\bisCasual\x12@\n" +
+	"\x1adefault_payment_terms_days\x18\x15 \x01(\x05H\x03R\x17defaultPaymentTermsDays\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
 	"\t_order_noB\v\n" +
-	"\t_tax_rate\"\xa0\x02\n" +
+	"\t_tax_rateB\x1d\n" +
+	"\x1b_default_payment_terms_days\"\xa0\x02\n" +
 	"\x18PreviewBillBatchResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -19370,11 +19397,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
 	"\x04data\x18\x04 \x03(\v2%.finance.v1.FinanceOrganizationOptionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"V\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"s\n" +
 	"\x1cFinanceSettlementPartyOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\xfb\x01\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_casual\x18\x04 \x01(\bR\bisCasual\"\xfb\x01\n" +
 	"(ListFinanceSettlementPartyOptionsRequest\x12E\n" +
 	"\apurpose\x18\x01 \x01(\x0e2&.finance.v1.FinanceOrganizationPurposeB\x03\xe0A\x02R\apurpose\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1d\n" +

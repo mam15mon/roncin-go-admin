@@ -1,0 +1,8 @@
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"伙伴与财务 Service、Biz、Data 与 Ent 分层边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、Data.client、稳定加锁、版本和唯一约束"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"业务错误码与 HTTP 状态映射规范"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端定向测试、集成测试与生成验证"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"表单组件、高密度纯白容器与吸底栏规范"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"生成 API 类型和表单类型约束"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome、tsc 与门禁要求"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"跨层数据流、Proto契约到页面字段的端到端一致性"}

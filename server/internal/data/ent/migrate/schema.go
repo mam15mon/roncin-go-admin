@@ -4435,6 +4435,7 @@ var (
 		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "registered_address", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "is_casual", Type: field.TypeBool, Default: false},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
@@ -4446,7 +4447,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partners_organizations_partners",
-				Columns:    []*schema.Column{PartnersColumns[10]},
+				Columns:    []*schema.Column{PartnersColumns[11]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4460,22 +4461,22 @@ var (
 			{
 				Name:    "partner_org_code_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[3]},
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[3]},
 			},
 			{
 				Name:    "partner_org_name_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[5]},
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[5]},
 			},
 			{
 				Name:    "partner_org_uscc_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[6]},
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[6]},
 			},
 			{
 				Name:    "partner_organization_id_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[8]},
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[8]},
 			},
 		},
 	}

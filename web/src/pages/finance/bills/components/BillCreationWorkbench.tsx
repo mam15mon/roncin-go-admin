@@ -50,11 +50,11 @@ import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillGroupNavigator from './BillGroupNavigator';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
-import NettingPairsCard from './NettingPairsCard';
 import {
   getPreviewFeeColumns,
   selectionFeeColumns,
 } from './billWorkbenchFeeColumns';
+import NettingPairsCard from './NettingPairsCard';
 
 const { Text } = Typography;
 
@@ -344,7 +344,11 @@ export default function BillCreationWorkbench({
           nextGroups[group.groupKey] = existing || {
             statementTitle: group.settlementPartyName || '',
             billDate: dayjs(),
-            paymentTermsDays: undefined,
+            paymentTermsDays:
+              group.defaultPaymentTermsDays !== undefined &&
+              group.defaultPaymentTermsDays !== null
+                ? group.defaultPaymentTermsDays
+                : undefined,
             note: undefined,
             settlementAccountId: undefined,
             estimatedInvoiceCurrency:
@@ -354,6 +358,13 @@ export default function BillCreationWorkbench({
           if (existing) {
             nextGroups[group.groupKey] = {
               ...existing,
+              paymentTermsDays:
+                existing.paymentTermsDays !== undefined
+                  ? existing.paymentTermsDays
+                  : group.defaultPaymentTermsDays !== undefined &&
+                      group.defaultPaymentTermsDays !== null
+                    ? group.defaultPaymentTermsDays
+                    : undefined,
               estimatedInvoiceCurrency:
                 existing.estimatedInvoiceCurrency !== undefined
                   ? existing.estimatedInvoiceCurrency

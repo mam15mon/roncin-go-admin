@@ -40,6 +40,7 @@ vi.mock('@/services/roncin/adminService', () => ({
 vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceCreatePartner: vi.fn(),
   partnerServiceGetPartner: vi.fn(),
+  partnerServiceListPartnerAccounts: vi.fn().mockResolvedValue({ data: [] }),
   partnerServiceListPartnerAssignmentOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
@@ -117,5 +118,37 @@ describe('PartnerDetailPage 创建预填', () => {
     );
     expect(screen.getByLabelText('公司抬头')).not.toHaveValue('不应覆盖');
     expect(partnerServiceGetPartner).toHaveBeenCalledWith({ id: 'partner-1' });
+  });
+
+  it('编辑散客档案时页头展示散客标签且单次合作开关开启', async () => {
+    routeState.params = { id: 'partner-casual' };
+    routeState.search = '';
+    vi.mocked(partnerServiceGetPartner).mockResolvedValue({
+      data: {
+        id: 'partner-casual',
+        code: 'P00000001',
+        legalName: '单次合作散客公司',
+        enabled: true,
+        isCasual: true,
+      } as never,
+    });
+    vi.mocked(partnerServiceListPartnerSettlementRules).mockResolvedValue({
+      data: [],
+    } as never);
+
+    render(
+      <App>
+        <PartnerDetailPage />
+      </App>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('公司抬头')).toHaveValue('单次合作散客公司'),
+    );
+    const headerTags = document.querySelector('.roncin-page-header-tags');
+    expect(headerTags).toHaveTextContent('散客');
+    expect(
+      screen.getByRole('switch', { name: '单次合作 (散客)' }),
+    ).toBeChecked();
   });
 });

@@ -264,6 +264,7 @@ export default function PartnerDetailPage() {
               legalName: p.legalName,
               unifiedSocialCreditCode: p.unifiedSocialCreditCode,
               enabled: p.enabled ?? true,
+              isCasual: p.isCasual ?? false,
               regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
               addressDetail: profile.addressDetail || p.registeredAddress,
               nameEn: profile.nameEn,
@@ -318,6 +319,7 @@ export default function PartnerDetailPage() {
       formRef.current?.resetFields();
       formRef.current?.setFieldsValue({
         enabled: true,
+        isCasual: false,
         nature: roleLabel,
         customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
         developmentMethod: '自主开发',
@@ -518,6 +520,7 @@ export default function PartnerDetailPage() {
             unifiedSocialCreditCode: values.unifiedSocialCreditCode?.trim(),
             registeredAddress: values.addressDetail?.trim(),
             enabled: values.enabled ?? true,
+            isCasual: Boolean(values.isCasual),
             roles: [roleInput],
             profile,
             assignments,
@@ -532,6 +535,7 @@ export default function PartnerDetailPage() {
           legalName: values.legalName.trim(),
           unifiedSocialCreditCode: values.unifiedSocialCreditCode?.trim(),
           registeredAddress: values.addressDetail?.trim(),
+          isCasual: Boolean(values.isCasual),
           roles: [roleInput],
           profile,
           assignments,
@@ -599,10 +603,19 @@ export default function PartnerDetailPage() {
         onBack={() => history.push(listUrl)}
         breadcrumbs={[{ label: `${roleLabel}管理`, href: listUrl }]}
         tags={
-          partner?.code ? (
-            <Tag variant="filled" style={{ fontFamily: 'monospace' }}>
-              {partner.code}
-            </Tag>
+          partner ? (
+            <Space size={6}>
+              {partner.code ? (
+                <Tag variant="filled" style={{ fontFamily: 'monospace' }}>
+                  {partner.code}
+                </Tag>
+              ) : null}
+              {partner.isCasual ? (
+                <Tag color="warning">散客</Tag>
+              ) : (
+                <Tag color="default">正式</Tag>
+              )}
+            </Space>
           ) : undefined
         }
         extra={

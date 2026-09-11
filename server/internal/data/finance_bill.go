@@ -456,7 +456,12 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType)})
+		party, _ := item.Edges.SettlementPartyOrErr()
+		isCasual := false
+		if party != nil {
+			isCasual = party.IsCasual
+		}
+		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }
@@ -578,7 +583,12 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 		if e != nil {
 			return nil, e
 		}
-		result.Items = append(result.Items, &biz.FinanceBillableFee{Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType)})
+		party, _ := item.Edges.SettlementPartyOrErr()
+		isCasual := false
+		if party != nil {
+			isCasual = party.IsCasual
+		}
+		result.Items = append(result.Items, &biz.FinanceBillableFee{Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }

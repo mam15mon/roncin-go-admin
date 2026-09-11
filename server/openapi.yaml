@@ -6490,6 +6490,10 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: isCasual
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -9095,6 +9099,11 @@ components:
                     type: string
                 estimatedInvoiceAmount:
                     type: string
+                isCasual:
+                    type: boolean
+                defaultPaymentTermsDays:
+                    type: integer
+                    format: int32
         finance.v1.BillBatchPreviewGroupConfigInput:
             required:
                 - groupKey
@@ -11486,6 +11495,8 @@ components:
                     type: string
                 name:
                     type: string
+                isCasual:
+                    type: boolean
         finance.v1.FinanceVerification:
             type: object
             properties:
@@ -19336,6 +19347,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
+                isCasual:
+                    type: boolean
         partner.v1.CreatePartnerResponse:
             type: object
             properties:
@@ -19676,6 +19689,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAssignment'
+                isCasual:
+                    type: boolean
         partner.v1.PartnerAccount:
             type: object
             properties:
@@ -20454,6 +20469,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
+                isCasual:
+                    type: boolean
         partner.v1.UpdatePartnerResponse:
             type: object
             properties:

@@ -238,6 +238,18 @@ export default function Partners() {
       ),
     },
     {
+      title: '合作类型',
+      dataIndex: 'isCasual',
+      width: 100,
+      search: false,
+      render: (_, record) =>
+        record.isCasual ? (
+          <Tag color="warning">散客</Tag>
+        ) : (
+          <Tag color="default">正式</Tag>
+        ),
+    },
+    {
       title: '联系人',
       dataIndex: 'contacts',
       width: 100,
@@ -345,6 +357,7 @@ export default function Partners() {
   const [searchParams, setSearchParams] = useState<{
     keyword?: string;
     enabled?: boolean;
+    isCasual?: boolean;
   }>({});
 
   return (
@@ -364,6 +377,15 @@ export default function Partners() {
             options: [
               { label: '启用', value: true },
               { label: '停用', value: false },
+            ],
+          },
+          {
+            name: 'isCasual',
+            placeholder: '合作类型',
+            width: 120,
+            options: [
+              { label: '正式伙伴', value: false },
+              { label: '散客', value: true },
             ],
           },
         ]}
@@ -440,6 +462,7 @@ export default function Partners() {
             keyword: searchParams.keyword,
             role: currentView.roleType,
             enabled: searchParams.enabled,
+            isCasual: searchParams.isCasual,
           });
           return toTableRequest(response);
         }}

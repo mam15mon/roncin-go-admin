@@ -84,6 +84,9 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 	if options.Enabled != nil {
 		query.Where(partnerent.EnabledEQ(*options.Enabled))
 	}
+	if options.IsCasual != nil {
+		query.Where(partnerent.IsCasualEQ(*options.IsCasual))
+	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Partner, error) {
 		return withPartnerEdges(query).Order(partnerent.ByLegalName()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(partnerToBiz))
@@ -208,7 +211,8 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 			SetLegalName(input.LegalName).
 			SetNormalizedName(input.NormalizedName).
 			SetRegisteredAddress(input.RegisteredAddress).
-			SetEnabled(true)
+			SetEnabled(true).
+			SetIsCasual(input.IsCasual)
 		if input.UnifiedSocialCreditCode != "" {
 			create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 		}
@@ -250,7 +254,8 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 			SetLegalName(input.LegalName).
 			SetNormalizedName(input.NormalizedName).
 			SetRegisteredAddress(input.RegisteredAddress).
-			SetEnabled(input.Enabled)
+			SetEnabled(input.Enabled).
+			SetIsCasual(input.IsCasual)
 		if input.UnifiedSocialCreditCode == "" {
 			update.ClearUnifiedSocialCreditCode()
 		} else {
@@ -359,7 +364,8 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 					SetLegalName(input.LegalName).
 					SetNormalizedName(input.NormalizedName).
 					SetRegisteredAddress(input.RegisteredAddress).
-					SetEnabled(true)
+					SetEnabled(true).
+					SetIsCasual(false)
 				if input.UnifiedSocialCreditCode != "" {
 					create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 				}
@@ -400,7 +406,8 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 		SetLegalName(input.LegalName).
 		SetNormalizedName(input.NormalizedName).
 		SetRegisteredAddress(input.RegisteredAddress).
-		SetEnabled(true)
+		SetEnabled(true).
+		SetIsCasual(false)
 	if input.UnifiedSocialCreditCode == "" {
 		update.ClearUnifiedSocialCreditCode()
 	} else {
@@ -730,6 +737,7 @@ func partnerToBiz(item *ent.Partner) *biz.Partner {
 		NormalizedName:    item.NormalizedName,
 		RegisteredAddress: item.RegisteredAddress,
 		Enabled:           item.Enabled,
+		IsCasual:          item.IsCasual,
 		Roles:             partnerRolesToBiz(item.Edges.Roles),
 		CreatedAt:         item.CreatedAt,
 		UpdatedAt:         item.UpdatedAt,
