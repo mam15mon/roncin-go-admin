@@ -669,18 +669,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'purple',
     objectType: '汇率',
   },
-  'finance.exchange_rate.time_standard.update': {
-    title: '修改汇率时间标准',
-    category: '财务设置',
-    color: 'purple',
-    objectType: '汇率设置',
-  },
-  'finance.exchange_rate.custom_setting.update': {
-    title: '修改自定义汇率设置',
-    category: '财务设置',
-    color: 'purple',
-    objectType: '汇率设置',
-  },
   'finance.custom_setting.billed_fee_edit.update': {
     title: '修改已开票费用设置',
     category: '财务设置',

@@ -2,17 +2,12 @@ package data
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
-	exchangeratesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -26,7 +21,6 @@ type verificationPostgresFixture struct {
 	*financeBillPostgresFixture
 	billID     uuid.UUID
 	cashflowID uuid.UUID
-	settingID  uuid.UUID
 }
 
 type verificationCreateResult struct {
@@ -61,7 +55,7 @@ func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
 		if results[0].verification.ID != results[1].verification.ID || results[0].verification.VerificationNo != results[1].verification.VerificationNo {
 			t.Fatalf("相同幂等键返回了不同核销: first=%s/%s second=%s/%s", results[0].verification.ID, results[0].verification.VerificationNo, results[1].verification.ID, results[1].verification.VerificationNo)
 		}
-		fixture.requireCommittedState(1, "7.30000000")
+		fixture.requireCommittedState(1)
 	})
 
 	t.Run("审计失败回滚核销分摊和单号序列", func(t *testing.T) {
@@ -75,68 +69,6 @@ func TestVerificationCreateSharedTransactionPostgres(t *testing.T) {
 		}
 		fixture.requireRolledBackState()
 	})
-
-	t.Run("并发修改汇率不改变事务内核销快照", func(t *testing.T) {
-		fixture := newVerificationPostgresFixture(t, data)
-		exchangeRepo := &pausingExchangeRateRepo{
-			ExchangeRateRepo: NewExchangeRateRepo(fixture.data), resolved: make(chan struct{}), release: make(chan struct{}),
-		}
-		defer exchangeRepo.continueResolve()
-		usecase := fixture.newUsecase(NewVerificationRepo(fixture.data), exchangeRepo)
-		verificationResult := make(chan verificationCreateResult, 1)
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			verification, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("rate-snapshot"))
-			verificationResult <- verificationCreateResult{verification: verification, err: err}
-		}()
-		select {
-		case <-exchangeRepo.resolved:
-		case <-time.After(5 * time.Second):
-			t.Fatal("核销事务未完成汇率解析")
-		}
-
-		updateResult := make(chan error, 1)
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			_, err := fixture.data.db.ExchangeRateSetting.UpdateOneID(fixture.settingID).SetReceivableRate("7.40000000").Save(ctx)
-			updateResult <- err
-		}()
-		select {
-		case err := <-updateResult:
-			exchangeRepo.continueResolve()
-			t.Fatalf("核销事务提交前汇率更新未等待共享锁: %v", err)
-		case <-time.After(150 * time.Millisecond):
-		}
-		exchangeRepo.continueResolve()
-
-		var created verificationCreateResult
-		select {
-		case created = <-verificationResult:
-		case <-time.After(10 * time.Second):
-			t.Fatal("等待核销事务提交超时")
-		}
-		if created.err != nil || created.verification == nil {
-			t.Fatalf("创建汇率快照核销: verification=%#v error=%v", created.verification, created.err)
-		}
-		if created.verification.ExchangeRate.StringFixed(8) != "7.30000000" || created.verification.BaseAmount.StringFixed(8) != "292.00000000" || created.verification.ExchangeRateSettingID == nil || *created.verification.ExchangeRateSettingID != fixture.settingID {
-			t.Fatalf("核销未保存事务内汇率快照: %#v", created.verification)
-		}
-		select {
-		case err := <-updateResult:
-			if err != nil {
-				t.Fatalf("核销提交后更新汇率: %v", err)
-			}
-		case <-time.After(10 * time.Second):
-			t.Fatal("等待汇率更新超时")
-		}
-		setting, err := fixture.data.db.ExchangeRateSetting.Get(context.Background(), fixture.settingID)
-		if err != nil || setting.ReceivableRate != "7.40000000" {
-			t.Fatalf("并发汇率最终值 = %#v，期望 7.40000000，error=%v", setting, err)
-		}
-		fixture.requireCommittedState(1, "7.30000000")
-	})
 }
 
 func newVerificationPostgresFixture(t *testing.T, data *Data) *verificationPostgresFixture {
@@ -149,15 +81,6 @@ func newVerificationPostgresFixture(t *testing.T, data *Data) *verificationPostg
 	if _, err := data.db.NumberRule.Create().SetOrganizationID(fixture.organizationID).SetDocumentType(numberruleent.DocumentTypeWriteOff).SetPrefix("WO-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {
 		t.Fatalf("创建测试核销编号规则: %v", err)
 	}
-	if _, err := data.db.ExchangeRateTimeStandard.Create().SetOrganizationID(fixture.organizationID).SetRateType(exchangeratetimestandardent.RateTypeWRITE_OFF).SetTimeStandard(exchangeratetimestandardent.TimeStandardWRITE_OFF_TIME).SetSortOrder(0).Save(ctx); err != nil {
-		t.Fatalf("创建测试核销汇率时间标准: %v", err)
-	}
-	setting, err := data.db.ExchangeRateSetting.Create().SetOrganizationID(fixture.organizationID).SetRateType(exchangeratesettingent.RateTypeWRITE_OFF).SetFromCurrency("USD").SetToCurrency("CNY").SetEffectiveFrom(time.Date(2026, 8, 1, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).SetReceivableRate("7.30000000").SetPayableRate("7.30000000").SetIsActive(true).Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试核销汇率: %v", err)
-	}
-	fixture.settingID = setting.ID
-
 	billCreate := data.db.FinanceBill.Create().SetOrganizationID(fixture.organizationID).SetBillNo("BILL-V-" + fixture.suffix).SetIdempotencyKey("bill-verification-" + fixture.suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusCONFIRMED).SetSettlementPartyID(fixture.partnerID).SetSettlementPartyName("账单事务测试客户-" + fixture.suffix).SetCurrency("USD").SetBaseCurrency("CNY").SetExchangeRate("7.20000000").SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).SetTotalAmount("100.00000000").SetNetAmount("100.00000000").SetTaxAmount("0.00000000").SetBaseCurrencyAmount("720.00000000").SetFeeCount(1).SetBillDate(financeBillIntegrationDate).SetVersion(1)
 	bill, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, fixture.usdAccountID, "USD").Save(ctx)
 	if err != nil {
@@ -170,10 +93,6 @@ func newVerificationPostgresFixture(t *testing.T, data *Data) *verificationPostg
 	}
 	fixture.cashflowID = cashflow.ID
 	return fixture
-}
-
-func newIntegrationData(source string) (*Data, func(), error) {
-	return NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: source, AutoMigrate: true, MaxOpenConnections: 8, MaxIdleConnections: 8}}, slog.New(slog.NewTextHandler(io.Discard, nil)))
 }
 
 func (f *verificationPostgresFixture) input(key string) biz.CreateVerificationInput {
@@ -209,12 +128,13 @@ func createVerificationsConcurrently(usecase *biz.VerificationUsecase, organizat
 	return collected
 }
 
-func (f *verificationPostgresFixture) requireCommittedState(wantVerifications int, wantRate string) {
+func (f *verificationPostgresFixture) requireCommittedState(wantVerifications int) {
 	f.t.Helper()
 	ctx := context.Background()
 	verifications, err := f.data.db.FinanceVerification.Query().Where(financeverificationent.OrganizationIDEQ(f.organizationID)).All(ctx)
-	if err != nil || len(verifications) != wantVerifications || verifications[0].ExchangeRate != wantRate {
-		f.t.Fatalf("已提交核销 = %#v，期望数量 %d、汇率 %s，error=%v", verifications, wantVerifications, wantRate, err)
+	// B1：核销单头本位币金额严格等于行级流水本位币合计（725 × 40 / 100 = 290）。
+	if err != nil || len(verifications) != wantVerifications || verifications[0].BaseAmount != "290.00000000" || verifications[0].CashflowBaseAmount != "290.00000000" {
+		f.t.Fatalf("已提交核销 = %#v，期望数量 %d、单头本位币 290.00000000，error=%v", verifications, wantVerifications, err)
 	}
 	allocationCount, err := f.data.db.FinanceVerificationAllocation.Query().Where(financeverificationallocationent.HasVerificationWith(financeverificationent.OrganizationIDEQ(f.organizationID))).Count(ctx)
 	if err != nil || allocationCount != wantVerifications {

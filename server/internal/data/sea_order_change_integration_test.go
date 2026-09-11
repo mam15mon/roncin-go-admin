@@ -1289,3 +1289,154 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		}
 	})
 }
+
+// TestSeaOrderChangeBusinessLockGate_Postgres 验证共享航程船期更新与整票改配
+// 在事务内对锁定订单集合执行统一内容门禁：业务锁定、终止流程与结案订单一律 409 拒绝。
+func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
+	env := newSplitTestEnv(t)
+	ctx := context.Background()
+
+	newETD := time.Now().UTC().Add(48 * time.Hour)
+	transportUpdateCmd := func(order *ent.Order) *biz.SeaTransportExecutionUpdateCommand {
+		te, _ := env.data.db.SeaTransportExecution.Get(ctx, env.teID)
+		v := uint64(1)
+		if te != nil {
+			v = te.Version
+		}
+		return &biz.SeaTransportExecutionUpdateCommand{
+			OrderID:                           order.ID,
+			ExpectedTransportExecutionVersion: v,
+			Input:                             &biz.SeaTransportExecutionUpdateInput{VesselName: "GATED VESSEL", VoyageNo: "999W", ETD: &newETD},
+			Reason:                            "门禁阻断验证",
+			Confirmation:                      &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "确认改船期"},
+			IdempotencyKey:                    "te-gate-" + uuid.NewString(),
+		}
+	}
+	reassignmentInput := func(order *ent.Order, link *ent.SeaMasterBillOrderLink) *biz.SeaOrderReassignmentInput {
+		return &biz.SeaOrderReassignmentInput{
+			OrderID:            order.ID,
+			IdempotencyKey:     "reas-gate-" + uuid.NewString(),
+			RequestFingerprint: "fp-reas-gate-" + uuid.NewString()[:8],
+			Reason:             "门禁阻断改配",
+			ResponsibilityType: biz.ResponsibilityTypeCarrier,
+			Confirmation:       &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "确认改配"},
+			Target: &biz.SeaOrderReassignmentTargetInput{
+				TargetType:     biz.SplitTargetTypeNew,
+				MasterNo:       "GATEMBL" + uuid.NewString()[:6],
+				ShippingLineID: &env.carrier2ID,
+				VesselName:     "GATE VESSEL",
+				VoyageNo:       "777E",
+			},
+			ExpectedOrderVersion: order.Version,
+			ExpectedLinkVersion:  link.Version,
+		}
+	}
+
+	// 正例放在首位：后续阻断子测试会把同 TE 的成员订单置为锁定/终止/结案，
+	// 共享航程门禁校验全部成员，顺序颠倒会误拒本子测试。
+	t.Run("全部成员可编辑时共享航程船期更新成功", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "899", splitFixtureOptions{})
+		result, err := env.uc.ExecuteTransportExecutionUpdate(ctx, env.orgID, env.userID, transportUpdateCmd(f.order))
+		if err != nil {
+			t.Fatalf("成员订单全部 ACTIVE+OPEN+未锁定时船期更新应成功，实际: %v", err)
+		}
+		teAfter, _ := env.data.db.SeaTransportExecution.Get(ctx, env.teID)
+		if teAfter.Version != 2 || teAfter.VesselName != "GATED VESSEL" || teAfter.VoyageNo != "999W" {
+			t.Fatalf("船期更新未生效: %+v", teAfter)
+		}
+		if result.TransportExecution == nil || result.TransportExecution.Version != 2 {
+			t.Fatalf("船期更新结果未返回新版本: %+v", result.TransportExecution)
+		}
+	})
+
+	t.Run("业务锁定订单拒绝共享航程船期更新且零写入", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "900", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		defer env.data.db.Order.UpdateOneID(f.order.ID).ClearLockedAt().ClearLockedBy().SetLockGeneration(0).SaveX(ctx)
+		preview, previewErr := env.uc.PreviewTransportExecutionUpdate(ctx, env.orgID, transportUpdateCmd(f.order))
+		if previewErr != nil {
+			t.Fatalf("业务锁定订单船期更新预览不应报错，实际: %v", previewErr)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单船期更新预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单船期更新预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+
+		if _, err := env.uc.ExecuteTransportExecutionUpdate(ctx, env.orgID, env.userID, transportUpdateCmd(f.order)); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("业务锁定订单的船期更新应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
+		}
+		teAfter, _ := env.data.db.SeaTransportExecution.Get(ctx, env.teID)
+		if teAfter.Version != 2 || teAfter.VesselName != "GATED VESSEL" {
+			t.Fatalf("被阻断的船期更新产生了部分写入: %+v", teAfter)
+		}
+	})
+
+	t.Run("终止流程订单拒绝共享航程船期更新", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "901", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).
+			SetTerminationStatus(orderent.TerminationStatusTERMINATING).
+			SetTerminationType(orderent.TerminationTypeCARRIER_CANCEL).
+			SetTerminationReason("门禁测试进入终止流程").
+			SaveX(ctx)
+		if _, err := env.uc.ExecuteTransportExecutionUpdate(ctx, env.orgID, env.userID, transportUpdateCmd(f.order)); kratoserrors.FromError(err).Reason != "ORDER_TERMINATION_IN_PROGRESS" {
+			t.Fatalf("终止流程订单的船期更新应返回 ORDER_TERMINATION_IN_PROGRESS，实际: %v", err)
+		}
+	})
+
+	t.Run("业务锁定订单拒绝整票改配且旧关联保持活动", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "902", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		reasInput := reassignmentInput(f.order, f.link)
+		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reasInput); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("业务锁定订单的改配应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
+		}
+		linkAfter, _ := env.data.db.SeaMasterBillOrderLink.Get(ctx, f.link.ID)
+		if linkAfter.Status != seamasterbillorderlinkent.StatusACTIVE || linkAfter.MasterBillID != env.mblID {
+			t.Fatalf("被阻断的改配改写了主单关联: %+v", linkAfter)
+		}
+	})
+
+	t.Run("业务锁定订单改配预览提前拦截", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "902b", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		preview, previewErr := env.uc.PreviewReassignment(ctx, env.orgID, reassignmentInput(f.order, f.link))
+		if previewErr != nil {
+			t.Fatalf("业务锁定订单改配预览不应报错，实际: %v", previewErr)
+		}
+		if preview.IsValid {
+			t.Fatalf("业务锁定订单改配预览 IsValid 应为 false")
+		}
+		foundLockReason := false
+		for _, msg := range preview.Errors {
+			if strings.Contains(msg, f.order.OrderNo) && strings.Contains(msg, "锁定") {
+				foundLockReason = true
+				break
+			}
+		}
+		if !foundLockReason {
+			t.Fatalf("改配预览未包含订单业务锁原因: %v", preview.Errors)
+		}
+	})
+
+	t.Run("已结案订单拒绝整票改配", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "903", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).
+			SetClosureStatus(orderent.ClosureStatusCLOSED).
+			SetClosureReason("门禁测试结案").
+			SetClosedAt(time.Now().UTC()).
+			SetClosedBy(env.userID).
+			SaveX(ctx)
+		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reassignmentInput(f.order, f.link)); kratoserrors.FromError(err).Reason != "SEA_ORDER_REASSIGNMENT_BLOCKED" {
+			t.Fatalf("已结案订单的改配应保持既有 SEA_ORDER_REASSIGNMENT_BLOCKED 阻断，实际: %v", err)
+		}
+	})
+}

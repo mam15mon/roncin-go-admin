@@ -10,15 +10,34 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
-	exchangeratecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/shopspring/decimal"
 )
 
 type exchangeRateRepo struct{ data *Data }
 
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
+
+func (r *exchangeRateRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
+}
+
+// requireHeadquarters 校验调用组织即总部；折本币基准汇率只允许总部写入，不提供重定向通道。
+func (r *exchangeRateRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	if headquartersID != organizationID {
+		return biz.ErrExchangeRateHeadquartersRequired
+	}
+	return nil
+}
 
 func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
 	client, err := r.data.client(ctx)
@@ -56,7 +75,7 @@ func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) (
 	}
 	items, err := client.ExchangeRateSetting.Query().
 		Where(exchangerateent.OrganizationIDEQ(organizationID)).
-		Order(exchangerateent.ByRateType(), exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
+		Order(exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -71,19 +90,28 @@ func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) (
 	return result, nil
 }
 
-func (r *exchangeRateRepo) Create(ctx context.Context, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+func (r *exchangeRateRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+	if organizationID != input.OrganizationID {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
 	return r.save(ctx, input, audit, false)
 }
 
-func (r *exchangeRateRepo) Update(ctx context.Context, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+func (r *exchangeRateRepo) Update(ctx context.Context, organizationID uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+	if organizationID != input.OrganizationID {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
 	return r.save(ctx, input, audit, true)
 }
 
 func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSetting, audit *biz.AuditEvent, updating bool) (*biz.ExchangeRateSetting, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	if err := r.validateCurrencies(ctx, input.FromCurrency, input.ToCurrency); err != nil {
 		return nil, err
 	}
-	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s:%s", input.OrganizationID, input.RateType, input.FromCurrency, input.ToCurrency)
+	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s", input.OrganizationID, input.FromCurrency, input.ToCurrency)
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -118,7 +146,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 			}
 		}
 		conflict := tx.ExchangeRateSetting.Query().Where(
-			exchangerateent.OrganizationIDEQ(input.OrganizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(input.RateType)),
+			exchangerateent.OrganizationIDEQ(input.OrganizationID),
 			exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
 			exchangerateent.IsActiveEQ(true),
 			exchangerateent.IDNEQ(input.ID),
@@ -137,9 +165,9 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 		var saveErr error
 		if updating {
 			builder := tx.ExchangeRateSetting.UpdateOneID(input.ID).
-				SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
+				SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
 				SetEffectiveFrom(effectiveFrom).
-				SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8))
+				SetRate(input.Rate.StringFixed(8))
 			if input.EffectiveTo == nil {
 				builder.ClearEffectiveTo()
 			} else {
@@ -148,9 +176,9 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 			saved, saveErr = builder.Save(ctx)
 		} else {
 			builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
-				SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
+				SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
 				SetEffectiveFrom(effectiveFrom).
-				SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8)).SetIsActive(true)
+				SetRate(input.Rate.StringFixed(8)).SetIsActive(true)
 			if effectiveTo != nil {
 				builder.SetEffectiveTo(*effectiveTo)
 			}
@@ -168,6 +196,9 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 }
 
 func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
+	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
+		return err
+	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
 		if queryErr != nil {
@@ -180,135 +211,18 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 	})
 }
 
-func (r *exchangeRateRepo) ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateTimeStandardSetting, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	query := client.ExchangeRateTimeStandard.Query().
-		Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).
-		Order(exchangeratetimestandardent.ByRateType(), exchangeratetimestandardent.BySortOrder())
-	if _, transactional := transactionFromContext(ctx); transactional {
-		query.ForShare()
-	}
-	items, err := query.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.ExchangeRateTimeStandardSetting, 0, 5)
-	byType := make(map[string]*biz.ExchangeRateTimeStandardSetting, 5)
-	for _, item := range items {
-		rateType := string(item.RateType)
-		setting := byType[rateType]
-		if setting == nil {
-			setting = &biz.ExchangeRateTimeStandardSetting{RateType: rateType, TimeStandards: []string{}}
-			byType[rateType] = setting
-			result = append(result, setting)
-		}
-		setting.TimeStandards = append(setting.TimeStandards, string(item.TimeStandard))
-	}
-	return result, nil
-}
-
-func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizationID uuid.UUID, settings []*biz.ExchangeRateTimeStandardSetting, audit *biz.AuditEvent) error {
-	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if _, deleteErr := tx.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).Exec(ctx); deleteErr != nil {
-			return deleteErr
-		}
-		for _, setting := range settings {
-			for index, standard := range setting.TimeStandards {
-				if _, createErr := tx.ExchangeRateTimeStandard.Create().
-					SetOrganizationID(organizationID).
-					SetRateType(exchangeratetimestandardent.RateType(setting.RateType)).
-					SetTimeStandard(exchangeratetimestandardent.TimeStandard(standard)).
-					SetSortOrder(index).
-					Save(ctx); createErr != nil {
-					return createErr
-				}
-			}
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-}
-
-func (r *exchangeRateRepo) GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateCustomSetting, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	query := client.ExchangeRateCustomSetting.Query().Where(exchangeratecustomsettingent.OrganizationIDEQ(organizationID))
-	if _, transactional := transactionFromContext(ctx); transactional {
-		query.ForShare()
-	}
-	item, err := query.Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return exchangeRateCustomSettingToBiz(item), nil
-}
-
-func (r *exchangeRateRepo) SaveCustomSetting(ctx context.Context, setting *biz.ExchangeRateCustomSetting, expectedVersion uint64, audit *biz.AuditEvent) (*biz.ExchangeRateCustomSetting, error) {
-	if setting == nil || setting.OrganizationID == uuid.Nil || setting.UpdatedBy == nil || *setting.UpdatedBy == uuid.Nil {
-		return nil, biz.ErrExchangeRateInvalidArgument
-	}
-	var saved *ent.ExchangeRateCustomSetting
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.ExchangeRateCustomSetting.Query().
-			Where(exchangeratecustomsettingent.OrganizationIDEQ(setting.OrganizationID)).
-			ForUpdate().
-			Only(ctx)
-		switch {
-		case ent.IsNotFound(queryErr):
-			if expectedVersion != 0 {
-				return biz.ErrExchangeRateCustomSettingConflict
-			}
-			var createErr error
-			saved, createErr = tx.ExchangeRateCustomSetting.Create().
-				SetOrganizationID(setting.OrganizationID).
-				SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
-				SetVersion(1).
-				SetUpdatedBy(*setting.UpdatedBy).
-				Save(ctx)
-			if createErr != nil {
-				return mapEntError(createErr, nil, biz.ErrExchangeRateCustomSettingConflict)
-			}
-		case queryErr != nil:
-			return queryErr
-		case current.Version != expectedVersion:
-			return biz.ErrExchangeRateCustomSettingConflict
-		default:
-			var updateErr error
-			saved, updateErr = tx.ExchangeRateCustomSetting.UpdateOneID(current.ID).
-				SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
-				SetVersion(current.Version + 1).
-				SetUpdatedBy(*setting.UpdatedBy).
-				Save(ctx)
-			if updateErr != nil {
-				return updateErr
-			}
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return exchangeRateCustomSettingToBiz(saved), nil
-}
-
-func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
+// ResolveRate 查询总部组织下有效区间覆盖 rateDate 的唯一启用地汇率。
+func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
 	lookupTime, err := parseExchangeRateStorageTime(rateDate)
 	if err != nil {
-		return nil, biz.ErrExchangeRateInvalidArgument
+		return decimal.Decimal{}, biz.ErrExchangeRateInvalidArgument
 	}
 	client, err := r.data.client(ctx)
 	if err != nil {
-		return nil, err
+		return decimal.Decimal{}, err
 	}
 	query := client.ExchangeRateSetting.Query().Where(
-		exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(rateType)),
+		exchangerateent.OrganizationIDEQ(ownerOrganizationID),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
 		exchangerateent.IsActiveEQ(true),
 		exchangerateent.EffectiveFromLTE(lookupTime), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(lookupTime)),
@@ -318,24 +232,19 @@ func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID
 	}
 	items, err := query.All(ctx)
 	if err != nil {
-		return nil, err
+		return decimal.Decimal{}, err
 	}
 	if len(items) == 0 {
-		return nil, biz.ErrExchangeRateMissing
+		return decimal.Decimal{}, biz.ErrExchangeRateMissing
 	}
 	if len(items) > 1 {
-		return nil, biz.ErrExchangeRateConflict
+		return decimal.Decimal{}, biz.ErrExchangeRateConflict
 	}
-	setting, err := exchangeRateToBiz(items[0])
+	rate, err := decimalOf(items[0].Rate)
 	if err != nil {
-		return nil, err
+		return decimal.Decimal{}, err
 	}
-	rate := setting.ReceivableRate
-	if direction == biz.OrderFeePayable {
-		rate = setting.PayableRate
-	}
-	id := setting.ID
-	return &biz.ResolvedExchangeRate{Rate: rate, Source: "SYSTEM", RateDate: rateDate, SettingID: &id}, nil
+	return rate, nil
 }
 
 func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...string) error {
@@ -354,11 +263,7 @@ func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...stri
 }
 
 func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting, error) {
-	receivable, err := decimalOf(item.ReceivableRate)
-	if err != nil {
-		return nil, err
-	}
-	payable, err := decimalOf(item.PayableRate)
+	rate, err := decimalOf(item.Rate)
 	if err != nil {
 		return nil, err
 	}
@@ -368,19 +273,7 @@ func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting,
 		value := item.EffectiveTo.In(biz.ExchangeRateBusinessLocation()).Format(time.RFC3339)
 		effectiveTo = &value
 	}
-	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
-}
-
-func exchangeRateCustomSettingToBiz(item *ent.ExchangeRateCustomSetting) *biz.ExchangeRateCustomSetting {
-	updatedAt := item.UpdatedAt
-	updatedBy := item.UpdatedBy
-	return &biz.ExchangeRateCustomSetting{
-		OrganizationID:          item.OrganizationID,
-		InheritBaseCurrencyRate: item.InheritBaseCurrencyRate,
-		Version:                 item.Version,
-		UpdatedAt:               &updatedAt,
-		UpdatedBy:               &updatedBy,
-	}
+	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, Rate: rate, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
 }
 
 func parseExchangeRateStorageTime(value string) (time.Time, error) {

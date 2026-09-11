@@ -95,7 +95,7 @@ func (s *financeBillTransactionRepoStub) Get(ctx context.Context, _ []uuid.UUID,
 type financeBillExchangeRateTransactionStub struct {
 	ExchangeRateRepo
 	rateContext      *ExchangeRateContext
-	resolved         *ResolvedExchangeRate
+	resolvedRate     decimal.Decimal
 	transactionCalls int
 }
 
@@ -107,27 +107,18 @@ func (s *financeBillExchangeRateTransactionStub) ResolveContext(ctx context.Cont
 	return s.rateContext, nil
 }
 
-func (s *financeBillExchangeRateTransactionStub) ListTimeStandards(ctx context.Context, _ uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error) {
+func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _, _, _ string) (decimal.Decimal, error) {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
-		return nil, err
+		return decimal.Decimal{}, err
 	}
 	s.transactionCalls++
-	return []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}}, nil
-}
-
-func (s *financeBillExchangeRateTransactionStub) Resolve(ctx context.Context, _ uuid.UUID, _ string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
-	if err := requireFinanceBillTransaction(ctx); err != nil {
-		return nil, err
-	}
-	s.transactionCalls++
-	return s.resolved, nil
+	return s.resolvedRate, nil
 }
 
 func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	feeID := uuid.New()
-	settingID := uuid.New()
 	repo := &financeBillTransactionRepoStub{fee: &FinanceBillableFee{
 		Fee: &OrderFee{
 			ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeConfirmed,
@@ -139,8 +130,8 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 		OrderNo: "SE2026083000001", BusinessType: string(OrderBusinessSE),
 	}}
 	exchangeRepo := &financeBillExchangeRateTransactionStub{
-		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		resolved:    &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-08-30", SettingID: &settingID},
+		rateContext:  &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		resolvedRate: decimal.RequireFromString("7.20"),
 	}
 	transactor := &financeBillTransactorStub{}
 	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
@@ -163,8 +154,8 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	if repo.responseReads != 1 {
 		t.Fatalf("提交后账单读取次数 = %d，期望 1", repo.responseReads)
 	}
-	if exchangeRepo.transactionCalls != 4 {
-		t.Fatalf("汇率仓储事务内调用次数 = %d，期望 4", exchangeRepo.transactionCalls)
+	if exchangeRepo.transactionCalls != 3 {
+		t.Fatalf("汇率仓储事务内调用次数 = %d，期望 3", exchangeRepo.transactionCalls)
 	}
 }
 

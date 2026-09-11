@@ -35,8 +35,6 @@ const (
 	FieldBillBaseAmount = "bill_base_amount"
 	// FieldCashflowBaseAmount holds the string denoting the cashflow_base_amount field in the database.
 	FieldCashflowBaseAmount = "cashflow_base_amount"
-	// FieldWriteOffBaseAmount holds the string denoting the write_off_base_amount field in the database.
-	FieldWriteOffBaseAmount = "write_off_base_amount"
 	// FieldExchangeGainLoss holds the string denoting the exchange_gain_loss field in the database.
 	FieldExchangeGainLoss = "exchange_gain_loss"
 	// FieldActive holds the string denoting the active field in the database.
@@ -85,7 +83,6 @@ var Columns = []string{
 	FieldAmount,
 	FieldBillBaseAmount,
 	FieldCashflowBaseAmount,
-	FieldWriteOffBaseAmount,
 	FieldExchangeGainLoss,
 	FieldActive,
 }
@@ -173,11 +170,6 @@ func ByBillBaseAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByCashflowBaseAmount orders the results by the cashflow_base_amount field.
 func ByCashflowBaseAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCashflowBaseAmount, opts...).ToFunc()
-}
-
-// ByWriteOffBaseAmount orders the results by the write_off_base_amount field.
-func ByWriteOffBaseAmount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWriteOffBaseAmount, opts...).ToFunc()
 }
 
 // ByExchangeGainLoss orders the results by the exchange_gain_loss field.

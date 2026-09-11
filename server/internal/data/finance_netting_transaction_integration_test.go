@@ -204,3 +204,79 @@ func createNettingsConcurrently(usecase *biz.FinanceNettingUsecase, organization
 	}
 	return collected
 }
+
+// TestFinanceNettingPersistsBothBaseAmountsAndGainLoss 验证对冲创建路径端到端
+// 落库并读回应收侧/应付侧本位币与对冲汇差（B2）。
+func TestFinanceNettingPersistsBothBaseAmountsAndGainLoss(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	defer cleanup()
+
+	// 夹具在子测试内创建，保证其 t.Cleanup 在外层 defer 关闭数据库之前执行。
+	t.Run("两端本位币与汇差落库并读回", func(t *testing.T) {
+		fixture := newNettingPostgresFixture(t, data)
+		usecase := fixture.newUsecase()
+		ctx := context.Background()
+
+		// 双方同为 USD、不同汇率：应收 6.5、应付 7.0；对冲额为可用余额较小值 60。
+		usdBill := func(key string, direction financebillent.Direction, total, rate string) uuid.UUID {
+			create := data.db.FinanceBill.Create().
+				SetOrganizationID(fixture.organizationID).
+				SetBillNo("BILL-NTB-" + key + "-" + fixture.suffix).
+				SetIdempotencyKey("bill-netting-base-" + key + "-" + fixture.suffix).
+				SetDirection(direction).
+				SetStatus(financebillent.StatusCONFIRMED).
+				SetSettlementPartyID(fixture.partnerID).
+				SetSettlementPartyName("账单事务测试客户-" + fixture.suffix).
+				SetCurrency("USD").
+				SetBaseCurrency("CNY").
+				SetExchangeRate(rate).
+				SetExchangeRateSource(financebillent.ExchangeRateSourceMANUAL).
+				SetExchangeRateDate(financeBillIntegrationDate).
+				SetTotalAmount(total).
+				SetNetAmount(total).
+				SetTaxAmount("0.00000000").
+				SetBaseCurrencyAmount(decimal.RequireFromString(total).Mul(decimal.RequireFromString(rate)).StringFixed(8)).
+				SetFeeCount(1).
+				SetBillDate(financeBillIntegrationDate).
+				SetVersion(1)
+			bill, err := withTestFinanceBillSettlementAccountSnapshot(create, fixture.accountID, "USD").Save(ctx)
+			if err != nil {
+				t.Fatalf("创建 USD 测试账单 %s: %v", key, err)
+			}
+			return bill.ID
+		}
+		receivableID := usdBill("rec", financebillent.DirectionRECEIVABLE, "100", "6.50000000")
+		payableID := usdBill("pay", financebillent.DirectionPAYABLE, "60", "7.00000000")
+
+		netting, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, biz.CreateFinanceNettingInput{
+			Bills: []biz.FinanceNettingBillVersion{
+				{BillID: receivableID, ExpectedVersion: 1},
+				{BillID: payableID, ExpectedVersion: 1},
+			},
+			IdempotencyKey: "netting-base-amounts-" + fixture.suffix,
+		})
+		if err != nil {
+			t.Fatalf("创建两端本位币对冲单失败: %v", err)
+		}
+		if !netting.Amount.Equal(decimal.RequireFromString("60")) {
+			t.Fatalf("对冲金额应为 60: %s", netting.Amount)
+		}
+		if !netting.BaseCurrencyAmount.Equal(decimal.RequireFromString("390")) {
+			t.Fatalf("应收侧本位币应为 390: %s", netting.BaseCurrencyAmount)
+		}
+		if !netting.PayableBaseAmount.Equal(decimal.RequireFromString("420")) {
+			t.Fatalf("应付侧本位币应为 420: %s", netting.PayableBaseAmount)
+		}
+		if !netting.ExchangeGainLoss.Equal(decimal.RequireFromString("30")) {
+			t.Fatalf("对冲汇差应为 30: %s", netting.ExchangeGainLoss)
+		}
+		// Create 成功后经 GetByKey 普通上下文重读，两字段已通过持久化链路往返。
+		persisted, err := NewFinanceNettingRepo(data).GetByKey(ctx, fixture.organizationID, "netting-base-amounts-"+fixture.suffix)
+		if err != nil || persisted == nil {
+			t.Fatalf("重读对冲单失败: %v", err)
+		}
+		if !persisted.PayableBaseAmount.Equal(netting.PayableBaseAmount) || !persisted.ExchangeGainLoss.Equal(netting.ExchangeGainLoss) {
+			t.Fatalf("持久化往返后应付侧本位币/汇差不一致: payable=%s gainLoss=%s", persisted.PayableBaseAmount, persisted.ExchangeGainLoss)
+		}
+	})
+}

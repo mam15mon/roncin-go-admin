@@ -1,29 +1,10 @@
 import {
   DownloadOutlined,
   EditOutlined,
-  HolderOutlined,
   PlusOutlined,
-  SettingOutlined,
   StopOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  sortableKeyboardCoordinates,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -33,7 +14,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Card, Form, Modal, Popconfirm, Select, Space, Tag } from 'antd';
+import { App, Button, Card, Form, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
@@ -41,126 +22,23 @@ import {
   exchangeRateServiceDisableExchangeRateSetting,
   exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServiceListExchangeRateSettings,
-  exchangeRateServiceListExchangeRateTimeStandards,
   exchangeRateServiceUpdateExchangeRateSetting,
-  exchangeRateServiceUpdateExchangeRateTimeStandards,
 } from '@/services/roncin/exchangeRateService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { toTableRequest } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { getCurrencies } from '@/utils/options';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
-const exchangeRateTypeLabels: Record<string, string> = {
-  BASE_CURRENCY: '汇率（折本币）',
-  INVOICE: '开票汇率',
-  SETTLEMENT: '结算汇率',
-  WRITE_OFF: '核销汇率',
-  BILL: '账单汇率',
-};
-const exchangeRateTypeOptions = Object.entries(exchangeRateTypeLabels).map(([value, label]) => ({
-  label,
-  value,
-}));
-const timeStandardLabels: Record<string, string> = {
-  ETD_ETA_TRAIN_DATE: 'ETD/ETA/班列日期',
-  BUSINESS_TIME: '业务时间',
-  BARGE_ETD: '驳船 ETD',
-  EXPENSE_TIME: '费用时间',
-  ORDER_CREATED_AT: '订单创建时间',
-  BILL_DATE: '账单日期',
-  BILL_CREATED_AT: '账单创建时间',
-  INVOICE_DATE: '开票日期',
-  TRANSACTION_DATE: '资金交易日期',
-  WRITE_OFF_TIME: '核销时间',
-};
-const timeStandardsByRateType: Record<string, string[]> = {
-  BASE_CURRENCY: [
-    'ETD_ETA_TRAIN_DATE',
-    'BUSINESS_TIME',
-    'BARGE_ETD',
-    'EXPENSE_TIME',
-    'ORDER_CREATED_AT',
-  ],
-  BILL: ['BILL_DATE', 'BILL_CREATED_AT'],
-  INVOICE: ['INVOICE_DATE'],
-  SETTLEMENT: ['TRANSACTION_DATE'],
-  WRITE_OFF: ['WRITE_OFF_TIME'],
-};
 
 type ExchangeRateFormValues = {
-  rateType: string;
   fromCurrency: string;
   toCurrency: string;
   effectiveFrom: string | Dayjs;
   effectiveTo?: string | Dayjs;
-  receivableRate: string;
-  payableRate: string;
+  rate: string;
 };
-
-type SortableTimeStandardsProps = {
-  values: string[];
-  onChange: (values: string[]) => void;
-};
-
-function SortableTimeStandards({ values, onChange }: SortableTimeStandardsProps) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-  const onDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
-    const oldIndex = values.indexOf(String(active.id));
-    const newIndex = values.indexOf(String(over.id));
-    onChange(arrayMove(values, oldIndex, newIndex));
-  };
-
-  return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-      <SortableContext items={values} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-          {values.map((value) => (
-            <SortableItem key={value} value={value} />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
-  );
-}
-
-function SortableItem({ value }: { value: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: value,
-  });
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        alignItems: 'center',
-        background: '#fff',
-        border: '1px solid #f0f0f0',
-        borderRadius: 6,
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '6px 8px',
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-    >
-      <span>{timeStandardLabels[value]}</span>
-      <Button
-        type="text"
-        size="small"
-        icon={<HolderOutlined />}
-        aria-label={`拖拽排序：${timeStandardLabels[value]}`}
-        style={{ cursor: 'grab' }}
-        {...attributes}
-        {...listeners}
-      />
-    </div>
-  );
-}
 
 const rateRule = async (_: unknown, value?: string) => {
   if (!value) throw new Error('请输入汇率');
@@ -180,15 +58,11 @@ export function ExchangeRatesPanel() {
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
   const [currencies, setCurrencies] = useState<API.Currency[]>([]);
-  const [timeStandardsOpen, setTimeStandardsOpen] = useState(false);
-  const [timeStandardsSaving, setTimeStandardsSaving] = useState(false);
-  const [timeStandards, setTimeStandards] = useState<Record<string, string[]>>({});
 
   const openCreate = () => {
     setEditing(undefined);
     form.resetFields();
     form.setFieldsValue({
-      rateType: 'BASE_CURRENCY',
       toCurrency: baseCurrency,
       effectiveFrom: dayjs(),
     });
@@ -198,13 +72,13 @@ export function ExchangeRatesPanel() {
   const openEdit = (record: API.ExchangeRateSetting) => {
     setEditing(record);
     form.setFieldsValue({
-      rateType: record.rateType,
       fromCurrency: record.fromCurrency,
       toCurrency: record.toCurrency,
-      effectiveFrom: record.effectiveFrom ? dayjs(record.effectiveFrom) : undefined,
+      effectiveFrom: record.effectiveFrom
+        ? dayjs(record.effectiveFrom)
+        : undefined,
       effectiveTo: record.effectiveTo ? dayjs(record.effectiveTo) : undefined,
-      receivableRate: trimDecimal(record.receivableRate),
-      payableRate: trimDecimal(record.payableRate),
+      rate: trimDecimal(record.rate),
     });
     setModalOpen(true);
   };
@@ -245,34 +119,6 @@ export function ExchangeRatesPanel() {
     }
   };
 
-  const openTimeStandards = async () => {
-    const response = await exchangeRateServiceListExchangeRateTimeStandards();
-    setTimeStandards(
-      Object.fromEntries(
-        unwrapList(response).map((item) => [item.rateType ?? '', item.timeStandards ?? []]),
-      ),
-    );
-    setTimeStandardsOpen(true);
-  };
-
-  const saveTimeStandards = async () => {
-    setTimeStandardsSaving(true);
-    try {
-      await exchangeRateServiceUpdateExchangeRateTimeStandards({
-        data: Object.entries(timeStandards).map(([rateType, standards]) => ({
-          rateType,
-          timeStandards: standards,
-        })),
-      });
-      message.success('时间标准配置已更新');
-      setTimeStandardsOpen(false);
-    } catch {
-      message.error('时间标准配置更新失败');
-    } finally {
-      setTimeStandardsSaving(false);
-    }
-  };
-
   const columns: ProColumns<API.ExchangeRateSetting>[] = [
     {
       title: '序号',
@@ -282,65 +128,49 @@ export function ExchangeRatesPanel() {
       align: 'center',
     },
     {
-      title: '汇率类型',
-      dataIndex: 'rateType',
-      width: 140,
-      render: (_, record) =>
-        record.rateType ? exchangeRateTypeLabels[record.rateType] ?? record.rateType : '-',
-    },
-    {
-      title: '原币种',
+      title: '币种对',
       dataIndex: 'fromCurrency',
-      width: 110,
+      width: 220,
       render: (_, record) => {
-        const cur = currencies.find((c) => c.code === record.fromCurrency);
-        return cur?.name ? `${record.fromCurrency} (${cur.name})` : record.fromCurrency;
+        const from = currencies.find((c) => c.code === record.fromCurrency);
+        const to = currencies.find((c) => c.code === record.toCurrency);
+        const fromLabel = from?.name
+          ? `${record.fromCurrency} (${from.name})`
+          : record.fromCurrency;
+        const toLabel = to?.name
+          ? `${record.toCurrency} (${to.name})`
+          : record.toCurrency;
+        return `${fromLabel} → ${toLabel}`;
       },
     },
     {
-      title: '目标币种',
-      dataIndex: 'toCurrency',
-      width: 110,
-      render: (_, record) => {
-        const cur = currencies.find((c) => c.code === record.toCurrency);
-        return cur?.name ? `${record.toCurrency} (${cur.name})` : record.toCurrency;
-      },
-    },
-    {
-      title: '应收汇率',
-      dataIndex: 'receivableRate',
+      title: '折本币汇率',
+      dataIndex: 'rate',
       align: 'right',
-      width: 110,
+      width: 120,
       render: (_, record) => (
         <span style={{ fontWeight: 600, color: '#1677ff' }}>
-          {trimDecimal(record.receivableRate)}
+          {trimDecimal(record.rate)}
         </span>
       ),
     },
     {
-      title: '应付汇率',
-      dataIndex: 'payableRate',
-      align: 'right',
-      width: 110,
-      render: (_, record) => (
-        <span style={{ fontWeight: 600, color: '#52c41a' }}>
-          {trimDecimal(record.payableRate)}
-        </span>
-      ),
-    },
-    {
-      title: '开始时间',
+      title: '生效起始日',
       dataIndex: 'effectiveFrom',
       width: 165,
       render: (_, record) => formatDate(record.effectiveFrom),
     },
     {
-      title: '结束时间',
+      title: '失效日',
       dataIndex: 'effectiveTo',
       width: 165,
       render: (_, record) => {
         if (!record.effectiveTo) {
-          return <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>长期有效</Tag>;
+          return (
+            <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>
+              长期有效
+            </Tag>
+          );
         }
         return formatDate(record.effectiveTo);
       },
@@ -394,21 +224,24 @@ export function ExchangeRatesPanel() {
   const currencyOptions = currencies
     .filter((c) => c.enabled !== false)
     .map((c) => ({
-      label: `${c.code} - ${c.name || ''} ${c.symbol ? `(${c.symbol})` : ''}`.trim(),
+      label:
+        `${c.code} - ${c.name || ''} ${c.symbol ? `(${c.symbol})` : ''}`.trim(),
       value: c.code ?? '',
     }));
 
   const initialValues: Partial<ExchangeRateFormValues> = editing
     ? {
-        rateType: editing.rateType,
         fromCurrency: editing.fromCurrency,
         toCurrency: editing.toCurrency,
-        effectiveFrom: editing.effectiveFrom ? dayjs(editing.effectiveFrom) : undefined,
-        effectiveTo: editing.effectiveTo ? dayjs(editing.effectiveTo) : undefined,
-        receivableRate: trimDecimal(editing.receivableRate),
-        payableRate: trimDecimal(editing.payableRate),
+        effectiveFrom: editing.effectiveFrom
+          ? dayjs(editing.effectiveFrom)
+          : undefined,
+        effectiveTo: editing.effectiveTo
+          ? dayjs(editing.effectiveTo)
+          : undefined,
+        rate: trimDecimal(editing.rate),
       }
-    : { rateType: 'BASE_CURRENCY', toCurrency: baseCurrency, effectiveFrom: dayjs() };
+    : { toCurrency: baseCurrency, effectiveFrom: dayjs() };
 
   return (
     <Card
@@ -458,20 +291,14 @@ export function ExchangeRatesPanel() {
                 </Button>,
               ]
             : []),
-          ...(access.canUpdateExchangeRates
-            ? [
-                <Button
-                  key="time-standards"
-                  icon={<SettingOutlined />}
-                  onClick={openTimeStandards}
-                >
-                  时间标准配置
-                </Button>,
-              ]
-            : []),
           ...(access.canCreateExchangeRates
             ? [
-                <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openCreate}
+                >
                   新建汇率
                 </Button>,
               ]
@@ -488,28 +315,36 @@ export function ExchangeRatesPanel() {
         labelCol={{ flex: '110px' }}
         wrapperCol={{ flex: 'auto' }}
         form={form}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 580 }}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => setModalOpen(false),
+          width: 580,
+        }}
         onOpenChange={(visible) => {
           setModalOpen(visible);
           if (!visible) setEditing(undefined);
         }}
         onFinish={async (values) => {
-          const effectiveFrom = dayjs(values.effectiveFrom).format('YYYY-MM-DDTHH:mm:ssZ');
+          const effectiveFrom = dayjs(values.effectiveFrom).format(
+            'YYYY-MM-DDTHH:mm:ssZ',
+          );
           const effectiveTo = values.effectiveTo
             ? dayjs(values.effectiveTo).format('YYYY-MM-DDTHH:mm:ssZ')
             : undefined;
-          if (effectiveTo && (dayjs(effectiveTo).isBefore(dayjs(effectiveFrom)) || dayjs(effectiveTo).isSame(dayjs(effectiveFrom)))) {
+          if (
+            effectiveTo &&
+            (dayjs(effectiveTo).isBefore(dayjs(effectiveFrom)) ||
+              dayjs(effectiveTo).isSame(dayjs(effectiveFrom)))
+          ) {
             message.error('生效结束时间必须晚于生效开始时间');
             return false;
           }
           const input = {
-            rateType: values.rateType,
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
             toCurrency: values.toCurrency.trim().toUpperCase(),
             effectiveFrom,
             effectiveTo,
-            receivableRate: values.receivableRate,
-            payableRate: values.payableRate,
+            rate: values.rate,
           };
           if (editing?.id) {
             await exchangeRateServiceUpdateExchangeRateSetting(
@@ -526,13 +361,6 @@ export function ExchangeRatesPanel() {
           return true;
         }}
       >
-        <ProFormSelect
-          name="rateType"
-          label="汇率类型"
-          initialValue="BASE_CURRENCY"
-          options={exchangeRateTypeOptions}
-          rules={[{ required: true, message: '请选择汇率类型' }]}
-        />
         <ProFormSelect
           name="fromCurrency"
           label="原币"
@@ -553,34 +381,44 @@ export function ExchangeRatesPanel() {
         />
         <ProFormSelect
           name="toCurrency"
-          label="目标币种"
+          label="本币"
           showSearch
           options={
             currencyOptions.length > 0
               ? currencyOptions
               : [{ label: baseCurrency, value: baseCurrency }]
           }
-          placeholder="请选择目标币种"
+          placeholder="请选择本币币种"
           rules={[
-            { required: true, message: '请选择目标币种' },
+            { required: true, message: '请选择本币币种' },
             () => ({
               validator(_, value) {
                 if (value && baseCurrency && value !== baseCurrency) {
-                  return Promise.reject(new Error(`当前组织本币为 ${baseCurrency}，目标币必须与组织本币一致`));
+                  return Promise.reject(
+                    new Error(
+                      `当前组织本币为 ${baseCurrency}，本币必须与组织本币一致`,
+                    ),
+                  );
                 }
                 return Promise.resolve();
               },
             }),
           ]}
         />
-        <ProFormText name="receivableRate" label="应收汇率" rules={[{ validator: rateRule }]} />
-        <ProFormText name="payableRate" label="应付汇率" rules={[{ validator: rateRule }]} />
+        <ProFormText
+          name="rate"
+          label="折本币汇率"
+          rules={[{ validator: rateRule }]}
+        />
         <ProFormDateTimePicker
           name="effectiveFrom"
           label="生效开始时间"
           extra="精确至秒级（左闭区间包含该时刻起生效）"
           rules={[{ required: true, message: '请选择生效开始时间' }]}
-          fieldProps={{ style: { width: '100%' }, format: 'YYYY-MM-DD HH:mm:ss' }}
+          fieldProps={{
+            style: { width: '100%' },
+            format: 'YYYY-MM-DD HH:mm:ss',
+          }}
         />
         <ProFormDateTimePicker
           name="effectiveTo"
@@ -599,40 +437,6 @@ export function ExchangeRatesPanel() {
         onClose={() => setImportModalOpen(false)}
         onSuccess={() => actionRef.current?.reload()}
       />
-
-      <Modal
-        title="汇率类型时间标准"
-        open={timeStandardsOpen}
-        width={720}
-        confirmLoading={timeStandardsSaving}
-        onCancel={() => setTimeStandardsOpen(false)}
-        onOk={saveTimeStandards}
-        okText="保存"
-      >
-        {exchangeRateTypeOptions.map(({ label, value }) => (
-          <div key={value} style={{ marginBottom: 20 }}>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>{label}</div>
-            <Select
-              mode="multiple"
-              value={timeStandards[value] ?? []}
-              options={timeStandardsByRateType[value].map((standard) => ({
-                label: timeStandardLabels[standard],
-                value: standard,
-              }))}
-              style={{ width: '100%' }}
-              onChange={(values) =>
-                setTimeStandards((current) => ({ ...current, [value]: values }))
-              }
-            />
-            <SortableTimeStandards
-              values={timeStandards[value] ?? []}
-              onChange={(values) =>
-                setTimeStandards((current) => ({ ...current, [value]: values }))
-              }
-            />
-          </div>
-        ))}
-      </Modal>
     </Card>
   );
 }

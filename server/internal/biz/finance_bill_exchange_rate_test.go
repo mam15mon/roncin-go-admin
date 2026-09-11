@@ -55,7 +55,8 @@ type financeBillTargetExchangeRateRepoStub struct {
 	ExchangeRateRepo
 	resolvedContextOrganizationID uuid.UUID
 	resolvedRateOrganizationID    uuid.UUID
-	resolved                      *ResolvedExchangeRate
+	resolvedRate                  decimal.Decimal
+	resolveDates                  []string
 }
 
 func (s *financeBillTargetExchangeRateRepoStub) ResolveContext(_ context.Context, organizationID uuid.UUID) (*ExchangeRateContext, error) {
@@ -63,22 +64,17 @@ func (s *financeBillTargetExchangeRateRepoStub) ResolveContext(_ context.Context
 	return &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, nil
 }
 
-func (*financeBillTargetExchangeRateRepoStub) ListTimeStandards(context.Context, uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error) {
-	return []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}}, nil
-}
-
-func (s *financeBillTargetExchangeRateRepoStub) Resolve(_ context.Context, organizationID uuid.UUID, _ string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
+func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _, _, rateDate string) (decimal.Decimal, error) {
 	s.resolvedRateOrganizationID = organizationID
-	return s.resolved, nil
+	s.resolveDates = append(s.resolveDates, rateDate)
+	return s.resolvedRate, nil
 }
 
 func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	organizationID := uuid.New()
-	settingID := uuid.New()
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
-		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-08-26", SettingID: &settingID},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
 	bill := &FinanceBill{
@@ -92,8 +88,11 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	if err := usecase.applyBillExchangeRate(context.Background(), organizationID, bill); err != nil {
 		t.Fatalf("应用账单日汇率失败: %v", err)
 	}
-	if bill.ExchangeRate.StringFixed(8) != "7.20000000" || bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" || bill.ExchangeRateSource != "SYSTEM" || bill.ExchangeRateDate != "2026-08-26" || bill.ExchangeRateSettingID == nil || *bill.ExchangeRateSettingID != settingID {
+	if bill.ExchangeRate.StringFixed(8) != "7.20000000" || bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" || bill.ExchangeRateSource != "SYSTEM" || bill.ExchangeRateDate != "2026-08-26" || bill.ExchangeRateSettingID != nil {
 		t.Fatalf("账单汇率快照不完整: %#v", bill)
+	}
+	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-08-26" {
+		t.Fatalf("账单汇率必须按账单日解析: %v", exchangeRepo.resolveDates)
 	}
 }
 
@@ -101,9 +100,8 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	organizationID := uuid.New()
 	// 超过 8 位小数的汇率必须先固化到 8 位，头本位币金额按已固化汇率计算。
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:   &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
-		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.1234567891"), Source: "SYSTEM", RateDate: "2026-08-26"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.1234567891")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
 	taxRate := decimal.Zero
@@ -139,7 +137,6 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	targetOrganizationID := uuid.New()
 	actorID := uuid.New()
 	billID := uuid.New()
-	settingID := uuid.New()
 	feeID, orderID, partyID, accountID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 	taxRate := decimal.Zero
 	billRepo := &financeBillTargetOrganizationRepoStub{bill: &FinanceBill{
@@ -149,9 +146,7 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero}},
 	}}
 	billRepo.fees = []*FinanceBillableFee{{OrderNo: "SE001", Fee: &OrderFee{ID: feeID, OrderID: orderID, Direction: OrderFeeReceivable, Status: OrderFeeBilled, SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, TaxRate: &taxRate, Currency: "USD", ExchangeRate: decimal.RequireFromString("7.10"), BaseCurrency: "CNY", BaseCurrencyAmount: decimal.NewFromInt(710)}}}
-	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolved: &ResolvedExchangeRate{
-		Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-09-09", SettingID: &settingID,
-	}}
+	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolvedRate: decimal.RequireFromString("7.20")}
 	usecase := NewFinanceBillUsecase(billRepo, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
 
 	_, err := usecase.Update(t.Context(), []uuid.UUID{currentOrganizationID, targetOrganizationID}, actorID, UpdateFinanceBillInput{
@@ -162,6 +157,9 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	}
 	if exchangeRepo.resolvedContextOrganizationID != targetOrganizationID || exchangeRepo.resolvedRateOrganizationID != targetOrganizationID {
 		t.Fatalf("汇率必须按目标账单组织解析，context=%s rate=%s target=%s", exchangeRepo.resolvedContextOrganizationID, exchangeRepo.resolvedRateOrganizationID, targetOrganizationID)
+	}
+	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-09-09" {
+		t.Fatalf("账单汇率必须按更新后的账单日解析: %v", exchangeRepo.resolveDates)
 	}
 	if billRepo.updateAudit == nil || billRepo.updateAudit.OrganizationID == nil || *billRepo.updateAudit.OrganizationID != targetOrganizationID {
 		t.Fatalf("更新审计必须记录目标账单组织，audit=%#v target=%s", billRepo.updateAudit, targetOrganizationID)

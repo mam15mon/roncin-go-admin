@@ -54,6 +54,8 @@ type FinanceNettingAllocation struct {
 }
 
 // FinanceNetting 只保存双方共同账单币种的抵销金额，不保存对冲汇率，也不产生混合币种总额。
+// BaseCurrencyAmount 语义固化为应收侧抵销本位币；PayableBaseAmount 为应付侧抵销本位币，
+// ExchangeGainLoss 为应付侧减应收侧的对冲汇差（同币种同汇率时为 0，可为负）。
 type FinanceNetting struct {
 	ID                   uuid.UUID
 	OrganizationID       uuid.UUID
@@ -70,6 +72,8 @@ type FinanceNetting struct {
 	Amount               decimal.Decimal
 	BaseCurrency         string
 	BaseCurrencyAmount   decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	ExchangeGainLoss     decimal.Decimal
 	Note                 *string
 	Version              uint64
 	ConfirmedAt          *time.Time
@@ -257,6 +261,8 @@ type financeNettingPlan struct {
 	BaseCurrency        string
 	Amount              decimal.Decimal
 	BaseCurrencyAmount  decimal.Decimal
+	PayableBaseAmount   decimal.Decimal
+	ExchangeGainLoss    decimal.Decimal
 	Allocations         []*FinanceNettingAllocation
 }
 
@@ -350,9 +356,13 @@ func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceN
 	for _, allocation := range plan.Allocations {
 		if allocation.Direction == OrderFeeReceivable {
 			plan.BaseCurrencyAmount = plan.BaseCurrencyAmount.Add(allocation.BaseCurrencyAmount)
+		} else {
+			plan.PayableBaseAmount = plan.PayableBaseAmount.Add(allocation.BaseCurrencyAmount)
 		}
 	}
 	plan.BaseCurrencyAmount = plan.BaseCurrencyAmount.RoundBank(8)
+	plan.PayableBaseAmount = plan.PayableBaseAmount.RoundBank(8)
+	plan.ExchangeGainLoss = plan.PayableBaseAmount.Sub(plan.BaseCurrencyAmount)
 	return plan, nil
 }
 
@@ -434,6 +444,7 @@ func (uc *FinanceNettingUsecase) Create(ctx context.Context, organizationID, act
 			ID: id, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash,
 			Status: FinanceNettingDraft, SettlementPartyID: plan.SettlementPartyID, SettlementPartyName: plan.SettlementPartyName,
 			Currency: plan.Currency, Amount: plan.Amount, BaseCurrency: plan.BaseCurrency, BaseCurrencyAmount: plan.BaseCurrencyAmount,
+			PayableBaseAmount: plan.PayableBaseAmount, ExchangeGainLoss: plan.ExchangeGainLoss,
 			Note: input.Note, Version: 1,
 			Allocations: make([]*FinanceNettingAllocation, 0, len(plan.Allocations)),
 		}
@@ -610,12 +621,15 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 				if !allocated.IsPositive() {
 					continue
 				}
+				baseAmount := allocated.Mul(bill.ExchangeRate).RoundBank(8)
 				netting.Allocations = append(netting.Allocations, &FinanceNettingAllocation{
 					ID: uuid.Must(uuid.NewV7()), NettingID: netting.ID, BillID: bill.ID, BillNo: bill.BillNo,
-					Direction: direction, Amount: allocated, BaseCurrencyAmount: allocated.Mul(bill.ExchangeRate).RoundBank(8),
+					Direction: direction, Amount: allocated, BaseCurrencyAmount: baseAmount,
 				})
 				if direction == OrderFeeReceivable {
-					netting.BaseCurrencyAmount = netting.BaseCurrencyAmount.Add(allocated.Mul(bill.ExchangeRate).RoundBank(8))
+					netting.BaseCurrencyAmount = netting.BaseCurrencyAmount.Add(baseAmount)
+				} else {
+					netting.PayableBaseAmount = netting.PayableBaseAmount.Add(baseAmount)
 				}
 				remaining = remaining.Sub(allocated)
 			}
@@ -624,6 +638,8 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 			}
 		}
 		netting.BaseCurrencyAmount = netting.BaseCurrencyAmount.RoundBank(8)
+		netting.PayableBaseAmount = netting.PayableBaseAmount.RoundBank(8)
+		netting.ExchangeGainLoss = netting.PayableBaseAmount.Sub(netting.BaseCurrencyAmount)
 		result = append(result, netting)
 	}
 	return result, nil

@@ -121,6 +121,16 @@ func BaseCurrencyAmount(v string) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldEQ(FieldBaseCurrencyAmount, v))
 }
 
+// PayableBaseAmount applies equality check predicate on the "payable_base_amount" field. It's identical to PayableBaseAmountEQ.
+func PayableBaseAmount(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldPayableBaseAmount, v))
+}
+
+// ExchangeGainLoss applies equality check predicate on the "exchange_gain_loss" field. It's identical to ExchangeGainLossEQ.
+func ExchangeGainLoss(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldExchangeGainLoss, v))
+}
+
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldEQ(FieldNote, v))
@@ -859,6 +869,136 @@ func BaseCurrencyAmountEqualFold(v string) predicate.FinanceNetting {
 // BaseCurrencyAmountContainsFold applies the ContainsFold predicate on the "base_currency_amount" field.
 func BaseCurrencyAmountContainsFold(v string) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldContainsFold(FieldBaseCurrencyAmount, v))
+}
+
+// PayableBaseAmountEQ applies the EQ predicate on the "payable_base_amount" field.
+func PayableBaseAmountEQ(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountNEQ applies the NEQ predicate on the "payable_base_amount" field.
+func PayableBaseAmountNEQ(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNEQ(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountIn applies the In predicate on the "payable_base_amount" field.
+func PayableBaseAmountIn(vs ...string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldIn(FieldPayableBaseAmount, vs...))
+}
+
+// PayableBaseAmountNotIn applies the NotIn predicate on the "payable_base_amount" field.
+func PayableBaseAmountNotIn(vs ...string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNotIn(FieldPayableBaseAmount, vs...))
+}
+
+// PayableBaseAmountGT applies the GT predicate on the "payable_base_amount" field.
+func PayableBaseAmountGT(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldGT(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountGTE applies the GTE predicate on the "payable_base_amount" field.
+func PayableBaseAmountGTE(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldGTE(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountLT applies the LT predicate on the "payable_base_amount" field.
+func PayableBaseAmountLT(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldLT(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountLTE applies the LTE predicate on the "payable_base_amount" field.
+func PayableBaseAmountLTE(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldLTE(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountContains applies the Contains predicate on the "payable_base_amount" field.
+func PayableBaseAmountContains(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldContains(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountHasPrefix applies the HasPrefix predicate on the "payable_base_amount" field.
+func PayableBaseAmountHasPrefix(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldHasPrefix(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountHasSuffix applies the HasSuffix predicate on the "payable_base_amount" field.
+func PayableBaseAmountHasSuffix(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldHasSuffix(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountEqualFold applies the EqualFold predicate on the "payable_base_amount" field.
+func PayableBaseAmountEqualFold(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEqualFold(FieldPayableBaseAmount, v))
+}
+
+// PayableBaseAmountContainsFold applies the ContainsFold predicate on the "payable_base_amount" field.
+func PayableBaseAmountContainsFold(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldContainsFold(FieldPayableBaseAmount, v))
+}
+
+// ExchangeGainLossEQ applies the EQ predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossEQ(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossNEQ applies the NEQ predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossNEQ(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNEQ(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossIn applies the In predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossIn(vs ...string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldIn(FieldExchangeGainLoss, vs...))
+}
+
+// ExchangeGainLossNotIn applies the NotIn predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossNotIn(vs ...string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNotIn(FieldExchangeGainLoss, vs...))
+}
+
+// ExchangeGainLossGT applies the GT predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossGT(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldGT(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossGTE applies the GTE predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossGTE(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldGTE(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossLT applies the LT predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossLT(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldLT(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossLTE applies the LTE predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossLTE(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldLTE(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossContains applies the Contains predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossContains(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldContains(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossHasPrefix applies the HasPrefix predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossHasPrefix(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldHasPrefix(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossHasSuffix applies the HasSuffix predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossHasSuffix(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldHasSuffix(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossEqualFold applies the EqualFold predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossEqualFold(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEqualFold(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossContainsFold applies the ContainsFold predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossContainsFold(v string) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldContainsFold(FieldExchangeGainLoss, v))
 }
 
 // NoteEQ applies the EQ predicate on the "note" field.

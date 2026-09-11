@@ -428,10 +428,9 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		RoleGrants: []biz.RoleGrant{{RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}},
 	}
 	repo := &billCreationCandidateServiceRepoStub{fees: []*biz.FinanceBillableFee{fee}}
-	rateSettingID := uuid.New()
 	rateRepo := &exchangeRateStub{
-		context:  &biz.ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		resolved: &biz.ResolvedExchangeRate{Rate: decimal.NewFromInt(1), Source: "SYSTEM", RateDate: "2026-09-10", SettingID: &rateSettingID},
+		context: &biz.ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		rate:    decimal.NewFromInt(1),
 	}
 	accountID := uuid.New()
 	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo), settlementServiceTransactorStub{})}

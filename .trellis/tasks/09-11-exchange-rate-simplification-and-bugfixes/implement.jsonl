@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/sea-document-change-history.md", "reason": "A组单证变更与下游阻断契约规范"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "财务账单固定币种与汇率边界规范"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "订单业务锁与门禁规范"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "数据库与事务规范"}

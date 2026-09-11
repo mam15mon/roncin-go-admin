@@ -78,6 +78,16 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "finance_nettings",
+			table:     FinanceNettingsTable,
+			expectedChecks: map[string]string{
+				"financenetting_status_check":                     "status IN ('DRAFT', 'CONFIRMED', 'CANCELLED', 'REVERSED')",
+				"financenetting_amount_positive":                  "amount > 0",
+				"financenetting_base_amount_non_negative":         "base_currency_amount >= 0",
+				"financenetting_payable_base_amount_non_negative": "payable_base_amount >= 0",
+			},
+		},
+		{
 			tableName: "sea_document_mode_change_events",
 			table:     SeaDocumentModeChangeEventsTable,
 			expectedChecks: map[string]string{

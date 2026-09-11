@@ -296,7 +296,7 @@ func financeSummaryAllocation(cashflowID, billID uuid.UUID, amount, billBaseAmou
 func financeSummaryAllocationRows(items ...financeSummaryAllocationInput) *sqlmock.Rows {
 	rows := sqlmock.NewRows(financeverificationallocationent.Columns)
 	for _, item := range items {
-		rows.AddRow(uuid.New(), time.Now(), time.Now(), uuid.New(), item.cashflowID, item.billID, "FLOW", "BILL", item.amount, item.billBaseAmount, item.cashflowAmount, item.amount, "0", true)
+		rows.AddRow(uuid.New(), time.Now(), time.Now(), uuid.New(), item.cashflowID, item.billID, "FLOW", "BILL", item.amount, item.billBaseAmount, item.cashflowAmount, "0", true)
 	}
 	return rows
 }

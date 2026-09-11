@@ -99,7 +99,6 @@ func (s *verificationTransactionRepoStub) Get(ctx context.Context, _, _ uuid.UUI
 type verificationExchangeRateTransactionStub struct {
 	ExchangeRateRepo
 	rateContext      *ExchangeRateContext
-	resolved         *ResolvedExchangeRate
 	transactionCalls int
 }
 
@@ -109,22 +108,6 @@ func (s *verificationExchangeRateTransactionStub) ResolveContext(ctx context.Con
 	}
 	s.transactionCalls++
 	return s.rateContext, nil
-}
-
-func (s *verificationExchangeRateTransactionStub) ListTimeStandards(ctx context.Context, _ uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error) {
-	if err := requireVerificationTransaction(ctx); err != nil {
-		return nil, err
-	}
-	s.transactionCalls++
-	return []*ExchangeRateTimeStandardSetting{{RateType: WriteOffRateType, TimeStandards: []string{WriteOffTimeStandard}}}, nil
-}
-
-func (s *verificationExchangeRateTransactionStub) Resolve(ctx context.Context, _ uuid.UUID, _ string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
-	if err := requireVerificationTransaction(ctx); err != nil {
-		return nil, err
-	}
-	s.transactionCalls++
-	return s.resolved, nil
 }
 
 func TestSameVerificationIntentIgnoresAllocationOrder(t *testing.T) {
@@ -162,17 +145,16 @@ func TestCalculateVerificationAllocationAmountsRecognizesExchangeGainLoss(t *tes
 	billBaseTotal := decimal.RequireFromString("720")
 	cashflowTotal := decimal.RequireFromString("100")
 	cashflowBaseTotal := decimal.RequireFromString("725")
-	writeOffRate := decimal.RequireFromString("7.30")
 
-	billBase, cashBase, writeOffBase, receivableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeeReceivable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate)
+	billBase, cashBase, receivableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeeReceivable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal)
 	if err != nil {
 		t.Fatalf("计算应收核销汇兑损益失败: %v", err)
 	}
-	if billBase.StringFixed(8) != "288.00000000" || cashBase.StringFixed(8) != "290.00000000" || writeOffBase.StringFixed(8) != "292.00000000" || receivableGainLoss.StringFixed(8) != "2.00000000" {
-		t.Fatalf("应收核销汇率快照不正确: bill=%s cash=%s writeOff=%s gainLoss=%s", billBase, cashBase, writeOffBase, receivableGainLoss)
+	if billBase.StringFixed(8) != "288.00000000" || cashBase.StringFixed(8) != "290.00000000" || receivableGainLoss.StringFixed(8) != "2.00000000" {
+		t.Fatalf("应收核销分摊金额不正确: bill=%s cash=%s gainLoss=%s", billBase, cashBase, receivableGainLoss)
 	}
 
-	_, _, _, payableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeePayable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate)
+	_, _, payableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeePayable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal)
 	if err != nil {
 		t.Fatalf("计算应付核销汇兑损益失败: %v", err)
 	}
@@ -186,13 +168,11 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 	actorID := uuid.New()
 	cashflowID := uuid.New()
 	billID := uuid.New()
-	settingID := uuid.New()
 	repo := &verificationTransactionRepoStub{cashflow: &FinanceCashflow{
 		ID: cashflowID, Direction: OrderFeeReceivable, Currency: "USD", BaseCurrency: "CNY",
 	}}
 	exchangeRepo := &verificationExchangeRateTransactionStub{
 		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		resolved:    &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.30"), Source: "SYSTEM", RateDate: "2026-08-30", SettingID: &settingID},
 	}
 	transactor := &verificationTransactorStub{}
 	usecase := NewVerificationUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
@@ -205,7 +185,7 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建核销失败: %v", err)
 	}
-	if created.VerificationNo != "WO-0001" || created.ExchangeRate.StringFixed(8) != "7.30000000" || created.BaseAmount.StringFixed(8) != "292.00000000" {
+	if created.VerificationNo != "WO-0001" || created.BaseCurrency != "CNY" || created.Direction != OrderFeeReceivable || created.Currency != "USD" {
 		t.Fatalf("核销创建结果不正确: %#v", created)
 	}
 	if transactor.calls != 1 {
@@ -217,8 +197,8 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 	if repo.responseReads != 1 {
 		t.Fatalf("提交后核销读取次数 = %d，期望 1", repo.responseReads)
 	}
-	if exchangeRepo.transactionCalls != 4 {
-		t.Fatalf("汇率仓储事务内调用次数 = %d，期望 4", exchangeRepo.transactionCalls)
+	if exchangeRepo.transactionCalls != 1 {
+		t.Fatalf("汇率仓储事务内调用次数 = %d，期望 1（仅解析基准币种）", exchangeRepo.transactionCalls)
 	}
 }
 

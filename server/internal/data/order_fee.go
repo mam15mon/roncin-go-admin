@@ -13,6 +13,7 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	financecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -129,17 +130,6 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 	return orderFeeToBiz(item)
 }
 
-func (r *orderFeeRepo) ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeExchangeRateContext, error) {
-	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
-	}
-	return &biz.OrderFeeExchangeRateContext{
-		TradeDirection: biz.OrderTradeDirection(item.TradeDirection),
-		ETD:            item.Etd, ETA: item.Eta, BusinessTime: item.OrderDate, OrderCreatedAt: item.CreatedAt,
-	}, nil
-}
-
 func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {
 	applicability, err := r.loadApplicability(ctx, organizationID, orderID)
 	if err != nil {
@@ -234,6 +224,8 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	return result, nil
 }
 
+// financeLockCommissionNos 返回仍使订单处于财务锁定的提成单号：与台账净额口径
+// 一致，有效提成净额 ≤ 0（已被全额冲减）时不视为锁定，费用编辑锁释放。
 func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizationID, orderID uuid.UUID) ([]string, error) {
 	items, err := r.data.db.FinanceCommissionLine.Query().Where(
 		commissionlineent.OrganizationIDEQ(organizationID),
@@ -242,6 +234,24 @@ func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizatio
 	).WithCommission().All(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if len(items) == 0 {
+		return nil, nil
+	}
+	adjustments, err := r.data.db.FinanceCommissionAdjustment.Query().Where(
+		commissionadjustmentent.OrganizationIDEQ(organizationID),
+		commissionadjustmentent.OrderIDEQ(orderID),
+		commissionadjustmentent.StatusIn(commissionadjustmentent.StatusCONFIRMED, commissionadjustmentent.StatusPAID),
+	).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	netAmount, err := financeCommissionLockNetAmount(items, adjustments)
+	if err != nil {
+		return nil, err
+	}
+	if !netAmount.IsPositive() {
+		return nil, nil
 	}
 	result := make([]string, 0, len(items))
 	seen := make(map[string]struct{}, len(items))
@@ -267,11 +277,9 @@ func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, or
 	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 		return err
 	}
-	locked, err := tx.FinanceCommissionLine.Query().Where(
-		commissionlineent.OrganizationIDEQ(organizationID),
-		commissionlineent.OrderIDEQ(orderID),
-		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
-	).Exist(ctx)
+	// 财务锁复用台账的统一净额谓词（同一 SQL 语义）：有效提成净额 ≤ 0 视为已被
+	// 全额冲减，释放费用编辑锁；净额 > 0 才拒绝写入，避免“列表显示已解锁、写入仍被拒”。
+	locked, err := tx.Order.Query().Where(orderent.IDEQ(orderID), financeLockedOrderPredicate()).Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -420,7 +428,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	return input, nil
 }
 
-func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedExchangeRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
+func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *decimal.Decimal, audit *biz.AuditEvent) (*biz.OrderFee, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -508,7 +516,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			if item.Currency != input.Currency && activeBill.FeeCount != 1 {
 				return biz.ErrBilledFeeCurrencyConflict
 			}
-			if item.Currency != input.Currency && (billExchangeRate == nil || billExchangeRate.RateDate != activeBill.BillDate) {
+			if item.Currency != input.Currency && billExchangeRate == nil {
 				return biz.ErrFinanceBillInvalidArgument
 			}
 		} else if item.Status != orderfeeent.StatusDRAFT {
@@ -606,13 +614,10 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			}
 			billUpdate := tx.FinanceBill.UpdateOneID(activeBill.ID).SetTotalAmount(total.StringFixed(8)).SetNetAmount(net.StringFixed(8)).SetTaxAmount(tax.StringFixed(8)).SetVersion(activeBill.Version + 1)
 			if item.Currency != input.Currency {
-				billRate = billExchangeRate.Rate
-				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(billExchangeRate.Source)).SetExchangeRateDate(billExchangeRate.RateDate)
-				if billExchangeRate.SettingID == nil {
-					billUpdate.ClearExchangeRateSettingID()
-				} else {
-					billUpdate.SetExchangeRateSettingID(*billExchangeRate.SettingID)
-				}
+				billRate = *billExchangeRate
+				// 币种变更后按账单当前业务日期固化的总部基准汇率重建账单汇率快照。
+				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource("SYSTEM")).SetExchangeRateDate(activeBill.BillDate)
+				billUpdate.ClearExchangeRateSettingID()
 			}
 			billUpdate.SetBaseCurrencyAmount(total.Mul(billRate).RoundBank(8).StringFixed(8))
 			if _, updateErr := billUpdate.Save(ctx); updateErr != nil {

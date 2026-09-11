@@ -2,37 +2,6 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
-/** GetExchangeRateCustomSetting 获取组织级汇率自定义策略。 GET /api/v1/finance/exchange-rate-custom-setting */
-export async function exchangeRateServiceGetExchangeRateCustomSetting(options?: {
-  [key: string]: any;
-}) {
-  return request<API.GetExchangeRateCustomSettingResponse>(
-    "/api/v1/finance/exchange-rate-custom-setting",
-    {
-      method: "GET",
-      ...(options || {}),
-    }
-  );
-}
-
-/** UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。 PUT /api/v1/finance/exchange-rate-custom-setting */
-export async function exchangeRateServiceUpdateExchangeRateCustomSetting(
-  body: API.UpdateExchangeRateCustomSettingRequest,
-  options?: { [key: string]: any }
-) {
-  return request<API.UpdateExchangeRateCustomSettingResponse>(
-    "/api/v1/finance/exchange-rate-custom-setting",
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
 /** DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。 GET /api/v1/finance/exchange-rate-import-template */
 export async function exchangeRateServiceDownloadExchangeRateImportTemplate(options?: {
   [key: string]: any;
@@ -90,37 +59,6 @@ export async function exchangeRateServicePreviewExchangeRateImport(
     "/api/v1/finance/exchange-rate-imports/preview",
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 GET /api/v1/finance/exchange-rate-time-standards */
-export async function exchangeRateServiceListExchangeRateTimeStandards(options?: {
-  [key: string]: any;
-}) {
-  return request<API.ListExchangeRateTimeStandardsResponse>(
-    "/api/v1/finance/exchange-rate-time-standards",
-    {
-      method: "GET",
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 PUT /api/v1/finance/exchange-rate-time-standards */
-export async function exchangeRateServiceUpdateExchangeRateTimeStandards(
-  body: API.UpdateExchangeRateTimeStandardsRequest,
-  options?: { [key: string]: any }
-) {
-  return request<API.UpdateExchangeRateTimeStandardsResponse>(
-    "/api/v1/finance/exchange-rate-time-standards",
-    {
-      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },

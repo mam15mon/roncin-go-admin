@@ -123,38 +123,6 @@ func (_c *FinanceVerificationCreate) SetBaseCurrency(v string) *FinanceVerificat
 	return _c
 }
 
-// SetExchangeRate sets the "exchange_rate" field.
-func (_c *FinanceVerificationCreate) SetExchangeRate(v string) *FinanceVerificationCreate {
-	_c.mutation.SetExchangeRate(v)
-	return _c
-}
-
-// SetExchangeRateSource sets the "exchange_rate_source" field.
-func (_c *FinanceVerificationCreate) SetExchangeRateSource(v financeverification.ExchangeRateSource) *FinanceVerificationCreate {
-	_c.mutation.SetExchangeRateSource(v)
-	return _c
-}
-
-// SetExchangeRateDate sets the "exchange_rate_date" field.
-func (_c *FinanceVerificationCreate) SetExchangeRateDate(v string) *FinanceVerificationCreate {
-	_c.mutation.SetExchangeRateDate(v)
-	return _c
-}
-
-// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
-func (_c *FinanceVerificationCreate) SetExchangeRateSettingID(v uuid.UUID) *FinanceVerificationCreate {
-	_c.mutation.SetExchangeRateSettingID(v)
-	return _c
-}
-
-// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
-func (_c *FinanceVerificationCreate) SetNillableExchangeRateSettingID(v *uuid.UUID) *FinanceVerificationCreate {
-	if v != nil {
-		_c.SetExchangeRateSettingID(*v)
-	}
-	return _c
-}
-
 // SetBaseAmount sets the "base_amount" field.
 func (_c *FinanceVerificationCreate) SetBaseAmount(v string) *FinanceVerificationCreate {
 	_c.mutation.SetBaseAmount(v)
@@ -473,25 +441,6 @@ func (_c *FinanceVerificationCreate) check() error {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceVerification.base_currency": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.ExchangeRate(); !ok {
-		return &ValidationError{Name: "exchange_rate", err: errors.New(`ent: missing required field "FinanceVerification.exchange_rate"`)}
-	}
-	if _, ok := _c.mutation.ExchangeRateSource(); !ok {
-		return &ValidationError{Name: "exchange_rate_source", err: errors.New(`ent: missing required field "FinanceVerification.exchange_rate_source"`)}
-	}
-	if v, ok := _c.mutation.ExchangeRateSource(); ok {
-		if err := financeverification.ExchangeRateSourceValidator(v); err != nil {
-			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceVerification.exchange_rate_source": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.ExchangeRateDate(); !ok {
-		return &ValidationError{Name: "exchange_rate_date", err: errors.New(`ent: missing required field "FinanceVerification.exchange_rate_date"`)}
-	}
-	if v, ok := _c.mutation.ExchangeRateDate(); ok {
-		if err := financeverification.ExchangeRateDateValidator(v); err != nil {
-			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceVerification.exchange_rate_date": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.BaseAmount(); !ok {
 		return &ValidationError{Name: "base_amount", err: errors.New(`ent: missing required field "FinanceVerification.base_amount"`)}
 	}
@@ -605,22 +554,6 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 	if value, ok := _c.mutation.BaseCurrency(); ok {
 		_spec.SetField(financeverification.FieldBaseCurrency, field.TypeString, value)
 		_node.BaseCurrency = value
-	}
-	if value, ok := _c.mutation.ExchangeRate(); ok {
-		_spec.SetField(financeverification.FieldExchangeRate, field.TypeString, value)
-		_node.ExchangeRate = value
-	}
-	if value, ok := _c.mutation.ExchangeRateSource(); ok {
-		_spec.SetField(financeverification.FieldExchangeRateSource, field.TypeEnum, value)
-		_node.ExchangeRateSource = value
-	}
-	if value, ok := _c.mutation.ExchangeRateDate(); ok {
-		_spec.SetField(financeverification.FieldExchangeRateDate, field.TypeString, value)
-		_node.ExchangeRateDate = value
-	}
-	if value, ok := _c.mutation.ExchangeRateSettingID(); ok {
-		_spec.SetField(financeverification.FieldExchangeRateSettingID, field.TypeUUID, value)
-		_node.ExchangeRateSettingID = &value
 	}
 	if value, ok := _c.mutation.BaseAmount(); ok {
 		_spec.SetField(financeverification.FieldBaseAmount, field.TypeString, value)

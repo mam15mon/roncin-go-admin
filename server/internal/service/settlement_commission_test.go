@@ -92,31 +92,22 @@ func (s *commissionRepoStub) ListRulesScoped(_ context.Context, organizationIDs 
 	return s.ruleResult, nil
 }
 
-// exchangeRateStub 模拟 CNY→本位币的核销汇率解析。
+// exchangeRateStub 模拟 CNY→本位币的按生成日汇率解析。
 type exchangeRateStub struct {
 	biz.ExchangeRateRepo
-	context  *biz.ExchangeRateContext
-	resolved *biz.ResolvedExchangeRate
+	context *biz.ExchangeRateContext
+	rate    decimal.Decimal
 }
 
 func (s *exchangeRateStub) ResolveContext(context.Context, uuid.UUID) (*biz.ExchangeRateContext, error) {
 	return s.context, nil
 }
 
-func (s *exchangeRateStub) ListTimeStandards(context.Context, uuid.UUID) ([]*biz.ExchangeRateTimeStandardSetting, error) {
-	return []*biz.ExchangeRateTimeStandardSetting{
-		{RateType: biz.WriteOffRateType, TimeStandards: []string{biz.WriteOffTimeStandard}},
-		{RateType: biz.BillRateType, TimeStandards: []string{biz.BillDateStandard}},
-	}, nil
-}
-
-func (s *exchangeRateStub) Resolve(context.Context, uuid.UUID, string, biz.OrderFeeDirection, string, string, string) (*biz.ResolvedExchangeRate, error) {
-	return s.resolved, nil
+func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, string, string, string) (decimal.Decimal, error) {
+	return s.rate, nil
 }
 
 func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStub) {
-	settingID := uuid.New()
-	setting := &settingID
 	repo := &commissionRepoStub{
 		listResult: &biz.CommissionListResult{Items: []*biz.FinanceCommission{{
 			ID:                           uuid.New(),
@@ -127,8 +118,7 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 			CommissionDate:               "2026-08-15",
 			CNYExchangeRate:              decimal.RequireFromString("2"),
 			CNYExchangeRateSource:        biz.CommissionCNYRateSourceDerived,
-			CNYExchangeRateDate:          "2026-08-14",
-			CNYExchangeRateSettingID:     setting,
+			CNYExchangeRateDate:          "2026-08-15",
 			CNYCommissionAmount:          decimal.RequireFromString("200"),
 			CNYAdjustmentAmount:          decimal.RequireFromString("20"),
 			CNYEffectiveCommissionAmount: decimal.RequireFromString("220"),
@@ -136,10 +126,10 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 			EffectiveCommissionAmount:    decimal.RequireFromString("110"),
 		}}},
 		preview:    &biz.CommissionCalculation{BaseCurrency: "USD", CommissionAmount: decimal.RequireFromString("100")},
-		generation: &biz.CommissionGenerationContext{CommissionDate: "2026-08-15", ExchangeRateDate: "2026-08-14", BaseCurrency: "USD"},
+		generation: &biz.CommissionGenerationContext{CommissionDate: "2026-08-15", BaseCurrency: "USD"},
 		rateStub: &exchangeRateStub{
-			context:  &biz.ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: "USD"},
-			resolved: &biz.ResolvedExchangeRate{Rate: decimal.RequireFromString("0.5"), RateDate: "2026-08-14", SettingID: setting},
+			context: &biz.ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: "USD"},
+			rate:    decimal.RequireFromString("0.5"),
 		},
 	}
 	usecase := biz.NewCommissionUsecase(repo, nil, biz.NewExchangeRateUsecase(repo.rateStub), &commissionTransactorStub{})
@@ -201,8 +191,8 @@ func TestListCommissionsMapsCommissionDateFilterAndCNYFields(t *testing.T) {
 	}
 	item := response.Data[0]
 	if item.CommissionDate != "2026-08-15" || item.CnyExchangeRate != "2.00000000" ||
-		item.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived || item.CnyExchangeRateDate != "2026-08-14" ||
-		item.CnyExchangeRateSettingId == nil || item.CnyCommissionAmount != "200.00000000" ||
+		item.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived || item.CnyExchangeRateDate != "2026-08-15" ||
+		item.CnyCommissionAmount != "200.00000000" ||
 		item.CnyAdjustmentAmount != "20.00000000" || item.CnyEffectiveCommissionAmount != "220.00000000" {
 		t.Fatalf("提成 CNY 字段未返回: %#v", item)
 	}
@@ -283,7 +273,7 @@ func TestPreviewCommissionReturnsCNYRateBasis(t *testing.T) {
 		t.Fatalf("PreviewCommission() error = %v", err)
 	}
 	if response.Data.CnyExchangeRate != "2.00000000" || response.Data.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived ||
-		response.Data.CnyExchangeRateDate != "2026-08-14" || response.Data.CnyCommissionAmount != "200.00000000" {
+		response.Data.CnyExchangeRateDate != "2026-08-15" || response.Data.CnyCommissionAmount != "200.00000000" {
 		t.Fatalf("预览折算依据未返回: %#v", response.Data)
 	}
 }

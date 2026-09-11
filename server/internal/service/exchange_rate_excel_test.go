@@ -19,7 +19,7 @@ func TestExchangeRateImportTemplateCanBeParsed(t *testing.T) {
 		t.Fatalf("生成结果不是有效 xlsx: %v", err)
 	}
 	defer file.Close()
-	if version, _ := file.GetCellValue(exchangeRateImportHelpSheet, "B1"); version != "1" {
+	if version, _ := file.GetCellValue(exchangeRateImportHelpSheet, "B1"); version != "2" {
 		t.Fatalf("模板版本错误: %q", version)
 	}
 }
@@ -33,7 +33,7 @@ func TestParseExchangeRateImportWorkbook(t *testing.T) {
 	if err != nil {
 		t.Fatalf("打开模板失败: %v", err)
 	}
-	values := []any{"账单汇率", "USD", "CNY", "7.20000000", "7.10000000", "2026-08-27 09:30:01", "2026-08-27 18:00:00"}
+	values := []any{"USD", "CNY", "7.20000000", "2026-08-27 09:30:01", "2026-08-27 18:00:00"}
 	for index, value := range values {
 		cell, _ := excelize.CoordinatesToCellName(index+1, 2)
 		if err = file.SetCellValue(exchangeRateImportSheet, cell, value); err != nil {
@@ -60,8 +60,8 @@ func TestParseExchangeRateImportWorkbookRejectsFormula(t *testing.T) {
 		t.Fatalf("生成模板失败: %v", err)
 	}
 	file, _ := excelize.OpenReader(bytes.NewReader(content))
-	_ = file.SetCellFormula(exchangeRateImportSheet, "D2", "=1+1")
-	_ = file.SetCellValue(exchangeRateImportSheet, "A2", "账单汇率")
+	_ = file.SetCellFormula(exchangeRateImportSheet, "C2", "=1+1")
+	_ = file.SetCellValue(exchangeRateImportSheet, "A2", "USD")
 	buffer, _ := file.WriteToBuffer()
 	_ = file.Close()
 	if _, err = parseExchangeRateImportWorkbook("汇率.xlsx", buffer.Bytes()); err != biz.ErrExchangeRateImportFileInvalid {
@@ -72,13 +72,13 @@ func TestParseExchangeRateImportWorkbookRejectsFormula(t *testing.T) {
 func TestParseExchangeRateImportWorkbookFormatsExcelDateTimeCells(t *testing.T) {
 	content, _ := buildExchangeRateImportTemplate()
 	file, _ := excelize.OpenReader(bytes.NewReader(content))
-	values := []any{"账单汇率", "USD", "CNY", "7.2", "7.1"}
+	values := []any{"USD", "CNY", "7.2"}
 	for index, value := range values {
 		cell, _ := excelize.CoordinatesToCellName(index+1, 2)
 		_ = file.SetCellValue(exchangeRateImportSheet, cell, value)
 	}
-	_ = file.SetCellValue(exchangeRateImportSheet, "F2", time.Date(2026, 8, 27, 9, 30, 1, 0, time.Local))
-	_ = file.SetCellValue(exchangeRateImportSheet, "G2", time.Date(2026, 8, 27, 18, 0, 0, 0, time.Local))
+	_ = file.SetCellValue(exchangeRateImportSheet, "D2", time.Date(2026, 8, 27, 9, 30, 1, 0, time.Local))
+	_ = file.SetCellValue(exchangeRateImportSheet, "E2", time.Date(2026, 8, 27, 18, 0, 0, 0, time.Local))
 	buffer, _ := file.WriteToBuffer()
 	_ = file.Close()
 	input, err := parseExchangeRateImportWorkbook("汇率.xlsx", buffer.Bytes())

@@ -18,7 +18,7 @@ const (
 	exchangeRateImportMaxFileSize = 5 << 20
 )
 
-var exchangeRateImportHeaders = []string{"汇率类型", "原币", "本币", "应收汇率", "应付汇率", "生效开始时间", "生效结束时间"}
+var exchangeRateImportHeaders = []string{"原币", "本币", "折本币汇率", "生效开始时间", "生效结束时间"}
 
 func buildExchangeRateImportTemplate() ([]byte, error) {
 	file := excelize.NewFile()
@@ -40,7 +40,7 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = file.SetCellStyle(exchangeRateImportSheet, "A1", "G1", headerStyle); err != nil {
+	if err = file.SetCellStyle(exchangeRateImportSheet, "A1", "E1", headerStyle); err != nil {
 		return nil, err
 	}
 	timeFormat := "yyyy-mm-dd hh:mm:ss"
@@ -48,10 +48,10 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = file.SetCellStyle(exchangeRateImportSheet, "F2", "G501", timeStyle); err != nil {
+	if err = file.SetCellStyle(exchangeRateImportSheet, "D2", "E501", timeStyle); err != nil {
 		return nil, err
 	}
-	widths := map[string]float64{"A": 20, "B": 12, "C": 12, "D": 16, "E": 16, "F": 24, "G": 24}
+	widths := map[string]float64{"A": 12, "B": 12, "C": 16, "D": 24, "E": 24}
 	for column, width := range widths {
 		if err = file.SetColWidth(exchangeRateImportSheet, column, column, width); err != nil {
 			return nil, err
@@ -63,7 +63,7 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	help := [][]any{
 		{"模板版本", biz.ExchangeRateImportTemplateVersion},
 		{"填写规则", "所有时间精确到秒，格式为 YYYY-MM-DD HH:mm:ss，按 Asia/Shanghai 解释。"},
-		{"汇率类型", "汇率（折本币）、账单汇率、开票汇率、结算汇率、核销汇率。"},
+		{"折本币汇率", "原币折组织本位币的统一基准汇率，最多 8 位小数且必须大于 0。"},
 		{"生效区间", "左闭右开：[生效开始时间, 生效结束时间)；结束时间留空表示长期有效。"},
 		{"导入策略", "严格整批导入：任一行错误、文件内重叠或与现有启用汇率重叠时均不能确认。"},
 		{"最大行数", biz.ExchangeRateImportMaxRows},
@@ -146,11 +146,11 @@ func parseExchangeRateImportWorkbook(fileName string, content []byte) (biz.Previ
 			}
 		}
 		var effectiveTo *string
-		if values[6] != "" {
-			value := values[6]
+		if values[4] != "" {
+			value := values[4]
 			effectiveTo = &value
 		}
-		rows = append(rows, &biz.ExchangeRateImportRow{RowNumber: rowNumber, RateType: values[0], FromCurrency: values[1], ToCurrency: values[2], ReceivableRate: values[3], PayableRate: values[4], EffectiveFrom: values[5], EffectiveTo: effectiveTo, Errors: []string{}})
+		rows = append(rows, &biz.ExchangeRateImportRow{RowNumber: rowNumber, FromCurrency: values[0], ToCurrency: values[1], Rate: values[2], EffectiveFrom: values[3], EffectiveTo: effectiveTo, Errors: []string{}})
 	}
 	if err = iterator.Error(); err != nil {
 		return biz.PreviewExchangeRateImportInput{}, biz.ErrExchangeRateImportFileInvalid

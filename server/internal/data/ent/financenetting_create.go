@@ -142,6 +142,18 @@ func (_c *FinanceNettingCreate) SetBaseCurrencyAmount(v string) *FinanceNettingC
 	return _c
 }
 
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (_c *FinanceNettingCreate) SetPayableBaseAmount(v string) *FinanceNettingCreate {
+	_c.mutation.SetPayableBaseAmount(v)
+	return _c
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (_c *FinanceNettingCreate) SetExchangeGainLoss(v string) *FinanceNettingCreate {
+	_c.mutation.SetExchangeGainLoss(v)
+	return _c
+}
+
 // SetNote sets the "note" field.
 func (_c *FinanceNettingCreate) SetNote(v string) *FinanceNettingCreate {
 	_c.mutation.SetNote(v)
@@ -516,6 +528,12 @@ func (_c *FinanceNettingCreate) check() error {
 	if _, ok := _c.mutation.BaseCurrencyAmount(); !ok {
 		return &ValidationError{Name: "base_currency_amount", err: errors.New(`ent: missing required field "FinanceNetting.base_currency_amount"`)}
 	}
+	if _, ok := _c.mutation.PayableBaseAmount(); !ok {
+		return &ValidationError{Name: "payable_base_amount", err: errors.New(`ent: missing required field "FinanceNetting.payable_base_amount"`)}
+	}
+	if _, ok := _c.mutation.ExchangeGainLoss(); !ok {
+		return &ValidationError{Name: "exchange_gain_loss", err: errors.New(`ent: missing required field "FinanceNetting.exchange_gain_loss"`)}
+	}
 	if v, ok := _c.mutation.Note(); ok {
 		if err := financenetting.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "FinanceNetting.note": %w`, err)}
@@ -618,6 +636,14 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 	if value, ok := _c.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(financenetting.FieldBaseCurrencyAmount, field.TypeString, value)
 		_node.BaseCurrencyAmount = value
+	}
+	if value, ok := _c.mutation.PayableBaseAmount(); ok {
+		_spec.SetField(financenetting.FieldPayableBaseAmount, field.TypeString, value)
+		_node.PayableBaseAmount = value
+	}
+	if value, ok := _c.mutation.ExchangeGainLoss(); ok {
+		_spec.SetField(financenetting.FieldExchangeGainLoss, field.TypeString, value)
+		_node.ExchangeGainLoss = value
 	}
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(financenetting.FieldNote, field.TypeString, value)

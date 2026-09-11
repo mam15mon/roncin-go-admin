@@ -338,6 +338,8 @@ func (r *financeNettingRepo) Create(ctx context.Context, organizationID, _ uuid.
 			SetSettlementPartyID(netting.SettlementPartyID).SetSettlementPartyName(netting.SettlementPartyName).
 			SetCurrency(netting.Currency).SetAmount(netting.Amount.StringFixed(8)).
 			SetBaseCurrency(netting.BaseCurrency).SetBaseCurrencyAmount(netting.BaseCurrencyAmount.StringFixed(8)).
+			SetPayableBaseAmount(netting.PayableBaseAmount.StringFixed(8)).
+			SetExchangeGainLoss(netting.ExchangeGainLoss.StringFixed(8)).
 			SetNillableNote(netting.Note).SetVersion(1).Save(ctx)
 		if err != nil {
 			return mapEntConstraint(err, "financenetting_organization_id_idempotency_key", biz.ErrFinanceNettingIdempotency)
@@ -457,11 +459,20 @@ func financeNettingToBiz(item *ent.FinanceNetting) (*biz.FinanceNetting, error) 
 	if err != nil {
 		return nil, err
 	}
+	payableBaseAmount, err := decimalOf(item.PayableBaseAmount)
+	if err != nil {
+		return nil, err
+	}
+	exchangeGainLoss, err := decimalOf(item.ExchangeGainLoss)
+	if err != nil {
+		return nil, err
+	}
 	result := &biz.FinanceNetting{
 		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, NettingNo: item.NettingNo,
 		IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, Status: biz.FinanceNettingStatus(item.Status),
 		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName,
 		Currency: item.Currency, Amount: amount, BaseCurrency: item.BaseCurrency, BaseCurrencyAmount: baseAmount,
+		PayableBaseAmount: payableBaseAmount, ExchangeGainLoss: exchangeGainLoss,
 		Note: item.Note, Version: item.Version,
 		ConfirmedAt: item.ConfirmedAt, ConfirmedBy: item.ConfirmedBy,
 		CancelledAt: item.CancelledAt, CancelledBy: item.CancelledBy, CancellationReason: item.CancellationReason,

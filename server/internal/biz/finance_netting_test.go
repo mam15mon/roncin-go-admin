@@ -402,3 +402,105 @@ func TestFinanceNettingUsecaseConfirmRejectsVersionConflict(t *testing.T) {
 		t.Fatalf("版本冲突错误=%v", err)
 	}
 }
+
+// TestPlanFinanceNettingRecordsBothBaseAmountsAndGainLoss 验证对冲计划按方向分侧
+// 累加本位币并沉淀汇差：BaseCurrencyAmount=应收侧、PayableBaseAmount=应付侧、
+// ExchangeGainLoss=应付-应收（可为负）。
+func TestPlanFinanceNettingRecordsBothBaseAmountsAndGainLoss(t *testing.T) {
+	newBill := func(direction OrderFeeDirection, total, rate string) *FinanceNettingBill {
+		bill := nettingBillForTest(uuid.Must(uuid.NewV7()), direction, total, "0", "0", 1)
+		bill.Currency = "USD"
+		bill.ExchangeRate = decimal.RequireFromString(rate)
+		return bill
+	}
+
+	t.Run("应付汇率高于应收形成正汇差", func(t *testing.T) {
+		bills := []*FinanceNettingBill{
+			newBill(OrderFeeReceivable, "100", "6.5"),
+			newBill(OrderFeePayable, "100", "7.0"),
+		}
+		plan, err := PlanFinanceNetting(bills, nettingBillVersions(bills...))
+		if err != nil {
+			t.Fatalf("对冲计划失败: %v", err)
+		}
+		if !plan.Amount.Equal(decimal.RequireFromString("100")) {
+			t.Fatalf("对冲金额错误: %s", plan.Amount)
+		}
+		if !plan.BaseCurrencyAmount.Equal(decimal.RequireFromString("650")) {
+			t.Fatalf("应收侧本位币应为 650: %s", plan.BaseCurrencyAmount)
+		}
+		if !plan.PayableBaseAmount.Equal(decimal.RequireFromString("700")) {
+			t.Fatalf("应付侧本位币应为 700: %s", plan.PayableBaseAmount)
+		}
+		if !plan.ExchangeGainLoss.Equal(decimal.RequireFromString("50")) {
+			t.Fatalf("对冲汇差应为 50: %s", plan.ExchangeGainLoss)
+		}
+	})
+
+	t.Run("应付汇率低于应收形成负汇差", func(t *testing.T) {
+		bills := []*FinanceNettingBill{
+			newBill(OrderFeeReceivable, "80", "7.2"),
+			newBill(OrderFeePayable, "120", "6.8"),
+		}
+		plan, err := PlanFinanceNetting(bills, nettingBillVersions(bills...))
+		if err != nil {
+			t.Fatalf("对冲计划失败: %v", err)
+		}
+		if !plan.Amount.Equal(decimal.RequireFromString("80")) {
+			t.Fatalf("对冲金额错误: %s", plan.Amount)
+		}
+		if !plan.BaseCurrencyAmount.Equal(decimal.RequireFromString("576")) {
+			t.Fatalf("应收侧本位币应为 576: %s", plan.BaseCurrencyAmount)
+		}
+		if !plan.PayableBaseAmount.Equal(decimal.RequireFromString("544")) {
+			t.Fatalf("应付侧本位币应为 544: %s", plan.PayableBaseAmount)
+		}
+		if !plan.ExchangeGainLoss.Equal(decimal.RequireFromString("-32")) {
+			t.Fatalf("对冲汇差应为 -32: %s", plan.ExchangeGainLoss)
+		}
+	})
+
+	t.Run("同币种同汇率汇差为零", func(t *testing.T) {
+		bills := []*FinanceNettingBill{
+			newBill(OrderFeeReceivable, "100", "1"),
+			newBill(OrderFeePayable, "100", "1"),
+		}
+		plan, err := PlanFinanceNetting(bills, nettingBillVersions(bills...))
+		if err != nil {
+			t.Fatalf("对冲计划失败: %v", err)
+		}
+		if !plan.ExchangeGainLoss.IsZero() || !plan.BaseCurrencyAmount.Equal(plan.PayableBaseAmount) {
+			t.Fatalf("同汇率对冲汇差应为 0: %s %s", plan.BaseCurrencyAmount, plan.PayableBaseAmount)
+		}
+	})
+}
+
+// TestPlanBatchFinanceNettingsRecordsBothBaseAmounts 验证批量建账路径同样分侧累加
+// 两端本位币并计算汇差。
+func TestPlanBatchFinanceNettingsRecordsBothBaseAmounts(t *testing.T) {
+	organizationID := uuid.MustParse("22222222-2222-2222-2222-222222222222")
+	partyID := uuid.New()
+	receivable := batchNettingBillForTest(uuid.Must(uuid.NewV7()), partyID, OrderFeeReceivable, "100")
+	receivable.Currency = "USD"
+	receivable.ExchangeRate = decimal.RequireFromString("6.5")
+	payable := batchNettingBillForTest(uuid.Must(uuid.NewV7()), partyID, OrderFeePayable, "100")
+	payable.Currency = "USD"
+	payable.ExchangeRate = decimal.RequireFromString("7.0")
+	nettings, err := planBatchFinanceNettings(organizationID, uuid.New(), "batch-key-base", []*FinanceBill{receivable, payable})
+	if err != nil {
+		t.Fatalf("批次对冲计划失败: %v", err)
+	}
+	if len(nettings) != 1 {
+		t.Fatalf("应生成一张对冲单: %#v", nettings)
+	}
+	netting := nettings[0]
+	if !netting.BaseCurrencyAmount.Equal(decimal.RequireFromString("650")) {
+		t.Fatalf("应收侧本位币应为 650: %s", netting.BaseCurrencyAmount)
+	}
+	if !netting.PayableBaseAmount.Equal(decimal.RequireFromString("700")) {
+		t.Fatalf("应付侧本位币应为 700: %s", netting.PayableBaseAmount)
+	}
+	if !netting.ExchangeGainLoss.Equal(decimal.RequireFromString("50")) {
+		t.Fatalf("对冲汇差应为 50: %s", netting.ExchangeGainLoss)
+	}
+}

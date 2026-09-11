@@ -112,8 +112,6 @@ type UserEdges struct {
 	CancelledFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"cancelled_finance_commission_adjustments,omitempty"`
 	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
-	// UpdatedExchangeRateCustomSettings holds the value of the updated_exchange_rate_custom_settings edge.
-	UpdatedExchangeRateCustomSettings []*ExchangeRateCustomSetting `json:"updated_exchange_rate_custom_settings,omitempty"`
 	// UpdatedFinanceCustomSettings holds the value of the updated_finance_custom_settings edge.
 	UpdatedFinanceCustomSettings []*FinanceCustomSetting `json:"updated_finance_custom_settings,omitempty"`
 	// CreatedEnterpriseResources holds the value of the created_enterprise_resources edge.
@@ -158,7 +156,7 @@ type UserEdges struct {
 	ConfirmedSeaSharedContainers []*SeaSharedContainer `json:"confirmed_sea_shared_containers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [50]bool
+	loadedTypes [49]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -413,19 +411,10 @@ func (e UserEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPrefer
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
 }
 
-// UpdatedExchangeRateCustomSettingsOrErr returns the UpdatedExchangeRateCustomSettings value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) UpdatedExchangeRateCustomSettingsOrErr() ([]*ExchangeRateCustomSetting, error) {
-	if e.loadedTypes[28] {
-		return e.UpdatedExchangeRateCustomSettings, nil
-	}
-	return nil, &NotLoadedError{edge: "updated_exchange_rate_custom_settings"}
-}
-
 // UpdatedFinanceCustomSettingsOrErr returns the UpdatedFinanceCustomSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UpdatedFinanceCustomSettingsOrErr() ([]*FinanceCustomSetting, error) {
-	if e.loadedTypes[29] {
+	if e.loadedTypes[28] {
 		return e.UpdatedFinanceCustomSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_finance_custom_settings"}
@@ -434,7 +423,7 @@ func (e UserEdges) UpdatedFinanceCustomSettingsOrErr() ([]*FinanceCustomSetting,
 // CreatedEnterpriseResourcesOrErr returns the CreatedEnterpriseResources value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[29] {
 		return e.CreatedEnterpriseResources, nil
 	}
 	return nil, &NotLoadedError{edge: "created_enterprise_resources"}
@@ -443,7 +432,7 @@ func (e UserEdges) CreatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, err
 // UpdatedEnterpriseResourcesOrErr returns the UpdatedEnterpriseResources value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UpdatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[30] {
 		return e.UpdatedEnterpriseResources, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_enterprise_resources"}
@@ -452,7 +441,7 @@ func (e UserEdges) UpdatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, err
 // UploadedEnterpriseResourceImagesOrErr returns the UploadedEnterpriseResourceImages value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UploadedEnterpriseResourceImagesOrErr() ([]*EnterpriseResourceImage, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[31] {
 		return e.UploadedEnterpriseResourceImages, nil
 	}
 	return nil, &NotLoadedError{edge: "uploaded_enterprise_resource_images"}
@@ -461,7 +450,7 @@ func (e UserEdges) UploadedEnterpriseResourceImagesOrErr() ([]*EnterpriseResourc
 // EnterpriseResourceAssignmentsOrErr returns the EnterpriseResourceAssignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) EnterpriseResourceAssignmentsOrErr() ([]*EnterpriseResourceAssignee, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[32] {
 		return e.EnterpriseResourceAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_resource_assignments"}
@@ -470,7 +459,7 @@ func (e UserEdges) EnterpriseResourceAssignmentsOrErr() ([]*EnterpriseResourceAs
 // CreatedSeaOrderSplitEventsOrErr returns the CreatedSeaOrderSplitEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
-	if e.loadedTypes[34] {
+	if e.loadedTypes[33] {
 		return e.CreatedSeaOrderSplitEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_order_split_events"}
@@ -479,7 +468,7 @@ func (e UserEdges) CreatedSeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, err
 // CreatedSeaOrderReassignmentEventsOrErr returns the CreatedSeaOrderReassignmentEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[35] {
+	if e.loadedTypes[34] {
 		return e.CreatedSeaOrderReassignmentEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_order_reassignment_events"}
@@ -488,7 +477,7 @@ func (e UserEdges) CreatedSeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassign
 // UploadedAttachmentAssetsOrErr returns the UploadedAttachmentAssets value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UploadedAttachmentAssetsOrErr() ([]*OrderAttachmentAsset, error) {
-	if e.loadedTypes[36] {
+	if e.loadedTypes[35] {
 		return e.UploadedAttachmentAssets, nil
 	}
 	return nil, &NotLoadedError{edge: "uploaded_attachment_assets"}
@@ -497,7 +486,7 @@ func (e UserEdges) UploadedAttachmentAssetsOrErr() ([]*OrderAttachmentAsset, err
 // CreatedOrderAttachmentsOrErr returns the CreatedOrderAttachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedOrderAttachmentsOrErr() ([]*OrderAttachment, error) {
-	if e.loadedTypes[37] {
+	if e.loadedTypes[36] {
 		return e.CreatedOrderAttachments, nil
 	}
 	return nil, &NotLoadedError{edge: "created_order_attachments"}
@@ -506,7 +495,7 @@ func (e UserEdges) CreatedOrderAttachmentsOrErr() ([]*OrderAttachment, error) {
 // LockedOrdersOrErr returns the LockedOrders value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) LockedOrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[38] {
+	if e.loadedTypes[37] {
 		return e.LockedOrders, nil
 	}
 	return nil, &NotLoadedError{edge: "locked_orders"}
@@ -515,7 +504,7 @@ func (e UserEdges) LockedOrdersOrErr() ([]*Order, error) {
 // OrderLockRecordsOrErr returns the OrderLockRecords value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
-	if e.loadedTypes[39] {
+	if e.loadedTypes[38] {
 		return e.OrderLockRecords, nil
 	}
 	return nil, &NotLoadedError{edge: "order_lock_records"}
@@ -524,7 +513,7 @@ func (e UserEdges) OrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
 // UnlockedOrderLockRecordsOrErr returns the UnlockedOrderLockRecords value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UnlockedOrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
-	if e.loadedTypes[40] {
+	if e.loadedTypes[39] {
 		return e.UnlockedOrderLockRecords, nil
 	}
 	return nil, &NotLoadedError{edge: "unlocked_order_lock_records"}
@@ -533,7 +522,7 @@ func (e UserEdges) UnlockedOrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
 // OrderUnlockRequestsOrErr returns the OrderUnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[41] {
+	if e.loadedTypes[40] {
 		return e.OrderUnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_requests"}
@@ -542,7 +531,7 @@ func (e UserEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
 // DecidedOrderUnlockRequestsOrErr returns the DecidedOrderUnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) DecidedOrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[42] {
+	if e.loadedTypes[41] {
 		return e.DecidedOrderUnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "decided_order_unlock_requests"}
@@ -551,7 +540,7 @@ func (e UserEdges) DecidedOrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, err
 // OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
-	if e.loadedTypes[43] {
+	if e.loadedTypes[42] {
 		return e.OrderUnlockApproverCandidates, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
@@ -560,7 +549,7 @@ func (e UserEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverC
 // CreatedSeaMasterBillVersionsOrErr returns the CreatedSeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[44] {
+	if e.loadedTypes[43] {
 		return e.CreatedSeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_master_bill_versions"}
@@ -569,7 +558,7 @@ func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion,
 // CreatedSeaHouseBillVersionsOrErr returns the CreatedSeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[45] {
+	if e.loadedTypes[44] {
 		return e.CreatedSeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_house_bill_versions"}
@@ -578,7 +567,7 @@ func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, e
 // CreatedSeaDocumentVoidEventsOrErr returns the CreatedSeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[46] {
+	if e.loadedTypes[45] {
 		return e.CreatedSeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_void_events"}
@@ -587,7 +576,7 @@ func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent,
 // CreatedSeaTransportExecutionVersionsOrErr returns the CreatedSeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
-	if e.loadedTypes[47] {
+	if e.loadedTypes[46] {
 		return e.CreatedSeaTransportExecutionVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_transport_execution_versions"}
@@ -596,7 +585,7 @@ func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportE
 // CreatedSeaDocumentModeChangeEventsOrErr returns the CreatedSeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
-	if e.loadedTypes[48] {
+	if e.loadedTypes[47] {
 		return e.CreatedSeaDocumentModeChangeEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_mode_change_events"}
@@ -605,7 +594,7 @@ func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentMode
 // ConfirmedSeaSharedContainersOrErr returns the ConfirmedSeaSharedContainers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, error) {
-	if e.loadedTypes[49] {
+	if e.loadedTypes[48] {
 		return e.ConfirmedSeaSharedContainers, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_sea_shared_containers"}
@@ -894,11 +883,6 @@ func (_m *User) QueryCancelledFinanceCommissionAdjustments() *FinanceCommissionA
 // QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the User entity.
 func (_m *User) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
 	return NewUserClient(_m.config).QueryFinanceFeeLedgerPreferences(_m)
-}
-
-// QueryUpdatedExchangeRateCustomSettings queries the "updated_exchange_rate_custom_settings" edge of the User entity.
-func (_m *User) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCustomSettingQuery {
-	return NewUserClient(_m.config).QueryUpdatedExchangeRateCustomSettings(_m)
 }
 
 // QueryUpdatedFinanceCustomSettings queries the "updated_finance_custom_settings" edge of the User entity.

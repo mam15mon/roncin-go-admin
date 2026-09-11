@@ -249,18 +249,6 @@ func (f EnterpriseTagGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseTagGroupMutation", m)
 }
 
-// The ExchangeRateCustomSettingFunc type is an adapter to allow the use of ordinary
-// function as ExchangeRateCustomSetting mutator.
-type ExchangeRateCustomSettingFunc func(context.Context, *ent.ExchangeRateCustomSettingMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ExchangeRateCustomSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ExchangeRateCustomSettingMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateCustomSettingMutation", m)
-}
-
 // The ExchangeRateImportBatchFunc type is an adapter to allow the use of ordinary
 // function as ExchangeRateImportBatch mutator.
 type ExchangeRateImportBatchFunc func(context.Context, *ent.ExchangeRateImportBatchMutation) (ent.Value, error)
@@ -283,18 +271,6 @@ func (f ExchangeRateSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateSettingMutation", m)
-}
-
-// The ExchangeRateTimeStandardFunc type is an adapter to allow the use of ordinary
-// function as ExchangeRateTimeStandard mutator.
-type ExchangeRateTimeStandardFunc func(context.Context, *ent.ExchangeRateTimeStandardMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ExchangeRateTimeStandardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ExchangeRateTimeStandardMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateTimeStandardMutation", m)
 }
 
 // The FeeSettingFunc type is an adapter to allow the use of ordinary

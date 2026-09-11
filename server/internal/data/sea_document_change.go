@@ -34,6 +34,7 @@ import (
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seamasterbillversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	seasharedcontainerallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	seatransportexecutionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 )
 
@@ -221,9 +222,20 @@ func (r *seaDocumentChangeRepo) PreviewAmendment(ctx context.Context, orgID uuid
 	if err != nil {
 		return nil, err
 	}
-	impacts, err := collectDocumentImpacts(ctx, client, orgID, orderIDs, input.DocumentType == biz.SeaDocumentTypeHouseBill, input.DocumentID)
+	impacts, err := collectDocumentImpacts(ctx, client, orgID, orderIDs, amendmentImpactHouseBillID(input))
 	if err != nil {
 		return nil, err
+	}
+	if len(orderIDs) > 0 {
+		orders, err := client.Order.Query().Where(orderent.OrganizationIDEQ(orgID), orderent.IDIn(orderIDs...)).Order(orderent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range orders {
+			if impact := orderBusinessEditImpact(ctx, client.User, o); impact != nil {
+				impacts = append(impacts, impact)
+			}
+		}
 	}
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: len(diffs) > 0 && !hasBlockingImpact(impacts)}, nil
 }
@@ -241,9 +253,24 @@ func (r *seaDocumentChangeRepo) PreviewVoid(ctx context.Context, orgID uuid.UUID
 		return nil, err
 	}
 	diffs := []*biz.SeaDocumentFieldDifference{{Field: "status", Label: "状态", BeforeValue: base.Status, AfterValue: "VOIDED"}}
-	impacts, err := collectDocumentImpacts(ctx, client, orgID, orderIDs, input.DocumentType == biz.SeaDocumentTypeHouseBill, input.DocumentID)
+	impactHouseBillID := uuid.Nil
+	if input.DocumentType == biz.SeaDocumentTypeHouseBill {
+		impactHouseBillID = input.DocumentID
+	}
+	impacts, err := collectDocumentImpacts(ctx, client, orgID, orderIDs, impactHouseBillID)
 	if err != nil {
 		return nil, err
+	}
+	if len(orderIDs) > 0 {
+		orders, err := client.Order.Query().Where(orderent.OrganizationIDEQ(orgID), orderent.IDIn(orderIDs...)).Order(orderent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range orders {
+			if impact := orderBusinessEditImpact(ctx, client.User, o); impact != nil {
+				impacts = append(impacts, impact)
+			}
+		}
 	}
 	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: diffs, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
 }
@@ -271,6 +298,9 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 	}
 	differences := []*biz.SeaDocumentFieldDifference{{Field: "document_structure", Label: "单证模式", BeforeValue: string(current), AfterValue: string(input.TargetMode)}}
 	var base *biz.SeaDocumentVersion
+	// HOUSE 起点的模式切换会把当前唯一活动 HBL 置为 VOIDED：影响收集必须携带该
+	// HBL 上下文，使其箱货分配进入阻断事实（与 ExecuteModeChange 同口径）。
+	impactHouseBillID := uuid.Nil
 	if current == biz.SeaDocumentStructureHouse {
 		hbl, err := client.SeaHouseBill.Query().Where(
 			seahousebillent.OrganizationIDEQ(orgID),
@@ -281,6 +311,7 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrSeaDocumentStructureConflict, nil)
 		}
+		impactHouseBillID = hbl.ID
 		if hbl.CurrentVersionID != nil {
 			version, err := client.SeaHouseBillVersion.Query().Where(seahousebillversionent.IDEQ(*hbl.CurrentVersionID)).Only(ctx)
 			if err != nil {
@@ -297,11 +328,23 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 		}
 		differences = append(differences, &biz.SeaDocumentFieldDifference{Field: "house_no", Label: "HBL 号", BeforeValue: "", AfterValue: input.NewHouseBill.HouseNo})
 	}
-	impacts, err := collectDocumentImpacts(ctx, client, orgID, []uuid.UUID{order.ID}, false, uuid.Nil)
+	impacts, err := collectDocumentImpacts(ctx, client, orgID, []uuid.UUID{order.ID}, impactHouseBillID)
 	if err != nil {
 		return nil, err
 	}
-	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: differences, Impacts: impacts, Executable: true}, nil
+	if impact := orderBusinessEditImpact(ctx, client.User, order); impact != nil {
+		impacts = append(impacts, impact)
+	}
+	return &biz.SeaDocumentChangePreview{BaseVersion: base, Differences: differences, Impacts: impacts, Executable: !hasBlockingImpact(impacts)}, nil
+}
+
+// amendmentImpactHouseBillID 返回改单影响收集的 HBL 上下文：只有 HBL 改单需要
+// 查询箱货分配，MBL 改单传入零值跳过。
+func amendmentImpactHouseBillID(input *biz.SeaDocumentAmendmentCommand) uuid.UUID {
+	if input.DocumentType == biz.SeaDocumentTypeHouseBill {
+		return input.DocumentID
+	}
+	return uuid.Nil
 }
 
 func loadAmendmentPreview(ctx context.Context, client *ent.Client, orgID uuid.UUID, input *biz.SeaDocumentAmendmentCommand) (*biz.SeaDocumentVersion, []*biz.SeaDocumentFieldDifference, []uuid.UUID, error) {
@@ -387,7 +430,10 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 	}
 }
 
-func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.UUID, orderIDs []uuid.UUID, includeAllocations bool, houseBillID uuid.UUID) ([]*biz.SeaDocumentDownstreamImpact, error) {
+// collectDocumentImpacts 收集目标订单集合的六类下游财务事实；houseBillID 非空时
+// 表示 HBL 变更上下文，额外查询该 HBL 的共享箱货分配。所有事实均为不可自动调整
+// 的阻断事实（BlocksExecution=true），由 hasBlockingImpact 统一判定。
+func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.UUID, orderIDs []uuid.UUID, houseBillID uuid.UUID) ([]*biz.SeaDocumentDownstreamImpact, error) {
 	if len(orderIDs) == 0 {
 		return nil, nil
 	}
@@ -397,7 +443,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, fee := range fees {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已确认或进入结算，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已确认或进入结算，变更不会改写该事实", BlocksExecution: true})
 	}
 	lines, err := client.FinanceBillLine.Query().Where(financebilllineent.OrderIDIn(orderIDs...), financebilllineent.ActiveEQ(true)).WithBill().Order(financebilllineent.ByID()).All(ctx)
 	if err != nil {
@@ -408,7 +454,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		if line.Edges.Bill != nil {
 			no = line.Edges.Bill.BillNo
 		}
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_BILL", ReferenceID: line.BillID.String(), ReferenceNo: no, Message: "账单 " + no + " 已引用订单费用，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_BILL", ReferenceID: line.BillID.String(), ReferenceNo: no, Message: "账单 " + no + " 已引用订单费用，变更不会改写该事实", BlocksExecution: true})
 	}
 	invoices, err := client.FinanceInvoice.Query().Where(
 		financeinvoiceent.OrganizationIDEQ(orgID),
@@ -418,7 +464,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, invoice := range invoices {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_INVOICE", ReferenceID: invoice.ID.String(), ReferenceNo: invoice.RecordNo, Message: "发票 " + invoice.RecordNo + " 已形成开票事实，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_INVOICE", ReferenceID: invoice.ID.String(), ReferenceNo: invoice.RecordNo, Message: "发票 " + invoice.RecordNo + " 已形成开票事实，变更不会改写该事实", BlocksExecution: true})
 	}
 	verifications, err := client.FinanceVerification.Query().Where(
 		financeverificationent.OrganizationIDEQ(orgID),
@@ -428,7 +474,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, err
 	}
 	for _, verification := range verifications {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_VERIFICATION", ReferenceID: verification.ID.String(), ReferenceNo: verification.VerificationNo, Message: "核销单 " + verification.VerificationNo + " 已形成核销事实，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_VERIFICATION", ReferenceID: verification.ID.String(), ReferenceNo: verification.VerificationNo, Message: "核销单 " + verification.VerificationNo + " 已形成核销事实，变更不会改写该事实", BlocksExecution: true})
 	}
 	commissions, err := client.FinanceCommissionLine.Query().Where(financecommissionlineent.OrganizationIDEQ(orgID), financecommissionlineent.OrderIDIn(orderIDs...)).WithCommission().Order(financecommissionlineent.ByID()).All(ctx)
 	if err != nil {
@@ -439,14 +485,30 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		if line.Edges.Commission != nil {
 			no = line.Edges.Commission.CommissionNo
 		}
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION", ReferenceID: line.CommissionID.String(), ReferenceNo: no, Message: "提成单 " + no + " 已形成计算事实，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION", ReferenceID: line.CommissionID.String(), ReferenceNo: no, Message: "提成单 " + no + " 已形成计算事实，变更不会改写该事实", BlocksExecution: true})
 	}
 	adjustments, err := client.FinanceCommissionAdjustment.Query().Where(financecommissionadjustmentent.OrganizationIDEQ(orgID), financecommissionadjustmentent.OrderIDIn(orderIDs...)).Order(financecommissionadjustmentent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, adjustment := range adjustments {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION_ADJUSTMENT", ReferenceID: adjustment.ID.String(), ReferenceNo: adjustment.AdjustmentNo, Message: "提成调整单 " + adjustment.AdjustmentNo + " 已形成调整事实，变更不会改写该事实"})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "FINANCE_COMMISSION_ADJUSTMENT", ReferenceID: adjustment.ID.String(), ReferenceNo: adjustment.AdjustmentNo, Message: "提成调整单 " + adjustment.AdjustmentNo + " 已形成调整事实，变更不会改写该事实", BlocksExecution: true})
+	}
+	if houseBillID != uuid.Nil {
+		allocations, err := client.SeaSharedContainerAllocation.Query().Where(
+			seasharedcontainerallocationent.OrganizationIDEQ(orgID),
+			seasharedcontainerallocationent.HouseBillIDEQ(houseBillID),
+		).WithSharedContainer().Order(seasharedcontainerallocationent.ByID()).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, allocation := range allocations {
+			no := allocation.SharedContainerID.String()
+			if allocation.Edges.SharedContainer != nil {
+				no = allocation.Edges.SharedContainer.ContainerNo
+			}
+			impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "SEA_SHARED_CONTAINER_ALLOCATION", ReferenceID: allocation.ID.String(), ReferenceNo: no, Message: "共享箱 " + no + " 已存在箱货分配，变更不会改写该事实", BlocksExecution: true})
+		}
 	}
 	return impacts, nil
 }
@@ -535,6 +597,9 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 		if order.ID == input.OrderID && order.Version != input.ExpectedOrderVersion {
 			return biz.ErrOrderStatusConflict
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 	}
 	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
@@ -561,7 +626,7 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 	if err != nil {
 		return err
 	}
-	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, memberIDs, false, uuid.Nil)
+	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, memberIDs, uuid.Nil)
 	if err != nil {
 		return err
 	}
@@ -600,6 +665,9 @@ func (r *seaDocumentChangeRepo) executeHouseAmendment(ctx context.Context, tx *e
 	if err != nil {
 		return err
 	}
+	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+		return err
+	}
 	if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, order.ID, input.Confirmation); err != nil {
 		return err
 	}
@@ -607,7 +675,7 @@ func (r *seaDocumentChangeRepo) executeHouseAmendment(ctx context.Context, tx *e
 	if err != nil {
 		return err
 	}
-	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, true, hbl.ID)
+	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, hbl.ID)
 	if err != nil {
 		return err
 	}
@@ -715,6 +783,9 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 				return biz.ErrOrderStatusConflict
 			}
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 	}
 	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
@@ -737,7 +808,7 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 	if err != nil {
 		return err
 	}
-	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, memberIDs, false, uuid.Nil)
+	impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, memberIDs, uuid.Nil)
 	if err != nil {
 		return err
 	}
@@ -797,6 +868,9 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 		if order.Version != input.ExpectedOrderVersion {
 			return biz.ErrOrderStatusConflict
 		}
+		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
 		located, err := tx.SeaMasterBillOrderLink.Query().Where(
 			seamasterbillorderlinkent.OrganizationIDEQ(orgID),
 			seamasterbillorderlinkent.OrderIDEQ(input.OrderID),
@@ -823,9 +897,28 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 		if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, order.ID, input.Confirmation); err != nil {
 			return err
 		}
-		impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, false, uuid.Nil)
+		// HOUSE→DIRECT 会把当前唯一活动 HBL 置为 VOIDED：先定位该 HBL 并把其 ID
+		// 传入影响收集，使箱货分配进入阻断事实；口径与 PreviewModeChange 一致，
+		// 不允许 Preview 可执行而 Execute 被阻断（或反之）的漂移。
+		impactHouseBillID := uuid.Nil
+		if previousMode == biz.SeaDocumentStructureHouse {
+			activeHBL, err := tx.SeaHouseBill.Query().Where(
+				seahousebillent.OrganizationIDEQ(orgID),
+				seahousebillent.OrderIDEQ(order.ID),
+				seahousebillent.MasterBillIDEQ(mbl.ID),
+				seahousebillent.StatusNotIn(seahousebillent.StatusVOIDED),
+			).Only(ctx)
+			if err != nil {
+				return mapEntError(err, biz.ErrSeaDocumentStructureConflict, nil)
+			}
+			impactHouseBillID = activeHBL.ID
+		}
+		impacts, err := collectDocumentImpacts(ctx, tx.Client(), orgID, []uuid.UUID{order.ID}, impactHouseBillID)
 		if err != nil {
 			return err
+		}
+		if hasBlockingImpact(impacts) {
+			return impactError(biz.ErrSeaDocumentChangeBlocked, impacts)
 		}
 		builder := tx.SeaDocumentModeChangeEvent.Create().
 			SetOrganizationID(orgID).

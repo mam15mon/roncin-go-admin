@@ -13,6 +13,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
+	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -516,7 +518,7 @@ func TestSeaMasterBillMemberSetRevalidatedAfterLock(t *testing.T) {
 	}
 }
 
-func TestSeaDocumentHistoricalFactsAppearAsImpactsWithoutBlocking(t *testing.T) {
+func TestSeaDocumentDownstreamFactsBlockExecution(t *testing.T) {
 	ctx := context.Background()
 	f := newSeaDocumentChangeFixture(t)
 	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
@@ -530,27 +532,349 @@ func TestSeaDocumentHistoricalFactsAppearAsImpactsWithoutBlocking(t *testing.T) 
 
 	mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
 	order := f.data.db.Order.GetX(ctx, f.orderID)
-	cmd := &biz.SeaDocumentVoidCommand{OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID, ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID, Reason: "历史事实影响摘要", IdempotencyKey: "historical-impact-" + suffix, Confirmation: f.confirmation()}
-	preview, err := uc.PreviewVoid(ctx, f.orgID, cmd)
+	voidCmd := &biz.SeaDocumentVoidCommand{OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID, ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID, Reason: "下游事实阻断", IdempotencyKey: "historical-impact-" + suffix, Confirmation: f.confirmation()}
+	preview, err := uc.PreviewVoid(ctx, f.orgID, voidCmd)
 	if err != nil {
-		t.Fatalf("历史财务事实预览失败: %v", err)
+		t.Fatalf("存在下游财务事实时预览失败: %v", err)
 	}
 	facts := map[string]string{}
 	for _, impact := range preview.Impacts {
 		facts[impact.FactType] = impact.ReferenceNo
+		if !impact.BlocksExecution {
+			t.Fatalf("下游事实 %s 必须标记阻断执行: %+v", impact.FactType, impact)
+		}
 	}
 	if facts["ORDER_FEE"] != fee.FeeCode || facts["FINANCE_BILL"] != bill.BillNo || facts["FINANCE_INVOICE"] != invoice.RecordNo {
 		t.Fatalf("历史费用/账单/发票未进入影响摘要: %+v", facts)
 	}
-	if !preview.Executable {
-		t.Fatalf("下游财务事实只提示不一概阻断: %+v", preview.Impacts)
+	if preview.Executable {
+		t.Fatalf("存在下游财务事实时 Preview 不可执行: %+v", preview.Impacts)
 	}
-	if _, err = uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); err != nil {
-		t.Fatalf("存在历史财务事实时携带确认的作废应可执行: %v", err)
+	_, err = uc.ExecuteVoid(ctx, f.orgID, f.actorID, voidCmd, f.audit())
+	if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentChangeBlocked.Reason || !kratoserrors.IsConflict(err) {
+		t.Fatalf("存在下游财务事实时作废必须被 409 阻断: %v", err)
 	}
-	// 财务事实保持原归属不被改写
+	blocked := kratoserrors.FromError(err)
+	if blocked.Metadata == nil || blocked.Metadata["blocked_count"] == "" || blocked.Metadata["fact_type"] != "ORDER_FEE" || blocked.Metadata["reference_id"] != fee.ID.String() {
+		t.Fatalf("阻断错误缺少 blocked_count/fact_type/reference_id 元数据: %+v", blocked.Metadata)
+	}
+	// 单证与财务事实保持原归属不被改写
+	mblAfter := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+	if mblAfter.Status == seamasterbillent.StatusVOIDED || mblAfter.Version != mbl.Version {
+		t.Fatalf("被阻断的作废改写了工作实体: %+v", mblAfter)
+	}
 	feeAfter := f.data.db.OrderFee.GetX(ctx, fee.ID)
 	if feeAfter.OrderID != f.orderID || feeAfter.Status != orderfeeent.StatusCONFIRMED {
-		t.Fatalf("作废改写了财务事实: %+v", feeAfter)
+		t.Fatalf("阻断路径改写了财务事实: %+v", feeAfter)
 	}
+}
+
+func TestSeaDocumentModeChangeBlockedByDownstreamFacts(t *testing.T) {
+	ctx := context.Background()
+	f := newSeaDocumentChangeFixture(t)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+	suffix := uuid.NewString()[:8]
+	f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("mode-block-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusCONFIRMED).SetFeeCode("MODE-FEE-" + suffix).SetFeeName("模式切换阻断费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
+
+	hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	order := f.data.db.Order.GetX(ctx, f.orderID)
+	hblVersion := hbl.Version
+	cmd := &biz.SeaDocumentModeChangeCommand{
+		OrderID: f.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+		ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+		TargetMode:     biz.SeaDocumentStructureDirect,
+		Reason:         "存在下游事实时模式切换应被阻断",
+		IdempotencyKey: "mode-blocked-" + suffix,
+		Confirmation:   f.confirmation(),
+	}
+	preview, err := uc.PreviewModeChange(ctx, f.orgID, cmd)
+	if err != nil {
+		t.Fatalf("模式切换预览失败: %v", err)
+	}
+	if preview.Executable {
+		t.Fatalf("存在下游财务事实时模式切换预览不可执行: %+v", preview.Impacts)
+	}
+	if err = uc.ExecuteModeChange(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentChangeBlocked.Reason {
+		t.Fatalf("存在下游财务事实时模式切换必须被阻断，实际: %v", err)
+	}
+	hblAfter := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	if hblAfter.Status == seahousebillent.StatusVOIDED {
+		t.Fatal("被阻断的模式切换把 HBL 置为 VOIDED")
+	}
+	linkAfter := f.data.db.SeaMasterBillOrderLink.GetX(ctx, f.linkID)
+	if linkAfter.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE {
+		t.Fatalf("被阻断的模式切换改写了单证模式: %s", linkAfter.DocumentStructure)
+	}
+}
+
+// TestSeaDocumentModeChangeBlockedByHouseBillAllocation 验证 HOUSE→DIRECT 模式切换
+// 与 HBL 改单同口径：当前活动 HBL 存在箱货分配时，Preview 不可执行、Execute 409
+// 阻断（metadata 指向分配事实），HBL 不被作废。
+func TestSeaDocumentModeChangeBlockedByHouseBillAllocation(t *testing.T) {
+	ctx := context.Background()
+	f := newSeaDocumentChangeFixture(t)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+	suffix := uuid.NewString()[:8]
+	container := createHouseBillSharedAllocation(t, f, "MODE-"+suffix)
+
+	hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	order := f.data.db.Order.GetX(ctx, f.orderID)
+	hblVersion := hbl.Version
+	cmd := &biz.SeaDocumentModeChangeCommand{
+		OrderID: f.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+		ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+		TargetMode:     biz.SeaDocumentStructureDirect,
+		Reason:         "箱货分配阻断模式切换",
+		IdempotencyKey: "mode-alloc-block-" + suffix,
+		Confirmation:   f.confirmation(),
+	}
+	preview, err := uc.PreviewModeChange(ctx, f.orgID, cmd)
+	if err != nil {
+		t.Fatalf("模式切换预览失败: %v", err)
+	}
+	foundAllocation := false
+	for _, impact := range preview.Impacts {
+		if impact.FactType == "SEA_SHARED_CONTAINER_ALLOCATION" && impact.ReferenceNo == container.ContainerNo && impact.BlocksExecution {
+			foundAllocation = true
+		}
+	}
+	if !foundAllocation {
+		t.Fatalf("箱货分配未进入模式切换下游影响: %+v", preview.Impacts)
+	}
+	if preview.Executable {
+		t.Fatalf("存在箱货分配时模式切换预览不可执行: %+v", preview.Impacts)
+	}
+	err = uc.ExecuteModeChange(ctx, f.orgID, f.actorID, cmd, f.audit())
+	if kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentChangeBlocked.Reason || !kratoserrors.IsConflict(err) {
+		t.Fatalf("存在箱货分配时模式切换必须被 409 阻断，实际: %v", err)
+	}
+	blocked := kratoserrors.FromError(err)
+	if blocked.Metadata == nil || blocked.Metadata["fact_type"] != "SEA_SHARED_CONTAINER_ALLOCATION" || blocked.Metadata["reference_no"] != container.ContainerNo {
+		t.Fatalf("阻断错误未指向箱货分配事实: %+v", blocked.Metadata)
+	}
+	hblAfter := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	if hblAfter.Status == seahousebillent.StatusVOIDED {
+		t.Fatal("被阻断的模式切换把 HBL 置为 VOIDED，分配将悬挂指向已作废 HBL")
+	}
+	linkAfter := f.data.db.SeaMasterBillOrderLink.GetX(ctx, f.linkID)
+	if linkAfter.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE {
+		t.Fatalf("被阻断的模式切换改写了单证模式: %s", linkAfter.DocumentStructure)
+	}
+}
+
+// createHouseBillSharedAllocation 为夹具的当前 HBL 落一条共享箱货分配，返回共享箱。
+func createHouseBillSharedAllocation(t *testing.T, f *seaDocumentChangeFixture, suffix string) *ent.SeaSharedContainer {
+	t.Helper()
+	ctx := context.Background()
+	spec := f.data.db.MasterDataItem.Create().
+		SetOrganizationID(f.orgID).
+		SetKind(masterdataitement.KindContainerSpec).
+		SetCode("40HQ-" + suffix).
+		SetName("40HQ超高箱").
+		SetSortOrder(1).
+		SetEnabled(true).
+		SaveX(ctx)
+	cargoItem := f.data.db.OrderCargoItem.Create().
+		SetOrganizationID(f.orgID).
+		SetOrderID(f.orderID).
+		SetCargoName("共享箱分配阻断货物").
+		SetPackageCount(10).
+		SetGrossWeightKg(100.0).
+		SetVolumeCbm(1.0).
+		SetVersion(1).
+		SaveX(ctx)
+	container := f.data.db.SeaSharedContainer.Create().
+		SetOrganizationID(f.orgID).
+		SetTransportExecutionID(f.data.db.SeaMasterBillOrderLink.GetX(ctx, f.linkID).TransportExecutionID).
+		SetContainerNo("SHCU-BLK-" + suffix).
+		SetContainerSpecID(spec.ID).
+		SetPackageCount(10).
+		SetGrossWeightKg("100.000").
+		SetVolumeCbm("1.000000").
+		SetVersion(1).
+		SaveX(ctx)
+	f.data.db.SeaSharedContainerAllocation.Create().
+		SetOrganizationID(f.orgID).
+		SetSharedContainerID(container.ID).
+		SetOrderID(f.orderID).
+		SetHouseBillID(f.hblID).
+		SetCargoItemID(cargoItem.ID).
+		SetPackageCount(10).
+		SetGrossWeightKg("100.000").
+		SetVolumeCbm("1.000000").
+		SetVersion(1).
+		SaveX(ctx)
+	return container
+}
+
+func TestSeaDocumentHouseBillAllocationBlocksAmendment(t *testing.T) {
+	ctx := context.Background()
+	f := newSeaDocumentChangeFixture(t)
+	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+	suffix := uuid.NewString()[:8]
+	container := createHouseBillSharedAllocation(t, f, suffix)
+
+	hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	order := f.data.db.Order.GetX(ctx, f.orderID)
+	cmd := &biz.SeaDocumentAmendmentCommand{
+		OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: f.hblID,
+		ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: hbl.Version, ExpectedCurrentVersionID: *hbl.CurrentVersionID,
+		Reason: "箱货分配阻断改单", IdempotencyKey: "hbl-alloc-block-" + suffix,
+		Input: &biz.SeaDocumentAmendmentInput{HouseBill: &biz.SeaHouseBillInput{
+			HouseNo: hbl.HouseNo, IssuerSource: biz.SeaHouseBillIssuerSourceCustomerPartner,
+			Content: &biz.SeaBillContent{ShipperText: stringPtr("共享箱分配下的新发货人")},
+		}},
+		Confirmation: f.confirmation(),
+	}
+	preview, err := uc.PreviewAmendment(ctx, f.orgID, cmd)
+	if err != nil {
+		t.Fatalf("HBL 改单预览失败: %v", err)
+	}
+	foundAllocation := false
+	for _, impact := range preview.Impacts {
+		if impact.FactType == "SEA_SHARED_CONTAINER_ALLOCATION" && impact.ReferenceNo == container.ContainerNo && impact.BlocksExecution {
+			foundAllocation = true
+		}
+	}
+	if !foundAllocation {
+		t.Fatalf("箱货分配未进入 HBL 下游影响: %+v", preview.Impacts)
+	}
+	if preview.Executable {
+		t.Fatalf("存在箱货分配时 HBL 改单预览不可执行: %+v", preview.Impacts)
+	}
+	if _, err = uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != biz.ErrSeaDocumentChangeBlocked.Reason {
+		t.Fatalf("存在箱货分配时 HBL 改单必须被阻断，实际: %v", err)
+	}
+	hblAfter := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+	if hblAfter.Version != hbl.Version {
+		t.Fatalf("被阻断的 HBL 改单改写了版本: %d", hblAfter.Version)
+	}
+}
+
+func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
+	ctx := context.Background()
+	masterAmendCmd := func(f *seaDocumentChangeFixture) *biz.SeaDocumentAmendmentCommand {
+		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+		order := f.data.db.Order.GetX(ctx, f.orderID)
+		return &biz.SeaDocumentAmendmentCommand{
+			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
+			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
+			Reason: "门禁阻断验证", IdempotencyKey: "gate-" + uuid.NewString(),
+			Input:        &biz.SeaDocumentAmendmentInput{MasterBillContent: &biz.SeaBillContent{ShipperText: stringPtr("门禁下不应落库")}},
+			Confirmation: f.confirmation(),
+		}
+	}
+
+	t.Run("业务锁定订单拒绝改单", func(t *testing.T) {
+		f := newSeaDocumentChangeFixture(t)
+		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+		f.data.db.Order.UpdateOneID(f.orderID).SetLockedAt(time.Now().UTC()).SetLockedBy(f.actorID).SetLockGeneration(1).SaveX(ctx)
+		cmd := masterAmendCmd(f)
+		preview, err := uc.PreviewAmendment(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("改单预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单改单预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单改单预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+		if _, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("业务锁定订单改单应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
+		}
+	})
+
+	t.Run("业务锁定订单拒绝模式切换", func(t *testing.T) {
+		f := newSeaDocumentChangeFixture(t)
+		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+		f.data.db.Order.UpdateOneID(f.orderID).SetLockedAt(time.Now().UTC()).SetLockedBy(f.actorID).SetLockGeneration(1).SaveX(ctx)
+		order := f.data.db.Order.GetX(ctx, f.orderID)
+		hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
+		hblVersion := hbl.Version
+		cmd := &biz.SeaDocumentModeChangeCommand{
+			OrderID: f.orderID, ExpectedOrderVersion: order.Version, ExpectedLinkVersion: 1,
+			ExpectedHouseBillVersion: &hblVersion, ExpectedCurrentVersionID: hbl.CurrentVersionID,
+			TargetMode: biz.SeaDocumentStructureDirect, Reason: "锁定下模式切换",
+			IdempotencyKey: "mode-locked-" + uuid.NewString(), Confirmation: f.confirmation(),
+		}
+		preview, err := uc.PreviewModeChange(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("模式切换预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("业务锁定订单模式切换预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("业务锁定订单模式切换预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+		if err := uc.ExecuteModeChange(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("业务锁定订单模式切换应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
+		}
+	})
+
+	t.Run("终止流程订单拒绝改单", func(t *testing.T) {
+		f := newSeaDocumentChangeFixture(t)
+		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+		f.data.db.Order.UpdateOneID(f.orderID).
+			SetTerminationStatus(orderent.TerminationStatusTERMINATING).
+			SetTerminationType(orderent.TerminationTypeCARRIER_CANCEL).
+			SetTerminationReason("门禁测试进入终止流程").
+			SaveX(ctx)
+		if _, err := uc.ExecuteAmendment(ctx, f.orgID, f.actorID, masterAmendCmd(f), f.audit()); kratoserrors.FromError(err).Reason != biz.ErrOrderTerminationInProgress.Reason {
+			t.Fatalf("终止流程订单改单应返回 ORDER_TERMINATION_IN_PROGRESS，实际: %v", err)
+		}
+	})
+
+	t.Run("已结案订单拒绝作废", func(t *testing.T) {
+		f := newSeaDocumentChangeFixture(t)
+		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
+		f.data.db.Order.UpdateOneID(f.orderID).
+			SetClosureStatus(orderent.ClosureStatusCLOSED).
+			SetClosureReason("门禁测试结案").
+			SetClosedAt(time.Now().UTC()).
+			SetClosedBy(f.actorID).
+			SaveX(ctx)
+		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
+		order := f.data.db.Order.GetX(ctx, f.orderID)
+		cmd := &biz.SeaDocumentVoidCommand{
+			OrderID: f.orderID, DocumentType: biz.SeaDocumentTypeMasterBill, DocumentID: f.mblID,
+			ExpectedOrderVersion: order.Version, ExpectedDocumentVersion: mbl.Version, ExpectedCurrentVersionID: *mbl.CurrentVersionID,
+			Reason: "结案订单作废", IdempotencyKey: "void-closed-" + uuid.NewString(), Confirmation: f.confirmation(),
+		}
+		preview, err := uc.PreviewVoid(ctx, f.orgID, cmd)
+		if err != nil {
+			t.Fatalf("作废预览不应报错，实际: %v", err)
+		}
+		if preview.Executable {
+			t.Fatalf("已结案订单作废预览 Executable 应为 false")
+		}
+		foundLockImpact := false
+		for _, imp := range preview.Impacts {
+			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
+				foundLockImpact = true
+				break
+			}
+		}
+		if !foundLockImpact {
+			t.Fatalf("已结案订单作废预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
+		}
+		if _, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != biz.ErrOrderClosed.Reason {
+			t.Fatalf("已结案订单作废应返回 ORDER_CLOSED，实际: %v", err)
+		}
+	})
 }

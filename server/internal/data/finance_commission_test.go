@@ -447,14 +447,14 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* FOR UPDATE$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(
 				verificationID, now, now, org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE",
-				uuid.New(), "客户A", "USD", "100.00", "CNY", "7.20000000", "SETTING", "2026-08-30",
-				nil, "720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil,
+				uuid.New(), "客户A", "USD", "100.00", "CNY",
+				"720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil,
 			))
 		// 2. 分摊边查询
 		mock.ExpectQuery(`SELECT .* FROM "finance_verification_allocations" WHERE .*`).
 			WillReturnRows(sqlmock.NewRows(financeverificationallocation.Columns).
-				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "50.00", "360.00", "360.00", "360.00", "0.00", true).
-				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID2, "CF1", "BILL2", "50.00", "360.00", "360.00", "360.00", "0.00", true),
+				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "50.00", "360.00", "360.00", "0.00", true).
+				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID2, "CF1", "BILL2", "50.00", "360.00", "360.00", "0.00", true),
 			)
 		// 3. 提成规则查询 (lock=true -> FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_commission_rules" WHERE .* FOR UPDATE$`).

@@ -32,7 +32,7 @@ type VerificationAllocation struct {
 	CashflowNo, BillNo                     string
 	Amount                                 decimal.Decimal
 	BillBaseAmount, CashflowBaseAmount     decimal.Decimal
-	WriteOffBaseAmount, ExchangeGainLoss   decimal.Decimal
+	ExchangeGainLoss                       decimal.Decimal
 	Active                                 bool
 }
 type FinanceVerification struct {
@@ -44,9 +44,6 @@ type FinanceVerification struct {
 	SettlementPartyName, Currency         string
 	Amount                                decimal.Decimal
 	BaseCurrency                          string
-	ExchangeRate                          decimal.Decimal
-	ExchangeRateSource, ExchangeRateDate  string
-	ExchangeRateSettingID                 *uuid.UUID
 	BaseAmount, BillBaseAmount            decimal.Decimal
 	CashflowBaseAmount, ExchangeGainLoss  decimal.Decimal
 	VerificationDate                      string
@@ -207,10 +204,6 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		if transactionErr != nil {
 			return transactionErr
 		}
-		resolved, transactionErr := u.exchangeRate.Resolve(txCtx, org, WriteOffRateType, firstCashflow.Direction, firstCashflow.Currency, map[string]string{WriteOffTimeStandard: in.VerificationDate})
-		if transactionErr != nil {
-			return transactionErr
-		}
 		baseCurrency, transactionErr := u.exchangeRate.BaseCurrency(txCtx, org)
 		if transactionErr != nil {
 			return transactionErr
@@ -218,11 +211,8 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		v.Direction = firstCashflow.Direction
 		v.Currency = firstCashflow.Currency
 		v.BaseCurrency = baseCurrency
-		v.ExchangeRate = resolved.Rate
-		v.ExchangeRateSource = resolved.Source
-		v.ExchangeRateDate = resolved.RateDate
-		v.ExchangeRateSettingID = resolved.SettingID
-		v.BaseAmount = v.Amount.Mul(resolved.Rate).RoundBank(8)
+		// 单头本位币金额严格等于行级流水本位币合计；核销不再解析汇率，由仓储在
+		// 计算分摊时累加 cashflow_base_amount 回填。
 		created, transactionErr = u.repo.Create(txCtx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
 		return transactionErr
 	})
@@ -236,19 +226,20 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 	return nil, err
 }
 
-func CalculateVerificationAllocationAmounts(direction OrderFeeDirection, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate decimal.Decimal) (billBase, cashflowBase, writeOffBase, gainLoss decimal.Decimal, err error) {
-	if (direction != OrderFeeReceivable && direction != OrderFeePayable) || !amount.IsPositive() || !billTotal.IsPositive() || !billBaseTotal.IsPositive() || !cashflowTotal.IsPositive() || !cashflowBaseTotal.IsPositive() || !writeOffRate.IsPositive() {
-		return decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero, ErrVerificationInvalid
+// CalculateVerificationAllocationAmounts 计算单笔分摊的账单侧与流水侧本位币金额及汇兑损益；
+// 核销不再携带汇率，金额只由账单/流水各自已固化的本位币快照按分摊比例折算。
+func CalculateVerificationAllocationAmounts(direction OrderFeeDirection, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal decimal.Decimal) (billBase, cashflowBase, gainLoss decimal.Decimal, err error) {
+	if (direction != OrderFeeReceivable && direction != OrderFeePayable) || !amount.IsPositive() || !billTotal.IsPositive() || !billBaseTotal.IsPositive() || !cashflowTotal.IsPositive() || !cashflowBaseTotal.IsPositive() {
+		return decimal.Zero, decimal.Zero, decimal.Zero, ErrVerificationInvalid
 	}
 	billBase = billBaseTotal.Mul(amount).Div(billTotal).RoundBank(8)
 	cashflowBase = cashflowBaseTotal.Mul(amount).Div(cashflowTotal).RoundBank(8)
-	writeOffBase = amount.Mul(writeOffRate).RoundBank(8)
 	if direction == OrderFeeReceivable {
 		gainLoss = cashflowBase.Sub(billBase).RoundBank(8)
 	} else {
 		gainLoss = billBase.Sub(cashflowBase).RoundBank(8)
 	}
-	return billBase, cashflowBase, writeOffBase, gainLoss, nil
+	return billBase, cashflowBase, gainLoss, nil
 }
 func sameVerificationIntent(old *FinanceVerification, in CreateVerificationInput) bool {
 	if old == nil || old.VerificationDate != in.VerificationDate || !stringPointersEqual(old.Note, in.Note) || len(old.Allocations) != len(in.Allocations) {

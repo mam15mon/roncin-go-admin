@@ -10,12 +10,14 @@ import (
 	"testing"
 	"time"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financecommissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	financecommissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	financecommissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	financecommissionruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
@@ -52,6 +54,10 @@ func (f *feeLedgerPostgresFixture) cleanupFeeLedger() {
 		name string
 		run  func() error
 	}{
+		{"提成调整单", func() error {
+			_, err := f.data.db.FinanceCommissionAdjustment.Delete().Where(financecommissionadjustmentent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			return err
+		}},
 		{"提成线", func() error {
 			_, err := f.data.db.FinanceCommissionLine.Delete().Where(financecommissionlineent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
@@ -211,6 +217,8 @@ func (f *feeLedgerPostgresFixture) createNetting(key string, status financenetti
 		SetAmount(total8).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
+		SetPayableBaseAmount("0.00000000").
+		SetExchangeGainLoss("0.00000000").
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -274,9 +282,6 @@ func (f *feeLedgerPostgresFixture) createActiveVerification(key string, amount s
 		SetCurrency("CNY").
 		SetAmount(amount8).
 		SetBaseCurrency("CNY").
-		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financeverificationent.ExchangeRateSourceBASE_CURRENCY).
-		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseAmount(amount8).
 		SetBillBaseAmount(amount8).
 		SetCashflowBaseAmount(amount8).
@@ -311,13 +316,12 @@ func (f *feeLedgerPostgresFixture) verificationAllocationCreate(verificationID u
 		SetAmount(amount8).
 		SetBillBaseAmount(amount8).
 		SetCashflowBaseAmount(amount8).
-		SetWriteOffBaseAmount(amount8).
 		SetExchangeGainLoss("0.00000000").
 		SetActive(true)
 }
 
 // createConfirmedCommission 直接落一条 CONFIRMED 提成及其订单提成线，用于财务锁定口径。
-func (f *feeLedgerPostgresFixture) createConfirmedCommission(key string, verification *ent.FinanceVerification) {
+func (f *feeLedgerPostgresFixture) createConfirmedCommission(key string, verification *ent.FinanceVerification) *ent.FinanceCommission {
 	f.t.Helper()
 	ctx := context.Background()
 	employee, err := f.data.db.User.Create().SetDisplayName("台账集成测试用户-" + f.suffix).Save(ctx)
@@ -399,6 +403,39 @@ func (f *feeLedgerPostgresFixture) createConfirmedCommission(key string, verific
 	if err != nil {
 		f.t.Fatalf("创建台账测试提成线失败: %v", err)
 	}
+	return commission
+}
+
+// createCommissionAdjustment 落一条提成调整单；冲减方向在净额口径中记负。
+func (f *feeLedgerPostgresFixture) createCommissionAdjustment(key string, commission *ent.FinanceCommission, direction financecommissionadjustmentent.Direction, status financecommissionadjustmentent.Status, amount string) *ent.FinanceCommissionAdjustment {
+	f.t.Helper()
+	ctx := context.Background()
+	employee, err := f.data.db.User.Create().SetDisplayName("台账调整测试用户-" + f.suffix).Save(ctx)
+	if err != nil {
+		f.t.Fatalf("创建调整测试用户失败: %v", err)
+	}
+	adjustment, err := f.data.db.FinanceCommissionAdjustment.Create().
+		SetOrganizationID(f.organizationID).
+		SetCommissionID(commission.ID).
+		SetOrderID(f.orderID).
+		SetAdjustmentNo("ADJ-" + key + "-" + f.suffix).
+		SetIdempotencyKey("adjustment-" + key + "-" + f.suffix).
+		SetCommissionNo(commission.CommissionNo).
+		SetOrderNo(f.orderNo).
+		SetEmployeeID(employee.ID).
+		SetEmployeeName("台账调整测试用户").
+		SetSourceType(financecommissionadjustmentent.SourceTypeMANUAL).
+		SetDirection(direction).
+		SetStatus(status).
+		SetBaseCurrency("CNY").
+		SetAmount(decimal.RequireFromString(amount).StringFixed(8)).
+		SetReason("净额释放锁集成测试调整 " + key).
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		f.t.Fatalf("创建台账测试调整单 %s: %v", key, err)
+	}
+	return adjustment
 }
 
 func findFeeLedgerItem(items []*biz.FeeLedgerItem, feeID uuid.UUID) *biz.FeeLedgerItem {
@@ -703,5 +740,128 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 		if !candidates.Cashflows[0].UnverifiedAmount.Equal(decimal.RequireFromString("10")) {
 			t.Fatalf("未核销流水候选余额 = %s，期望 10", candidates.Cashflows[0].UnverifiedAmount)
 		}
+	})
+}
+
+// TestFeeLedgerCommissionNetLockReleasePostgres 验证 C1 净提成口径：全额冲减后
+// 费用财务锁自动释放（列表投影、筛选谓词与写入拦截三处一致），部分冲减或草稿
+// 调整不释放。
+func TestFeeLedgerCommissionNetLockReleasePostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	requireFeeMutationLock := func(t *testing.T, fixture *feeLedgerPostgresFixture, wantLocked bool) {
+		t.Helper()
+		err := data.WithTx(ctx, func(tx *ent.Tx) error {
+			return lockOrderForFeeMutation(ctx, tx, fixture.organizationID, fixture.orderID)
+		})
+		if wantLocked {
+			if kratoserrors.FromError(err).Reason != biz.ErrOrderFeeFinanceLocked.Reason {
+				t.Fatalf("费用写入拦截应返回 ORDER_FEE_FINANCE_LOCKED，实际: %v", err)
+			}
+			return
+		}
+		if err != nil {
+			t.Fatalf("净提成归零后费用写入应放行，实际: %v", err)
+		}
+	}
+
+	listFinanceLocked := func(t *testing.T, repo biz.SettlementRepo, organizationIDs []uuid.UUID, locked bool) int64 {
+		t.Helper()
+		result, err := repo.ListFeeLedger(ctx, organizationIDs, biz.FeeLedgerFilter{Page: 1, PageSize: 200, FinanceLocked: &locked})
+		if err != nil {
+			t.Fatalf("按财务锁状态查询台账失败: %v", err)
+		}
+		return result.Total
+	}
+
+	// 全额冲减释放：CONFIRMED 提成 10 + CONFIRMED 冲减 10 → 净额 0。
+	t.Run("全额冲减释放费用锁且三处口径一致", func(t *testing.T) {
+		fixture := newFeeLedgerPostgresFixture(t, data)
+		repo := NewSettlementRepo(data)
+		organizationIDs := []uuid.UUID{fixture.organizationID}
+		feeID := fixture.createLedgerFee("net-release", "100")
+		standalone := fixture.createActiveVerification("net-release", "10", nil)
+		commission := fixture.createConfirmedCommission("net-release", standalone)
+
+		// 冲减前：列表/详情锁定、筛选命中、写入拒绝。
+		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
+			t.Fatal("确认提成后财务锁筛选应命中费用")
+		}
+		requireFeeMutationLock(t, fixture, true)
+		fixture.createCommissionAdjustment("net-release", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "10")
+
+		// 冲减后：列表/详情解锁、筛选不再命中、写入放行。
+		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked != 0 {
+			t.Fatalf("全额冲减后财务锁筛选仍命中 %d 条", locked)
+		}
+		if unlocked := listFinanceLocked(t, repo, organizationIDs, false); unlocked == 0 {
+			t.Fatal("全额冲减后未锁筛选应命中费用")
+		}
+		detail, err := repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, fixture.orderID)
+		if err != nil {
+			t.Fatalf("查询台账订单详情失败: %v", err)
+		}
+		item := findFeeLedgerItem(detail.Items, feeID)
+		if item == nil || item.FinanceLocked {
+			t.Fatalf("全额冲减后详情 finance_locked 应为 false: %+v", item)
+		}
+		result, err := repo.ListFeeLedger(ctx, organizationIDs, biz.FeeLedgerFilter{Page: 1, PageSize: 200})
+		if err != nil {
+			t.Fatalf("查询费用台账失败: %v", err)
+		}
+		if listItem := findFeeLedgerItem(result.Items, feeID); listItem == nil || listItem.FinanceLocked {
+			t.Fatalf("全额冲减后列表 finance_locked 应为 false: %+v", listItem)
+		}
+		requireFeeMutationLock(t, fixture, false)
+	})
+
+	// 部分冲减：净额仍为正，锁保持。
+	t.Run("部分冲减保持费用锁", func(t *testing.T) {
+		fixture := newFeeLedgerPostgresFixture(t, data)
+		repo := NewSettlementRepo(data)
+		organizationIDs := []uuid.UUID{fixture.organizationID}
+		fixture.createLedgerFee("net-partial", "100")
+		standalone := fixture.createActiveVerification("net-partial", "10", nil)
+		commission := fixture.createConfirmedCommission("net-partial", standalone)
+		fixture.createCommissionAdjustment("net-partial", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "4")
+
+		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
+			t.Fatal("部分冲减后净额为正，财务锁应保持")
+		}
+		requireFeeMutationLock(t, fixture, true)
+	})
+
+	// 草稿调整不参与净额：锁保持；调整放大净额同样保持锁定。
+	t.Run("草稿调整不参与净额", func(t *testing.T) {
+		fixture := newFeeLedgerPostgresFixture(t, data)
+		repo := NewSettlementRepo(data)
+		organizationIDs := []uuid.UUID{fixture.organizationID}
+		fixture.createLedgerFee("net-draft", "100")
+		standalone := fixture.createActiveVerification("net-draft", "10", nil)
+		commission := fixture.createConfirmedCommission("net-draft", standalone)
+		fixture.createCommissionAdjustment("net-draft", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusDRAFT, "10")
+
+		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
+			t.Fatal("草稿冲减不应释放财务锁")
+		}
+		requireFeeMutationLock(t, fixture, true)
+	})
+
+	// 冲减过量形成负净额同样视为已冲减完毕，释放锁。
+	t.Run("超额冲减净额为负释放费用锁", func(t *testing.T) {
+		fixture := newFeeLedgerPostgresFixture(t, data)
+		repo := NewSettlementRepo(data)
+		organizationIDs := []uuid.UUID{fixture.organizationID}
+		fixture.createLedgerFee("net-over", "100")
+		standalone := fixture.createActiveVerification("net-over", "10", nil)
+		commission := fixture.createConfirmedCommission("net-over", standalone)
+		fixture.createCommissionAdjustment("net-over", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "12")
+
+		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked != 0 {
+			t.Fatal("超额冲减净额为负，财务锁应释放")
+		}
+		requireFeeMutationLock(t, fixture, false)
 	})
 }

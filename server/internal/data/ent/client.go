@@ -36,10 +36,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -171,14 +169,10 @@ type Client struct {
 	EnterpriseTag *EnterpriseTagClient
 	// EnterpriseTagGroup is the client for interacting with the EnterpriseTagGroup builders.
 	EnterpriseTagGroup *EnterpriseTagGroupClient
-	// ExchangeRateCustomSetting is the client for interacting with the ExchangeRateCustomSetting builders.
-	ExchangeRateCustomSetting *ExchangeRateCustomSettingClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
 	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
-	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
-	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
 	// FinanceBill is the client for interacting with the FinanceBill builders.
@@ -378,10 +372,8 @@ func (c *Client) init() {
 	c.EnterpriseResourceShippingText = NewEnterpriseResourceShippingTextClient(c.config)
 	c.EnterpriseTag = NewEnterpriseTagClient(c.config)
 	c.EnterpriseTagGroup = NewEnterpriseTagGroupClient(c.config)
-	c.ExchangeRateCustomSetting = NewExchangeRateCustomSettingClient(c.config)
 	c.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
-	c.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(c.config)
 	c.FeeSetting = NewFeeSettingClient(c.config)
 	c.FinanceBill = NewFinanceBillClient(c.config)
 	c.FinanceBillBatch = NewFinanceBillBatchClient(c.config)
@@ -578,10 +570,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
 		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
 		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
-		ExchangeRateCustomSetting:      NewExchangeRateCustomSettingClient(cfg),
 		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
-		ExchangeRateTimeStandard:       NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                     NewFeeSettingClient(cfg),
 		FinanceBill:                    NewFinanceBillClient(cfg),
 		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
@@ -705,10 +695,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
 		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
 		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
-		ExchangeRateCustomSetting:      NewExchangeRateCustomSettingClient(cfg),
 		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
-		ExchangeRateTimeStandard:       NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                     NewFeeSettingClient(cfg),
 		FinanceBill:                    NewFinanceBillClient(cfg),
 		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
@@ -829,25 +817,25 @@ func (c *Client) Use(hooks ...Hook) {
 		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
 		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
-		c.EnterpriseTagGroup, c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch,
-		c.ExchangeRateSetting, c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill,
-		c.FinanceBillBatch, c.FinanceBillEnterpriseTag, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
-		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
-		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
-		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
+		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
+		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
 		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
 		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
@@ -872,25 +860,25 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
 		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
-		c.EnterpriseTagGroup, c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch,
-		c.ExchangeRateSetting, c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill,
-		c.FinanceBillBatch, c.FinanceBillEnterpriseTag, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
-		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
-		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot,
-		c.OrderLockRecord, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
-		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
+		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
+		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
 		c.RoleOrganizationAccess, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
 		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
@@ -947,14 +935,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EnterpriseTag.mutate(ctx, m)
 	case *EnterpriseTagGroupMutation:
 		return c.EnterpriseTagGroup.mutate(ctx, m)
-	case *ExchangeRateCustomSettingMutation:
-		return c.ExchangeRateCustomSetting.mutate(ctx, m)
 	case *ExchangeRateImportBatchMutation:
 		return c.ExchangeRateImportBatch.mutate(ctx, m)
 	case *ExchangeRateSettingMutation:
 		return c.ExchangeRateSetting.mutate(ctx, m)
-	case *ExchangeRateTimeStandardMutation:
-		return c.ExchangeRateTimeStandard.mutate(ctx, m)
 	case *FeeSettingMutation:
 		return c.FeeSetting.mutate(ctx, m)
 	case *FinanceBillMutation:
@@ -4467,171 +4451,6 @@ func (c *EnterpriseTagGroupClient) mutate(ctx context.Context, m *EnterpriseTagG
 	}
 }
 
-// ExchangeRateCustomSettingClient is a client for the ExchangeRateCustomSetting schema.
-type ExchangeRateCustomSettingClient struct {
-	config
-}
-
-// NewExchangeRateCustomSettingClient returns a client for the ExchangeRateCustomSetting from the given config.
-func NewExchangeRateCustomSettingClient(c config) *ExchangeRateCustomSettingClient {
-	return &ExchangeRateCustomSettingClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `exchangeratecustomsetting.Hooks(f(g(h())))`.
-func (c *ExchangeRateCustomSettingClient) Use(hooks ...Hook) {
-	c.hooks.ExchangeRateCustomSetting = append(c.hooks.ExchangeRateCustomSetting, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `exchangeratecustomsetting.Intercept(f(g(h())))`.
-func (c *ExchangeRateCustomSettingClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ExchangeRateCustomSetting = append(c.inters.ExchangeRateCustomSetting, interceptors...)
-}
-
-// Create returns a builder for creating a ExchangeRateCustomSetting entity.
-func (c *ExchangeRateCustomSettingClient) Create() *ExchangeRateCustomSettingCreate {
-	mutation := newExchangeRateCustomSettingMutation(c.config, OpCreate)
-	return &ExchangeRateCustomSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ExchangeRateCustomSetting entities.
-func (c *ExchangeRateCustomSettingClient) CreateBulk(builders ...*ExchangeRateCustomSettingCreate) *ExchangeRateCustomSettingCreateBulk {
-	return &ExchangeRateCustomSettingCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ExchangeRateCustomSettingClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateCustomSettingCreate, int)) *ExchangeRateCustomSettingCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ExchangeRateCustomSettingCreateBulk{err: fmt.Errorf("calling to ExchangeRateCustomSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ExchangeRateCustomSettingCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ExchangeRateCustomSettingCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ExchangeRateCustomSetting.
-func (c *ExchangeRateCustomSettingClient) Update() *ExchangeRateCustomSettingUpdate {
-	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdate)
-	return &ExchangeRateCustomSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ExchangeRateCustomSettingClient) UpdateOne(_m *ExchangeRateCustomSetting) *ExchangeRateCustomSettingUpdateOne {
-	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdateOne, withExchangeRateCustomSetting(_m))
-	return &ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ExchangeRateCustomSettingClient) UpdateOneID(id uuid.UUID) *ExchangeRateCustomSettingUpdateOne {
-	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdateOne, withExchangeRateCustomSettingID(id))
-	return &ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ExchangeRateCustomSetting.
-func (c *ExchangeRateCustomSettingClient) Delete() *ExchangeRateCustomSettingDelete {
-	mutation := newExchangeRateCustomSettingMutation(c.config, OpDelete)
-	return &ExchangeRateCustomSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ExchangeRateCustomSettingClient) DeleteOne(_m *ExchangeRateCustomSetting) *ExchangeRateCustomSettingDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ExchangeRateCustomSettingClient) DeleteOneID(id uuid.UUID) *ExchangeRateCustomSettingDeleteOne {
-	builder := c.Delete().Where(exchangeratecustomsetting.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ExchangeRateCustomSettingDeleteOne{builder}
-}
-
-// Query returns a query builder for ExchangeRateCustomSetting.
-func (c *ExchangeRateCustomSettingClient) Query() *ExchangeRateCustomSettingQuery {
-	return &ExchangeRateCustomSettingQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeExchangeRateCustomSetting},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ExchangeRateCustomSetting entity by its id.
-func (c *ExchangeRateCustomSettingClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRateCustomSetting, error) {
-	return c.Query().Where(exchangeratecustomsetting.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ExchangeRateCustomSettingClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRateCustomSetting {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOrganization queries the organization edge of a ExchangeRateCustomSetting.
-func (c *ExchangeRateCustomSettingClient) QueryOrganization(_m *ExchangeRateCustomSetting) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, exchangeratecustomsetting.OrganizationTable, exchangeratecustomsetting.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryUpdatedByUser queries the updated_by_user edge of a ExchangeRateCustomSetting.
-func (c *ExchangeRateCustomSettingClient) QueryUpdatedByUser(_m *ExchangeRateCustomSetting) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, exchangeratecustomsetting.UpdatedByUserTable, exchangeratecustomsetting.UpdatedByUserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ExchangeRateCustomSettingClient) Hooks() []Hook {
-	return c.hooks.ExchangeRateCustomSetting
-}
-
-// Interceptors returns the client interceptors.
-func (c *ExchangeRateCustomSettingClient) Interceptors() []Interceptor {
-	return c.inters.ExchangeRateCustomSetting
-}
-
-func (c *ExchangeRateCustomSettingClient) mutate(ctx context.Context, m *ExchangeRateCustomSettingMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ExchangeRateCustomSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ExchangeRateCustomSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ExchangeRateCustomSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown ExchangeRateCustomSetting mutation op: %q", m.Op())
-	}
-}
-
 // ExchangeRateImportBatchClient is a client for the ExchangeRateImportBatch schema.
 type ExchangeRateImportBatchClient struct {
 	config
@@ -4895,139 +4714,6 @@ func (c *ExchangeRateSettingClient) mutate(ctx context.Context, m *ExchangeRateS
 		return (&ExchangeRateSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ExchangeRateSetting mutation op: %q", m.Op())
-	}
-}
-
-// ExchangeRateTimeStandardClient is a client for the ExchangeRateTimeStandard schema.
-type ExchangeRateTimeStandardClient struct {
-	config
-}
-
-// NewExchangeRateTimeStandardClient returns a client for the ExchangeRateTimeStandard from the given config.
-func NewExchangeRateTimeStandardClient(c config) *ExchangeRateTimeStandardClient {
-	return &ExchangeRateTimeStandardClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `exchangeratetimestandard.Hooks(f(g(h())))`.
-func (c *ExchangeRateTimeStandardClient) Use(hooks ...Hook) {
-	c.hooks.ExchangeRateTimeStandard = append(c.hooks.ExchangeRateTimeStandard, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `exchangeratetimestandard.Intercept(f(g(h())))`.
-func (c *ExchangeRateTimeStandardClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ExchangeRateTimeStandard = append(c.inters.ExchangeRateTimeStandard, interceptors...)
-}
-
-// Create returns a builder for creating a ExchangeRateTimeStandard entity.
-func (c *ExchangeRateTimeStandardClient) Create() *ExchangeRateTimeStandardCreate {
-	mutation := newExchangeRateTimeStandardMutation(c.config, OpCreate)
-	return &ExchangeRateTimeStandardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ExchangeRateTimeStandard entities.
-func (c *ExchangeRateTimeStandardClient) CreateBulk(builders ...*ExchangeRateTimeStandardCreate) *ExchangeRateTimeStandardCreateBulk {
-	return &ExchangeRateTimeStandardCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *ExchangeRateTimeStandardClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateTimeStandardCreate, int)) *ExchangeRateTimeStandardCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &ExchangeRateTimeStandardCreateBulk{err: fmt.Errorf("calling to ExchangeRateTimeStandardClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*ExchangeRateTimeStandardCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &ExchangeRateTimeStandardCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ExchangeRateTimeStandard.
-func (c *ExchangeRateTimeStandardClient) Update() *ExchangeRateTimeStandardUpdate {
-	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdate)
-	return &ExchangeRateTimeStandardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ExchangeRateTimeStandardClient) UpdateOne(_m *ExchangeRateTimeStandard) *ExchangeRateTimeStandardUpdateOne {
-	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdateOne, withExchangeRateTimeStandard(_m))
-	return &ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ExchangeRateTimeStandardClient) UpdateOneID(id uuid.UUID) *ExchangeRateTimeStandardUpdateOne {
-	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdateOne, withExchangeRateTimeStandardID(id))
-	return &ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ExchangeRateTimeStandard.
-func (c *ExchangeRateTimeStandardClient) Delete() *ExchangeRateTimeStandardDelete {
-	mutation := newExchangeRateTimeStandardMutation(c.config, OpDelete)
-	return &ExchangeRateTimeStandardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ExchangeRateTimeStandardClient) DeleteOne(_m *ExchangeRateTimeStandard) *ExchangeRateTimeStandardDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ExchangeRateTimeStandardClient) DeleteOneID(id uuid.UUID) *ExchangeRateTimeStandardDeleteOne {
-	builder := c.Delete().Where(exchangeratetimestandard.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ExchangeRateTimeStandardDeleteOne{builder}
-}
-
-// Query returns a query builder for ExchangeRateTimeStandard.
-func (c *ExchangeRateTimeStandardClient) Query() *ExchangeRateTimeStandardQuery {
-	return &ExchangeRateTimeStandardQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeExchangeRateTimeStandard},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ExchangeRateTimeStandard entity by its id.
-func (c *ExchangeRateTimeStandardClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRateTimeStandard, error) {
-	return c.Query().Where(exchangeratetimestandard.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ExchangeRateTimeStandardClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRateTimeStandard {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ExchangeRateTimeStandardClient) Hooks() []Hook {
-	return c.hooks.ExchangeRateTimeStandard
-}
-
-// Interceptors returns the client interceptors.
-func (c *ExchangeRateTimeStandardClient) Interceptors() []Interceptor {
-	return c.inters.ExchangeRateTimeStandard
-}
-
-func (c *ExchangeRateTimeStandardClient) mutate(ctx context.Context, m *ExchangeRateTimeStandardMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ExchangeRateTimeStandardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ExchangeRateTimeStandardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ExchangeRateTimeStandardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown ExchangeRateTimeStandard mutation op: %q", m.Op())
 	}
 }
 
@@ -15509,22 +15195,6 @@ func (c *OrganizationClient) QueryFinanceFeeLedgerPreferences(_m *Organization) 
 	return query
 }
 
-// QueryExchangeRateCustomSetting queries the exchange_rate_custom_setting edge of a Organization.
-func (c *OrganizationClient) QueryExchangeRateCustomSetting(_m *Organization) *ExchangeRateCustomSettingQuery {
-	query := (&ExchangeRateCustomSettingClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.ExchangeRateCustomSettingTable, organization.ExchangeRateCustomSettingColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryFinanceCustomSetting queries the finance_custom_setting edge of a Organization.
 func (c *OrganizationClient) QueryFinanceCustomSetting(_m *Organization) *FinanceCustomSettingQuery {
 	query := (&FinanceCustomSettingClient{config: c.config}).Query()
@@ -23738,22 +23408,6 @@ func (c *UserClient) QueryFinanceFeeLedgerPreferences(_m *User) *FinanceFeeLedge
 	return query
 }
 
-// QueryUpdatedExchangeRateCustomSettings queries the updated_exchange_rate_custom_settings edge of a User.
-func (c *UserClient) QueryUpdatedExchangeRateCustomSettings(_m *User) *ExchangeRateCustomSettingQuery {
-	query := (&ExchangeRateCustomSettingClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedExchangeRateCustomSettingsTable, user.UpdatedExchangeRateCustomSettingsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryUpdatedFinanceCustomSettings queries the updated_finance_custom_settings edge of a User.
 func (c *UserClient) QueryUpdatedFinanceCustomSettings(_m *User) *FinanceCustomSettingQuery {
 	query := (&FinanceCustomSettingClient{config: c.config}).Query()
@@ -24125,12 +23779,11 @@ type (
 		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
 		EnterpriseResourceParty, EnterpriseResourceRemark,
 		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateCustomSetting, ExchangeRateImportBatch, ExchangeRateSetting,
-		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
-		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FinanceBill,
+		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
+		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
+		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
+		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
 		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
 		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
 		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
@@ -24157,12 +23810,11 @@ type (
 		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
 		EnterpriseResourceParty, EnterpriseResourceRemark,
 		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateCustomSetting, ExchangeRateImportBatch, ExchangeRateSetting,
-		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
-		FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FinanceBill,
+		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
+		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
+		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
+		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
 		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
 		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
 		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,

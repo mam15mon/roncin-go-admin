@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	ErrFinanceCashflowNotFound              = errors.NotFound("FINANCE_CASHFLOW_NOT_FOUND", "收付流水不存在")
-	ErrFinanceCashflowInvalidArgument       = errors.BadRequest("FINANCE_CASHFLOW_INVALID_ARGUMENT", "收付流水字段不合法")
-	ErrFinanceCashflowVersionConflict       = errors.Conflict("FINANCE_CASHFLOW_VERSION_CONFLICT", "收付流水已被其他操作人修改")
-	ErrFinanceCashflowInvalidTransition     = errors.Conflict("FINANCE_CASHFLOW_INVALID_TRANSITION", "当前流水状态不允许执行该操作")
-	ErrFinanceCashflowIdempotencyConflict   = errors.Conflict("FINANCE_CASHFLOW_IDEMPOTENCY_CONFLICT", "流水请求幂等键已被其他请求使用")
-	ErrFinanceCashflowRateOverrideForbidden = errors.Forbidden("FINANCE_CASHFLOW_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖资金流水汇率")
+	ErrFinanceCashflowNotFound                      = errors.NotFound("FINANCE_CASHFLOW_NOT_FOUND", "收付流水不存在")
+	ErrFinanceCashflowInvalidArgument               = errors.BadRequest("FINANCE_CASHFLOW_INVALID_ARGUMENT", "收付流水字段不合法")
+	ErrFinanceCashflowVersionConflict               = errors.Conflict("FINANCE_CASHFLOW_VERSION_CONFLICT", "收付流水已被其他操作人修改")
+	ErrFinanceCashflowInvalidTransition             = errors.Conflict("FINANCE_CASHFLOW_INVALID_TRANSITION", "当前流水状态不允许执行该操作")
+	ErrFinanceCashflowIdempotencyConflict           = errors.Conflict("FINANCE_CASHFLOW_IDEMPOTENCY_CONFLICT", "流水请求幂等键已被其他请求使用")
+	ErrFinanceCashflowRateOverrideForbidden         = errors.Forbidden("FINANCE_CASHFLOW_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖资金流水汇率")
 	ErrFinanceCashflowCasualSupplierAccountRequired = errors.BadRequest("FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED", "向散客供应商出款时，对方收款账户为必填项")
 )
 
@@ -161,19 +161,19 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 		}
 		return nil, ErrFinanceCashflowIdempotencyConflict
 	}
-	systemRate, err := uc.exchangeRate.Resolve(ctx, org, SettlementRateType, in.Direction, in.Currency, map[string]string{TransactionDateStandard: in.TransactionDate})
+	systemRate, err := uc.exchangeRate.ResolveRate(ctx, org, in.Currency, in.TransactionDate)
 	if err != nil {
 		return nil, err
 	}
-	resolved := systemRate
-	if in.ExchangeRateOverride != nil && !in.ExchangeRateOverride.Equal(systemRate.Rate) {
+	resolvedRate, resolvedSource := systemRate, "SYSTEM"
+	if in.ExchangeRateOverride != nil && !in.ExchangeRateOverride.Equal(systemRate) {
 		if !canOverrideExchangeRate {
 			return nil, ErrFinanceCashflowRateOverrideForbidden
 		}
 		if !validExchangeRate(*in.ExchangeRateOverride) {
 			return nil, ErrFinanceCashflowInvalidArgument
 		}
-		resolved = &ResolvedExchangeRate{Rate: *in.ExchangeRateOverride, Source: "MANUAL", RateDate: in.TransactionDate}
+		resolvedRate, resolvedSource = *in.ExchangeRateOverride, "MANUAL"
 	}
 	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, org)
 	if err != nil {
@@ -187,7 +187,7 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 	if in.Direction == OrderFeePayable && isCasual && (in.CounterpartyAccount == nil || strings.TrimSpace(*in.CounterpartyAccount) == "") {
 		return nil, ErrFinanceCashflowCasualSupplierAccountRequired
 	}
-	item := &FinanceCashflow{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: FinanceCashflowDraft, SettlementPartyID: in.SettlementPartyID, SettlementPartyName: name, Currency: in.Currency, Amount: in.Amount, ExchangeRate: resolved.Rate, ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate, ExchangeRateSettingID: resolved.SettingID, BaseCurrency: in.BaseCurrency, BaseAmount: in.Amount.Mul(resolved.Rate).RoundBank(8), TransactionDate: in.TransactionDate, OurAccount: in.OurAccount, PaymentMethod: in.PaymentMethod, CounterpartyAccount: in.CounterpartyAccount, BankReferenceNo: in.BankReferenceNo, Note: in.Note, Version: 1}
+	item := &FinanceCashflow{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: FinanceCashflowDraft, SettlementPartyID: in.SettlementPartyID, SettlementPartyName: name, Currency: in.Currency, Amount: in.Amount, ExchangeRate: resolvedRate, ExchangeRateSource: resolvedSource, ExchangeRateDate: in.TransactionDate, ExchangeRateSettingID: nil, BaseCurrency: in.BaseCurrency, BaseAmount: in.Amount.Mul(resolvedRate).RoundBank(8), TransactionDate: in.TransactionDate, OurAccount: in.OurAccount, PaymentMethod: in.PaymentMethod, CounterpartyAccount: in.CounterpartyAccount, BankReferenceNo: in.BankReferenceNo, Note: in.Note, Version: 1}
 	created, e := uc.repo.Create(ctx, item, cashflowAudit(org, actor, item.ID, "finance.cashflow.create"))
 	if e == nil {
 		return created, nil

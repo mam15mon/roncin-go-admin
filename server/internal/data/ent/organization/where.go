@@ -1426,29 +1426,6 @@ func HasFinanceFeeLedgerPreferencesWith(preds ...predicate.FinanceFeeLedgerPrefe
 	})
 }
 
-// HasExchangeRateCustomSetting applies the HasEdge predicate on the "exchange_rate_custom_setting" edge.
-func HasExchangeRateCustomSetting() predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ExchangeRateCustomSettingTable, ExchangeRateCustomSettingColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasExchangeRateCustomSettingWith applies the HasEdge predicate on the "exchange_rate_custom_setting" edge with a given conditions (other predicates).
-func HasExchangeRateCustomSettingWith(preds ...predicate.ExchangeRateCustomSetting) predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := newExchangeRateCustomSettingStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasFinanceCustomSetting applies the HasEdge predicate on the "finance_custom_setting" edge.
 func HasFinanceCustomSetting() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

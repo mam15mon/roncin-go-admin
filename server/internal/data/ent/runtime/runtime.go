@@ -26,10 +26,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -1615,35 +1613,6 @@ func init() {
 	enterprisetaggroupDescID := enterprisetaggroupMixinFields0[0].Descriptor()
 	// enterprisetaggroup.DefaultID holds the default value on creation for the id field.
 	enterprisetaggroup.DefaultID = enterprisetaggroupDescID.Default.(func() uuid.UUID)
-	exchangeratecustomsettingMixin := schema.ExchangeRateCustomSetting{}.Mixin()
-	exchangeratecustomsettingMixinFields0 := exchangeratecustomsettingMixin[0].Fields()
-	_ = exchangeratecustomsettingMixinFields0
-	exchangeratecustomsettingMixinFields1 := exchangeratecustomsettingMixin[1].Fields()
-	_ = exchangeratecustomsettingMixinFields1
-	exchangeratecustomsettingFields := schema.ExchangeRateCustomSetting{}.Fields()
-	_ = exchangeratecustomsettingFields
-	// exchangeratecustomsettingDescCreatedAt is the schema descriptor for created_at field.
-	exchangeratecustomsettingDescCreatedAt := exchangeratecustomsettingMixinFields1[0].Descriptor()
-	// exchangeratecustomsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
-	exchangeratecustomsetting.DefaultCreatedAt = exchangeratecustomsettingDescCreatedAt.Default.(func() time.Time)
-	// exchangeratecustomsettingDescUpdatedAt is the schema descriptor for updated_at field.
-	exchangeratecustomsettingDescUpdatedAt := exchangeratecustomsettingMixinFields1[1].Descriptor()
-	// exchangeratecustomsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	exchangeratecustomsetting.DefaultUpdatedAt = exchangeratecustomsettingDescUpdatedAt.Default.(func() time.Time)
-	// exchangeratecustomsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	exchangeratecustomsetting.UpdateDefaultUpdatedAt = exchangeratecustomsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// exchangeratecustomsettingDescInheritBaseCurrencyRate is the schema descriptor for inherit_base_currency_rate field.
-	exchangeratecustomsettingDescInheritBaseCurrencyRate := exchangeratecustomsettingFields[1].Descriptor()
-	// exchangeratecustomsetting.DefaultInheritBaseCurrencyRate holds the default value on creation for the inherit_base_currency_rate field.
-	exchangeratecustomsetting.DefaultInheritBaseCurrencyRate = exchangeratecustomsettingDescInheritBaseCurrencyRate.Default.(bool)
-	// exchangeratecustomsettingDescVersion is the schema descriptor for version field.
-	exchangeratecustomsettingDescVersion := exchangeratecustomsettingFields[2].Descriptor()
-	// exchangeratecustomsetting.DefaultVersion holds the default value on creation for the version field.
-	exchangeratecustomsetting.DefaultVersion = exchangeratecustomsettingDescVersion.Default.(uint64)
-	// exchangeratecustomsettingDescID is the schema descriptor for id field.
-	exchangeratecustomsettingDescID := exchangeratecustomsettingMixinFields0[0].Descriptor()
-	// exchangeratecustomsetting.DefaultID holds the default value on creation for the id field.
-	exchangeratecustomsetting.DefaultID = exchangeratecustomsettingDescID.Default.(func() uuid.UUID)
 	exchangerateimportbatchMixin := schema.ExchangeRateImportBatch{}.Mixin()
 	exchangerateimportbatchMixinFields0 := exchangerateimportbatchMixin[0].Fields()
 	_ = exchangerateimportbatchMixinFields0
@@ -1763,7 +1732,7 @@ func init() {
 	// exchangeratesetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	exchangeratesetting.UpdateDefaultUpdatedAt = exchangeratesettingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// exchangeratesettingDescFromCurrency is the schema descriptor for from_currency field.
-	exchangeratesettingDescFromCurrency := exchangeratesettingFields[2].Descriptor()
+	exchangeratesettingDescFromCurrency := exchangeratesettingFields[1].Descriptor()
 	// exchangeratesetting.FromCurrencyValidator is a validator for the "from_currency" field. It is called by the builders before save.
 	exchangeratesetting.FromCurrencyValidator = func() func(string) error {
 		validators := exchangeratesettingDescFromCurrency.Validators
@@ -1782,7 +1751,7 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescToCurrency is the schema descriptor for to_currency field.
-	exchangeratesettingDescToCurrency := exchangeratesettingFields[3].Descriptor()
+	exchangeratesettingDescToCurrency := exchangeratesettingFields[2].Descriptor()
 	// exchangeratesetting.ToCurrencyValidator is a validator for the "to_currency" field. It is called by the builders before save.
 	exchangeratesetting.ToCurrencyValidator = func() func(string) error {
 		validators := exchangeratesettingDescToCurrency.Validators
@@ -1801,38 +1770,13 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
-	exchangeratesettingDescIsActive := exchangeratesettingFields[8].Descriptor()
+	exchangeratesettingDescIsActive := exchangeratesettingFields[6].Descriptor()
 	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.
 	exchangeratesetting.DefaultIsActive = exchangeratesettingDescIsActive.Default.(bool)
 	// exchangeratesettingDescID is the schema descriptor for id field.
 	exchangeratesettingDescID := exchangeratesettingMixinFields0[0].Descriptor()
 	// exchangeratesetting.DefaultID holds the default value on creation for the id field.
 	exchangeratesetting.DefaultID = exchangeratesettingDescID.Default.(func() uuid.UUID)
-	exchangeratetimestandardMixin := schema.ExchangeRateTimeStandard{}.Mixin()
-	exchangeratetimestandardMixinFields0 := exchangeratetimestandardMixin[0].Fields()
-	_ = exchangeratetimestandardMixinFields0
-	exchangeratetimestandardMixinFields1 := exchangeratetimestandardMixin[1].Fields()
-	_ = exchangeratetimestandardMixinFields1
-	exchangeratetimestandardFields := schema.ExchangeRateTimeStandard{}.Fields()
-	_ = exchangeratetimestandardFields
-	// exchangeratetimestandardDescCreatedAt is the schema descriptor for created_at field.
-	exchangeratetimestandardDescCreatedAt := exchangeratetimestandardMixinFields1[0].Descriptor()
-	// exchangeratetimestandard.DefaultCreatedAt holds the default value on creation for the created_at field.
-	exchangeratetimestandard.DefaultCreatedAt = exchangeratetimestandardDescCreatedAt.Default.(func() time.Time)
-	// exchangeratetimestandardDescUpdatedAt is the schema descriptor for updated_at field.
-	exchangeratetimestandardDescUpdatedAt := exchangeratetimestandardMixinFields1[1].Descriptor()
-	// exchangeratetimestandard.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	exchangeratetimestandard.DefaultUpdatedAt = exchangeratetimestandardDescUpdatedAt.Default.(func() time.Time)
-	// exchangeratetimestandard.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	exchangeratetimestandard.UpdateDefaultUpdatedAt = exchangeratetimestandardDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// exchangeratetimestandardDescSortOrder is the schema descriptor for sort_order field.
-	exchangeratetimestandardDescSortOrder := exchangeratetimestandardFields[3].Descriptor()
-	// exchangeratetimestandard.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
-	exchangeratetimestandard.SortOrderValidator = exchangeratetimestandardDescSortOrder.Validators[0].(func(int) error)
-	// exchangeratetimestandardDescID is the schema descriptor for id field.
-	exchangeratetimestandardDescID := exchangeratetimestandardMixinFields0[0].Descriptor()
-	// exchangeratetimestandard.DefaultID holds the default value on creation for the id field.
-	exchangeratetimestandard.DefaultID = exchangeratetimestandardDescID.Default.(func() uuid.UUID)
 	feesettingMixin := schema.FeeSetting{}.Mixin()
 	feesettingHooks := schema.FeeSetting{}.Hooks()
 	feesetting.Hooks[0] = feesettingHooks[0]
@@ -3904,19 +3848,19 @@ func init() {
 		}
 	}()
 	// financenettingDescNote is the schema descriptor for note field.
-	financenettingDescNote := financenettingFields[12].Descriptor()
+	financenettingDescNote := financenettingFields[14].Descriptor()
 	// financenetting.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financenetting.NoteValidator = financenettingDescNote.Validators[0].(func(string) error)
 	// financenettingDescVersion is the schema descriptor for version field.
-	financenettingDescVersion := financenettingFields[13].Descriptor()
+	financenettingDescVersion := financenettingFields[15].Descriptor()
 	// financenetting.DefaultVersion holds the default value on creation for the version field.
 	financenetting.DefaultVersion = financenettingDescVersion.Default.(uint64)
 	// financenettingDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financenettingDescCancellationReason := financenettingFields[18].Descriptor()
+	financenettingDescCancellationReason := financenettingFields[20].Descriptor()
 	// financenetting.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financenetting.CancellationReasonValidator = financenettingDescCancellationReason.Validators[0].(func(string) error)
 	// financenettingDescReversalReason is the schema descriptor for reversal_reason field.
-	financenettingDescReversalReason := financenettingFields[21].Descriptor()
+	financenettingDescReversalReason := financenettingFields[23].Descriptor()
 	// financenetting.ReversalReasonValidator is a validator for the "reversal_reason" field. It is called by the builders before save.
 	financenetting.ReversalReasonValidator = financenettingDescReversalReason.Validators[0].(func(string) error)
 	// financenettingDescID is the schema descriptor for id field.
@@ -4075,27 +4019,8 @@ func init() {
 			return nil
 		}
 	}()
-	// financeverificationDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	financeverificationDescExchangeRateDate := financeverificationFields[12].Descriptor()
-	// financeverification.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
-	financeverification.ExchangeRateDateValidator = func() func(string) error {
-		validators := financeverificationDescExchangeRateDate.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(exchange_rate_date string) error {
-			for _, fn := range fns {
-				if err := fn(exchange_rate_date); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// financeverificationDescVerificationDate is the schema descriptor for verification_date field.
-	financeverificationDescVerificationDate := financeverificationFields[18].Descriptor()
+	financeverificationDescVerificationDate := financeverificationFields[14].Descriptor()
 	// financeverification.VerificationDateValidator is a validator for the "verification_date" field. It is called by the builders before save.
 	financeverification.VerificationDateValidator = func() func(string) error {
 		validators := financeverificationDescVerificationDate.Validators
@@ -4114,15 +4039,15 @@ func init() {
 		}
 	}()
 	// financeverificationDescNote is the schema descriptor for note field.
-	financeverificationDescNote := financeverificationFields[19].Descriptor()
+	financeverificationDescNote := financeverificationFields[15].Descriptor()
 	// financeverification.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financeverification.NoteValidator = financeverificationDescNote.Validators[0].(func(string) error)
 	// financeverificationDescVersion is the schema descriptor for version field.
-	financeverificationDescVersion := financeverificationFields[20].Descriptor()
+	financeverificationDescVersion := financeverificationFields[16].Descriptor()
 	// financeverification.DefaultVersion holds the default value on creation for the version field.
 	financeverification.DefaultVersion = financeverificationDescVersion.Default.(uint64)
 	// financeverificationDescReversalReason is the schema descriptor for reversal_reason field.
-	financeverificationDescReversalReason := financeverificationFields[23].Descriptor()
+	financeverificationDescReversalReason := financeverificationFields[19].Descriptor()
 	// financeverification.ReversalReasonValidator is a validator for the "reversal_reason" field. It is called by the builders before save.
 	financeverification.ReversalReasonValidator = financeverificationDescReversalReason.Validators[0].(func(string) error)
 	// financeverificationDescID is the schema descriptor for id field.
@@ -4183,7 +4108,7 @@ func init() {
 		}
 	}()
 	// financeverificationallocationDescActive is the schema descriptor for active field.
-	financeverificationallocationDescActive := financeverificationallocationFields[10].Descriptor()
+	financeverificationallocationDescActive := financeverificationallocationFields[9].Descriptor()
 	// financeverificationallocation.DefaultActive holds the default value on creation for the active field.
 	financeverificationallocation.DefaultActive = financeverificationallocationDescActive.Default.(bool)
 	// financeverificationallocationDescID is the schema descriptor for id field.

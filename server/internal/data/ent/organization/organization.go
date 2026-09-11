@@ -115,8 +115,6 @@ const (
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
 	EdgeFinanceFeeLedgerPreferences = "finance_fee_ledger_preferences"
-	// EdgeExchangeRateCustomSetting holds the string denoting the exchange_rate_custom_setting edge name in mutations.
-	EdgeExchangeRateCustomSetting = "exchange_rate_custom_setting"
 	// EdgeFinanceCustomSetting holds the string denoting the finance_custom_setting edge name in mutations.
 	EdgeFinanceCustomSetting = "finance_custom_setting"
 	// EdgeEnterpriseResources holds the string denoting the enterprise_resources edge name in mutations.
@@ -437,13 +435,6 @@ const (
 	FinanceFeeLedgerPreferencesInverseTable = "finance_fee_ledger_preferences"
 	// FinanceFeeLedgerPreferencesColumn is the table column denoting the finance_fee_ledger_preferences relation/edge.
 	FinanceFeeLedgerPreferencesColumn = "organization_id"
-	// ExchangeRateCustomSettingTable is the table that holds the exchange_rate_custom_setting relation/edge.
-	ExchangeRateCustomSettingTable = "exchange_rate_custom_settings"
-	// ExchangeRateCustomSettingInverseTable is the table name for the ExchangeRateCustomSetting entity.
-	// It exists in this package in order to avoid circular dependency with the "exchangeratecustomsetting" package.
-	ExchangeRateCustomSettingInverseTable = "exchange_rate_custom_settings"
-	// ExchangeRateCustomSettingColumn is the table column denoting the exchange_rate_custom_setting relation/edge.
-	ExchangeRateCustomSettingColumn = "organization_id"
 	// FinanceCustomSettingTable is the table that holds the finance_custom_setting relation/edge.
 	FinanceCustomSettingTable = "finance_custom_settings"
 	// FinanceCustomSettingInverseTable is the table name for the FinanceCustomSetting entity.
@@ -1282,20 +1273,6 @@ func ByFinanceFeeLedgerPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) O
 	}
 }
 
-// ByExchangeRateCustomSettingCount orders the results by exchange_rate_custom_setting count.
-func ByExchangeRateCustomSettingCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newExchangeRateCustomSettingStep(), opts...)
-	}
-}
-
-// ByExchangeRateCustomSetting orders the results by exchange_rate_custom_setting terms.
-func ByExchangeRateCustomSetting(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newExchangeRateCustomSettingStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByFinanceCustomSettingCount orders the results by finance_custom_setting count.
 func ByFinanceCustomSettingCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1881,13 +1858,6 @@ func newFinanceFeeLedgerPreferencesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceFeeLedgerPreferencesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceFeeLedgerPreferencesTable, FinanceFeeLedgerPreferencesColumn),
-	)
-}
-func newExchangeRateCustomSettingStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ExchangeRateCustomSettingInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ExchangeRateCustomSettingTable, ExchangeRateCustomSettingColumn),
 	)
 }
 func newFinanceCustomSettingStep() *sqlgraph.Step {

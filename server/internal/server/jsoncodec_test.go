@@ -100,11 +100,6 @@ func TestProtoJSONCodecKeepsExplicitZeroExpectedVersionPresence(t *testing.T) {
 		request proto.Message
 	}{
 		{
-			name:    "汇率继承设置",
-			payload: []byte(`{"inheritBaseCurrencyRate":true,"expectedVersion":"0"}`),
-			request: &financev1.UpdateExchangeRateCustomSettingRequest{},
-		},
-		{
 			name:    "账单费用修改策略",
 			payload: []byte(`{"enabled":true,"editableFields":[],"expectedVersion":"0"}`),
 			request: &financev1.UpdateBilledFeeEditPolicyRequest{},
@@ -120,10 +115,6 @@ func TestProtoJSONCodecKeepsExplicitZeroExpectedVersionPresence(t *testing.T) {
 				t.Fatalf("明确提交版本 0 的首次保存请求不应被通用校验拒绝: %v", err)
 			}
 			switch request := test.request.(type) {
-			case *financev1.UpdateExchangeRateCustomSettingRequest:
-				if request.ExpectedVersion == nil || request.GetExpectedVersion().GetValue() != 0 {
-					t.Fatalf("expected_version=0 的存在性丢失: %#v", request.ExpectedVersion)
-				}
 			case *financev1.UpdateBilledFeeEditPolicyRequest:
 				if request.ExpectedVersion == nil || request.GetExpectedVersion().GetValue() != 0 {
 					t.Fatalf("expected_version=0 的存在性丢失: %#v", request.ExpectedVersion)

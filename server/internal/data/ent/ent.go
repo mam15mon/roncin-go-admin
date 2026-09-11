@@ -32,10 +32,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -200,10 +198,8 @@ func checkColumn(t, c string) error {
 			enterpriseresourceshippingtext.Table: enterpriseresourceshippingtext.ValidColumn,
 			enterprisetag.Table:                  enterprisetag.ValidColumn,
 			enterprisetaggroup.Table:             enterprisetaggroup.ValidColumn,
-			exchangeratecustomsetting.Table:      exchangeratecustomsetting.ValidColumn,
 			exchangerateimportbatch.Table:        exchangerateimportbatch.ValidColumn,
 			exchangeratesetting.Table:            exchangeratesetting.ValidColumn,
-			exchangeratetimestandard.Table:       exchangeratetimestandard.ValidColumn,
 			feesetting.Table:                     feesetting.ValidColumn,
 			financebill.Table:                    financebill.ValidColumn,
 			financebillbatch.Table:               financebillbatch.ValidColumn,

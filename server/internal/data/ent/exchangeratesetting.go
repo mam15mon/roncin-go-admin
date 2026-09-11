@@ -24,8 +24,6 @@ type ExchangeRateSetting struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
-	// RateType holds the value of the "rate_type" field.
-	RateType exchangeratesetting.RateType `json:"rate_type,omitempty"`
 	// FromCurrency holds the value of the "from_currency" field.
 	FromCurrency string `json:"from_currency,omitempty"`
 	// ToCurrency holds the value of the "to_currency" field.
@@ -34,10 +32,8 @@ type ExchangeRateSetting struct {
 	EffectiveFrom time.Time `json:"effective_from,omitempty"`
 	// EffectiveTo holds the value of the "effective_to" field.
 	EffectiveTo *time.Time `json:"effective_to,omitempty"`
-	// ReceivableRate holds the value of the "receivable_rate" field.
-	ReceivableRate string `json:"receivable_rate,omitempty"`
-	// PayableRate holds the value of the "payable_rate" field.
-	PayableRate string `json:"payable_rate,omitempty"`
+	// Rate holds the value of the "rate" field.
+	Rate string `json:"rate,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive     bool `json:"is_active,omitempty"`
 	selectValues sql.SelectValues
@@ -50,7 +46,7 @@ func (*ExchangeRateSetting) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case exchangeratesetting.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case exchangeratesetting.FieldRateType, exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldReceivableRate, exchangeratesetting.FieldPayableRate:
+		case exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldRate:
 			values[i] = new(sql.NullString)
 		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo:
 			values[i] = new(sql.NullTime)
@@ -95,12 +91,6 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 			} else if value != nil {
 				_m.OrganizationID = *value
 			}
-		case exchangeratesetting.FieldRateType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field rate_type", values[i])
-			} else if value.Valid {
-				_m.RateType = exchangeratesetting.RateType(value.String)
-			}
 		case exchangeratesetting.FieldFromCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_currency", values[i])
@@ -126,17 +116,11 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				_m.EffectiveTo = new(time.Time)
 				*_m.EffectiveTo = value.Time
 			}
-		case exchangeratesetting.FieldReceivableRate:
+		case exchangeratesetting.FieldRate:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field receivable_rate", values[i])
+				return fmt.Errorf("unexpected type %T for field rate", values[i])
 			} else if value.Valid {
-				_m.ReceivableRate = value.String
-			}
-		case exchangeratesetting.FieldPayableRate:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field payable_rate", values[i])
-			} else if value.Valid {
-				_m.PayableRate = value.String
+				_m.Rate = value.String
 			}
 		case exchangeratesetting.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -189,9 +173,6 @@ func (_m *ExchangeRateSetting) String() string {
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
-	builder.WriteString("rate_type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.RateType))
-	builder.WriteString(", ")
 	builder.WriteString("from_currency=")
 	builder.WriteString(_m.FromCurrency)
 	builder.WriteString(", ")
@@ -206,11 +187,8 @@ func (_m *ExchangeRateSetting) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("receivable_rate=")
-	builder.WriteString(_m.ReceivableRate)
-	builder.WriteString(", ")
-	builder.WriteString("payable_rate=")
-	builder.WriteString(_m.PayableRate)
+	builder.WriteString("rate=")
+	builder.WriteString(_m.Rate)
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))
