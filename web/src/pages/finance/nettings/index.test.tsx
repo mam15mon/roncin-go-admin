@@ -102,6 +102,8 @@ const confirmedNetting: API.FinanceNetting = {
   amount: '70.00000000',
   baseCurrency: 'CNY',
   baseCurrencyAmount: '70.00000000',
+  payableBaseAmount: '70.00000000',
+  exchangeGainLoss: '0.00000000',
   version: '3',
   allocations: [],
 };
@@ -136,7 +138,9 @@ describe('对冲结算单管理页', () => {
     expect(titles).toContain('关键词');
     expect(titles).toContain('对冲单号');
     expect(titles).toContain('抵销金额');
-    expect(titles).toContain('本币抵销额');
+    expect(titles).toContain('应收本币抵销额');
+    expect(titles).toContain('应付本币抵销额');
+    expect(titles).toContain('对冲汇差');
   });
 
   it('已确认对冲提供反转入口，反转请求携带 expectedVersion 与原因', async () => {

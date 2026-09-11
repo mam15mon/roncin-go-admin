@@ -235,9 +235,9 @@ export default function FinanceNettingsPage() {
       ),
     },
     {
-      title: '本币抵销额',
+      title: '应收本币抵销额',
       dataIndex: 'baseCurrencyAmount',
-      width: 140,
+      width: 150,
       align: 'right',
       search: false,
       render: (_, record) => (
@@ -245,6 +245,47 @@ export default function FinanceNettingsPage() {
           {record.baseCurrencyAmount} {record.baseCurrency}
         </strong>
       ),
+    },
+    {
+      title: '应付本币抵销额',
+      dataIndex: 'payableBaseAmount',
+      width: 150,
+      align: 'right',
+      search: false,
+      render: (_, record) => (
+        <strong style={{ color: '#fa8c16' }}>
+          {record.payableBaseAmount} {record.baseCurrency}
+        </strong>
+      ),
+    },
+    {
+      title: '对冲汇差',
+      dataIndex: 'exchangeGainLoss',
+      width: 140,
+      align: 'right',
+      search: false,
+      render: (_, record) => {
+        const val = Number(record.exchangeGainLoss || 0);
+        if (val > 0) {
+          return (
+            <Tag color="green" style={{ margin: 0 }}>
+              +{record.exchangeGainLoss} {record.baseCurrency}
+            </Tag>
+          );
+        }
+        if (val < 0) {
+          return (
+            <Tag color="red" style={{ margin: 0 }}>
+              {record.exchangeGainLoss} {record.baseCurrency}
+            </Tag>
+          );
+        }
+        return (
+          <span style={{ color: '#8c8c8c' }}>
+            0.00 {record.baseCurrency}
+          </span>
+        );
+      },
     },
     {
       title: '分摊数',
@@ -342,7 +383,7 @@ export default function FinanceNettingsPage() {
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={1700}
+        scrollX={1980}
         request={async (params) => {
           const response = await settlementServiceListNettings({
             page: params.current,
@@ -393,10 +434,35 @@ export default function FinanceNettingsPage() {
               <Descriptions.Item label="本位币">
                 {detail.baseCurrency}
               </Descriptions.Item>
-              <Descriptions.Item label="本币抵销额">
+              <Descriptions.Item label="应收本币抵销额">
                 <strong style={{ color: '#52c41a' }}>
                   {detail.baseCurrencyAmount} {detail.baseCurrency}
                 </strong>
+              </Descriptions.Item>
+              <Descriptions.Item label="应付本币抵销额">
+                <strong style={{ color: '#fa8c16' }}>
+                  {detail.payableBaseAmount} {detail.baseCurrency}
+                </strong>
+              </Descriptions.Item>
+              <Descriptions.Item label="对冲汇差（应付 − 应收）">
+                {(() => {
+                  const val = Number(detail.exchangeGainLoss || 0);
+                  if (val > 0) {
+                    return (
+                      <Tag color="green">
+                        +{detail.exchangeGainLoss} {detail.baseCurrency} (收益)
+                      </Tag>
+                    );
+                  }
+                  if (val < 0) {
+                    return (
+                      <Tag color="red">
+                        {detail.exchangeGainLoss} {detail.baseCurrency} (损失)
+                      </Tag>
+                    );
+                  }
+                  return <span>0.00 {detail.baseCurrency}</span>;
+                })()}
               </Descriptions.Item>
               <Descriptions.Item label="关联批次">
                 {detail.batchNo || '-'}

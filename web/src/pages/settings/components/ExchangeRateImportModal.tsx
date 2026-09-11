@@ -6,16 +6,7 @@ import {
   InboxOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import {
-  Alert,
-  App,
-  Button,
-  Modal,
-  Space,
-  Table,
-  Tag,
-  Upload,
-} from 'antd';
+import { Alert, App, Button, Modal, Space, Table, Tag, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
@@ -27,14 +18,6 @@ import {
 import { formatDate } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
-
-const rateTypeLabels: Record<string, string> = {
-  BASE_CURRENCY: '折本币',
-  INVOICE: '开票汇率',
-  SETTLEMENT: '结算汇率',
-  WRITE_OFF: '核销汇率',
-  BILL: '账单汇率',
-};
 
 type Props = {
   open: boolean;
@@ -137,7 +120,9 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       if (res.data?.canConfirm) {
         message.success(`预检成功：共 ${res.data.totalCount} 条汇率准备就绪`);
       } else {
-        message.warning(`预检发现问题：存在 ${res.data?.invalidCount || 0} 条无效数据`);
+        message.warning(
+          `预检发现问题：存在 ${res.data?.invalidCount || 0} 条无效数据`,
+        );
       }
     } catch (e: any) {
       message.error(
@@ -193,7 +178,13 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       destroyOnHidden
       onCancel={handleClose}
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <div>
             <Button
               icon={<DownloadOutlined />}
@@ -205,7 +196,11 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
           </div>
           <Space>
             {batch && (
-              <Button icon={<ReloadOutlined />} onClick={reset} disabled={confirming}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={reset}
+                disabled={confirming}
+              >
                 重新上传
               </Button>
             )}
@@ -241,11 +236,18 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
             <p className="ant-upload-drag-icon">
               <InboxOutlined style={{ fontSize: 48, color: '#1677ff' }} />
             </p>
-            <p className="ant-upload-text" style={{ fontSize: 16, fontWeight: 500 }}>
-              {previewing ? '正在解析并严格预检 Excel 文件，请稍候...' : '点击或将 Excel 文件拖拽至此处'}
+            <p
+              className="ant-upload-text"
+              style={{ fontSize: 16, fontWeight: 500 }}
+            >
+              {previewing
+                ? '正在解析并严格预检 Excel 文件，请稍候...'
+                : '点击或将 Excel 文件拖拽至此处'}
             </p>
             <p className="ant-upload-hint" style={{ color: '#8c8c8c' }}>
-              仅支持 .xlsx 格式文件，单文件最大 5MB，最多 500 条数据。
+              仅支持 .xlsx 格式文件，单文件最大 5MB，最多 500
+              条数据。请使用本页下载的 v2 模板（列：原币 / 本币 / 折本币汇率 /
+              生效开始 / 生效结束），旧版模板会被版本校验拒绝。
               系统将自动进行两阶段严格校验（重叠检测、币种检查、精度及时间格式）。
             </p>
           </Upload.Dragger>
@@ -281,7 +283,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
           </div>
 
           <Table<API.ExchangeRateImportRow>
-            rowKey={(r) => `${r.rowNumber}-${r.rateType}-${r.fromCurrency}`}
+            rowKey={(r) => `${r.rowNumber}-${r.fromCurrency}-${r.toCurrency}`}
             size="small"
             bordered
             pagination={{ pageSize: 10, showSizeChanger: false }}
@@ -293,12 +295,6 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 width: 65,
                 align: 'center',
                 render: (val) => `#${val}`,
-              },
-              {
-                title: '汇率类型',
-                dataIndex: 'rateType',
-                width: 100,
-                render: (val) => rateTypeLabels[val] || val,
               },
               {
                 title: '原币',
@@ -313,15 +309,9 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 align: 'center',
               },
               {
-                title: '应收汇率',
-                dataIndex: 'receivableRate',
-                width: 100,
-                align: 'right',
-              },
-              {
-                title: '应付汇率',
-                dataIndex: 'payableRate',
-                width: 100,
+                title: '折本币汇率',
+                dataIndex: 'rate',
+                width: 110,
                 align: 'right',
               },
               {
@@ -335,11 +325,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 dataIndex: 'effectiveTo',
                 width: 160,
                 render: (val) =>
-                  val ? (
-                    formatDate(val)
-                  ) : (
-                    <Tag color="cyan">长期有效</Tag>
-                  ),
+                  val ? formatDate(val) : <Tag color="cyan">长期有效</Tag>,
               },
               {
                 title: '预检状态',

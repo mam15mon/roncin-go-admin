@@ -35,7 +35,7 @@ export default function SettingsPage() {
       label: '汇率设置',
       icon: <DollarOutlined />,
       visible: access.canReadExchangeRates,
-      tooltip: '配置多币种汇率管理规则，包括基准货币、折本币与结算汇率及时间标准取值优先级',
+      tooltip: '维护总部基准折本币汇率（原币、本币、折本币汇率与生效起止区间）',
       children: <ExchangeRatesPanel />,
     },
     {
@@ -74,8 +74,8 @@ export default function SettingsPage() {
       key: 'custom-settings',
       label: '自定义设置',
       icon: <SlidersOutlined />,
-      visible: access.canReadExchangeRates,
-      tooltip: '配置专用汇率继承折本币、组织级策略及全局自定义财务规则',
+      visible: access.canReadFinanceBills,
+      tooltip: '配置账单创建后允许修改的费用字段等组织级自定义财务规则',
       children: <CustomSettingsPanel />,
     },
   ];

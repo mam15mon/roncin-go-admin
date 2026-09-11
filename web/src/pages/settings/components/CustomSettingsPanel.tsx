@@ -1,9 +1,4 @@
-import {
-  DollarOutlined,
-  FileTextOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { FileTextOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
   App,
   Button,
@@ -19,10 +14,6 @@ import {
 } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SectionCard } from '@/components/ui';
-import {
-  exchangeRateServiceGetExchangeRateCustomSetting,
-  exchangeRateServiceUpdateExchangeRateCustomSetting,
-} from '@/services/roncin/exchangeRateService';
 import {
   settlementServiceGetBilledFeeEditPolicy,
   settlementServiceUpdateBilledFeeEditPolicy,
@@ -51,33 +42,13 @@ export const BILLED_FEE_FIELD_OPTIONS = [
 ];
 
 export function CustomSettingsPanel() {
-  const access = useAccess();
   const { message } = App.useApp();
-  const [loadingRate, setLoadingRate] = useState(false);
   const [loadingPolicy, setLoadingPolicy] = useState(false);
-  const [savingRate, setSavingRate] = useState(false);
   const [savingPolicy, setSavingPolicy] = useState(false);
-  const [rateSetting, setRateSetting] =
-    useState<API.ExchangeRateCustomSetting>();
   const [billedFeePolicy, setBilledFeePolicy] =
     useState<API.BilledFeeEditPolicy>();
   const [canUpdateBilledFeePolicy, setCanUpdateBilledFeePolicy] =
     useState(false);
-
-  const loadRateSetting = useCallback(async () => {
-    setLoadingRate(true);
-    try {
-      const rateRes = await exchangeRateServiceGetExchangeRateCustomSetting();
-      if (!rateRes.data) {
-        throw new Error('自定义设置响应不完整');
-      }
-      setRateSetting(rateRes.data);
-    } catch (e: any) {
-      message.error(e.message || '获取汇率设置失败');
-    } finally {
-      setLoadingRate(false);
-    }
-  }, [message]);
 
   const loadBilledFeePolicy = useCallback(async () => {
     setLoadingPolicy(true);
@@ -97,40 +68,11 @@ export function CustomSettingsPanel() {
     }
   }, [message]);
 
-  const loadAllSettings = useCallback(() => {
-    void loadRateSetting();
-    void loadBilledFeePolicy();
-  }, [loadBilledFeePolicy, loadRateSetting]);
-
   useEffect(() => {
-    loadAllSettings();
-  }, [loadAllSettings]);
+    void loadBilledFeePolicy();
+  }, [loadBilledFeePolicy]);
 
-  // 1. 保存汇率继承策略
-  const handleToggleRateInheritance = async (checked: boolean) => {
-    setSavingRate(true);
-    try {
-      const response = await exchangeRateServiceUpdateExchangeRateCustomSetting(
-        {
-          inheritBaseCurrencyRate: checked,
-          expectedVersion: rateSetting?.version ?? '0',
-        },
-      );
-      setRateSetting(response.data);
-      message.success(
-        checked
-          ? '已开启：专用汇率未配置时继承折本币汇率'
-          : '已关闭：专用汇率未配置时继承折本币汇率',
-      );
-    } catch (e: any) {
-      message.error(e.message || '更新汇率设置失败，请刷新重试');
-      await loadRateSetting();
-    } finally {
-      setSavingRate(false);
-    }
-  };
-
-  // 2. 保存账单费用修改总开关
+  // 1. 保存账单费用修改总开关
   const handleToggleBilledFeePolicy = async (checked: boolean) => {
     setSavingPolicy(true);
     try {
@@ -153,7 +95,7 @@ export function CustomSettingsPanel() {
     }
   };
 
-  // 3. 保存可修改字段选择
+  // 2. 保存可修改字段选择
   const handleChangeEditableFields = async (checkedFields: number[]) => {
     setSavingPolicy(true);
     try {
@@ -173,83 +115,23 @@ export function CustomSettingsPanel() {
   };
 
   return (
-    <Spin spinning={loadingRate || loadingPolicy}>
+    <Spin spinning={loadingPolicy}>
       <Space vertical size={12} style={{ width: '100%' }}>
-        {/* 1. 财务汇率设置 */}
+        {/* 账单费用修改策略 */}
         <SectionCard
-          title="财务汇率设置"
+          title="账单费用修改策略"
           extra={
             <Button
               type="text"
               size="small"
               icon={<ReloadOutlined />}
-              onClick={loadAllSettings}
-              loading={loadingRate || loadingPolicy}
+              onClick={() => void loadBilledFeePolicy()}
+              loading={loadingPolicy}
             >
               刷新
             </Button>
           }
         >
-          <div
-            style={{
-              padding: '16px 20px',
-              backgroundColor: '#fafafa',
-              borderRadius: 8,
-              border: '1px solid #f0f0f0',
-            }}
-          >
-            <Row align="middle" justify="space-between" gutter={[16, 16]}>
-              <Col xs={24} md={18}>
-                <Space vertical size={6} style={{ width: '100%' }}>
-                  <Space align="center" size={8} wrap>
-                    <DollarOutlined
-                      style={{ fontSize: 16, color: '#1677ff' }}
-                    />
-                    <Text
-                      strong
-                      style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}
-                    >
-                      专用汇率未配置时继承折本币汇率
-                    </Text>
-                    {rateSetting?.inheritBaseCurrencyRate ? (
-                      <Tag color="success">已开启继承</Tag>
-                    ) : (
-                      <Tag>默认关闭</Tag>
-                    )}
-                  </Space>
-                  <Paragraph
-                    type="secondary"
-                    style={{ margin: 0, fontSize: 13, lineHeight: '22px' }}
-                  >
-                    开启后，账单、开票、结算和核销的专用汇率未配置时，系统将使用同一业务日期的折本币汇率。已配置的专用汇率始终优先。
-                  </Paragraph>
-                  {rateSetting?.updatedAt && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      最近修改时间：{formatDate(rateSetting.updatedAt)}
-                      {rateSetting.updatedBy
-                        ? `（操作人：${rateSetting.updatedBy}）`
-                        : ''}
-                    </Text>
-                  )}
-                </Space>
-              </Col>
-              <Col xs={24} md={6} style={{ textAlign: 'right' }}>
-                <Switch
-                  checkedChildren="已开启"
-                  unCheckedChildren="已关闭"
-                  checked={Boolean(rateSetting?.inheritBaseCurrencyRate)}
-                  loading={savingRate}
-                  disabled={!access.canUpdateExchangeRates || loadingRate}
-                  onChange={handleToggleRateInheritance}
-                  style={{ minWidth: 70 }}
-                />
-              </Col>
-            </Row>
-          </div>
-        </SectionCard>
-
-        {/* 2. 账单费用修改策略 */}
-        <SectionCard title="账单费用修改策略">
           <div
             style={{
               padding: '16px 20px',

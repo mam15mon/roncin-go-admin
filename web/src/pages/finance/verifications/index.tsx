@@ -182,35 +182,9 @@ export default function FinanceVerificationsPage() {
       ),
     },
     {
-      title: '核销汇率',
-      dataIndex: 'exchangeRate',
-      width: 135,
-      align: 'right',
-      search: false,
-      render: (_, r) => {
-        if (!r.exchangeRate) return '-';
-        const sourceLabel =
-          r.exchangeRateSource === 'MANUAL'
-            ? '手工'
-            : r.exchangeRateSource === 'BASE_CURRENCY'
-              ? '本币'
-              : '系统';
-        const sourceColor =
-          r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
-        return (
-          <Space size={4}>
-            <span>{r.exchangeRate}</span>
-            <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
-              {sourceLabel}
-            </Tag>
-          </Space>
-        );
-      },
-    },
-    {
-      title: '核销折本币',
+      title: '流水本位币合计',
       dataIndex: 'baseAmount',
-      width: 145,
+      width: 150,
       align: 'right',
       search: false,
       render: (_, r) =>
@@ -341,7 +315,7 @@ export default function FinanceVerificationsPage() {
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={1900}
+        scrollX={1770}
         primaryActionText="新建核销"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={
@@ -412,7 +386,7 @@ export default function FinanceVerificationsPage() {
                   {detail.amount} {detail.currency}
                 </strong>
               </Descriptions.Item>
-              <Descriptions.Item label="核销本币金额">
+              <Descriptions.Item label="流水本位币合计">
                 <strong style={{ color: '#1677ff' }}>
                   {detail.baseAmount} {detail.baseCurrency}
                 </strong>
@@ -426,30 +400,6 @@ export default function FinanceVerificationsPage() {
                 {detail.cashflowBaseAmount
                   ? `${detail.cashflowBaseAmount} ${detail.baseCurrency}`
                   : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="核销汇率">
-                {detail.exchangeRate ? (
-                  <Space size={4}>
-                    <span>{detail.exchangeRate}</span>
-                    <Tag
-                      color={
-                        detail.exchangeRateSource === 'MANUAL'
-                          ? 'purple'
-                          : detail.exchangeRateSource === 'BASE_CURRENCY'
-                            ? 'default'
-                            : 'blue'
-                      }
-                    >
-                      {detail.exchangeRateSource === 'MANUAL'
-                        ? '手工'
-                        : detail.exchangeRateSource === 'BASE_CURRENCY'
-                          ? '本币'
-                          : '系统'}
-                    </Tag>
-                  </Space>
-                ) : (
-                  '-'
-                )}
               </Descriptions.Item>
               <Descriptions.Item label="已实现汇兑损益">
                 {(() => {
