@@ -8,7 +8,7 @@ import {
   SettingOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
+import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, Button, DatePicker, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
@@ -552,7 +552,11 @@ export default function FinanceCommissionsPage() {
   ];
 
   return (
-    <>
+    <PageContainer
+      title="提成管理"
+      subTitle="业务人员业绩提成核算、规则配置与发放台账"
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
+    >
       <SearchFilterTemplate<CommissionSearchValues>
         layout="grid"
         collapsible={false}
@@ -662,7 +666,12 @@ export default function FinanceCommissionsPage() {
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
-        bordered
+        cardProps={{
+          style: {
+            borderRadius: 8,
+            border: '1px solid #f0f0f0',
+          },
+        }}
         size="small"
         scroll={{ x: 1900 }}
         search={false}
@@ -709,6 +718,6 @@ export default function FinanceCommissionsPage() {
         onClose={() => setRulesDrawerOpen(false)}
         canManage={access.canManageFinanceCommissions}
       />
-    </>
+    </PageContainer>
   );
 }

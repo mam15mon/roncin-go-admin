@@ -58,4 +58,6 @@ export interface OrderFormTemplateProps<T> {
   onValuesChange?: (changedValues: any, allValues: T) => void;
   /** 表单重置回调 */
   onReset?: () => void;
+  /** 是否显示右侧楼层导航与错误定位微标，默认为 true */
+  showAnchorNav?: boolean;
 }

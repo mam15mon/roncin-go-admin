@@ -1,9 +1,10 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
-import { Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
+import { App, Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
 import React, {
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -14,6 +15,13 @@ import {
   saveFormDraft,
 } from '@/components/layout/formDraft';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
+import {
+  collectFormSectionErrors,
+  FormAnchorNav,
+  focusFieldInput,
+  pulseHighlightElement,
+  scrollToFirstFormError,
+} from '../form-navigator';
 import { SectionCard } from '../page-shell/SectionCard';
 import './OrderFormTemplate.less';
 import type { OrderFormTemplateProps, OrderFormTemplateSection } from './types';
@@ -55,10 +63,24 @@ export function OrderFormTemplate<T>({
   closeGuardMessage,
   onValuesChange,
   onReset,
+  showAnchorNav = true,
 }: OrderFormTemplateProps<T>) {
+  const { message } = App.useApp();
   const [submitting, setSubmitting] = useState(false);
+  const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
+    {},
+  );
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
+
+  // 楼层锚点分节列表
+  const anchorItems = useMemo(() => {
+    const all = [...prependSections, ...sections, ...appendSections];
+    return all.map((s) => ({
+      key: s.key,
+      title: s.title,
+    }));
+  }, [prependSections, sections, appendSections]);
 
   // 完整草稿身份（tabKey + draftPathname + draftScope）只能由调用方显式提供；
   // 任一缺失时不生成草稿键，也不读写持久草稿。
@@ -104,6 +126,7 @@ export function OrderFormTemplate<T>({
           resolvedFormRef.current?.setFieldsValue(values);
         }
         setInternalDirty(false);
+        setSectionErrors({});
       },
     }),
     [draftKey, resolvedFormRef],
@@ -119,6 +142,7 @@ export function OrderFormTemplate<T>({
           clearFormDraft(draftKey);
         }
         setInternalDirty(false);
+        setSectionErrors({});
       }
       return result;
     } finally {
@@ -126,8 +150,50 @@ export function OrderFormTemplate<T>({
     }
   };
 
+  // 校验失败处理：自动平滑滚动居中并高亮首个错误项，同时统计各分节错误供导航器使用
+  const handleFinishFailed = (errorInfo: any) => {
+    const res = scrollToFirstFormError({
+      errorFields: errorInfo?.errorFields,
+      notify: (msg) => message.warning(msg),
+    });
+    setSectionErrors(res.errorsBySection);
+
+    // 延迟 100ms 兜底重算一次分节错误分布，防止依赖微任务时序导致 DOM 的 has-error 漏计
+    window.setTimeout(() => {
+      const delayedErrors = collectFormSectionErrors();
+      if (Object.keys(delayedErrors).length > 0) {
+        setSectionErrors(delayedErrors);
+      }
+    }, 100);
+  };
+
+  // 点击楼层中带错误的分节，精确定位至该分节内的错误字段
+  const handleErrorClick = (sectionKey: string) => {
+    const sectionEl =
+      document.getElementById(`section-${sectionKey}`) ||
+      document.querySelector(`[data-section-key="${sectionKey}"]`);
+    if (sectionEl) {
+      const errorEl = sectionEl.querySelector<HTMLElement>(
+        '.ant-form-item-has-error',
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        pulseHighlightElement(errorEl);
+        focusFieldInput(errorEl);
+      } else {
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   const renderSection = (section: OrderFormTemplateSection) => (
-    <SectionCard key={section.key} title={section.title} extra={section.extra}>
+    <SectionCard
+      key={section.key}
+      sectionKey={section.key}
+      id={`section-${section.key}`}
+      title={section.title}
+      extra={section.extra}
+    >
       <Row gutter={16}>{section.content}</Row>
     </SectionCard>
   );
@@ -193,6 +259,11 @@ export function OrderFormTemplate<T>({
             if (!readonly && draftKey) {
               saveFormDraft(draftKey, allValues);
             }
+            if (Object.keys(sectionErrors).length > 0) {
+              window.setTimeout(() => {
+                setSectionErrors(collectFormSectionErrors());
+              }, 200);
+            }
             onValuesChange?.(changedValues, allValues);
           }}
           onReset={() => {
@@ -200,9 +271,11 @@ export function OrderFormTemplate<T>({
               clearFormDraft(draftKey);
             }
             setInternalDirty(false);
+            setSectionErrors({});
             onReset?.();
           }}
           onFinish={handleFinish}
+          onFinishFailed={handleFinishFailed}
           submitter={
             readonly
               ? false
@@ -246,6 +319,15 @@ export function OrderFormTemplate<T>({
           {/* 4. 额外底部插槽 */}
           {footer}
         </ProForm>
+      )}
+
+      {/* 5. 悬浮楼层导航与分节错误指示器 */}
+      {showAnchorNav && !loading && !readonly && anchorItems.length > 1 && (
+        <FormAnchorNav
+          items={anchorItems}
+          sectionErrors={sectionErrors}
+          onErrorClick={handleErrorClick}
+        />
       )}
     </PageContainer>
   );

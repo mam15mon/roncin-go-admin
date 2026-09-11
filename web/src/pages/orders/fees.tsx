@@ -4,6 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -493,8 +494,15 @@ export default function OrderFeesPage() {
       : '0.0';
 
   return (
-    <div
-      style={{ padding: '0 0 40px', background: '#f5f7fa', minHeight: '100vh' }}
+    <PageContainer
+      title={false}
+      breadcrumbRender={false}
+      header={{
+        title: false,
+        breadcrumb: undefined,
+        style: { padding: 0 },
+      }}
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <OrderPageHeader
         page="fees"
@@ -532,8 +540,7 @@ export default function OrderFeesPage() {
         }
       />
 
-      <div style={{ maxWidth: 1440, margin: '16px auto 0', padding: '0 24px' }}>
-        <OrderFeeHeader
+      <OrderFeeHeader
           order={order}
           kind={definition.kind}
           orderId={orderId || ''}
@@ -593,7 +600,6 @@ export default function OrderFeesPage() {
           )}
           allRows={[...allReceivableItems, ...allPayableItems]}
         />
-      </div>
 
       <BillCreationWorkbench
         key={targetOrderId}
@@ -689,6 +695,6 @@ export default function OrderFeesPage() {
           setQuickAddPartnerModalOpen(false);
         }}
       />
-    </div>
+    </PageContainer>
   );
 }

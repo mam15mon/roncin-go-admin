@@ -1,6 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { history, useAccess } from '@umijs/max';
-import { App, Select, Space } from 'antd';
+import { App, Card, Select, Space } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -324,52 +324,68 @@ export default function FinanceFeeLedgerPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 12 }}>
-        <Space>
-          <span>标签筛选</span>
-          <Select
-            mode="multiple"
-            allowClear
-            showSearch
-            filterOption={false}
-            loading={tagOptionsLoading}
-            style={{ minWidth: 320 }}
-            placeholder="命中任一标签即返回"
-            options={tagOptions}
-            value={tagFilterIds}
-            disabled={!organizationId}
-            onSearch={(keyword) =>
-              void loadTagFilterOptions(keyword, tagFilterIds)
-            }
-            onChange={(value) => {
-              setTagFilterIds(value.length ? value : undefined);
-              actionRef.current?.reload();
-            }}
-          />
-          <Select
-            allowClear
-            placeholder="所属公司"
-            style={{ minWidth: 220 }}
-            value={organizationId}
-            options={organizationOptions.map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
-              tagFilterRequestRef.current += 1;
-              setTagOptionsLoading(false);
-              setOrganizationId(value);
-              setTagFilterIds(undefined);
-              setTagOptions([]);
-              actionRef.current?.reload();
-            }}
-          />
+      <Card
+        size="small"
+        style={{
+          marginBottom: 12,
+          borderRadius: 8,
+          border: '1px solid #f0f0f0',
+          backgroundColor: '#ffffff',
+        }}
+        styles={{ body: { padding: '10px 16px' } }}
+      >
+        <Space size={16} align="center" wrap>
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>所属公司：</span>
+            <Select
+              allowClear
+              placeholder="请选择所属公司"
+              style={{ minWidth: 220 }}
+              value={organizationId}
+              options={organizationOptions.map((item) => ({
+                value: item.id,
+                label: item.name ?? item.code ?? item.id,
+              }))}
+              onChange={(value) => {
+                // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
+                tagFilterRequestRef.current += 1;
+                setTagOptionsLoading(false);
+                setOrganizationId(value);
+                setTagFilterIds(undefined);
+                setTagOptions([]);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>标签筛选：</span>
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              filterOption={false}
+              loading={tagOptionsLoading}
+              style={{ minWidth: 280 }}
+              placeholder={organizationId ? '命中任一标签即返回' : '请先选择所属公司'}
+              options={tagOptions}
+              value={tagFilterIds}
+              disabled={!organizationId}
+              onSearch={(keyword) =>
+                void loadTagFilterOptions(keyword, tagFilterIds)
+              }
+              onChange={(value) => {
+                setTagFilterIds(value.length ? value : undefined);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
         </Space>
-      </div>
+      </Card>
 
       <FinanceLedgerTemplate<API.FeeLedgerItem>
-        headerTitle="集运费用明细台账"
+        pageTitle="集运费用明细"
+        pageSubTitle="全维度多币种费用台账，支持按单据、费用状态、结算单位快速对账与生成账单"
+        headerTitle="费用明细台账"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}

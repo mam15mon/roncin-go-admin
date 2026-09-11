@@ -128,9 +128,7 @@ export function FinanceSummaryBoard({
   ) => {
     const entries = Object.entries(map).filter(([_, val]) => val !== 0);
     if (entries.length === 0) {
-      return (
-        <span style={{ fontWeight: 600, color: '#8c8c8c' }}>0.00</span>
-      );
+      return <span style={{ fontWeight: 600, color: '#8c8c8c' }}>0.00</span>;
     }
 
     return (
@@ -203,7 +201,9 @@ export function FinanceSummaryBoard({
       >
         <div style={{ fontWeight: 700, color: '#1f1f1f', minWidth: 86 }}>
           总计(选中):{' '}
-          <span style={{ color: selectedRows.length > 0 ? '#1677ff' : '#8c8c8c' }}>
+          <span
+            style={{ color: selectedRows.length > 0 ? '#1677ff' : '#8c8c8c' }}
+          >
             {selectedRows.length} 条
           </span>
         </div>

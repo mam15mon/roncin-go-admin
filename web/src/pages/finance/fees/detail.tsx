@@ -1,3 +1,4 @@
+import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
 import { App, Descriptions, Table, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -30,7 +31,12 @@ export default function FinanceFeeDetailPage() {
   }, [message, orderId]);
 
   return (
-    <>
+    <PageContainer
+      title={false}
+      breadcrumbRender={false}
+      header={{ title: false, style: { padding: 0 } }}
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
+    >
       <PageHeaderShell
         title="费用台账详情"
         subTitle="仅展示当前财务费用读取权限范围内的订单费用"
@@ -103,6 +109,6 @@ export default function FinanceFeeDetailPage() {
           ]}
         />
       </SectionCard>
-    </>
+    </PageContainer>
   );
 }

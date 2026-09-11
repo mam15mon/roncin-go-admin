@@ -33,7 +33,6 @@ type PartnerQuickAddSelectProps = {
   /** 按角色过滤的服务端关键字检索函数。 */
   searchPartners: (keyword?: string) => Promise<PartnerSelectOption[]>;
   required?: boolean;
-  taxIdentifierRequired?: boolean;
   /** 有效只读（无编辑动作权限或业务写入关闭）时隐藏快捷新增入口并禁用字段。 */
   disabled?: boolean;
   onPartnerChange?: (option: PartnerSelectOption | undefined) => void;

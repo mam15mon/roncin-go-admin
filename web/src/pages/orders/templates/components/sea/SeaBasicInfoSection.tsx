@@ -7,7 +7,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
 import React from 'react';
-import { ProFormSearchableSelect, SearchableSelect } from '@/components/ui';
+import { CurrencyAmountInput, ProFormSearchableSelect } from '@/components/ui';
 import { PartnerRoleType } from '@/enums.generated';
 import {
   shipmentModeOptions,
@@ -196,7 +196,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                 createRoute="/partners/customers/create"
                 searchPartners={searchCustomers}
                 required
-                taxIdentifierRequired
                 disabled={props.readonly}
                 onPartnerChange={(option) => setCustomerCode(option?.code)}
               />
@@ -295,7 +294,6 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
             role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
             createRoute="/partners/suppliers/create"
             searchPartners={searchBookingAgents}
-            taxIdentifierRequired
             disabled={props.readonly}
           />
         </Col>
@@ -337,111 +335,30 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
         </Col>
         <Col className="col-5">
           <Form.Item label="货值" style={{ marginInline: 8 }}>
-            <Form.Item
-              noStyle
-              name="cargoValue"
-              dependencies={['cargoCurrency']}
-              rules={[
-                ({ getFieldValue }) => ({
-                  validator: async (_, value) => {
-                    if (!value && !getFieldValue('cargoCurrency')) return;
-                    if (!value) throw new Error('请输入货值');
-                    if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                      throw new Error('请输入正确的货值，最多 4 位小数');
-                    }
-                  },
-                }),
-              ]}
-            >
-              <TooltipInput
-                placeholder="金额"
-                maxLength={23}
-                suffix={
-                  <span
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Form.Item
-                      noStyle
-                      name="cargoCurrency"
-                      dependencies={['cargoValue']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('cargoValue') || value) return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <SearchableSelect
-                        popupMatchSelectWidth={false}
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
-                  </span>
-                }
-              />
-            </Form.Item>
+            <CurrencyAmountInput
+              currencyName="cargoCurrency"
+              amountName="cargoValue"
+              currencyOptions={currencyOptions}
+              disabled={props.readonly}
+              amountPlaceholder="金额"
+              amountRuleMessage="请输入正确的货值，最多 4 位小数"
+              emptyAmountMessage="请输入货值"
+              emptyCurrencyMessage="请选择币种"
+            />
           </Form.Item>
         </Col>
         <Col className="col-5">
           <Form.Item label="保费" style={{ marginInline: 8 }}>
-            <Form.Item
-              noStyle
-              name="insurancePremium"
-              dependencies={['insuranceCurrency']}
-              rules={[
-                ({ getFieldValue }) => ({
-                  validator: async (_, value) => {
-                    if (!value && !getFieldValue('insuranceCurrency')) return;
-                    if (!value) throw new Error('请输入保费');
-                    if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                      throw new Error('请输入正确的保费，最多 4 位小数');
-                    }
-                  },
-                }),
-              ]}
-            >
-              <TooltipInput
-                placeholder="金额"
-                maxLength={23}
-                suffix={
-                  <span
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Form.Item
-                      noStyle
-                      name="insuranceCurrency"
-                      dependencies={['insurancePremium']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('insurancePremium') || value)
-                              return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <SearchableSelect
-                        popupMatchSelectWidth={false}
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
-                  </span>
-                }
-              />
-            </Form.Item>
+            <CurrencyAmountInput
+              currencyName="insuranceCurrency"
+              amountName="insurancePremium"
+              currencyOptions={currencyOptions}
+              disabled={props.readonly}
+              amountPlaceholder="金额"
+              amountRuleMessage="请输入正确的保费，最多 4 位小数"
+              emptyAmountMessage="请输入保费"
+              emptyCurrencyMessage="请选择币种"
+            />
           </Form.Item>
         </Col>
 

@@ -85,6 +85,8 @@ export default function BasicInfoSection({
 }: BasicInfoSectionProps) {
   return (
     <SectionCard
+      id="section-basic"
+      sectionKey="basic"
       title="基础信息"
       collapsible
       collapsed={collapsed}

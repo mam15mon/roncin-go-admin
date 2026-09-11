@@ -6,6 +6,8 @@ import type { SectionCardProps } from './types';
 const { Text } = Typography;
 
 export const SectionCard: React.FC<SectionCardProps> = ({
+  id,
+  sectionKey,
   title,
   extra,
   children,
@@ -64,6 +66,8 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 
   return (
     <Card
+      id={id || (sectionKey ? `section-${sectionKey}` : undefined)}
+      data-section-key={sectionKey}
       size="small"
       title={titleNode}
       extra={

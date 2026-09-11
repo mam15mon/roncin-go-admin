@@ -153,7 +153,7 @@ export default defineConfig({
             'AlibabaSans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
           borderRadius: 6,
           colorPrimary: '#1677ff',
-          colorBgLayout: '#f0f2f5',
+          colorBgLayout: '#f5f7fa',
           colorBgContainer: '#ffffff',
           colorBorder: '#d9d9d9',
           colorBorderSecondary: '#f0f0f0',

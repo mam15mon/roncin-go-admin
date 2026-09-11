@@ -1,6 +1,10 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
+import {
+  PageContainer,
+  ProForm,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import {
   history,
   useAccess,
@@ -10,7 +14,15 @@ import {
 } from '@umijs/max';
 import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
+import {
+  FormAnchorNav,
+  focusFieldInput,
+  PageHeaderShell,
+  pulseHighlightElement,
+  SectionCard,
+  StickyFooterBar,
+  scrollToFirstFormError,
+} from '@/components/ui';
 import {
   PartnerBusinessType,
   PartnerCustomerType,
@@ -98,6 +110,9 @@ export default function PartnerDetailPage() {
     'remark',
     'logs',
   ]);
+  const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
+    {},
+  );
 
   // Detect roleType from pathname
   const { roleType, roleLabel, listUrl } = useMemo(() => {
@@ -533,7 +548,16 @@ export default function PartnerDetailPage() {
       history.push(listUrl);
     } catch (err: any) {
       if (err?.errorFields) {
-        message.error('请检查标红的必填项');
+        const res = scrollToFirstFormError({
+          errorFields: err.errorFields,
+          onExpandSection: (sectionKey) => {
+            setActiveCollapseKeys((prev) =>
+              Array.from(new Set([...prev, sectionKey])),
+            );
+          },
+          notify: (msg) => message.warning(msg),
+        });
+        setSectionErrors(res.errorsBySection);
       } else {
         message.error(err?.message || '保存失败，请重试');
       }
@@ -559,7 +583,16 @@ export default function PartnerDetailPage() {
   };
 
   return (
-    <div style={{ minHeight: '100%', paddingBottom: 24 }}>
+    <PageContainer
+      title={false}
+      breadcrumbRender={false}
+      header={{
+        title: false,
+        breadcrumb: undefined,
+        style: { padding: 0 },
+      }}
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
+    >
       {/* 1. Page Header Shell */}
       <PageHeaderShell
         title={displayTitle}
@@ -591,136 +624,146 @@ export default function PartnerDetailPage() {
 
       {/* 2. Main Container */}
       <Spin spinning={loading}>
-        <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-          <ProForm
-            formRef={formRef}
-            submitter={false}
-            layout="horizontal"
-            grid
-            rowProps={{ gutter: [16, 12] }}
-          >
-            <Col span={24}>
-              {/* Section 1: 基础信息 */}
-              <BasicInfoSection
-                collapsed={!activeCollapseKeys.includes('basic')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('basic', collapsed)
-                }
-                partnerId={partnerId}
-                roleLabel={roleLabel}
-                userSelectOptions={userSelectOptions}
-                orgSelectOptions={orgSelectOptions}
-                aliases={aliases}
-                newAliasInput={newAliasInput}
-                setNewAliasInput={setNewAliasInput}
-                onAddAlias={handleAddAlias}
-                onRemoveAlias={handleRemoveAlias}
-                onTianyanchaVerify={handleTianyanchaVerify}
-                onUserChange={handleUserChange}
+        <ProForm
+          formRef={formRef}
+          submitter={false}
+          layout="horizontal"
+          grid
+          rowProps={{ gutter: [16, 12] }}
+        >
+          <Col span={24}>
+            {/* Section 1: 基础信息 */}
+            <BasicInfoSection
+              collapsed={!activeCollapseKeys.includes('basic')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('basic', collapsed)
+              }
+              partnerId={partnerId}
+              roleLabel={roleLabel}
+              userSelectOptions={userSelectOptions}
+              orgSelectOptions={orgSelectOptions}
+              aliases={aliases}
+              newAliasInput={newAliasInput}
+              setNewAliasInput={setNewAliasInput}
+              onAddAlias={handleAddAlias}
+              onRemoveAlias={handleRemoveAlias}
+              onTianyanchaVerify={handleTianyanchaVerify}
+              onUserChange={handleUserChange}
+            />
+
+            {/* Section 2: 财务结算规则 */}
+            <SettlementSection
+              collapsed={!activeCollapseKeys.includes('settlement')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('settlement', collapsed)
+              }
+              currencyOptions={currencyOptions}
+              interestRule={interestRule}
+              onOpenInterestModal={() => setInterestModalOpen(true)}
+            />
+
+            {/* Section 3: 账户信息 */}
+            <SectionCard
+              key="accounts"
+              id="section-accounts"
+              sectionKey="accounts"
+              title="账户信息"
+              collapsible
+              collapsed={!activeCollapseKeys.includes('accounts')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('accounts', collapsed)
+              }
+            >
+              <AccountsPanel
+                partner={partner}
+                canRead={access.canReadPartnerAccounts}
+                canCreate={access.canCreatePartnerAccounts}
+                canUpdate={access.canUpdatePartnerAccounts}
               />
+            </SectionCard>
 
-              {/* Section 2: 财务结算规则 */}
-              <SettlementSection
-                collapsed={!activeCollapseKeys.includes('settlement')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('settlement', collapsed)
-                }
-                currencyOptions={currencyOptions}
-                interestRule={interestRule}
-                onOpenInterestModal={() => setInterestModalOpen(true)}
+            {/* Section 4: 联系方式 */}
+            <SectionCard
+              key="contacts"
+              id="section-contacts"
+              sectionKey="contacts"
+              title="联系方式"
+              collapsible
+              collapsed={!activeCollapseKeys.includes('contacts')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('contacts', collapsed)
+              }
+            >
+              <ContactCardList contacts={contacts} onChange={setContacts} />
+            </SectionCard>
+
+            {/* Section 5: 常用信息 (Shipping Presets) */}
+            <SectionCard
+              key="presets"
+              id="section-presets"
+              sectionKey="presets"
+              title="常用信息"
+              collapsible
+              collapsed={!activeCollapseKeys.includes('presets')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('presets', collapsed)
+              }
+            >
+              <ShippingPresetSection partnerId={partnerId} />
+            </SectionCard>
+
+            {/* Section 6: 合同管理 */}
+            <SectionCard
+              key="contracts"
+              id="section-contracts"
+              sectionKey="contracts"
+              title="合同管理"
+              collapsible
+              collapsed={!activeCollapseKeys.includes('contracts')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('contracts', collapsed)
+              }
+            >
+              <ContractCardList partnerId={partnerId} />
+            </SectionCard>
+
+            {/* Section 7: 客户备注 */}
+            <SectionCard
+              key="remark"
+              id="section-remark"
+              sectionKey="remark"
+              title="客户备注"
+              collapsible
+              collapsed={!activeCollapseKeys.includes('remark')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('remark', collapsed)
+              }
+            >
+              <ProFormTextArea
+                name="remark"
+                placeholder="可以添加客户信息录入时的备注信息"
+                fieldProps={{ rows: 3 }}
               />
+            </SectionCard>
 
-              {/* Section 3: 账户信息 */}
+            {/* Section 8: 操作记录 */}
+            {partnerId && (
               <SectionCard
-                key="accounts"
-                title="账户信息"
+                key="logs"
+                id="section-logs"
+                sectionKey="logs"
+                title="操作记录"
                 collapsible
-                collapsed={!activeCollapseKeys.includes('accounts')}
+                collapsed={!activeCollapseKeys.includes('logs')}
                 onCollapseChange={(collapsed) =>
-                  toggleSection('accounts', collapsed)
+                  toggleSection('logs', collapsed)
                 }
               >
-                <AccountsPanel
-                  partner={partner}
-                  canRead={access.canReadPartnerAccounts}
-                  canCreate={access.canCreatePartnerAccounts}
-                  canUpdate={access.canUpdatePartnerAccounts}
-                />
+                <AuditLogSection partnerId={partnerId} />
               </SectionCard>
-
-              {/* Section 4: 联系方式 */}
-              <SectionCard
-                key="contacts"
-                title="联系方式"
-                collapsible
-                collapsed={!activeCollapseKeys.includes('contacts')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('contacts', collapsed)
-                }
-              >
-                <ContactCardList contacts={contacts} onChange={setContacts} />
-              </SectionCard>
-
-              {/* Section 5: 常用信息 (Shipping Presets) */}
-              <SectionCard
-                key="presets"
-                title="常用信息"
-                collapsible
-                collapsed={!activeCollapseKeys.includes('presets')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('presets', collapsed)
-                }
-              >
-                <ShippingPresetSection partnerId={partnerId} />
-              </SectionCard>
-
-              {/* Section 6: 合同管理 */}
-              <SectionCard
-                key="contracts"
-                title="合同管理"
-                collapsible
-                collapsed={!activeCollapseKeys.includes('contracts')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('contracts', collapsed)
-                }
-              >
-                <ContractCardList partnerId={partnerId} />
-              </SectionCard>
-
-              {/* Section 7: 客户备注 */}
-              <SectionCard
-                key="remark"
-                title="客户备注"
-                collapsible
-                collapsed={!activeCollapseKeys.includes('remark')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('remark', collapsed)
-                }
-              >
-                <ProFormTextArea
-                  name="remark"
-                  placeholder="可以添加客户信息录入时的备注信息"
-                  fieldProps={{ rows: 3 }}
-                />
-              </SectionCard>
-
-              {/* Section 8: 操作记录 */}
-              {partnerId && (
-                <SectionCard
-                  key="logs"
-                  title="操作记录"
-                  collapsible
-                  collapsed={!activeCollapseKeys.includes('logs')}
-                  onCollapseChange={(collapsed) =>
-                    toggleSection('logs', collapsed)
-                  }
-                >
-                  <AuditLogSection partnerId={partnerId} />
-                </SectionCard>
-              )}
-            </Col>
-          </ProForm>
-        </div>
+            )}
+          </Col>
+        </ProForm>
       </Spin>
 
       {/* 3. Sticky Footer Action Bar */}
@@ -761,6 +804,56 @@ export default function PartnerDetailPage() {
           setInterestModalOpen(false);
         }}
       />
-    </div>
+
+      {/* 4. 楼层大纲与错误定位导航 */}
+      {!loading && (
+        <FormAnchorNav
+          sectionErrors={sectionErrors}
+          items={[
+            { key: 'basic', title: '基础信息' },
+            { key: 'settlement', title: '财务结算' },
+            { key: 'accounts', title: '账户信息' },
+            { key: 'contacts', title: '联系方式' },
+            { key: 'presets', title: '常用信息' },
+            { key: 'contracts', title: '合同管理' },
+            { key: 'remark', title: '客户备注' },
+            ...(partnerId ? [{ key: 'logs', title: '操作记录' }] : []),
+          ]}
+          onSelect={(key) => {
+            setActiveCollapseKeys((prev) =>
+              Array.from(new Set([...prev, key])),
+            );
+          }}
+          onErrorClick={(sectionKey) => {
+            setActiveCollapseKeys((prev) =>
+              Array.from(new Set([...prev, sectionKey])),
+            );
+            window.setTimeout(() => {
+              const sectionEl = document.getElementById(
+                `section-${sectionKey}`,
+              );
+              if (sectionEl) {
+                const errorEl = sectionEl.querySelector<HTMLElement>(
+                  '.ant-form-item-has-error',
+                );
+                if (errorEl) {
+                  errorEl.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  });
+                  pulseHighlightElement(errorEl);
+                  focusFieldInput(errorEl);
+                } else {
+                  sectionEl.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  });
+                }
+              }
+            }, 100);
+          }}
+        />
+      )}
+    </PageContainer>
   );
 }

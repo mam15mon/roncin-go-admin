@@ -341,6 +341,7 @@ export default function Partners() {
     <PageContainer
       title={currentView.title}
       subTitle={currentView.description}
+      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <SearchFilterTemplate
         layout="bar"
@@ -409,9 +410,14 @@ export default function Partners() {
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        bordered
+        cardProps={{
+          style: {
+            borderRadius: 8,
+            border: '1px solid #f0f0f0',
+          },
+        }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        scroll={{ x: 1300 }}
+        scroll={{ x: 1480 }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,

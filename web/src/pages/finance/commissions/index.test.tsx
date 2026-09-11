@@ -33,6 +33,7 @@ vi.mock('@umijs/max', () => ({
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
+  PageContainer: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   ProTable: (props: Record<string, any>) => {
     componentProps.proTable = props;
     return null;

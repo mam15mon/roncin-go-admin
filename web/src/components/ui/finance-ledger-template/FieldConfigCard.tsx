@@ -68,11 +68,7 @@ export const FieldConfigCard = React.memo(function FieldConfigCard({
         border: isDragTarget
           ? '2px dashed #1677ff'
           : `1px solid ${checked ? '#91caff' : '#f0f0f0'}`,
-        background: isDragTarget
-          ? '#e6f4ff'
-          : checked
-            ? '#e6f4ff'
-            : '#fafafa',
+        background: isDragTarget ? '#e6f4ff' : checked ? '#e6f4ff' : '#fafafa',
         cursor: 'pointer',
         transition:
           'border-color 0.12s, background-color 0.12s, box-shadow 0.12s',

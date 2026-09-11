@@ -54,6 +54,8 @@ export default function SettlementSection({
 }: SettlementSectionProps) {
   return (
     <SectionCard
+      id="section-settlement"
+      sectionKey="settlement"
       title="财务结算规则"
       collapsible
       collapsed={collapsed}

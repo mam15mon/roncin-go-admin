@@ -315,7 +315,9 @@ describe('OrderFormTemplate Component', () => {
         sections={sections}
       />,
     );
-    expect(screen.queryByPlaceholderText('请输入客户参考号')).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('请输入客户参考号'),
+    ).not.toBeInTheDocument();
 
     rerender(
       <OrderFormTemplate
@@ -492,10 +494,11 @@ describe('OrderFormTemplate Component', () => {
   it('resetTo 清当前草稿、清旧 Form store、回填新值并清除 dirty', () => {
     const tabKey = resolveTabKey(DRAFT_PATHNAME);
     const actionsRef: React.MutableRefObject<
-      OrderFormTemplateActions<{
-        customerReferenceNo?: string;
-        internalNote?: string;
-      }> | undefined
+      | OrderFormTemplateActions<{
+          customerReferenceNo?: string;
+          internalNote?: string;
+        }>
+      | undefined
     > = { current: undefined };
 
     render(
@@ -547,7 +550,8 @@ describe('OrderFormTemplate Component', () => {
 
     // 旧 Form store 字段被清除（新快照中不存在的字段不残留），指定字段回填新值
     expect(
-      (screen.getByPlaceholderText('请输入客户参考号') as HTMLInputElement).value,
+      (screen.getByPlaceholderText('请输入客户参考号') as HTMLInputElement)
+        .value,
     ).toBe('FRESH-REF');
     expect(
       (screen.getByPlaceholderText('请输入内部备注') as HTMLInputElement).value,
