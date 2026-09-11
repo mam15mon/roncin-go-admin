@@ -353,8 +353,11 @@ type SeaOrderReassignmentInput struct {
 }
 
 type SeaOrderReassignmentPreview struct {
-	IsValid            bool
-	Errors             []string
+	IsValid bool
+	Errors  []string
+	// GateBlockedError 是订单内容门禁（业务锁/终止/结案）未通过时的原始错误。
+	// Execute 的前置校验必须原样返回它以保留 409 语义，不得包装成改配 400 阻断。
+	GateBlockedError   error
 	CurrentMasterBill  *SeaMasterBillSummary
 	TargetMasterBill   *SeaMasterBillSummary
 	TargetMemberCount  int32
@@ -974,6 +977,9 @@ func (uc *SeaOrderChangeUsecase) ExecuteReassignment(ctx context.Context, organi
 		return nil, err
 	}
 	if !preview.IsValid {
+		if preview.GateBlockedError != nil {
+			return nil, preview.GateBlockedError
+		}
 		if len(preview.Errors) > 0 {
 			return nil, MetadataError(ErrSeaOrderReassignmentBlocked, map[string]string{
 				"error": preview.Errors[0],

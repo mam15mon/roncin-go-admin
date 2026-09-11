@@ -1405,6 +1405,28 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		}
 	})
 
+	t.Run("业务锁定订单改配预览提前拦截", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "902b", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		preview, previewErr := env.uc.PreviewReassignment(ctx, env.orgID, reassignmentInput(f.order, f.link))
+		if previewErr != nil {
+			t.Fatalf("业务锁定订单改配预览不应报错，实际: %v", previewErr)
+		}
+		if preview.IsValid {
+			t.Fatalf("业务锁定订单改配预览 IsValid 应为 false")
+		}
+		foundLockReason := false
+		for _, msg := range preview.Errors {
+			if strings.Contains(msg, f.order.OrderNo) && strings.Contains(msg, "锁定") {
+				foundLockReason = true
+				break
+			}
+		}
+		if !foundLockReason {
+			t.Fatalf("改配预览未包含订单业务锁原因: %v", preview.Errors)
+		}
+	})
+
 	t.Run("已结案订单拒绝整票改配", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "903", splitFixtureOptions{})
 		env.data.db.Order.UpdateOneID(f.order.ID).

@@ -102,6 +102,20 @@ func ensureOrderBusinessEditable(ctx context.Context, tx *ent.Tx, existing *ent.
 	return ensureOrderBusinessContentEditable(ctx, tx.User, existing)
 }
 
+// orderBusinessEditBlockReason 返回订单业务内容门禁未通过时的中文原因；可编辑时返回空串。
+func orderBusinessEditBlockReason(err error) string {
+	if err == nil {
+		return ""
+	}
+	if ke := kratoserrors.FromError(err); ke != nil && ke.Message != "" {
+		return ke.Message
+	}
+	if err.Error() != "" {
+		return err.Error()
+	}
+	return "不可编辑"
+}
+
 // orderBusinessEditImpact 为预览流程提供单订单业务内容门禁事实：当订单处于终止、结案或业务
 // 锁定状态时返回 BlocksExecution=true 的下游影响对象，便于调用方统一阻断 Executable 并展示原因。
 func orderBusinessEditImpact(ctx context.Context, users *ent.UserClient, o *ent.Order) *biz.SeaDocumentDownstreamImpact {
@@ -109,17 +123,11 @@ func orderBusinessEditImpact(ctx context.Context, users *ent.UserClient, o *ent.
 		return nil
 	}
 	if err := ensureOrderBusinessContentEditable(ctx, users, o); err != nil {
-		msg := "不可编辑"
-		if ke := kratoserrors.FromError(err); ke != nil && ke.Message != "" {
-			msg = ke.Message
-		} else if err.Error() != "" {
-			msg = err.Error()
-		}
 		return &biz.SeaDocumentDownstreamImpact{
 			FactType:        "ORDER_BUSINESS_LOCK",
 			ReferenceID:     o.ID.String(),
 			ReferenceNo:     o.OrderNo,
-			Message:         "订单 " + o.OrderNo + " " + msg,
+			Message:         "订单 " + o.OrderNo + " " + orderBusinessEditBlockReason(err),
 			BlocksExecution: true,
 		}
 	}

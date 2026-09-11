@@ -3562,6 +3562,18 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 		OrderVersion:       order.Version,
 		CurrentLinkVersion: activeLink.Version,
 	}
+	// 改配 Execute 在事务内执行统一内容门禁；预览同口径提前拦截，避免预览通过、
+	// 提交才被拒的体验裂缝。错误分两档与 Execute 对齐：终止/结案走改配域既定
+	// SEA_ORDER_REASSIGNMENT_BLOCKED（不设 GateBlockedError，由 biz 包装）；
+	// 业务锁经 GateBlockedError 原样透传，保留 409 与锁定元数据。
+	if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
+		preview.IsValid = false
+		preview.Errors = append(preview.Errors, "订单 "+order.OrderNo+" 已终止或已结案，不允许改配")
+	} else if gateErr := ensureOrderBusinessContentEditable(ctx, client.User, order); gateErr != nil {
+		preview.IsValid = false
+		preview.GateBlockedError = gateErr
+		preview.Errors = append(preview.Errors, "订单 "+order.OrderNo+" "+orderBusinessEditBlockReason(gateErr))
+	}
 	var targetSummary *biz.SeaMasterBillSummary
 	targetMemberCount := int32(0)
 
