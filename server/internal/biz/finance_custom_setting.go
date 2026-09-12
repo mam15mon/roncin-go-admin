@@ -52,6 +52,19 @@ func (p *BilledFeeEditPolicy) Allows(field BilledFeeEditableField) bool {
 type FinanceCustomSettingRepo interface {
 	GetBilledFeeEditPolicy(context.Context, uuid.UUID) (*BilledFeeEditPolicy, error)
 	SaveBilledFeeEditPolicy(context.Context, uuid.UUID, uuid.UUID, *BilledFeeEditPolicy, uint64, *AuditEvent) (*BilledFeeEditPolicy, error)
+	GetCreditLimitControlPolicy(context.Context, uuid.UUID) (*CreditLimitControlPolicy, error)
+	SaveCreditLimitControlPolicy(context.Context, uuid.UUID, uuid.UUID, *CreditLimitControlPolicy, uint64, *AuditEvent) (*CreditLimitControlPolicy, error)
+}
+
+// CreditLimitControlPolicy 是组织级信用额度管控策略：
+// AllowSelectionWhenCreditExceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；
+// false 为直接干预模式，超额客户在选择器中禁用且订单、应收费用写入被服务端拦截。
+type CreditLimitControlPolicy struct {
+	OrganizationID                   uuid.UUID
+	AllowSelectionWhenCreditExceeded bool
+	Version                          uint64
+	UpdatedAt                        *time.Time
+	UpdatedBy                        *uuid.UUID
 }
 
 type FinanceCustomSettingUsecase struct{ repo FinanceCustomSettingRepo }
@@ -103,4 +116,39 @@ func normalizeBilledFeeEditableFields(fields []BilledFeeEditableField) ([]Billed
 		result = append(result, field)
 	}
 	return result, nil
+}
+
+// GetCreditLimitControlPolicy 读取组织（含总部继承）的信用额度管控策略；
+// 未保存过策略时返回默认值（仅提醒模式开启）。
+func (uc *FinanceCustomSettingUsecase) GetCreditLimitControlPolicy(ctx context.Context, organizationID uuid.UUID) (*CreditLimitControlPolicy, error) {
+	if uc == nil || uc.repo == nil || organizationID == uuid.Nil {
+		return nil, ErrFinanceCustomSettingInvalidArgument
+	}
+	policy, err := uc.repo.GetCreditLimitControlPolicy(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if policy == nil {
+		return &CreditLimitControlPolicy{OrganizationID: organizationID, AllowSelectionWhenCreditExceeded: true}, nil
+	}
+	return policy, nil
+}
+
+func (uc *FinanceCustomSettingUsecase) UpdateCreditLimitControlPolicy(ctx context.Context, organizationID, actorID uuid.UUID, allowSelectionWhenCreditExceeded bool, expectedVersion uint64) (*CreditLimitControlPolicy, error) {
+	if uc == nil || uc.repo == nil || organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrFinanceCustomSettingInvalidArgument
+	}
+	policy := &CreditLimitControlPolicy{OrganizationID: organizationID, AllowSelectionWhenCreditExceeded: allowSelectionWhenCreditExceeded}
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "finance.custom_setting.credit_limit_control.update", Result: "success", ResourceType: "finance_custom_setting", ResourceID: organizationID.String()}
+	return uc.repo.SaveCreditLimitControlPolicy(ctx, organizationID, actorID, policy, expectedVersion, audit)
+}
+
+// IsCreditLimitInterventionActive 判定组织是否处于「直接干预」模式：
+// 仅当策略已保存且开关为 false（超额后不允许选择）时才启用拦截。
+func (uc *FinanceCustomSettingUsecase) IsCreditLimitInterventionActive(ctx context.Context, organizationID uuid.UUID) (bool, error) {
+	policy, err := uc.GetCreditLimitControlPolicy(ctx, organizationID)
+	if err != nil {
+		return false, err
+	}
+	return !policy.AllowSelectionWhenCreditExceeded, nil
 }

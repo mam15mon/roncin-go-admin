@@ -166,10 +166,20 @@ type OrderFeeUsecase struct {
 	repo          OrderFeeRepo
 	exchangeRate  *ExchangeRateUsecase
 	customSetting *FinanceCustomSettingUsecase
+	creditControl *PartnerCreditUsecase
 }
 
-func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase, customSetting *FinanceCustomSettingUsecase) *OrderFeeUsecase {
-	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate, customSetting: customSetting}
+func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase, customSetting *FinanceCustomSettingUsecase, creditControl *PartnerCreditUsecase) *OrderFeeUsecase {
+	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate, customSetting: customSetting, creditControl: creditControl}
+}
+
+// ensureReceivablePartySelectionAllowed 在直接干预模式下校验应收费用结算单位未超额；
+// 应付与成本方向不占用客户信用额度，不校验。校验为尽力而为的时点查询。
+func (uc *OrderFeeUsecase) ensureReceivablePartySelectionAllowed(ctx context.Context, organizationID uuid.UUID, fee *OrderFee) error {
+	if fee == nil || fee.Direction != OrderFeeReceivable || fee.SettlementPartyID == uuid.Nil {
+		return nil
+	}
+	return uc.creditControl.EnsurePartnerSelectionAllowed(ctx, organizationID, fee.SettlementPartyID)
 }
 
 func (uc *OrderFeeUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error) {
@@ -205,6 +215,9 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 	normalized.ID = uuid.Must(uuid.NewV7())
 	normalized.Status = OrderFeeDraft
 	normalized.Version = 1
+	if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
+		return nil, err
+	}
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
 		return nil, err
 	}
@@ -275,6 +288,12 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	normalized, err := normalizeOrderFee(input)
 	if err != nil {
 		return nil, err
+	}
+	// 仅草稿费用可更换结算单位；已建账费用的结算单位不可变，无需重复校验。
+	if current.Status == OrderFeeDraft {
+		if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
+			return nil, err
+		}
 	}
 	switch current.Status {
 	case OrderFeeDraft:

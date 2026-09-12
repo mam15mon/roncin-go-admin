@@ -300,9 +300,20 @@ func (r *settlementRepo) ListFinanceSettlementParties(ctx context.Context, organ
 	if err != nil {
 		return nil, 0, err
 	}
+	partnerIDs := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		partnerIDs = append(partnerIDs, item.ID)
+	}
+	creditSummaries, err := partnerCreditSummaries(ctx, client, organizationID, partnerIDs)
+	if err != nil {
+		return nil, 0, err
+	}
 	result := make([]*biz.FinanceSettlementPartyOption, 0, len(items))
 	for _, item := range items {
-		result = append(result, &biz.FinanceSettlementPartyOption{ID: item.ID.String(), Code: item.Code, Name: item.LegalName, IsCasual: item.IsCasual})
+		result = append(result, &biz.FinanceSettlementPartyOption{
+			ID: item.ID.String(), Code: item.Code, Name: item.LegalName, IsCasual: item.IsCasual,
+			CreditExceeded: biz.PartnerCreditExceeded(creditSummaries[item.ID]),
+		})
 	}
 	return result, int64(total), nil
 }

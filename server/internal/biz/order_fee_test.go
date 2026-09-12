@@ -108,7 +108,7 @@ func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
 	override := decimal.RequireFromString("7.12345678")
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
@@ -124,7 +124,7 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
@@ -147,7 +147,7 @@ func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{rate: decimal.RequireFromString("7.12345678")}
-	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo), nil)
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
@@ -193,7 +193,7 @@ func TestSameOrderFeeCreateIntentAcceptsRetryAndRejectsKeyReuse(t *testing.T) {
 
 func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -214,7 +214,7 @@ func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *tes
 
 func TestCalculateOrderFeeAmountsAddsTaxForExclusivePrice(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -235,6 +235,35 @@ func TestNormalizeOrderFeeRequiresIdempotencyKeyForCreation(t *testing.T) {
 	fee.IdempotencyKey = ""
 	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
 		t.Fatalf("新建费用缺少幂等键应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestOrderFeeCreditGateBlocksExceededReceivablePartyOnly(t *testing.T) {
+	ctx := context.Background()
+	organizationID := uuid.Must(uuid.NewV7())
+	exceededPartyID := uuid.Must(uuid.NewV7())
+	creditLimit := decimal.NewFromInt(100)
+	creditControl := NewPartnerCreditUsecase(&partnerCreditRepoStub{summaries: map[uuid.UUID]*PartnerCreditSummary{
+		exceededPartyID: {PartnerID: exceededPartyID, CreditLimitBase: &creditLimit, UnsettledReceivableBase: decimal.NewFromInt(200)},
+	}}, NewFinanceCustomSettingUsecase(&interventionModeSettingRepo{allowSelection: false}))
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}), nil, creditControl)
+
+	receivable := validOrderFeeForTest()
+	receivable.SettlementPartyID = exceededPartyID
+	if err := usecase.ensureReceivablePartySelectionAllowed(ctx, organizationID, receivable); err != ErrPartnerCreditLimitExceeded {
+		t.Fatalf("直接干预模式下应收费用超额结算单位应被拦截, got %v", err)
+	}
+
+	payable := validOrderFeeForTest()
+	payable.Direction = OrderFeePayable
+	payable.SettlementPartyID = exceededPartyID
+	if err := usecase.ensureReceivablePartySelectionAllowed(ctx, organizationID, payable); err != nil {
+		t.Fatalf("应付方向不占用客户信用额度，不应被拦截: %v", err)
+	}
+
+	reminderUsecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}), nil, newReminderModeCreditControl())
+	if err := reminderUsecase.ensureReceivablePartySelectionAllowed(ctx, organizationID, receivable); err != nil {
+		t.Fatalf("仅提醒模式下超额客户应放行: %v", err)
 	}
 }
 

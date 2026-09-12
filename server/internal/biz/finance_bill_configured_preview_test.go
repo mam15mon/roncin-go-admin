@@ -28,6 +28,10 @@ func (*configuredFinanceBillRepoStub) HydrateBillSettlementAccounts(_ context.Co
 	return nil
 }
 
+func (*configuredFinanceBillRepoStub) GetPartnerCreditSummaries(context.Context, uuid.UUID, []uuid.UUID) (map[uuid.UUID]*PartnerCreditSummary, error) {
+	return map[uuid.UUID]*PartnerCreditSummary{}, nil
+}
+
 func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *testing.T) {
 	organizationID, partyID, accountID := uuid.New(), uuid.New(), uuid.New()
 	cnyFee := financeBillableFeeForTest(partyID, "100", "94", "6", "100")

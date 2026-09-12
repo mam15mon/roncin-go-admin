@@ -138,6 +138,9 @@ type FinanceOrganizationOption struct {
 type FinanceSettlementPartyOption struct {
 	ID, Code, Name string
 	IsCasual       bool
+	// CreditExceeded 表示该往来户已配置信用额度且折本币未核销应收总额超出额度；
+	// 前端仅在直接干预模式下据此置灰禁用，标签文本不得拼进 label。
+	CreditExceeded bool
 }
 
 func validFinanceOrganizationIDs(organizationIDs []uuid.UUID) bool {

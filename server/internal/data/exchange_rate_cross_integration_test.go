@@ -255,7 +255,7 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建费用科目: %v", err)
 	}
-	usecase := biz.NewOrderFeeUsecase(NewOrderFeeRepo(data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(data)), nil)
+	usecase := biz.NewOrderFeeUsecase(NewOrderFeeRepo(data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(data)), nil, biz.NewPartnerCreditUsecase(NewFinanceBillRepo(data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(data))))
 	newFeeInput := func(key string) *biz.OrderFee {
 		return &biz.OrderFee{
 			IdempotencyKey:    "fee-" + key + "-" + suffix,

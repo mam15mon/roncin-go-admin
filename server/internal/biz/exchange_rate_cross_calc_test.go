@@ -135,7 +135,7 @@ func TestResolveOrderFeeExchangeRatePropagatesDerivedSource(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(repo), nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(repo), nil, newReminderModeCreditControl())
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 

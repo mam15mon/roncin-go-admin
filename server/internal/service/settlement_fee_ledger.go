@@ -246,6 +246,58 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 	return ok(ctx, &v1.UpdateBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy)}), nil
 }
 
+func (s *SettlementService) GetCreditLimitControlPolicy(ctx context.Context, _ *v1.GetCreditLimitControlPolicyRequest) (*v1.GetCreditLimitControlPolicyResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
+		return nil, err
+	}
+	policy, err := s.customSettingUsecase.GetCreditLimitControlPolicy(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	// 读取使用 bill.read；是否可编辑必须独立按 bill.update 的当前组织写范围计算，
+	// 不能由前端把任一组织的 update 权限误当作当前组织能力。
+	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true) == nil
+	return ok(ctx, &v1.GetCreditLimitControlPolicyResponse{Data: creditLimitControlPolicyToAPI(policy), CanUpdate: canUpdate}), nil
+}
+
+func (s *SettlementService) UpdateCreditLimitControlPolicy(ctx context.Context, request *v1.UpdateCreditLimitControlPolicyRequest) (*v1.UpdateCreditLimitControlPolicyResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	if request == nil || request.ExpectedVersion == nil {
+		return nil, biz.ErrFinanceCustomSettingInvalidArgument
+	}
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true); err != nil {
+		return nil, err
+	}
+	policy, err := s.customSettingUsecase.UpdateCreditLimitControlPolicy(ctx, principal.Organization.ID, principal.UserID, request.GetAllowSelectionWhenCreditExceeded(), request.GetExpectedVersion().GetValue())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.UpdateCreditLimitControlPolicyResponse{Data: creditLimitControlPolicyToAPI(policy)}), nil
+}
+
+func creditLimitControlPolicyToAPI(policy *biz.CreditLimitControlPolicy) *v1.CreditLimitControlPolicy {
+	if policy == nil {
+		return nil
+	}
+	result := &v1.CreditLimitControlPolicy{OrganizationId: policy.OrganizationID.String(), AllowSelectionWhenCreditExceeded: policy.AllowSelectionWhenCreditExceeded, Version: policy.Version}
+	if policy.UpdatedAt != nil {
+		value := policy.UpdatedAt.UTC().Format(time.RFC3339)
+		result.UpdatedAt = &value
+	}
+	if policy.UpdatedBy != nil {
+		value := policy.UpdatedBy.String()
+		result.UpdatedBy = &value
+	}
+	return result
+}
+
 func billedFeeEditableFieldFromAPI(field v1.BilledFeeEditableField) (biz.BilledFeeEditableField, bool) {
 	switch field {
 	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_FEE_NAME:

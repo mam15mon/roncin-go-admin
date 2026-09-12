@@ -34,6 +34,68 @@ func (r *financeCustomSettingRepo) GetBilledFeeEditPolicy(ctx context.Context, o
 	return financeCustomSettingToPolicy(item), nil
 }
 
+func (r *financeCustomSettingRepo) GetCreditLimitControlPolicy(ctx context.Context, organizationID uuid.UUID) (*biz.CreditLimitControlPolicy, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).Only(ctx)
+	if ent.IsNotFound(err) {
+		return &biz.CreditLimitControlPolicy{OrganizationID: ownerID, AllowSelectionWhenCreditExceeded: true}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return creditLimitControlPolicyToBiz(item), nil
+}
+
+func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.CreditLimitControlPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.CreditLimitControlPolicy, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	var saved *ent.FinanceCustomSetting
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
+		switch {
+		case ent.IsNotFound(queryErr):
+			if expectedVersion != 0 {
+				return biz.ErrFinanceCustomSettingConflict
+			}
+			saved, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).
+				SetCreditLimitSelectionAllowed(policy.AllowSelectionWhenCreditExceeded).
+				SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
+			if queryErr != nil {
+				return mapEntError(queryErr, nil, biz.ErrFinanceCustomSettingConflict)
+			}
+		case queryErr != nil:
+			return queryErr
+		case current.Version != expectedVersion:
+			return biz.ErrFinanceCustomSettingConflict
+		default:
+			saved, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).
+				SetCreditLimitSelectionAllowed(policy.AllowSelectionWhenCreditExceeded).
+				SetVersion(current.Version + 1).SetUpdatedBy(actorID).Save(ctx)
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return creditLimitControlPolicyToBiz(saved), nil
+}
+
 func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.BilledFeeEditPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.BilledFeeEditPolicy, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -106,6 +168,11 @@ func financeCustomSettingToPolicy(item *ent.FinanceCustomSetting) *biz.BilledFee
 	}
 	updatedAt, updatedBy := item.UpdatedAt, item.UpdatedBy
 	return &biz.BilledFeeEditPolicy{OrganizationID: item.OrganizationID, Enabled: item.BilledFeeEditEnabled, EditableFields: fields, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy}
+}
+
+func creditLimitControlPolicyToBiz(item *ent.FinanceCustomSetting) *biz.CreditLimitControlPolicy {
+	updatedAt, updatedBy := item.UpdatedAt, item.UpdatedBy
+	return &biz.CreditLimitControlPolicy{OrganizationID: item.OrganizationID, AllowSelectionWhenCreditExceeded: item.CreditLimitSelectionAllowed, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy}
 }
 
 var _ biz.FinanceCustomSettingRepo = (*financeCustomSettingRepo)(nil)

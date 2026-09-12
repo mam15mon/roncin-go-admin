@@ -232,8 +232,14 @@ type FinanceBillBatchPreviewGroup struct {
 	EstimatedInvoiceAmount                                decimal.Decimal
 	IsCasual                                              bool
 	DefaultPaymentTermsDays                               *int
-	preparedBill                                          *FinanceBill
-	config                                                FinanceBillBatchPreviewGroupConfig
+	// CreditLimitAmount / CreditCurrency / CurrentUnsettledAmount 来自客户角色激活结算规则与
+	// 已确认应收账单折本币未核销总额（本位币口径，仅提醒信息，不在建账入账环节拦截）。
+	CreditLimitAmount      *decimal.Decimal
+	CreditCurrency         *string
+	CurrentUnsettledAmount *decimal.Decimal
+	IsCreditExceeded       bool
+	preparedBill           *FinanceBill
+	config                 FinanceBillBatchPreviewGroupConfig
 }
 
 type FinanceBillBatchPreview struct {
@@ -319,6 +325,31 @@ type FinanceBillRepo interface {
 	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
 	Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*FinanceBill, error)
 	Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
+	// GetPartnerUnsettledReceivableBaseAmount 返回指定往来户在组织内已确认应收账单的折本币未核销总额
+	// （总额 - 有效核销 - 有效对冲，负值钳零），口径与列表汇总的 unverified_base_amount 一致。
+	GetPartnerUnsettledReceivableBaseAmount(ctx context.Context, organizationID, partnerID uuid.UUID) (decimal.Decimal, error)
+	// GetPartnerCreditSummaries 批量返回往来户的默认账期、信用额度（客户角色激活规则）与折本币未核销应收总额。
+	// 未配置客户角色激活规则的往来户同样返回余额，但额度为空，超额判定恒为否。
+	GetPartnerCreditSummaries(ctx context.Context, organizationID uuid.UUID, partnerIDs []uuid.UUID) (map[uuid.UUID]*PartnerCreditSummary, error)
+}
+
+// PartnerCreditSummary 是信用额度判定的输入真相：额度来自客户角色激活结算规则，
+// 未核销余额复用账单未核销折本币口径；多个激活规则取最大额度与最大账期（不收窄商业弹性）。
+type PartnerCreditSummary struct {
+	PartnerID               uuid.UUID
+	DefaultPaymentTermsDays *int
+	CreditLimitBase         *decimal.Decimal
+	CreditCurrency          *string
+	UnsettledReceivableBase decimal.Decimal
+}
+
+// PartnerCreditExceeded 判定往来户是否超额：仅当设置了大于 0 的信用额度且
+// 未核销本币总额严格大于额度时成立；未设额度与散客（不配置额度）不触发。
+func PartnerCreditExceeded(summary *PartnerCreditSummary) bool {
+	if summary == nil || summary.CreditLimitBase == nil || !summary.CreditLimitBase.IsPositive() {
+		return false
+	}
+	return summary.UnsettledReceivableBase.GreaterThan(*summary.CreditLimitBase)
 }
 
 type FinanceBillUsecase struct {
@@ -535,6 +566,11 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 	if err != nil {
 		return nil, err
 	}
+	// 应收叶子注入默认账期与信用额度比对信息：散客默认 0 天已由分组事实硬编码，
+	// 正式客户取客户角色激活规则的默认账期；超额只做预警展示，不在预览或入账环节阻断。
+	if enrichErr := uc.enrichReceivableGroupCreditInfo(ctx, organizationID, preview.Groups); enrichErr != nil {
+		return nil, enrichErr
+	}
 	if uc.exchangeRate == nil {
 		return nil, ErrFinanceBillInvalidArgument
 	}
@@ -630,6 +666,72 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 	}
 	preview.PreviewToken = financeBillConfiguredPreviewToken(organizationID, input.GroupingPolicy, preview.Groups)
 	return preview, nil
+}
+
+// enrichReceivableGroupCreditInfo 为应收叶子补齐默认账期与信用额度比对信息。
+// 仅做信息注入：超额叶子标记 IsCreditExceeded 供前端黄色预警，不改变预览令牌与入账行为。
+func (uc *FinanceBillUsecase) enrichReceivableGroupCreditInfo(ctx context.Context, organizationID uuid.UUID, groups []*FinanceBillBatchPreviewGroup) error {
+	partyIDs := make([]uuid.UUID, 0, len(groups))
+	seen := make(map[uuid.UUID]struct{}, len(groups))
+	for _, group := range groups {
+		if group.Direction != OrderFeeReceivable || group.SettlementPartyID == uuid.Nil {
+			continue
+		}
+		if _, exists := seen[group.SettlementPartyID]; exists {
+			continue
+		}
+		seen[group.SettlementPartyID] = struct{}{}
+		partyIDs = append(partyIDs, group.SettlementPartyID)
+	}
+	if len(partyIDs) == 0 {
+		return nil
+	}
+	summaries, err := uc.repo.GetPartnerCreditSummaries(ctx, organizationID, partyIDs)
+	if err != nil {
+		return err
+	}
+	for _, group := range groups {
+		if group.Direction != OrderFeeReceivable {
+			continue
+		}
+		summary := summaries[group.SettlementPartyID]
+		if summary == nil {
+			continue
+		}
+		// 散客保持硬编码 0 天底线，不读规则；正式客户按主档规则带出，可调整。
+		if !group.IsCasual {
+			group.DefaultPaymentTermsDays = summary.DefaultPaymentTermsDays
+		}
+		unsettled := summary.UnsettledReceivableBase
+		group.CurrentUnsettledAmount = &unsettled
+		group.CreditLimitAmount = summary.CreditLimitBase
+		group.CreditCurrency = summary.CreditCurrency
+		group.IsCreditExceeded = PartnerCreditExceeded(summary)
+	}
+	return nil
+}
+
+// defaultFinanceBillPaymentTermsDays 返回单笔建账写入路径的默认账期注入值，
+// 与预览 enrich（enrichReceivableGroupCreditInfo）完全同口径：散客应收恒 0，
+// 正式客户取客户角色激活规则的默认账期（多条激活规则取最大值，由
+// GetPartnerCreditSummaries 聚合层统一）；无规则、应付方向返回 nil 表示不注入。
+func (uc *FinanceBillUsecase) defaultFinanceBillPaymentTermsDays(ctx context.Context, organizationID uuid.UUID, fee *FinanceBillableFee) (*int, error) {
+	if fee == nil || fee.Fee == nil || fee.Fee.Direction != OrderFeeReceivable {
+		return nil, nil
+	}
+	if fee.SettlementPartyIsCasual {
+		zero := 0
+		return &zero, nil
+	}
+	summaries, err := uc.repo.GetPartnerCreditSummaries(ctx, organizationID, []uuid.UUID{fee.Fee.SettlementPartyID})
+	if err != nil {
+		return nil, err
+	}
+	summary := summaries[fee.Fee.SettlementPartyID]
+	if summary == nil {
+		return nil, nil
+	}
+	return summary.DefaultPaymentTermsDays, nil
 }
 
 // buildFinanceNettingPairs 按结算单位与账单币种汇总叶子毛额，抵销额为双方较小值，
@@ -921,8 +1023,14 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 			bill.IdempotencyKey = financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey)
 			title := groupInput.StatementTitle
 			bill.StatementTitle = &title
-			bill.PaymentTermsDays = groupInput.PaymentTermsDays
-			bill.DueDate = normalizedFinanceBillDueDate(groupInput.BillDate, groupInput.DueDate, groupInput.PaymentTermsDays)
+			// 服务端兜底注入（design 决策 A）：请求未显式提供账期且未提供到期日时，
+			// 按预览同口径注入默认账期并联动到期日；显式账期（含 0）与显式到期日均不覆盖。
+			paymentTermsDays := groupInput.PaymentTermsDays
+			if paymentTermsDays == nil && groupInput.DueDate == nil {
+				paymentTermsDays = previewGroup.DefaultPaymentTermsDays
+			}
+			bill.PaymentTermsDays = paymentTermsDays
+			bill.DueDate = normalizedFinanceBillDueDate(groupInput.BillDate, groupInput.DueDate, paymentTermsDays)
 			bill.Note = normalizedOptionalFinanceString(groupInput.Note)
 			for _, line := range bill.Lines {
 				line.ID = uuid.Must(uuid.NewV7())
@@ -994,6 +1102,26 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 	}
 	var created *FinanceBill
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		fees, transactionErr := uc.repo.LoadBillableFees(txCtx, organizationID, normalized.FeeIDs)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		// 服务端兜底注入（design 决策 A）：API 直录未显式提供账期且未提供到期日时，
+		// 按预览同口径注入默认账期并联动到期日（散客恒 0；正式客户取激活规则默认账期）。
+		// 注入在幂等意图比对之前，使重放请求按注入后的生效值与已存账单比对。
+		if normalized.PaymentTermsDays == nil && normalized.DueDate == nil && len(fees) > 0 {
+			injected, injectErr := uc.defaultFinanceBillPaymentTermsDays(txCtx, organizationID, fees[0])
+			if injectErr != nil {
+				return injectErr
+			}
+			if injected != nil {
+				normalized.PaymentTermsDays = injected
+				normalized.DueDate = normalizedFinanceBillDueDate(normalized.BillDate, nil, injected)
+				if !validFinanceBillTerms(normalized.BillDate, normalized.DueDate, injected) {
+					return ErrFinanceBillInvalidArgument
+				}
+			}
+		}
 		existing, transactionErr := uc.repo.GetByIdempotencyKey(txCtx, organizationID, normalized.IdempotencyKey)
 		if transactionErr != nil {
 			return transactionErr
@@ -1004,10 +1132,6 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 			}
 			created = existing
 			return nil
-		}
-		fees, transactionErr := uc.repo.LoadBillableFees(txCtx, organizationID, normalized.FeeIDs)
-		if transactionErr != nil {
-			return transactionErr
 		}
 		bill, transactionErr := buildFinanceBill(organizationID, fees, normalized)
 		if transactionErr != nil {
