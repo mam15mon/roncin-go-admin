@@ -1259,3 +1259,29 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 48: 应收账期与信用额度消费：设计定稿、实施、评审与收尾
+<!-- trellis-session: v=2 fp=62f349c07e128c63 -->
+
+**Date**: 2026-09-13
+**Task**: 应收账期与信用额度消费：设计定稿、实施、评审与收尾
+**Branch**: `feat/partner-terms-credit`
+
+### Summary
+
+完成 09-11-partner-terms-credit 全流程。设计定稿两项决策：默认账期由服务端兜底注入（方案 A，覆盖 API 直录）；草稿是唯一可编辑状态，创建+草稿编辑双路径预警。实施四阶段：Ent 新增 payment_terms_days 与 credit_limit_selection_allowed（迁移 20260913090000）；CreditLimitControlPolicy 存取（ForUpdate+乐观锁，复用 bill.read/bill.update 权限）；超额判定与账单列表汇总完全同源（billUnsettledPredicate，多激活规则取最大、停用不参与、仅正额度严格大于）；PreviewBatch 与 Create/CreateBatch 写入路径注入默认账期；订单/应收费用草稿路径干预模式硬拦截；财务域选择器禁用+Tag、建账与草稿编辑双预警、伙伴主档维护额度。评审要点：单笔建账幂等重放按注入后生效值比对（规则变更后重放 409），批量按原始哈希返回原件——已知语义差异留档。已知偏差（用户确认接受）：订单域选择器契约无 credit_exceeded 未禁用标注，服务端拦截兜底，partner 域契约扩展记后续任务；顺带遗留：BillEditModal 预警不区分账单方向、编辑路径取单条规则与工作台取最大口径可能不一致（均软提示）。收尾全量门禁 web 634/634 + server 全量 + govulncheck 零漏洞，真实库集成全绿。分支 feat/partner-terms-credit 未合并 main、未推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f77c5dfb` | docs(task): 定稿应收账期回填与编辑预警设计决策 |
+| `45a28db3` | feat(partner,finance): 应收结算规则与自定义设置新增账期与信用管控字段 |
+| `86c0c5a7` | feat(finance): 信用额度管控策略、建账账期兜底注入与直接干预拦截 |
+| `b4959c72` | feat(web): 信用额度预警、选择器禁用与管控策略设置 |
+| `57eb9a44` | docs(task): 同步应收账期任务分支与状态 |
+
+### Status
+
+[OK] **Completed**
