@@ -11,6 +11,7 @@ export const manifestPermissionKeys = [
   'system.user.delete',
   'system.user.authorize_wecom',
   'system.user.authorize_dingtalk',
+  'system.user.dingtalk_invitation.manage',
   'system.user.reset_password',
   'system.role.read',
   'system.role.create',

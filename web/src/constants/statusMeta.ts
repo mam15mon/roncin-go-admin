@@ -1,12 +1,13 @@
-import { createElement } from 'react';
 import { Tag, type TagProps } from 'antd';
+import { createElement } from 'react';
 import {
   AdminUserStatus,
   BackgroundTaskStatus,
+  DingTalkInvitationStatus,
   OrderAbnormalCaseStatus,
   OrderBusinessType,
-  OrderFlowStatus,
   OrderFeeStatus,
+  OrderFlowStatus,
   OrderReleasePodStatus,
   PartnerContractStatus,
 } from '@/enums.generated';
@@ -118,6 +119,25 @@ export const backgroundTaskStatusMeta: Record<number, StatusMeta> = {
   },
 };
 
+export const dingTalkInvitationStatusMeta: Record<number, StatusMeta> = {
+  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING]: {
+    text: '待使用',
+    color: 'processing',
+  },
+  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_CONSUMED]: {
+    text: '已激活',
+    color: 'success',
+  },
+  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_EXPIRED]: {
+    text: '已过期',
+    color: 'default',
+  },
+  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_REVOKED]: {
+    text: '已撤销',
+    color: 'default',
+  },
+};
+
 export const partnerContractStatusMeta: Record<number, StatusMeta> = {
   [PartnerContractStatus.PARTNER_CONTRACT_STATUS_PENDING]: {
     text: '待生效',
@@ -190,7 +210,9 @@ const orderFeeStatusCodes: Record<string, number> = {
 
 function normalizeCode(value: unknown, codes: Record<string, number>): number {
   if (typeof value === 'number') return value;
-  const text = String(value ?? '').trim().toUpperCase();
+  const text = String(value ?? '')
+    .trim()
+    .toUpperCase();
   if (text === '') return 0;
   if (/^\d+$/.test(text)) return Number(text);
   return codes[text] ?? 0;

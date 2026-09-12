@@ -1,6 +1,8 @@
 import {
   ApartmentOutlined,
+  AuditOutlined,
   ClockCircleOutlined,
+  DingdingOutlined,
   HistoryOutlined,
   KeyOutlined,
   SafetyCertificateOutlined,
@@ -12,6 +14,8 @@ import { Alert, Space } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import AuditPanel from './audit';
 import BackgroundTasksPanel from './background-tasks';
+import DingTalkInvitationsPanel from './dingtalk-invitations';
+import DingTalkRegistrationsPanel from './dingtalk-registrations';
 import OrganizationsPanel from './organizations';
 import PermissionsPanel from './permissions';
 import RolesPanel from './roles';
@@ -46,6 +50,30 @@ export default function Admin() {
                 </Space>
               ),
               children: <UsersPanel />,
+            }
+          : null,
+        access.canManageDingTalkInvitations
+          ? {
+              key: 'dingtalk-invitations',
+              tab: (
+                <Space size={6}>
+                  <DingdingOutlined />
+                  <span>钉钉邀请</span>
+                </Space>
+              ),
+              children: <DingTalkInvitationsPanel />,
+            }
+          : null,
+        access.canManageDingTalkInvitations
+          ? {
+              key: 'dingtalk-registrations',
+              tab: (
+                <Space size={6}>
+                  <AuditOutlined />
+                  <span>注册审批</span>
+                </Space>
+              ),
+              children: <DingTalkRegistrationsPanel />,
             }
           : null,
         access.canReadRoles
@@ -127,8 +155,9 @@ export default function Admin() {
     ? activeTab
     : (tabItems[0]?.key ?? '');
 
-  const activeContent = tabItems.find((item) => item.key === currentTabKey)
-    ?.children;
+  const activeContent = tabItems.find(
+    (item) => item.key === currentTabKey,
+  )?.children;
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);

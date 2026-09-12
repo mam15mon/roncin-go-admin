@@ -16,6 +16,7 @@ const permissions = {
   userTerminate: 'system.user.delete',
   userAuthorizeWeCom: 'system.user.authorize_wecom',
   userAuthorizeDingTalk: 'system.user.authorize_dingtalk',
+  userDingTalkInvitationManage: 'system.user.dingtalk_invitation.manage',
   userResetPassword: 'system.user.reset_password',
   roleRead: 'system.role.read',
   roleCreate: 'system.role.create',
@@ -168,6 +169,8 @@ export default function access(
     canManageUserMemberships: has(permissions.userUpdate) && inAll,
     canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom) && inAll,
     canAuthorizeDingTalkUsers: has(permissions.userAuthorizeDingTalk) && inAll,
+    canManageDingTalkInvitations:
+      has(permissions.userDingTalkInvitationManage) && inOrganization,
     canResetUserPasswords: has(permissions.userResetPassword) && inOrganization,
     canReadRoles: has(permissions.roleRead) && inOrganization,
     canCreateRoles: has(permissions.roleCreate) && inOrganization,
@@ -340,6 +343,7 @@ export default function access(
       result.canTerminateUsers ||
       result.canAuthorizeWeComUsers ||
       result.canAuthorizeDingTalkUsers ||
+      result.canManageDingTalkInvitations ||
       result.canResetUserPasswords,
     canManageRoles: result.canCreateRoles || result.canUpdateRoles,
     canManagePartners:

@@ -156,6 +156,11 @@ declare namespace API {
     organizationAccesses?: OrganizationAccess[];
   };
 
+  type AdminServiceApproveDingTalkRegistrationParams = {
+    /** 注册用户的 ID（待审批队列中的 user_id）。 */
+    id: string;
+  };
+
   type AdminServiceAuthorizeDingTalkUserParams = {
     id: string;
   };
@@ -184,6 +189,19 @@ declare namespace API {
     resourceId?: string;
   };
 
+  type AdminServiceListDingTalkInvitationsParams = {
+    page?: number;
+    pageSize?: number;
+    /** 按组织过滤；必须是调用者可写范围内的组织。 */
+    organizationId?: string;
+    status?: number;
+  };
+
+  type AdminServiceListDingTalkRegistrationsParams = {
+    page?: number;
+    pageSize?: number;
+  };
+
   type AdminServiceListOrganizationRolesParams = {
     organizationId: string;
   };
@@ -198,7 +216,15 @@ declare namespace API {
     keyword?: string;
   };
 
+  type AdminServiceRejectDingTalkRegistrationParams = {
+    id: string;
+  };
+
   type AdminServiceResetUserPasswordParams = {
+    id: string;
+  };
+
+  type AdminServiceRevokeDingTalkInvitationParams = {
     id: string;
   };
 
@@ -296,6 +322,21 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
+  };
+
+  type ApproveDingTalkRegistrationRequest = {
+    /** 注册用户的 ID（待审批队列中的 user_id）。 */
+    id: string;
+    /** 同意时授予的初始角色，必须属于注册的目标组织。 */
+    roleIds: string[];
+  };
+
+  type ApproveDingTalkRegistrationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkRegistration;
+    traceId?: string;
   };
 
   type AssignPersonnelRequest = {
@@ -1148,6 +1189,27 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateDingTalkInvitationRequest = {
+    /** 国内手机号；服务端归一化 +86/0086 前缀后按 11 位校验。 */
+    mobile: string;
+    /** 目标组织；必须是调用者可写范围内的组织。 */
+    organizationId: string;
+    /** 激活后授予的初始角色（必须属于目标组织）。 */
+    roleId: string;
+    /** 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。 */
+    displayName?: string;
+    /** 有效期（小时）；缺省 72，允许 1-720。 */
+    expiresInHours?: number;
+  };
+
+  type CreateDingTalkInvitationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkInvitation;
+    traceId?: string;
+  };
+
   type CreateEnterpriseResourceRequest = {
     resource: EnterpriseResourceInput;
   };
@@ -1647,6 +1709,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type DingTalkInvitation = {
+    id?: string;
+    organizationId?: string;
+    organizationName?: string;
+    roleId?: string;
+    roleName?: string;
+    mobileMasked?: string;
+    displayName?: string;
+    status?: number;
+    consumedName?: string;
+    createdAt?: string;
+    expiresAt?: string;
+    inviterName?: string;
+  };
+
   type DingTalkLoginConfig = {
     enabled?: boolean;
     authorizeUrl?: string;
@@ -1669,9 +1746,20 @@ declare namespace API {
     status?: number;
     currentUser?: CurrentUser;
     displayName?: string;
+    /** REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。 */
+    registrationOrganizations?: OrganizationChoice[];
   };
 
   type DingTalkRegistration = {
+    userId?: string;
+    displayName?: string;
+    avatarUrl?: string;
+    requestedOrganizationId?: string;
+    requestedOrganizationName?: string;
+    registeredAt?: string;
+  };
+
+  type DingTalkRegistrationConfirmation = {
     displayName?: string;
     status?: string;
   };
@@ -3194,6 +3282,28 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListDingTalkInvitationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkInvitation[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListDingTalkRegistrationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkRegistration[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
   };
 
   type ListEnterpriseResourceRegionOptionsResponse = {
@@ -5370,13 +5480,16 @@ declare namespace API {
     traceId?: string;
   };
 
-  type RegisterDingTalkUserRequest = {};
+  type RegisterDingTalkUserRequest = {
+    /** 可选：自选要加入的目标公司；缺省走总部兜底（通知总部管理员审批）。 */
+    organizationId?: string;
+  };
 
   type RegisterDingTalkUserResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: DingTalkRegistration;
+    data?: DingTalkRegistrationConfirmation;
     traceId?: string;
   };
 
@@ -5395,6 +5508,18 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: PartnerAttachment;
+    traceId?: string;
+  };
+
+  type RejectDingTalkRegistrationRequest = {
+    id: string;
+    reason: string;
+  };
+
+  type RejectDingTalkRegistrationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
     traceId?: string;
   };
 
@@ -5566,6 +5691,13 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceVerification;
+    traceId?: string;
+  };
+
+  type RevokeDingTalkInvitationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
     traceId?: string;
   };
 
