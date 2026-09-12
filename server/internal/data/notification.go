@@ -101,7 +101,7 @@ func enqueueDingTalkRegistrationPendingNotifications(ctx context.Context, tx *en
 	if len(recipientUserIDs) == 0 {
 		return nil
 	}
-	referenceCode, parameter := clampNotificationText(registrantName), clampNotificationText(organizationName)
+	referenceCode, parameter := clampNotificationBytes(registrantName, 64), clampNotificationBytes(organizationName, 256)
 	if referenceCode == "" || parameter == "" {
 		return nil
 	}
@@ -144,7 +144,7 @@ func enqueueDingTalkRegistrationRejectedNotification(ctx context.Context, tx *en
 	if intent == nil || intent.ID == uuid.Nil || intent.RecipientUserID != recipient.ID || intent.Channel != biz.NotificationChannelDingTalk || intent.Template != biz.NotificationTemplateDingTalkRegistrationRejected {
 		return fmt.Errorf("注册拒绝通知意图不合法")
 	}
-	return createDingTalkNotificationDelivery(ctx, tx, organizationID, recipient.ID, notificationent.TemplateDINGTALK_REGISTRATION_REJECTED, "USER", recipient.ID, "", clampNotificationText(reason), intent.ID)
+	return createDingTalkNotificationDelivery(ctx, tx, organizationID, recipient.ID, notificationent.TemplateDINGTALK_REGISTRATION_REJECTED, "USER", recipient.ID, "", clampNotificationBytes(reason, 256), intent.ID)
 }
 
 // enqueueDingTalkInvitationActivatedNotification 通知邀请人其邀请的员工已自动激活。
@@ -152,7 +152,7 @@ func enqueueDingTalkInvitationActivatedNotification(ctx context.Context, tx *ent
 	if intent == nil || intent.ID == uuid.Nil || intent.RecipientUserID != recipient.ID || intent.Channel != biz.NotificationChannelDingTalk || intent.Template != biz.NotificationTemplateDingTalkInvitationActivated {
 		return fmt.Errorf("邀请激活通知意图不合法")
 	}
-	referenceCode, parameter := clampNotificationText(activatedName), clampNotificationText(organizationName)
+	referenceCode, parameter := clampNotificationBytes(activatedName, 64), clampNotificationBytes(organizationName, 256)
 	if referenceCode == "" || parameter == "" {
 		return nil
 	}
@@ -191,14 +191,21 @@ func createDingTalkNotificationDelivery(ctx context.Context, tx *ent.Tx, organiz
 	return err
 }
 
-// clampNotificationText 把通知明细文本截断到字段上限（64 个字符），按字符截断避免
-// 超长组织名或拒绝原因导致入库失败。
-func clampNotificationText(value string) string {
+// clampNotificationBytes 把通知明细文本按字节上限安全截断，在 UTF-8 字符边界对齐，
+// 避免多字节字符截断损坏以及超出 Ent MaxLen(字节数) 导致的入库失败。
+func clampNotificationBytes(value string, maxBytes int) string {
 	value = strings.TrimSpace(value)
-	if utf8.RuneCountInString(value) <= 64 {
+	if maxBytes <= 0 {
+		return ""
+	}
+	if len(value) <= maxBytes {
 		return value
 	}
-	return string([]rune(value)[:64])
+	idx := maxBytes
+	for idx > 0 && !utf8.RuneStart(value[idx]) {
+		idx--
+	}
+	return strings.TrimSpace(value[:idx])
 }
 
 // dingTalkNotificationNamespace 用于派生确定性通知任务 ID（注册审批提醒按

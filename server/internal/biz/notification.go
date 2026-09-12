@@ -179,6 +179,10 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 		if delivery.ResourceType != "USER" || registrantName == "" || organizationName == "" {
 			return "", fmt.Errorf("通知明细不完整")
 		}
+		if strings.HasSuffix(organizationName, DingTalkEscalatedOrgSuffix) {
+			rawOrgName := strings.TrimSuffix(organizationName, DingTalkEscalatedOrgSuffix)
+			return fmt.Sprintf("【%s新员工待审批%s】\n%s 申请加入组织：%s\n请登录 Roncin 管理后台的钉钉注册审批队列处理。", rawOrgName, DingTalkEscalatedOrgSuffix, registrantName, rawOrgName), nil
+		}
 		return fmt.Sprintf("【Roncin 新成员注册待审批】\n%s 申请加入组织：%s\n请登录 Roncin 管理后台的钉钉注册审批队列处理。", registrantName, organizationName), nil
 	case NotificationTemplateDingTalkRegistrationRejected:
 		displayName := strings.TrimSpace(delivery.RecipientDisplayName)

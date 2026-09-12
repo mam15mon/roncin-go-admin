@@ -2814,7 +2814,7 @@ var (
 		{Name: "resource_type", Type: field.TypeString, Size: 64},
 		{Name: "resource_id", Type: field.TypeUUID},
 		{Name: "reference_code", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "parameter", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "parameter", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "external_message_id", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "background_task_id", Type: field.TypeUUID, Unique: true},
 		{Name: "recipient_user_id", Type: field.TypeUUID},

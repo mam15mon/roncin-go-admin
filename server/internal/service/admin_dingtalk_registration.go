@@ -52,7 +52,27 @@ func (s *AdminService) CreateDingTalkInvitation(ctx context.Context, request *v1
 	}
 	invitationURL := "/login?invite=" + created.Token
 	return ok(ctx, &v1.CreateDingTalkInvitationResponse{
-		Data:          dingTalkInvitationToAPI(created),
+		Data:          dingTalkInvitationToAPI(created, true),
+		InvitationUrl: invitationURL,
+	}), nil
+}
+
+func (s *AdminService) GetDingTalkInvitation(ctx context.Context, request *v1.GetDingTalkInvitationRequest) (*v1.GetDingTalkInvitationResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	invitationID, err := uuid.Parse(strings.TrimSpace(request.GetId()))
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	invitation, err := s.dingTalkRegistrations.GetInvitation(ctx, principal, invitationID)
+	if err != nil {
+		return nil, err
+	}
+	invitationURL := "/login?invite=" + invitation.Token
+	return ok(ctx, &v1.GetDingTalkInvitationResponse{
+		Data:          dingTalkInvitationToAPI(invitation, true),
 		InvitationUrl: invitationURL,
 	}), nil
 }
@@ -87,7 +107,7 @@ func (s *AdminService) ListDingTalkInvitations(ctx context.Context, request *v1.
 	}
 	data := make([]*v1.DingTalkInvitation, 0, len(list.Items))
 	for _, item := range list.Items {
-		data = append(data, dingTalkInvitationToAPI(item))
+		data = append(data, dingTalkInvitationToAPI(item, false))
 	}
 	return okList(ctx, &v1.ListDingTalkInvitationsResponse{Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
@@ -185,6 +205,26 @@ func (s *AdminService) TransferDingTalkRegistration(ctx context.Context, request
 	return ok(ctx, &v1.TransferDingTalkRegistrationResponse{}), nil
 }
 
+func (s *AdminService) ListTransferOrganizations(ctx context.Context, _ *v1.ListTransferOrganizationsRequest) (*v1.ListTransferOrganizationsResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	choices, err := s.dingTalkRegistrations.ListTransferOrganizations(ctx, principal)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.AdminOrganization, 0, len(choices))
+	for _, choice := range choices {
+		data = append(data, &v1.AdminOrganization{
+			Id:   choice.OrganizationID.String(),
+			Name: choice.OrganizationName,
+			Code: choice.OrganizationCode,
+		})
+	}
+	return ok(ctx, &v1.ListTransferOrganizationsResponse{Data: data}), nil
+}
+
 func dingTalkInvitationStatusFromAPI(value v1.DingTalkInvitationStatus) (biz.DingTalkInvitationStatus, error) {
 	switch value {
 	case v1.DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_PENDING:
@@ -216,7 +256,8 @@ func dingTalkInvitationStatusToAPI(value biz.DingTalkInvitationStatus) v1.DingTa
 }
 
 // dingTalkInvitationToAPI 输出邀请视图；手机号在此统一脱敏，完整号码不出服务端。
-func dingTalkInvitationToAPI(value *biz.DingTalkInvitation) *v1.DingTalkInvitation {
+// 列表接口传 includeToken=false，避免明文批量泄漏 Token；创建与单条查询按需返回。
+func dingTalkInvitationToAPI(value *biz.DingTalkInvitation, includeToken bool) *v1.DingTalkInvitation {
 	if value == nil {
 		return nil
 	}
@@ -224,9 +265,13 @@ func dingTalkInvitationToAPI(value *biz.DingTalkInvitation) *v1.DingTalkInvitati
 	if value.Kind == biz.DingTalkInvitationKindGeneric {
 		kind = v1.DingTalkInvitationKind_DING_TALK_INVITATION_KIND_GENERIC
 	}
+	token := ""
+	if includeToken {
+		token = value.Token
+	}
 	result := &v1.DingTalkInvitation{
 		Id:               value.ID.String(),
-		Token:            value.Token,
+		Token:            token,
 		Kind:             kind,
 		OrganizationId:   value.OrganizationID.String(),
 		OrganizationName: value.OrganizationName,

@@ -26,6 +26,7 @@ const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
 const OperationAdminServiceCreateUser = "/admin.v1.AdminService/CreateUser"
 const OperationAdminServiceCreateUserMembership = "/admin.v1.AdminService/CreateUserMembership"
 const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/DeleteUserMembership"
+const OperationAdminServiceGetDingTalkInvitation = "/admin.v1.AdminService/GetDingTalkInvitation"
 const OperationAdminServiceListAuditLogs = "/admin.v1.AdminService/ListAuditLogs"
 const OperationAdminServiceListDingTalkInvitations = "/admin.v1.AdminService/ListDingTalkInvitations"
 const OperationAdminServiceListDingTalkRegistrations = "/admin.v1.AdminService/ListDingTalkRegistrations"
@@ -33,6 +34,7 @@ const OperationAdminServiceListOrganizationRoles = "/admin.v1.AdminService/ListO
 const OperationAdminServiceListOrganizations = "/admin.v1.AdminService/ListOrganizations"
 const OperationAdminServiceListPermissions = "/admin.v1.AdminService/ListPermissions"
 const OperationAdminServiceListRoles = "/admin.v1.AdminService/ListRoles"
+const OperationAdminServiceListTransferOrganizations = "/admin.v1.AdminService/ListTransferOrganizations"
 const OperationAdminServiceListUserMemberships = "/admin.v1.AdminService/ListUserMemberships"
 const OperationAdminServiceListUsers = "/admin.v1.AdminService/ListUsers"
 const OperationAdminServiceRejectDingTalkRegistration = "/admin.v1.AdminService/RejectDingTalkRegistration"
@@ -57,6 +59,8 @@ type AdminServiceHTTPServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
+	// GetDingTalkInvitation GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
+	GetDingTalkInvitation(context.Context, *GetDingTalkInvitationRequest) (*GetDingTalkInvitationResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	ListDingTalkInvitations(context.Context, *ListDingTalkInvitationsRequest) (*ListDingTalkInvitationsResponse, error)
 	// ListDingTalkRegistrations ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
@@ -65,6 +69,8 @@ type AdminServiceHTTPServer interface {
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	// ListTransferOrganizations ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
+	ListTransferOrganizations(context.Context, *ListTransferOrganizationsRequest) (*ListTransferOrganizationsResponse, error)
 	ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	RejectDingTalkRegistration(context.Context, *RejectDingTalkRegistrationRequest) (*RejectDingTalkRegistrationResponse, error)
@@ -105,7 +111,9 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/admin/dingtalk/invitations", _AdminService_CreateDingTalkInvitation0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/dingtalk/invitations", _AdminService_ListDingTalkInvitations0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/admin/dingtalk/invitations/{id}", _AdminService_RevokeDingTalkInvitation0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/admin/dingtalk/invitations/{id}", _AdminService_GetDingTalkInvitation0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/dingtalk/registrations", _AdminService_ListDingTalkRegistrations0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/admin/dingtalk/registrations/organizations", _AdminService_ListTransferOrganizations0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{id}/approval", _AdminService_ApproveDingTalkRegistration0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{id}/rejection", _AdminService_RejectDingTalkRegistration0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{user_id}/transfer", _AdminService_TransferDingTalkRegistration0_HTTP_Handler(srv))
@@ -587,6 +595,28 @@ func _AdminService_RevokeDingTalkInvitation0_HTTP_Handler(srv AdminServiceHTTPSe
 	}
 }
 
+func _AdminService_GetDingTalkInvitation0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDingTalkInvitationRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceGetDingTalkInvitation)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDingTalkInvitation(ctx, req.(*GetDingTalkInvitationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDingTalkInvitationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AdminService_ListDingTalkRegistrations0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListDingTalkRegistrationsRequest
@@ -602,6 +632,25 @@ func _AdminService_ListDingTalkRegistrations0_HTTP_Handler(srv AdminServiceHTTPS
 			return err
 		}
 		reply := out.(*ListDingTalkRegistrationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_ListTransferOrganizations0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListTransferOrganizationsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceListTransferOrganizations)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListTransferOrganizations(ctx, req.(*ListTransferOrganizationsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListTransferOrganizationsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -684,6 +733,8 @@ type AdminServiceHTTPClient interface {
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserResponse, err error)
 	CreateUserMembership(ctx context.Context, req *CreateUserMembershipRequest, opts ...http.CallOption) (rsp *CreateUserMembershipResponse, err error)
 	DeleteUserMembership(ctx context.Context, req *DeleteUserMembershipRequest, opts ...http.CallOption) (rsp *DeleteUserMembershipResponse, err error)
+	// GetDingTalkInvitation GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
+	GetDingTalkInvitation(ctx context.Context, req *GetDingTalkInvitationRequest, opts ...http.CallOption) (rsp *GetDingTalkInvitationResponse, err error)
 	ListAuditLogs(ctx context.Context, req *ListAuditLogsRequest, opts ...http.CallOption) (rsp *ListAuditLogsResponse, err error)
 	ListDingTalkInvitations(ctx context.Context, req *ListDingTalkInvitationsRequest, opts ...http.CallOption) (rsp *ListDingTalkInvitationsResponse, err error)
 	// ListDingTalkRegistrations ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
@@ -692,6 +743,8 @@ type AdminServiceHTTPClient interface {
 	ListOrganizations(ctx context.Context, req *ListOrganizationsRequest, opts ...http.CallOption) (rsp *ListOrganizationsResponse, err error)
 	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *ListPermissionsResponse, err error)
 	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *ListRolesResponse, err error)
+	// ListTransferOrganizations ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
+	ListTransferOrganizations(ctx context.Context, req *ListTransferOrganizationsRequest, opts ...http.CallOption) (rsp *ListTransferOrganizationsResponse, err error)
 	ListUserMemberships(ctx context.Context, req *ListUserMembershipsRequest, opts ...http.CallOption) (rsp *ListUserMembershipsResponse, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersResponse, err error)
 	RejectDingTalkRegistration(ctx context.Context, req *RejectDingTalkRegistrationRequest, opts ...http.CallOption) (rsp *RejectDingTalkRegistrationResponse, err error)
@@ -869,6 +922,23 @@ func (c *AdminServiceHTTPClientImpl) DeleteUserMembership(ctx context.Context, i
 	return &out, nil
 }
 
+// GetDingTalkInvitation GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
+func (c *AdminServiceHTTPClientImpl) GetDingTalkInvitation(ctx context.Context, in *GetDingTalkInvitationRequest, opts ...http.CallOption) (*GetDingTalkInvitationResponse, error) {
+	var out GetDingTalkInvitationResponse
+	pattern := "/api/v1/admin/dingtalk/invitations/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceGetDingTalkInvitation),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AdminServiceHTTPClientImpl) ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...http.CallOption) (*ListAuditLogsResponse, error) {
 	var out ListAuditLogsResponse
 	pattern := "/api/v1/admin/audit-logs"
@@ -973,6 +1043,23 @@ func (c *AdminServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRole
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAdminServiceListRoles),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListTransferOrganizations ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
+func (c *AdminServiceHTTPClientImpl) ListTransferOrganizations(ctx context.Context, in *ListTransferOrganizationsRequest, opts ...http.CallOption) (*ListTransferOrganizationsResponse, error) {
+	var out ListTransferOrganizationsResponse
+	pattern := "/api/v1/admin/dingtalk/registrations/organizations"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceListTransferOrganizations),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

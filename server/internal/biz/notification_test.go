@@ -126,5 +126,30 @@ func TestNotificationProcessNextRecordsRetryOnSendFailure(t *testing.T) {
 	}
 }
 
+func TestRenderDingTalkRegistrationPendingNotificationEscalated(t *testing.T) {
+	delivery := &NotificationDelivery{
+		RecipientUserID:      uuid.New(),
+		RecipientDisplayName: "总部管理员",
+		DingTalkUserID:       "hq-admin-ding-id",
+		Channel:              NotificationChannelDingTalk,
+		Template:             NotificationTemplateDingTalkRegistrationPending,
+		ResourceType:         "USER",
+		ResourceID:           uuid.New(),
+		ReferenceCode:        "张三",
+		Parameter:            "青岛分公司" + DingTalkEscalatedOrgSuffix,
+	}
+	content, err := renderNotification(delivery)
+	if err != nil {
+		t.Fatalf("renderNotification error = %v", err)
+	}
+	expectedTitle := "【青岛分公司新员工待审批（该组织暂无管理员，由总部代管审批）】"
+	if !strings.Contains(content, expectedTitle) {
+		t.Fatalf("通知卡片未包含代管标题 %q: %s", expectedTitle, content)
+	}
+	if !strings.Contains(content, "张三 申请加入组织：青岛分公司") {
+		t.Fatalf("通知正文未正确剥离后缀: %s", content)
+	}
+}
+
 var _ NotificationRepo = (*notificationRepoStub)(nil)
 var _ DingTalkNotificationSender = (*dingTalkNotificationSenderStub)(nil)

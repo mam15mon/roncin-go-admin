@@ -3920,7 +3920,7 @@ type CreateDingTalkInvitationRequest struct {
 	RoleId *string `protobuf:"bytes,4,opt,name=role_id,json=roleId,proto3,oneof" json:"role_id,omitempty"`
 	// 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
 	DisplayName *string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// 有效期（小时）；缺省 72，允许 1-720。
+	// 有效期（小时）；缺省 168（7 天），允许 1-720。
 	ExpiresInHours *int32 `protobuf:"varint,6,opt,name=expires_in_hours,json=expiresInHours,proto3,oneof" json:"expires_in_hours,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -4251,6 +4251,246 @@ func (x *ListDingTalkInvitationsResponse) GetTraceId() string {
 	return ""
 }
 
+type GetDingTalkInvitationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDingTalkInvitationRequest) Reset() {
+	*x = GetDingTalkInvitationRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDingTalkInvitationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDingTalkInvitationRequest) ProtoMessage() {}
+
+func (x *GetDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDingTalkInvitationRequest.ProtoReflect.Descriptor instead.
+func (*GetDingTalkInvitationRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *GetDingTalkInvitationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetDingTalkInvitationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkInvitation    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	InvitationUrl string                 `protobuf:"bytes,5,opt,name=invitation_url,json=invitationUrl,proto3" json:"invitation_url,omitempty"`
+	TraceId       string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDingTalkInvitationResponse) Reset() {
+	*x = GetDingTalkInvitationResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDingTalkInvitationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDingTalkInvitationResponse) ProtoMessage() {}
+
+func (x *GetDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDingTalkInvitationResponse.ProtoReflect.Descriptor instead.
+func (*GetDingTalkInvitationResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetDingTalkInvitationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetDingTalkInvitationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetDingTalkInvitationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetDingTalkInvitationResponse) GetData() *DingTalkInvitation {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetDingTalkInvitationResponse) GetInvitationUrl() string {
+	if x != nil {
+		return x.InvitationUrl
+	}
+	return ""
+}
+
+func (x *GetDingTalkInvitationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ListTransferOrganizationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTransferOrganizationsRequest) Reset() {
+	*x = ListTransferOrganizationsRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTransferOrganizationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTransferOrganizationsRequest) ProtoMessage() {}
+
+func (x *ListTransferOrganizationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTransferOrganizationsRequest.ProtoReflect.Descriptor instead.
+func (*ListTransferOrganizationsRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
+}
+
+type ListTransferOrganizationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*AdminOrganization   `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTransferOrganizationsResponse) Reset() {
+	*x = ListTransferOrganizationsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTransferOrganizationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTransferOrganizationsResponse) ProtoMessage() {}
+
+func (x *ListTransferOrganizationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTransferOrganizationsResponse.ProtoReflect.Descriptor instead.
+func (*ListTransferOrganizationsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListTransferOrganizationsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListTransferOrganizationsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListTransferOrganizationsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListTransferOrganizationsResponse) GetData() []*AdminOrganization {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListTransferOrganizationsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type RevokeDingTalkInvitationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -4260,7 +4500,7 @@ type RevokeDingTalkInvitationRequest struct {
 
 func (x *RevokeDingTalkInvitationRequest) Reset() {
 	*x = RevokeDingTalkInvitationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4272,7 +4512,7 @@ func (x *RevokeDingTalkInvitationRequest) String() string {
 func (*RevokeDingTalkInvitationRequest) ProtoMessage() {}
 
 func (x *RevokeDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4285,7 +4525,7 @@ func (x *RevokeDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeDingTalkInvitationRequest.ProtoReflect.Descriptor instead.
 func (*RevokeDingTalkInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *RevokeDingTalkInvitationRequest) GetId() string {
@@ -4307,7 +4547,7 @@ type RevokeDingTalkInvitationResponse struct {
 
 func (x *RevokeDingTalkInvitationResponse) Reset() {
 	*x = RevokeDingTalkInvitationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4319,7 +4559,7 @@ func (x *RevokeDingTalkInvitationResponse) String() string {
 func (*RevokeDingTalkInvitationResponse) ProtoMessage() {}
 
 func (x *RevokeDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4332,7 +4572,7 @@ func (x *RevokeDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeDingTalkInvitationResponse.ProtoReflect.Descriptor instead.
 func (*RevokeDingTalkInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *RevokeDingTalkInvitationResponse) GetSuccess() bool {
@@ -4386,7 +4626,7 @@ type DingTalkInvitation struct {
 
 func (x *DingTalkInvitation) Reset() {
 	*x = DingTalkInvitation{}
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4398,7 +4638,7 @@ func (x *DingTalkInvitation) String() string {
 func (*DingTalkInvitation) ProtoMessage() {}
 
 func (x *DingTalkInvitation) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4411,7 +4651,7 @@ func (x *DingTalkInvitation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkInvitation.ProtoReflect.Descriptor instead.
 func (*DingTalkInvitation) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *DingTalkInvitation) GetId() string {
@@ -4523,7 +4763,7 @@ type TransferDingTalkRegistrationRequest struct {
 
 func (x *TransferDingTalkRegistrationRequest) Reset() {
 	*x = TransferDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4535,7 +4775,7 @@ func (x *TransferDingTalkRegistrationRequest) String() string {
 func (*TransferDingTalkRegistrationRequest) ProtoMessage() {}
 
 func (x *TransferDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4548,7 +4788,7 @@ func (x *TransferDingTalkRegistrationRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use TransferDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*TransferDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *TransferDingTalkRegistrationRequest) GetUserId() string {
@@ -4584,7 +4824,7 @@ type TransferDingTalkRegistrationResponse struct {
 
 func (x *TransferDingTalkRegistrationResponse) Reset() {
 	*x = TransferDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
+	mi := &file_admin_v1_admin_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4596,7 +4836,7 @@ func (x *TransferDingTalkRegistrationResponse) String() string {
 func (*TransferDingTalkRegistrationResponse) ProtoMessage() {}
 
 func (x *TransferDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
+	mi := &file_admin_v1_admin_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4609,7 +4849,7 @@ func (x *TransferDingTalkRegistrationResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use TransferDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*TransferDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *TransferDingTalkRegistrationResponse) GetSuccess() bool {
@@ -4650,7 +4890,7 @@ type ListDingTalkRegistrationsRequest struct {
 
 func (x *ListDingTalkRegistrationsRequest) Reset() {
 	*x = ListDingTalkRegistrationsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4662,7 +4902,7 @@ func (x *ListDingTalkRegistrationsRequest) String() string {
 func (*ListDingTalkRegistrationsRequest) ProtoMessage() {}
 
 func (x *ListDingTalkRegistrationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4675,7 +4915,7 @@ func (x *ListDingTalkRegistrationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDingTalkRegistrationsRequest.ProtoReflect.Descriptor instead.
 func (*ListDingTalkRegistrationsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ListDingTalkRegistrationsRequest) GetPage() int32 {
@@ -4707,7 +4947,7 @@ type DingTalkRegistration struct {
 
 func (x *DingTalkRegistration) Reset() {
 	*x = DingTalkRegistration{}
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
+	mi := &file_admin_v1_admin_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4719,7 +4959,7 @@ func (x *DingTalkRegistration) String() string {
 func (*DingTalkRegistration) ProtoMessage() {}
 
 func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
+	mi := &file_admin_v1_admin_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4732,7 +4972,7 @@ func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkRegistration.ProtoReflect.Descriptor instead.
 func (*DingTalkRegistration) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *DingTalkRegistration) GetUserId() string {
@@ -4793,7 +5033,7 @@ type ListDingTalkRegistrationsResponse struct {
 
 func (x *ListDingTalkRegistrationsResponse) Reset() {
 	*x = ListDingTalkRegistrationsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	mi := &file_admin_v1_admin_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4805,7 +5045,7 @@ func (x *ListDingTalkRegistrationsResponse) String() string {
 func (*ListDingTalkRegistrationsResponse) ProtoMessage() {}
 
 func (x *ListDingTalkRegistrationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	mi := &file_admin_v1_admin_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4818,7 +5058,7 @@ func (x *ListDingTalkRegistrationsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListDingTalkRegistrationsResponse.ProtoReflect.Descriptor instead.
 func (*ListDingTalkRegistrationsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListDingTalkRegistrationsResponse) GetSuccess() bool {
@@ -4889,7 +5129,7 @@ type ApproveDingTalkRegistrationRequest struct {
 
 func (x *ApproveDingTalkRegistrationRequest) Reset() {
 	*x = ApproveDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	mi := &file_admin_v1_admin_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4901,7 +5141,7 @@ func (x *ApproveDingTalkRegistrationRequest) String() string {
 func (*ApproveDingTalkRegistrationRequest) ProtoMessage() {}
 
 func (x *ApproveDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	mi := &file_admin_v1_admin_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4914,7 +5154,7 @@ func (x *ApproveDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ApproveDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*ApproveDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{59}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ApproveDingTalkRegistrationRequest) GetId() string {
@@ -4944,7 +5184,7 @@ type ApproveDingTalkRegistrationResponse struct {
 
 func (x *ApproveDingTalkRegistrationResponse) Reset() {
 	*x = ApproveDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	mi := &file_admin_v1_admin_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4956,7 +5196,7 @@ func (x *ApproveDingTalkRegistrationResponse) String() string {
 func (*ApproveDingTalkRegistrationResponse) ProtoMessage() {}
 
 func (x *ApproveDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	mi := &file_admin_v1_admin_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4969,7 +5209,7 @@ func (x *ApproveDingTalkRegistrationResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ApproveDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*ApproveDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ApproveDingTalkRegistrationResponse) GetSuccess() bool {
@@ -5017,7 +5257,7 @@ type RejectDingTalkRegistrationRequest struct {
 
 func (x *RejectDingTalkRegistrationRequest) Reset() {
 	*x = RejectDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[61]
+	mi := &file_admin_v1_admin_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5029,7 +5269,7 @@ func (x *RejectDingTalkRegistrationRequest) String() string {
 func (*RejectDingTalkRegistrationRequest) ProtoMessage() {}
 
 func (x *RejectDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[61]
+	mi := &file_admin_v1_admin_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5042,7 +5282,7 @@ func (x *RejectDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use RejectDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*RejectDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{61}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *RejectDingTalkRegistrationRequest) GetId() string {
@@ -5071,7 +5311,7 @@ type RejectDingTalkRegistrationResponse struct {
 
 func (x *RejectDingTalkRegistrationResponse) Reset() {
 	*x = RejectDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[62]
+	mi := &file_admin_v1_admin_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5083,7 +5323,7 @@ func (x *RejectDingTalkRegistrationResponse) String() string {
 func (*RejectDingTalkRegistrationResponse) ProtoMessage() {}
 
 func (x *RejectDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[62]
+	mi := &file_admin_v1_admin_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5096,7 +5336,7 @@ func (x *RejectDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use RejectDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*RejectDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{62}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *RejectDingTalkRegistrationResponse) GetSuccess() bool {
@@ -5503,7 +5743,23 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"6\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"3\n" +
+	"\x1cGetDingTalkInvitationRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xdb\x01\n" +
+	"\x1dGetDingTalkInvitationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.admin.v1.DingTalkInvitationR\x04data\x12%\n" +
+	"\x0einvitation_url\x18\x05 \x01(\tR\rinvitationUrl\x12\x19\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\"\n" +
+	" ListTransferOrganizationsRequest\"\xb7\x01\n" +
+	"!ListTransferOrganizationsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x03(\v2\x1b.admin.v1.AdminOrganizationR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"6\n" +
 	"\x1fRevokeDingTalkInvitationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x85\x01\n" +
 	" RevokeDingTalkInvitationResponse\x12\x18\n" +
@@ -5612,7 +5868,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x16DingTalkInvitationKind\x12)\n" +
 	"%DING_TALK_INVITATION_KIND_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"DING_TALK_INVITATION_KIND_TARGETED\x10\x01\x12%\n" +
-	"!DING_TALK_INVITATION_KIND_GENERIC\x10\x022\xfa%\n" +
+	"!DING_TALK_INVITATION_KIND_GENERIC\x10\x022\xa9)\n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -5640,8 +5896,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\rListAuditLogs\x12\x1e.admin.v1.ListAuditLogsRequest\x1a\x1f.admin.v1.ListAuditLogsResponse\";\x82\xb5\x18\x17\b\x03\x12\x11system.audit.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/admin/audit-logs\x12\xd0\x01\n" +
 	"\x18CreateDingTalkInvitation\x12).admin.v1.CreateDingTalkInvitationRequest\x1a*.admin.v1.CreateDingTalkInvitationResponse\"]\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/admin/dingtalk/invitations\x12\xca\x01\n" +
 	"\x17ListDingTalkInvitations\x12(.admin.v1.ListDingTalkInvitationsRequest\x1a).admin.v1.ListDingTalkInvitationsResponse\"Z\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/admin/dingtalk/invitations\x12\xd2\x01\n" +
-	"\x18RevokeDingTalkInvitation\x12).admin.v1.RevokeDingTalkInvitationRequest\x1a*.admin.v1.RevokeDingTalkInvitationResponse\"_\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02)*'/api/v1/admin/dingtalk/invitations/{id}\x12\xd2\x01\n" +
-	"\x19ListDingTalkRegistrations\x12*.admin.v1.ListDingTalkRegistrationsRequest\x1a+.admin.v1.ListDingTalkRegistrationsResponse\"\\\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/admin/dingtalk/registrations\x12\xe9\x01\n" +
+	"\x18RevokeDingTalkInvitation\x12).admin.v1.RevokeDingTalkInvitationRequest\x1a*.admin.v1.RevokeDingTalkInvitationResponse\"_\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02)*'/api/v1/admin/dingtalk/invitations/{id}\x12\xc9\x01\n" +
+	"\x15GetDingTalkInvitation\x12&.admin.v1.GetDingTalkInvitationRequest\x1a'.admin.v1.GetDingTalkInvitationResponse\"_\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/admin/dingtalk/invitations/{id}\x12\xd2\x01\n" +
+	"\x19ListDingTalkRegistrations\x12*.admin.v1.ListDingTalkRegistrationsRequest\x1a+.admin.v1.ListDingTalkRegistrationsResponse\"\\\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/admin/dingtalk/registrations\x12\xe0\x01\n" +
+	"\x19ListTransferOrganizations\x12*.admin.v1.ListTransferOrganizationsRequest\x1a+.admin.v1.ListTransferOrganizationsResponse\"j\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x024\x122/api/v1/admin/dingtalk/registrations/organizations\x12\xe9\x01\n" +
 	"\x1bApproveDingTalkRegistration\x12,.admin.v1.ApproveDingTalkRegistrationRequest\x1a-.admin.v1.ApproveDingTalkRegistrationResponse\"m\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/admin/dingtalk/registrations/{id}/approval\x12\xe7\x01\n" +
 	"\x1aRejectDingTalkRegistration\x12+.admin.v1.RejectDingTalkRegistrationRequest\x1a,.admin.v1.RejectDingTalkRegistrationResponse\"n\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/admin/dingtalk/registrations/{id}/rejection\x12\xf1\x01\n" +
 	"\x1cTransferDingTalkRegistration\x12-.admin.v1.TransferDingTalkRegistrationRequest\x1a..admin.v1.TransferDingTalkRegistrationResponse\"r\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02<:\x01*\"7/api/v1/admin/dingtalk/registrations/{user_id}/transferB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
@@ -5659,7 +5917,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(DataScope)(0),                               // 0: admin.v1.DataScope
 	(OrganizationKind)(0),                        // 1: admin.v1.OrganizationKind
@@ -5717,19 +5975,23 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*CreateDingTalkInvitationResponse)(nil),     // 53: admin.v1.CreateDingTalkInvitationResponse
 	(*ListDingTalkInvitationsRequest)(nil),       // 54: admin.v1.ListDingTalkInvitationsRequest
 	(*ListDingTalkInvitationsResponse)(nil),      // 55: admin.v1.ListDingTalkInvitationsResponse
-	(*RevokeDingTalkInvitationRequest)(nil),      // 56: admin.v1.RevokeDingTalkInvitationRequest
-	(*RevokeDingTalkInvitationResponse)(nil),     // 57: admin.v1.RevokeDingTalkInvitationResponse
-	(*DingTalkInvitation)(nil),                   // 58: admin.v1.DingTalkInvitation
-	(*TransferDingTalkRegistrationRequest)(nil),  // 59: admin.v1.TransferDingTalkRegistrationRequest
-	(*TransferDingTalkRegistrationResponse)(nil), // 60: admin.v1.TransferDingTalkRegistrationResponse
-	(*ListDingTalkRegistrationsRequest)(nil),     // 61: admin.v1.ListDingTalkRegistrationsRequest
-	(*DingTalkRegistration)(nil),                 // 62: admin.v1.DingTalkRegistration
-	(*ListDingTalkRegistrationsResponse)(nil),    // 63: admin.v1.ListDingTalkRegistrationsResponse
-	(*ApproveDingTalkRegistrationRequest)(nil),   // 64: admin.v1.ApproveDingTalkRegistrationRequest
-	(*ApproveDingTalkRegistrationResponse)(nil),  // 65: admin.v1.ApproveDingTalkRegistrationResponse
-	(*RejectDingTalkRegistrationRequest)(nil),    // 66: admin.v1.RejectDingTalkRegistrationRequest
-	(*RejectDingTalkRegistrationResponse)(nil),   // 67: admin.v1.RejectDingTalkRegistrationResponse
-	nil, // 68: admin.v1.AdminAuditLog.DetailsEntry
+	(*GetDingTalkInvitationRequest)(nil),         // 56: admin.v1.GetDingTalkInvitationRequest
+	(*GetDingTalkInvitationResponse)(nil),        // 57: admin.v1.GetDingTalkInvitationResponse
+	(*ListTransferOrganizationsRequest)(nil),     // 58: admin.v1.ListTransferOrganizationsRequest
+	(*ListTransferOrganizationsResponse)(nil),    // 59: admin.v1.ListTransferOrganizationsResponse
+	(*RevokeDingTalkInvitationRequest)(nil),      // 60: admin.v1.RevokeDingTalkInvitationRequest
+	(*RevokeDingTalkInvitationResponse)(nil),     // 61: admin.v1.RevokeDingTalkInvitationResponse
+	(*DingTalkInvitation)(nil),                   // 62: admin.v1.DingTalkInvitation
+	(*TransferDingTalkRegistrationRequest)(nil),  // 63: admin.v1.TransferDingTalkRegistrationRequest
+	(*TransferDingTalkRegistrationResponse)(nil), // 64: admin.v1.TransferDingTalkRegistrationResponse
+	(*ListDingTalkRegistrationsRequest)(nil),     // 65: admin.v1.ListDingTalkRegistrationsRequest
+	(*DingTalkRegistration)(nil),                 // 66: admin.v1.DingTalkRegistration
+	(*ListDingTalkRegistrationsResponse)(nil),    // 67: admin.v1.ListDingTalkRegistrationsResponse
+	(*ApproveDingTalkRegistrationRequest)(nil),   // 68: admin.v1.ApproveDingTalkRegistrationRequest
+	(*ApproveDingTalkRegistrationResponse)(nil),  // 69: admin.v1.ApproveDingTalkRegistrationResponse
+	(*RejectDingTalkRegistrationRequest)(nil),    // 70: admin.v1.RejectDingTalkRegistrationRequest
+	(*RejectDingTalkRegistrationResponse)(nil),   // 71: admin.v1.RejectDingTalkRegistrationResponse
+	nil, // 72: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
@@ -5758,75 +6020,81 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	41, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
 	41, // 24: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
 	47, // 25: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	68, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	72, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
 	50, // 27: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
 	4,  // 28: admin.v1.CreateDingTalkInvitationRequest.kind:type_name -> admin.v1.DingTalkInvitationKind
-	58, // 29: admin.v1.CreateDingTalkInvitationResponse.data:type_name -> admin.v1.DingTalkInvitation
+	62, // 29: admin.v1.CreateDingTalkInvitationResponse.data:type_name -> admin.v1.DingTalkInvitation
 	3,  // 30: admin.v1.ListDingTalkInvitationsRequest.status:type_name -> admin.v1.DingTalkInvitationStatus
-	58, // 31: admin.v1.ListDingTalkInvitationsResponse.data:type_name -> admin.v1.DingTalkInvitation
-	3,  // 32: admin.v1.DingTalkInvitation.status:type_name -> admin.v1.DingTalkInvitationStatus
-	4,  // 33: admin.v1.DingTalkInvitation.kind:type_name -> admin.v1.DingTalkInvitationKind
-	62, // 34: admin.v1.ListDingTalkRegistrationsResponse.data:type_name -> admin.v1.DingTalkRegistration
-	62, // 35: admin.v1.ApproveDingTalkRegistrationResponse.data:type_name -> admin.v1.DingTalkRegistration
-	5,  // 36: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	6,  // 37: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	7,  // 38: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	13, // 39: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	14, // 40: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	15, // 41: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	16, // 42: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	17, // 43: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
-	18, // 44: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	19, // 45: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	20, // 46: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	21, // 47: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
-	22, // 48: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	23, // 49: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	37, // 50: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	24, // 51: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	38, // 52: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	39, // 53: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	46, // 54: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	49, // 55: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	52, // 56: admin.v1.AdminService.CreateDingTalkInvitation:input_type -> admin.v1.CreateDingTalkInvitationRequest
-	54, // 57: admin.v1.AdminService.ListDingTalkInvitations:input_type -> admin.v1.ListDingTalkInvitationsRequest
-	56, // 58: admin.v1.AdminService.RevokeDingTalkInvitation:input_type -> admin.v1.RevokeDingTalkInvitationRequest
-	61, // 59: admin.v1.AdminService.ListDingTalkRegistrations:input_type -> admin.v1.ListDingTalkRegistrationsRequest
-	64, // 60: admin.v1.AdminService.ApproveDingTalkRegistration:input_type -> admin.v1.ApproveDingTalkRegistrationRequest
-	66, // 61: admin.v1.AdminService.RejectDingTalkRegistration:input_type -> admin.v1.RejectDingTalkRegistrationRequest
-	59, // 62: admin.v1.AdminService.TransferDingTalkRegistration:input_type -> admin.v1.TransferDingTalkRegistrationRequest
-	9,  // 63: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	11, // 64: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	12, // 65: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	27, // 66: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	28, // 67: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	29, // 68: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	30, // 69: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	31, // 70: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
-	32, // 71: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	33, // 72: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	34, // 73: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	35, // 74: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
-	36, // 75: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	10, // 76: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	42, // 77: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	43, // 78: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	44, // 79: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	45, // 80: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	48, // 81: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	51, // 82: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	53, // 83: admin.v1.AdminService.CreateDingTalkInvitation:output_type -> admin.v1.CreateDingTalkInvitationResponse
-	55, // 84: admin.v1.AdminService.ListDingTalkInvitations:output_type -> admin.v1.ListDingTalkInvitationsResponse
-	57, // 85: admin.v1.AdminService.RevokeDingTalkInvitation:output_type -> admin.v1.RevokeDingTalkInvitationResponse
-	63, // 86: admin.v1.AdminService.ListDingTalkRegistrations:output_type -> admin.v1.ListDingTalkRegistrationsResponse
-	65, // 87: admin.v1.AdminService.ApproveDingTalkRegistration:output_type -> admin.v1.ApproveDingTalkRegistrationResponse
-	67, // 88: admin.v1.AdminService.RejectDingTalkRegistration:output_type -> admin.v1.RejectDingTalkRegistrationResponse
-	60, // 89: admin.v1.AdminService.TransferDingTalkRegistration:output_type -> admin.v1.TransferDingTalkRegistrationResponse
-	63, // [63:90] is the sub-list for method output_type
-	36, // [36:63] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	62, // 31: admin.v1.ListDingTalkInvitationsResponse.data:type_name -> admin.v1.DingTalkInvitation
+	62, // 32: admin.v1.GetDingTalkInvitationResponse.data:type_name -> admin.v1.DingTalkInvitation
+	8,  // 33: admin.v1.ListTransferOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
+	3,  // 34: admin.v1.DingTalkInvitation.status:type_name -> admin.v1.DingTalkInvitationStatus
+	4,  // 35: admin.v1.DingTalkInvitation.kind:type_name -> admin.v1.DingTalkInvitationKind
+	66, // 36: admin.v1.ListDingTalkRegistrationsResponse.data:type_name -> admin.v1.DingTalkRegistration
+	66, // 37: admin.v1.ApproveDingTalkRegistrationResponse.data:type_name -> admin.v1.DingTalkRegistration
+	5,  // 38: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	6,  // 39: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	7,  // 40: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	13, // 41: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	14, // 42: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	15, // 43: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	16, // 44: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	17, // 45: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
+	18, // 46: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	19, // 47: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	20, // 48: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	21, // 49: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
+	22, // 50: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	23, // 51: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	37, // 52: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	24, // 53: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	38, // 54: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	39, // 55: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	46, // 56: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	49, // 57: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	52, // 58: admin.v1.AdminService.CreateDingTalkInvitation:input_type -> admin.v1.CreateDingTalkInvitationRequest
+	54, // 59: admin.v1.AdminService.ListDingTalkInvitations:input_type -> admin.v1.ListDingTalkInvitationsRequest
+	60, // 60: admin.v1.AdminService.RevokeDingTalkInvitation:input_type -> admin.v1.RevokeDingTalkInvitationRequest
+	56, // 61: admin.v1.AdminService.GetDingTalkInvitation:input_type -> admin.v1.GetDingTalkInvitationRequest
+	65, // 62: admin.v1.AdminService.ListDingTalkRegistrations:input_type -> admin.v1.ListDingTalkRegistrationsRequest
+	58, // 63: admin.v1.AdminService.ListTransferOrganizations:input_type -> admin.v1.ListTransferOrganizationsRequest
+	68, // 64: admin.v1.AdminService.ApproveDingTalkRegistration:input_type -> admin.v1.ApproveDingTalkRegistrationRequest
+	70, // 65: admin.v1.AdminService.RejectDingTalkRegistration:input_type -> admin.v1.RejectDingTalkRegistrationRequest
+	63, // 66: admin.v1.AdminService.TransferDingTalkRegistration:input_type -> admin.v1.TransferDingTalkRegistrationRequest
+	9,  // 67: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	11, // 68: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	12, // 69: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	27, // 70: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	28, // 71: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	29, // 72: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	30, // 73: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	31, // 74: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
+	32, // 75: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	33, // 76: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	34, // 77: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	35, // 78: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
+	36, // 79: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	10, // 80: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	42, // 81: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	43, // 82: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	44, // 83: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	45, // 84: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	48, // 85: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	51, // 86: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	53, // 87: admin.v1.AdminService.CreateDingTalkInvitation:output_type -> admin.v1.CreateDingTalkInvitationResponse
+	55, // 88: admin.v1.AdminService.ListDingTalkInvitations:output_type -> admin.v1.ListDingTalkInvitationsResponse
+	61, // 89: admin.v1.AdminService.RevokeDingTalkInvitation:output_type -> admin.v1.RevokeDingTalkInvitationResponse
+	57, // 90: admin.v1.AdminService.GetDingTalkInvitation:output_type -> admin.v1.GetDingTalkInvitationResponse
+	67, // 91: admin.v1.AdminService.ListDingTalkRegistrations:output_type -> admin.v1.ListDingTalkRegistrationsResponse
+	59, // 92: admin.v1.AdminService.ListTransferOrganizations:output_type -> admin.v1.ListTransferOrganizationsResponse
+	69, // 93: admin.v1.AdminService.ApproveDingTalkRegistration:output_type -> admin.v1.ApproveDingTalkRegistrationResponse
+	71, // 94: admin.v1.AdminService.RejectDingTalkRegistration:output_type -> admin.v1.RejectDingTalkRegistrationResponse
+	64, // 95: admin.v1.AdminService.TransferDingTalkRegistration:output_type -> admin.v1.TransferDingTalkRegistrationResponse
+	67, // [67:96] is the sub-list for method output_type
+	38, // [38:67] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -5846,15 +6114,15 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[45].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[47].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[49].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[53].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[57].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[61].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   64,
+			NumMessages:   68,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

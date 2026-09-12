@@ -22,7 +22,7 @@ func (NotificationDelivery) Fields() []ent.Field {
 		field.String("resource_type").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
 		field.String("reference_code").Optional().MaxLen(64).Immutable(),
-		field.String("parameter").Optional().MaxLen(64).Immutable(),
+		field.String("parameter").Optional().MaxLen(256).Immutable(),
 		field.String("external_message_id").Optional().Nillable().MaxLen(256),
 	}
 }

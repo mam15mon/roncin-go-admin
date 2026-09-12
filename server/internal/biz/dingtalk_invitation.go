@@ -28,9 +28,9 @@ var (
 	ErrDingTalkRegistrationTransferSame  = errors.BadRequest("DINGTALK_REGISTRATION_TRANSFER_SAME", "不能转派至当前已申请组织")
 )
 
-// 邀请默认有效期与上下限（小时）。
+// 邀请默认有效期与上下限（小时）：PRD §3.1 明确默认 7 天（168 小时）。
 const (
-	DingTalkInvitationDefaultTTLHours = 72
+	DingTalkInvitationDefaultTTLHours = 168
 	DingTalkInvitationMinTTLHours     = 1
 	DingTalkInvitationMaxTTLHours     = 720
 )

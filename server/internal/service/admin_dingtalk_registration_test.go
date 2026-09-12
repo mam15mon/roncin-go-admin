@@ -29,7 +29,14 @@ func TestDingTalkInvitationToAPIMasksMobile(t *testing.T) {
 		ExpiresAt:        time.Now().UTC().Add(time.Hour),
 	}
 
-	api := dingTalkInvitationToAPI(invitation)
+	api := dingTalkInvitationToAPI(invitation, true)
+	if api.Token != "test-token" {
+		t.Fatalf("includeToken=true 时应返回完整 Token: %q", api.Token)
+	}
+	apiWithoutToken := dingTalkInvitationToAPI(invitation, false)
+	if apiWithoutToken.Token != "" {
+		t.Fatalf("includeToken=false 时不得暴露 Token: %q", apiWithoutToken.Token)
+	}
 	if api.MobileMasked == nil || *api.MobileMasked != "138****8000" {
 		t.Fatalf("手机号应脱敏输出，实际 %v", api.MobileMasked)
 	}

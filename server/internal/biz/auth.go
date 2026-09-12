@@ -809,6 +809,12 @@ func (uc *AuthUsecase) GetDingTalkInvitationInfo(ctx context.Context, token, ipA
 		}
 		return nil, ErrDingTalkInvitationNotFound
 	}
+	if invitation.Status == DingTalkInvitationStatusConsumed {
+		if len(keyHashes) > 0 {
+			_ = uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.dingtalk.invitation.info", Result: "failure"})
+		}
+		return nil, ErrDingTalkInvitationNotFound
+	}
 	if invitation.Status == DingTalkInvitationStatusRevoked {
 		return nil, ErrDingTalkInvitationRevoked
 	}
@@ -847,6 +853,9 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 		}
 		invitation, invErr := uc.dingTalkRegistrations.FindInvitationByToken(ctx, invitationToken)
 		if invErr != nil {
+			return nil, ErrDingTalkInvitationNotFound
+		}
+		if invitation.Status == DingTalkInvitationStatusConsumed {
 			return nil, ErrDingTalkInvitationNotFound
 		}
 		if invitation.Status == DingTalkInvitationStatusRevoked {
@@ -891,7 +900,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 			approverUserIDs = append(approverUserIDs, recipient.UserID)
 		}
 		// 代管标注口径与一键转派一致：目标组织无管理员向上追溯时，
-		// 通知卡片展示目标组织名并追加「（上级代管）」后缀。
+		// 通知卡片展示目标组织名并追加 DingTalkEscalatedOrgSuffix 后缀。
 		if isEscalated && notificationOrgName != "" {
 			notificationOrgName += DingTalkEscalatedOrgSuffix
 		}

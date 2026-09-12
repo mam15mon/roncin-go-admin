@@ -165,10 +165,22 @@ service AdminService {
     option (google.api.http) = {delete: "/api/v1/admin/dingtalk/invitations/{id}"};
   }
 
+  // GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
+  rpc GetDingTalkInvitation(GetDingTalkInvitationRequest) returns (GetDingTalkInvitationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/invitations/{id}"};
+  }
+
   // ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
   rpc ListDingTalkRegistrations(ListDingTalkRegistrationsRequest) returns (ListDingTalkRegistrationsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/dingtalk/registrations"};
+  }
+
+  // ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
+  rpc ListTransferOrganizations(ListTransferOrganizationsRequest) returns (ListTransferOrganizationsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/registrations/organizations"};
   }
 
   // ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
@@ -627,7 +639,7 @@ message CreateDingTalkInvitationRequest {
   optional string role_id = 4;
   // 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
   optional string display_name = 5;
-  // 有效期（小时）；缺省 72，允许 1-720。
+  // 有效期（小时）；缺省 168（7 天），允许 1-720。
   optional int32 expires_in_hours = 6;
 }
 
@@ -657,6 +669,29 @@ message ListDingTalkInvitationsResponse {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+message GetDingTalkInvitationRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetDingTalkInvitationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkInvitation data = 4;
+  string invitation_url = 5;
+  string trace_id = 6;
+}
+
+message ListTransferOrganizationsRequest {}
+
+message ListTransferOrganizationsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AdminOrganization data = 4;
+  string trace_id = 5;
 }
 
 message RevokeDingTalkInvitationRequest {

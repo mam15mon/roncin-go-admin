@@ -104,6 +104,24 @@ func (r *dingTalkRegistrationRepo) findInvitation(ctx context.Context, id uuid.U
 	return invitationToBiz(item, time.Now().UTC()), nil
 }
 
+func (r *dingTalkRegistrationRepo) GetInvitation(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*biz.DingTalkInvitation, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.DingTalkInvitation.Query().
+		Where(invitationent.IDEQ(id)).
+		WithOrganization().WithRole().WithInviter().WithConsumer().
+		Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrDingTalkInvitationNotFound, nil)
+	}
+	if !uuidInValues(organizationIDs, item.OrganizationID) {
+		return nil, biz.ErrPermissionDenied
+	}
+	return invitationToBiz(item, time.Now().UTC()), nil
+}
+
 func (r *dingTalkRegistrationRepo) ListInvitations(ctx context.Context, organizationIDs []uuid.UUID, options biz.DingTalkInvitationListOptions) (*biz.DingTalkInvitationList, error) {
 	now := time.Now().UTC()
 	client, err := r.data.client(ctx)

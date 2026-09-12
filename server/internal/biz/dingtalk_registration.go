@@ -51,8 +51,8 @@ type DingTalkApproverRecipient struct {
 }
 
 // DingTalkEscalatedOrgSuffix 是目标组织无管理员、审批通知向上追溯代管时，
-// 通知卡片展示组织名追加的后缀；扫码注册与一键转派两条路径共用同一口径。
-const DingTalkEscalatedOrgSuffix = "（上级代管）"
+// 通知卡片展示组织名追加的完整后缀（PRD §3.3 明确定义）；扫码注册与一键转派两条路径共用同一口径。
+const DingTalkEscalatedOrgSuffix = "（该组织暂无管理员，由总部代管审批）"
 
 // DingTalkApproverNotice 是注册待审批通知的路由决策命令（biz 决策，仓储只做入队转换）：
 // ApproverUserIDs 为向上追溯后的实际收件人；OrganizationName 为通知卡片展示的
@@ -81,6 +81,7 @@ type DingTalkRegistrationRepo interface {
 	GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error)
 	GetRolesPrivilegeProfiles(context.Context, uuid.UUID, []uuid.UUID) ([]*AdminRoleProfile, error)
 	CreateInvitation(context.Context, *DingTalkInvitation, *AuditEvent) (*DingTalkInvitation, error)
+	GetInvitation(context.Context, uuid.UUID, []uuid.UUID) (*DingTalkInvitation, error)
 	ListInvitations(context.Context, []uuid.UUID, DingTalkInvitationListOptions) (*DingTalkInvitationList, error)
 	RevokeInvitation(context.Context, uuid.UUID, uuid.UUID, []uuid.UUID, *AuditEvent) (*DingTalkInvitation, error)
 	FindInvitationByToken(context.Context, string) (*DingTalkInvitation, error)
@@ -92,6 +93,7 @@ type DingTalkRegistrationRepo interface {
 	ListApproverRecipients(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, error)
 	ListApproverRecipientsWithEscalation(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error)
 	GetParentOrganizationID(context.Context, uuid.UUID) (*uuid.UUID, bool, error)
+	ListRegistrationOrganizations(context.Context) ([]OrganizationChoice, error)
 }
 
 type DingTalkRegistrationUsecase struct {
@@ -224,6 +226,18 @@ func (uc *DingTalkRegistrationUsecase) RevokeInvitation(ctx context.Context, pri
 	return err
 }
 
+// GetInvitation 获取单个专属邀请详情（含 Token 与邀请链接，组织范围在仓储内复核）。
+func (uc *DingTalkRegistrationUsecase) GetInvitation(ctx context.Context, principal *Principal, id uuid.UUID) (*DingTalkInvitation, error) {
+	if principal == nil || id == uuid.Nil {
+		return nil, ErrAdminInvalidArgument
+	}
+	organizationIDs, err := writableOrganizationIDs(principal)
+	if err != nil {
+		return nil, err
+	}
+	return uc.repo.GetInvitation(ctx, id, organizationIDs)
+}
+
 func (uc *DingTalkRegistrationUsecase) ListPendingRegistrations(ctx context.Context, principal *Principal, options DingTalkRegistrationListOptions) (*DingTalkRegistrationList, error) {
 	organizationIDs, err := writableOrganizationIDs(principal)
 	if err != nil {
@@ -274,8 +288,11 @@ func (uc *DingTalkRegistrationUsecase) RejectRegistration(ctx context.Context, p
 		return ErrAdminInvalidArgument
 	}
 	reason = strings.TrimSpace(reason)
-	if reason == "" || utf8.RuneCountInString(reason) > 200 {
+	if reason == "" {
 		return ErrDingTalkRegistrationReasonMissing
+	}
+	if utf8.RuneCountInString(reason) > 200 {
+		return ErrAdminInvalidArgument
 	}
 	organizationIDs, err := writableOrganizationIDs(principal)
 	if err != nil {
@@ -340,6 +357,14 @@ func (uc *DingTalkRegistrationUsecase) TransferRegistration(ctx context.Context,
 		Reason:          reason,
 		Audit:           audit,
 	}, targetOrgID)
+}
+
+// ListTransferOrganizations 获取一键转派可选组织列表（所有启用中的公司节点）。
+func (uc *DingTalkRegistrationUsecase) ListTransferOrganizations(ctx context.Context, principal *Principal) ([]OrganizationChoice, error) {
+	if principal == nil {
+		return nil, ErrAdminInvalidArgument
+	}
+	return uc.repo.ListRegistrationOrganizations(ctx)
 }
 
 func (uc *DingTalkRegistrationUsecase) ListApproverRecipientsWithEscalation(ctx context.Context, targetOrgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
