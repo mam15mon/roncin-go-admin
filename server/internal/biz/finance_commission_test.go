@@ -117,7 +117,7 @@ func (orderConfigNumberStub) AllocateNumber(context.Context, uuid.UUID, Document
 // ResolveBaseRate 在总部解析 From=baseCurrency、To=CNY。
 func newCommissionRateStub(org uuid.UUID, baseCurrency string, rate decimal.Decimal) *exchangeRateRepoStub {
 	return &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: baseCurrency},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: baseCurrency, PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{baseCurrency: rate},
 	}
 }

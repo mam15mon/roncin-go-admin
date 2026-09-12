@@ -64,16 +64,16 @@ func (s *financeBillTargetExchangeRateRepoStub) ResolveContext(_ context.Context
 	return &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, nil
 }
 
-func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _, _, rateDate string) (decimal.Decimal, error) {
+func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _, _, _, rateDate string) (ResolvedRate, error) {
 	s.resolvedRateOrganizationID = organizationID
 	s.resolveDates = append(s.resolveDates, rateDate)
-	return s.resolvedRate, nil
+	return ResolvedRate{Rate: s.resolvedRate, Source: ExchangeRateSourceSystem}, nil
 }
 
 func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	organizationID := uuid.New()
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
@@ -100,7 +100,7 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	organizationID := uuid.New()
 	// 超过 8 位小数的汇率必须先固化到 8 位，头本位币金额按已固化汇率计算。
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.1234567891")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})

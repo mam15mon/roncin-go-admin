@@ -13,8 +13,11 @@ type exchangeRateRepoStub struct {
 	ExchangeRateRepo
 	rateContext    *ExchangeRateContext
 	rateByCurrency map[string]decimal.Decimal
+	rateByPair     map[string]decimal.Decimal
 	resolveErr     error
 	resolveDates   []string
+	resolvePairs   []string
+	resolvePivots  []string
 	savedSetting   *ExchangeRateSetting
 	disabledID     uuid.UUID
 }
@@ -46,12 +49,39 @@ func (s *exchangeRateRepoStub) Disable(_ context.Context, _ uuid.UUID, id uuid.U
 	return nil
 }
 
-func (s *exchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, fromCurrency, _, rateDate string) (decimal.Decimal, error) {
+// ResolveRate 模拟仓储解析：rateByCurrency 表示总部维护的「X → pivot」单边行；
+// 目标即 pivot 时单边行就是直连行（SYSTEM）；目标非 pivot 时先查 rateByPair
+// 直连行，缺失再按两腿交叉套算（DERIVED），任一腿缺失或 to 腿非正即报缺失。
+func (s *exchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (ResolvedRate, error) {
 	s.resolveDates = append(s.resolveDates, rateDate)
+	s.resolvePairs = append(s.resolvePairs, fromCurrency+"→"+toCurrency)
+	s.resolvePivots = append(s.resolvePivots, pivotCurrency)
 	if s.resolveErr != nil {
-		return decimal.Decimal{}, s.resolveErr
+		return ResolvedRate{}, s.resolveErr
 	}
-	return s.rateByCurrency[fromCurrency], nil
+	if toCurrency == pivotCurrency {
+		rate, ok := s.rateByCurrency[fromCurrency]
+		if !ok {
+			return ResolvedRate{}, ErrExchangeRateMissing
+		}
+		return ResolvedRate{Rate: rate, Source: ExchangeRateSourceSystem}, nil
+	}
+	if rate, ok := s.rateByPair[fromCurrency+"→"+toCurrency]; ok {
+		return ResolvedRate{Rate: rate, Source: ExchangeRateSourceSystem}, nil
+	}
+	leg := func(currency string) (decimal.Decimal, bool) {
+		if currency == pivotCurrency {
+			return decimal.NewFromInt(1), true
+		}
+		rate, ok := s.rateByCurrency[currency]
+		return rate, ok
+	}
+	legFrom, fromOK := leg(fromCurrency)
+	legTo, toOK := leg(toCurrency)
+	if !fromOK || !toOK || !legTo.IsPositive() {
+		return ResolvedRate{}, ErrExchangeRateMissing
+	}
+	return ResolvedRate{Rate: legFrom.Div(legTo).RoundBank(8), Source: ExchangeRateSourceDerived}, nil
 }
 
 func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
@@ -141,8 +171,8 @@ func TestResolveRateReturnsExactOneForBaseCurrency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("解析本币汇率失败: %v", err)
 	}
-	if !rate.Equal(decimal.NewFromInt(1)) {
-		t.Fatalf("本币汇率应为 1，实际 %s", rate)
+	if !rate.Rate.Equal(decimal.NewFromInt(1)) {
+		t.Fatalf("本币汇率应为 1，实际 %s", rate.Rate)
 	}
 	if len(repo.resolveDates) != 0 {
 		t.Fatalf("本币汇率不应查询仓储: %v", repo.resolveDates)
@@ -151,15 +181,15 @@ func TestResolveRateReturnsExactOneForBaseCurrency(t *testing.T) {
 
 func TestResolveRateUsesHeadquartersOwnerAndTargetDate(t *testing.T) {
 	repo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
 	rate, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "usd", "2026-08-27")
 	if err != nil {
 		t.Fatalf("解析折本币汇率失败: %v", err)
 	}
-	if rate.StringFixed(8) != "7.20000000" || len(repo.resolveDates) != 1 || repo.resolveDates[0] != "2026-08-27" {
-		t.Fatalf("汇率解析结果不正确: rate=%s dates=%v", rate, repo.resolveDates)
+	if rate.Rate.StringFixed(8) != "7.20000000" || rate.Source != ExchangeRateSourceSystem || len(repo.resolveDates) != 1 || repo.resolveDates[0] != "2026-08-27" {
+		t.Fatalf("汇率解析结果不正确: rate=%s dates=%v", rate.Rate, repo.resolveDates)
 	}
 }
 

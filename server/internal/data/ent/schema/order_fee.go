@@ -38,7 +38,7 @@ func (OrderFee) Fields() []ent.Field {
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
-		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "MANUAL"),
+		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"),
 		field.String("exchange_rate_date").NotEmpty().MinLen(10).MaxLen(10),
 		field.UUID("exchange_rate_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3),

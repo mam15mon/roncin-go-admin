@@ -119,8 +119,8 @@ func (s *exchangeRateStub) ResolveContext(context.Context, uuid.UUID) (*biz.Exch
 	return s.context, nil
 }
 
-func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, string, string, string) (decimal.Decimal, error) {
-	return s.rate, nil
+func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, string, string, string, string) (biz.ResolvedRate, error) {
+	return biz.ResolvedRate{Rate: s.rate, Source: biz.ExchangeRateSourceSystem}, nil
 }
 
 func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStub) {
