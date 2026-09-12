@@ -1439,4 +1439,92 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 			t.Fatalf("已结案订单的改配应保持既有 SEA_ORDER_REASSIGNMENT_BLOCKED 阻断，实际: %v", err)
 		}
 	})
+
+	// 拆票预览与操作摘要同源拦截订单业务门禁；Execute 保持既有 409 语义。
+	requireOrderGateError := func(t *testing.T, preview *biz.SeaOrderSplitPreview, orderNo string) {
+		t.Helper()
+		if preview.IsValid {
+			t.Fatalf("门禁未通过的拆票预览 IsValid 应为 false")
+		}
+		for _, validationErr := range preview.ValidationErrors {
+			if validationErr.Reason == "ORDER_GATE" &&
+				strings.Contains(validationErr.Message, orderNo) {
+				return
+			}
+		}
+		t.Fatalf("拆票预览未包含 ORDER_GATE 订单门禁原因: %+v", preview.ValidationErrors)
+	}
+
+	t.Run("可编辑订单拆票预览不含订单门禁错误", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "904", splitFixtureOptions{})
+		preview, err := env.uc.PreviewSplit(ctx, env.orgID, f.standardSplitInput("split-gate-ok-904", "fp-gate-ok-904", splitFixtureOptions{}))
+		if err != nil || !preview.IsValid {
+			t.Fatalf("可编辑订单拆票预览应通过: preview=%+v err=%v", preview, err)
+		}
+		for _, validationErr := range preview.ValidationErrors {
+			if validationErr.Reason == "ORDER_GATE" {
+				t.Fatalf("可编辑订单预览不应包含订单门禁错误: %+v", validationErr)
+			}
+		}
+	})
+
+	t.Run("业务锁定订单拆票预览提前拦截且执行保持409", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "905", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).SetLockedAt(time.Now().UTC()).SetLockedBy(env.userID).SetLockGeneration(1).SaveX(ctx)
+		defer env.data.db.Order.UpdateOneID(f.order.ID).ClearLockedAt().ClearLockedBy().SetLockGeneration(0).SaveX(ctx)
+
+		preview, previewErr := env.uc.PreviewSplit(ctx, env.orgID, f.standardSplitInput("split-gate-lock-905", "fp-gate-lock-905", splitFixtureOptions{}))
+		if previewErr != nil {
+			t.Fatalf("业务锁定订单拆票预览不应报错，实际: %v", previewErr)
+		}
+		requireOrderGateError(t, preview, f.order.OrderNo)
+
+		actions, actionsErr := env.uc.GetChangeActions(ctx, env.orgID, f.order.ID)
+		if actionsErr != nil || actions.CanSplit || actions.CanReassign {
+			t.Fatalf("业务锁定订单动作摘要应禁用拆票与改配: actions=%+v err=%v", actions, actionsErr)
+		}
+		foundLockReason := false
+		for _, reason := range actions.SplitBlockedReasons {
+			if strings.Contains(reason, f.order.OrderNo) && strings.Contains(reason, "锁定") {
+				foundLockReason = true
+				break
+			}
+		}
+		if !foundLockReason {
+			t.Fatalf("动作摘要未包含订单业务锁原因: %v", actions.SplitBlockedReasons)
+		}
+
+		if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, f.standardSplitInput("split-gate-lock-905", "fp-gate-lock-905", splitFixtureOptions{})); kratoserrors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("业务锁定订单拆票执行应返回 ORDER_BUSINESS_LOCKED，实际: %v", err)
+		}
+	})
+
+	t.Run("终止与结案订单拆票预览提前拦截", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "906", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(f.order.ID).
+			SetTerminationStatus(orderent.TerminationStatusTERMINATED).
+			SetTerminationType(orderent.TerminationTypeCARRIER_CANCEL).
+			SetTerminationReason("门禁测试终止").
+			SetTerminatedAt(time.Now().UTC()).
+			SetTerminatedBy(env.userID).
+			SaveX(ctx)
+		terminatedPreview, previewErr := env.uc.PreviewSplit(ctx, env.orgID, f.standardSplitInput("split-gate-term-906", "fp-gate-term-906", splitFixtureOptions{}))
+		if previewErr != nil {
+			t.Fatalf("终止订单拆票预览不应报错，实际: %v", previewErr)
+		}
+		requireOrderGateError(t, terminatedPreview, f.order.OrderNo)
+
+		closedFixture := createTestSplitFixture(t, env, "907", splitFixtureOptions{})
+		env.data.db.Order.UpdateOneID(closedFixture.order.ID).
+			SetClosureStatus(orderent.ClosureStatusCLOSED).
+			SetClosureReason("门禁测试结案").
+			SetClosedAt(time.Now().UTC()).
+			SetClosedBy(env.userID).
+			SaveX(ctx)
+		closedPreview, closedPreviewErr := env.uc.PreviewSplit(ctx, env.orgID, closedFixture.standardSplitInput("split-gate-closed-907", "fp-gate-closed-907", splitFixtureOptions{}))
+		if closedPreviewErr != nil {
+			t.Fatalf("结案订单拆票预览不应报错，实际: %v", closedPreviewErr)
+		}
+		requireOrderGateError(t, closedPreview, closedFixture.order.OrderNo)
+	})
 }

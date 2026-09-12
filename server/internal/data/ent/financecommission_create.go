@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -79,9 +80,53 @@ func (_c *FinanceCommissionCreate) SetVerificationID(v uuid.UUID) *FinanceCommis
 	return _c
 }
 
+// SetNillableVerificationID sets the "verification_id" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableVerificationID(v *uuid.UUID) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetVerificationID(*v)
+	}
+	return _c
+}
+
 // SetVerificationNo sets the "verification_no" field.
 func (_c *FinanceCommissionCreate) SetVerificationNo(v string) *FinanceCommissionCreate {
 	_c.mutation.SetVerificationNo(v)
+	return _c
+}
+
+// SetNillableVerificationNo sets the "verification_no" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableVerificationNo(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetVerificationNo(*v)
+	}
+	return _c
+}
+
+// SetNettingID sets the "netting_id" field.
+func (_c *FinanceCommissionCreate) SetNettingID(v uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.SetNettingID(v)
+	return _c
+}
+
+// SetNillableNettingID sets the "netting_id" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableNettingID(v *uuid.UUID) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetNettingID(*v)
+	}
+	return _c
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (_c *FinanceCommissionCreate) SetNettingNo(v string) *FinanceCommissionCreate {
+	_c.mutation.SetNettingNo(v)
+	return _c
+}
+
+// SetNillableNettingNo sets the "netting_no" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableNettingNo(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetNettingNo(*v)
+	}
 	return _c
 }
 
@@ -477,6 +522,11 @@ func (_c *FinanceCommissionCreate) SetVerification(v *FinanceVerification) *Fina
 	return _c.SetVerificationID(v.ID)
 }
 
+// SetNetting sets the "netting" edge to the FinanceNetting entity.
+func (_c *FinanceCommissionCreate) SetNetting(v *FinanceNetting) *FinanceCommissionCreate {
+	return _c.SetNettingID(v.ID)
+}
+
 // SetEmployee sets the "employee" edge to the User entity.
 func (_c *FinanceCommissionCreate) SetEmployee(v *User) *FinanceCommissionCreate {
 	return _c.SetEmployeeID(v.ID)
@@ -674,15 +724,14 @@ func (_c *FinanceCommissionCreate) check() error {
 			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.idempotency_key": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.VerificationID(); !ok {
-		return &ValidationError{Name: "verification_id", err: errors.New(`ent: missing required field "FinanceCommission.verification_id"`)}
-	}
-	if _, ok := _c.mutation.VerificationNo(); !ok {
-		return &ValidationError{Name: "verification_no", err: errors.New(`ent: missing required field "FinanceCommission.verification_no"`)}
-	}
 	if v, ok := _c.mutation.VerificationNo(); ok {
 		if err := financecommission.VerificationNoValidator(v); err != nil {
 			return &ValidationError{Name: "verification_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.verification_no": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.NettingNo(); ok {
+		if err := financecommission.NettingNoValidator(v); err != nil {
+			return &ValidationError{Name: "netting_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.netting_no": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.EmployeeID(); !ok {
@@ -837,9 +886,6 @@ func (_c *FinanceCommissionCreate) check() error {
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "FinanceCommission.organization"`)}
 	}
-	if len(_c.mutation.VerificationIDs()) == 0 {
-		return &ValidationError{Name: "verification", err: errors.New(`ent: missing required edge "FinanceCommission.verification"`)}
-	}
 	if len(_c.mutation.EmployeeIDs()) == 0 {
 		return &ValidationError{Name: "employee", err: errors.New(`ent: missing required edge "FinanceCommission.employee"`)}
 	}
@@ -896,7 +942,11 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	}
 	if value, ok := _c.mutation.VerificationNo(); ok {
 		_spec.SetField(financecommission.FieldVerificationNo, field.TypeString, value)
-		_node.VerificationNo = value
+		_node.VerificationNo = &value
+	}
+	if value, ok := _c.mutation.NettingNo(); ok {
+		_spec.SetField(financecommission.FieldNettingNo, field.TypeString, value)
+		_node.NettingNo = &value
 	}
 	if value, ok := _c.mutation.EmployeeName(); ok {
 		_spec.SetField(financecommission.FieldEmployeeName, field.TypeString, value)
@@ -1053,7 +1103,24 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.VerificationID = nodes[0]
+		_node.VerificationID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NettingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.NettingTable,
+			Columns: []string{financecommission.NettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.NettingID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.EmployeeIDs(); len(nodes) > 0 {

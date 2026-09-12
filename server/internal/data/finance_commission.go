@@ -20,6 +20,8 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	rule "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	nettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	nettingalloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -71,7 +73,7 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f bi
 		return nil, err
 	}
 	store := commissionStoreFromClient(client)
-	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, f.RuleID, false)
+	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, uuid.Nil, f.RuleID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +148,48 @@ func commissionCandidateEmployeePredicates(org uuid.UUID, source *commissionCalc
 		))
 	}
 	return employeePredicates
+}
+
+// ListNettingCandidates 返回可计提的对冲单候选：已确认且存在有效应收分摊，
+// 按创建时间倒序分页；关键字匹配对冲单号或结算单位名称。
+func (r *commissionRepo) ListNettingCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionNettingCandidateFilter) (*biz.CommissionNettingCandidateListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	predicates := []predicate.FinanceNetting{
+		nettingent.OrganizationIDEQ(org),
+		nettingent.StatusEQ(nettingent.StatusCONFIRMED),
+		nettingent.HasAllocationsWith(nettingalloc.ActiveEQ(true), nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE)),
+	}
+	if f.Keyword != "" {
+		predicates = append(predicates, nettingent.Or(
+			nettingent.NettingNoContainsFold(f.Keyword),
+			nettingent.SettlementPartyNameContainsFold(f.Keyword),
+		))
+	}
+	query := client.FinanceNetting.Query().Where(predicates...)
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := financeNettingQueryWithRelations(query).
+		Order(nettingent.ByCreatedAt(entsql.OrderDesc()), nettingent.ByID(entsql.OrderDesc())).
+		Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.CommissionNettingCandidateListResult{
+		Items: make([]*biz.FinanceNetting, 0, len(items)), Total: int64(total), Page: f.Page, PageSize: f.PageSize,
+	}
+	for _, item := range items {
+		converted, convertErr := financeNettingToBiz(item)
+		if convertErr != nil {
+			return nil, convertErr
+		}
+		result.Items = append(result.Items, converted)
+	}
+	return result, nil
 }
 
 func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
@@ -376,6 +420,7 @@ func (r *commissionRepo) GetByKey(ctx context.Context, org uuid.UUID, key string
 
 type commissionCalculationStore struct {
 	verifications *ent.FinanceVerificationClient
+	nettings      *ent.FinanceNettingClient
 	rules         *ent.FinanceCommissionRuleClient
 	users         *ent.UserClient
 	bills         *ent.FinanceBillClient
@@ -386,11 +431,11 @@ type commissionCalculationStore struct {
 }
 
 func commissionStoreFromClient(client *ent.Client) commissionCalculationStore {
-	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, billLines: client.FinanceBillLine, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
+	return commissionCalculationStore{verifications: client.FinanceVerification, nettings: client.FinanceNetting, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, billLines: client.FinanceBillLine, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
 }
 
 func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
-	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, billLines: tx.FinanceBillLine, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
+	return commissionCalculationStore{verifications: tx.FinanceVerification, nettings: tx.FinanceNetting, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, billLines: tx.FinanceBillLine, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
 }
 
 func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.UUID, billIDs []uuid.UUID, lock bool) *ent.FinanceBillQuery {
@@ -409,23 +454,38 @@ func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.
 	return bq
 }
 
-func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
+func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, employeeID, ruleID, false)
+	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, nettingID, employeeID, ruleID, false)
 }
 
-// GetGenerationContext 读取生成提成所需的核销上下文：归属日期和本位币。
-// CNY 折算汇率按归属日期（verification_date）解析，核销单不再携带汇率快照。
-// 事务内首次读取即加 ForUpdate：同一事务内的写入阶段还会对同一核销行 ForUpdate，
+// GetGenerationContext 读取生成提成所需的来源上下文：归属日期和本位币。
+// 核销来源的归属日期为 verification_date；对冲来源为确认日（confirmed_at 的 UTC 日期）。
+// CNY 折算汇率按归属日期解析，来源单不再携带汇率快照。
+// 事务内首次读取即加 ForUpdate：同一事务内的写入阶段还会对同一来源行 ForUpdate，
 // 若先 ForShare 再升级，两个并发创建事务可同持共享锁互等升级形成死锁，因此从入口
 // 串行化；普通上下文保持无锁读取。
-func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID uuid.UUID) (*biz.CommissionGenerationContext, error) {
+func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID, nettingID uuid.UUID) (*biz.CommissionGenerationContext, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if nettingID != uuid.Nil {
+		query := client.FinanceNetting.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org))
+		if _, transactional := transactionFromContext(ctx); transactional {
+			query.ForUpdate()
+		}
+		item, queryErr := query.Only(ctx)
+		if queryErr != nil {
+			return nil, mapEntError(queryErr, biz.ErrCommissionSource, nil)
+		}
+		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil {
+			return nil, biz.ErrCommissionSource
+		}
+		return &biz.CommissionGenerationContext{CommissionDate: item.ConfirmedAt.UTC().Format("2006-01-02"), BaseCurrency: item.BaseCurrency}, nil
 	}
 	query := client.FinanceVerification.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org))
 	if _, transactional := transactionFromContext(ctx); transactional {
@@ -438,9 +498,13 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 	return &biz.CommissionGenerationContext{CommissionDate: v.VerificationDate, BaseCurrency: v.BaseCurrency}, nil
 }
 
+// commissionCalculationSource 是提成计算的来源快照：核销或对冲二选一。
+// 两种来源同构地按「分摊金额 / 账单总额 × 账单行本位币」摊入 orderRealized。
 type commissionCalculationSource struct {
 	organizationID    uuid.UUID
-	verification      *ent.FinanceVerification
+	verification      *ent.FinanceVerification // 核销来源时非空
+	netting           *ent.FinanceNetting      // 对冲来源时非空
+	commissionDate    string                   // 归属日期：核销 verification_date / 对冲确认日
 	rule              *ent.FinanceCommissionRule
 	rate              decimal.Decimal
 	baseCurrency      string
@@ -452,8 +516,15 @@ type commissionCalculationSource struct {
 	fingerprintBase   []string
 }
 
-func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, employeeID, ruleID uuid.UUID, lock bool) (*biz.CommissionCalculation, error) {
-	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, ruleID, lock)
+// commissionSourceAllocation 是核销/对冲分摊的统一条目，供下游同一聚合管线消费。
+type commissionSourceAllocation struct {
+	billID      uuid.UUID
+	amount      decimal.Decimal
+	fingerprint string
+}
+
+func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, employeeID, ruleID uuid.UUID, lock bool) (*biz.CommissionCalculation, error) {
+	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, nettingID, ruleID, lock)
 	if err != nil {
 		return nil, err
 	}
@@ -481,19 +552,84 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	return calculateCommissionFromSource(source, employee, attributions)
 }
 
-func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, ruleID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
-	vq := store.verifications.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) {
-		q.Where(allocation.ActiveEQ(true))
-	})
-	if lock {
-		vq.ForUpdate()
-	}
-	v, err := vq.Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrCommissionSource, nil)
-	}
-	if v.Status != verification.StatusACTIVE || v.Direction != verification.DirectionRECEIVABLE {
-		return nil, biz.ErrCommissionSource
+// loadCommissionCalculationSource 按来源（核销 ACTIVE+RECEIVABLE / 对冲 CONFIRMED 的
+// RECEIVABLE 分摊）加载统一分摊条目，并锁定规则、账单、订单、费用与账单行事实。
+// 多行加锁一律按主键稳定排序，固定加锁顺序防止并发提成创建死锁。
+func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, ruleID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
+	var (
+		fingerprintParts   []string
+		commissionDate     string
+		allocationEntries  []commissionSourceAllocation
+		verificationEntity *ent.FinanceVerification
+		nettingEntity      *ent.FinanceNetting
+	)
+	if nettingID != uuid.Nil {
+		nq := store.nettings.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceNettingAllocationQuery) {
+			q.Where(nettingalloc.ActiveEQ(true))
+		})
+		if lock {
+			nq.ForUpdate()
+		}
+		item, err := nq.Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+		}
+		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil {
+			return nil, biz.ErrCommissionSource
+		}
+		nettingEntity = item
+		commissionDate = item.ConfirmedAt.UTC().Format("2006-01-02")
+		fingerprintParts = append(fingerprintParts,
+			fmt.Sprintf("calculation|%s", biz.CommissionCalculationVersion),
+			fmt.Sprintf("src=netting|%s", item.ID),
+			fmt.Sprintf("netting|%s|%s|%s|%s|%d", item.ID, item.NettingNo, item.Status, commissionDate, item.Version),
+		)
+		for _, allocationItem := range item.Edges.Allocations {
+			if allocationItem.Direction != nettingalloc.DirectionRECEIVABLE {
+				continue
+			}
+			amount, parseErr := decimalOf(allocationItem.Amount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			allocationEntries = append(allocationEntries, commissionSourceAllocation{
+				billID:      allocationItem.BillID,
+				amount:      amount,
+				fingerprint: fmt.Sprintf("netting_allocation|%s|%s|%s|%s|%t", allocationItem.ID, allocationItem.BillID, allocationItem.Direction, allocationItem.Amount, allocationItem.Active),
+			})
+		}
+	} else {
+		vq := store.verifications.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) {
+			q.Where(allocation.ActiveEQ(true))
+		})
+		if lock {
+			vq.ForUpdate()
+		}
+		v, err := vq.Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+		}
+		if v.Status != verification.StatusACTIVE || v.Direction != verification.DirectionRECEIVABLE {
+			return nil, biz.ErrCommissionSource
+		}
+		verificationEntity = v
+		commissionDate = v.VerificationDate
+		fingerprintParts = append(fingerprintParts,
+			fmt.Sprintf("calculation|%s", biz.CommissionCalculationVersion),
+			fmt.Sprintf("src=verification|%s", v.ID),
+			fmt.Sprintf("verification|%s|%s|%s|%s|%s|%d", v.ID, v.VerificationNo, v.Status, v.Direction, v.VerificationDate, v.Version),
+		)
+		for _, item := range v.Edges.Allocations {
+			amount, parseErr := decimalOf(item.Amount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			allocationEntries = append(allocationEntries, commissionSourceAllocation{
+				billID:      item.BillID,
+				amount:      amount,
+				fingerprint: fmt.Sprintf("allocation|%s|%s|%s|%s|%t", item.ID, item.BillID, item.CashflowID, item.Amount, item.Active),
+			})
+		}
 	}
 	rq := store.rules.Query().Where(rule.IDEQ(ruleID), rule.OrganizationIDEQ(org))
 	if lock {
@@ -503,35 +639,27 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionRuleNotFound, nil)
 	}
-	if !ruleItem.Enabled || (ruleItem.EffectiveFrom != nil && v.VerificationDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && v.VerificationDate > *ruleItem.EffectiveTo) {
+	if !ruleItem.Enabled || (ruleItem.EffectiveFrom != nil && commissionDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && commissionDate > *ruleItem.EffectiveTo) {
 		return nil, biz.ErrCommissionRuleInvalid
 	}
 	rate, err := decimalOf(ruleItem.RatePercent)
 	if err != nil {
 		return nil, err
 	}
-	fingerprintParts := []string{
-		fmt.Sprintf("calculation|%s", biz.CommissionCalculationVersion),
-		fmt.Sprintf("verification|%s|%s|%s|%s|%s|%d", v.ID, v.VerificationNo, v.Status, v.Direction, v.VerificationDate, v.Version),
-		fmt.Sprintf("rule|%s|%s|%s|%s|%s|%d|%t|%s|%s", ruleItem.ID, ruleItem.Name, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, ruleItem.Version, ruleItem.Enabled, optionalStringValue(ruleItem.EffectiveFrom), optionalStringValue(ruleItem.EffectiveTo)),
-	}
-	if len(v.Edges.Allocations) == 0 {
+	fingerprintParts = append(fingerprintParts, fmt.Sprintf("rule|%s|%s|%s|%s|%s|%d|%t|%s|%s", ruleItem.ID, ruleItem.Name, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, ruleItem.Version, ruleItem.Enabled, optionalStringValue(ruleItem.EffectiveFrom), optionalStringValue(ruleItem.EffectiveTo)))
+	if len(allocationEntries) == 0 {
 		return nil, biz.ErrCommissionSource
 	}
-	billIDs := make([]uuid.UUID, 0, len(v.Edges.Allocations))
+	billIDs := make([]uuid.UUID, 0, len(allocationEntries))
 	allocationByBill := make(map[uuid.UUID]decimal.Decimal)
 	seenBills := make(map[uuid.UUID]struct{})
-	for _, item := range v.Edges.Allocations {
-		amount, parseErr := decimalOf(item.Amount)
-		if parseErr != nil {
-			return nil, parseErr
+	for _, item := range allocationEntries {
+		if _, exists := seenBills[item.billID]; !exists {
+			seenBills[item.billID] = struct{}{}
+			billIDs = append(billIDs, item.billID)
 		}
-		if _, exists := seenBills[item.BillID]; !exists {
-			seenBills[item.BillID] = struct{}{}
-			billIDs = append(billIDs, item.BillID)
-		}
-		allocationByBill[item.BillID] = allocationByBill[item.BillID].Add(amount)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("allocation|%s|%s|%s|%s|%t", item.ID, item.BillID, item.CashflowID, item.Amount, item.Active))
+		allocationByBill[item.billID] = allocationByBill[item.billID].Add(item.amount)
+		fingerprintParts = append(fingerprintParts, item.fingerprint)
 	}
 	bq := commissionCalculationBillsQuery(store, org, billIDs, lock)
 	bills, err := bq.All(ctx)
@@ -630,7 +758,8 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee_bill_line|%s|%s|%s|%t", line.ID, line.OrderFeeID, line.BaseCurrencyAmount, line.Active))
 	}
 	return &commissionCalculationSource{
-		organizationID: org, verification: v, rule: ruleItem, rate: rate, baseCurrency: baseCurrency,
+		organizationID: org, verification: verificationEntity, netting: nettingEntity, commissionDate: commissionDate,
+		rule: ruleItem, rate: rate, baseCurrency: baseCurrency,
 		orderIDs: orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
 		billLineBaseByFee: billLineBaseByFee,
 		fingerprintBase:   fingerprintParts,
@@ -658,12 +787,19 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 		return nil, biz.ErrCommissionEmployeeRole
 	}
 	result := &biz.CommissionCalculation{
-		VerificationID: source.verification.ID, VerificationNo: source.verification.VerificationNo,
 		EmployeeID: employee.ID, EmployeeName: attributions[0].EmployeeName,
 		RuleID: source.rule.ID, RuleName: source.rule.Name, PersonnelRole: biz.CommissionPersonnelRole(source.rule.PersonnelRole),
 		CalculationBasis: biz.CommissionCalculationBasis(source.rule.CalculationBasis), RuleVersion: source.rule.Version,
 		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: source.baseCurrency, RatePercent: source.rate,
 		Lines: make([]*biz.FinanceCommissionLine, 0, len(eligibleOrderIDs)),
+	}
+	if source.verification != nil {
+		result.VerificationID = source.verification.ID
+		result.VerificationNo = source.verification.VerificationNo
+	}
+	if source.netting != nil {
+		result.NettingID = source.netting.ID
+		result.NettingNo = source.netting.NettingNo
 	}
 	customersWithFees := make(map[uuid.UUID]struct{})
 	for _, orderID := range eligibleOrderIDs {
@@ -767,34 +903,47 @@ func optionalStringValue(value *string) string {
 // 完整业务响应由用例在共享事务提交后通过普通上下文重读。
 func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.FinanceCommission, snapshot *biz.CommissionCNYSnapshot, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		calculation, err := calculateCommission(ctx, commissionStoreFromTx(tx), org, c.VerificationID, c.EmployeeID, c.RuleID, true)
+		calculation, err := calculateCommission(ctx, commissionStoreFromTx(tx), org, c.VerificationID, c.NettingID, c.EmployeeID, c.RuleID, true)
 		if err != nil {
 			return err
 		}
 		// 原始 CNY 提成金额依赖锁内计算出的提成金额，按 biz 纯函数固化到快照。
 		snapshot.ApplyCommissionAmount(calculation.CommissionAmount)
-		hasActive, err := tx.FinanceCommission.Query().Where(
+		// 活跃去重按来源路由：同来源同员工同角色仅允许一条非终态提成。
+		duplicatePredicates := []predicate.FinanceCommission{
 			commission.OrganizationIDEQ(org),
-			commission.VerificationIDEQ(c.VerificationID),
 			commission.EmployeeIDEQ(c.EmployeeID),
 			commission.PersonnelRoleEQ(string(calculation.PersonnelRole)),
 			commission.StatusNEQ(commission.StatusCANCELLED),
-		).Exist(ctx)
+		}
+		if c.VerificationID != uuid.Nil {
+			duplicatePredicates = append(duplicatePredicates, commission.VerificationIDEQ(c.VerificationID))
+		} else {
+			duplicatePredicates = append(duplicatePredicates, commission.NettingIDEQ(c.NettingID))
+		}
+		hasActive, err := tx.FinanceCommission.Query().Where(duplicatePredicates...).Exist(ctx)
 		if err != nil {
 			return err
 		}
 		if hasActive {
 			return biz.ErrCommissionDuplicate
 		}
-		c.VerificationNo, c.EmployeeName, c.RuleName = calculation.VerificationNo, calculation.EmployeeName, calculation.RuleName
+		c.VerificationNo, c.NettingNo, c.EmployeeName, c.RuleName = calculation.VerificationNo, calculation.NettingNo, calculation.EmployeeName, calculation.RuleName
 		c.PersonnelRole, c.CalculationBasis = calculation.PersonnelRole, calculation.CalculationBasis
 		c.RuleVersion, c.CalculationVersion, c.SourceFingerprint = calculation.RuleVersion, calculation.CalculationVersion, calculation.SourceFingerprint
 		c.BaseCurrency, c.RatePercent = calculation.BaseCurrency, calculation.RatePercent
 		c.CustomerCount, c.OrderCount, c.FeeCount = calculation.CustomerCount, calculation.OrderCount, calculation.FeeCount
 		c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit
 		c.CommissionBaseAmount, c.CommissionAmount = calculation.CommissionBaseAmount, calculation.CommissionAmount
-		_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetCommissionDate(snapshot.CommissionDate).SetCnyExchangeRate(snapshot.ExchangeRate.StringFixed(8)).SetCnyExchangeRateSource(commission.CnyExchangeRateSource(snapshot.ExchangeRateSource)).SetCnyExchangeRateDate(snapshot.ExchangeRateDate).SetNillableCnyExchangeRateSettingID(snapshot.ExchangeRateSettingID).SetCnyCommissionAmount(snapshot.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
-		if err != nil {
+		create := tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetCommissionDate(snapshot.CommissionDate).SetCnyExchangeRate(snapshot.ExchangeRate.StringFixed(8)).SetCnyExchangeRateSource(commission.CnyExchangeRateSource(snapshot.ExchangeRateSource)).SetCnyExchangeRateDate(snapshot.ExchangeRateDate).SetNillableCnyExchangeRateSettingID(snapshot.ExchangeRateSettingID).SetCnyCommissionAmount(snapshot.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1)
+		// 来源二选一落库：空来源显式置 NULL，保证部分唯一索引语义正确。
+		if c.VerificationID != uuid.Nil {
+			create = create.SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo)
+		}
+		if c.NettingID != uuid.Nil {
+			create = create.SetNettingID(c.NettingID).SetNettingNo(c.NettingNo)
+		}
+		if _, err = create.Save(ctx); err != nil {
 			return mapEntError(err, nil, biz.ErrCommissionDuplicate)
 		}
 		lineBuilders := make([]*ent.FinanceCommissionLineCreate, 0, len(calculation.Lines))
@@ -822,7 +971,7 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			if lookupErr != nil {
 				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
 			}
-			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, snapshot.VerificationID, snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
+			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, valueOrNilUUID(snapshot.VerificationID), valueOrNilUUID(snapshot.NettingID), snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
 			if calculateErr != nil {
 				return biz.ErrCommissionSourceChanged
 			}
@@ -981,7 +1130,15 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	if x.VerificationID != nil {
+		result.VerificationID = *x.VerificationID
+		result.VerificationNo = optionalStringValue(x.VerificationNo)
+	}
+	if x.NettingID != nil {
+		result.NettingID = *x.NettingID
+		result.NettingNo = optionalStringValue(x.NettingNo)
+	}
 	if x.Edges.Organization != nil {
 		result.OrganizationName = x.Edges.Organization.Name
 	}

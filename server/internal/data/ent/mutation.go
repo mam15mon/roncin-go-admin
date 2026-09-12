@@ -34460,6 +34460,7 @@ type FinanceCommissionMutation struct {
 	commission_no                *string
 	idempotency_key              *string
 	verification_no              *string
+	netting_no                   *string
 	employee_name                *string
 	customer_count               *int
 	addcustomer_count            *int
@@ -34502,6 +34503,8 @@ type FinanceCommissionMutation struct {
 	clearedorganization          bool
 	verification                 *uuid.UUID
 	clearedverification          bool
+	netting                      *uuid.UUID
+	clearednetting               bool
 	employee                     *uuid.UUID
 	clearedemployee              bool
 	rule                         *uuid.UUID
@@ -34824,7 +34827,7 @@ func (m *FinanceCommissionMutation) VerificationID() (r uuid.UUID, exists bool) 
 // OldVerificationID returns the old "verification_id" field's value of the FinanceCommission entity.
 // If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceCommissionMutation) OldVerificationID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *FinanceCommissionMutation) OldVerificationID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVerificationID is only allowed on UpdateOne operations")
 	}
@@ -34838,9 +34841,22 @@ func (m *FinanceCommissionMutation) OldVerificationID(ctx context.Context) (v uu
 	return oldValue.VerificationID, nil
 }
 
+// ClearVerificationID clears the value of the "verification_id" field.
+func (m *FinanceCommissionMutation) ClearVerificationID() {
+	m.verification = nil
+	m.clearedFields[financecommission.FieldVerificationID] = struct{}{}
+}
+
+// VerificationIDCleared returns if the "verification_id" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) VerificationIDCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldVerificationID]
+	return ok
+}
+
 // ResetVerificationID resets all changes to the "verification_id" field.
 func (m *FinanceCommissionMutation) ResetVerificationID() {
 	m.verification = nil
+	delete(m.clearedFields, financecommission.FieldVerificationID)
 }
 
 // SetVerificationNo sets the "verification_no" field.
@@ -34860,7 +34876,7 @@ func (m *FinanceCommissionMutation) VerificationNo() (r string, exists bool) {
 // OldVerificationNo returns the old "verification_no" field's value of the FinanceCommission entity.
 // If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceCommissionMutation) OldVerificationNo(ctx context.Context) (v string, err error) {
+func (m *FinanceCommissionMutation) OldVerificationNo(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVerificationNo is only allowed on UpdateOne operations")
 	}
@@ -34874,9 +34890,120 @@ func (m *FinanceCommissionMutation) OldVerificationNo(ctx context.Context) (v st
 	return oldValue.VerificationNo, nil
 }
 
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (m *FinanceCommissionMutation) ClearVerificationNo() {
+	m.verification_no = nil
+	m.clearedFields[financecommission.FieldVerificationNo] = struct{}{}
+}
+
+// VerificationNoCleared returns if the "verification_no" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) VerificationNoCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldVerificationNo]
+	return ok
+}
+
 // ResetVerificationNo resets all changes to the "verification_no" field.
 func (m *FinanceCommissionMutation) ResetVerificationNo() {
 	m.verification_no = nil
+	delete(m.clearedFields, financecommission.FieldVerificationNo)
+}
+
+// SetNettingID sets the "netting_id" field.
+func (m *FinanceCommissionMutation) SetNettingID(u uuid.UUID) {
+	m.netting = &u
+}
+
+// NettingID returns the value of the "netting_id" field in the mutation.
+func (m *FinanceCommissionMutation) NettingID() (r uuid.UUID, exists bool) {
+	v := m.netting
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNettingID returns the old "netting_id" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldNettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNettingID: %w", err)
+	}
+	return oldValue.NettingID, nil
+}
+
+// ClearNettingID clears the value of the "netting_id" field.
+func (m *FinanceCommissionMutation) ClearNettingID() {
+	m.netting = nil
+	m.clearedFields[financecommission.FieldNettingID] = struct{}{}
+}
+
+// NettingIDCleared returns if the "netting_id" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) NettingIDCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldNettingID]
+	return ok
+}
+
+// ResetNettingID resets all changes to the "netting_id" field.
+func (m *FinanceCommissionMutation) ResetNettingID() {
+	m.netting = nil
+	delete(m.clearedFields, financecommission.FieldNettingID)
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (m *FinanceCommissionMutation) SetNettingNo(s string) {
+	m.netting_no = &s
+}
+
+// NettingNo returns the value of the "netting_no" field in the mutation.
+func (m *FinanceCommissionMutation) NettingNo() (r string, exists bool) {
+	v := m.netting_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNettingNo returns the old "netting_no" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldNettingNo(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNettingNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNettingNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNettingNo: %w", err)
+	}
+	return oldValue.NettingNo, nil
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (m *FinanceCommissionMutation) ClearNettingNo() {
+	m.netting_no = nil
+	m.clearedFields[financecommission.FieldNettingNo] = struct{}{}
+}
+
+// NettingNoCleared returns if the "netting_no" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) NettingNoCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldNettingNo]
+	return ok
+}
+
+// ResetNettingNo resets all changes to the "netting_no" field.
+func (m *FinanceCommissionMutation) ResetNettingNo() {
+	m.netting_no = nil
+	delete(m.clearedFields, financecommission.FieldNettingNo)
 }
 
 // SetEmployeeID sets the "employee_id" field.
@@ -36499,7 +36626,7 @@ func (m *FinanceCommissionMutation) ClearVerification() {
 
 // VerificationCleared reports if the "verification" edge to the FinanceVerification entity was cleared.
 func (m *FinanceCommissionMutation) VerificationCleared() bool {
-	return m.clearedverification
+	return m.VerificationIDCleared() || m.clearedverification
 }
 
 // VerificationIDs returns the "verification" edge IDs in the mutation.
@@ -36516,6 +36643,33 @@ func (m *FinanceCommissionMutation) VerificationIDs() (ids []uuid.UUID) {
 func (m *FinanceCommissionMutation) ResetVerification() {
 	m.verification = nil
 	m.clearedverification = false
+}
+
+// ClearNetting clears the "netting" edge to the FinanceNetting entity.
+func (m *FinanceCommissionMutation) ClearNetting() {
+	m.clearednetting = true
+	m.clearedFields[financecommission.FieldNettingID] = struct{}{}
+}
+
+// NettingCleared reports if the "netting" edge to the FinanceNetting entity was cleared.
+func (m *FinanceCommissionMutation) NettingCleared() bool {
+	return m.NettingIDCleared() || m.clearednetting
+}
+
+// NettingIDs returns the "netting" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NettingID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionMutation) NettingIDs() (ids []uuid.UUID) {
+	if id := m.netting; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNetting resets all changes to the "netting" edge.
+func (m *FinanceCommissionMutation) ResetNetting() {
+	m.netting = nil
+	m.clearednetting = false
 }
 
 // ClearEmployee clears the "employee" edge to the User entity.
@@ -36834,7 +36988,7 @@ func (m *FinanceCommissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionMutation) Fields() []string {
-	fields := make([]string, 0, 43)
+	fields := make([]string, 0, 45)
 	if m.created_at != nil {
 		fields = append(fields, financecommission.FieldCreatedAt)
 	}
@@ -36855,6 +37009,12 @@ func (m *FinanceCommissionMutation) Fields() []string {
 	}
 	if m.verification_no != nil {
 		fields = append(fields, financecommission.FieldVerificationNo)
+	}
+	if m.netting != nil {
+		fields = append(fields, financecommission.FieldNettingID)
+	}
+	if m.netting_no != nil {
+		fields = append(fields, financecommission.FieldNettingNo)
 	}
 	if m.employee != nil {
 		fields = append(fields, financecommission.FieldEmployeeID)
@@ -36986,6 +37146,10 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.VerificationID()
 	case financecommission.FieldVerificationNo:
 		return m.VerificationNo()
+	case financecommission.FieldNettingID:
+		return m.NettingID()
+	case financecommission.FieldNettingNo:
+		return m.NettingNo()
 	case financecommission.FieldEmployeeID:
 		return m.EmployeeID()
 	case financecommission.FieldEmployeeName:
@@ -37081,6 +37245,10 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldVerificationID(ctx)
 	case financecommission.FieldVerificationNo:
 		return m.OldVerificationNo(ctx)
+	case financecommission.FieldNettingID:
+		return m.OldNettingID(ctx)
+	case financecommission.FieldNettingNo:
+		return m.OldNettingNo(ctx)
 	case financecommission.FieldEmployeeID:
 		return m.OldEmployeeID(ctx)
 	case financecommission.FieldEmployeeName:
@@ -37210,6 +37378,20 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVerificationNo(v)
+		return nil
+	case financecommission.FieldNettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNettingID(v)
+		return nil
+	case financecommission.FieldNettingNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNettingNo(v)
 		return nil
 	case financecommission.FieldEmployeeID:
 		v, ok := value.(uuid.UUID)
@@ -37568,6 +37750,18 @@ func (m *FinanceCommissionMutation) AddField(name string, value ent.Value) error
 // mutation.
 func (m *FinanceCommissionMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(financecommission.FieldVerificationID) {
+		fields = append(fields, financecommission.FieldVerificationID)
+	}
+	if m.FieldCleared(financecommission.FieldVerificationNo) {
+		fields = append(fields, financecommission.FieldVerificationNo)
+	}
+	if m.FieldCleared(financecommission.FieldNettingID) {
+		fields = append(fields, financecommission.FieldNettingID)
+	}
+	if m.FieldCleared(financecommission.FieldNettingNo) {
+		fields = append(fields, financecommission.FieldNettingNo)
+	}
 	if m.FieldCleared(financecommission.FieldRuleID) {
 		fields = append(fields, financecommission.FieldRuleID)
 	}
@@ -37621,6 +37815,18 @@ func (m *FinanceCommissionMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *FinanceCommissionMutation) ClearField(name string) error {
 	switch name {
+	case financecommission.FieldVerificationID:
+		m.ClearVerificationID()
+		return nil
+	case financecommission.FieldVerificationNo:
+		m.ClearVerificationNo()
+		return nil
+	case financecommission.FieldNettingID:
+		m.ClearNettingID()
+		return nil
+	case financecommission.FieldNettingNo:
+		m.ClearNettingNo()
+		return nil
 	case financecommission.FieldRuleID:
 		m.ClearRuleID()
 		return nil
@@ -37688,6 +37894,12 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 		return nil
 	case financecommission.FieldVerificationNo:
 		m.ResetVerificationNo()
+		return nil
+	case financecommission.FieldNettingID:
+		m.ResetNettingID()
+		return nil
+	case financecommission.FieldNettingNo:
+		m.ResetNettingNo()
 		return nil
 	case financecommission.FieldEmployeeID:
 		m.ResetEmployeeID()
@@ -37803,12 +38015,15 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceCommissionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.organization != nil {
 		edges = append(edges, financecommission.EdgeOrganization)
 	}
 	if m.verification != nil {
 		edges = append(edges, financecommission.EdgeVerification)
+	}
+	if m.netting != nil {
+		edges = append(edges, financecommission.EdgeNetting)
 	}
 	if m.employee != nil {
 		edges = append(edges, financecommission.EdgeEmployee)
@@ -37844,6 +38059,10 @@ func (m *FinanceCommissionMutation) AddedIDs(name string) []ent.Value {
 		}
 	case financecommission.EdgeVerification:
 		if id := m.verification; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommission.EdgeNetting:
+		if id := m.netting; id != nil {
 			return []ent.Value{*id}
 		}
 	case financecommission.EdgeEmployee:
@@ -37884,7 +38103,7 @@ func (m *FinanceCommissionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceCommissionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedlines != nil {
 		edges = append(edges, financecommission.EdgeLines)
 	}
@@ -37916,12 +38135,15 @@ func (m *FinanceCommissionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceCommissionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedorganization {
 		edges = append(edges, financecommission.EdgeOrganization)
 	}
 	if m.clearedverification {
 		edges = append(edges, financecommission.EdgeVerification)
+	}
+	if m.clearednetting {
+		edges = append(edges, financecommission.EdgeNetting)
 	}
 	if m.clearedemployee {
 		edges = append(edges, financecommission.EdgeEmployee)
@@ -37955,6 +38177,8 @@ func (m *FinanceCommissionMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case financecommission.EdgeVerification:
 		return m.clearedverification
+	case financecommission.EdgeNetting:
+		return m.clearednetting
 	case financecommission.EdgeEmployee:
 		return m.clearedemployee
 	case financecommission.EdgeRule:
@@ -37982,6 +38206,9 @@ func (m *FinanceCommissionMutation) ClearEdge(name string) error {
 		return nil
 	case financecommission.EdgeVerification:
 		m.ClearVerification()
+		return nil
+	case financecommission.EdgeNetting:
+		m.ClearNetting()
 		return nil
 	case financecommission.EdgeEmployee:
 		m.ClearEmployee()
@@ -38011,6 +38238,9 @@ func (m *FinanceCommissionMutation) ResetEdge(name string) error {
 		return nil
 	case financecommission.EdgeVerification:
 		m.ResetVerification()
+		return nil
+	case financecommission.EdgeNetting:
+		m.ResetNetting()
 		return nil
 	case financecommission.EdgeEmployee:
 		m.ResetEmployee()
@@ -51044,6 +51274,9 @@ type FinanceNettingMutation struct {
 	allocations              map[uuid.UUID]struct{}
 	removedallocations       map[uuid.UUID]struct{}
 	clearedallocations       bool
+	commissions              map[uuid.UUID]struct{}
+	removedcommissions       map[uuid.UUID]struct{}
+	clearedcommissions       bool
 	done                     bool
 	oldValue                 func(context.Context) (*FinanceNetting, error)
 	predicates               []predicate.FinanceNetting
@@ -52494,6 +52727,60 @@ func (m *FinanceNettingMutation) ResetAllocations() {
 	m.removedallocations = nil
 }
 
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by ids.
+func (m *FinanceNettingMutation) AddCommissionIDs(ids ...uuid.UUID) {
+	if m.commissions == nil {
+		m.commissions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.commissions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCommissions clears the "commissions" edge to the FinanceCommission entity.
+func (m *FinanceNettingMutation) ClearCommissions() {
+	m.clearedcommissions = true
+}
+
+// CommissionsCleared reports if the "commissions" edge to the FinanceCommission entity was cleared.
+func (m *FinanceNettingMutation) CommissionsCleared() bool {
+	return m.clearedcommissions
+}
+
+// RemoveCommissionIDs removes the "commissions" edge to the FinanceCommission entity by IDs.
+func (m *FinanceNettingMutation) RemoveCommissionIDs(ids ...uuid.UUID) {
+	if m.removedcommissions == nil {
+		m.removedcommissions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.commissions, ids[i])
+		m.removedcommissions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCommissions returns the removed IDs of the "commissions" edge to the FinanceCommission entity.
+func (m *FinanceNettingMutation) RemovedCommissionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcommissions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CommissionsIDs returns the "commissions" edge IDs in the mutation.
+func (m *FinanceNettingMutation) CommissionsIDs() (ids []uuid.UUID) {
+	for id := range m.commissions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCommissions resets all changes to the "commissions" edge.
+func (m *FinanceNettingMutation) ResetCommissions() {
+	m.commissions = nil
+	m.clearedcommissions = false
+	m.removedcommissions = nil
+}
+
 // Where appends a list predicates to the FinanceNettingMutation builder.
 func (m *FinanceNettingMutation) Where(ps ...predicate.FinanceNetting) {
 	m.predicates = append(m.predicates, ps...)
@@ -53130,7 +53417,7 @@ func (m *FinanceNettingMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceNettingMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.organization != nil {
 		edges = append(edges, financenetting.EdgeOrganization)
 	}
@@ -53151,6 +53438,9 @@ func (m *FinanceNettingMutation) AddedEdges() []string {
 	}
 	if m.allocations != nil {
 		edges = append(edges, financenetting.EdgeAllocations)
+	}
+	if m.commissions != nil {
+		edges = append(edges, financenetting.EdgeCommissions)
 	}
 	return edges
 }
@@ -53189,15 +53479,24 @@ func (m *FinanceNettingMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financenetting.EdgeCommissions:
+		ids := make([]ent.Value, 0, len(m.commissions))
+		for id := range m.commissions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceNettingMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedallocations != nil {
 		edges = append(edges, financenetting.EdgeAllocations)
+	}
+	if m.removedcommissions != nil {
+		edges = append(edges, financenetting.EdgeCommissions)
 	}
 	return edges
 }
@@ -53212,13 +53511,19 @@ func (m *FinanceNettingMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financenetting.EdgeCommissions:
+		ids := make([]ent.Value, 0, len(m.removedcommissions))
+		for id := range m.removedcommissions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceNettingMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedorganization {
 		edges = append(edges, financenetting.EdgeOrganization)
 	}
@@ -53239,6 +53544,9 @@ func (m *FinanceNettingMutation) ClearedEdges() []string {
 	}
 	if m.clearedallocations {
 		edges = append(edges, financenetting.EdgeAllocations)
+	}
+	if m.clearedcommissions {
+		edges = append(edges, financenetting.EdgeCommissions)
 	}
 	return edges
 }
@@ -53261,6 +53569,8 @@ func (m *FinanceNettingMutation) EdgeCleared(name string) bool {
 		return m.clearedreversed_by_user
 	case financenetting.EdgeAllocations:
 		return m.clearedallocations
+	case financenetting.EdgeCommissions:
+		return m.clearedcommissions
 	}
 	return false
 }
@@ -53315,6 +53625,9 @@ func (m *FinanceNettingMutation) ResetEdge(name string) error {
 		return nil
 	case financenetting.EdgeAllocations:
 		m.ResetAllocations()
+		return nil
+	case financenetting.EdgeCommissions:
+		m.ResetCommissions()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceNetting edge %s", name)

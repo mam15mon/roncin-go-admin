@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -324,6 +325,21 @@ func (_u *FinanceNettingUpdate) AddAllocations(v ...*FinanceNettingAllocation) *
 	return _u.AddAllocationIDs(ids...)
 }
 
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_u *FinanceNettingUpdate) AddCommissionIDs(ids ...uuid.UUID) *FinanceNettingUpdate {
+	_u.mutation.AddCommissionIDs(ids...)
+	return _u
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceNettingUpdate) AddCommissions(v ...*FinanceCommission) *FinanceNettingUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionIDs(ids...)
+}
+
 // Mutation returns the FinanceNettingMutation object of the builder.
 func (_u *FinanceNettingUpdate) Mutation() *FinanceNettingMutation {
 	return _u.mutation
@@ -366,6 +382,27 @@ func (_u *FinanceNettingUpdate) RemoveAllocations(v ...*FinanceNettingAllocation
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllocationIDs(ids...)
+}
+
+// ClearCommissions clears all "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceNettingUpdate) ClearCommissions() *FinanceNettingUpdate {
+	_u.mutation.ClearCommissions()
+	return _u
+}
+
+// RemoveCommissionIDs removes the "commissions" edge to FinanceCommission entities by IDs.
+func (_u *FinanceNettingUpdate) RemoveCommissionIDs(ids ...uuid.UUID) *FinanceNettingUpdate {
+	_u.mutation.RemoveCommissionIDs(ids...)
+	return _u
+}
+
+// RemoveCommissions removes "commissions" edges to FinanceCommission entities.
+func (_u *FinanceNettingUpdate) RemoveCommissions(v ...*FinanceCommission) *FinanceNettingUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -620,6 +657,51 @@ func (_u *FinanceNettingUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionsIDs(); len(nodes) > 0 && !_u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -940,6 +1022,21 @@ func (_u *FinanceNettingUpdateOne) AddAllocations(v ...*FinanceNettingAllocation
 	return _u.AddAllocationIDs(ids...)
 }
 
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_u *FinanceNettingUpdateOne) AddCommissionIDs(ids ...uuid.UUID) *FinanceNettingUpdateOne {
+	_u.mutation.AddCommissionIDs(ids...)
+	return _u
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceNettingUpdateOne) AddCommissions(v ...*FinanceCommission) *FinanceNettingUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionIDs(ids...)
+}
+
 // Mutation returns the FinanceNettingMutation object of the builder.
 func (_u *FinanceNettingUpdateOne) Mutation() *FinanceNettingMutation {
 	return _u.mutation
@@ -982,6 +1079,27 @@ func (_u *FinanceNettingUpdateOne) RemoveAllocations(v ...*FinanceNettingAllocat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllocationIDs(ids...)
+}
+
+// ClearCommissions clears all "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceNettingUpdateOne) ClearCommissions() *FinanceNettingUpdateOne {
+	_u.mutation.ClearCommissions()
+	return _u
+}
+
+// RemoveCommissionIDs removes the "commissions" edge to FinanceCommission entities by IDs.
+func (_u *FinanceNettingUpdateOne) RemoveCommissionIDs(ids ...uuid.UUID) *FinanceNettingUpdateOne {
+	_u.mutation.RemoveCommissionIDs(ids...)
+	return _u
+}
+
+// RemoveCommissions removes "commissions" edges to FinanceCommission entities.
+func (_u *FinanceNettingUpdateOne) RemoveCommissions(v ...*FinanceCommission) *FinanceNettingUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceNettingUpdate builder.
@@ -1266,6 +1384,51 @@ func (_u *FinanceNettingUpdateOne) sqlSave(ctx context.Context) (_node *FinanceN
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionsIDs(); len(nodes) > 0 && !_u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

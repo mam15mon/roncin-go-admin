@@ -280,14 +280,93 @@ func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule
 	}
 	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName}
 }
+
+// commissionSourceFromAPI 解析提成来源二选一：核销与对冲恰好提供一个，
+// 同时缺失或同时提供返回参数错误。
+func commissionSourceFromAPI(rawVerificationID, rawNettingID string) (verificationID, nettingID uuid.UUID, err error) {
+	rawVerificationID, rawNettingID = strings.TrimSpace(rawVerificationID), strings.TrimSpace(rawNettingID)
+	if rawVerificationID != "" {
+		if rawNettingID != "" {
+			return uuid.Nil, uuid.Nil, biz.ErrCommissionInvalid
+		}
+		parsed, parseErr := uuid.Parse(rawVerificationID)
+		if parseErr != nil {
+			return uuid.Nil, uuid.Nil, biz.ErrCommissionInvalid
+		}
+		return parsed, uuid.Nil, nil
+	}
+	parsed, parseErr := uuid.Parse(rawNettingID)
+	if parseErr != nil {
+		return uuid.Nil, uuid.Nil, biz.ErrCommissionInvalid
+	}
+	return uuid.Nil, parsed, nil
+}
+
+// ensureCommissionSourceOrganization 校验来源单与规则属于同一组织，防止跨组织计提。
+func (s *SettlementService) ensureCommissionSourceOrganization(ctx context.Context, organizationID, verificationID, nettingID uuid.UUID) error {
+	if verificationID != uuid.Nil {
+		verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{organizationID}, verificationID)
+		if err != nil {
+			return err
+		}
+		if verification.OrganizationID != organizationID {
+			return biz.ErrPermissionDenied
+		}
+		return nil
+	}
+	netting, err := s.nettingUsecase.Get(ctx, []uuid.UUID{organizationID}, nettingID)
+	if err != nil {
+		return err
+	}
+	if netting.OrganizationID != organizationID {
+		return biz.ErrPermissionDenied
+	}
+	return nil
+}
+
+// ListCommissionNettingCandidates 为生成提成提供已确认对冲单候选（存在有效应收
+// 分摊），与核销候选接口分离，保持各自响应形态。
+func (s *SettlementService) ListCommissionNettingCandidates(ctx context.Context, r *v1.ListCommissionNettingCandidatesRequest) (*v1.ListCommissionNettingCandidatesResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	raw := strings.TrimSpace(r.GetOrganizationId())
+	if raw == "" {
+		return nil, biz.ErrCommissionInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionManage, true, &raw)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	if len(organizationIDs) != 1 {
+		return nil, biz.ErrCommissionInvalid
+	}
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionInvalid)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.commissionUsecase.ListNettingCandidates(ctx, organizationIDs[0], biz.CommissionNettingCandidateFilter{
+		Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceNetting, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, financeNettingToAPI(item))
+	}
+	return okList(ctx, &v1.ListCommissionNettingCandidatesResponse{Data: data, Total: result.Total}), nil
+}
+
 func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.PreviewCommissionRequest) (*v1.PreviewCommissionResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
+	verificationID, nettingID, err := commissionSourceFromAPI(r.GetVerificationId(), r.GetNettingId())
 	if err != nil {
-		return nil, biz.ErrCommissionInvalid
+		return nil, err
 	}
 	employeeID, err := uuid.Parse(strings.TrimSpace(r.GetEmployeeId()))
 	if err != nil {
@@ -305,14 +384,10 @@ func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.Preview
 	if err != nil {
 		return nil, err
 	}
-	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
-	if err != nil {
-		return nil, err
+	if sourceErr := s.ensureCommissionSourceOrganization(ctx, rule.OrganizationID, verificationID, nettingID); sourceErr != nil {
+		return nil, sourceErr
 	}
-	if verification.OrganizationID != rule.OrganizationID {
-		return nil, biz.ErrPermissionDenied
-	}
-	item, err := s.commissionUsecase.Preview(ctx, rule.OrganizationID, verificationID, employeeID, ruleID)
+	item, err := s.commissionUsecase.Preview(ctx, rule.OrganizationID, verificationID, nettingID, employeeID, ruleID)
 	if err != nil {
 		return nil, err
 	}
@@ -323,9 +398,9 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
+	verificationID, nettingID, err := commissionSourceFromAPI(r.GetVerificationId(), r.GetNettingId())
 	if err != nil {
-		return nil, biz.ErrCommissionInvalid
+		return nil, err
 	}
 	employeeID, err := uuid.Parse(strings.TrimSpace(r.GetEmployeeId()))
 	if err != nil {
@@ -343,14 +418,10 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	if err != nil {
 		return nil, err
 	}
-	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
-	if err != nil {
-		return nil, err
+	if sourceErr := s.ensureCommissionSourceOrganization(ctx, rule.OrganizationID, verificationID, nettingID); sourceErr != nil {
+		return nil, sourceErr
 	}
-	if verification.OrganizationID != rule.OrganizationID {
-		return nil, biz.ErrPermissionDenied
-	}
-	item, err := s.commissionUsecase.Create(ctx, rule.OrganizationID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	item, err := s.commissionUsecase.Create(ctx, rule.OrganizationID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, NettingID: nettingID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -529,6 +600,16 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 		value := string(x.CalculationBasis)
 		calculationBasis = &value
 	}
+	// 来源二选一：核销或对冲快照，恰好一组非空。
+	var verificationID, verificationNo, nettingID, nettingNo *string
+	if x.VerificationID != uuid.Nil {
+		idValue, noValue := x.VerificationID.String(), x.VerificationNo
+		verificationID, verificationNo = &idValue, &noValue
+	}
+	if x.NettingID != uuid.Nil {
+		idValue, noValue := x.NettingID.String(), x.NettingNo
+		nettingID, nettingNo = &idValue, &noValue
+	}
 	lines := make([]*v1.FinanceCommissionLine, 0, len(x.Lines))
 	for _, line := range x.Lines {
 		lines = append(lines, commissionLineToAPI(line))
@@ -537,7 +618,7 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	for _, item := range x.Adjustments {
 		adjustments = append(adjustments, commissionAdjustmentToAPI(item))
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy), PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy), CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: verificationID, VerificationNo: verificationNo, NettingId: nettingID, NettingNo: nettingNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy), PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy), CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
 }
 
 // commissionExportItemToAPI 输出导出扁平 DTO：金额字段与本位币、CNY 双口径及
@@ -546,7 +627,14 @@ func commissionExportItemToAPI(x *biz.FinanceCommission) *v1.CommissionExportIte
 	if x == nil {
 		return nil
 	}
-	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: x.VerificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	var verificationNo, nettingNo *string
+	if x.VerificationNo != "" {
+		verificationNo = &x.VerificationNo
+	}
+	if x.NettingNo != "" {
+		nettingNo = &x.NettingNo
+	}
+	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: verificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8), NettingNo: nettingNo}
 }
 
 func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCommissionAdjustment {
@@ -570,11 +658,21 @@ func commissionCalculationToAPI(x *biz.CommissionCalculation) *v1.CommissionCalc
 	if x == nil {
 		return nil
 	}
+	// 来源二选一：核销或对冲快照，恰好一组非空。
+	var verificationID, verificationNo, nettingID, nettingNo *string
+	if x.VerificationID != uuid.Nil {
+		idValue, noValue := x.VerificationID.String(), x.VerificationNo
+		verificationID, verificationNo = &idValue, &noValue
+	}
+	if x.NettingID != uuid.Nil {
+		idValue, noValue := x.NettingID.String(), x.NettingNo
+		nettingID, nettingNo = &idValue, &noValue
+	}
 	lines := make([]*v1.FinanceCommissionLine, 0, len(x.Lines))
 	for _, line := range x.Lines {
 		lines = append(lines, commissionLineToAPI(line))
 	}
-	result := &v1.CommissionCalculation{VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, RuleId: x.RuleID.String(), RuleName: x.RuleName, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Lines: lines}
+	result := &v1.CommissionCalculation{VerificationId: verificationID, VerificationNo: verificationNo, NettingId: nettingID, NettingNo: nettingNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, RuleId: x.RuleID.String(), RuleName: x.RuleName, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Lines: lines}
 	if x.CNY != nil {
 		result.CnyExchangeRate = x.CNY.ExchangeRate.StringFixed(8)
 		result.CnyExchangeRateSource = x.CNY.ExchangeRateSource

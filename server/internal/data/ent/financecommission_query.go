@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -33,6 +34,7 @@ type FinanceCommissionQuery struct {
 	predicates          []predicate.FinanceCommission
 	withOrganization    *OrganizationQuery
 	withVerification    *FinanceVerificationQuery
+	withNetting         *FinanceNettingQuery
 	withEmployee        *UserQuery
 	withRule            *FinanceCommissionRuleQuery
 	withConfirmedByUser *UserQuery
@@ -114,6 +116,28 @@ func (_q *FinanceCommissionQuery) QueryVerification() *FinanceVerificationQuery 
 			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.VerificationTable, financecommission.VerificationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNetting chains the current query on the "netting" edge.
+func (_q *FinanceCommissionQuery) QueryNetting() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.NettingTable, financecommission.NettingColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -469,6 +493,7 @@ func (_q *FinanceCommissionQuery) Clone() *FinanceCommissionQuery {
 		predicates:          append([]predicate.FinanceCommission{}, _q.predicates...),
 		withOrganization:    _q.withOrganization.Clone(),
 		withVerification:    _q.withVerification.Clone(),
+		withNetting:         _q.withNetting.Clone(),
 		withEmployee:        _q.withEmployee.Clone(),
 		withRule:            _q.withRule.Clone(),
 		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
@@ -501,6 +526,17 @@ func (_q *FinanceCommissionQuery) WithVerification(opts ...func(*FinanceVerifica
 		opt(query)
 	}
 	_q.withVerification = query
+	return _q
+}
+
+// WithNetting tells the query-builder to eager-load the nodes that are connected to
+// the "netting" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionQuery) WithNetting(opts ...func(*FinanceNettingQuery)) *FinanceCommissionQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNetting = query
 	return _q
 }
 
@@ -659,9 +695,10 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*FinanceCommission{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			_q.withOrganization != nil,
 			_q.withVerification != nil,
+			_q.withNetting != nil,
 			_q.withEmployee != nil,
 			_q.withRule != nil,
 			_q.withConfirmedByUser != nil,
@@ -701,6 +738,12 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := _q.withVerification; query != nil {
 		if err := _q.loadVerification(ctx, query, nodes, nil,
 			func(n *FinanceCommission, e *FinanceVerification) { n.Edges.Verification = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNetting; query != nil {
+		if err := _q.loadNetting(ctx, query, nodes, nil,
+			func(n *FinanceCommission, e *FinanceNetting) { n.Edges.Netting = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -786,7 +829,10 @@ func (_q *FinanceCommissionQuery) loadVerification(ctx context.Context, query *F
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FinanceCommission)
 	for i := range nodes {
-		fk := nodes[i].VerificationID
+		if nodes[i].VerificationID == nil {
+			continue
+		}
+		fk := *nodes[i].VerificationID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -804,6 +850,38 @@ func (_q *FinanceCommissionQuery) loadVerification(ctx context.Context, query *F
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "verification_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceCommissionQuery) loadNetting(ctx context.Context, query *FinanceNettingQuery, nodes []*FinanceCommission, init func(*FinanceCommission), assign func(*FinanceCommission, *FinanceNetting)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommission)
+	for i := range nodes {
+		if nodes[i].NettingID == nil {
+			continue
+		}
+		fk := *nodes[i].NettingID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(financenetting.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "netting_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -1062,6 +1140,9 @@ func (_q *FinanceCommissionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withVerification != nil {
 			_spec.Node.AddColumnOnce(financecommission.FieldVerificationID)
+		}
+		if _q.withNetting != nil {
+			_spec.Node.AddColumnOnce(financecommission.FieldNettingID)
 		}
 		if _q.withEmployee != nil {
 			_spec.Node.AddColumnOnce(financecommission.FieldEmployeeID)

@@ -31,6 +31,8 @@ type commissionRepoStub struct {
 	exportBatch    []*biz.FinanceCommission
 	exportFilter   biz.CommissionFilter
 	exportAuditLog *biz.AuditEvent
+	nettingFilter  biz.CommissionNettingCandidateFilter
+	nettingResult  *biz.CommissionNettingCandidateListResult
 }
 
 func (s *commissionRepoStub) List(_ context.Context, _ uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
@@ -68,12 +70,26 @@ func (s *commissionRepoStub) SaveExportAudit(_ context.Context, event *biz.Audit
 	return nil
 }
 
-func (s *commissionRepoStub) Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*biz.CommissionCalculation, error) {
+func (s *commissionRepoStub) Preview(_ context.Context, _ uuid.UUID, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
+	if s.preview != nil {
+		s.preview.VerificationID = verificationID
+		s.preview.NettingID = nettingID
+		s.preview.EmployeeID = employeeID
+		s.preview.RuleID = ruleID
+	}
 	return s.preview, nil
 }
 
-func (s *commissionRepoStub) GetGenerationContext(context.Context, uuid.UUID, uuid.UUID) (*biz.CommissionGenerationContext, error) {
+func (s *commissionRepoStub) GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*biz.CommissionGenerationContext, error) {
 	return s.generation, nil
+}
+
+func (s *commissionRepoStub) ListNettingCandidates(_ context.Context, _ uuid.UUID, f biz.CommissionNettingCandidateFilter) (*biz.CommissionNettingCandidateListResult, error) {
+	s.nettingFilter = f
+	if s.nettingResult == nil {
+		return &biz.CommissionNettingCandidateListResult{}, nil
+	}
+	return s.nettingResult, nil
 }
 
 func (s *commissionRepoStub) GetRuleScoped(_ context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCommissionRule, error) {
@@ -134,8 +150,26 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 	}
 	usecase := biz.NewCommissionUsecase(repo, nil, biz.NewExchangeRateUsecase(repo.rateStub), &commissionTransactorStub{})
 	verificationUsecase := biz.NewVerificationUsecase(&verificationRepoStub{}, nil, nil)
-	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, nil, usecase, nil, nil, nil, nil)
+	nettingUsecase := biz.NewFinanceNettingUsecase(&nettingRepoStub{}, nil)
+	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, nettingUsecase, usecase, nil, nil, nil, nil)
 	return service, repo
+}
+
+// nettingRepoStub 提供提成来源校验所需的最小对冲仓储行为。
+type nettingRepoStub struct {
+	biz.FinanceNettingRepo
+	netting *biz.FinanceNetting
+	getErr  error
+}
+
+func (s *nettingRepoStub) Get(_ context.Context, _ []uuid.UUID, id uuid.UUID) (*biz.FinanceNetting, error) {
+	if s.getErr != nil {
+		return nil, s.getErr
+	}
+	if s.netting != nil {
+		return s.netting, nil
+	}
+	return &biz.FinanceNetting{ID: id}, nil
 }
 
 type commissionTransactorStub struct{}
@@ -243,7 +277,7 @@ func TestExportCommissionsMapsFilterAndDualCurrencyExportFields(t *testing.T) {
 		t.Fatalf("导出行数不符: %d", len(response.Data))
 	}
 	item := response.Data[0]
-	if item.CommissionNo != "TC20260815000001" || item.VerificationNo != "VR20260815000001" ||
+	if item.CommissionNo != "TC20260815000001" || item.VerificationNo == nil || *item.VerificationNo != "VR20260815000001" || item.NettingNo != nil ||
 		item.Status != v1.FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID || item.CommissionDate != "2026-08-15" ||
 		item.EmployeeName != "张三" || item.PersonnelRole != string(biz.CommissionRoleSales) ||
 		item.RuleName != "销售提成" || item.CalculationBasis != string(biz.CommissionBasisRealizedProfit) ||
@@ -265,16 +299,84 @@ func TestExportCommissionsMapsFilterAndDualCurrencyExportFields(t *testing.T) {
 func TestPreviewCommissionReturnsCNYRateBasis(t *testing.T) {
 	org := uuid.New()
 	service, _ := newCommissionService(org)
+	verificationID := uuid.New().String()
 
 	response, err := service.PreviewCommission(commissionPrincipalContext(org), &v1.PreviewCommissionRequest{
-		VerificationId: uuid.New().String(), EmployeeId: uuid.New().String(), RuleId: uuid.New().String(),
+		VerificationId: &verificationID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String(),
 	})
 	if err != nil {
 		t.Fatalf("PreviewCommission() error = %v", err)
 	}
-	if response.Data.CnyExchangeRate != "2.00000000" || response.Data.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived ||
-		response.Data.CnyExchangeRateDate != "2026-08-15" || response.Data.CnyCommissionAmount != "200.00000000" {
+	if response.Data.CnyExchangeRate != "0.50000000" || response.Data.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived ||
+		response.Data.CnyExchangeRateDate != "2026-08-15" || response.Data.CnyCommissionAmount != "50.00000000" {
 		t.Fatalf("预览折算依据未返回: %#v", response.Data)
+	}
+	if response.Data.VerificationId == nil || *response.Data.VerificationId != verificationID || response.Data.NettingId != nil {
+		t.Fatalf("预览来源字段不符: %#v", response.Data)
+	}
+}
+
+func TestCommissionSourceExclusiveChoice(t *testing.T) {
+	org := uuid.New()
+	service, _ := newCommissionService(org)
+	ctx := commissionPrincipalContext(org)
+	verificationID, nettingID := uuid.New().String(), uuid.New().String()
+
+	for name, request := range map[string]*v1.PreviewCommissionRequest{
+		"预览来源双空": {EmployeeId: uuid.New().String(), RuleId: uuid.New().String()},
+		"预览来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String()},
+	} {
+		if _, err := service.PreviewCommission(ctx, request); !errors.Is(err, biz.ErrCommissionInvalid) {
+			t.Fatalf("%s 错误 = %v，期望 %v", name, err, biz.ErrCommissionInvalid)
+		}
+	}
+	for name, request := range map[string]*v1.CreateCommissionRequest{
+		"创建来源双空": {EmployeeId: uuid.New().String(), RuleId: uuid.New().String(), IdempotencyKey: "dup-src"},
+		"创建来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String(), IdempotencyKey: "dup-src"},
+	} {
+		if _, err := service.CreateCommission(ctx, request); !errors.Is(err, biz.ErrCommissionInvalid) {
+			t.Fatalf("%s 错误 = %v，期望 %v", name, err, biz.ErrCommissionInvalid)
+		}
+	}
+}
+
+func TestListCommissionNettingCandidatesUsesManageWritableOrganization(t *testing.T) {
+	allowed, denied := uuid.New(), uuid.New()
+	service, repo := newCommissionService(allowed)
+	repo.nettingResult = &biz.CommissionNettingCandidateListResult{
+		Items: []*biz.FinanceNetting{{
+			ID: uuid.New(), OrganizationID: allowed, NettingNo: "NT202609100001", Status: biz.FinanceNettingConfirmed,
+			SettlementPartyName: "测试对冲单位", Currency: "CNY", Amount: decimal.RequireFromString("60"),
+			BaseCurrency: "CNY", BaseCurrencyAmount: decimal.RequireFromString("60"),
+		}},
+		Total: 1, Page: 1, PageSize: 20,
+	}
+	principal := &biz.Principal{
+		UserID: uuid.New(), Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
+			Permissions:          map[string]struct{}{access.FinanceCommissionManage: {}},
+			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowed, Writable: true}}}},
+	}
+	ctx := biz.WithPrincipal(context.Background(), principal)
+	keyword := "NT2026"
+
+	response, err := service.ListCommissionNettingCandidates(ctx, &v1.ListCommissionNettingCandidatesRequest{OrganizationId: allowed.String(), Page: 1, PageSize: 20, Keyword: &keyword})
+	if err != nil {
+		t.Fatalf("Manage-only 对冲候选查询失败: %v", err)
+	}
+	if len(response.Data) != 1 || response.Total != 1 || response.Data[0].NettingNo != "NT202609100001" ||
+		response.Data[0].Status != v1.FinanceNettingStatus_FINANCE_NETTING_STATUS_CONFIRMED {
+		t.Fatalf("对冲候选结果不符: %#v", response.Data)
+	}
+	if repo.nettingFilter.Page != 1 || repo.nettingFilter.PageSize != 20 || repo.nettingFilter.Keyword != "NT2026" {
+		t.Fatalf("对冲候选筛选未透传: %+v", repo.nettingFilter)
+	}
+
+	if _, err := service.ListCommissionNettingCandidates(ctx, &v1.ListCommissionNettingCandidatesRequest{OrganizationId: denied.String(), Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrPermissionDenied) {
+		t.Fatalf("越权组织错误 = %v，期望 %v", err, biz.ErrPermissionDenied)
+	}
+	if _, err := service.ListCommissionNettingCandidates(ctx, &v1.ListCommissionNettingCandidatesRequest{Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrCommissionInvalid) {
+		t.Fatalf("空组织错误 = %v，期望 %v", err, biz.ErrCommissionInvalid)
 	}
 }
 

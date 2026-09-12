@@ -14,11 +14,18 @@ const serviceMocks = vi.hoisted(() => ({
   previewCommission: vi.fn(),
   listFinanceOrganizationOptions: vi.fn(),
   listCommissionVerificationCandidates: vi.fn(),
+  listCommissionNettingCandidates: vi.fn(),
   listCommissionRuleCandidates: vi.fn(),
+  listCommissionEmployees: vi.fn(),
 }));
 
 const modalState = vi.hoisted(() => ({
   props: undefined as Record<string, any> | undefined,
+  dependencyValues: {
+    verificationId: 'verification-1',
+    ruleId: 'rule-1',
+    employeeId: 'employee-1',
+  } as Record<string, any>,
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -27,13 +34,7 @@ vi.mock('@ant-design/pro-components', () => ({
     return <div>{props.children}</div>;
   },
   ProFormDependency: ({ children }: Record<string, any>) => (
-    <>
-      {children({
-        verificationId: 'verification-1',
-        ruleId: 'rule-1',
-        employeeId: 'employee-1',
-      })}
-    </>
+    <>{children(modalState.dependencyValues)}</>
   ),
   ProFormTextArea: () => null,
 }));
@@ -78,6 +79,10 @@ vi.mock('@/components/ui', () => ({
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateCommission: serviceMocks.createCommission,
   settlementServiceListCommissionCandidates: vi.fn(),
+  settlementServiceListCommissionNettingCandidates:
+    serviceMocks.listCommissionNettingCandidates,
+  settlementServiceListCommissionEmployees:
+    serviceMocks.listCommissionEmployees,
   settlementServiceListCommissionRuleCandidates:
     serviceMocks.listCommissionRuleCandidates,
   settlementServiceListCommissionRules: vi.fn(),
@@ -95,14 +100,26 @@ vi.mock('./CommissionLineTable', () => ({
 
 import CommissionCreateModal from './CommissionCreateModal';
 
+const nettingCandidate = {
+  id: 'netting-1',
+  nettingNo: 'NT-2026-001',
+  settlementPartyName: '对冲单位A',
+  currency: 'CNY',
+  amount: '100.00',
+  confirmedAt: '2026-09-01 10:00:00',
+};
+
 describe('提成预览 CNY 快照', () => {
   beforeEach(() => {
     modalState.props = undefined;
-    serviceMocks.createCommission.mockReset();
-    serviceMocks.previewCommission.mockReset();
-    serviceMocks.listFinanceOrganizationOptions.mockReset();
-    serviceMocks.listCommissionVerificationCandidates.mockReset();
-    serviceMocks.listCommissionRuleCandidates.mockReset();
+    modalState.dependencyValues = {
+      verificationId: 'verification-1',
+      ruleId: 'rule-1',
+      employeeId: 'employee-1',
+    };
+    for (const mock of Object.values(serviceMocks)) {
+      mock.mockReset();
+    }
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
     serviceMocks.previewCommission.mockResolvedValue({
       data: {
@@ -143,7 +160,7 @@ describe('提成预览 CNY 快照', () => {
     expect(screen.getByText('预览汇率仅供生成前核对')).toBeInTheDocument();
   });
 
-  it('创建成功后触发列表刷新，不把预览结果作为创建参数', async () => {
+  it('核销来源创建请求体携带 verificationId 而不带 nettingId', async () => {
     const onSuccess = vi.fn();
     serviceMocks.createCommission.mockResolvedValue({
       data: { cnyCommissionAmount: '401.00000000' },
@@ -177,7 +194,125 @@ describe('提成预览 CNY 快照', () => {
       }),
     );
     expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
+      'nettingId',
+    );
+    expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
       'cnyCommissionAmount',
+    );
+  });
+
+  it('对冲提成 Tab 按对冲管理列惯例展示已确认对冲单候选', async () => {
+    serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
+      data: [nettingCandidate],
+    });
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    fireEvent.click(screen.getByRole('tab', { name: '对冲提成' }));
+
+    await waitFor(() =>
+      expect(serviceMocks.listCommissionNettingCandidates).toHaveBeenCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+        },
+      ),
+    );
+    expect(await screen.findByText('NT-2026-001')).toBeInTheDocument();
+    expect(screen.getByText('对冲单位A')).toBeInTheDocument();
+    expect(screen.getByText('100.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('2026-09-01 10:00:00')).toBeInTheDocument();
+    // 默认核销 Tab 的下拉入口在对冲 Tab 下不再渲染。
+    expect(
+      screen.queryByRole('button', { name: '加载有效应收核销' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('对冲来源预览与创建请求体携带 nettingId 而不带 verificationId', async () => {
+    serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
+      data: [nettingCandidate],
+    });
+    serviceMocks.previewCommission.mockResolvedValue({
+      data: {
+        employeeName: '张三',
+        ruleName: '销售提成',
+        ruleVersion: '1',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: '2.5000',
+        baseCurrency: 'CNY',
+        commissionAmount: '56.00000000',
+        cnyCommissionAmount: '56.00000000',
+        cnyExchangeRate: '1',
+        cnyExchangeRateDate: '2026-09-01',
+        cnyExchangeRateSource: 'BASE_CURRENCY',
+        nettingId: 'netting-1',
+        nettingNo: 'NT-2026-001',
+        lines: [],
+      },
+    });
+    serviceMocks.createCommission.mockResolvedValue({ data: {} });
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    modalState.dependencyValues = {
+      nettingId: 'netting-1',
+      ruleId: 'rule-1',
+      employeeId: 'employee-1',
+    };
+    fireEvent.click(screen.getByRole('tab', { name: '对冲提成' }));
+    fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
+
+    await waitFor(() =>
+      expect(serviceMocks.previewCommission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nettingId: 'netting-1',
+          employeeId: 'employee-1',
+          ruleId: 'rule-1',
+        }),
+      ),
+    );
+    expect(serviceMocks.previewCommission.mock.calls[0][0]).not.toHaveProperty(
+      'verificationId',
+    );
+    expect(await screen.findByText('来源单号')).toBeInTheDocument();
+    expect(screen.getByText('NT-2026-001')).toBeInTheDocument();
+
+    await act(async () => {
+      await modalState.props?.onFinish({
+        nettingId: 'netting-1',
+        ruleId: 'rule-1',
+        employeeId: 'employee-1',
+      });
+    });
+
+    await waitFor(() =>
+      expect(serviceMocks.createCommission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nettingId: 'netting-1',
+          ruleId: 'rule-1',
+          employeeId: 'employee-1',
+        }),
+      ),
+    );
+    expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
+      'verificationId',
     );
   });
 

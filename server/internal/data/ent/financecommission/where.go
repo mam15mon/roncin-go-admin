@@ -91,6 +91,16 @@ func VerificationNo(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldVerificationNo, v))
 }
 
+// NettingID applies equality check predicate on the "netting_id" field. It's identical to NettingIDEQ.
+func NettingID(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldNettingID, v))
+}
+
+// NettingNo applies equality check predicate on the "netting_no" field. It's identical to NettingNoEQ.
+func NettingNo(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldNettingNo, v))
+}
+
 // EmployeeID applies equality check predicate on the "employee_id" field. It's identical to EmployeeIDEQ.
 func EmployeeID(v uuid.UUID) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldEmployeeID, v))
@@ -511,6 +521,16 @@ func VerificationIDNotIn(vs ...uuid.UUID) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldNotIn(FieldVerificationID, vs...))
 }
 
+// VerificationIDIsNil applies the IsNil predicate on the "verification_id" field.
+func VerificationIDIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldVerificationID))
+}
+
+// VerificationIDNotNil applies the NotNil predicate on the "verification_id" field.
+func VerificationIDNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldVerificationID))
+}
+
 // VerificationNoEQ applies the EQ predicate on the "verification_no" field.
 func VerificationNoEQ(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldVerificationNo, v))
@@ -566,6 +586,16 @@ func VerificationNoHasSuffix(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldVerificationNo, v))
 }
 
+// VerificationNoIsNil applies the IsNil predicate on the "verification_no" field.
+func VerificationNoIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldVerificationNo))
+}
+
+// VerificationNoNotNil applies the NotNil predicate on the "verification_no" field.
+func VerificationNoNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldVerificationNo))
+}
+
 // VerificationNoEqualFold applies the EqualFold predicate on the "verification_no" field.
 func VerificationNoEqualFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEqualFold(FieldVerificationNo, v))
@@ -574,6 +604,111 @@ func VerificationNoEqualFold(v string) predicate.FinanceCommission {
 // VerificationNoContainsFold applies the ContainsFold predicate on the "verification_no" field.
 func VerificationNoContainsFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldContainsFold(FieldVerificationNo, v))
+}
+
+// NettingIDEQ applies the EQ predicate on the "netting_id" field.
+func NettingIDEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldNettingID, v))
+}
+
+// NettingIDNEQ applies the NEQ predicate on the "netting_id" field.
+func NettingIDNEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldNettingID, v))
+}
+
+// NettingIDIn applies the In predicate on the "netting_id" field.
+func NettingIDIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldNettingID, vs...))
+}
+
+// NettingIDNotIn applies the NotIn predicate on the "netting_id" field.
+func NettingIDNotIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldNettingID, vs...))
+}
+
+// NettingIDIsNil applies the IsNil predicate on the "netting_id" field.
+func NettingIDIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldNettingID))
+}
+
+// NettingIDNotNil applies the NotNil predicate on the "netting_id" field.
+func NettingIDNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldNettingID))
+}
+
+// NettingNoEQ applies the EQ predicate on the "netting_no" field.
+func NettingNoEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldNettingNo, v))
+}
+
+// NettingNoNEQ applies the NEQ predicate on the "netting_no" field.
+func NettingNoNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldNettingNo, v))
+}
+
+// NettingNoIn applies the In predicate on the "netting_no" field.
+func NettingNoIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldNettingNo, vs...))
+}
+
+// NettingNoNotIn applies the NotIn predicate on the "netting_no" field.
+func NettingNoNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldNettingNo, vs...))
+}
+
+// NettingNoGT applies the GT predicate on the "netting_no" field.
+func NettingNoGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldNettingNo, v))
+}
+
+// NettingNoGTE applies the GTE predicate on the "netting_no" field.
+func NettingNoGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldNettingNo, v))
+}
+
+// NettingNoLT applies the LT predicate on the "netting_no" field.
+func NettingNoLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldNettingNo, v))
+}
+
+// NettingNoLTE applies the LTE predicate on the "netting_no" field.
+func NettingNoLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldNettingNo, v))
+}
+
+// NettingNoContains applies the Contains predicate on the "netting_no" field.
+func NettingNoContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldNettingNo, v))
+}
+
+// NettingNoHasPrefix applies the HasPrefix predicate on the "netting_no" field.
+func NettingNoHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldNettingNo, v))
+}
+
+// NettingNoHasSuffix applies the HasSuffix predicate on the "netting_no" field.
+func NettingNoHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldNettingNo, v))
+}
+
+// NettingNoIsNil applies the IsNil predicate on the "netting_no" field.
+func NettingNoIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldNettingNo))
+}
+
+// NettingNoNotNil applies the NotNil predicate on the "netting_no" field.
+func NettingNoNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldNettingNo))
+}
+
+// NettingNoEqualFold applies the EqualFold predicate on the "netting_no" field.
+func NettingNoEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldNettingNo, v))
+}
+
+// NettingNoContainsFold applies the ContainsFold predicate on the "netting_no" field.
+func NettingNoContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldNettingNo, v))
 }
 
 // EmployeeIDEQ applies the EQ predicate on the "employee_id" field.
@@ -2519,6 +2654,29 @@ func HasVerification() predicate.FinanceCommission {
 func HasVerificationWith(preds ...predicate.FinanceVerification) predicate.FinanceCommission {
 	return predicate.FinanceCommission(func(s *sql.Selector) {
 		step := newVerificationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNetting applies the HasEdge predicate on the "netting" edge.
+func HasNetting() predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, NettingTable, NettingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNettingWith applies the HasEdge predicate on the "netting" edge with a given conditions (other predicates).
+func HasNettingWith(preds ...predicate.FinanceNetting) predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := newNettingStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

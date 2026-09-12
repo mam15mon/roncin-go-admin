@@ -215,7 +215,7 @@ func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 		mock.ExpectRollback()
 
 		err := repo.data.WithinTransaction(context.Background(), func(ctx context.Context) error {
-			_, queryErr := repo.GetGenerationContext(ctx, org, uuid.New())
+			_, queryErr := repo.GetGenerationContext(ctx, org, uuid.New(), uuid.Nil)
 			return queryErr
 		})
 		if !errors.Is(err, biz.ErrCommissionSource) {
@@ -232,7 +232,7 @@ func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*LIMIT 2$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
 
-		if _, err := repo.GetGenerationContext(context.Background(), org, uuid.New()); !errors.Is(err, biz.ErrCommissionSource) {
+		if _, err := repo.GetGenerationContext(context.Background(), org, uuid.New(), uuid.Nil); !errors.Is(err, biz.ErrCommissionSource) {
 			t.Fatalf("GetGenerationContext() error = %v, want %v", err, biz.ErrCommissionSource)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -346,7 +346,7 @@ func commissionExportScanRow(t *testing.T, org uuid.UUID) []driver.Value {
 	t.Helper()
 	now := time.Now()
 	return []driver.Value{
-		uuid.New(), now, now, org, "TC20260815000001", "idempotency-export", uuid.New(), "VR20260815000001",
+		uuid.New(), now, now, org, "TC20260815000001", "idempotency-export", uuid.New(), "VR20260815000001", nil, nil,
 		uuid.New(), "张三", 1, 2, 5, nil, "销售提成", "SALES", "REALIZED_PROFIT", 1, biz.CommissionCalculationVersion,
 		"fingerprint", "CONFIRMED", "USD", "500.00000000", "200.00000000", "300.00000000", "300.00000000",
 		"10.0000", "30.00000000", "2026-08-15", "0.50000000", "DERIVED", "2026-08-14", nil, "15.00000000",
@@ -465,7 +465,7 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id" FOR UPDATE$`).
 			WillReturnError(errors.New("stop_after_bills_query"))
 
-		_, err := loadCommissionCalculationSource(context.Background(), commissionStoreFromClient(repo.data.db), org, verificationID, ruleID, true)
+		_, err := loadCommissionCalculationSource(context.Background(), commissionStoreFromClient(repo.data.db), org, verificationID, uuid.Nil, ruleID, true)
 		if err == nil || err.Error() != "stop_after_bills_query" {
 			t.Fatalf("loadCommissionCalculationSource() error = %v, 期望 stop_after_bills_query", err)
 		}

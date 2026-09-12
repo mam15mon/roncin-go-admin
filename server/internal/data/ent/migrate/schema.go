@@ -1569,7 +1569,8 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
-		{Name: "verification_no", Type: field.TypeString, Size: 64},
+		{Name: "verification_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "netting_no", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
 		{Name: "customer_count", Type: field.TypeInt},
 		{Name: "order_count", Type: field.TypeInt},
@@ -1602,7 +1603,8 @@ var (
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "rule_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "verification_id", Type: field.TypeUUID},
+		{Name: "netting_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "verification_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "employee_id", Type: field.TypeUUID},
 		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
@@ -1617,43 +1619,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commissions_finance_commission_rules_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[37]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[38]},
 				RefColumns: []*schema.Column{FinanceCommissionRulesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:     "finance_commissions_finance_nettings_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[39]},
+				RefColumns: []*schema.Column{FinanceNettingsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "finance_commissions_finance_verifications_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[38]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[40]},
 				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_organizations_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[39]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[41]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commissions_users_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[40]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[42]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commissions_users_confirmed_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[41]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[43]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_users_paid_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[42]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[44]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_users_cancelled_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[43]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[45]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1667,35 +1675,54 @@ var (
 			{
 				Name:    "financecommission_organization_id_commission_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[3]},
 			},
 			{
 				Name:    "financecommission_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[4]},
 			},
 			{
-				Name:    "finance_commissions_target_active_unique",
+				Name:    "finance_commissions_verification_active_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[38], FinanceCommissionsColumns[40], FinanceCommissionsColumns[11]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[40], FinanceCommissionsColumns[42], FinanceCommissionsColumns[12]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "status <> 'CANCELLED'",
+					Where: "status <> 'CANCELLED' AND verification_id IS NOT NULL",
 				},
 			},
 			{
-				Name:    "financecommission_verification_id_employee_id_status",
+				Name:    "finance_commissions_netting_active_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[39], FinanceCommissionsColumns[42], FinanceCommissionsColumns[12]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status <> 'CANCELLED' AND netting_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "financecommission_source_employee_status",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[38], FinanceCommissionsColumns[40], FinanceCommissionsColumns[16]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[40], FinanceCommissionsColumns[42], FinanceCommissionsColumns[17]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "verification_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "financecommission_netting_employee_status",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[42], FinanceCommissionsColumns[17]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "netting_id IS NOT NULL",
+				},
 			},
 			{
 				Name:    "financecommission_organization_id_commission_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[24]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[25]},
 			},
 			{
 				Name:    "financecommission_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[39], FinanceCommissionsColumns[16], FinanceCommissionsColumns[1]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[41], FinanceCommissionsColumns[17], FinanceCommissionsColumns[1]},
 			},
 		},
 	}
@@ -1709,7 +1736,7 @@ var (
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
-		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL"}, Default: "MANUAL"},
+		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL"}, Default: "MANUAL"},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -6808,12 +6835,13 @@ func init() {
 	FinanceCashflowsTable.ForeignKeys[2].RefTable = UsersTable
 	FinanceCashflowsTable.ForeignKeys[3].RefTable = UsersTable
 	FinanceCommissionsTable.ForeignKeys[0].RefTable = FinanceCommissionRulesTable
-	FinanceCommissionsTable.ForeignKeys[1].RefTable = FinanceVerificationsTable
-	FinanceCommissionsTable.ForeignKeys[2].RefTable = OrganizationsTable
-	FinanceCommissionsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[1].RefTable = FinanceNettingsTable
+	FinanceCommissionsTable.ForeignKeys[2].RefTable = FinanceVerificationsTable
+	FinanceCommissionsTable.ForeignKeys[3].RefTable = OrganizationsTable
 	FinanceCommissionsTable.ForeignKeys[4].RefTable = UsersTable
 	FinanceCommissionsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceCommissionsTable.ForeignKeys[6].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[7].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = FinanceVerificationsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = OrdersTable

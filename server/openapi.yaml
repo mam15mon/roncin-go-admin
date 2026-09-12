@@ -2099,6 +2099,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ExportCommissionsResponse'
+    /api/v1/finance/commissions/netting-candidates:
+        get:
+            tags:
+                - SettlementService
+            description: ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+            operationId: SettlementService_ListCommissionNettingCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionNettingCandidatesResponse'
     /api/v1/finance/commissions/preview:
         post:
             tags:
@@ -9360,6 +9392,10 @@ components:
                     type: string
                 cnyCommissionAmount:
                     type: string
+                nettingId:
+                    type: string
+                nettingNo:
+                    type: string
         finance.v1.CommissionCandidateSummary:
             type: object
             properties:
@@ -9444,6 +9480,8 @@ components:
                 organizationId:
                     type: string
                 organizationName:
+                    type: string
+                nettingNo:
                     type: string
             description: |-
                 CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，
@@ -9904,7 +9942,6 @@ components:
                     type: string
         finance.v1.CreateCommissionRequest:
             required:
-                - verificationId
                 - employeeId
                 - idempotencyKey
                 - ruleId
@@ -9919,6 +9956,8 @@ components:
                 idempotencyKey:
                     type: string
                 ruleId:
+                    type: string
+                nettingId:
                     type: string
         finance.v1.CreateCommissionResponse:
             type: object
@@ -10907,6 +10946,10 @@ components:
                     type: string
                 cancelledBy:
                     type: string
+                nettingId:
+                    type: string
+                nettingNo:
+                    type: string
         finance.v1.FinanceCommissionAdjustment:
             type: object
             properties:
@@ -11789,6 +11832,24 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.ListCommissionNettingCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceNetting'
+                total:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.ListCommissionRuleCandidatesResponse:
             type: object
             properties:
@@ -12235,7 +12296,6 @@ components:
                     description: netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。
         finance.v1.PreviewCommissionRequest:
             required:
-                - verificationId
                 - employeeId
                 - ruleId
             type: object
@@ -12246,6 +12306,11 @@ components:
                     type: string
                 ruleId:
                     type: string
+                nettingId:
+                    type: string
+            description: |-
+                PreviewCommissionRequest / CreateCommissionRequest 的来源二选一：
+                 verification_id 与 netting_id 恰好提供一个，同时缺失或同时提供返回参数错误。
         finance.v1.PreviewCommissionResponse:
             type: object
             properties:

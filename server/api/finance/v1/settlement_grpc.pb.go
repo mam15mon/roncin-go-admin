@@ -63,6 +63,7 @@ const (
 	SettlementService_ListVerificationCreationCandidates_FullMethodName        = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
 	SettlementService_ListVerifications_FullMethodName                         = "/finance.v1.SettlementService/ListVerifications"
 	SettlementService_ListCommissionVerificationCandidates_FullMethodName      = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
+	SettlementService_ListCommissionNettingCandidates_FullMethodName           = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
 	SettlementService_CreateVerification_FullMethodName                        = "/finance.v1.SettlementService/CreateVerification"
 	SettlementService_ReverseVerification_FullMethodName                       = "/finance.v1.SettlementService/ReverseVerification"
 	SettlementService_ListNettings_FullMethodName                              = "/finance.v1.SettlementService/ListNettings"
@@ -150,6 +151,8 @@ type SettlementServiceClient interface {
 	ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error)
 	ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionVerificationCandidatesResponse, error)
+	// ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+	ListCommissionNettingCandidates(ctx context.Context, in *ListCommissionNettingCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionNettingCandidatesResponse, error)
 	CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error)
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 	// 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
@@ -629,6 +632,16 @@ func (c *settlementServiceClient) ListCommissionVerificationCandidates(ctx conte
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListCommissionNettingCandidates(ctx context.Context, in *ListCommissionNettingCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionNettingCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionNettingCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionNettingCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateVerificationResponse)
@@ -957,6 +970,8 @@ type SettlementServiceServer interface {
 	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
+	// ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+	ListCommissionNettingCandidates(context.Context, *ListCommissionNettingCandidatesRequest) (*ListCommissionNettingCandidatesResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	// 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
@@ -1127,6 +1142,9 @@ func (UnimplementedSettlementServiceServer) ListVerifications(context.Context, *
 }
 func (UnimplementedSettlementServiceServer) ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionVerificationCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionNettingCandidates(context.Context, *ListCommissionNettingCandidatesRequest) (*ListCommissionNettingCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionNettingCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateVerification not implemented")
@@ -2022,6 +2040,24 @@ func _SettlementService_ListCommissionVerificationCandidates_Handler(srv interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListCommissionNettingCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionNettingCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionNettingCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionNettingCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionNettingCandidates(ctx, req.(*ListCommissionNettingCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_CreateVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateVerificationRequest)
 	if err := dec(in); err != nil {
@@ -2690,6 +2726,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommissionVerificationCandidates",
 			Handler:    _SettlementService_ListCommissionVerificationCandidates_Handler,
+		},
+		{
+			MethodName: "ListCommissionNettingCandidates",
+			Handler:    _SettlementService_ListCommissionNettingCandidates_Handler,
 		},
 		{
 			MethodName: "CreateVerification",

@@ -2,23 +2,14 @@ package data
 
 import (
 	"context"
-	"io"
-	"log/slog"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
-	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	notificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -26,25 +17,17 @@ import (
 	"github.com/google/uuid"
 )
 
+// TestAdminEmployeeLifecyclePostgres 在隔离 Schema + 完整版本化迁移链上验证员工
+// 生命周期（离职 → 返聘审批 → 重新授权 → 多组织调出）的数据一致性与权限边界；
+// 不依赖 public schema 的开发数据，夹具随 Schema 一并清理。
 func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
+
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
 	dingUnionID := "union-" + suffix
 	dingUserID := "ding-user-" + suffix
-	data, cleanup, err := NewData(&conf.Data{Database: &conf.Data_Database{
-		Driver:      "postgres",
-		Source:      source,
-		AutoMigrate: true,
-	}}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
-	// 关库注册为最早的 t.Cleanup（LIFO 中最后执行），保证数据清理先于连接关闭。
-	t.Cleanup(cleanup)
 
 	headquarters, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
@@ -55,7 +38,6 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建总部: %v", err)
 	}
-	t.Cleanup(func() { cleanupAdminLifecycleFixture(t, data, headquarters.ID, nil) })
 	role, err := data.db.Role.Create().
 		SetOrganizationID(headquarters.ID).
 		SetCode("operator").
@@ -75,7 +57,6 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建员工: %v", err)
 	}
-	t.Cleanup(func() { cleanupAdminLifecycleFixture(t, data, headquarters.ID, &account.ID) })
 	membershipRecord, err := data.db.Membership.Create().
 		SetUserID(account.ID).
 		SetOrganizationID(headquarters.ID).
@@ -222,103 +203,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 }
 
-// adminLifecycleAudit 携带组织上下文构造审计事件；组织 ID 缺失时审计会落成
-// organization_id 为空的行，按组织清理永远匹配不到。
+// adminLifecycleAudit 携带组织上下文构造审计事件。
 func adminLifecycleAudit(organizationID uuid.UUID, action string) *biz.AuditEvent {
 	return &biz.AuditEvent{OrganizationID: &organizationID, Action: action, Result: "success", Details: map[string]string{}}
-}
-
-// cleanupAdminLifecycleFixture 按外键依赖顺序清理生命周期测试写入的全部数据；
-// accountID 为空表示员工尚未创建，只清理组织级数据。
-func cleanupAdminLifecycleFixture(t *testing.T, data *Data, organizationID uuid.UUID, accountID *uuid.UUID) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	steps := []struct {
-		name string
-		run  func() error
-	}{
-		{name: "通知明细", run: func() error {
-			_, err := data.db.NotificationDelivery.Delete().Where(notificationent.HasBackgroundTaskWith(backgroundtaskent.OrganizationIDEQ(organizationID))).Exec(ctx)
-			return err
-		}},
-		{name: "后台任务", run: func() error {
-			_, err := data.db.BackgroundTask.Delete().Where(backgroundtaskent.OrganizationIDEQ(organizationID)).Exec(ctx)
-			return err
-		}},
-		{name: "审计日志", run: func() error {
-			_, err := data.db.AuditLog.Delete().Where(auditlogent.OrganizationIDEQ(organizationID)).Exec(ctx)
-			return err
-		}},
-	}
-	if accountID != nil {
-		steps = append(steps,
-			struct {
-				name string
-				run  func() error
-			}{name: "会话", run: func() error {
-				_, err := data.db.Session.Delete().Where(sessionent.UserIDEQ(*accountID)).Exec(ctx)
-				return err
-			}},
-			struct {
-				name string
-				run  func() error
-			}{name: "角色分配", run: func() error {
-				_, err := data.db.RoleAssignment.Delete().Where(roleassignment.HasMembershipWith(membership.UserIDEQ(*accountID))).Exec(ctx)
-				return err
-			}},
-			struct {
-				name string
-				run  func() error
-			}{name: "组织关系", run: func() error {
-				_, err := data.db.Membership.Delete().Where(membership.UserIDEQ(*accountID)).Exec(ctx)
-				return err
-			}},
-			struct {
-				name string
-				run  func() error
-			}{name: "账号", run: func() error {
-				return data.db.User.DeleteOneID(*accountID).Exec(ctx)
-			}},
-		)
-	}
-	// 子组织依赖成员关系先删，总部最后删；重复清理时组织已不存在视为成功。
-	steps = append(steps,
-		struct {
-			name string
-			run  func() error
-		}{name: "角色", run: func() error {
-			_, err := data.db.Role.Delete().Where(roleent.OrganizationIDEQ(organizationID)).Exec(ctx)
-			return err
-		}},
-		struct {
-			name string
-			run  func() error
-		}{name: "主数据", run: func() error {
-			_, err := data.db.MasterDataItem.Delete().Where(masterdataent.OrganizationIDEQ(organizationID)).Exec(ctx)
-			return err
-		}},
-		struct {
-			name string
-			run  func() error
-		}{name: "子组织", run: func() error {
-			_, err := data.db.Organization.Delete().Where(organizationent.ParentIDEQ(organizationID)).Exec(ctx)
-			return err
-		}},
-		struct {
-			name string
-			run  func() error
-		}{name: "总部", run: func() error {
-			err := data.db.Organization.DeleteOneID(organizationID).Exec(ctx)
-			if err != nil && !ent.IsNotFound(err) {
-				return err
-			}
-			return nil
-		}},
-	)
-	for _, step := range steps {
-		if err := step.run(); err != nil {
-			t.Errorf("清理%s失败: %v", step.name, err)
-			return
-		}
-	}
 }

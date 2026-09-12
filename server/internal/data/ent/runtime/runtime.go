@@ -2707,23 +2707,13 @@ func init() {
 	// financecommissionDescVerificationNo is the schema descriptor for verification_no field.
 	financecommissionDescVerificationNo := financecommissionFields[4].Descriptor()
 	// financecommission.VerificationNoValidator is a validator for the "verification_no" field. It is called by the builders before save.
-	financecommission.VerificationNoValidator = func() func(string) error {
-		validators := financecommissionDescVerificationNo.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(verification_no string) error {
-			for _, fn := range fns {
-				if err := fn(verification_no); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	financecommission.VerificationNoValidator = financecommissionDescVerificationNo.Validators[0].(func(string) error)
+	// financecommissionDescNettingNo is the schema descriptor for netting_no field.
+	financecommissionDescNettingNo := financecommissionFields[6].Descriptor()
+	// financecommission.NettingNoValidator is a validator for the "netting_no" field. It is called by the builders before save.
+	financecommission.NettingNoValidator = financecommissionDescNettingNo.Validators[0].(func(string) error)
 	// financecommissionDescEmployeeName is the schema descriptor for employee_name field.
-	financecommissionDescEmployeeName := financecommissionFields[6].Descriptor()
+	financecommissionDescEmployeeName := financecommissionFields[8].Descriptor()
 	// financecommission.EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	financecommission.EmployeeNameValidator = func() func(string) error {
 		validators := financecommissionDescEmployeeName.Validators
@@ -2741,35 +2731,35 @@ func init() {
 		}
 	}()
 	// financecommissionDescCustomerCount is the schema descriptor for customer_count field.
-	financecommissionDescCustomerCount := financecommissionFields[7].Descriptor()
+	financecommissionDescCustomerCount := financecommissionFields[9].Descriptor()
 	// financecommission.CustomerCountValidator is a validator for the "customer_count" field. It is called by the builders before save.
 	financecommission.CustomerCountValidator = financecommissionDescCustomerCount.Validators[0].(func(int) error)
 	// financecommissionDescOrderCount is the schema descriptor for order_count field.
-	financecommissionDescOrderCount := financecommissionFields[8].Descriptor()
+	financecommissionDescOrderCount := financecommissionFields[10].Descriptor()
 	// financecommission.OrderCountValidator is a validator for the "order_count" field. It is called by the builders before save.
 	financecommission.OrderCountValidator = financecommissionDescOrderCount.Validators[0].(func(int) error)
 	// financecommissionDescFeeCount is the schema descriptor for fee_count field.
-	financecommissionDescFeeCount := financecommissionFields[9].Descriptor()
+	financecommissionDescFeeCount := financecommissionFields[11].Descriptor()
 	// financecommission.FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
 	financecommission.FeeCountValidator = financecommissionDescFeeCount.Validators[0].(func(int) error)
 	// financecommissionDescRuleName is the schema descriptor for rule_name field.
-	financecommissionDescRuleName := financecommissionFields[11].Descriptor()
+	financecommissionDescRuleName := financecommissionFields[13].Descriptor()
 	// financecommission.RuleNameValidator is a validator for the "rule_name" field. It is called by the builders before save.
 	financecommission.RuleNameValidator = financecommissionDescRuleName.Validators[0].(func(string) error)
 	// financecommissionDescPersonnelRole is the schema descriptor for personnel_role field.
-	financecommissionDescPersonnelRole := financecommissionFields[12].Descriptor()
+	financecommissionDescPersonnelRole := financecommissionFields[14].Descriptor()
 	// financecommission.PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
 	financecommission.PersonnelRoleValidator = financecommissionDescPersonnelRole.Validators[0].(func(string) error)
 	// financecommissionDescCalculationBasis is the schema descriptor for calculation_basis field.
-	financecommissionDescCalculationBasis := financecommissionFields[13].Descriptor()
+	financecommissionDescCalculationBasis := financecommissionFields[15].Descriptor()
 	// financecommission.CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
 	financecommission.CalculationBasisValidator = financecommissionDescCalculationBasis.Validators[0].(func(string) error)
 	// financecommissionDescRuleVersion is the schema descriptor for rule_version field.
-	financecommissionDescRuleVersion := financecommissionFields[14].Descriptor()
+	financecommissionDescRuleVersion := financecommissionFields[16].Descriptor()
 	// financecommission.DefaultRuleVersion holds the default value on creation for the rule_version field.
 	financecommission.DefaultRuleVersion = financecommissionDescRuleVersion.Default.(uint64)
 	// financecommissionDescCalculationVersion is the schema descriptor for calculation_version field.
-	financecommissionDescCalculationVersion := financecommissionFields[15].Descriptor()
+	financecommissionDescCalculationVersion := financecommissionFields[17].Descriptor()
 	// financecommission.DefaultCalculationVersion holds the default value on creation for the calculation_version field.
 	financecommission.DefaultCalculationVersion = financecommissionDescCalculationVersion.Default.(string)
 	// financecommission.CalculationVersionValidator is a validator for the "calculation_version" field. It is called by the builders before save.
@@ -2789,13 +2779,13 @@ func init() {
 		}
 	}()
 	// financecommissionDescSourceFingerprint is the schema descriptor for source_fingerprint field.
-	financecommissionDescSourceFingerprint := financecommissionFields[16].Descriptor()
+	financecommissionDescSourceFingerprint := financecommissionFields[18].Descriptor()
 	// financecommission.DefaultSourceFingerprint holds the default value on creation for the source_fingerprint field.
 	financecommission.DefaultSourceFingerprint = financecommissionDescSourceFingerprint.Default.(string)
 	// financecommission.SourceFingerprintValidator is a validator for the "source_fingerprint" field. It is called by the builders before save.
 	financecommission.SourceFingerprintValidator = financecommissionDescSourceFingerprint.Validators[0].(func(string) error)
 	// financecommissionDescBaseCurrency is the schema descriptor for base_currency field.
-	financecommissionDescBaseCurrency := financecommissionFields[18].Descriptor()
+	financecommissionDescBaseCurrency := financecommissionFields[20].Descriptor()
 	// financecommission.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financecommission.BaseCurrencyValidator = func() func(string) error {
 		validators := financecommissionDescBaseCurrency.Validators
@@ -2814,7 +2804,7 @@ func init() {
 		}
 	}()
 	// financecommissionDescCommissionDate is the schema descriptor for commission_date field.
-	financecommissionDescCommissionDate := financecommissionFields[25].Descriptor()
+	financecommissionDescCommissionDate := financecommissionFields[27].Descriptor()
 	// financecommission.CommissionDateValidator is a validator for the "commission_date" field. It is called by the builders before save.
 	financecommission.CommissionDateValidator = func() func(string) error {
 		validators := financecommissionDescCommissionDate.Validators
@@ -2833,7 +2823,7 @@ func init() {
 		}
 	}()
 	// financecommissionDescCnyExchangeRateDate is the schema descriptor for cny_exchange_rate_date field.
-	financecommissionDescCnyExchangeRateDate := financecommissionFields[28].Descriptor()
+	financecommissionDescCnyExchangeRateDate := financecommissionFields[30].Descriptor()
 	// financecommission.CnyExchangeRateDateValidator is a validator for the "cny_exchange_rate_date" field. It is called by the builders before save.
 	financecommission.CnyExchangeRateDateValidator = func() func(string) error {
 		validators := financecommissionDescCnyExchangeRateDate.Validators
@@ -2852,19 +2842,19 @@ func init() {
 		}
 	}()
 	// financecommissionDescAdjustmentSequence is the schema descriptor for adjustment_sequence field.
-	financecommissionDescAdjustmentSequence := financecommissionFields[31].Descriptor()
+	financecommissionDescAdjustmentSequence := financecommissionFields[33].Descriptor()
 	// financecommission.DefaultAdjustmentSequence holds the default value on creation for the adjustment_sequence field.
 	financecommission.DefaultAdjustmentSequence = financecommissionDescAdjustmentSequence.Default.(uint64)
 	// financecommissionDescNote is the schema descriptor for note field.
-	financecommissionDescNote := financecommissionFields[32].Descriptor()
+	financecommissionDescNote := financecommissionFields[34].Descriptor()
 	// financecommission.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommission.NoteValidator = financecommissionDescNote.Validators[0].(func(string) error)
 	// financecommissionDescVersion is the schema descriptor for version field.
-	financecommissionDescVersion := financecommissionFields[33].Descriptor()
+	financecommissionDescVersion := financecommissionFields[35].Descriptor()
 	// financecommission.DefaultVersion holds the default value on creation for the version field.
 	financecommission.DefaultVersion = financecommissionDescVersion.Default.(uint64)
 	// financecommissionDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionDescCancellationReason := financecommissionFields[40].Descriptor()
+	financecommissionDescCancellationReason := financecommissionFields[42].Descriptor()
 	// financecommission.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommission.CancellationReasonValidator = financecommissionDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionDescID is the schema descriptor for id field.

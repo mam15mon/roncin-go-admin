@@ -755,6 +755,8 @@ declare namespace API {
     cnyExchangeRateDate?: string;
     cnyExchangeRateSettingId?: string;
     cnyCommissionAmount?: string;
+    nettingId?: string;
+    nettingNo?: string;
   };
 
   type CommissionCandidateSummary = {
@@ -800,6 +802,7 @@ declare namespace API {
     cnyEffectiveCommissionAmount?: string;
     organizationId?: string;
     organizationName?: string;
+    nettingNo?: string;
   };
 
   type CommissionFeeDetail = {
@@ -1116,11 +1119,12 @@ declare namespace API {
   };
 
   type CreateCommissionRequest = {
-    verificationId: string;
+    verificationId?: string;
     employeeId: string;
     note?: string;
     idempotencyKey: string;
     ruleId: string;
+    nettingId?: string;
   };
 
   type CreateCommissionResponse = {
@@ -2419,6 +2423,8 @@ declare namespace API {
     confirmedBy?: string;
     paidBy?: string;
     cancelledBy?: string;
+    nettingId?: string;
+    nettingNo?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -3124,6 +3130,15 @@ declare namespace API {
     total?: string;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListCommissionNettingCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceNetting[];
+    total?: string;
+    traceId?: string;
   };
 
   type ListCommissionRuleCandidatesResponse = {
@@ -5168,9 +5183,10 @@ declare namespace API {
   };
 
   type PreviewCommissionRequest = {
-    verificationId: string;
+    verificationId?: string;
     employeeId: string;
     ruleId: string;
+    nettingId?: string;
   };
 
   type PreviewCommissionResponse = {
@@ -6701,6 +6717,13 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionNettingCandidatesParams = {
+    organizationId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type SettlementServiceListCommissionRuleCandidatesParams = {

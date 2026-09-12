@@ -121,6 +121,7 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.SettlementService/ListCashflows":                                               {mode: accessModePermission, permission: "system.finance.cashflow.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListCommissionCandidates":                                    {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListCommissionEmployees":                                     {mode: accessModePermission, permission: "system.finance.commission.read", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/ListCommissionNettingCandidates":                             {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListCommissionRuleCandidates":                                {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListCommissionRules":                                         {mode: accessModePermission, permission: "system.finance.commission.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListCommissionVerificationCandidates":                        {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
