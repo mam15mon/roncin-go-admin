@@ -627,7 +627,14 @@ func commissionExportItemToAPI(x *biz.FinanceCommission) *v1.CommissionExportIte
 	if x == nil {
 		return nil
 	}
-	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: x.VerificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	var verificationNo, nettingNo *string
+	if x.VerificationNo != "" {
+		verificationNo = &x.VerificationNo
+	}
+	if x.NettingNo != "" {
+		nettingNo = &x.NettingNo
+	}
+	return &v1.CommissionExportItem{CommissionNo: x.CommissionNo, Status: financeCommissionStatusToAPI(x.Status), VerificationNo: verificationNo, CommissionDate: x.CommissionDate, EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), BaseCurrency: x.BaseCurrency, OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), CommissionAmount: x.CommissionAmount.StringFixed(8), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8), NettingNo: nettingNo}
 }
 
 func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCommissionAdjustment {

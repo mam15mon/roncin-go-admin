@@ -277,7 +277,7 @@ func TestExportCommissionsMapsFilterAndDualCurrencyExportFields(t *testing.T) {
 		t.Fatalf("导出行数不符: %d", len(response.Data))
 	}
 	item := response.Data[0]
-	if item.CommissionNo != "TC20260815000001" || item.VerificationNo != "VR20260815000001" ||
+	if item.CommissionNo != "TC20260815000001" || item.VerificationNo == nil || *item.VerificationNo != "VR20260815000001" || item.NettingNo != nil ||
 		item.Status != v1.FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID || item.CommissionDate != "2026-08-15" ||
 		item.EmployeeName != "张三" || item.PersonnelRole != string(biz.CommissionRoleSales) ||
 		item.RuleName != "销售提成" || item.CalculationBasis != string(biz.CommissionBasisRealizedProfit) ||

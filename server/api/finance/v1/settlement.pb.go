@@ -15893,7 +15893,7 @@ type CommissionExportItem struct {
 	state                        protoimpl.MessageState  `protogen:"open.v1"`
 	CommissionNo                 string                  `protobuf:"bytes,1,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
 	Status                       FinanceCommissionStatus `protobuf:"varint,2,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
-	VerificationNo               string                  `protobuf:"bytes,3,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
+	VerificationNo               *string                 `protobuf:"bytes,3,opt,name=verification_no,json=verificationNo,proto3,oneof" json:"verification_no,omitempty"`
 	CommissionDate               string                  `protobuf:"bytes,4,opt,name=commission_date,json=commissionDate,proto3" json:"commission_date,omitempty"`
 	EmployeeName                 string                  `protobuf:"bytes,5,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
 	PersonnelRole                string                  `protobuf:"bytes,6,opt,name=personnel_role,json=personnelRole,proto3" json:"personnel_role,omitempty"`
@@ -15910,6 +15910,7 @@ type CommissionExportItem struct {
 	CnyEffectiveCommissionAmount string                  `protobuf:"bytes,17,opt,name=cny_effective_commission_amount,json=cnyEffectiveCommissionAmount,proto3" json:"cny_effective_commission_amount,omitempty"`
 	OrganizationId               string                  `protobuf:"bytes,18,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName             string                  `protobuf:"bytes,19,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	NettingNo                    *string                 `protobuf:"bytes,20,opt,name=netting_no,json=nettingNo,proto3,oneof" json:"netting_no,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -15959,8 +15960,8 @@ func (x *CommissionExportItem) GetStatus() FinanceCommissionStatus {
 }
 
 func (x *CommissionExportItem) GetVerificationNo() string {
-	if x != nil {
-		return x.VerificationNo
+	if x != nil && x.VerificationNo != nil {
+		return *x.VerificationNo
 	}
 	return ""
 }
@@ -16073,6 +16074,13 @@ func (x *CommissionExportItem) GetOrganizationId() string {
 func (x *CommissionExportItem) GetOrganizationName() string {
 	if x != nil {
 		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *CommissionExportItem) GetNettingNo() string {
+	if x != nil && x.NettingNo != nil {
+		return *x.NettingNo
 	}
 	return ""
 }
@@ -19714,11 +19722,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\a_statusB\x17\n" +
 	"\x15_commission_date_fromB\x15\n" +
 	"\x13_commission_date_toB\x12\n" +
-	"\x10_organization_id\"\xe6\x06\n" +
+	"\x10_organization_id\"\xb2\a\n" +
 	"\x14CommissionExportItem\x12#\n" +
 	"\rcommission_no\x18\x01 \x01(\tR\fcommissionNo\x12;\n" +
-	"\x06status\x18\x02 \x01(\x0e2#.finance.v1.FinanceCommissionStatusR\x06status\x12'\n" +
-	"\x0fverification_no\x18\x03 \x01(\tR\x0everificationNo\x12'\n" +
+	"\x06status\x18\x02 \x01(\x0e2#.finance.v1.FinanceCommissionStatusR\x06status\x12,\n" +
+	"\x0fverification_no\x18\x03 \x01(\tH\x00R\x0everificationNo\x88\x01\x01\x12'\n" +
 	"\x0fcommission_date\x18\x04 \x01(\tR\x0ecommissionDate\x12#\n" +
 	"\remployee_name\x18\x05 \x01(\tR\femployeeName\x12%\n" +
 	"\x0epersonnel_role\x18\x06 \x01(\tR\rpersonnelRole\x12\x1b\n" +
@@ -19736,7 +19744,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1beffective_commission_amount\x18\x10 \x01(\tR\x19effectiveCommissionAmount\x12E\n" +
 	"\x1fcny_effective_commission_amount\x18\x11 \x01(\tR\x1ccnyEffectiveCommissionAmount\x12'\n" +
 	"\x0forganization_id\x18\x12 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x13 \x01(\tR\x10organizationName\"\xb4\x01\n" +
+	"\x11organization_name\x18\x13 \x01(\tR\x10organizationName\x12\"\n" +
+	"\n" +
+	"netting_no\x18\x14 \x01(\tH\x01R\tnettingNo\x88\x01\x01B\x12\n" +
+	"\x10_verification_noB\r\n" +
+	"\v_netting_no\"\xb4\x01\n" +
 	"\x19ExportCommissionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -20599,6 +20611,7 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[163].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[165].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[166].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[167].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[181].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[189].OneofWrappers = []any{}
 	type x struct{}

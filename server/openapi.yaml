@@ -9481,6 +9481,8 @@ components:
                     type: string
                 organizationName:
                     type: string
+                nettingNo:
+                    type: string
             description: |-
                 CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，
                  CNY 调整与有效金额为与列表一致的动态汇总。
