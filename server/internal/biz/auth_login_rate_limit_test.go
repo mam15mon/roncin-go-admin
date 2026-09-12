@@ -61,7 +61,7 @@ func (s *loginRateLimitRepoStub) CreateSession(ctx context.Context, session *Ses
 }
 
 func newLoginRateLimitUsecase(repo AuthRepo) *AuthUsecase {
-	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{})
+	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{}, nil, nil, nil)
 }
 
 func TestAuthUsecaseLoginRateLimitsSixthFailure(t *testing.T) {

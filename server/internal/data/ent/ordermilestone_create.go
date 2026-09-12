@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type OrderMilestoneCreate struct {
 	config
 	mutation *OrderMilestoneMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -268,6 +271,7 @@ func (_c *OrderMilestoneCreate) createSpec() (*OrderMilestone, *sqlgraph.CreateS
 		_node = &OrderMilestone{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ordermilestone.Table, sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -324,11 +328,423 @@ func (_c *OrderMilestoneCreate) createSpec() (*OrderMilestone, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderMilestone.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderMilestoneUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderMilestoneCreate) OnConflict(opts ...sql.ConflictOption) *OrderMilestoneUpsertOne {
+	_c.conflict = opts
+	return &OrderMilestoneUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderMilestoneCreate) OnConflictColumns(columns ...string) *OrderMilestoneUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderMilestoneUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderMilestoneUpsertOne is the builder for "upsert"-ing
+	//  one OrderMilestone node.
+	OrderMilestoneUpsertOne struct {
+		create *OrderMilestoneCreate
+	}
+
+	// OrderMilestoneUpsert is the "OnConflict" setter.
+	OrderMilestoneUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderMilestoneUpsert) SetUpdatedAt(v time.Time) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateUpdatedAt() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldUpdatedAt)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderMilestoneUpsert) SetOrderID(v uuid.UUID) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateOrderID() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldOrderID)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *OrderMilestoneUpsert) SetType(v string) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateType() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldType)
+	return u
+}
+
+// SetTemplateNodeCode sets the "template_node_code" field.
+func (u *OrderMilestoneUpsert) SetTemplateNodeCode(v string) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldTemplateNodeCode, v)
+	return u
+}
+
+// UpdateTemplateNodeCode sets the "template_node_code" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateTemplateNodeCode() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldTemplateNodeCode)
+	return u
+}
+
+// ClearTemplateNodeCode clears the value of the "template_node_code" field.
+func (u *OrderMilestoneUpsert) ClearTemplateNodeCode() *OrderMilestoneUpsert {
+	u.SetNull(ordermilestone.FieldTemplateNodeCode)
+	return u
+}
+
+// SetTemplateNodeLabel sets the "template_node_label" field.
+func (u *OrderMilestoneUpsert) SetTemplateNodeLabel(v string) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldTemplateNodeLabel, v)
+	return u
+}
+
+// UpdateTemplateNodeLabel sets the "template_node_label" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateTemplateNodeLabel() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldTemplateNodeLabel)
+	return u
+}
+
+// ClearTemplateNodeLabel clears the value of the "template_node_label" field.
+func (u *OrderMilestoneUpsert) ClearTemplateNodeLabel() *OrderMilestoneUpsert {
+	u.SetNull(ordermilestone.FieldTemplateNodeLabel)
+	return u
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (u *OrderMilestoneUpsert) SetOccurredAt(v time.Time) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldOccurredAt, v)
+	return u
+}
+
+// UpdateOccurredAt sets the "occurred_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateOccurredAt() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldOccurredAt)
+	return u
+}
+
+// ClearOccurredAt clears the value of the "occurred_at" field.
+func (u *OrderMilestoneUpsert) ClearOccurredAt() *OrderMilestoneUpsert {
+	u.SetNull(ordermilestone.FieldOccurredAt)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *OrderMilestoneUpsert) SetNote(v string) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateNote() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderMilestoneUpsert) ClearNote() *OrderMilestoneUpsert {
+	u.SetNull(ordermilestone.FieldNote)
+	return u
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *OrderMilestoneUpsert) SetUpdatedBy(v uuid.UUID) *OrderMilestoneUpsert {
+	u.Set(ordermilestone.FieldUpdatedBy, v)
+	return u
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *OrderMilestoneUpsert) UpdateUpdatedBy() *OrderMilestoneUpsert {
+	u.SetExcluded(ordermilestone.FieldUpdatedBy)
+	return u
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *OrderMilestoneUpsert) ClearUpdatedBy() *OrderMilestoneUpsert {
+	u.SetNull(ordermilestone.FieldUpdatedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordermilestone.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderMilestoneUpsertOne) UpdateNewValues() *OrderMilestoneUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ordermilestone.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ordermilestone.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderMilestoneUpsertOne) Ignore() *OrderMilestoneUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderMilestoneUpsertOne) DoNothing() *OrderMilestoneUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderMilestoneCreate.OnConflict
+// documentation for more info.
+func (u *OrderMilestoneUpsertOne) Update(set func(*OrderMilestoneUpsert)) *OrderMilestoneUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderMilestoneUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderMilestoneUpsertOne) SetUpdatedAt(v time.Time) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateUpdatedAt() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderMilestoneUpsertOne) SetOrderID(v uuid.UUID) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateOrderID() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *OrderMilestoneUpsertOne) SetType(v string) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateType() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetTemplateNodeCode sets the "template_node_code" field.
+func (u *OrderMilestoneUpsertOne) SetTemplateNodeCode(v string) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetTemplateNodeCode(v)
+	})
+}
+
+// UpdateTemplateNodeCode sets the "template_node_code" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateTemplateNodeCode() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateTemplateNodeCode()
+	})
+}
+
+// ClearTemplateNodeCode clears the value of the "template_node_code" field.
+func (u *OrderMilestoneUpsertOne) ClearTemplateNodeCode() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearTemplateNodeCode()
+	})
+}
+
+// SetTemplateNodeLabel sets the "template_node_label" field.
+func (u *OrderMilestoneUpsertOne) SetTemplateNodeLabel(v string) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetTemplateNodeLabel(v)
+	})
+}
+
+// UpdateTemplateNodeLabel sets the "template_node_label" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateTemplateNodeLabel() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateTemplateNodeLabel()
+	})
+}
+
+// ClearTemplateNodeLabel clears the value of the "template_node_label" field.
+func (u *OrderMilestoneUpsertOne) ClearTemplateNodeLabel() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearTemplateNodeLabel()
+	})
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (u *OrderMilestoneUpsertOne) SetOccurredAt(v time.Time) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetOccurredAt(v)
+	})
+}
+
+// UpdateOccurredAt sets the "occurred_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateOccurredAt() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateOccurredAt()
+	})
+}
+
+// ClearOccurredAt clears the value of the "occurred_at" field.
+func (u *OrderMilestoneUpsertOne) ClearOccurredAt() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearOccurredAt()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderMilestoneUpsertOne) SetNote(v string) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateNote() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderMilestoneUpsertOne) ClearNote() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *OrderMilestoneUpsertOne) SetUpdatedBy(v uuid.UUID) *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertOne) UpdateUpdatedBy() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *OrderMilestoneUpsertOne) ClearUpdatedBy() *OrderMilestoneUpsertOne {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearUpdatedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderMilestoneUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderMilestoneCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderMilestoneUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderMilestoneUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderMilestoneUpsertOne.ID is not supported by MySQL driver. Use OrderMilestoneUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderMilestoneUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderMilestoneCreateBulk is the builder for creating many OrderMilestone entities in bulk.
 type OrderMilestoneCreateBulk struct {
 	config
 	err      error
 	builders []*OrderMilestoneCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderMilestone entities in the database.
@@ -358,6 +774,7 @@ func (_c *OrderMilestoneCreateBulk) Save(ctx context.Context) ([]*OrderMilestone
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -404,6 +821,270 @@ func (_c *OrderMilestoneCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderMilestoneCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderMilestone.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderMilestoneUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderMilestoneCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderMilestoneUpsertBulk {
+	_c.conflict = opts
+	return &OrderMilestoneUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderMilestoneCreateBulk) OnConflictColumns(columns ...string) *OrderMilestoneUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderMilestoneUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderMilestoneUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderMilestone nodes.
+type OrderMilestoneUpsertBulk struct {
+	create *OrderMilestoneCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordermilestone.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderMilestoneUpsertBulk) UpdateNewValues() *OrderMilestoneUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ordermilestone.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ordermilestone.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderMilestone.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderMilestoneUpsertBulk) Ignore() *OrderMilestoneUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderMilestoneUpsertBulk) DoNothing() *OrderMilestoneUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderMilestoneCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderMilestoneUpsertBulk) Update(set func(*OrderMilestoneUpsert)) *OrderMilestoneUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderMilestoneUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderMilestoneUpsertBulk) SetUpdatedAt(v time.Time) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateUpdatedAt() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderMilestoneUpsertBulk) SetOrderID(v uuid.UUID) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateOrderID() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *OrderMilestoneUpsertBulk) SetType(v string) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateType() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetTemplateNodeCode sets the "template_node_code" field.
+func (u *OrderMilestoneUpsertBulk) SetTemplateNodeCode(v string) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetTemplateNodeCode(v)
+	})
+}
+
+// UpdateTemplateNodeCode sets the "template_node_code" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateTemplateNodeCode() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateTemplateNodeCode()
+	})
+}
+
+// ClearTemplateNodeCode clears the value of the "template_node_code" field.
+func (u *OrderMilestoneUpsertBulk) ClearTemplateNodeCode() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearTemplateNodeCode()
+	})
+}
+
+// SetTemplateNodeLabel sets the "template_node_label" field.
+func (u *OrderMilestoneUpsertBulk) SetTemplateNodeLabel(v string) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetTemplateNodeLabel(v)
+	})
+}
+
+// UpdateTemplateNodeLabel sets the "template_node_label" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateTemplateNodeLabel() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateTemplateNodeLabel()
+	})
+}
+
+// ClearTemplateNodeLabel clears the value of the "template_node_label" field.
+func (u *OrderMilestoneUpsertBulk) ClearTemplateNodeLabel() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearTemplateNodeLabel()
+	})
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (u *OrderMilestoneUpsertBulk) SetOccurredAt(v time.Time) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetOccurredAt(v)
+	})
+}
+
+// UpdateOccurredAt sets the "occurred_at" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateOccurredAt() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateOccurredAt()
+	})
+}
+
+// ClearOccurredAt clears the value of the "occurred_at" field.
+func (u *OrderMilestoneUpsertBulk) ClearOccurredAt() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearOccurredAt()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderMilestoneUpsertBulk) SetNote(v string) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateNote() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderMilestoneUpsertBulk) ClearNote() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *OrderMilestoneUpsertBulk) SetUpdatedBy(v uuid.UUID) *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *OrderMilestoneUpsertBulk) UpdateUpdatedBy() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *OrderMilestoneUpsertBulk) ClearUpdatedBy() *OrderMilestoneUpsertBulk {
+	return u.Update(func(s *OrderMilestoneUpsert) {
+		s.ClearUpdatedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderMilestoneUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderMilestoneCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderMilestoneCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderMilestoneUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

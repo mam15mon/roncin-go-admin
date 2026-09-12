@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type OrderShippingDocumentCreate struct {
 	config
 	mutation *OrderShippingDocumentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -263,6 +266,7 @@ func (_c *OrderShippingDocumentCreate) createSpec() (*OrderShippingDocument, *sq
 		_node = &OrderShippingDocument{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ordershippingdocument.Table, sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -327,11 +331,332 @@ func (_c *OrderShippingDocumentCreate) createSpec() (*OrderShippingDocument, *sq
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderShippingDocument.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderShippingDocumentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderShippingDocumentCreate) OnConflict(opts ...sql.ConflictOption) *OrderShippingDocumentUpsertOne {
+	_c.conflict = opts
+	return &OrderShippingDocumentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderShippingDocumentCreate) OnConflictColumns(columns ...string) *OrderShippingDocumentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderShippingDocumentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderShippingDocumentUpsertOne is the builder for "upsert"-ing
+	//  one OrderShippingDocument node.
+	OrderShippingDocumentUpsertOne struct {
+		create *OrderShippingDocumentCreate
+	}
+
+	// OrderShippingDocumentUpsert is the "OnConflict" setter.
+	OrderShippingDocumentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderShippingDocumentUpsert) SetUpdatedAt(v time.Time) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateUpdatedAt() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldUpdatedAt)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderShippingDocumentUpsert) SetOrderID(v uuid.UUID) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateOrderID() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldOrderID)
+	return u
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *OrderShippingDocumentUpsert) SetHouseNo(v string) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldHouseNo, v)
+	return u
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateHouseNo() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldHouseNo)
+	return u
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *OrderShippingDocumentUpsert) SetReleaseType(v string) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldReleaseType, v)
+	return u
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateReleaseType() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldReleaseType)
+	return u
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *OrderShippingDocumentUpsert) ClearReleaseType() *OrderShippingDocumentUpsert {
+	u.SetNull(ordershippingdocument.FieldReleaseType)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderShippingDocumentUpsert) SetStatus(v ordershippingdocument.Status) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateStatus() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldStatus)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *OrderShippingDocumentUpsert) SetNote(v string) *OrderShippingDocumentUpsert {
+	u.Set(ordershippingdocument.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsert) UpdateNote() *OrderShippingDocumentUpsert {
+	u.SetExcluded(ordershippingdocument.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderShippingDocumentUpsert) ClearNote() *OrderShippingDocumentUpsert {
+	u.SetNull(ordershippingdocument.FieldNote)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordershippingdocument.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderShippingDocumentUpsertOne) UpdateNewValues() *OrderShippingDocumentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ordershippingdocument.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ordershippingdocument.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderShippingDocumentUpsertOne) Ignore() *OrderShippingDocumentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderShippingDocumentUpsertOne) DoNothing() *OrderShippingDocumentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderShippingDocumentCreate.OnConflict
+// documentation for more info.
+func (u *OrderShippingDocumentUpsertOne) Update(set func(*OrderShippingDocumentUpsert)) *OrderShippingDocumentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderShippingDocumentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderShippingDocumentUpsertOne) SetUpdatedAt(v time.Time) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateUpdatedAt() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderShippingDocumentUpsertOne) SetOrderID(v uuid.UUID) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateOrderID() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *OrderShippingDocumentUpsertOne) SetHouseNo(v string) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetHouseNo(v)
+	})
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateHouseNo() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateHouseNo()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *OrderShippingDocumentUpsertOne) SetReleaseType(v string) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateReleaseType() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *OrderShippingDocumentUpsertOne) ClearReleaseType() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderShippingDocumentUpsertOne) SetStatus(v ordershippingdocument.Status) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateStatus() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderShippingDocumentUpsertOne) SetNote(v string) *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertOne) UpdateNote() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderShippingDocumentUpsertOne) ClearNote() *OrderShippingDocumentUpsertOne {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.ClearNote()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderShippingDocumentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderShippingDocumentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderShippingDocumentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderShippingDocumentUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderShippingDocumentUpsertOne.ID is not supported by MySQL driver. Use OrderShippingDocumentUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderShippingDocumentUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderShippingDocumentCreateBulk is the builder for creating many OrderShippingDocument entities in bulk.
 type OrderShippingDocumentCreateBulk struct {
 	config
 	err      error
 	builders []*OrderShippingDocumentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderShippingDocument entities in the database.
@@ -361,6 +686,7 @@ func (_c *OrderShippingDocumentCreateBulk) Save(ctx context.Context) ([]*OrderSh
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -407,6 +733,221 @@ func (_c *OrderShippingDocumentCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderShippingDocumentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderShippingDocument.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderShippingDocumentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderShippingDocumentCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderShippingDocumentUpsertBulk {
+	_c.conflict = opts
+	return &OrderShippingDocumentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderShippingDocumentCreateBulk) OnConflictColumns(columns ...string) *OrderShippingDocumentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderShippingDocumentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderShippingDocumentUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderShippingDocument nodes.
+type OrderShippingDocumentUpsertBulk struct {
+	create *OrderShippingDocumentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordershippingdocument.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderShippingDocumentUpsertBulk) UpdateNewValues() *OrderShippingDocumentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ordershippingdocument.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ordershippingdocument.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderShippingDocument.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderShippingDocumentUpsertBulk) Ignore() *OrderShippingDocumentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderShippingDocumentUpsertBulk) DoNothing() *OrderShippingDocumentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderShippingDocumentCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderShippingDocumentUpsertBulk) Update(set func(*OrderShippingDocumentUpsert)) *OrderShippingDocumentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderShippingDocumentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderShippingDocumentUpsertBulk) SetUpdatedAt(v time.Time) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateUpdatedAt() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderShippingDocumentUpsertBulk) SetOrderID(v uuid.UUID) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateOrderID() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *OrderShippingDocumentUpsertBulk) SetHouseNo(v string) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetHouseNo(v)
+	})
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateHouseNo() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateHouseNo()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *OrderShippingDocumentUpsertBulk) SetReleaseType(v string) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateReleaseType() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *OrderShippingDocumentUpsertBulk) ClearReleaseType() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderShippingDocumentUpsertBulk) SetStatus(v ordershippingdocument.Status) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateStatus() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderShippingDocumentUpsertBulk) SetNote(v string) *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderShippingDocumentUpsertBulk) UpdateNote() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderShippingDocumentUpsertBulk) ClearNote() *OrderShippingDocumentUpsertBulk {
+	return u.Update(func(s *OrderShippingDocumentUpsert) {
+		s.ClearNote()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderShippingDocumentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderShippingDocumentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderShippingDocumentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderShippingDocumentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

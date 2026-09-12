@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type EnterpriseTagCreate struct {
 	config
 	mutation *EnterpriseTagMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -236,6 +239,7 @@ func (_c *EnterpriseTagCreate) createSpec() (*EnterpriseTag, *sqlgraph.CreateSpe
 		_node = &EnterpriseTag{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterprisetag.Table, sqlgraph.NewFieldSpec(enterprisetag.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -297,11 +301,273 @@ func (_c *EnterpriseTagCreate) createSpec() (*EnterpriseTag, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseTag.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseTagUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseTagCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseTagUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseTagUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseTagCreate) OnConflictColumns(columns ...string) *EnterpriseTagUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseTagUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseTagUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseTag node.
+	EnterpriseTagUpsertOne struct {
+		create *EnterpriseTagCreate
+	}
+
+	// EnterpriseTagUpsert is the "OnConflict" setter.
+	EnterpriseTagUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseTagUpsert) SetUpdatedAt(v time.Time) *EnterpriseTagUpsert {
+	u.Set(enterprisetag.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseTagUpsert) UpdateUpdatedAt() *EnterpriseTagUpsert {
+	u.SetExcluded(enterprisetag.FieldUpdatedAt)
+	return u
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *EnterpriseTagUpsert) SetGroupID(v uuid.UUID) *EnterpriseTagUpsert {
+	u.Set(enterprisetag.FieldGroupID, v)
+	return u
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *EnterpriseTagUpsert) UpdateGroupID() *EnterpriseTagUpsert {
+	u.SetExcluded(enterprisetag.FieldGroupID)
+	return u
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *EnterpriseTagUpsert) SetNormalizedName(v string) *EnterpriseTagUpsert {
+	u.Set(enterprisetag.FieldNormalizedName, v)
+	return u
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *EnterpriseTagUpsert) UpdateNormalizedName() *EnterpriseTagUpsert {
+	u.SetExcluded(enterprisetag.FieldNormalizedName)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseTagUpsert) SetSortOrder(v int) *EnterpriseTagUpsert {
+	u.Set(enterprisetag.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseTagUpsert) UpdateSortOrder() *EnterpriseTagUpsert {
+	u.SetExcluded(enterprisetag.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseTagUpsert) AddSortOrder(v int) *EnterpriseTagUpsert {
+	u.Add(enterprisetag.FieldSortOrder, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterprisetag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseTagUpsertOne) UpdateNewValues() *EnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterprisetag.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterprisetag.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterprisetag.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(enterprisetag.FieldOrganizationID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseTagUpsertOne) Ignore() *EnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseTagUpsertOne) DoNothing() *EnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseTagCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseTagUpsertOne) Update(set func(*EnterpriseTagUpsert)) *EnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseTagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseTagUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertOne) UpdateUpdatedAt() *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *EnterpriseTagUpsertOne) SetGroupID(v uuid.UUID) *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertOne) UpdateGroupID() *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateGroupID()
+	})
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *EnterpriseTagUpsertOne) SetNormalizedName(v string) *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetNormalizedName(v)
+	})
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertOne) UpdateNormalizedName() *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateNormalizedName()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseTagUpsertOne) SetSortOrder(v int) *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseTagUpsertOne) AddSortOrder(v int) *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertOne) UpdateSortOrder() *EnterpriseTagUpsertOne {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseTagUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseTagCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseTagUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseTagUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseTagUpsertOne.ID is not supported by MySQL driver. Use EnterpriseTagUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseTagUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseTagCreateBulk is the builder for creating many EnterpriseTag entities in bulk.
 type EnterpriseTagCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseTagCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseTag entities in the database.
@@ -331,6 +597,7 @@ func (_c *EnterpriseTagCreateBulk) Save(ctx context.Context) ([]*EnterpriseTag, 
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -377,6 +644,192 @@ func (_c *EnterpriseTagCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseTagCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseTag.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseTagUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseTagCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseTagUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseTagUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseTagCreateBulk) OnConflictColumns(columns ...string) *EnterpriseTagUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseTagUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseTagUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseTag nodes.
+type EnterpriseTagUpsertBulk struct {
+	create *EnterpriseTagCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterprisetag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseTagUpsertBulk) UpdateNewValues() *EnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterprisetag.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterprisetag.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterprisetag.FieldResourceID)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(enterprisetag.FieldOrganizationID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseTag.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseTagUpsertBulk) Ignore() *EnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseTagUpsertBulk) DoNothing() *EnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseTagCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseTagUpsertBulk) Update(set func(*EnterpriseTagUpsert)) *EnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseTagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseTagUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertBulk) UpdateUpdatedAt() *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetGroupID sets the "group_id" field.
+func (u *EnterpriseTagUpsertBulk) SetGroupID(v uuid.UUID) *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetGroupID(v)
+	})
+}
+
+// UpdateGroupID sets the "group_id" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertBulk) UpdateGroupID() *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateGroupID()
+	})
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *EnterpriseTagUpsertBulk) SetNormalizedName(v string) *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetNormalizedName(v)
+	})
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertBulk) UpdateNormalizedName() *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateNormalizedName()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseTagUpsertBulk) SetSortOrder(v int) *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseTagUpsertBulk) AddSortOrder(v int) *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseTagUpsertBulk) UpdateSortOrder() *EnterpriseTagUpsertBulk {
+	return u.Update(func(s *EnterpriseTagUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseTagUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseTagCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseTagCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseTagUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

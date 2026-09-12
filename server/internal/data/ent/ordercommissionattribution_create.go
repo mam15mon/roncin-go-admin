@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type OrderCommissionAttributionCreate struct {
 	config
 	mutation *OrderCommissionAttributionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -269,6 +272,7 @@ func (_c *OrderCommissionAttributionCreate) createSpec() (*OrderCommissionAttrib
 		_node = &OrderCommissionAttribution{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ordercommissionattribution.Table, sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -368,11 +372,200 @@ func (_c *OrderCommissionAttributionCreate) createSpec() (*OrderCommissionAttrib
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderCommissionAttribution.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderCommissionAttributionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderCommissionAttributionCreate) OnConflict(opts ...sql.ConflictOption) *OrderCommissionAttributionUpsertOne {
+	_c.conflict = opts
+	return &OrderCommissionAttributionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderCommissionAttributionCreate) OnConflictColumns(columns ...string) *OrderCommissionAttributionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderCommissionAttributionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderCommissionAttributionUpsertOne is the builder for "upsert"-ing
+	//  one OrderCommissionAttribution node.
+	OrderCommissionAttributionUpsertOne struct {
+		create *OrderCommissionAttributionCreate
+	}
+
+	// OrderCommissionAttributionUpsert is the "OnConflict" setter.
+	OrderCommissionAttributionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderCommissionAttributionUpsert) SetUpdatedAt(v time.Time) *OrderCommissionAttributionUpsert {
+	u.Set(ordercommissionattribution.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsert) UpdateUpdatedAt() *OrderCommissionAttributionUpsert {
+	u.SetExcluded(ordercommissionattribution.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordercommissionattribution.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderCommissionAttributionUpsertOne) UpdateNewValues() *OrderCommissionAttributionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.CustomerID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldCustomerID)
+		}
+		if _, exists := u.create.mutation.SourceAssignmentID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldSourceAssignmentID)
+		}
+		if _, exists := u.create.mutation.EmployeeID(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldEmployeeID)
+		}
+		if _, exists := u.create.mutation.EmployeeName(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldEmployeeName)
+		}
+		if _, exists := u.create.mutation.PersonnelRole(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldPersonnelRole)
+		}
+		if _, exists := u.create.mutation.AttributedAt(); exists {
+			s.SetIgnore(ordercommissionattribution.FieldAttributedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderCommissionAttributionUpsertOne) Ignore() *OrderCommissionAttributionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderCommissionAttributionUpsertOne) DoNothing() *OrderCommissionAttributionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderCommissionAttributionCreate.OnConflict
+// documentation for more info.
+func (u *OrderCommissionAttributionUpsertOne) Update(set func(*OrderCommissionAttributionUpsert)) *OrderCommissionAttributionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderCommissionAttributionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderCommissionAttributionUpsertOne) SetUpdatedAt(v time.Time) *OrderCommissionAttributionUpsertOne {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsertOne) UpdateUpdatedAt() *OrderCommissionAttributionUpsertOne {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderCommissionAttributionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderCommissionAttributionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderCommissionAttributionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderCommissionAttributionUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderCommissionAttributionUpsertOne.ID is not supported by MySQL driver. Use OrderCommissionAttributionUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderCommissionAttributionUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderCommissionAttributionCreateBulk is the builder for creating many OrderCommissionAttribution entities in bulk.
 type OrderCommissionAttributionCreateBulk struct {
 	config
 	err      error
 	builders []*OrderCommissionAttributionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderCommissionAttribution entities in the database.
@@ -402,6 +595,7 @@ func (_c *OrderCommissionAttributionCreateBulk) Save(ctx context.Context) ([]*Or
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -448,6 +642,161 @@ func (_c *OrderCommissionAttributionCreateBulk) Exec(ctx context.Context) error 
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderCommissionAttributionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderCommissionAttribution.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderCommissionAttributionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderCommissionAttributionCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderCommissionAttributionUpsertBulk {
+	_c.conflict = opts
+	return &OrderCommissionAttributionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderCommissionAttributionCreateBulk) OnConflictColumns(columns ...string) *OrderCommissionAttributionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderCommissionAttributionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderCommissionAttributionUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderCommissionAttribution nodes.
+type OrderCommissionAttributionUpsertBulk struct {
+	create *OrderCommissionAttributionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordercommissionattribution.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderCommissionAttributionUpsertBulk) UpdateNewValues() *OrderCommissionAttributionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldOrderID)
+			}
+			if _, exists := b.mutation.CustomerID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldCustomerID)
+			}
+			if _, exists := b.mutation.SourceAssignmentID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldSourceAssignmentID)
+			}
+			if _, exists := b.mutation.EmployeeID(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldEmployeeID)
+			}
+			if _, exists := b.mutation.EmployeeName(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldEmployeeName)
+			}
+			if _, exists := b.mutation.PersonnelRole(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldPersonnelRole)
+			}
+			if _, exists := b.mutation.AttributedAt(); exists {
+				s.SetIgnore(ordercommissionattribution.FieldAttributedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderCommissionAttribution.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderCommissionAttributionUpsertBulk) Ignore() *OrderCommissionAttributionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderCommissionAttributionUpsertBulk) DoNothing() *OrderCommissionAttributionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderCommissionAttributionCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderCommissionAttributionUpsertBulk) Update(set func(*OrderCommissionAttributionUpsert)) *OrderCommissionAttributionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderCommissionAttributionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderCommissionAttributionUpsertBulk) SetUpdatedAt(v time.Time) *OrderCommissionAttributionUpsertBulk {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsertBulk) UpdateUpdatedAt() *OrderCommissionAttributionUpsertBulk {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderCommissionAttributionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderCommissionAttributionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderCommissionAttributionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderCommissionAttributionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

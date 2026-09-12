@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -27,6 +29,7 @@ type SeaDocumentVoidEventCreate struct {
 	config
 	mutation *SeaDocumentVoidEventMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -468,6 +471,7 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 		_node = &SeaDocumentVoidEvent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seadocumentvoidevent.Table, sqlgraph.NewFieldSpec(seadocumentvoidevent.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -689,11 +693,210 @@ func (_c *SeaDocumentVoidEventCreate) createSpec() (*SeaDocumentVoidEvent, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaDocumentVoidEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaDocumentVoidEventCreate) OnConflict(opts ...sql.ConflictOption) *SeaDocumentVoidEventUpsertOne {
+	_c.conflict = opts
+	return &SeaDocumentVoidEventUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaDocumentVoidEventCreate) OnConflictColumns(columns ...string) *SeaDocumentVoidEventUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaDocumentVoidEventUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaDocumentVoidEventUpsertOne is the builder for "upsert"-ing
+	//  one SeaDocumentVoidEvent node.
+	SeaDocumentVoidEventUpsertOne struct {
+		create *SeaDocumentVoidEventCreate
+	}
+
+	// SeaDocumentVoidEventUpsert is the "OnConflict" setter.
+	SeaDocumentVoidEventUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seadocumentvoidevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaDocumentVoidEventUpsertOne) UpdateNewValues() *SeaDocumentVoidEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.DocumentType(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldDocumentType)
+		}
+		if _, exists := u.create.mutation.MasterBillID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldMasterBillID)
+		}
+		if _, exists := u.create.mutation.MasterBillVersionID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldMasterBillVersionID)
+		}
+		if _, exists := u.create.mutation.PreviousMasterBillVersionID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+		}
+		if _, exists := u.create.mutation.HouseBillID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldHouseBillID)
+		}
+		if _, exists := u.create.mutation.HouseBillVersionID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldHouseBillVersionID)
+		}
+		if _, exists := u.create.mutation.PreviousHouseBillVersionID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldPreviousHouseBillVersionID)
+		}
+		if _, exists := u.create.mutation.PreviousStatus(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldPreviousStatus)
+		}
+		if _, exists := u.create.mutation.VoidedStatus(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldVoidedStatus)
+		}
+		if _, exists := u.create.mutation.Reason(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldReason)
+		}
+		if _, exists := u.create.mutation.ImpactSummary(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldImpactSummary)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldCreatedBy)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldRequestFingerprint)
+		}
+		if _, exists := u.create.mutation.ConfirmedByParty(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldConfirmedByParty)
+		}
+		if _, exists := u.create.mutation.ConfirmedAt(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldConfirmedAt)
+		}
+		if _, exists := u.create.mutation.ConfirmationNote(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldConfirmationNote)
+		}
+		if _, exists := u.create.mutation.ConfirmationAttachmentID(); exists {
+			s.SetIgnore(seadocumentvoidevent.FieldConfirmationAttachmentID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaDocumentVoidEventUpsertOne) Ignore() *SeaDocumentVoidEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaDocumentVoidEventUpsertOne) DoNothing() *SeaDocumentVoidEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaDocumentVoidEventCreate.OnConflict
+// documentation for more info.
+func (u *SeaDocumentVoidEventUpsertOne) Update(set func(*SeaDocumentVoidEventUpsert)) *SeaDocumentVoidEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaDocumentVoidEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaDocumentVoidEventUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaDocumentVoidEventCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaDocumentVoidEventUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaDocumentVoidEventUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaDocumentVoidEventUpsertOne.ID is not supported by MySQL driver. Use SeaDocumentVoidEventUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaDocumentVoidEventUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaDocumentVoidEventCreateBulk is the builder for creating many SeaDocumentVoidEvent entities in bulk.
 type SeaDocumentVoidEventCreateBulk struct {
 	config
 	err      error
 	builders []*SeaDocumentVoidEventCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaDocumentVoidEvent entities in the database.
@@ -723,6 +926,7 @@ func (_c *SeaDocumentVoidEventCreateBulk) Save(ctx context.Context) ([]*SeaDocum
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -769,6 +973,183 @@ func (_c *SeaDocumentVoidEventCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaDocumentVoidEventCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaDocumentVoidEvent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaDocumentVoidEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaDocumentVoidEventCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaDocumentVoidEventUpsertBulk {
+	_c.conflict = opts
+	return &SeaDocumentVoidEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaDocumentVoidEventCreateBulk) OnConflictColumns(columns ...string) *SeaDocumentVoidEventUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaDocumentVoidEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaDocumentVoidEventUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaDocumentVoidEvent nodes.
+type SeaDocumentVoidEventUpsertBulk struct {
+	create *SeaDocumentVoidEventCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seadocumentvoidevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaDocumentVoidEventUpsertBulk) UpdateNewValues() *SeaDocumentVoidEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldOrderID)
+			}
+			if _, exists := b.mutation.DocumentType(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldDocumentType)
+			}
+			if _, exists := b.mutation.MasterBillID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldMasterBillID)
+			}
+			if _, exists := b.mutation.MasterBillVersionID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldMasterBillVersionID)
+			}
+			if _, exists := b.mutation.PreviousMasterBillVersionID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldPreviousMasterBillVersionID)
+			}
+			if _, exists := b.mutation.HouseBillID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldHouseBillID)
+			}
+			if _, exists := b.mutation.HouseBillVersionID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldHouseBillVersionID)
+			}
+			if _, exists := b.mutation.PreviousHouseBillVersionID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldPreviousHouseBillVersionID)
+			}
+			if _, exists := b.mutation.PreviousStatus(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldPreviousStatus)
+			}
+			if _, exists := b.mutation.VoidedStatus(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldVoidedStatus)
+			}
+			if _, exists := b.mutation.Reason(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldReason)
+			}
+			if _, exists := b.mutation.ImpactSummary(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldImpactSummary)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldCreatedBy)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldRequestFingerprint)
+			}
+			if _, exists := b.mutation.ConfirmedByParty(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldConfirmedByParty)
+			}
+			if _, exists := b.mutation.ConfirmedAt(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldConfirmedAt)
+			}
+			if _, exists := b.mutation.ConfirmationNote(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldConfirmationNote)
+			}
+			if _, exists := b.mutation.ConfirmationAttachmentID(); exists {
+				s.SetIgnore(seadocumentvoidevent.FieldConfirmationAttachmentID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaDocumentVoidEvent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaDocumentVoidEventUpsertBulk) Ignore() *SeaDocumentVoidEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaDocumentVoidEventUpsertBulk) DoNothing() *SeaDocumentVoidEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaDocumentVoidEventCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaDocumentVoidEventUpsertBulk) Update(set func(*SeaDocumentVoidEventUpsert)) *SeaDocumentVoidEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaDocumentVoidEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaDocumentVoidEventUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaDocumentVoidEventCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaDocumentVoidEventCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaDocumentVoidEventUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

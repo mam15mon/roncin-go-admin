@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type PartnerAssignmentCreate struct {
 	config
 	mutation *PartnerAssignmentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -245,6 +248,7 @@ func (_c *PartnerAssignmentCreate) createSpec() (*PartnerAssignment, *sqlgraph.C
 		_node = &PartnerAssignment{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partnerassignment.Table, sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -319,11 +323,319 @@ func (_c *PartnerAssignmentCreate) createSpec() (*PartnerAssignment, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAssignment.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAssignmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAssignmentCreate) OnConflict(opts ...sql.ConflictOption) *PartnerAssignmentUpsertOne {
+	_c.conflict = opts
+	return &PartnerAssignmentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAssignmentCreate) OnConflictColumns(columns ...string) *PartnerAssignmentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAssignmentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerAssignmentUpsertOne is the builder for "upsert"-ing
+	//  one PartnerAssignment node.
+	PartnerAssignmentUpsertOne struct {
+		create *PartnerAssignmentCreate
+	}
+
+	// PartnerAssignmentUpsert is the "OnConflict" setter.
+	PartnerAssignmentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAssignmentUpsert) SetUpdatedAt(v time.Time) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdateUpdatedAt() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAssignmentUpsert) SetPartnerID(v uuid.UUID) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdatePartnerID() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldPartnerID)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PartnerAssignmentUpsert) SetUserID(v uuid.UUID) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdateUserID() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldUserID)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerAssignmentUpsert) SetOrganizationID(v uuid.UUID) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdateOrganizationID() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldOrganizationID)
+	return u
+}
+
+// SetRole sets the "role" field.
+func (u *PartnerAssignmentUpsert) SetRole(v partnerassignment.Role) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldRole, v)
+	return u
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdateRole() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldRole)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAssignmentUpsert) SetSortOrder(v int) *PartnerAssignmentUpsert {
+	u.Set(partnerassignment.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsert) UpdateSortOrder() *PartnerAssignmentUpsert {
+	u.SetExcluded(partnerassignment.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAssignmentUpsert) AddSortOrder(v int) *PartnerAssignmentUpsert {
+	u.Add(partnerassignment.FieldSortOrder, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerassignment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAssignmentUpsertOne) UpdateNewValues() *PartnerAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partnerassignment.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partnerassignment.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerAssignmentUpsertOne) Ignore() *PartnerAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAssignmentUpsertOne) DoNothing() *PartnerAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAssignmentCreate.OnConflict
+// documentation for more info.
+func (u *PartnerAssignmentUpsertOne) Update(set func(*PartnerAssignmentUpsert)) *PartnerAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAssignmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAssignmentUpsertOne) SetUpdatedAt(v time.Time) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdateUpdatedAt() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAssignmentUpsertOne) SetPartnerID(v uuid.UUID) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdatePartnerID() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PartnerAssignmentUpsertOne) SetUserID(v uuid.UUID) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdateUserID() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerAssignmentUpsertOne) SetOrganizationID(v uuid.UUID) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdateOrganizationID() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetRole sets the "role" field.
+func (u *PartnerAssignmentUpsertOne) SetRole(v partnerassignment.Role) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetRole(v)
+	})
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdateRole() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateRole()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAssignmentUpsertOne) SetSortOrder(v int) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAssignmentUpsertOne) AddSortOrder(v int) *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertOne) UpdateSortOrder() *PartnerAssignmentUpsertOne {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAssignmentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAssignmentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAssignmentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerAssignmentUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerAssignmentUpsertOne.ID is not supported by MySQL driver. Use PartnerAssignmentUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerAssignmentUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerAssignmentCreateBulk is the builder for creating many PartnerAssignment entities in bulk.
 type PartnerAssignmentCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerAssignmentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerAssignment entities in the database.
@@ -353,6 +665,7 @@ func (_c *PartnerAssignmentCreateBulk) Save(ctx context.Context) ([]*PartnerAssi
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -399,6 +712,214 @@ func (_c *PartnerAssignmentCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerAssignmentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAssignment.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAssignmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAssignmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerAssignmentUpsertBulk {
+	_c.conflict = opts
+	return &PartnerAssignmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAssignmentCreateBulk) OnConflictColumns(columns ...string) *PartnerAssignmentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAssignmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerAssignmentUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerAssignment nodes.
+type PartnerAssignmentUpsertBulk struct {
+	create *PartnerAssignmentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerassignment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAssignmentUpsertBulk) UpdateNewValues() *PartnerAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partnerassignment.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partnerassignment.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAssignment.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerAssignmentUpsertBulk) Ignore() *PartnerAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAssignmentUpsertBulk) DoNothing() *PartnerAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAssignmentCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerAssignmentUpsertBulk) Update(set func(*PartnerAssignmentUpsert)) *PartnerAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAssignmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAssignmentUpsertBulk) SetUpdatedAt(v time.Time) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdateUpdatedAt() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAssignmentUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdatePartnerID() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *PartnerAssignmentUpsertBulk) SetUserID(v uuid.UUID) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdateUserID() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerAssignmentUpsertBulk) SetOrganizationID(v uuid.UUID) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdateOrganizationID() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetRole sets the "role" field.
+func (u *PartnerAssignmentUpsertBulk) SetRole(v partnerassignment.Role) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetRole(v)
+	})
+}
+
+// UpdateRole sets the "role" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdateRole() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateRole()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAssignmentUpsertBulk) SetSortOrder(v int) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAssignmentUpsertBulk) AddSortOrder(v int) *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAssignmentUpsertBulk) UpdateSortOrder() *PartnerAssignmentUpsertBulk {
+	return u.Update(func(s *PartnerAssignmentUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAssignmentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerAssignmentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAssignmentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAssignmentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

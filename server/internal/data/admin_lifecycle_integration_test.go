@@ -107,7 +107,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		UnionID: dingUnionID,
 		UserID:  dingUserID,
 		Name:    "返聘员工-" + suffix,
-	}, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+	}, nil, nil, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil {
 		t.Fatalf("提交返聘登记: %v", err)
 	}

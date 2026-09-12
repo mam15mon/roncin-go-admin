@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type ShippingLineContainerPrefixCreate struct {
 	config
 	mutation *ShippingLineContainerPrefixMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -192,6 +195,7 @@ func (_c *ShippingLineContainerPrefixCreate) createSpec() (*ShippingLineContaine
 		_node = &ShippingLineContainerPrefix{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(shippinglinecontainerprefix.Table, sqlgraph.NewFieldSpec(shippinglinecontainerprefix.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -232,11 +236,231 @@ func (_c *ShippingLineContainerPrefixCreate) createSpec() (*ShippingLineContaine
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ShippingLineContainerPrefixUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ShippingLineContainerPrefixCreate) OnConflict(opts ...sql.ConflictOption) *ShippingLineContainerPrefixUpsertOne {
+	_c.conflict = opts
+	return &ShippingLineContainerPrefixUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ShippingLineContainerPrefixCreate) OnConflictColumns(columns ...string) *ShippingLineContainerPrefixUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ShippingLineContainerPrefixUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ShippingLineContainerPrefixUpsertOne is the builder for "upsert"-ing
+	//  one ShippingLineContainerPrefix node.
+	ShippingLineContainerPrefixUpsertOne struct {
+		create *ShippingLineContainerPrefixCreate
+	}
+
+	// ShippingLineContainerPrefixUpsert is the "OnConflict" setter.
+	ShippingLineContainerPrefixUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineContainerPrefixUpsert) SetUpdatedAt(v time.Time) *ShippingLineContainerPrefixUpsert {
+	u.Set(shippinglinecontainerprefix.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsert) UpdateUpdatedAt() *ShippingLineContainerPrefixUpsert {
+	u.SetExcluded(shippinglinecontainerprefix.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineContainerPrefixUpsert) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsert {
+	u.Set(shippinglinecontainerprefix.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsert) UpdateOrganizationID() *ShippingLineContainerPrefixUpsert {
+	u.SetExcluded(shippinglinecontainerprefix.FieldOrganizationID)
+	return u
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *ShippingLineContainerPrefixUpsert) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixUpsert {
+	u.Set(shippinglinecontainerprefix.FieldShippingLineID, v)
+	return u
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsert) UpdateShippingLineID() *ShippingLineContainerPrefixUpsert {
+	u.SetExcluded(shippinglinecontainerprefix.FieldShippingLineID)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(shippinglinecontainerprefix.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ShippingLineContainerPrefixUpsertOne) UpdateNewValues() *ShippingLineContainerPrefixUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(shippinglinecontainerprefix.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(shippinglinecontainerprefix.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.Prefix(); exists {
+			s.SetIgnore(shippinglinecontainerprefix.FieldPrefix)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ShippingLineContainerPrefixUpsertOne) Ignore() *ShippingLineContainerPrefixUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ShippingLineContainerPrefixUpsertOne) DoNothing() *ShippingLineContainerPrefixUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ShippingLineContainerPrefixCreate.OnConflict
+// documentation for more info.
+func (u *ShippingLineContainerPrefixUpsertOne) Update(set func(*ShippingLineContainerPrefixUpsert)) *ShippingLineContainerPrefixUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ShippingLineContainerPrefixUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineContainerPrefixUpsertOne) SetUpdatedAt(v time.Time) *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertOne) UpdateUpdatedAt() *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineContainerPrefixUpsertOne) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertOne) UpdateOrganizationID() *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *ShippingLineContainerPrefixUpsertOne) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertOne) UpdateShippingLineID() *ShippingLineContainerPrefixUpsertOne {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// Exec executes the query.
+func (u *ShippingLineContainerPrefixUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ShippingLineContainerPrefixCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ShippingLineContainerPrefixUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ShippingLineContainerPrefixUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ShippingLineContainerPrefixUpsertOne.ID is not supported by MySQL driver. Use ShippingLineContainerPrefixUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ShippingLineContainerPrefixUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ShippingLineContainerPrefixCreateBulk is the builder for creating many ShippingLineContainerPrefix entities in bulk.
 type ShippingLineContainerPrefixCreateBulk struct {
 	config
 	err      error
 	builders []*ShippingLineContainerPrefixCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ShippingLineContainerPrefix entities in the database.
@@ -266,6 +490,7 @@ func (_c *ShippingLineContainerPrefixCreateBulk) Save(ctx context.Context) ([]*S
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -312,6 +537,168 @@ func (_c *ShippingLineContainerPrefixCreateBulk) Exec(ctx context.Context) error
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ShippingLineContainerPrefixCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ShippingLineContainerPrefix.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ShippingLineContainerPrefixUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ShippingLineContainerPrefixCreateBulk) OnConflict(opts ...sql.ConflictOption) *ShippingLineContainerPrefixUpsertBulk {
+	_c.conflict = opts
+	return &ShippingLineContainerPrefixUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ShippingLineContainerPrefixCreateBulk) OnConflictColumns(columns ...string) *ShippingLineContainerPrefixUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ShippingLineContainerPrefixUpsertBulk{
+		create: _c,
+	}
+}
+
+// ShippingLineContainerPrefixUpsertBulk is the builder for "upsert"-ing
+// a bulk of ShippingLineContainerPrefix nodes.
+type ShippingLineContainerPrefixUpsertBulk struct {
+	create *ShippingLineContainerPrefixCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(shippinglinecontainerprefix.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ShippingLineContainerPrefixUpsertBulk) UpdateNewValues() *ShippingLineContainerPrefixUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(shippinglinecontainerprefix.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(shippinglinecontainerprefix.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Prefix(); exists {
+				s.SetIgnore(shippinglinecontainerprefix.FieldPrefix)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLineContainerPrefix.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ShippingLineContainerPrefixUpsertBulk) Ignore() *ShippingLineContainerPrefixUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ShippingLineContainerPrefixUpsertBulk) DoNothing() *ShippingLineContainerPrefixUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ShippingLineContainerPrefixCreateBulk.OnConflict
+// documentation for more info.
+func (u *ShippingLineContainerPrefixUpsertBulk) Update(set func(*ShippingLineContainerPrefixUpsert)) *ShippingLineContainerPrefixUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ShippingLineContainerPrefixUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineContainerPrefixUpsertBulk) SetUpdatedAt(v time.Time) *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertBulk) UpdateUpdatedAt() *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineContainerPrefixUpsertBulk) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertBulk) UpdateOrganizationID() *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *ShippingLineContainerPrefixUpsertBulk) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *ShippingLineContainerPrefixUpsertBulk) UpdateShippingLineID() *ShippingLineContainerPrefixUpsertBulk {
+	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// Exec executes the query.
+func (u *ShippingLineContainerPrefixUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ShippingLineContainerPrefixCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ShippingLineContainerPrefixCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ShippingLineContainerPrefixUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

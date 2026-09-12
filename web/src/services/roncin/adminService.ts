@@ -17,6 +17,121 @@ export async function adminServiceListAuditLogs(
   });
 }
 
+/** 此处后端没有提供注释 GET /api/v1/admin/dingtalk/invitations */
+export async function adminServiceListDingTalkInvitations(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceListDingTalkInvitationsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListDingTalkInvitationsResponse>(
+    "/api/v1/admin/dingtalk/invitations",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。 POST /api/v1/admin/dingtalk/invitations */
+export async function adminServiceCreateDingTalkInvitation(
+  body: API.CreateDingTalkInvitationRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.CreateDingTalkInvitationResponse>(
+    "/api/v1/admin/dingtalk/invitations",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 DELETE /api/v1/admin/dingtalk/invitations/${param0} */
+export async function adminServiceRevokeDingTalkInvitation(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceRevokeDingTalkInvitationParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RevokeDingTalkInvitationResponse>(
+    `/api/v1/admin/dingtalk/invitations/${param0}`,
+    {
+      method: "DELETE",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。 GET /api/v1/admin/dingtalk/registrations */
+export async function adminServiceListDingTalkRegistrations(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceListDingTalkRegistrationsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListDingTalkRegistrationsResponse>(
+    "/api/v1/admin/dingtalk/registrations",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。 POST /api/v1/admin/dingtalk/registrations/${param0}/approval */
+export async function adminServiceApproveDingTalkRegistration(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceApproveDingTalkRegistrationParams,
+  body: API.ApproveDingTalkRegistrationRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.ApproveDingTalkRegistrationResponse>(
+    `/api/v1/admin/dingtalk/registrations/${param0}/approval`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/admin/dingtalk/registrations/${param0}/rejection */
+export async function adminServiceRejectDingTalkRegistration(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceRejectDingTalkRegistrationParams,
+  body: API.RejectDingTalkRegistrationRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RejectDingTalkRegistrationResponse>(
+    `/api/v1/admin/dingtalk/registrations/${param0}/rejection`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/admin/organizations */
 export async function adminServiceListOrganizations(options?: {
   [key: string]: any;

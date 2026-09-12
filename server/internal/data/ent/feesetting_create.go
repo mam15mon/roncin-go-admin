@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -24,6 +26,7 @@ type FeeSettingCreate struct {
 	config
 	mutation *FeeSettingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -424,6 +427,7 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 		_node = &FeeSetting{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(feesetting.Table, sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -576,11 +580,605 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FeeSetting.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FeeSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FeeSettingCreate) OnConflict(opts ...sql.ConflictOption) *FeeSettingUpsertOne {
+	_c.conflict = opts
+	return &FeeSettingUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FeeSettingCreate) OnConflictColumns(columns ...string) *FeeSettingUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FeeSettingUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FeeSettingUpsertOne is the builder for "upsert"-ing
+	//  one FeeSetting node.
+	FeeSettingUpsertOne struct {
+		create *FeeSettingCreate
+	}
+
+	// FeeSettingUpsert is the "OnConflict" setter.
+	FeeSettingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FeeSettingUpsert) SetUpdatedAt(v time.Time) *FeeSettingUpsert {
+	u.Set(feesetting.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateUpdatedAt() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *FeeSettingUpsert) SetOrganizationID(v uuid.UUID) *FeeSettingUpsert {
+	u.Set(feesetting.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateOrganizationID() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldOrganizationID)
+	return u
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FeeSettingUpsert) SetFeeCode(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldFeeCode, v)
+	return u
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateFeeCode() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldFeeCode)
+	return u
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *FeeSettingUpsert) SetNameZh(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldNameZh, v)
+	return u
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateNameZh() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldNameZh)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *FeeSettingUpsert) SetNameEn(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateNameEn() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldNameEn)
+	return u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *FeeSettingUpsert) ClearNameEn() *FeeSettingUpsert {
+	u.SetNull(feesetting.FieldNameEn)
+	return u
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *FeeSettingUpsert) SetAliasName(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldAliasName, v)
+	return u
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateAliasName() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldAliasName)
+	return u
+}
+
+// ClearAliasName clears the value of the "alias_name" field.
+func (u *FeeSettingUpsert) ClearAliasName() *FeeSettingUpsert {
+	u.SetNull(feesetting.FieldAliasName)
+	return u
+}
+
+// SetServiceTypeID sets the "service_type_id" field.
+func (u *FeeSettingUpsert) SetServiceTypeID(v uuid.UUID) *FeeSettingUpsert {
+	u.Set(feesetting.FieldServiceTypeID, v)
+	return u
+}
+
+// UpdateServiceTypeID sets the "service_type_id" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateServiceTypeID() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldServiceTypeID)
+	return u
+}
+
+// ClearServiceTypeID clears the value of the "service_type_id" field.
+func (u *FeeSettingUpsert) ClearServiceTypeID() *FeeSettingUpsert {
+	u.SetNull(feesetting.FieldServiceTypeID)
+	return u
+}
+
+// SetDefaultCurrency sets the "default_currency" field.
+func (u *FeeSettingUpsert) SetDefaultCurrency(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldDefaultCurrency, v)
+	return u
+}
+
+// UpdateDefaultCurrency sets the "default_currency" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateDefaultCurrency() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldDefaultCurrency)
+	return u
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *FeeSettingUpsert) SetBillingUnitID(v uuid.UUID) *FeeSettingUpsert {
+	u.Set(feesetting.FieldBillingUnitID, v)
+	return u
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateBillingUnitID() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldBillingUnitID)
+	return u
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *FeeSettingUpsert) SetAbnormalCaseID(v uuid.UUID) *FeeSettingUpsert {
+	u.Set(feesetting.FieldAbnormalCaseID, v)
+	return u
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateAbnormalCaseID() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldAbnormalCaseID)
+	return u
+}
+
+// ClearAbnormalCaseID clears the value of the "abnormal_case_id" field.
+func (u *FeeSettingUpsert) ClearAbnormalCaseID() *FeeSettingUpsert {
+	u.SetNull(feesetting.FieldAbnormalCaseID)
+	return u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FeeSettingUpsert) SetTaxRate(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldTaxRate, v)
+	return u
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateTaxRate() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldTaxRate)
+	return u
+}
+
+// SetTaxableServiceID sets the "taxable_service_id" field.
+func (u *FeeSettingUpsert) SetTaxableServiceID(v uuid.UUID) *FeeSettingUpsert {
+	u.Set(feesetting.FieldTaxableServiceID, v)
+	return u
+}
+
+// UpdateTaxableServiceID sets the "taxable_service_id" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateTaxableServiceID() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldTaxableServiceID)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FeeSettingUpsert) SetEnabled(v bool) *FeeSettingUpsert {
+	u.Set(feesetting.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateEnabled() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldEnabled)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *FeeSettingUpsert) SetSortOrder(v int) *FeeSettingUpsert {
+	u.Set(feesetting.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateSortOrder() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *FeeSettingUpsert) AddSortOrder(v int) *FeeSettingUpsert {
+	u.Add(feesetting.FieldSortOrder, v)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FeeSettingUpsert) SetSearchKeywords(v string) *FeeSettingUpsert {
+	u.Set(feesetting.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FeeSettingUpsert) UpdateSearchKeywords() *FeeSettingUpsert {
+	u.SetExcluded(feesetting.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(feesetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FeeSettingUpsertOne) UpdateNewValues() *FeeSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(feesetting.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(feesetting.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FeeSettingUpsertOne) Ignore() *FeeSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FeeSettingUpsertOne) DoNothing() *FeeSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FeeSettingCreate.OnConflict
+// documentation for more info.
+func (u *FeeSettingUpsertOne) Update(set func(*FeeSettingUpsert)) *FeeSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FeeSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FeeSettingUpsertOne) SetUpdatedAt(v time.Time) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateUpdatedAt() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *FeeSettingUpsertOne) SetOrganizationID(v uuid.UUID) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateOrganizationID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FeeSettingUpsertOne) SetFeeCode(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateFeeCode() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *FeeSettingUpsertOne) SetNameZh(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateNameZh() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *FeeSettingUpsertOne) SetNameEn(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateNameEn() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *FeeSettingUpsertOne) ClearNameEn() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *FeeSettingUpsertOne) SetAliasName(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetAliasName(v)
+	})
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateAliasName() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateAliasName()
+	})
+}
+
+// ClearAliasName clears the value of the "alias_name" field.
+func (u *FeeSettingUpsertOne) ClearAliasName() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearAliasName()
+	})
+}
+
+// SetServiceTypeID sets the "service_type_id" field.
+func (u *FeeSettingUpsertOne) SetServiceTypeID(v uuid.UUID) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetServiceTypeID(v)
+	})
+}
+
+// UpdateServiceTypeID sets the "service_type_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateServiceTypeID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateServiceTypeID()
+	})
+}
+
+// ClearServiceTypeID clears the value of the "service_type_id" field.
+func (u *FeeSettingUpsertOne) ClearServiceTypeID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearServiceTypeID()
+	})
+}
+
+// SetDefaultCurrency sets the "default_currency" field.
+func (u *FeeSettingUpsertOne) SetDefaultCurrency(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetDefaultCurrency(v)
+	})
+}
+
+// UpdateDefaultCurrency sets the "default_currency" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateDefaultCurrency() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateDefaultCurrency()
+	})
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *FeeSettingUpsertOne) SetBillingUnitID(v uuid.UUID) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetBillingUnitID(v)
+	})
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateBillingUnitID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateBillingUnitID()
+	})
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *FeeSettingUpsertOne) SetAbnormalCaseID(v uuid.UUID) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetAbnormalCaseID(v)
+	})
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateAbnormalCaseID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateAbnormalCaseID()
+	})
+}
+
+// ClearAbnormalCaseID clears the value of the "abnormal_case_id" field.
+func (u *FeeSettingUpsertOne) ClearAbnormalCaseID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearAbnormalCaseID()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FeeSettingUpsertOne) SetTaxRate(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateTaxRate() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// SetTaxableServiceID sets the "taxable_service_id" field.
+func (u *FeeSettingUpsertOne) SetTaxableServiceID(v uuid.UUID) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetTaxableServiceID(v)
+	})
+}
+
+// UpdateTaxableServiceID sets the "taxable_service_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateTaxableServiceID() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateTaxableServiceID()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FeeSettingUpsertOne) SetEnabled(v bool) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateEnabled() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *FeeSettingUpsertOne) SetSortOrder(v int) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *FeeSettingUpsertOne) AddSortOrder(v int) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateSortOrder() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FeeSettingUpsertOne) SetSearchKeywords(v string) *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FeeSettingUpsertOne) UpdateSearchKeywords() *FeeSettingUpsertOne {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *FeeSettingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FeeSettingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FeeSettingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FeeSettingUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FeeSettingUpsertOne.ID is not supported by MySQL driver. Use FeeSettingUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FeeSettingUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FeeSettingCreateBulk is the builder for creating many FeeSetting entities in bulk.
 type FeeSettingCreateBulk struct {
 	config
 	err      error
 	builders []*FeeSettingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FeeSetting entities in the database.
@@ -610,6 +1208,7 @@ func (_c *FeeSettingCreateBulk) Save(ctx context.Context) ([]*FeeSetting, error)
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -656,6 +1255,368 @@ func (_c *FeeSettingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FeeSettingCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FeeSetting.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FeeSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FeeSettingCreateBulk) OnConflict(opts ...sql.ConflictOption) *FeeSettingUpsertBulk {
+	_c.conflict = opts
+	return &FeeSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FeeSettingCreateBulk) OnConflictColumns(columns ...string) *FeeSettingUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FeeSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// FeeSettingUpsertBulk is the builder for "upsert"-ing
+// a bulk of FeeSetting nodes.
+type FeeSettingUpsertBulk struct {
+	create *FeeSettingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(feesetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FeeSettingUpsertBulk) UpdateNewValues() *FeeSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(feesetting.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(feesetting.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FeeSetting.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FeeSettingUpsertBulk) Ignore() *FeeSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FeeSettingUpsertBulk) DoNothing() *FeeSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FeeSettingCreateBulk.OnConflict
+// documentation for more info.
+func (u *FeeSettingUpsertBulk) Update(set func(*FeeSettingUpsert)) *FeeSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FeeSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FeeSettingUpsertBulk) SetUpdatedAt(v time.Time) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateUpdatedAt() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *FeeSettingUpsertBulk) SetOrganizationID(v uuid.UUID) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateOrganizationID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FeeSettingUpsertBulk) SetFeeCode(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateFeeCode() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *FeeSettingUpsertBulk) SetNameZh(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateNameZh() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *FeeSettingUpsertBulk) SetNameEn(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateNameEn() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *FeeSettingUpsertBulk) ClearNameEn() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *FeeSettingUpsertBulk) SetAliasName(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetAliasName(v)
+	})
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateAliasName() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateAliasName()
+	})
+}
+
+// ClearAliasName clears the value of the "alias_name" field.
+func (u *FeeSettingUpsertBulk) ClearAliasName() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearAliasName()
+	})
+}
+
+// SetServiceTypeID sets the "service_type_id" field.
+func (u *FeeSettingUpsertBulk) SetServiceTypeID(v uuid.UUID) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetServiceTypeID(v)
+	})
+}
+
+// UpdateServiceTypeID sets the "service_type_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateServiceTypeID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateServiceTypeID()
+	})
+}
+
+// ClearServiceTypeID clears the value of the "service_type_id" field.
+func (u *FeeSettingUpsertBulk) ClearServiceTypeID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearServiceTypeID()
+	})
+}
+
+// SetDefaultCurrency sets the "default_currency" field.
+func (u *FeeSettingUpsertBulk) SetDefaultCurrency(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetDefaultCurrency(v)
+	})
+}
+
+// UpdateDefaultCurrency sets the "default_currency" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateDefaultCurrency() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateDefaultCurrency()
+	})
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *FeeSettingUpsertBulk) SetBillingUnitID(v uuid.UUID) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetBillingUnitID(v)
+	})
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateBillingUnitID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateBillingUnitID()
+	})
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *FeeSettingUpsertBulk) SetAbnormalCaseID(v uuid.UUID) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetAbnormalCaseID(v)
+	})
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateAbnormalCaseID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateAbnormalCaseID()
+	})
+}
+
+// ClearAbnormalCaseID clears the value of the "abnormal_case_id" field.
+func (u *FeeSettingUpsertBulk) ClearAbnormalCaseID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.ClearAbnormalCaseID()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FeeSettingUpsertBulk) SetTaxRate(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateTaxRate() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// SetTaxableServiceID sets the "taxable_service_id" field.
+func (u *FeeSettingUpsertBulk) SetTaxableServiceID(v uuid.UUID) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetTaxableServiceID(v)
+	})
+}
+
+// UpdateTaxableServiceID sets the "taxable_service_id" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateTaxableServiceID() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateTaxableServiceID()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FeeSettingUpsertBulk) SetEnabled(v bool) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateEnabled() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *FeeSettingUpsertBulk) SetSortOrder(v int) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *FeeSettingUpsertBulk) AddSortOrder(v int) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateSortOrder() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FeeSettingUpsertBulk) SetSearchKeywords(v string) *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FeeSettingUpsertBulk) UpdateSearchKeywords() *FeeSettingUpsertBulk {
+	return u.Update(func(s *FeeSettingUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *FeeSettingUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FeeSettingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FeeSettingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FeeSettingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

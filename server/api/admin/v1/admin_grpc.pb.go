@@ -19,26 +19,32 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_ListOrganizations_FullMethodName     = "/admin.v1.AdminService/ListOrganizations"
-	AdminService_CreateOrganization_FullMethodName    = "/admin.v1.AdminService/CreateOrganization"
-	AdminService_UpdateOrganization_FullMethodName    = "/admin.v1.AdminService/UpdateOrganization"
-	AdminService_ListUsers_FullMethodName             = "/admin.v1.AdminService/ListUsers"
-	AdminService_CreateUser_FullMethodName            = "/admin.v1.AdminService/CreateUser"
-	AdminService_UpdateUser_FullMethodName            = "/admin.v1.AdminService/UpdateUser"
-	AdminService_ListUserMemberships_FullMethodName   = "/admin.v1.AdminService/ListUserMemberships"
-	AdminService_CreateUserMembership_FullMethodName  = "/admin.v1.AdminService/CreateUserMembership"
-	AdminService_UpdateUserMembership_FullMethodName  = "/admin.v1.AdminService/UpdateUserMembership"
-	AdminService_DeleteUserMembership_FullMethodName  = "/admin.v1.AdminService/DeleteUserMembership"
-	AdminService_TerminateUser_FullMethodName         = "/admin.v1.AdminService/TerminateUser"
-	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
-	AdminService_AuthorizeDingTalkUser_FullMethodName = "/admin.v1.AdminService/AuthorizeDingTalkUser"
-	AdminService_ResetUserPassword_FullMethodName     = "/admin.v1.AdminService/ResetUserPassword"
-	AdminService_ListRoles_FullMethodName             = "/admin.v1.AdminService/ListRoles"
-	AdminService_ListOrganizationRoles_FullMethodName = "/admin.v1.AdminService/ListOrganizationRoles"
-	AdminService_CreateRole_FullMethodName            = "/admin.v1.AdminService/CreateRole"
-	AdminService_UpdateRole_FullMethodName            = "/admin.v1.AdminService/UpdateRole"
-	AdminService_ListPermissions_FullMethodName       = "/admin.v1.AdminService/ListPermissions"
-	AdminService_ListAuditLogs_FullMethodName         = "/admin.v1.AdminService/ListAuditLogs"
+	AdminService_ListOrganizations_FullMethodName           = "/admin.v1.AdminService/ListOrganizations"
+	AdminService_CreateOrganization_FullMethodName          = "/admin.v1.AdminService/CreateOrganization"
+	AdminService_UpdateOrganization_FullMethodName          = "/admin.v1.AdminService/UpdateOrganization"
+	AdminService_ListUsers_FullMethodName                   = "/admin.v1.AdminService/ListUsers"
+	AdminService_CreateUser_FullMethodName                  = "/admin.v1.AdminService/CreateUser"
+	AdminService_UpdateUser_FullMethodName                  = "/admin.v1.AdminService/UpdateUser"
+	AdminService_ListUserMemberships_FullMethodName         = "/admin.v1.AdminService/ListUserMemberships"
+	AdminService_CreateUserMembership_FullMethodName        = "/admin.v1.AdminService/CreateUserMembership"
+	AdminService_UpdateUserMembership_FullMethodName        = "/admin.v1.AdminService/UpdateUserMembership"
+	AdminService_DeleteUserMembership_FullMethodName        = "/admin.v1.AdminService/DeleteUserMembership"
+	AdminService_TerminateUser_FullMethodName               = "/admin.v1.AdminService/TerminateUser"
+	AdminService_AuthorizeWeComUser_FullMethodName          = "/admin.v1.AdminService/AuthorizeWeComUser"
+	AdminService_AuthorizeDingTalkUser_FullMethodName       = "/admin.v1.AdminService/AuthorizeDingTalkUser"
+	AdminService_ResetUserPassword_FullMethodName           = "/admin.v1.AdminService/ResetUserPassword"
+	AdminService_ListRoles_FullMethodName                   = "/admin.v1.AdminService/ListRoles"
+	AdminService_ListOrganizationRoles_FullMethodName       = "/admin.v1.AdminService/ListOrganizationRoles"
+	AdminService_CreateRole_FullMethodName                  = "/admin.v1.AdminService/CreateRole"
+	AdminService_UpdateRole_FullMethodName                  = "/admin.v1.AdminService/UpdateRole"
+	AdminService_ListPermissions_FullMethodName             = "/admin.v1.AdminService/ListPermissions"
+	AdminService_ListAuditLogs_FullMethodName               = "/admin.v1.AdminService/ListAuditLogs"
+	AdminService_CreateDingTalkInvitation_FullMethodName    = "/admin.v1.AdminService/CreateDingTalkInvitation"
+	AdminService_ListDingTalkInvitations_FullMethodName     = "/admin.v1.AdminService/ListDingTalkInvitations"
+	AdminService_RevokeDingTalkInvitation_FullMethodName    = "/admin.v1.AdminService/RevokeDingTalkInvitation"
+	AdminService_ListDingTalkRegistrations_FullMethodName   = "/admin.v1.AdminService/ListDingTalkRegistrations"
+	AdminService_ApproveDingTalkRegistration_FullMethodName = "/admin.v1.AdminService/ApproveDingTalkRegistration"
+	AdminService_RejectDingTalkRegistration_FullMethodName  = "/admin.v1.AdminService/RejectDingTalkRegistration"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -66,6 +72,15 @@ type AdminServiceClient interface {
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error)
+	// CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
+	CreateDingTalkInvitation(ctx context.Context, in *CreateDingTalkInvitationRequest, opts ...grpc.CallOption) (*CreateDingTalkInvitationResponse, error)
+	ListDingTalkInvitations(ctx context.Context, in *ListDingTalkInvitationsRequest, opts ...grpc.CallOption) (*ListDingTalkInvitationsResponse, error)
+	RevokeDingTalkInvitation(ctx context.Context, in *RevokeDingTalkInvitationRequest, opts ...grpc.CallOption) (*RevokeDingTalkInvitationResponse, error)
+	// ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
+	ListDingTalkRegistrations(ctx context.Context, in *ListDingTalkRegistrationsRequest, opts ...grpc.CallOption) (*ListDingTalkRegistrationsResponse, error)
+	// ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
+	ApproveDingTalkRegistration(ctx context.Context, in *ApproveDingTalkRegistrationRequest, opts ...grpc.CallOption) (*ApproveDingTalkRegistrationResponse, error)
+	RejectDingTalkRegistration(ctx context.Context, in *RejectDingTalkRegistrationRequest, opts ...grpc.CallOption) (*RejectDingTalkRegistrationResponse, error)
 }
 
 type adminServiceClient struct {
@@ -276,6 +291,66 @@ func (c *adminServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLog
 	return out, nil
 }
 
+func (c *adminServiceClient) CreateDingTalkInvitation(ctx context.Context, in *CreateDingTalkInvitationRequest, opts ...grpc.CallOption) (*CreateDingTalkInvitationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateDingTalkInvitationResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreateDingTalkInvitation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListDingTalkInvitations(ctx context.Context, in *ListDingTalkInvitationsRequest, opts ...grpc.CallOption) (*ListDingTalkInvitationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDingTalkInvitationsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListDingTalkInvitations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) RevokeDingTalkInvitation(ctx context.Context, in *RevokeDingTalkInvitationRequest, opts ...grpc.CallOption) (*RevokeDingTalkInvitationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeDingTalkInvitationResponse)
+	err := c.cc.Invoke(ctx, AdminService_RevokeDingTalkInvitation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListDingTalkRegistrations(ctx context.Context, in *ListDingTalkRegistrationsRequest, opts ...grpc.CallOption) (*ListDingTalkRegistrationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDingTalkRegistrationsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListDingTalkRegistrations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ApproveDingTalkRegistration(ctx context.Context, in *ApproveDingTalkRegistrationRequest, opts ...grpc.CallOption) (*ApproveDingTalkRegistrationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApproveDingTalkRegistrationResponse)
+	err := c.cc.Invoke(ctx, AdminService_ApproveDingTalkRegistration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) RejectDingTalkRegistration(ctx context.Context, in *RejectDingTalkRegistrationRequest, opts ...grpc.CallOption) (*RejectDingTalkRegistrationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RejectDingTalkRegistrationResponse)
+	err := c.cc.Invoke(ctx, AdminService_RejectDingTalkRegistration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
@@ -301,6 +376,15 @@ type AdminServiceServer interface {
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
+	// CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
+	CreateDingTalkInvitation(context.Context, *CreateDingTalkInvitationRequest) (*CreateDingTalkInvitationResponse, error)
+	ListDingTalkInvitations(context.Context, *ListDingTalkInvitationsRequest) (*ListDingTalkInvitationsResponse, error)
+	RevokeDingTalkInvitation(context.Context, *RevokeDingTalkInvitationRequest) (*RevokeDingTalkInvitationResponse, error)
+	// ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
+	ListDingTalkRegistrations(context.Context, *ListDingTalkRegistrationsRequest) (*ListDingTalkRegistrationsResponse, error)
+	// ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
+	ApproveDingTalkRegistration(context.Context, *ApproveDingTalkRegistrationRequest) (*ApproveDingTalkRegistrationResponse, error)
+	RejectDingTalkRegistration(context.Context, *RejectDingTalkRegistrationRequest) (*RejectDingTalkRegistrationResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -370,6 +454,24 @@ func (UnimplementedAdminServiceServer) ListPermissions(context.Context, *ListPer
 }
 func (UnimplementedAdminServiceServer) ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAuditLogs not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateDingTalkInvitation(context.Context, *CreateDingTalkInvitationRequest) (*CreateDingTalkInvitationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDingTalkInvitation not implemented")
+}
+func (UnimplementedAdminServiceServer) ListDingTalkInvitations(context.Context, *ListDingTalkInvitationsRequest) (*ListDingTalkInvitationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDingTalkInvitations not implemented")
+}
+func (UnimplementedAdminServiceServer) RevokeDingTalkInvitation(context.Context, *RevokeDingTalkInvitationRequest) (*RevokeDingTalkInvitationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeDingTalkInvitation not implemented")
+}
+func (UnimplementedAdminServiceServer) ListDingTalkRegistrations(context.Context, *ListDingTalkRegistrationsRequest) (*ListDingTalkRegistrationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDingTalkRegistrations not implemented")
+}
+func (UnimplementedAdminServiceServer) ApproveDingTalkRegistration(context.Context, *ApproveDingTalkRegistrationRequest) (*ApproveDingTalkRegistrationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveDingTalkRegistration not implemented")
+}
+func (UnimplementedAdminServiceServer) RejectDingTalkRegistration(context.Context, *RejectDingTalkRegistrationRequest) (*RejectDingTalkRegistrationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectDingTalkRegistration not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -752,6 +854,114 @@ func _AdminService_ListAuditLogs_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CreateDingTalkInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDingTalkInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateDingTalkInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateDingTalkInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateDingTalkInvitation(ctx, req.(*CreateDingTalkInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListDingTalkInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDingTalkInvitationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListDingTalkInvitations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListDingTalkInvitations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListDingTalkInvitations(ctx, req.(*ListDingTalkInvitationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_RevokeDingTalkInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeDingTalkInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RevokeDingTalkInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_RevokeDingTalkInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RevokeDingTalkInvitation(ctx, req.(*RevokeDingTalkInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListDingTalkRegistrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDingTalkRegistrationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListDingTalkRegistrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListDingTalkRegistrations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListDingTalkRegistrations(ctx, req.(*ListDingTalkRegistrationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ApproveDingTalkRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveDingTalkRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ApproveDingTalkRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ApproveDingTalkRegistration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ApproveDingTalkRegistration(ctx, req.(*ApproveDingTalkRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_RejectDingTalkRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectDingTalkRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RejectDingTalkRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_RejectDingTalkRegistration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RejectDingTalkRegistration(ctx, req.(*RejectDingTalkRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -838,6 +1048,30 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAuditLogs",
 			Handler:    _AdminService_ListAuditLogs_Handler,
+		},
+		{
+			MethodName: "CreateDingTalkInvitation",
+			Handler:    _AdminService_CreateDingTalkInvitation_Handler,
+		},
+		{
+			MethodName: "ListDingTalkInvitations",
+			Handler:    _AdminService_ListDingTalkInvitations_Handler,
+		},
+		{
+			MethodName: "RevokeDingTalkInvitation",
+			Handler:    _AdminService_RevokeDingTalkInvitation_Handler,
+		},
+		{
+			MethodName: "ListDingTalkRegistrations",
+			Handler:    _AdminService_ListDingTalkRegistrations_Handler,
+		},
+		{
+			MethodName: "ApproveDingTalkRegistration",
+			Handler:    _AdminService_ApproveDingTalkRegistration_Handler,
+		},
+		{
+			MethodName: "RejectDingTalkRegistration",
+			Handler:    _AdminService_RejectDingTalkRegistration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

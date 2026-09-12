@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -41,6 +43,7 @@ type PartnerCreate struct {
 	config
 	mutation *PartnerMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -664,6 +667,7 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 		_node = &Partner{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partner.Table, sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -1064,11 +1068,413 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Partner.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerCreate) OnConflict(opts ...sql.ConflictOption) *PartnerUpsertOne {
+	_c.conflict = opts
+	return &PartnerUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerCreate) OnConflictColumns(columns ...string) *PartnerUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerUpsertOne is the builder for "upsert"-ing
+	//  one Partner node.
+	PartnerUpsertOne struct {
+		create *PartnerCreate
+	}
+
+	// PartnerUpsert is the "OnConflict" setter.
+	PartnerUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerUpsert) SetUpdatedAt(v time.Time) *PartnerUpsert {
+	u.Set(partner.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateUpdatedAt() *PartnerUpsert {
+	u.SetExcluded(partner.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerUpsert) SetOrganizationID(v uuid.UUID) *PartnerUpsert {
+	u.Set(partner.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateOrganizationID() *PartnerUpsert {
+	u.SetExcluded(partner.FieldOrganizationID)
+	return u
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *PartnerUpsert) SetLegalName(v string) *PartnerUpsert {
+	u.Set(partner.FieldLegalName, v)
+	return u
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateLegalName() *PartnerUpsert {
+	u.SetExcluded(partner.FieldLegalName)
+	return u
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *PartnerUpsert) SetNormalizedName(v string) *PartnerUpsert {
+	u.Set(partner.FieldNormalizedName, v)
+	return u
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateNormalizedName() *PartnerUpsert {
+	u.SetExcluded(partner.FieldNormalizedName)
+	return u
+}
+
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (u *PartnerUpsert) SetUnifiedSocialCreditCode(v string) *PartnerUpsert {
+	u.Set(partner.FieldUnifiedSocialCreditCode, v)
+	return u
+}
+
+// UpdateUnifiedSocialCreditCode sets the "unified_social_credit_code" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateUnifiedSocialCreditCode() *PartnerUpsert {
+	u.SetExcluded(partner.FieldUnifiedSocialCreditCode)
+	return u
+}
+
+// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
+func (u *PartnerUpsert) ClearUnifiedSocialCreditCode() *PartnerUpsert {
+	u.SetNull(partner.FieldUnifiedSocialCreditCode)
+	return u
+}
+
+// SetRegisteredAddress sets the "registered_address" field.
+func (u *PartnerUpsert) SetRegisteredAddress(v string) *PartnerUpsert {
+	u.Set(partner.FieldRegisteredAddress, v)
+	return u
+}
+
+// UpdateRegisteredAddress sets the "registered_address" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateRegisteredAddress() *PartnerUpsert {
+	u.SetExcluded(partner.FieldRegisteredAddress)
+	return u
+}
+
+// ClearRegisteredAddress clears the value of the "registered_address" field.
+func (u *PartnerUpsert) ClearRegisteredAddress() *PartnerUpsert {
+	u.SetNull(partner.FieldRegisteredAddress)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerUpsert) SetEnabled(v bool) *PartnerUpsert {
+	u.Set(partner.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateEnabled() *PartnerUpsert {
+	u.SetExcluded(partner.FieldEnabled)
+	return u
+}
+
+// SetIsCasual sets the "is_casual" field.
+func (u *PartnerUpsert) SetIsCasual(v bool) *PartnerUpsert {
+	u.Set(partner.FieldIsCasual, v)
+	return u
+}
+
+// UpdateIsCasual sets the "is_casual" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateIsCasual() *PartnerUpsert {
+	u.SetExcluded(partner.FieldIsCasual)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerUpsert) SetSearchKeywords(v string) *PartnerUpsert {
+	u.Set(partner.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateSearchKeywords() *PartnerUpsert {
+	u.SetExcluded(partner.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partner.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerUpsertOne) UpdateNewValues() *PartnerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partner.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partner.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.Code(); exists {
+			s.SetIgnore(partner.FieldCode)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerUpsertOne) Ignore() *PartnerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerUpsertOne) DoNothing() *PartnerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerCreate.OnConflict
+// documentation for more info.
+func (u *PartnerUpsertOne) Update(set func(*PartnerUpsert)) *PartnerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerUpsertOne) SetUpdatedAt(v time.Time) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateUpdatedAt() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerUpsertOne) SetOrganizationID(v uuid.UUID) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateOrganizationID() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *PartnerUpsertOne) SetLegalName(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetLegalName(v)
+	})
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateLegalName() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateLegalName()
+	})
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *PartnerUpsertOne) SetNormalizedName(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetNormalizedName(v)
+	})
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateNormalizedName() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateNormalizedName()
+	})
+}
+
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (u *PartnerUpsertOne) SetUnifiedSocialCreditCode(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetUnifiedSocialCreditCode(v)
+	})
+}
+
+// UpdateUnifiedSocialCreditCode sets the "unified_social_credit_code" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateUnifiedSocialCreditCode() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateUnifiedSocialCreditCode()
+	})
+}
+
+// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
+func (u *PartnerUpsertOne) ClearUnifiedSocialCreditCode() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearUnifiedSocialCreditCode()
+	})
+}
+
+// SetRegisteredAddress sets the "registered_address" field.
+func (u *PartnerUpsertOne) SetRegisteredAddress(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetRegisteredAddress(v)
+	})
+}
+
+// UpdateRegisteredAddress sets the "registered_address" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateRegisteredAddress() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateRegisteredAddress()
+	})
+}
+
+// ClearRegisteredAddress clears the value of the "registered_address" field.
+func (u *PartnerUpsertOne) ClearRegisteredAddress() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearRegisteredAddress()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerUpsertOne) SetEnabled(v bool) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateEnabled() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetIsCasual sets the "is_casual" field.
+func (u *PartnerUpsertOne) SetIsCasual(v bool) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetIsCasual(v)
+	})
+}
+
+// UpdateIsCasual sets the "is_casual" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateIsCasual() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateIsCasual()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerUpsertOne) SetSearchKeywords(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateSearchKeywords() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerUpsertOne.ID is not supported by MySQL driver. Use PartnerUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerCreateBulk is the builder for creating many Partner entities in bulk.
 type PartnerCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Partner entities in the database.
@@ -1098,6 +1504,7 @@ func (_c *PartnerCreateBulk) Save(ctx context.Context) ([]*Partner, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1144,6 +1551,266 @@ func (_c *PartnerCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Partner.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerUpsertBulk {
+	_c.conflict = opts
+	return &PartnerUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerCreateBulk) OnConflictColumns(columns ...string) *PartnerUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerUpsertBulk is the builder for "upsert"-ing
+// a bulk of Partner nodes.
+type PartnerUpsertBulk struct {
+	create *PartnerCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partner.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerUpsertBulk) UpdateNewValues() *PartnerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partner.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partner.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Code(); exists {
+				s.SetIgnore(partner.FieldCode)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Partner.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerUpsertBulk) Ignore() *PartnerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerUpsertBulk) DoNothing() *PartnerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerUpsertBulk) Update(set func(*PartnerUpsert)) *PartnerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerUpsertBulk) SetUpdatedAt(v time.Time) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateUpdatedAt() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PartnerUpsertBulk) SetOrganizationID(v uuid.UUID) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateOrganizationID() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *PartnerUpsertBulk) SetLegalName(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetLegalName(v)
+	})
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateLegalName() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateLegalName()
+	})
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (u *PartnerUpsertBulk) SetNormalizedName(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetNormalizedName(v)
+	})
+}
+
+// UpdateNormalizedName sets the "normalized_name" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateNormalizedName() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateNormalizedName()
+	})
+}
+
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (u *PartnerUpsertBulk) SetUnifiedSocialCreditCode(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetUnifiedSocialCreditCode(v)
+	})
+}
+
+// UpdateUnifiedSocialCreditCode sets the "unified_social_credit_code" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateUnifiedSocialCreditCode() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateUnifiedSocialCreditCode()
+	})
+}
+
+// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
+func (u *PartnerUpsertBulk) ClearUnifiedSocialCreditCode() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearUnifiedSocialCreditCode()
+	})
+}
+
+// SetRegisteredAddress sets the "registered_address" field.
+func (u *PartnerUpsertBulk) SetRegisteredAddress(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetRegisteredAddress(v)
+	})
+}
+
+// UpdateRegisteredAddress sets the "registered_address" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateRegisteredAddress() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateRegisteredAddress()
+	})
+}
+
+// ClearRegisteredAddress clears the value of the "registered_address" field.
+func (u *PartnerUpsertBulk) ClearRegisteredAddress() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearRegisteredAddress()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerUpsertBulk) SetEnabled(v bool) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateEnabled() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetIsCasual sets the "is_casual" field.
+func (u *PartnerUpsertBulk) SetIsCasual(v bool) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetIsCasual(v)
+	})
+}
+
+// UpdateIsCasual sets the "is_casual" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateIsCasual() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateIsCasual()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerUpsertBulk) SetSearchKeywords(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateSearchKeywords() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

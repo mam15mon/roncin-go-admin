@@ -1,6 +1,6 @@
 import { DingdingOutlined } from '@ant-design/icons';
 import { Helmet, useModel } from '@umijs/max';
-import { App, Button, Result, Spin } from 'antd';
+import { App, Button, Result, Select, Space, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { DingTalkLoginStatus } from '@/enums.generated';
 import {
@@ -46,6 +46,10 @@ export default function DingTalkCallback() {
   const [registrationName, setRegistrationName] = useState('');
   const [registeredName, setRegisteredName] = useState('');
   const [registrationLoading, setRegistrationLoading] = useState(false);
+  const [registrationOrganizations, setRegistrationOrganizations] = useState<
+    API.OrganizationChoice[]
+  >([]);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
   const [organizationOptions, setOrganizationOptions] =
     useState<LoginOrganizationOption[]>();
   const pendingRedirectRef = useRef('/');
@@ -69,6 +73,9 @@ export default function DingTalkCallback() {
           response.data.displayName
         ) {
           setRegistrationName(response.data.displayName);
+          setRegistrationOrganizations(
+            response.data.registrationOrganizations ?? [],
+          );
           return;
         }
         if (
@@ -108,7 +115,9 @@ export default function DingTalkCallback() {
     setRegistrationLoading(true);
     try {
       const response = await authServiceRegisterDingTalkUser(
-        {},
+        selectedOrganizationId
+          ? { organizationId: selectedOrganizationId }
+          : {},
         { skipErrorHandler: true },
       );
       if (!response.data) {
@@ -151,25 +160,57 @@ export default function DingTalkCallback() {
           status="info"
           icon={<DingdingOutlined style={{ color: '#1677ff' }} />}
           title="钉钉身份验证完成"
-          subTitle={`已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`}
+          subTitle={
+            registrationOrganizations.length > 1
+              ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由总部审批。`
+              : `已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`
+          }
           extra={
-            <>
-              <Button
-                type="primary"
-                loading={registrationLoading}
-                onClick={confirmRegistration}
-              >
-                确认注册
-              </Button>
-              <Button
-                disabled={registrationLoading}
-                onClick={() => {
-                  window.location.href = '/user/login';
-                }}
-              >
-                取消并返回登录
-              </Button>
-            </>
+            <Space orientation="vertical" size={16}>
+              {registrationOrganizations.length > 1 && (
+                <div>
+                  <div
+                    style={{
+                      marginBottom: 8,
+                      fontSize: 14,
+                      color: 'rgba(0, 0, 0, 0.88)',
+                    }}
+                  >
+                    要加入的公司
+                  </div>
+                  <Select
+                    value={selectedOrganizationId}
+                    disabled={registrationLoading}
+                    onChange={setSelectedOrganizationId}
+                    style={{ width: 280, display: 'block' }}
+                    options={[
+                      { label: '默认（总部审批）', value: '' },
+                      ...registrationOrganizations.map((organization) => ({
+                        label: `${organization.organizationName} (${organization.organizationCode})`,
+                        value: organization.organizationId,
+                      })),
+                    ]}
+                  />
+                </div>
+              )}
+              <Space>
+                <Button
+                  type="primary"
+                  loading={registrationLoading}
+                  onClick={confirmRegistration}
+                >
+                  确认注册
+                </Button>
+                <Button
+                  disabled={registrationLoading}
+                  onClick={() => {
+                    window.location.href = '/user/login';
+                  }}
+                >
+                  取消并返回登录
+                </Button>
+              </Space>
+            </Space>
           }
         />
       ) : organizationOptions ? (

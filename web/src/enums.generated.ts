@@ -51,6 +51,16 @@ export const AdminUserStatus = {
 
 export type AdminUserStatus = (typeof AdminUserStatus)[keyof typeof AdminUserStatus];
 
+export const DingTalkInvitationStatus = {
+  DING_TALK_INVITATION_STATUS_UNSPECIFIED: 0,
+  DING_TALK_INVITATION_STATUS_PENDING: 1,
+  DING_TALK_INVITATION_STATUS_CONSUMED: 2,
+  DING_TALK_INVITATION_STATUS_EXPIRED: 3,
+  DING_TALK_INVITATION_STATUS_REVOKED: 4,
+} as const;
+
+export type DingTalkInvitationStatus = (typeof DingTalkInvitationStatus)[keyof typeof DingTalkInvitationStatus];
+
 export const DingTalkLoginStatus = {
   DING_TALK_LOGIN_STATUS_UNSPECIFIED: 0,
   DING_TALK_LOGIN_STATUS_AUTHENTICATED: 1,

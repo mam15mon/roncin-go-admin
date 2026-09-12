@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type PartnerProfileCreate struct {
 	config
 	mutation *PartnerProfileMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -378,6 +381,7 @@ func (_c *PartnerProfileCreate) createSpec() (*PartnerProfile, *sqlgraph.CreateS
 		_node = &PartnerProfile{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partnerprofile.Table, sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -458,11 +462,657 @@ func (_c *PartnerProfileCreate) createSpec() (*PartnerProfile, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerProfile.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerProfileUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerProfileCreate) OnConflict(opts ...sql.ConflictOption) *PartnerProfileUpsertOne {
+	_c.conflict = opts
+	return &PartnerProfileUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerProfileCreate) OnConflictColumns(columns ...string) *PartnerProfileUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerProfileUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerProfileUpsertOne is the builder for "upsert"-ing
+	//  one PartnerProfile node.
+	PartnerProfileUpsertOne struct {
+		create *PartnerProfileCreate
+	}
+
+	// PartnerProfileUpsert is the "OnConflict" setter.
+	PartnerProfileUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerProfileUpsert) SetUpdatedAt(v time.Time) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateUpdatedAt() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerProfileUpsert) SetPartnerID(v uuid.UUID) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdatePartnerID() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldPartnerID)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PartnerProfileUpsert) SetNameEn(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateNameEn() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldNameEn)
+	return u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *PartnerProfileUpsert) ClearNameEn() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldNameEn)
+	return u
+}
+
+// SetAddressEn sets the "address_en" field.
+func (u *PartnerProfileUpsert) SetAddressEn(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldAddressEn, v)
+	return u
+}
+
+// UpdateAddressEn sets the "address_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateAddressEn() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldAddressEn)
+	return u
+}
+
+// ClearAddressEn clears the value of the "address_en" field.
+func (u *PartnerProfileUpsert) ClearAddressEn() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldAddressEn)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PartnerProfileUpsert) SetCountryCode(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateCountryCode() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldCountryCode)
+	return u
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *PartnerProfileUpsert) SetProvinceCode(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldProvinceCode, v)
+	return u
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateProvinceCode() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldProvinceCode)
+	return u
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *PartnerProfileUpsert) ClearProvinceCode() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldProvinceCode)
+	return u
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *PartnerProfileUpsert) SetCityCode(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldCityCode, v)
+	return u
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateCityCode() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldCityCode)
+	return u
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *PartnerProfileUpsert) ClearCityCode() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldCityCode)
+	return u
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *PartnerProfileUpsert) SetDistrictCode(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldDistrictCode, v)
+	return u
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateDistrictCode() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldDistrictCode)
+	return u
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *PartnerProfileUpsert) ClearDistrictCode() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldDistrictCode)
+	return u
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *PartnerProfileUpsert) SetAddressDetail(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldAddressDetail, v)
+	return u
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateAddressDetail() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldAddressDetail)
+	return u
+}
+
+// ClearAddressDetail clears the value of the "address_detail" field.
+func (u *PartnerProfileUpsert) ClearAddressDetail() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldAddressDetail)
+	return u
+}
+
+// SetNature sets the "nature" field.
+func (u *PartnerProfileUpsert) SetNature(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldNature, v)
+	return u
+}
+
+// UpdateNature sets the "nature" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateNature() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldNature)
+	return u
+}
+
+// ClearNature clears the value of the "nature" field.
+func (u *PartnerProfileUpsert) ClearNature() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldNature)
+	return u
+}
+
+// SetDevelopmentMethod sets the "development_method" field.
+func (u *PartnerProfileUpsert) SetDevelopmentMethod(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldDevelopmentMethod, v)
+	return u
+}
+
+// UpdateDevelopmentMethod sets the "development_method" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateDevelopmentMethod() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldDevelopmentMethod)
+	return u
+}
+
+// ClearDevelopmentMethod clears the value of the "development_method" field.
+func (u *PartnerProfileUpsert) ClearDevelopmentMethod() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldDevelopmentMethod)
+	return u
+}
+
+// SetCustomerTypes sets the "customer_types" field.
+func (u *PartnerProfileUpsert) SetCustomerTypes(v []string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldCustomerTypes, v)
+	return u
+}
+
+// UpdateCustomerTypes sets the "customer_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateCustomerTypes() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldCustomerTypes)
+	return u
+}
+
+// ClearCustomerTypes clears the value of the "customer_types" field.
+func (u *PartnerProfileUpsert) ClearCustomerTypes() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldCustomerTypes)
+	return u
+}
+
+// SetBusinessTypes sets the "business_types" field.
+func (u *PartnerProfileUpsert) SetBusinessTypes(v []string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldBusinessTypes, v)
+	return u
+}
+
+// UpdateBusinessTypes sets the "business_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateBusinessTypes() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldBusinessTypes)
+	return u
+}
+
+// ClearBusinessTypes clears the value of the "business_types" field.
+func (u *PartnerProfileUpsert) ClearBusinessTypes() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldBusinessTypes)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerProfileUpsert) SetRemark(v string) *PartnerProfileUpsert {
+	u.Set(partnerprofile.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerProfileUpsert) UpdateRemark() *PartnerProfileUpsert {
+	u.SetExcluded(partnerprofile.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerProfileUpsert) ClearRemark() *PartnerProfileUpsert {
+	u.SetNull(partnerprofile.FieldRemark)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerProfileUpsertOne) UpdateNewValues() *PartnerProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partnerprofile.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partnerprofile.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerProfileUpsertOne) Ignore() *PartnerProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerProfileUpsertOne) DoNothing() *PartnerProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerProfileCreate.OnConflict
+// documentation for more info.
+func (u *PartnerProfileUpsertOne) Update(set func(*PartnerProfileUpsert)) *PartnerProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerProfileUpsertOne) SetUpdatedAt(v time.Time) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateUpdatedAt() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerProfileUpsertOne) SetPartnerID(v uuid.UUID) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdatePartnerID() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PartnerProfileUpsertOne) SetNameEn(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateNameEn() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *PartnerProfileUpsertOne) ClearNameEn() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetAddressEn sets the "address_en" field.
+func (u *PartnerProfileUpsertOne) SetAddressEn(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetAddressEn(v)
+	})
+}
+
+// UpdateAddressEn sets the "address_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateAddressEn() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateAddressEn()
+	})
+}
+
+// ClearAddressEn clears the value of the "address_en" field.
+func (u *PartnerProfileUpsertOne) ClearAddressEn() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearAddressEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PartnerProfileUpsertOne) SetCountryCode(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateCountryCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *PartnerProfileUpsertOne) SetProvinceCode(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetProvinceCode(v)
+	})
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateProvinceCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateProvinceCode()
+	})
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *PartnerProfileUpsertOne) ClearProvinceCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearProvinceCode()
+	})
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *PartnerProfileUpsertOne) SetCityCode(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCityCode(v)
+	})
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateCityCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCityCode()
+	})
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *PartnerProfileUpsertOne) ClearCityCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearCityCode()
+	})
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *PartnerProfileUpsertOne) SetDistrictCode(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetDistrictCode(v)
+	})
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateDistrictCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateDistrictCode()
+	})
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *PartnerProfileUpsertOne) ClearDistrictCode() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearDistrictCode()
+	})
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *PartnerProfileUpsertOne) SetAddressDetail(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetAddressDetail(v)
+	})
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateAddressDetail() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateAddressDetail()
+	})
+}
+
+// ClearAddressDetail clears the value of the "address_detail" field.
+func (u *PartnerProfileUpsertOne) ClearAddressDetail() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearAddressDetail()
+	})
+}
+
+// SetNature sets the "nature" field.
+func (u *PartnerProfileUpsertOne) SetNature(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetNature(v)
+	})
+}
+
+// UpdateNature sets the "nature" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateNature() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateNature()
+	})
+}
+
+// ClearNature clears the value of the "nature" field.
+func (u *PartnerProfileUpsertOne) ClearNature() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearNature()
+	})
+}
+
+// SetDevelopmentMethod sets the "development_method" field.
+func (u *PartnerProfileUpsertOne) SetDevelopmentMethod(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetDevelopmentMethod(v)
+	})
+}
+
+// UpdateDevelopmentMethod sets the "development_method" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateDevelopmentMethod() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateDevelopmentMethod()
+	})
+}
+
+// ClearDevelopmentMethod clears the value of the "development_method" field.
+func (u *PartnerProfileUpsertOne) ClearDevelopmentMethod() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearDevelopmentMethod()
+	})
+}
+
+// SetCustomerTypes sets the "customer_types" field.
+func (u *PartnerProfileUpsertOne) SetCustomerTypes(v []string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCustomerTypes(v)
+	})
+}
+
+// UpdateCustomerTypes sets the "customer_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateCustomerTypes() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCustomerTypes()
+	})
+}
+
+// ClearCustomerTypes clears the value of the "customer_types" field.
+func (u *PartnerProfileUpsertOne) ClearCustomerTypes() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearCustomerTypes()
+	})
+}
+
+// SetBusinessTypes sets the "business_types" field.
+func (u *PartnerProfileUpsertOne) SetBusinessTypes(v []string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetBusinessTypes(v)
+	})
+}
+
+// UpdateBusinessTypes sets the "business_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateBusinessTypes() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateBusinessTypes()
+	})
+}
+
+// ClearBusinessTypes clears the value of the "business_types" field.
+func (u *PartnerProfileUpsertOne) ClearBusinessTypes() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearBusinessTypes()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerProfileUpsertOne) SetRemark(v string) *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerProfileUpsertOne) UpdateRemark() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerProfileUpsertOne) ClearRemark() *PartnerProfileUpsertOne {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerProfileUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerProfileCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerProfileUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerProfileUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerProfileUpsertOne.ID is not supported by MySQL driver. Use PartnerProfileUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerProfileUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerProfileCreateBulk is the builder for creating many PartnerProfile entities in bulk.
 type PartnerProfileCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerProfileCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerProfile entities in the database.
@@ -492,6 +1142,7 @@ func (_c *PartnerProfileCreateBulk) Save(ctx context.Context) ([]*PartnerProfile
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -538,6 +1189,396 @@ func (_c *PartnerProfileCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerProfileCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerProfile.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerProfileUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerProfileCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerProfileUpsertBulk {
+	_c.conflict = opts
+	return &PartnerProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerProfileCreateBulk) OnConflictColumns(columns ...string) *PartnerProfileUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerProfileUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerProfile nodes.
+type PartnerProfileUpsertBulk struct {
+	create *PartnerProfileCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerProfileUpsertBulk) UpdateNewValues() *PartnerProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partnerprofile.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partnerprofile.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerProfile.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerProfileUpsertBulk) Ignore() *PartnerProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerProfileUpsertBulk) DoNothing() *PartnerProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerProfileCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerProfileUpsertBulk) Update(set func(*PartnerProfileUpsert)) *PartnerProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerProfileUpsertBulk) SetUpdatedAt(v time.Time) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateUpdatedAt() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerProfileUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdatePartnerID() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PartnerProfileUpsertBulk) SetNameEn(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateNameEn() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *PartnerProfileUpsertBulk) ClearNameEn() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetAddressEn sets the "address_en" field.
+func (u *PartnerProfileUpsertBulk) SetAddressEn(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetAddressEn(v)
+	})
+}
+
+// UpdateAddressEn sets the "address_en" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateAddressEn() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateAddressEn()
+	})
+}
+
+// ClearAddressEn clears the value of the "address_en" field.
+func (u *PartnerProfileUpsertBulk) ClearAddressEn() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearAddressEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PartnerProfileUpsertBulk) SetCountryCode(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateCountryCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *PartnerProfileUpsertBulk) SetProvinceCode(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetProvinceCode(v)
+	})
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateProvinceCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateProvinceCode()
+	})
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *PartnerProfileUpsertBulk) ClearProvinceCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearProvinceCode()
+	})
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *PartnerProfileUpsertBulk) SetCityCode(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCityCode(v)
+	})
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateCityCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCityCode()
+	})
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *PartnerProfileUpsertBulk) ClearCityCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearCityCode()
+	})
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *PartnerProfileUpsertBulk) SetDistrictCode(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetDistrictCode(v)
+	})
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateDistrictCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateDistrictCode()
+	})
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *PartnerProfileUpsertBulk) ClearDistrictCode() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearDistrictCode()
+	})
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *PartnerProfileUpsertBulk) SetAddressDetail(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetAddressDetail(v)
+	})
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateAddressDetail() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateAddressDetail()
+	})
+}
+
+// ClearAddressDetail clears the value of the "address_detail" field.
+func (u *PartnerProfileUpsertBulk) ClearAddressDetail() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearAddressDetail()
+	})
+}
+
+// SetNature sets the "nature" field.
+func (u *PartnerProfileUpsertBulk) SetNature(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetNature(v)
+	})
+}
+
+// UpdateNature sets the "nature" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateNature() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateNature()
+	})
+}
+
+// ClearNature clears the value of the "nature" field.
+func (u *PartnerProfileUpsertBulk) ClearNature() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearNature()
+	})
+}
+
+// SetDevelopmentMethod sets the "development_method" field.
+func (u *PartnerProfileUpsertBulk) SetDevelopmentMethod(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetDevelopmentMethod(v)
+	})
+}
+
+// UpdateDevelopmentMethod sets the "development_method" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateDevelopmentMethod() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateDevelopmentMethod()
+	})
+}
+
+// ClearDevelopmentMethod clears the value of the "development_method" field.
+func (u *PartnerProfileUpsertBulk) ClearDevelopmentMethod() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearDevelopmentMethod()
+	})
+}
+
+// SetCustomerTypes sets the "customer_types" field.
+func (u *PartnerProfileUpsertBulk) SetCustomerTypes(v []string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetCustomerTypes(v)
+	})
+}
+
+// UpdateCustomerTypes sets the "customer_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateCustomerTypes() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateCustomerTypes()
+	})
+}
+
+// ClearCustomerTypes clears the value of the "customer_types" field.
+func (u *PartnerProfileUpsertBulk) ClearCustomerTypes() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearCustomerTypes()
+	})
+}
+
+// SetBusinessTypes sets the "business_types" field.
+func (u *PartnerProfileUpsertBulk) SetBusinessTypes(v []string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetBusinessTypes(v)
+	})
+}
+
+// UpdateBusinessTypes sets the "business_types" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateBusinessTypes() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateBusinessTypes()
+	})
+}
+
+// ClearBusinessTypes clears the value of the "business_types" field.
+func (u *PartnerProfileUpsertBulk) ClearBusinessTypes() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearBusinessTypes()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerProfileUpsertBulk) SetRemark(v string) *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerProfileUpsertBulk) UpdateRemark() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerProfileUpsertBulk) ClearRemark() *PartnerProfileUpsertBulk {
+	return u.Update(func(s *PartnerProfileUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerProfileUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerProfileCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerProfileCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerProfileUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

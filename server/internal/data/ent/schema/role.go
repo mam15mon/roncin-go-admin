@@ -30,6 +30,7 @@ func (Role) Edges() []ent.Edge {
 		edge.To("assignments", RoleAssignment.Type),
 		edge.To("organization_accesses", RoleOrganizationAccess.Type),
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
+		edge.To("dingtalk_invitations", DingTalkInvitation.Type),
 	}
 }
 

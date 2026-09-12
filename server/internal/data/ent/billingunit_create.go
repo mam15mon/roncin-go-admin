@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type BillingUnitCreate struct {
 	config
 	mutation *BillingUnitMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -325,6 +328,7 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 		_node = &BillingUnit{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(billingunit.Table, sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -413,11 +417,371 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.BillingUnit.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BillingUnitUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *BillingUnitCreate) OnConflict(opts ...sql.ConflictOption) *BillingUnitUpsertOne {
+	_c.conflict = opts
+	return &BillingUnitUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *BillingUnitCreate) OnConflictColumns(columns ...string) *BillingUnitUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &BillingUnitUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// BillingUnitUpsertOne is the builder for "upsert"-ing
+	//  one BillingUnit node.
+	BillingUnitUpsertOne struct {
+		create *BillingUnitCreate
+	}
+
+	// BillingUnitUpsert is the "OnConflict" setter.
+	BillingUnitUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BillingUnitUpsert) SetUpdatedAt(v time.Time) *BillingUnitUpsert {
+	u.Set(billingunit.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateUpdatedAt() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BillingUnitUpsert) SetOrganizationID(v uuid.UUID) *BillingUnitUpsert {
+	u.Set(billingunit.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateOrganizationID() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldOrganizationID)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *BillingUnitUpsert) SetCode(v string) *BillingUnitUpsert {
+	u.Set(billingunit.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateCode() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldCode)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *BillingUnitUpsert) SetName(v string) *BillingUnitUpsert {
+	u.Set(billingunit.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateName() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldName)
+	return u
+}
+
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (u *BillingUnitUpsert) SetIsContainerUnit(v bool) *BillingUnitUpsert {
+	u.Set(billingunit.FieldIsContainerUnit, v)
+	return u
+}
+
+// UpdateIsContainerUnit sets the "is_container_unit" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateIsContainerUnit() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldIsContainerUnit)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *BillingUnitUpsert) SetSortOrder(v int) *BillingUnitUpsert {
+	u.Set(billingunit.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateSortOrder() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *BillingUnitUpsert) AddSortOrder(v int) *BillingUnitUpsert {
+	u.Add(billingunit.FieldSortOrder, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *BillingUnitUpsert) SetEnabled(v bool) *BillingUnitUpsert {
+	u.Set(billingunit.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateEnabled() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldEnabled)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *BillingUnitUpsert) SetSearchKeywords(v string) *BillingUnitUpsert {
+	u.Set(billingunit.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateSearchKeywords() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(billingunit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BillingUnitUpsertOne) UpdateNewValues() *BillingUnitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(billingunit.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(billingunit.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *BillingUnitUpsertOne) Ignore() *BillingUnitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BillingUnitUpsertOne) DoNothing() *BillingUnitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BillingUnitCreate.OnConflict
+// documentation for more info.
+func (u *BillingUnitUpsertOne) Update(set func(*BillingUnitUpsert)) *BillingUnitUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BillingUnitUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BillingUnitUpsertOne) SetUpdatedAt(v time.Time) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateUpdatedAt() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BillingUnitUpsertOne) SetOrganizationID(v uuid.UUID) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateOrganizationID() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *BillingUnitUpsertOne) SetCode(v string) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateCode() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *BillingUnitUpsertOne) SetName(v string) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateName() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (u *BillingUnitUpsertOne) SetIsContainerUnit(v bool) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetIsContainerUnit(v)
+	})
+}
+
+// UpdateIsContainerUnit sets the "is_container_unit" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateIsContainerUnit() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateIsContainerUnit()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *BillingUnitUpsertOne) SetSortOrder(v int) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *BillingUnitUpsertOne) AddSortOrder(v int) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateSortOrder() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *BillingUnitUpsertOne) SetEnabled(v bool) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateEnabled() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *BillingUnitUpsertOne) SetSearchKeywords(v string) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateSearchKeywords() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *BillingUnitUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BillingUnitCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BillingUnitUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *BillingUnitUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: BillingUnitUpsertOne.ID is not supported by MySQL driver. Use BillingUnitUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *BillingUnitUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // BillingUnitCreateBulk is the builder for creating many BillingUnit entities in bulk.
 type BillingUnitCreateBulk struct {
 	config
 	err      error
 	builders []*BillingUnitCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the BillingUnit entities in the database.
@@ -447,6 +811,7 @@ func (_c *BillingUnitCreateBulk) Save(ctx context.Context) ([]*BillingUnit, erro
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -493,6 +858,242 @@ func (_c *BillingUnitCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *BillingUnitCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.BillingUnit.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BillingUnitUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *BillingUnitCreateBulk) OnConflict(opts ...sql.ConflictOption) *BillingUnitUpsertBulk {
+	_c.conflict = opts
+	return &BillingUnitUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *BillingUnitCreateBulk) OnConflictColumns(columns ...string) *BillingUnitUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &BillingUnitUpsertBulk{
+		create: _c,
+	}
+}
+
+// BillingUnitUpsertBulk is the builder for "upsert"-ing
+// a bulk of BillingUnit nodes.
+type BillingUnitUpsertBulk struct {
+	create *BillingUnitCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(billingunit.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BillingUnitUpsertBulk) UpdateNewValues() *BillingUnitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(billingunit.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(billingunit.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.BillingUnit.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *BillingUnitUpsertBulk) Ignore() *BillingUnitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BillingUnitUpsertBulk) DoNothing() *BillingUnitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BillingUnitCreateBulk.OnConflict
+// documentation for more info.
+func (u *BillingUnitUpsertBulk) Update(set func(*BillingUnitUpsert)) *BillingUnitUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BillingUnitUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BillingUnitUpsertBulk) SetUpdatedAt(v time.Time) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateUpdatedAt() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BillingUnitUpsertBulk) SetOrganizationID(v uuid.UUID) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateOrganizationID() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *BillingUnitUpsertBulk) SetCode(v string) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateCode() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *BillingUnitUpsertBulk) SetName(v string) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateName() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (u *BillingUnitUpsertBulk) SetIsContainerUnit(v bool) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetIsContainerUnit(v)
+	})
+}
+
+// UpdateIsContainerUnit sets the "is_container_unit" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateIsContainerUnit() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateIsContainerUnit()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *BillingUnitUpsertBulk) SetSortOrder(v int) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *BillingUnitUpsertBulk) AddSortOrder(v int) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateSortOrder() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *BillingUnitUpsertBulk) SetEnabled(v bool) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateEnabled() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *BillingUnitUpsertBulk) SetSearchKeywords(v string) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateSearchKeywords() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *BillingUnitUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the BillingUnitCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BillingUnitCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BillingUnitUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

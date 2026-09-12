@@ -26,9 +26,13 @@ var dingTalkProviderSet = wire.NewSet(
 	NewDingTalkRegistrationTokenCodec,
 	NewDingTalkApprovalGateway,
 	NewDingTalkApprovalCallbackCodec,
+	NewDingTalkRegistrationRepo,
 	wire.Bind(new(biz.DingTalkIdentityProvider), new(*dingTalkIdentityProvider)),
 	wire.Bind(new(biz.DingTalkRegistrationTokenCodec), new(*dingTalkRegistrationTokenCodec)),
 	wire.Bind(new(biz.DingTalkNotificationSender), new(*dingTalkIdentityProvider)),
+	wire.Bind(new(biz.DingTalkDirectoryLookup), new(*dingTalkIdentityProvider)),
+	wire.Bind(new(biz.DingTalkLoginRegistrationRepo), new(*dingTalkRegistrationRepo)),
+	wire.Bind(new(biz.DingTalkRegistrationRepo), new(*dingTalkRegistrationRepo)),
 )
 
 var ProviderSet = wire.NewSet(NewData, NewEnterpriseImageStorage, NewEnterpriseResourceRepo, NewBusinessTagRepo, NewAuthRepo, NewWeComIdentityProvider, dingTalkProviderSet, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewPartnerInvoiceProfileRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewOrderRepo, NewOrderLockRepo, NewSeaMasterBillRepo, NewSeaDocumentRepo, NewSeaDocumentChangeRepo, NewSeaSharedContainerRepo, NewSeaOrderChangeRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewSettlementRepo, NewFeeLedgerPreferenceRepo, NewFinanceCustomSettingRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewVerificationRepo, NewFinanceNettingRepo, NewCommissionRepo, NewBackgroundTaskRepo, NewNotificationRepo, NewDingTalkApprovalRepo, NewObjectDeletionRepo, wire.Bind(new(biz.Transactor), new(*Data)))

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type SeaTransportExecutionCreate struct {
 	config
 	mutation *SeaTransportExecutionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -413,6 +416,7 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 		_node = &SeaTransportExecution{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seatransportexecution.Table, sqlgraph.NewFieldSpec(seatransportexecution.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -575,11 +579,553 @@ func (_c *SeaTransportExecutionCreate) createSpec() (*SeaTransportExecution, *sq
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaTransportExecution.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaTransportExecutionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaTransportExecutionCreate) OnConflict(opts ...sql.ConflictOption) *SeaTransportExecutionUpsertOne {
+	_c.conflict = opts
+	return &SeaTransportExecutionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaTransportExecutionCreate) OnConflictColumns(columns ...string) *SeaTransportExecutionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaTransportExecutionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaTransportExecutionUpsertOne is the builder for "upsert"-ing
+	//  one SeaTransportExecution node.
+	SeaTransportExecutionUpsertOne struct {
+		create *SeaTransportExecutionCreate
+	}
+
+	// SeaTransportExecutionUpsert is the "OnConflict" setter.
+	SeaTransportExecutionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaTransportExecutionUpsert) SetUpdatedAt(v time.Time) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateUpdatedAt() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaTransportExecutionUpsert) SetOrganizationID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateOrganizationID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldOrganizationID)
+	return u
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaTransportExecutionUpsert) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldShippingLineID, v)
+	return u
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateShippingLineID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldShippingLineID)
+	return u
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsert) SetOriginLocationID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldOriginLocationID, v)
+	return u
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateOriginLocationID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldOriginLocationID)
+	return u
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsert) ClearOriginLocationID() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldOriginLocationID)
+	return u
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsert) SetDischargeLocationID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldDischargeLocationID, v)
+	return u
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateDischargeLocationID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldDischargeLocationID)
+	return u
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsert) ClearDischargeLocationID() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldDischargeLocationID)
+	return u
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsert) SetTransitLocationID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldTransitLocationID, v)
+	return u
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateTransitLocationID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldTransitLocationID)
+	return u
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsert) ClearTransitLocationID() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldTransitLocationID)
+	return u
+}
+
+// SetVesselName sets the "vessel_name" field.
+func (u *SeaTransportExecutionUpsert) SetVesselName(v string) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldVesselName, v)
+	return u
+}
+
+// UpdateVesselName sets the "vessel_name" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateVesselName() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldVesselName)
+	return u
+}
+
+// SetVoyageNo sets the "voyage_no" field.
+func (u *SeaTransportExecutionUpsert) SetVoyageNo(v string) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldVoyageNo, v)
+	return u
+}
+
+// UpdateVoyageNo sets the "voyage_no" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateVoyageNo() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldVoyageNo)
+	return u
+}
+
+// SetEtd sets the "etd" field.
+func (u *SeaTransportExecutionUpsert) SetEtd(v time.Time) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldEtd, v)
+	return u
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateEtd() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldEtd)
+	return u
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *SeaTransportExecutionUpsert) ClearEtd() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldEtd)
+	return u
+}
+
+// SetEta sets the "eta" field.
+func (u *SeaTransportExecutionUpsert) SetEta(v time.Time) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldEta, v)
+	return u
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateEta() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldEta)
+	return u
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *SeaTransportExecutionUpsert) ClearEta() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldEta)
+	return u
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaTransportExecutionUpsert) SetCurrentVersionID(v uuid.UUID) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldCurrentVersionID, v)
+	return u
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateCurrentVersionID() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldCurrentVersionID)
+	return u
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaTransportExecutionUpsert) ClearCurrentVersionID() *SeaTransportExecutionUpsert {
+	u.SetNull(seatransportexecution.FieldCurrentVersionID)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaTransportExecutionUpsert) SetVersion(v uint64) *SeaTransportExecutionUpsert {
+	u.Set(seatransportexecution.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsert) UpdateVersion() *SeaTransportExecutionUpsert {
+	u.SetExcluded(seatransportexecution.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaTransportExecutionUpsert) AddVersion(v uint64) *SeaTransportExecutionUpsert {
+	u.Add(seatransportexecution.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seatransportexecution.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaTransportExecutionUpsertOne) UpdateNewValues() *SeaTransportExecutionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seatransportexecution.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seatransportexecution.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaTransportExecutionUpsertOne) Ignore() *SeaTransportExecutionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaTransportExecutionUpsertOne) DoNothing() *SeaTransportExecutionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaTransportExecutionCreate.OnConflict
+// documentation for more info.
+func (u *SeaTransportExecutionUpsertOne) Update(set func(*SeaTransportExecutionUpsert)) *SeaTransportExecutionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaTransportExecutionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaTransportExecutionUpsertOne) SetUpdatedAt(v time.Time) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateUpdatedAt() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetOrganizationID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateOrganizationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateShippingLineID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetOriginLocationID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetOriginLocationID(v)
+	})
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateOriginLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateOriginLocationID()
+	})
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) ClearOriginLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearOriginLocationID()
+	})
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetDischargeLocationID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetDischargeLocationID(v)
+	})
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateDischargeLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateDischargeLocationID()
+	})
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) ClearDischargeLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearDischargeLocationID()
+	})
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetTransitLocationID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetTransitLocationID(v)
+	})
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateTransitLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateTransitLocationID()
+	})
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsertOne) ClearTransitLocationID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearTransitLocationID()
+	})
+}
+
+// SetVesselName sets the "vessel_name" field.
+func (u *SeaTransportExecutionUpsertOne) SetVesselName(v string) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVesselName(v)
+	})
+}
+
+// UpdateVesselName sets the "vessel_name" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateVesselName() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVesselName()
+	})
+}
+
+// SetVoyageNo sets the "voyage_no" field.
+func (u *SeaTransportExecutionUpsertOne) SetVoyageNo(v string) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVoyageNo(v)
+	})
+}
+
+// UpdateVoyageNo sets the "voyage_no" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateVoyageNo() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVoyageNo()
+	})
+}
+
+// SetEtd sets the "etd" field.
+func (u *SeaTransportExecutionUpsertOne) SetEtd(v time.Time) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetEtd(v)
+	})
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateEtd() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateEtd()
+	})
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *SeaTransportExecutionUpsertOne) ClearEtd() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearEtd()
+	})
+}
+
+// SetEta sets the "eta" field.
+func (u *SeaTransportExecutionUpsertOne) SetEta(v time.Time) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetEta(v)
+	})
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateEta() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateEta()
+	})
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *SeaTransportExecutionUpsertOne) ClearEta() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearEta()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaTransportExecutionUpsertOne) SetCurrentVersionID(v uuid.UUID) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateCurrentVersionID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaTransportExecutionUpsertOne) ClearCurrentVersionID() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaTransportExecutionUpsertOne) SetVersion(v uint64) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaTransportExecutionUpsertOne) AddVersion(v uint64) *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertOne) UpdateVersion() *SeaTransportExecutionUpsertOne {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaTransportExecutionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaTransportExecutionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaTransportExecutionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaTransportExecutionUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaTransportExecutionUpsertOne.ID is not supported by MySQL driver. Use SeaTransportExecutionUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaTransportExecutionUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaTransportExecutionCreateBulk is the builder for creating many SeaTransportExecution entities in bulk.
 type SeaTransportExecutionCreateBulk struct {
 	config
 	err      error
 	builders []*SeaTransportExecutionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaTransportExecution entities in the database.
@@ -609,6 +1155,7 @@ func (_c *SeaTransportExecutionCreateBulk) Save(ctx context.Context) ([]*SeaTran
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -655,6 +1202,340 @@ func (_c *SeaTransportExecutionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaTransportExecutionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaTransportExecution.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaTransportExecutionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaTransportExecutionCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaTransportExecutionUpsertBulk {
+	_c.conflict = opts
+	return &SeaTransportExecutionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaTransportExecutionCreateBulk) OnConflictColumns(columns ...string) *SeaTransportExecutionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaTransportExecutionUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaTransportExecutionUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaTransportExecution nodes.
+type SeaTransportExecutionUpsertBulk struct {
+	create *SeaTransportExecutionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seatransportexecution.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaTransportExecutionUpsertBulk) UpdateNewValues() *SeaTransportExecutionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seatransportexecution.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seatransportexecution.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaTransportExecution.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaTransportExecutionUpsertBulk) Ignore() *SeaTransportExecutionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaTransportExecutionUpsertBulk) DoNothing() *SeaTransportExecutionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaTransportExecutionCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaTransportExecutionUpsertBulk) Update(set func(*SeaTransportExecutionUpsert)) *SeaTransportExecutionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaTransportExecutionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaTransportExecutionUpsertBulk) SetUpdatedAt(v time.Time) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateUpdatedAt() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetOrganizationID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateOrganizationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetShippingLineID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateShippingLineID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetOriginLocationID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetOriginLocationID(v)
+	})
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateOriginLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateOriginLocationID()
+	})
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearOriginLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearOriginLocationID()
+	})
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetDischargeLocationID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetDischargeLocationID(v)
+	})
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateDischargeLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateDischargeLocationID()
+	})
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearDischargeLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearDischargeLocationID()
+	})
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetTransitLocationID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetTransitLocationID(v)
+	})
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateTransitLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateTransitLocationID()
+	})
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearTransitLocationID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearTransitLocationID()
+	})
+}
+
+// SetVesselName sets the "vessel_name" field.
+func (u *SeaTransportExecutionUpsertBulk) SetVesselName(v string) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVesselName(v)
+	})
+}
+
+// UpdateVesselName sets the "vessel_name" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateVesselName() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVesselName()
+	})
+}
+
+// SetVoyageNo sets the "voyage_no" field.
+func (u *SeaTransportExecutionUpsertBulk) SetVoyageNo(v string) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVoyageNo(v)
+	})
+}
+
+// UpdateVoyageNo sets the "voyage_no" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateVoyageNo() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVoyageNo()
+	})
+}
+
+// SetEtd sets the "etd" field.
+func (u *SeaTransportExecutionUpsertBulk) SetEtd(v time.Time) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetEtd(v)
+	})
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateEtd() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateEtd()
+	})
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearEtd() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearEtd()
+	})
+}
+
+// SetEta sets the "eta" field.
+func (u *SeaTransportExecutionUpsertBulk) SetEta(v time.Time) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetEta(v)
+	})
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateEta() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateEta()
+	})
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearEta() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearEta()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaTransportExecutionUpsertBulk) SetCurrentVersionID(v uuid.UUID) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateCurrentVersionID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaTransportExecutionUpsertBulk) ClearCurrentVersionID() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaTransportExecutionUpsertBulk) SetVersion(v uint64) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaTransportExecutionUpsertBulk) AddVersion(v uint64) *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaTransportExecutionUpsertBulk) UpdateVersion() *SeaTransportExecutionUpsertBulk {
+	return u.Update(func(s *SeaTransportExecutionUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaTransportExecutionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaTransportExecutionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaTransportExecutionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaTransportExecutionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

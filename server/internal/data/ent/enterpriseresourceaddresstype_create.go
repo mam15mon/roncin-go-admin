@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type EnterpriseResourceAddressTypeCreate struct {
 	config
 	mutation *EnterpriseResourceAddressTypeMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -183,6 +186,7 @@ func (_c *EnterpriseResourceAddressTypeCreate) createSpec() (*EnterpriseResource
 		_node = &EnterpriseResourceAddressType{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresourceaddresstype.Table, sqlgraph.NewFieldSpec(enterpriseresourceaddresstype.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -219,11 +223,182 @@ func (_c *EnterpriseResourceAddressTypeCreate) createSpec() (*EnterpriseResource
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAddressTypeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressTypeCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAddressTypeUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourceAddressTypeUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressTypeCreate) OnConflictColumns(columns ...string) *EnterpriseResourceAddressTypeUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAddressTypeUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourceAddressTypeUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResourceAddressType node.
+	EnterpriseResourceAddressTypeUpsertOne struct {
+		create *EnterpriseResourceAddressTypeCreate
+	}
+
+	// EnterpriseResourceAddressTypeUpsert is the "OnConflict" setter.
+	EnterpriseResourceAddressTypeUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressTypeUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressTypeUpsert {
+	u.Set(enterpriseresourceaddresstype.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressTypeUpsert) UpdateUpdatedAt() *EnterpriseResourceAddressTypeUpsert {
+	u.SetExcluded(enterpriseresourceaddresstype.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceaddresstype.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressTypeUpsertOne) UpdateNewValues() *EnterpriseResourceAddressTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresourceaddresstype.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresourceaddresstype.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterpriseresourceaddresstype.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.AddressType(); exists {
+			s.SetIgnore(enterpriseresourceaddresstype.FieldAddressType)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourceAddressTypeUpsertOne) Ignore() *EnterpriseResourceAddressTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAddressTypeUpsertOne) DoNothing() *EnterpriseResourceAddressTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAddressTypeCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAddressTypeUpsertOne) Update(set func(*EnterpriseResourceAddressTypeUpsert)) *EnterpriseResourceAddressTypeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAddressTypeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressTypeUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressTypeUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressTypeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressTypeUpsertOne) UpdateUpdatedAt() *EnterpriseResourceAddressTypeUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressTypeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAddressTypeUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAddressTypeCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAddressTypeUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourceAddressTypeUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourceAddressTypeUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourceAddressTypeUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourceAddressTypeUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourceAddressTypeCreateBulk is the builder for creating many EnterpriseResourceAddressType entities in bulk.
 type EnterpriseResourceAddressTypeCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourceAddressTypeCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResourceAddressType entities in the database.
@@ -253,6 +428,7 @@ func (_c *EnterpriseResourceAddressTypeCreateBulk) Save(ctx context.Context) ([]
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -299,6 +475,143 @@ func (_c *EnterpriseResourceAddressTypeCreateBulk) Exec(ctx context.Context) err
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourceAddressTypeCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAddressType.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAddressTypeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressTypeCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAddressTypeUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourceAddressTypeUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressTypeCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourceAddressTypeUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAddressTypeUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourceAddressTypeUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResourceAddressType nodes.
+type EnterpriseResourceAddressTypeUpsertBulk struct {
+	create *EnterpriseResourceAddressTypeCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceaddresstype.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressTypeUpsertBulk) UpdateNewValues() *EnterpriseResourceAddressTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresourceaddresstype.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresourceaddresstype.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterpriseresourceaddresstype.FieldResourceID)
+			}
+			if _, exists := b.mutation.AddressType(); exists {
+				s.SetIgnore(enterpriseresourceaddresstype.FieldAddressType)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddressType.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressTypeUpsertBulk) Ignore() *EnterpriseResourceAddressTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) DoNothing() *EnterpriseResourceAddressTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAddressTypeCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) Update(set func(*EnterpriseResourceAddressTypeUpsert)) *EnterpriseResourceAddressTypeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAddressTypeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressTypeUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressTypeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceAddressTypeUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressTypeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourceAddressTypeCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAddressTypeCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAddressTypeUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

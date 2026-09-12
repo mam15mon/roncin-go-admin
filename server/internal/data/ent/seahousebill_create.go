@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -29,6 +31,7 @@ type SeaHouseBillCreate struct {
 	config
 	mutation *SeaHouseBillMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -732,6 +735,7 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 		_node = &SeaHouseBill{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seahousebill.Table, sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -1045,11 +1049,1177 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaHouseBill.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaHouseBillUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaHouseBillCreate) OnConflict(opts ...sql.ConflictOption) *SeaHouseBillUpsertOne {
+	_c.conflict = opts
+	return &SeaHouseBillUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaHouseBillCreate) OnConflictColumns(columns ...string) *SeaHouseBillUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaHouseBillUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaHouseBillUpsertOne is the builder for "upsert"-ing
+	//  one SeaHouseBill node.
+	SeaHouseBillUpsertOne struct {
+		create *SeaHouseBillCreate
+	}
+
+	// SeaHouseBillUpsert is the "OnConflict" setter.
+	SeaHouseBillUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaHouseBillUpsert) SetUpdatedAt(v time.Time) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateUpdatedAt() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaHouseBillUpsert) SetOrganizationID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateOrganizationID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldOrganizationID)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaHouseBillUpsert) SetOrderID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateOrderID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldOrderID)
+	return u
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaHouseBillUpsert) SetMasterBillID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldMasterBillID, v)
+	return u
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateMasterBillID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldMasterBillID)
+	return u
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *SeaHouseBillUpsert) SetHouseNo(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldHouseNo, v)
+	return u
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateHouseNo() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldHouseNo)
+	return u
+}
+
+// SetNormalizedHouseNo sets the "normalized_house_no" field.
+func (u *SeaHouseBillUpsert) SetNormalizedHouseNo(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldNormalizedHouseNo, v)
+	return u
+}
+
+// UpdateNormalizedHouseNo sets the "normalized_house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateNormalizedHouseNo() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldNormalizedHouseNo)
+	return u
+}
+
+// SetIssuerSource sets the "issuer_source" field.
+func (u *SeaHouseBillUpsert) SetIssuerSource(v seahousebill.IssuerSource) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldIssuerSource, v)
+	return u
+}
+
+// UpdateIssuerSource sets the "issuer_source" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateIssuerSource() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldIssuerSource)
+	return u
+}
+
+// SetIssuerOrganizationID sets the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsert) SetIssuerOrganizationID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldIssuerOrganizationID, v)
+	return u
+}
+
+// UpdateIssuerOrganizationID sets the "issuer_organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateIssuerOrganizationID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldIssuerOrganizationID)
+	return u
+}
+
+// ClearIssuerOrganizationID clears the value of the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsert) ClearIssuerOrganizationID() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldIssuerOrganizationID)
+	return u
+}
+
+// SetIssuerPartnerID sets the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsert) SetIssuerPartnerID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldIssuerPartnerID, v)
+	return u
+}
+
+// UpdateIssuerPartnerID sets the "issuer_partner_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateIssuerPartnerID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldIssuerPartnerID)
+	return u
+}
+
+// ClearIssuerPartnerID clears the value of the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsert) ClearIssuerPartnerID() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldIssuerPartnerID)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaHouseBillUpsert) SetStatus(v seahousebill.Status) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateStatus() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldStatus)
+	return u
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaHouseBillUpsert) SetCurrentVersionID(v uuid.UUID) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldCurrentVersionID, v)
+	return u
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateCurrentVersionID() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldCurrentVersionID)
+	return u
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaHouseBillUpsert) ClearCurrentVersionID() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldCurrentVersionID)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaHouseBillUpsert) SetVersion(v uint64) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateVersion() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaHouseBillUpsert) AddVersion(v uint64) *SeaHouseBillUpsert {
+	u.Add(seahousebill.FieldVersion, v)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *SeaHouseBillUpsert) SetNote(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateNote() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaHouseBillUpsert) ClearNote() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldNote)
+	return u
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaHouseBillUpsert) SetShipperText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldShipperText, v)
+	return u
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateShipperText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldShipperText)
+	return u
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaHouseBillUpsert) ClearShipperText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldShipperText)
+	return u
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaHouseBillUpsert) SetConsigneeText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldConsigneeText, v)
+	return u
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateConsigneeText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldConsigneeText)
+	return u
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaHouseBillUpsert) ClearConsigneeText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldConsigneeText)
+	return u
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaHouseBillUpsert) SetNotifyPartyText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldNotifyPartyText, v)
+	return u
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateNotifyPartyText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldNotifyPartyText)
+	return u
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaHouseBillUpsert) ClearNotifyPartyText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldNotifyPartyText)
+	return u
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsert) SetSecondNotifyPartyText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldSecondNotifyPartyText, v)
+	return u
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateSecondNotifyPartyText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldSecondNotifyPartyText)
+	return u
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsert) ClearSecondNotifyPartyText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldSecondNotifyPartyText)
+	return u
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaHouseBillUpsert) SetMarksText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldMarksText, v)
+	return u
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateMarksText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldMarksText)
+	return u
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaHouseBillUpsert) ClearMarksText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldMarksText)
+	return u
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaHouseBillUpsert) SetGoodsDescriptionText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldGoodsDescriptionText, v)
+	return u
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateGoodsDescriptionText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldGoodsDescriptionText)
+	return u
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaHouseBillUpsert) ClearGoodsDescriptionText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldGoodsDescriptionText)
+	return u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaHouseBillUpsert) SetPackageCount(v int) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldPackageCount, v)
+	return u
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdatePackageCount() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldPackageCount)
+	return u
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaHouseBillUpsert) AddPackageCount(v int) *SeaHouseBillUpsert {
+	u.Add(seahousebill.FieldPackageCount, v)
+	return u
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaHouseBillUpsert) ClearPackageCount() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldPackageCount)
+	return u
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaHouseBillUpsert) SetPackageUnit(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldPackageUnit, v)
+	return u
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdatePackageUnit() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldPackageUnit)
+	return u
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaHouseBillUpsert) ClearPackageUnit() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldPackageUnit)
+	return u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsert) SetGrossWeightKg(v float64) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldGrossWeightKg, v)
+	return u
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateGrossWeightKg() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldGrossWeightKg)
+	return u
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsert) AddGrossWeightKg(v float64) *SeaHouseBillUpsert {
+	u.Add(seahousebill.FieldGrossWeightKg, v)
+	return u
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsert) ClearGrossWeightKg() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldGrossWeightKg)
+	return u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaHouseBillUpsert) SetVolumeCbm(v float64) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldVolumeCbm, v)
+	return u
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateVolumeCbm() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldVolumeCbm)
+	return u
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaHouseBillUpsert) AddVolumeCbm(v float64) *SeaHouseBillUpsert {
+	u.Add(seahousebill.FieldVolumeCbm, v)
+	return u
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaHouseBillUpsert) ClearVolumeCbm() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldVolumeCbm)
+	return u
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaHouseBillUpsert) SetFreightTerms(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldFreightTerms, v)
+	return u
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateFreightTerms() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldFreightTerms)
+	return u
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaHouseBillUpsert) ClearFreightTerms() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldFreightTerms)
+	return u
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaHouseBillUpsert) SetTransportTerms(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldTransportTerms, v)
+	return u
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateTransportTerms() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldTransportTerms)
+	return u
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaHouseBillUpsert) ClearTransportTerms() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldTransportTerms)
+	return u
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaHouseBillUpsert) SetBillForm(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldBillForm, v)
+	return u
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateBillForm() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldBillForm)
+	return u
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaHouseBillUpsert) ClearBillForm() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldBillForm)
+	return u
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaHouseBillUpsert) SetReleaseType(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldReleaseType, v)
+	return u
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateReleaseType() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldReleaseType)
+	return u
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaHouseBillUpsert) ClearReleaseType() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldReleaseType)
+	return u
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaHouseBillUpsert) SetClauses(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldClauses, v)
+	return u
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateClauses() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldClauses)
+	return u
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaHouseBillUpsert) ClearClauses() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldClauses)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seahousebill.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaHouseBillUpsertOne) UpdateNewValues() *SeaHouseBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seahousebill.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seahousebill.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaHouseBillUpsertOne) Ignore() *SeaHouseBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaHouseBillUpsertOne) DoNothing() *SeaHouseBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaHouseBillCreate.OnConflict
+// documentation for more info.
+func (u *SeaHouseBillUpsertOne) Update(set func(*SeaHouseBillUpsert)) *SeaHouseBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaHouseBillUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaHouseBillUpsertOne) SetUpdatedAt(v time.Time) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateUpdatedAt() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaHouseBillUpsertOne) SetOrganizationID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateOrganizationID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaHouseBillUpsertOne) SetOrderID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateOrderID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaHouseBillUpsertOne) SetMasterBillID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetMasterBillID(v)
+	})
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateMasterBillID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateMasterBillID()
+	})
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *SeaHouseBillUpsertOne) SetHouseNo(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetHouseNo(v)
+	})
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateHouseNo() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateHouseNo()
+	})
+}
+
+// SetNormalizedHouseNo sets the "normalized_house_no" field.
+func (u *SeaHouseBillUpsertOne) SetNormalizedHouseNo(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNormalizedHouseNo(v)
+	})
+}
+
+// UpdateNormalizedHouseNo sets the "normalized_house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateNormalizedHouseNo() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNormalizedHouseNo()
+	})
+}
+
+// SetIssuerSource sets the "issuer_source" field.
+func (u *SeaHouseBillUpsertOne) SetIssuerSource(v seahousebill.IssuerSource) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerSource(v)
+	})
+}
+
+// UpdateIssuerSource sets the "issuer_source" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateIssuerSource() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerSource()
+	})
+}
+
+// SetIssuerOrganizationID sets the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsertOne) SetIssuerOrganizationID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerOrganizationID(v)
+	})
+}
+
+// UpdateIssuerOrganizationID sets the "issuer_organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateIssuerOrganizationID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerOrganizationID()
+	})
+}
+
+// ClearIssuerOrganizationID clears the value of the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsertOne) ClearIssuerOrganizationID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearIssuerOrganizationID()
+	})
+}
+
+// SetIssuerPartnerID sets the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsertOne) SetIssuerPartnerID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerPartnerID(v)
+	})
+}
+
+// UpdateIssuerPartnerID sets the "issuer_partner_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateIssuerPartnerID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerPartnerID()
+	})
+}
+
+// ClearIssuerPartnerID clears the value of the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsertOne) ClearIssuerPartnerID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearIssuerPartnerID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaHouseBillUpsertOne) SetStatus(v seahousebill.Status) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateStatus() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaHouseBillUpsertOne) SetCurrentVersionID(v uuid.UUID) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateCurrentVersionID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaHouseBillUpsertOne) ClearCurrentVersionID() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaHouseBillUpsertOne) SetVersion(v uint64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaHouseBillUpsertOne) AddVersion(v uint64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateVersion() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *SeaHouseBillUpsertOne) SetNote(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateNote() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaHouseBillUpsertOne) ClearNote() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaHouseBillUpsertOne) SetShipperText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetShipperText(v)
+	})
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateShipperText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateShipperText()
+	})
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaHouseBillUpsertOne) ClearShipperText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearShipperText()
+	})
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaHouseBillUpsertOne) SetConsigneeText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetConsigneeText(v)
+	})
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateConsigneeText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateConsigneeText()
+	})
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaHouseBillUpsertOne) ClearConsigneeText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearConsigneeText()
+	})
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaHouseBillUpsertOne) SetNotifyPartyText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNotifyPartyText(v)
+	})
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateNotifyPartyText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNotifyPartyText()
+	})
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaHouseBillUpsertOne) ClearNotifyPartyText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearNotifyPartyText()
+	})
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsertOne) SetSecondNotifyPartyText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetSecondNotifyPartyText(v)
+	})
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateSecondNotifyPartyText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateSecondNotifyPartyText()
+	})
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsertOne) ClearSecondNotifyPartyText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearSecondNotifyPartyText()
+	})
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaHouseBillUpsertOne) SetMarksText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetMarksText(v)
+	})
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateMarksText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateMarksText()
+	})
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaHouseBillUpsertOne) ClearMarksText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearMarksText()
+	})
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaHouseBillUpsertOne) SetGoodsDescriptionText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetGoodsDescriptionText(v)
+	})
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateGoodsDescriptionText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateGoodsDescriptionText()
+	})
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaHouseBillUpsertOne) ClearGoodsDescriptionText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearGoodsDescriptionText()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaHouseBillUpsertOne) SetPackageCount(v int) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaHouseBillUpsertOne) AddPackageCount(v int) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdatePackageCount() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaHouseBillUpsertOne) ClearPackageCount() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPackageCount()
+	})
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaHouseBillUpsertOne) SetPackageUnit(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPackageUnit(v)
+	})
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdatePackageUnit() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePackageUnit()
+	})
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaHouseBillUpsertOne) ClearPackageUnit() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPackageUnit()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertOne) SetGrossWeightKg(v float64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertOne) AddGrossWeightKg(v float64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateGrossWeightKg() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertOne) ClearGrossWeightKg() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaHouseBillUpsertOne) SetVolumeCbm(v float64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaHouseBillUpsertOne) AddVolumeCbm(v float64) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateVolumeCbm() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaHouseBillUpsertOne) ClearVolumeCbm() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearVolumeCbm()
+	})
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaHouseBillUpsertOne) SetFreightTerms(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetFreightTerms(v)
+	})
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateFreightTerms() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateFreightTerms()
+	})
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaHouseBillUpsertOne) ClearFreightTerms() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearFreightTerms()
+	})
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaHouseBillUpsertOne) SetTransportTerms(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetTransportTerms(v)
+	})
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateTransportTerms() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateTransportTerms()
+	})
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaHouseBillUpsertOne) ClearTransportTerms() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearTransportTerms()
+	})
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaHouseBillUpsertOne) SetBillForm(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetBillForm(v)
+	})
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateBillForm() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateBillForm()
+	})
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaHouseBillUpsertOne) ClearBillForm() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearBillForm()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaHouseBillUpsertOne) SetReleaseType(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateReleaseType() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaHouseBillUpsertOne) ClearReleaseType() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaHouseBillUpsertOne) SetClauses(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetClauses(v)
+	})
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateClauses() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateClauses()
+	})
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaHouseBillUpsertOne) ClearClauses() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearClauses()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaHouseBillUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaHouseBillCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaHouseBillUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaHouseBillUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaHouseBillUpsertOne.ID is not supported by MySQL driver. Use SeaHouseBillUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaHouseBillUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaHouseBillCreateBulk is the builder for creating many SeaHouseBill entities in bulk.
 type SeaHouseBillCreateBulk struct {
 	config
 	err      error
 	builders []*SeaHouseBillCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaHouseBill entities in the database.
@@ -1079,6 +2249,7 @@ func (_c *SeaHouseBillCreateBulk) Save(ctx context.Context) ([]*SeaHouseBill, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1125,6 +2296,676 @@ func (_c *SeaHouseBillCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaHouseBillCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaHouseBill.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaHouseBillUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaHouseBillCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaHouseBillUpsertBulk {
+	_c.conflict = opts
+	return &SeaHouseBillUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaHouseBillCreateBulk) OnConflictColumns(columns ...string) *SeaHouseBillUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaHouseBillUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaHouseBillUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaHouseBill nodes.
+type SeaHouseBillUpsertBulk struct {
+	create *SeaHouseBillCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seahousebill.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaHouseBillUpsertBulk) UpdateNewValues() *SeaHouseBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seahousebill.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seahousebill.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaHouseBill.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaHouseBillUpsertBulk) Ignore() *SeaHouseBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaHouseBillUpsertBulk) DoNothing() *SeaHouseBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaHouseBillCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaHouseBillUpsertBulk) Update(set func(*SeaHouseBillUpsert)) *SeaHouseBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaHouseBillUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaHouseBillUpsertBulk) SetUpdatedAt(v time.Time) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateUpdatedAt() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaHouseBillUpsertBulk) SetOrganizationID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateOrganizationID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaHouseBillUpsertBulk) SetOrderID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateOrderID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaHouseBillUpsertBulk) SetMasterBillID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetMasterBillID(v)
+	})
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateMasterBillID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateMasterBillID()
+	})
+}
+
+// SetHouseNo sets the "house_no" field.
+func (u *SeaHouseBillUpsertBulk) SetHouseNo(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetHouseNo(v)
+	})
+}
+
+// UpdateHouseNo sets the "house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateHouseNo() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateHouseNo()
+	})
+}
+
+// SetNormalizedHouseNo sets the "normalized_house_no" field.
+func (u *SeaHouseBillUpsertBulk) SetNormalizedHouseNo(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNormalizedHouseNo(v)
+	})
+}
+
+// UpdateNormalizedHouseNo sets the "normalized_house_no" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateNormalizedHouseNo() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNormalizedHouseNo()
+	})
+}
+
+// SetIssuerSource sets the "issuer_source" field.
+func (u *SeaHouseBillUpsertBulk) SetIssuerSource(v seahousebill.IssuerSource) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerSource(v)
+	})
+}
+
+// UpdateIssuerSource sets the "issuer_source" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateIssuerSource() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerSource()
+	})
+}
+
+// SetIssuerOrganizationID sets the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsertBulk) SetIssuerOrganizationID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerOrganizationID(v)
+	})
+}
+
+// UpdateIssuerOrganizationID sets the "issuer_organization_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateIssuerOrganizationID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerOrganizationID()
+	})
+}
+
+// ClearIssuerOrganizationID clears the value of the "issuer_organization_id" field.
+func (u *SeaHouseBillUpsertBulk) ClearIssuerOrganizationID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearIssuerOrganizationID()
+	})
+}
+
+// SetIssuerPartnerID sets the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsertBulk) SetIssuerPartnerID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetIssuerPartnerID(v)
+	})
+}
+
+// UpdateIssuerPartnerID sets the "issuer_partner_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateIssuerPartnerID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateIssuerPartnerID()
+	})
+}
+
+// ClearIssuerPartnerID clears the value of the "issuer_partner_id" field.
+func (u *SeaHouseBillUpsertBulk) ClearIssuerPartnerID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearIssuerPartnerID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaHouseBillUpsertBulk) SetStatus(v seahousebill.Status) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateStatus() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaHouseBillUpsertBulk) SetCurrentVersionID(v uuid.UUID) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateCurrentVersionID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaHouseBillUpsertBulk) ClearCurrentVersionID() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaHouseBillUpsertBulk) SetVersion(v uint64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaHouseBillUpsertBulk) AddVersion(v uint64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateVersion() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *SeaHouseBillUpsertBulk) SetNote(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateNote() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaHouseBillUpsertBulk) ClearNote() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaHouseBillUpsertBulk) SetShipperText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetShipperText(v)
+	})
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateShipperText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateShipperText()
+	})
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearShipperText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearShipperText()
+	})
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaHouseBillUpsertBulk) SetConsigneeText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetConsigneeText(v)
+	})
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateConsigneeText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateConsigneeText()
+	})
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearConsigneeText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearConsigneeText()
+	})
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaHouseBillUpsertBulk) SetNotifyPartyText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetNotifyPartyText(v)
+	})
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateNotifyPartyText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateNotifyPartyText()
+	})
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearNotifyPartyText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearNotifyPartyText()
+	})
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsertBulk) SetSecondNotifyPartyText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetSecondNotifyPartyText(v)
+	})
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateSecondNotifyPartyText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateSecondNotifyPartyText()
+	})
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearSecondNotifyPartyText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearSecondNotifyPartyText()
+	})
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaHouseBillUpsertBulk) SetMarksText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetMarksText(v)
+	})
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateMarksText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateMarksText()
+	})
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearMarksText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearMarksText()
+	})
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaHouseBillUpsertBulk) SetGoodsDescriptionText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetGoodsDescriptionText(v)
+	})
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateGoodsDescriptionText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateGoodsDescriptionText()
+	})
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearGoodsDescriptionText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearGoodsDescriptionText()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaHouseBillUpsertBulk) SetPackageCount(v int) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaHouseBillUpsertBulk) AddPackageCount(v int) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdatePackageCount() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaHouseBillUpsertBulk) ClearPackageCount() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPackageCount()
+	})
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaHouseBillUpsertBulk) SetPackageUnit(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPackageUnit(v)
+	})
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdatePackageUnit() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePackageUnit()
+	})
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaHouseBillUpsertBulk) ClearPackageUnit() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPackageUnit()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertBulk) SetGrossWeightKg(v float64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertBulk) AddGrossWeightKg(v float64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateGrossWeightKg() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaHouseBillUpsertBulk) ClearGrossWeightKg() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaHouseBillUpsertBulk) SetVolumeCbm(v float64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaHouseBillUpsertBulk) AddVolumeCbm(v float64) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateVolumeCbm() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaHouseBillUpsertBulk) ClearVolumeCbm() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearVolumeCbm()
+	})
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaHouseBillUpsertBulk) SetFreightTerms(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetFreightTerms(v)
+	})
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateFreightTerms() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateFreightTerms()
+	})
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaHouseBillUpsertBulk) ClearFreightTerms() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearFreightTerms()
+	})
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaHouseBillUpsertBulk) SetTransportTerms(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetTransportTerms(v)
+	})
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateTransportTerms() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateTransportTerms()
+	})
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaHouseBillUpsertBulk) ClearTransportTerms() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearTransportTerms()
+	})
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaHouseBillUpsertBulk) SetBillForm(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetBillForm(v)
+	})
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateBillForm() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateBillForm()
+	})
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaHouseBillUpsertBulk) ClearBillForm() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearBillForm()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaHouseBillUpsertBulk) SetReleaseType(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateReleaseType() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaHouseBillUpsertBulk) ClearReleaseType() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaHouseBillUpsertBulk) SetClauses(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetClauses(v)
+	})
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateClauses() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateClauses()
+	})
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaHouseBillUpsertBulk) ClearClauses() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearClauses()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaHouseBillUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaHouseBillCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaHouseBillCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaHouseBillUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

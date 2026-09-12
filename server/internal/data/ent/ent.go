@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -187,6 +188,7 @@ func checkColumn(t, c string) error {
 			currency.Table:                       currency.ValidColumn,
 			dingtalkapprovaldispatch.Table:       dingtalkapprovaldispatch.ValidColumn,
 			dingtalkapprovalinboxevent.Table:     dingtalkapprovalinboxevent.ValidColumn,
+			dingtalkinvitation.Table:             dingtalkinvitation.ValidColumn,
 			enterpriseresource.Table:             enterpriseresource.ValidColumn,
 			enterpriseresourceaddress.Table:      enterpriseresourceaddress.ValidColumn,
 			enterpriseresourceaddresstype.Table:  enterpriseresourceaddresstype.ValidColumn,

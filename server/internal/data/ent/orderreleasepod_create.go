@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type OrderReleasePodCreate struct {
 	config
 	mutation *OrderReleasePodMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -340,6 +343,7 @@ func (_c *OrderReleasePodCreate) createSpec() (*OrderReleasePod, *sqlgraph.Creat
 		_node = &OrderReleasePod{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderreleasepod.Table, sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -447,11 +451,540 @@ func (_c *OrderReleasePodCreate) createSpec() (*OrderReleasePod, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderReleasePod.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderReleasePodUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderReleasePodCreate) OnConflict(opts ...sql.ConflictOption) *OrderReleasePodUpsertOne {
+	_c.conflict = opts
+	return &OrderReleasePodUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderReleasePodCreate) OnConflictColumns(columns ...string) *OrderReleasePodUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderReleasePodUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderReleasePodUpsertOne is the builder for "upsert"-ing
+	//  one OrderReleasePod node.
+	OrderReleasePodUpsertOne struct {
+		create *OrderReleasePodCreate
+	}
+
+	// OrderReleasePodUpsert is the "OnConflict" setter.
+	OrderReleasePodUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderReleasePodUpsert) SetUpdatedAt(v time.Time) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateUpdatedAt() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldUpdatedAt)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderReleasePodUpsert) SetOrderID(v uuid.UUID) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateOrderID() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldOrderID)
+	return u
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (u *OrderReleasePodUpsert) SetShippingDocumentID(v uuid.UUID) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldShippingDocumentID, v)
+	return u
+}
+
+// UpdateShippingDocumentID sets the "shipping_document_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateShippingDocumentID() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldShippingDocumentID)
+	return u
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (u *OrderReleasePodUpsert) ClearShippingDocumentID() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldShippingDocumentID)
+	return u
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsert) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldSeaMasterBillID, v)
+	return u
+}
+
+// UpdateSeaMasterBillID sets the "sea_master_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateSeaMasterBillID() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldSeaMasterBillID)
+	return u
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsert) ClearSeaMasterBillID() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldSeaMasterBillID)
+	return u
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsert) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldSeaHouseBillID, v)
+	return u
+}
+
+// UpdateSeaHouseBillID sets the "sea_house_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateSeaHouseBillID() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldSeaHouseBillID)
+	return u
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsert) ClearSeaHouseBillID() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldSeaHouseBillID)
+	return u
+}
+
+// SetReleaseNo sets the "release_no" field.
+func (u *OrderReleasePodUpsert) SetReleaseNo(v string) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldReleaseNo, v)
+	return u
+}
+
+// UpdateReleaseNo sets the "release_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateReleaseNo() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldReleaseNo)
+	return u
+}
+
+// ClearReleaseNo clears the value of the "release_no" field.
+func (u *OrderReleasePodUpsert) ClearReleaseNo() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldReleaseNo)
+	return u
+}
+
+// SetPodNo sets the "pod_no" field.
+func (u *OrderReleasePodUpsert) SetPodNo(v string) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldPodNo, v)
+	return u
+}
+
+// UpdatePodNo sets the "pod_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdatePodNo() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldPodNo)
+	return u
+}
+
+// ClearPodNo clears the value of the "pod_no" field.
+func (u *OrderReleasePodUpsert) ClearPodNo() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldPodNo)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderReleasePodUpsert) SetStatus(v orderreleasepod.Status) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateStatus() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldStatus)
+	return u
+}
+
+// SetSignedAt sets the "signed_at" field.
+func (u *OrderReleasePodUpsert) SetSignedAt(v time.Time) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldSignedAt, v)
+	return u
+}
+
+// UpdateSignedAt sets the "signed_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateSignedAt() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldSignedAt)
+	return u
+}
+
+// ClearSignedAt clears the value of the "signed_at" field.
+func (u *OrderReleasePodUpsert) ClearSignedAt() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldSignedAt)
+	return u
+}
+
+// SetSignedBy sets the "signed_by" field.
+func (u *OrderReleasePodUpsert) SetSignedBy(v uuid.UUID) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldSignedBy, v)
+	return u
+}
+
+// UpdateSignedBy sets the "signed_by" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateSignedBy() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldSignedBy)
+	return u
+}
+
+// ClearSignedBy clears the value of the "signed_by" field.
+func (u *OrderReleasePodUpsert) ClearSignedBy() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldSignedBy)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *OrderReleasePodUpsert) SetNote(v string) *OrderReleasePodUpsert {
+	u.Set(orderreleasepod.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderReleasePodUpsert) UpdateNote() *OrderReleasePodUpsert {
+	u.SetExcluded(orderreleasepod.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderReleasePodUpsert) ClearNote() *OrderReleasePodUpsert {
+	u.SetNull(orderreleasepod.FieldNote)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderreleasepod.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderReleasePodUpsertOne) UpdateNewValues() *OrderReleasePodUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderreleasepod.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderreleasepod.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderReleasePodUpsertOne) Ignore() *OrderReleasePodUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderReleasePodUpsertOne) DoNothing() *OrderReleasePodUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderReleasePodCreate.OnConflict
+// documentation for more info.
+func (u *OrderReleasePodUpsertOne) Update(set func(*OrderReleasePodUpsert)) *OrderReleasePodUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderReleasePodUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderReleasePodUpsertOne) SetUpdatedAt(v time.Time) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateUpdatedAt() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderReleasePodUpsertOne) SetOrderID(v uuid.UUID) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateOrderID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (u *OrderReleasePodUpsertOne) SetShippingDocumentID(v uuid.UUID) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetShippingDocumentID(v)
+	})
+}
+
+// UpdateShippingDocumentID sets the "shipping_document_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateShippingDocumentID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateShippingDocumentID()
+	})
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (u *OrderReleasePodUpsertOne) ClearShippingDocumentID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearShippingDocumentID()
+	})
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsertOne) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSeaMasterBillID(v)
+	})
+}
+
+// UpdateSeaMasterBillID sets the "sea_master_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateSeaMasterBillID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSeaMasterBillID()
+	})
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsertOne) ClearSeaMasterBillID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSeaMasterBillID()
+	})
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsertOne) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSeaHouseBillID(v)
+	})
+}
+
+// UpdateSeaHouseBillID sets the "sea_house_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateSeaHouseBillID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSeaHouseBillID()
+	})
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsertOne) ClearSeaHouseBillID() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSeaHouseBillID()
+	})
+}
+
+// SetReleaseNo sets the "release_no" field.
+func (u *OrderReleasePodUpsertOne) SetReleaseNo(v string) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetReleaseNo(v)
+	})
+}
+
+// UpdateReleaseNo sets the "release_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateReleaseNo() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateReleaseNo()
+	})
+}
+
+// ClearReleaseNo clears the value of the "release_no" field.
+func (u *OrderReleasePodUpsertOne) ClearReleaseNo() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearReleaseNo()
+	})
+}
+
+// SetPodNo sets the "pod_no" field.
+func (u *OrderReleasePodUpsertOne) SetPodNo(v string) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetPodNo(v)
+	})
+}
+
+// UpdatePodNo sets the "pod_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdatePodNo() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdatePodNo()
+	})
+}
+
+// ClearPodNo clears the value of the "pod_no" field.
+func (u *OrderReleasePodUpsertOne) ClearPodNo() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearPodNo()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderReleasePodUpsertOne) SetStatus(v orderreleasepod.Status) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateStatus() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetSignedAt sets the "signed_at" field.
+func (u *OrderReleasePodUpsertOne) SetSignedAt(v time.Time) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSignedAt(v)
+	})
+}
+
+// UpdateSignedAt sets the "signed_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateSignedAt() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSignedAt()
+	})
+}
+
+// ClearSignedAt clears the value of the "signed_at" field.
+func (u *OrderReleasePodUpsertOne) ClearSignedAt() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSignedAt()
+	})
+}
+
+// SetSignedBy sets the "signed_by" field.
+func (u *OrderReleasePodUpsertOne) SetSignedBy(v uuid.UUID) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSignedBy(v)
+	})
+}
+
+// UpdateSignedBy sets the "signed_by" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateSignedBy() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSignedBy()
+	})
+}
+
+// ClearSignedBy clears the value of the "signed_by" field.
+func (u *OrderReleasePodUpsertOne) ClearSignedBy() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSignedBy()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderReleasePodUpsertOne) SetNote(v string) *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertOne) UpdateNote() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderReleasePodUpsertOne) ClearNote() *OrderReleasePodUpsertOne {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearNote()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderReleasePodUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderReleasePodCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderReleasePodUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderReleasePodUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderReleasePodUpsertOne.ID is not supported by MySQL driver. Use OrderReleasePodUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderReleasePodUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderReleasePodCreateBulk is the builder for creating many OrderReleasePod entities in bulk.
 type OrderReleasePodCreateBulk struct {
 	config
 	err      error
 	builders []*OrderReleasePodCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderReleasePod entities in the database.
@@ -481,6 +1014,7 @@ func (_c *OrderReleasePodCreateBulk) Save(ctx context.Context) ([]*OrderReleaseP
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -527,6 +1061,333 @@ func (_c *OrderReleasePodCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderReleasePodCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderReleasePod.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderReleasePodUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderReleasePodCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderReleasePodUpsertBulk {
+	_c.conflict = opts
+	return &OrderReleasePodUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderReleasePodCreateBulk) OnConflictColumns(columns ...string) *OrderReleasePodUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderReleasePodUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderReleasePodUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderReleasePod nodes.
+type OrderReleasePodUpsertBulk struct {
+	create *OrderReleasePodCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderreleasepod.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderReleasePodUpsertBulk) UpdateNewValues() *OrderReleasePodUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderreleasepod.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderreleasepod.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderReleasePod.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderReleasePodUpsertBulk) Ignore() *OrderReleasePodUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderReleasePodUpsertBulk) DoNothing() *OrderReleasePodUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderReleasePodCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderReleasePodUpsertBulk) Update(set func(*OrderReleasePodUpsert)) *OrderReleasePodUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderReleasePodUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderReleasePodUpsertBulk) SetUpdatedAt(v time.Time) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateUpdatedAt() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderReleasePodUpsertBulk) SetOrderID(v uuid.UUID) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateOrderID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (u *OrderReleasePodUpsertBulk) SetShippingDocumentID(v uuid.UUID) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetShippingDocumentID(v)
+	})
+}
+
+// UpdateShippingDocumentID sets the "shipping_document_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateShippingDocumentID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateShippingDocumentID()
+	})
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (u *OrderReleasePodUpsertBulk) ClearShippingDocumentID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearShippingDocumentID()
+	})
+}
+
+// SetSeaMasterBillID sets the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsertBulk) SetSeaMasterBillID(v uuid.UUID) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSeaMasterBillID(v)
+	})
+}
+
+// UpdateSeaMasterBillID sets the "sea_master_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateSeaMasterBillID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSeaMasterBillID()
+	})
+}
+
+// ClearSeaMasterBillID clears the value of the "sea_master_bill_id" field.
+func (u *OrderReleasePodUpsertBulk) ClearSeaMasterBillID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSeaMasterBillID()
+	})
+}
+
+// SetSeaHouseBillID sets the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsertBulk) SetSeaHouseBillID(v uuid.UUID) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSeaHouseBillID(v)
+	})
+}
+
+// UpdateSeaHouseBillID sets the "sea_house_bill_id" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateSeaHouseBillID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSeaHouseBillID()
+	})
+}
+
+// ClearSeaHouseBillID clears the value of the "sea_house_bill_id" field.
+func (u *OrderReleasePodUpsertBulk) ClearSeaHouseBillID() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSeaHouseBillID()
+	})
+}
+
+// SetReleaseNo sets the "release_no" field.
+func (u *OrderReleasePodUpsertBulk) SetReleaseNo(v string) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetReleaseNo(v)
+	})
+}
+
+// UpdateReleaseNo sets the "release_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateReleaseNo() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateReleaseNo()
+	})
+}
+
+// ClearReleaseNo clears the value of the "release_no" field.
+func (u *OrderReleasePodUpsertBulk) ClearReleaseNo() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearReleaseNo()
+	})
+}
+
+// SetPodNo sets the "pod_no" field.
+func (u *OrderReleasePodUpsertBulk) SetPodNo(v string) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetPodNo(v)
+	})
+}
+
+// UpdatePodNo sets the "pod_no" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdatePodNo() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdatePodNo()
+	})
+}
+
+// ClearPodNo clears the value of the "pod_no" field.
+func (u *OrderReleasePodUpsertBulk) ClearPodNo() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearPodNo()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderReleasePodUpsertBulk) SetStatus(v orderreleasepod.Status) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateStatus() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetSignedAt sets the "signed_at" field.
+func (u *OrderReleasePodUpsertBulk) SetSignedAt(v time.Time) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSignedAt(v)
+	})
+}
+
+// UpdateSignedAt sets the "signed_at" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateSignedAt() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSignedAt()
+	})
+}
+
+// ClearSignedAt clears the value of the "signed_at" field.
+func (u *OrderReleasePodUpsertBulk) ClearSignedAt() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSignedAt()
+	})
+}
+
+// SetSignedBy sets the "signed_by" field.
+func (u *OrderReleasePodUpsertBulk) SetSignedBy(v uuid.UUID) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetSignedBy(v)
+	})
+}
+
+// UpdateSignedBy sets the "signed_by" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateSignedBy() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateSignedBy()
+	})
+}
+
+// ClearSignedBy clears the value of the "signed_by" field.
+func (u *OrderReleasePodUpsertBulk) ClearSignedBy() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearSignedBy()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderReleasePodUpsertBulk) SetNote(v string) *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderReleasePodUpsertBulk) UpdateNote() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderReleasePodUpsertBulk) ClearNote() *OrderReleasePodUpsertBulk {
+	return u.Update(func(s *OrderReleasePodUpsert) {
+		s.ClearNote()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderReleasePodUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderReleasePodCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderReleasePodCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderReleasePodUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

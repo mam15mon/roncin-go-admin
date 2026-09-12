@@ -132,8 +132,11 @@ type Template string
 
 // Template values.
 const (
-	TemplateORDER_PERSONNEL_ASSIGNED Template = "ORDER_PERSONNEL_ASSIGNED"
-	TemplateUSER_AUTHORIZED          Template = "USER_AUTHORIZED"
+	TemplateORDER_PERSONNEL_ASSIGNED       Template = "ORDER_PERSONNEL_ASSIGNED"
+	TemplateUSER_AUTHORIZED                Template = "USER_AUTHORIZED"
+	TemplateDINGTALK_REGISTRATION_PENDING  Template = "DINGTALK_REGISTRATION_PENDING"
+	TemplateDINGTALK_REGISTRATION_REJECTED Template = "DINGTALK_REGISTRATION_REJECTED"
+	TemplateDINGTALK_INVITATION_ACTIVATED  Template = "DINGTALK_INVITATION_ACTIVATED"
 )
 
 func (t Template) String() string {
@@ -143,7 +146,7 @@ func (t Template) String() string {
 // TemplateValidator is a validator for the "template" field enum values. It is called by the builders before save.
 func TemplateValidator(t Template) error {
 	switch t {
-	case TemplateORDER_PERSONNEL_ASSIGNED, TemplateUSER_AUTHORIZED:
+	case TemplateORDER_PERSONNEL_ASSIGNED, TemplateUSER_AUTHORIZED, TemplateDINGTALK_REGISTRATION_PENDING, TemplateDINGTALK_REGISTRATION_REJECTED, TemplateDINGTALK_INVITATION_ACTIVATED:
 		return nil
 	default:
 		return fmt.Errorf("notificationdelivery: invalid enum value for template field: %q", t)

@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type SeaOrderSplitEventCreate struct {
 	config
 	mutation *SeaOrderSplitEventMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -348,6 +351,7 @@ func (_c *SeaOrderSplitEventCreate) createSpec() (*SeaOrderSplitEvent, *sqlgraph
 		_node = &SeaOrderSplitEvent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seaordersplitevent.Table, sqlgraph.NewFieldSpec(seaordersplitevent.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -482,11 +486,189 @@ func (_c *SeaOrderSplitEventCreate) createSpec() (*SeaOrderSplitEvent, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaOrderSplitEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaOrderSplitEventCreate) OnConflict(opts ...sql.ConflictOption) *SeaOrderSplitEventUpsertOne {
+	_c.conflict = opts
+	return &SeaOrderSplitEventUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaOrderSplitEventCreate) OnConflictColumns(columns ...string) *SeaOrderSplitEventUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaOrderSplitEventUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaOrderSplitEventUpsertOne is the builder for "upsert"-ing
+	//  one SeaOrderSplitEvent node.
+	SeaOrderSplitEventUpsertOne struct {
+		create *SeaOrderSplitEventCreate
+	}
+
+	// SeaOrderSplitEventUpsert is the "OnConflict" setter.
+	SeaOrderSplitEventUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seaordersplitevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaOrderSplitEventUpsertOne) UpdateNewValues() *SeaOrderSplitEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seaordersplitevent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seaordersplitevent.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(seaordersplitevent.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.SourceOrderID(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceOrderID)
+		}
+		if _, exists := u.create.mutation.SourceOrderNo(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceOrderNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(seaordersplitevent.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(seaordersplitevent.FieldRequestFingerprint)
+		}
+		if _, exists := u.create.mutation.Note(); exists {
+			s.SetIgnore(seaordersplitevent.FieldNote)
+		}
+		if _, exists := u.create.mutation.SourceOrderVersion(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceOrderVersion)
+		}
+		if _, exists := u.create.mutation.SourceLinkID(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceLinkID)
+		}
+		if _, exists := u.create.mutation.SourceLinkVersion(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceLinkVersion)
+		}
+		if _, exists := u.create.mutation.SourceAllocationVersion(); exists {
+			s.SetIgnore(seaordersplitevent.FieldSourceAllocationVersion)
+		}
+		if _, exists := u.create.mutation.BeforeSnapshot(); exists {
+			s.SetIgnore(seaordersplitevent.FieldBeforeSnapshot)
+		}
+		if _, exists := u.create.mutation.ConservationSnapshot(); exists {
+			s.SetIgnore(seaordersplitevent.FieldConservationSnapshot)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(seaordersplitevent.FieldCreatedBy)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaOrderSplitEventUpsertOne) Ignore() *SeaOrderSplitEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaOrderSplitEventUpsertOne) DoNothing() *SeaOrderSplitEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaOrderSplitEventCreate.OnConflict
+// documentation for more info.
+func (u *SeaOrderSplitEventUpsertOne) Update(set func(*SeaOrderSplitEventUpsert)) *SeaOrderSplitEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaOrderSplitEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaOrderSplitEventUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaOrderSplitEventCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaOrderSplitEventUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaOrderSplitEventUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaOrderSplitEventUpsertOne.ID is not supported by MySQL driver. Use SeaOrderSplitEventUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaOrderSplitEventUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaOrderSplitEventCreateBulk is the builder for creating many SeaOrderSplitEvent entities in bulk.
 type SeaOrderSplitEventCreateBulk struct {
 	config
 	err      error
 	builders []*SeaOrderSplitEventCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaOrderSplitEvent entities in the database.
@@ -516,6 +698,7 @@ func (_c *SeaOrderSplitEventCreateBulk) Save(ctx context.Context) ([]*SeaOrderSp
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -562,6 +745,162 @@ func (_c *SeaOrderSplitEventCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaOrderSplitEventCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaOrderSplitEvent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaOrderSplitEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaOrderSplitEventCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaOrderSplitEventUpsertBulk {
+	_c.conflict = opts
+	return &SeaOrderSplitEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaOrderSplitEventCreateBulk) OnConflictColumns(columns ...string) *SeaOrderSplitEventUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaOrderSplitEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaOrderSplitEventUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaOrderSplitEvent nodes.
+type SeaOrderSplitEventUpsertBulk struct {
+	create *SeaOrderSplitEventCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seaordersplitevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaOrderSplitEventUpsertBulk) UpdateNewValues() *SeaOrderSplitEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seaordersplitevent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seaordersplitevent.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(seaordersplitevent.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.SourceOrderID(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceOrderID)
+			}
+			if _, exists := b.mutation.SourceOrderNo(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceOrderNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(seaordersplitevent.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(seaordersplitevent.FieldRequestFingerprint)
+			}
+			if _, exists := b.mutation.Note(); exists {
+				s.SetIgnore(seaordersplitevent.FieldNote)
+			}
+			if _, exists := b.mutation.SourceOrderVersion(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceOrderVersion)
+			}
+			if _, exists := b.mutation.SourceLinkID(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceLinkID)
+			}
+			if _, exists := b.mutation.SourceLinkVersion(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceLinkVersion)
+			}
+			if _, exists := b.mutation.SourceAllocationVersion(); exists {
+				s.SetIgnore(seaordersplitevent.FieldSourceAllocationVersion)
+			}
+			if _, exists := b.mutation.BeforeSnapshot(); exists {
+				s.SetIgnore(seaordersplitevent.FieldBeforeSnapshot)
+			}
+			if _, exists := b.mutation.ConservationSnapshot(); exists {
+				s.SetIgnore(seaordersplitevent.FieldConservationSnapshot)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(seaordersplitevent.FieldCreatedBy)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderSplitEvent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaOrderSplitEventUpsertBulk) Ignore() *SeaOrderSplitEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaOrderSplitEventUpsertBulk) DoNothing() *SeaOrderSplitEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaOrderSplitEventCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaOrderSplitEventUpsertBulk) Update(set func(*SeaOrderSplitEventUpsert)) *SeaOrderSplitEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaOrderSplitEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaOrderSplitEventUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaOrderSplitEventCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaOrderSplitEventCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaOrderSplitEventUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

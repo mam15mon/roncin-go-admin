@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type OrderAbnormalCaseCreate struct {
 	config
 	mutation *OrderAbnormalCaseMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -262,6 +265,7 @@ func (_c *OrderAbnormalCaseCreate) createSpec() (*OrderAbnormalCase, *sqlgraph.C
 		_node = &OrderAbnormalCase{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderabnormalcase.Table, sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -318,11 +322,384 @@ func (_c *OrderAbnormalCaseCreate) createSpec() (*OrderAbnormalCase, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderAbnormalCase.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderAbnormalCaseUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderAbnormalCaseCreate) OnConflict(opts ...sql.ConflictOption) *OrderAbnormalCaseUpsertOne {
+	_c.conflict = opts
+	return &OrderAbnormalCaseUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderAbnormalCaseCreate) OnConflictColumns(columns ...string) *OrderAbnormalCaseUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderAbnormalCaseUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderAbnormalCaseUpsertOne is the builder for "upsert"-ing
+	//  one OrderAbnormalCase node.
+	OrderAbnormalCaseUpsertOne struct {
+		create *OrderAbnormalCaseCreate
+	}
+
+	// OrderAbnormalCaseUpsert is the "OnConflict" setter.
+	OrderAbnormalCaseUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAbnormalCaseUpsert) SetUpdatedAt(v time.Time) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateUpdatedAt() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldUpdatedAt)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderAbnormalCaseUpsert) SetOrderID(v uuid.UUID) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateOrderID() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldOrderID)
+	return u
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *OrderAbnormalCaseUpsert) SetAbnormalCaseID(v uuid.UUID) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldAbnormalCaseID, v)
+	return u
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateAbnormalCaseID() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldAbnormalCaseID)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderAbnormalCaseUpsert) SetStatus(v orderabnormalcase.Status) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateStatus() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldStatus)
+	return u
+}
+
+// SetMarkedAt sets the "marked_at" field.
+func (u *OrderAbnormalCaseUpsert) SetMarkedAt(v time.Time) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldMarkedAt, v)
+	return u
+}
+
+// UpdateMarkedAt sets the "marked_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateMarkedAt() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldMarkedAt)
+	return u
+}
+
+// SetMarkedBy sets the "marked_by" field.
+func (u *OrderAbnormalCaseUpsert) SetMarkedBy(v uuid.UUID) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldMarkedBy, v)
+	return u
+}
+
+// UpdateMarkedBy sets the "marked_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateMarkedBy() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldMarkedBy)
+	return u
+}
+
+// SetResolvedAt sets the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsert) SetResolvedAt(v time.Time) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldResolvedAt, v)
+	return u
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateResolvedAt() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldResolvedAt)
+	return u
+}
+
+// ClearResolvedAt clears the value of the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsert) ClearResolvedAt() *OrderAbnormalCaseUpsert {
+	u.SetNull(orderabnormalcase.FieldResolvedAt)
+	return u
+}
+
+// SetResolvedBy sets the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsert) SetResolvedBy(v uuid.UUID) *OrderAbnormalCaseUpsert {
+	u.Set(orderabnormalcase.FieldResolvedBy, v)
+	return u
+}
+
+// UpdateResolvedBy sets the "resolved_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsert) UpdateResolvedBy() *OrderAbnormalCaseUpsert {
+	u.SetExcluded(orderabnormalcase.FieldResolvedBy)
+	return u
+}
+
+// ClearResolvedBy clears the value of the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsert) ClearResolvedBy() *OrderAbnormalCaseUpsert {
+	u.SetNull(orderabnormalcase.FieldResolvedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderabnormalcase.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderAbnormalCaseUpsertOne) UpdateNewValues() *OrderAbnormalCaseUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderabnormalcase.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderabnormalcase.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderAbnormalCaseUpsertOne) Ignore() *OrderAbnormalCaseUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderAbnormalCaseUpsertOne) DoNothing() *OrderAbnormalCaseUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderAbnormalCaseCreate.OnConflict
+// documentation for more info.
+func (u *OrderAbnormalCaseUpsertOne) Update(set func(*OrderAbnormalCaseUpsert)) *OrderAbnormalCaseUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderAbnormalCaseUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAbnormalCaseUpsertOne) SetUpdatedAt(v time.Time) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateUpdatedAt() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderAbnormalCaseUpsertOne) SetOrderID(v uuid.UUID) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateOrderID() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *OrderAbnormalCaseUpsertOne) SetAbnormalCaseID(v uuid.UUID) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetAbnormalCaseID(v)
+	})
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateAbnormalCaseID() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateAbnormalCaseID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderAbnormalCaseUpsertOne) SetStatus(v orderabnormalcase.Status) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateStatus() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetMarkedAt sets the "marked_at" field.
+func (u *OrderAbnormalCaseUpsertOne) SetMarkedAt(v time.Time) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetMarkedAt(v)
+	})
+}
+
+// UpdateMarkedAt sets the "marked_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateMarkedAt() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateMarkedAt()
+	})
+}
+
+// SetMarkedBy sets the "marked_by" field.
+func (u *OrderAbnormalCaseUpsertOne) SetMarkedBy(v uuid.UUID) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetMarkedBy(v)
+	})
+}
+
+// UpdateMarkedBy sets the "marked_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateMarkedBy() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateMarkedBy()
+	})
+}
+
+// SetResolvedAt sets the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsertOne) SetResolvedAt(v time.Time) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetResolvedAt(v)
+	})
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateResolvedAt() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateResolvedAt()
+	})
+}
+
+// ClearResolvedAt clears the value of the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsertOne) ClearResolvedAt() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.ClearResolvedAt()
+	})
+}
+
+// SetResolvedBy sets the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsertOne) SetResolvedBy(v uuid.UUID) *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetResolvedBy(v)
+	})
+}
+
+// UpdateResolvedBy sets the "resolved_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertOne) UpdateResolvedBy() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateResolvedBy()
+	})
+}
+
+// ClearResolvedBy clears the value of the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsertOne) ClearResolvedBy() *OrderAbnormalCaseUpsertOne {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.ClearResolvedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderAbnormalCaseUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderAbnormalCaseCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderAbnormalCaseUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderAbnormalCaseUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderAbnormalCaseUpsertOne.ID is not supported by MySQL driver. Use OrderAbnormalCaseUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderAbnormalCaseUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderAbnormalCaseCreateBulk is the builder for creating many OrderAbnormalCase entities in bulk.
 type OrderAbnormalCaseCreateBulk struct {
 	config
 	err      error
 	builders []*OrderAbnormalCaseCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderAbnormalCase entities in the database.
@@ -352,6 +729,7 @@ func (_c *OrderAbnormalCaseCreateBulk) Save(ctx context.Context) ([]*OrderAbnorm
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -398,6 +776,249 @@ func (_c *OrderAbnormalCaseCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderAbnormalCaseCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderAbnormalCase.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderAbnormalCaseUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderAbnormalCaseCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderAbnormalCaseUpsertBulk {
+	_c.conflict = opts
+	return &OrderAbnormalCaseUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderAbnormalCaseCreateBulk) OnConflictColumns(columns ...string) *OrderAbnormalCaseUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderAbnormalCaseUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderAbnormalCaseUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderAbnormalCase nodes.
+type OrderAbnormalCaseUpsertBulk struct {
+	create *OrderAbnormalCaseCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderabnormalcase.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderAbnormalCaseUpsertBulk) UpdateNewValues() *OrderAbnormalCaseUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderabnormalcase.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderabnormalcase.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderAbnormalCase.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderAbnormalCaseUpsertBulk) Ignore() *OrderAbnormalCaseUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderAbnormalCaseUpsertBulk) DoNothing() *OrderAbnormalCaseUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderAbnormalCaseCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderAbnormalCaseUpsertBulk) Update(set func(*OrderAbnormalCaseUpsert)) *OrderAbnormalCaseUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderAbnormalCaseUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetUpdatedAt(v time.Time) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateUpdatedAt() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetOrderID(v uuid.UUID) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateOrderID() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetAbnormalCaseID(v uuid.UUID) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetAbnormalCaseID(v)
+	})
+}
+
+// UpdateAbnormalCaseID sets the "abnormal_case_id" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateAbnormalCaseID() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateAbnormalCaseID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetStatus(v orderabnormalcase.Status) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateStatus() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetMarkedAt sets the "marked_at" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetMarkedAt(v time.Time) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetMarkedAt(v)
+	})
+}
+
+// UpdateMarkedAt sets the "marked_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateMarkedAt() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateMarkedAt()
+	})
+}
+
+// SetMarkedBy sets the "marked_by" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetMarkedBy(v uuid.UUID) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetMarkedBy(v)
+	})
+}
+
+// UpdateMarkedBy sets the "marked_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateMarkedBy() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateMarkedBy()
+	})
+}
+
+// SetResolvedAt sets the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetResolvedAt(v time.Time) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetResolvedAt(v)
+	})
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateResolvedAt() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateResolvedAt()
+	})
+}
+
+// ClearResolvedAt clears the value of the "resolved_at" field.
+func (u *OrderAbnormalCaseUpsertBulk) ClearResolvedAt() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.ClearResolvedAt()
+	})
+}
+
+// SetResolvedBy sets the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsertBulk) SetResolvedBy(v uuid.UUID) *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.SetResolvedBy(v)
+	})
+}
+
+// UpdateResolvedBy sets the "resolved_by" field to the value that was provided on create.
+func (u *OrderAbnormalCaseUpsertBulk) UpdateResolvedBy() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.UpdateResolvedBy()
+	})
+}
+
+// ClearResolvedBy clears the value of the "resolved_by" field.
+func (u *OrderAbnormalCaseUpsertBulk) ClearResolvedBy() *OrderAbnormalCaseUpsertBulk {
+	return u.Update(func(s *OrderAbnormalCaseUpsert) {
+		s.ClearResolvedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderAbnormalCaseUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderAbnormalCaseCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderAbnormalCaseCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderAbnormalCaseUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

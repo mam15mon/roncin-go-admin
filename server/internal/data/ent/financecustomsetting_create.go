@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type FinanceCustomSettingCreate struct {
 	config
 	mutation *FinanceCustomSettingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -361,6 +364,7 @@ func (_c *FinanceCustomSettingCreate) createSpec() (*FinanceCustomSetting, *sqlg
 		_node = &FinanceCustomSetting{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financecustomsetting.Table, sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -442,11 +446,426 @@ func (_c *FinanceCustomSettingCreate) createSpec() (*FinanceCustomSetting, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCustomSetting.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCustomSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCustomSettingCreate) OnConflict(opts ...sql.ConflictOption) *FinanceCustomSettingUpsertOne {
+	_c.conflict = opts
+	return &FinanceCustomSettingUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCustomSettingCreate) OnConflictColumns(columns ...string) *FinanceCustomSettingUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCustomSettingUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceCustomSettingUpsertOne is the builder for "upsert"-ing
+	//  one FinanceCustomSetting node.
+	FinanceCustomSettingUpsertOne struct {
+		create *FinanceCustomSettingCreate
+	}
+
+	// FinanceCustomSettingUpsert is the "OnConflict" setter.
+	FinanceCustomSettingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCustomSettingUpsert) SetUpdatedAt(v time.Time) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateUpdatedAt() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldUpdatedAt)
+	return u
+}
+
+// SetBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeEditEnabled(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeEditEnabled, v)
+	return u
+}
+
+// UpdateBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeEditEnabled() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeEditEnabled)
+	return u
+}
+
+// SetBilledFeeNameEditable sets the "billed_fee_name_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeNameEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeNameEditable, v)
+	return u
+}
+
+// UpdateBilledFeeNameEditable sets the "billed_fee_name_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeNameEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeNameEditable)
+	return u
+}
+
+// SetBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeCurrencyEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeCurrencyEditable, v)
+	return u
+}
+
+// UpdateBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeCurrencyEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeCurrencyEditable)
+	return u
+}
+
+// SetBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeExchangeRateEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeExchangeRateEditable, v)
+	return u
+}
+
+// UpdateBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeExchangeRateEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeExchangeRateEditable)
+	return u
+}
+
+// SetBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeQuantityEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeQuantityEditable, v)
+	return u
+}
+
+// UpdateBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeQuantityEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeQuantityEditable)
+	return u
+}
+
+// SetBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeUnitPriceEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeUnitPriceEditable, v)
+	return u
+}
+
+// UpdateBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeUnitPriceEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeUnitPriceEditable)
+	return u
+}
+
+// SetBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field.
+func (u *FinanceCustomSettingUpsert) SetBilledFeeTaxRateEditable(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldBilledFeeTaxRateEditable, v)
+	return u
+}
+
+// UpdateBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldBilledFeeTaxRateEditable)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCustomSettingUpsert) SetVersion(v uint64) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateVersion() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCustomSettingUpsert) AddVersion(v uint64) *FinanceCustomSettingUpsert {
+	u.Add(financecustomsetting.FieldVersion, v)
+	return u
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *FinanceCustomSettingUpsert) SetUpdatedBy(v uuid.UUID) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldUpdatedBy, v)
+	return u
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateUpdatedBy() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldUpdatedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecustomsetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCustomSettingUpsertOne) UpdateNewValues() *FinanceCustomSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financecustomsetting.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financecustomsetting.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financecustomsetting.FieldOrganizationID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceCustomSettingUpsertOne) Ignore() *FinanceCustomSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCustomSettingUpsertOne) DoNothing() *FinanceCustomSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCustomSettingCreate.OnConflict
+// documentation for more info.
+func (u *FinanceCustomSettingUpsertOne) Update(set func(*FinanceCustomSettingUpsert)) *FinanceCustomSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCustomSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCustomSettingUpsertOne) SetUpdatedAt(v time.Time) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateUpdatedAt() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeEditEnabled(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeEditEnabled(v)
+	})
+}
+
+// UpdateBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeEditEnabled() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeEditEnabled()
+	})
+}
+
+// SetBilledFeeNameEditable sets the "billed_fee_name_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeNameEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeNameEditable(v)
+	})
+}
+
+// UpdateBilledFeeNameEditable sets the "billed_fee_name_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeNameEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeNameEditable()
+	})
+}
+
+// SetBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeCurrencyEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeCurrencyEditable(v)
+	})
+}
+
+// UpdateBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeCurrencyEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeCurrencyEditable()
+	})
+}
+
+// SetBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeExchangeRateEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeExchangeRateEditable(v)
+	})
+}
+
+// UpdateBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeExchangeRateEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeExchangeRateEditable()
+	})
+}
+
+// SetBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeQuantityEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeQuantityEditable(v)
+	})
+}
+
+// UpdateBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeQuantityEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeQuantityEditable()
+	})
+}
+
+// SetBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeUnitPriceEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeUnitPriceEditable(v)
+	})
+}
+
+// UpdateBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeUnitPriceEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeUnitPriceEditable()
+	})
+}
+
+// SetBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field.
+func (u *FinanceCustomSettingUpsertOne) SetBilledFeeTaxRateEditable(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeTaxRateEditable(v)
+	})
+}
+
+// UpdateBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeTaxRateEditable()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCustomSettingUpsertOne) SetVersion(v uint64) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCustomSettingUpsertOne) AddVersion(v uint64) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateVersion() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *FinanceCustomSettingUpsertOne) SetUpdatedBy(v uuid.UUID) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateUpdatedBy() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCustomSettingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCustomSettingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCustomSettingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceCustomSettingUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceCustomSettingUpsertOne.ID is not supported by MySQL driver. Use FinanceCustomSettingUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceCustomSettingUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceCustomSettingCreateBulk is the builder for creating many FinanceCustomSetting entities in bulk.
 type FinanceCustomSettingCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceCustomSettingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceCustomSetting entities in the database.
@@ -476,6 +895,7 @@ func (_c *FinanceCustomSettingCreateBulk) Save(ctx context.Context) ([]*FinanceC
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -522,6 +942,273 @@ func (_c *FinanceCustomSettingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceCustomSettingCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCustomSetting.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCustomSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCustomSettingCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceCustomSettingUpsertBulk {
+	_c.conflict = opts
+	return &FinanceCustomSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCustomSettingCreateBulk) OnConflictColumns(columns ...string) *FinanceCustomSettingUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCustomSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceCustomSettingUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceCustomSetting nodes.
+type FinanceCustomSettingUpsertBulk struct {
+	create *FinanceCustomSettingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecustomsetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCustomSettingUpsertBulk) UpdateNewValues() *FinanceCustomSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financecustomsetting.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financecustomsetting.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financecustomsetting.FieldOrganizationID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCustomSetting.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceCustomSettingUpsertBulk) Ignore() *FinanceCustomSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCustomSettingUpsertBulk) DoNothing() *FinanceCustomSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCustomSettingCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceCustomSettingUpsertBulk) Update(set func(*FinanceCustomSettingUpsert)) *FinanceCustomSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCustomSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCustomSettingUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateUpdatedAt() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeEditEnabled(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeEditEnabled(v)
+	})
+}
+
+// UpdateBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeEditEnabled() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeEditEnabled()
+	})
+}
+
+// SetBilledFeeNameEditable sets the "billed_fee_name_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeNameEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeNameEditable(v)
+	})
+}
+
+// UpdateBilledFeeNameEditable sets the "billed_fee_name_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeNameEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeNameEditable()
+	})
+}
+
+// SetBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeCurrencyEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeCurrencyEditable(v)
+	})
+}
+
+// UpdateBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeCurrencyEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeCurrencyEditable()
+	})
+}
+
+// SetBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeExchangeRateEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeExchangeRateEditable(v)
+	})
+}
+
+// UpdateBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeExchangeRateEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeExchangeRateEditable()
+	})
+}
+
+// SetBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeQuantityEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeQuantityEditable(v)
+	})
+}
+
+// UpdateBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeQuantityEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeQuantityEditable()
+	})
+}
+
+// SetBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeUnitPriceEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeUnitPriceEditable(v)
+	})
+}
+
+// UpdateBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeUnitPriceEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeUnitPriceEditable()
+	})
+}
+
+// SetBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field.
+func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeTaxRateEditable(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetBilledFeeTaxRateEditable(v)
+	})
+}
+
+// UpdateBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateBilledFeeTaxRateEditable()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCustomSettingUpsertBulk) SetVersion(v uint64) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCustomSettingUpsertBulk) AddVersion(v uint64) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateVersion() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *FinanceCustomSettingUpsertBulk) SetUpdatedBy(v uuid.UUID) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateUpdatedBy() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCustomSettingUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceCustomSettingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCustomSettingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCustomSettingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

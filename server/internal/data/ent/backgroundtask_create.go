@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type BackgroundTaskCreate struct {
 	config
 	mutation *BackgroundTaskMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -408,6 +411,7 @@ func (_c *BackgroundTaskCreate) createSpec() (*BackgroundTask, *sqlgraph.CreateS
 		_node = &BackgroundTask{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(backgroundtask.Table, sqlgraph.NewFieldSpec(backgroundtask.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -524,11 +528,501 @@ func (_c *BackgroundTaskCreate) createSpec() (*BackgroundTask, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.BackgroundTask.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BackgroundTaskUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *BackgroundTaskCreate) OnConflict(opts ...sql.ConflictOption) *BackgroundTaskUpsertOne {
+	_c.conflict = opts
+	return &BackgroundTaskUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *BackgroundTaskCreate) OnConflictColumns(columns ...string) *BackgroundTaskUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &BackgroundTaskUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// BackgroundTaskUpsertOne is the builder for "upsert"-ing
+	//  one BackgroundTask node.
+	BackgroundTaskUpsertOne struct {
+		create *BackgroundTaskCreate
+	}
+
+	// BackgroundTaskUpsert is the "OnConflict" setter.
+	BackgroundTaskUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BackgroundTaskUpsert) SetUpdatedAt(v time.Time) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateUpdatedAt() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BackgroundTaskUpsert) SetOrganizationID(v uuid.UUID) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateOrganizationID() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldOrganizationID)
+	return u
+}
+
+// SetKind sets the "kind" field.
+func (u *BackgroundTaskUpsert) SetKind(v backgroundtask.Kind) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldKind, v)
+	return u
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateKind() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldKind)
+	return u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *BackgroundTaskUpsert) SetIdempotencyKey(v string) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldIdempotencyKey, v)
+	return u
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateIdempotencyKey() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldIdempotencyKey)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *BackgroundTaskUpsert) SetStatus(v backgroundtask.Status) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateStatus() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldStatus)
+	return u
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *BackgroundTaskUpsert) SetAttempts(v int) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldAttempts, v)
+	return u
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateAttempts() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldAttempts)
+	return u
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *BackgroundTaskUpsert) AddAttempts(v int) *BackgroundTaskUpsert {
+	u.Add(backgroundtask.FieldAttempts, v)
+	return u
+}
+
+// SetMaxAttempts sets the "max_attempts" field.
+func (u *BackgroundTaskUpsert) SetMaxAttempts(v int) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldMaxAttempts, v)
+	return u
+}
+
+// UpdateMaxAttempts sets the "max_attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateMaxAttempts() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldMaxAttempts)
+	return u
+}
+
+// AddMaxAttempts adds v to the "max_attempts" field.
+func (u *BackgroundTaskUpsert) AddMaxAttempts(v int) *BackgroundTaskUpsert {
+	u.Add(backgroundtask.FieldMaxAttempts, v)
+	return u
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *BackgroundTaskUpsert) SetNextRunAt(v time.Time) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldNextRunAt, v)
+	return u
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateNextRunAt() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldNextRunAt)
+	return u
+}
+
+// SetLeaseToken sets the "lease_token" field.
+func (u *BackgroundTaskUpsert) SetLeaseToken(v string) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldLeaseToken, v)
+	return u
+}
+
+// UpdateLeaseToken sets the "lease_token" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateLeaseToken() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldLeaseToken)
+	return u
+}
+
+// ClearLeaseToken clears the value of the "lease_token" field.
+func (u *BackgroundTaskUpsert) ClearLeaseToken() *BackgroundTaskUpsert {
+	u.SetNull(backgroundtask.FieldLeaseToken)
+	return u
+}
+
+// SetLeaseExpiresAt sets the "lease_expires_at" field.
+func (u *BackgroundTaskUpsert) SetLeaseExpiresAt(v time.Time) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldLeaseExpiresAt, v)
+	return u
+}
+
+// UpdateLeaseExpiresAt sets the "lease_expires_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateLeaseExpiresAt() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldLeaseExpiresAt)
+	return u
+}
+
+// ClearLeaseExpiresAt clears the value of the "lease_expires_at" field.
+func (u *BackgroundTaskUpsert) ClearLeaseExpiresAt() *BackgroundTaskUpsert {
+	u.SetNull(backgroundtask.FieldLeaseExpiresAt)
+	return u
+}
+
+// SetLastError sets the "last_error" field.
+func (u *BackgroundTaskUpsert) SetLastError(v string) *BackgroundTaskUpsert {
+	u.Set(backgroundtask.FieldLastError, v)
+	return u
+}
+
+// UpdateLastError sets the "last_error" field to the value that was provided on create.
+func (u *BackgroundTaskUpsert) UpdateLastError() *BackgroundTaskUpsert {
+	u.SetExcluded(backgroundtask.FieldLastError)
+	return u
+}
+
+// ClearLastError clears the value of the "last_error" field.
+func (u *BackgroundTaskUpsert) ClearLastError() *BackgroundTaskUpsert {
+	u.SetNull(backgroundtask.FieldLastError)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(backgroundtask.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BackgroundTaskUpsertOne) UpdateNewValues() *BackgroundTaskUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(backgroundtask.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(backgroundtask.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *BackgroundTaskUpsertOne) Ignore() *BackgroundTaskUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BackgroundTaskUpsertOne) DoNothing() *BackgroundTaskUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BackgroundTaskCreate.OnConflict
+// documentation for more info.
+func (u *BackgroundTaskUpsertOne) Update(set func(*BackgroundTaskUpsert)) *BackgroundTaskUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BackgroundTaskUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BackgroundTaskUpsertOne) SetUpdatedAt(v time.Time) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateUpdatedAt() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BackgroundTaskUpsertOne) SetOrganizationID(v uuid.UUID) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateOrganizationID() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *BackgroundTaskUpsertOne) SetKind(v backgroundtask.Kind) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateKind() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateKind()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *BackgroundTaskUpsertOne) SetIdempotencyKey(v string) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateIdempotencyKey() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BackgroundTaskUpsertOne) SetStatus(v backgroundtask.Status) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateStatus() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *BackgroundTaskUpsertOne) SetAttempts(v int) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *BackgroundTaskUpsertOne) AddAttempts(v int) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateAttempts() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetMaxAttempts sets the "max_attempts" field.
+func (u *BackgroundTaskUpsertOne) SetMaxAttempts(v int) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetMaxAttempts(v)
+	})
+}
+
+// AddMaxAttempts adds v to the "max_attempts" field.
+func (u *BackgroundTaskUpsertOne) AddMaxAttempts(v int) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.AddMaxAttempts(v)
+	})
+}
+
+// UpdateMaxAttempts sets the "max_attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateMaxAttempts() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateMaxAttempts()
+	})
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *BackgroundTaskUpsertOne) SetNextRunAt(v time.Time) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetNextRunAt(v)
+	})
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateNextRunAt() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateNextRunAt()
+	})
+}
+
+// SetLeaseToken sets the "lease_token" field.
+func (u *BackgroundTaskUpsertOne) SetLeaseToken(v string) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLeaseToken(v)
+	})
+}
+
+// UpdateLeaseToken sets the "lease_token" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateLeaseToken() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLeaseToken()
+	})
+}
+
+// ClearLeaseToken clears the value of the "lease_token" field.
+func (u *BackgroundTaskUpsertOne) ClearLeaseToken() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLeaseToken()
+	})
+}
+
+// SetLeaseExpiresAt sets the "lease_expires_at" field.
+func (u *BackgroundTaskUpsertOne) SetLeaseExpiresAt(v time.Time) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLeaseExpiresAt(v)
+	})
+}
+
+// UpdateLeaseExpiresAt sets the "lease_expires_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateLeaseExpiresAt() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLeaseExpiresAt()
+	})
+}
+
+// ClearLeaseExpiresAt clears the value of the "lease_expires_at" field.
+func (u *BackgroundTaskUpsertOne) ClearLeaseExpiresAt() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLeaseExpiresAt()
+	})
+}
+
+// SetLastError sets the "last_error" field.
+func (u *BackgroundTaskUpsertOne) SetLastError(v string) *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLastError(v)
+	})
+}
+
+// UpdateLastError sets the "last_error" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertOne) UpdateLastError() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLastError()
+	})
+}
+
+// ClearLastError clears the value of the "last_error" field.
+func (u *BackgroundTaskUpsertOne) ClearLastError() *BackgroundTaskUpsertOne {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLastError()
+	})
+}
+
+// Exec executes the query.
+func (u *BackgroundTaskUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BackgroundTaskCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BackgroundTaskUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *BackgroundTaskUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: BackgroundTaskUpsertOne.ID is not supported by MySQL driver. Use BackgroundTaskUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *BackgroundTaskUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // BackgroundTaskCreateBulk is the builder for creating many BackgroundTask entities in bulk.
 type BackgroundTaskCreateBulk struct {
 	config
 	err      error
 	builders []*BackgroundTaskCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the BackgroundTask entities in the database.
@@ -558,6 +1052,7 @@ func (_c *BackgroundTaskCreateBulk) Save(ctx context.Context) ([]*BackgroundTask
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -604,6 +1099,312 @@ func (_c *BackgroundTaskCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *BackgroundTaskCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.BackgroundTask.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BackgroundTaskUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *BackgroundTaskCreateBulk) OnConflict(opts ...sql.ConflictOption) *BackgroundTaskUpsertBulk {
+	_c.conflict = opts
+	return &BackgroundTaskUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *BackgroundTaskCreateBulk) OnConflictColumns(columns ...string) *BackgroundTaskUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &BackgroundTaskUpsertBulk{
+		create: _c,
+	}
+}
+
+// BackgroundTaskUpsertBulk is the builder for "upsert"-ing
+// a bulk of BackgroundTask nodes.
+type BackgroundTaskUpsertBulk struct {
+	create *BackgroundTaskCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(backgroundtask.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BackgroundTaskUpsertBulk) UpdateNewValues() *BackgroundTaskUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(backgroundtask.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(backgroundtask.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.BackgroundTask.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *BackgroundTaskUpsertBulk) Ignore() *BackgroundTaskUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BackgroundTaskUpsertBulk) DoNothing() *BackgroundTaskUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BackgroundTaskCreateBulk.OnConflict
+// documentation for more info.
+func (u *BackgroundTaskUpsertBulk) Update(set func(*BackgroundTaskUpsert)) *BackgroundTaskUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BackgroundTaskUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BackgroundTaskUpsertBulk) SetUpdatedAt(v time.Time) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateUpdatedAt() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *BackgroundTaskUpsertBulk) SetOrganizationID(v uuid.UUID) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateOrganizationID() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *BackgroundTaskUpsertBulk) SetKind(v backgroundtask.Kind) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateKind() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateKind()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *BackgroundTaskUpsertBulk) SetIdempotencyKey(v string) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateIdempotencyKey() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BackgroundTaskUpsertBulk) SetStatus(v backgroundtask.Status) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateStatus() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *BackgroundTaskUpsertBulk) SetAttempts(v int) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *BackgroundTaskUpsertBulk) AddAttempts(v int) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateAttempts() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetMaxAttempts sets the "max_attempts" field.
+func (u *BackgroundTaskUpsertBulk) SetMaxAttempts(v int) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetMaxAttempts(v)
+	})
+}
+
+// AddMaxAttempts adds v to the "max_attempts" field.
+func (u *BackgroundTaskUpsertBulk) AddMaxAttempts(v int) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.AddMaxAttempts(v)
+	})
+}
+
+// UpdateMaxAttempts sets the "max_attempts" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateMaxAttempts() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateMaxAttempts()
+	})
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *BackgroundTaskUpsertBulk) SetNextRunAt(v time.Time) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetNextRunAt(v)
+	})
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateNextRunAt() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateNextRunAt()
+	})
+}
+
+// SetLeaseToken sets the "lease_token" field.
+func (u *BackgroundTaskUpsertBulk) SetLeaseToken(v string) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLeaseToken(v)
+	})
+}
+
+// UpdateLeaseToken sets the "lease_token" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateLeaseToken() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLeaseToken()
+	})
+}
+
+// ClearLeaseToken clears the value of the "lease_token" field.
+func (u *BackgroundTaskUpsertBulk) ClearLeaseToken() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLeaseToken()
+	})
+}
+
+// SetLeaseExpiresAt sets the "lease_expires_at" field.
+func (u *BackgroundTaskUpsertBulk) SetLeaseExpiresAt(v time.Time) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLeaseExpiresAt(v)
+	})
+}
+
+// UpdateLeaseExpiresAt sets the "lease_expires_at" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateLeaseExpiresAt() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLeaseExpiresAt()
+	})
+}
+
+// ClearLeaseExpiresAt clears the value of the "lease_expires_at" field.
+func (u *BackgroundTaskUpsertBulk) ClearLeaseExpiresAt() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLeaseExpiresAt()
+	})
+}
+
+// SetLastError sets the "last_error" field.
+func (u *BackgroundTaskUpsertBulk) SetLastError(v string) *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.SetLastError(v)
+	})
+}
+
+// UpdateLastError sets the "last_error" field to the value that was provided on create.
+func (u *BackgroundTaskUpsertBulk) UpdateLastError() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.UpdateLastError()
+	})
+}
+
+// ClearLastError clears the value of the "last_error" field.
+func (u *BackgroundTaskUpsertBulk) ClearLastError() *BackgroundTaskUpsertBulk {
+	return u.Update(func(s *BackgroundTaskUpsert) {
+		s.ClearLastError()
+	})
+}
+
+// Exec executes the query.
+func (u *BackgroundTaskUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the BackgroundTaskCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for BackgroundTaskCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BackgroundTaskUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

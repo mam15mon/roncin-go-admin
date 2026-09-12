@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type PartnerRoleCreate struct {
 	config
 	mutation *PartnerRoleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -288,6 +291,7 @@ func (_c *PartnerRoleCreate) createSpec() (*PartnerRole, *sqlgraph.CreateSpec) {
 		_node = &PartnerRole{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partnerrole.Table, sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -360,11 +364,397 @@ func (_c *PartnerRoleCreate) createSpec() (*PartnerRole, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerRole.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerRoleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerRoleCreate) OnConflict(opts ...sql.ConflictOption) *PartnerRoleUpsertOne {
+	_c.conflict = opts
+	return &PartnerRoleUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerRoleCreate) OnConflictColumns(columns ...string) *PartnerRoleUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerRoleUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerRoleUpsertOne is the builder for "upsert"-ing
+	//  one PartnerRole node.
+	PartnerRoleUpsertOne struct {
+		create *PartnerRoleCreate
+	}
+
+	// PartnerRoleUpsert is the "OnConflict" setter.
+	PartnerRoleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerRoleUpsert) SetUpdatedAt(v time.Time) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateUpdatedAt() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerRoleUpsert) SetPartnerID(v uuid.UUID) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdatePartnerID() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldPartnerID)
+	return u
+}
+
+// SetRoleType sets the "role_type" field.
+func (u *PartnerRoleUpsert) SetRoleType(v partnerrole.RoleType) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldRoleType, v)
+	return u
+}
+
+// UpdateRoleType sets the "role_type" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateRoleType() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldRoleType)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerRoleUpsert) SetEnabled(v bool) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateEnabled() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldEnabled)
+	return u
+}
+
+// SetBlacklisted sets the "blacklisted" field.
+func (u *PartnerRoleUpsert) SetBlacklisted(v bool) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldBlacklisted, v)
+	return u
+}
+
+// UpdateBlacklisted sets the "blacklisted" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateBlacklisted() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldBlacklisted)
+	return u
+}
+
+// SetBlacklistReason sets the "blacklist_reason" field.
+func (u *PartnerRoleUpsert) SetBlacklistReason(v string) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldBlacklistReason, v)
+	return u
+}
+
+// UpdateBlacklistReason sets the "blacklist_reason" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateBlacklistReason() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldBlacklistReason)
+	return u
+}
+
+// ClearBlacklistReason clears the value of the "blacklist_reason" field.
+func (u *PartnerRoleUpsert) ClearBlacklistReason() *PartnerRoleUpsert {
+	u.SetNull(partnerrole.FieldBlacklistReason)
+	return u
+}
+
+// SetBlacklistedAt sets the "blacklisted_at" field.
+func (u *PartnerRoleUpsert) SetBlacklistedAt(v time.Time) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldBlacklistedAt, v)
+	return u
+}
+
+// UpdateBlacklistedAt sets the "blacklisted_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateBlacklistedAt() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldBlacklistedAt)
+	return u
+}
+
+// ClearBlacklistedAt clears the value of the "blacklisted_at" field.
+func (u *PartnerRoleUpsert) ClearBlacklistedAt() *PartnerRoleUpsert {
+	u.SetNull(partnerrole.FieldBlacklistedAt)
+	return u
+}
+
+// SetBlacklistedBy sets the "blacklisted_by" field.
+func (u *PartnerRoleUpsert) SetBlacklistedBy(v uuid.UUID) *PartnerRoleUpsert {
+	u.Set(partnerrole.FieldBlacklistedBy, v)
+	return u
+}
+
+// UpdateBlacklistedBy sets the "blacklisted_by" field to the value that was provided on create.
+func (u *PartnerRoleUpsert) UpdateBlacklistedBy() *PartnerRoleUpsert {
+	u.SetExcluded(partnerrole.FieldBlacklistedBy)
+	return u
+}
+
+// ClearBlacklistedBy clears the value of the "blacklisted_by" field.
+func (u *PartnerRoleUpsert) ClearBlacklistedBy() *PartnerRoleUpsert {
+	u.SetNull(partnerrole.FieldBlacklistedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerrole.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerRoleUpsertOne) UpdateNewValues() *PartnerRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partnerrole.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partnerrole.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerRoleUpsertOne) Ignore() *PartnerRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerRoleUpsertOne) DoNothing() *PartnerRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerRoleCreate.OnConflict
+// documentation for more info.
+func (u *PartnerRoleUpsertOne) Update(set func(*PartnerRoleUpsert)) *PartnerRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerRoleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerRoleUpsertOne) SetUpdatedAt(v time.Time) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateUpdatedAt() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerRoleUpsertOne) SetPartnerID(v uuid.UUID) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdatePartnerID() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetRoleType sets the "role_type" field.
+func (u *PartnerRoleUpsertOne) SetRoleType(v partnerrole.RoleType) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetRoleType(v)
+	})
+}
+
+// UpdateRoleType sets the "role_type" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateRoleType() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateRoleType()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerRoleUpsertOne) SetEnabled(v bool) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateEnabled() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetBlacklisted sets the "blacklisted" field.
+func (u *PartnerRoleUpsertOne) SetBlacklisted(v bool) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklisted(v)
+	})
+}
+
+// UpdateBlacklisted sets the "blacklisted" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateBlacklisted() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklisted()
+	})
+}
+
+// SetBlacklistReason sets the "blacklist_reason" field.
+func (u *PartnerRoleUpsertOne) SetBlacklistReason(v string) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistReason(v)
+	})
+}
+
+// UpdateBlacklistReason sets the "blacklist_reason" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateBlacklistReason() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistReason()
+	})
+}
+
+// ClearBlacklistReason clears the value of the "blacklist_reason" field.
+func (u *PartnerRoleUpsertOne) ClearBlacklistReason() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistReason()
+	})
+}
+
+// SetBlacklistedAt sets the "blacklisted_at" field.
+func (u *PartnerRoleUpsertOne) SetBlacklistedAt(v time.Time) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistedAt(v)
+	})
+}
+
+// UpdateBlacklistedAt sets the "blacklisted_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateBlacklistedAt() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistedAt()
+	})
+}
+
+// ClearBlacklistedAt clears the value of the "blacklisted_at" field.
+func (u *PartnerRoleUpsertOne) ClearBlacklistedAt() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistedAt()
+	})
+}
+
+// SetBlacklistedBy sets the "blacklisted_by" field.
+func (u *PartnerRoleUpsertOne) SetBlacklistedBy(v uuid.UUID) *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistedBy(v)
+	})
+}
+
+// UpdateBlacklistedBy sets the "blacklisted_by" field to the value that was provided on create.
+func (u *PartnerRoleUpsertOne) UpdateBlacklistedBy() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistedBy()
+	})
+}
+
+// ClearBlacklistedBy clears the value of the "blacklisted_by" field.
+func (u *PartnerRoleUpsertOne) ClearBlacklistedBy() *PartnerRoleUpsertOne {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerRoleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerRoleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerRoleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerRoleUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerRoleUpsertOne.ID is not supported by MySQL driver. Use PartnerRoleUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerRoleUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerRoleCreateBulk is the builder for creating many PartnerRole entities in bulk.
 type PartnerRoleCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerRoleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerRole entities in the database.
@@ -394,6 +784,7 @@ func (_c *PartnerRoleCreateBulk) Save(ctx context.Context) ([]*PartnerRole, erro
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -440,6 +831,256 @@ func (_c *PartnerRoleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerRoleCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerRole.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerRoleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerRoleCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerRoleUpsertBulk {
+	_c.conflict = opts
+	return &PartnerRoleUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerRoleCreateBulk) OnConflictColumns(columns ...string) *PartnerRoleUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerRoleUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerRoleUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerRole nodes.
+type PartnerRoleUpsertBulk struct {
+	create *PartnerRoleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerrole.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerRoleUpsertBulk) UpdateNewValues() *PartnerRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partnerrole.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partnerrole.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerRole.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerRoleUpsertBulk) Ignore() *PartnerRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerRoleUpsertBulk) DoNothing() *PartnerRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerRoleCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerRoleUpsertBulk) Update(set func(*PartnerRoleUpsert)) *PartnerRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerRoleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerRoleUpsertBulk) SetUpdatedAt(v time.Time) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateUpdatedAt() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerRoleUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdatePartnerID() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetRoleType sets the "role_type" field.
+func (u *PartnerRoleUpsertBulk) SetRoleType(v partnerrole.RoleType) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetRoleType(v)
+	})
+}
+
+// UpdateRoleType sets the "role_type" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateRoleType() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateRoleType()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerRoleUpsertBulk) SetEnabled(v bool) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateEnabled() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetBlacklisted sets the "blacklisted" field.
+func (u *PartnerRoleUpsertBulk) SetBlacklisted(v bool) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklisted(v)
+	})
+}
+
+// UpdateBlacklisted sets the "blacklisted" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateBlacklisted() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklisted()
+	})
+}
+
+// SetBlacklistReason sets the "blacklist_reason" field.
+func (u *PartnerRoleUpsertBulk) SetBlacklistReason(v string) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistReason(v)
+	})
+}
+
+// UpdateBlacklistReason sets the "blacklist_reason" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateBlacklistReason() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistReason()
+	})
+}
+
+// ClearBlacklistReason clears the value of the "blacklist_reason" field.
+func (u *PartnerRoleUpsertBulk) ClearBlacklistReason() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistReason()
+	})
+}
+
+// SetBlacklistedAt sets the "blacklisted_at" field.
+func (u *PartnerRoleUpsertBulk) SetBlacklistedAt(v time.Time) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistedAt(v)
+	})
+}
+
+// UpdateBlacklistedAt sets the "blacklisted_at" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateBlacklistedAt() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistedAt()
+	})
+}
+
+// ClearBlacklistedAt clears the value of the "blacklisted_at" field.
+func (u *PartnerRoleUpsertBulk) ClearBlacklistedAt() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistedAt()
+	})
+}
+
+// SetBlacklistedBy sets the "blacklisted_by" field.
+func (u *PartnerRoleUpsertBulk) SetBlacklistedBy(v uuid.UUID) *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.SetBlacklistedBy(v)
+	})
+}
+
+// UpdateBlacklistedBy sets the "blacklisted_by" field to the value that was provided on create.
+func (u *PartnerRoleUpsertBulk) UpdateBlacklistedBy() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.UpdateBlacklistedBy()
+	})
+}
+
+// ClearBlacklistedBy clears the value of the "blacklisted_by" field.
+func (u *PartnerRoleUpsertBulk) ClearBlacklistedBy() *PartnerRoleUpsertBulk {
+	return u.Update(func(s *PartnerRoleUpsert) {
+		s.ClearBlacklistedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerRoleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerRoleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerRoleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerRoleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

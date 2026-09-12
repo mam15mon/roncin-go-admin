@@ -168,9 +168,13 @@ type OrganizationEdges struct {
 	SeaSharedContainers []*SeaSharedContainer `json:"sea_shared_containers,omitempty"`
 	// SeaSharedContainerAllocations holds the value of the sea_shared_container_allocations edge.
 	SeaSharedContainerAllocations []*SeaSharedContainerAllocation `json:"sea_shared_container_allocations,omitempty"`
+	// DingtalkInvitations holds the value of the dingtalk_invitations edge.
+	DingtalkInvitations []*DingTalkInvitation `json:"dingtalk_invitations,omitempty"`
+	// DingtalkRegistrationRequests holds the value of the dingtalk_registration_requests edge.
+	DingtalkRegistrationRequests []*User `json:"dingtalk_registration_requests,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [62]bool
+	loadedTypes [64]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -733,6 +737,24 @@ func (e OrganizationEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedCon
 	return nil, &NotLoadedError{edge: "sea_shared_container_allocations"}
 }
 
+// DingtalkInvitationsOrErr returns the DingtalkInvitations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) DingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
+	if e.loadedTypes[62] {
+		return e.DingtalkInvitations, nil
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_invitations"}
+}
+
+// DingtalkRegistrationRequestsOrErr returns the DingtalkRegistrationRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) DingtalkRegistrationRequestsOrErr() ([]*User, error) {
+	if e.loadedTypes[63] {
+		return e.DingtalkRegistrationRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_registration_requests"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -1146,6 +1168,16 @@ func (_m *Organization) QuerySeaSharedContainers() *SeaSharedContainerQuery {
 // QuerySeaSharedContainerAllocations queries the "sea_shared_container_allocations" edge of the Organization entity.
 func (_m *Organization) QuerySeaSharedContainerAllocations() *SeaSharedContainerAllocationQuery {
 	return NewOrganizationClient(_m.config).QuerySeaSharedContainerAllocations(_m)
+}
+
+// QueryDingtalkInvitations queries the "dingtalk_invitations" edge of the Organization entity.
+func (_m *Organization) QueryDingtalkInvitations() *DingTalkInvitationQuery {
+	return NewOrganizationClient(_m.config).QueryDingtalkInvitations(_m)
+}
+
+// QueryDingtalkRegistrationRequests queries the "dingtalk_registration_requests" edge of the Organization entity.
+func (_m *Organization) QueryDingtalkRegistrationRequests() *UserQuery {
+	return NewOrganizationClient(_m.config).QueryDingtalkRegistrationRequests(_m)
 }
 
 // Update returns a builder for updating this Organization.

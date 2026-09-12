@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type PartnerAccountCreate struct {
 	config
 	mutation *PartnerAccountMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -354,6 +357,7 @@ func (_c *PartnerAccountCreate) createSpec() (*PartnerAccount, *sqlgraph.CreateS
 		_node = &PartnerAccount{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partneraccount.Table, sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -430,11 +434,514 @@ func (_c *PartnerAccountCreate) createSpec() (*PartnerAccount, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAccount.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAccountUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAccountCreate) OnConflict(opts ...sql.ConflictOption) *PartnerAccountUpsertOne {
+	_c.conflict = opts
+	return &PartnerAccountUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAccountCreate) OnConflictColumns(columns ...string) *PartnerAccountUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAccountUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerAccountUpsertOne is the builder for "upsert"-ing
+	//  one PartnerAccount node.
+	PartnerAccountUpsertOne struct {
+		create *PartnerAccountCreate
+	}
+
+	// PartnerAccountUpsert is the "OnConflict" setter.
+	PartnerAccountUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAccountUpsert) SetUpdatedAt(v time.Time) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateUpdatedAt() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAccountUpsert) SetPartnerID(v uuid.UUID) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdatePartnerID() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldPartnerID)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PartnerAccountUpsert) SetName(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateName() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldName)
+	return u
+}
+
+// SetAccountHolder sets the "account_holder" field.
+func (u *PartnerAccountUpsert) SetAccountHolder(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldAccountHolder, v)
+	return u
+}
+
+// UpdateAccountHolder sets the "account_holder" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateAccountHolder() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldAccountHolder)
+	return u
+}
+
+// SetCurrency sets the "currency" field.
+func (u *PartnerAccountUpsert) SetCurrency(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateCurrency() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldCurrency)
+	return u
+}
+
+// SetBankName sets the "bank_name" field.
+func (u *PartnerAccountUpsert) SetBankName(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldBankName, v)
+	return u
+}
+
+// UpdateBankName sets the "bank_name" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateBankName() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldBankName)
+	return u
+}
+
+// SetAccountNo sets the "account_no" field.
+func (u *PartnerAccountUpsert) SetAccountNo(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldAccountNo, v)
+	return u
+}
+
+// UpdateAccountNo sets the "account_no" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateAccountNo() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldAccountNo)
+	return u
+}
+
+// SetSwiftCode sets the "swift_code" field.
+func (u *PartnerAccountUpsert) SetSwiftCode(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldSwiftCode, v)
+	return u
+}
+
+// UpdateSwiftCode sets the "swift_code" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateSwiftCode() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldSwiftCode)
+	return u
+}
+
+// ClearSwiftCode clears the value of the "swift_code" field.
+func (u *PartnerAccountUpsert) ClearSwiftCode() *PartnerAccountUpsert {
+	u.SetNull(partneraccount.FieldSwiftCode)
+	return u
+}
+
+// SetUsage sets the "usage" field.
+func (u *PartnerAccountUpsert) SetUsage(v partneraccount.Usage) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldUsage, v)
+	return u
+}
+
+// UpdateUsage sets the "usage" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateUsage() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldUsage)
+	return u
+}
+
+// SetIsDefaultReceivable sets the "is_default_receivable" field.
+func (u *PartnerAccountUpsert) SetIsDefaultReceivable(v bool) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldIsDefaultReceivable, v)
+	return u
+}
+
+// UpdateIsDefaultReceivable sets the "is_default_receivable" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateIsDefaultReceivable() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldIsDefaultReceivable)
+	return u
+}
+
+// SetIsDefaultPayable sets the "is_default_payable" field.
+func (u *PartnerAccountUpsert) SetIsDefaultPayable(v bool) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldIsDefaultPayable, v)
+	return u
+}
+
+// UpdateIsDefaultPayable sets the "is_default_payable" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateIsDefaultPayable() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldIsDefaultPayable)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerAccountUpsert) SetEnabled(v bool) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateEnabled() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldEnabled)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerAccountUpsert) SetRemark(v string) *PartnerAccountUpsert {
+	u.Set(partneraccount.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerAccountUpsert) UpdateRemark() *PartnerAccountUpsert {
+	u.SetExcluded(partneraccount.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerAccountUpsert) ClearRemark() *PartnerAccountUpsert {
+	u.SetNull(partneraccount.FieldRemark)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partneraccount.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAccountUpsertOne) UpdateNewValues() *PartnerAccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partneraccount.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partneraccount.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerAccountUpsertOne) Ignore() *PartnerAccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAccountUpsertOne) DoNothing() *PartnerAccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAccountCreate.OnConflict
+// documentation for more info.
+func (u *PartnerAccountUpsertOne) Update(set func(*PartnerAccountUpsert)) *PartnerAccountUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAccountUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAccountUpsertOne) SetUpdatedAt(v time.Time) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateUpdatedAt() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAccountUpsertOne) SetPartnerID(v uuid.UUID) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdatePartnerID() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PartnerAccountUpsertOne) SetName(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateName() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetAccountHolder sets the "account_holder" field.
+func (u *PartnerAccountUpsertOne) SetAccountHolder(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetAccountHolder(v)
+	})
+}
+
+// UpdateAccountHolder sets the "account_holder" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateAccountHolder() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateAccountHolder()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *PartnerAccountUpsertOne) SetCurrency(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateCurrency() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetBankName sets the "bank_name" field.
+func (u *PartnerAccountUpsertOne) SetBankName(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetBankName(v)
+	})
+}
+
+// UpdateBankName sets the "bank_name" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateBankName() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateBankName()
+	})
+}
+
+// SetAccountNo sets the "account_no" field.
+func (u *PartnerAccountUpsertOne) SetAccountNo(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetAccountNo(v)
+	})
+}
+
+// UpdateAccountNo sets the "account_no" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateAccountNo() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateAccountNo()
+	})
+}
+
+// SetSwiftCode sets the "swift_code" field.
+func (u *PartnerAccountUpsertOne) SetSwiftCode(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetSwiftCode(v)
+	})
+}
+
+// UpdateSwiftCode sets the "swift_code" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateSwiftCode() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateSwiftCode()
+	})
+}
+
+// ClearSwiftCode clears the value of the "swift_code" field.
+func (u *PartnerAccountUpsertOne) ClearSwiftCode() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.ClearSwiftCode()
+	})
+}
+
+// SetUsage sets the "usage" field.
+func (u *PartnerAccountUpsertOne) SetUsage(v partneraccount.Usage) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetUsage(v)
+	})
+}
+
+// UpdateUsage sets the "usage" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateUsage() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateUsage()
+	})
+}
+
+// SetIsDefaultReceivable sets the "is_default_receivable" field.
+func (u *PartnerAccountUpsertOne) SetIsDefaultReceivable(v bool) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetIsDefaultReceivable(v)
+	})
+}
+
+// UpdateIsDefaultReceivable sets the "is_default_receivable" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateIsDefaultReceivable() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateIsDefaultReceivable()
+	})
+}
+
+// SetIsDefaultPayable sets the "is_default_payable" field.
+func (u *PartnerAccountUpsertOne) SetIsDefaultPayable(v bool) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetIsDefaultPayable(v)
+	})
+}
+
+// UpdateIsDefaultPayable sets the "is_default_payable" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateIsDefaultPayable() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateIsDefaultPayable()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerAccountUpsertOne) SetEnabled(v bool) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateEnabled() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerAccountUpsertOne) SetRemark(v string) *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerAccountUpsertOne) UpdateRemark() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerAccountUpsertOne) ClearRemark() *PartnerAccountUpsertOne {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAccountUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAccountCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAccountUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerAccountUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerAccountUpsertOne.ID is not supported by MySQL driver. Use PartnerAccountUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerAccountUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerAccountCreateBulk is the builder for creating many PartnerAccount entities in bulk.
 type PartnerAccountCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerAccountCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerAccount entities in the database.
@@ -464,6 +971,7 @@ func (_c *PartnerAccountCreateBulk) Save(ctx context.Context) ([]*PartnerAccount
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -510,6 +1018,319 @@ func (_c *PartnerAccountCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerAccountCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAccount.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAccountUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAccountCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerAccountUpsertBulk {
+	_c.conflict = opts
+	return &PartnerAccountUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAccountCreateBulk) OnConflictColumns(columns ...string) *PartnerAccountUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAccountUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerAccountUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerAccount nodes.
+type PartnerAccountUpsertBulk struct {
+	create *PartnerAccountCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partneraccount.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAccountUpsertBulk) UpdateNewValues() *PartnerAccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partneraccount.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partneraccount.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAccount.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerAccountUpsertBulk) Ignore() *PartnerAccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAccountUpsertBulk) DoNothing() *PartnerAccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAccountCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerAccountUpsertBulk) Update(set func(*PartnerAccountUpsert)) *PartnerAccountUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAccountUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAccountUpsertBulk) SetUpdatedAt(v time.Time) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateUpdatedAt() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAccountUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdatePartnerID() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PartnerAccountUpsertBulk) SetName(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateName() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetAccountHolder sets the "account_holder" field.
+func (u *PartnerAccountUpsertBulk) SetAccountHolder(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetAccountHolder(v)
+	})
+}
+
+// UpdateAccountHolder sets the "account_holder" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateAccountHolder() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateAccountHolder()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *PartnerAccountUpsertBulk) SetCurrency(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateCurrency() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetBankName sets the "bank_name" field.
+func (u *PartnerAccountUpsertBulk) SetBankName(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetBankName(v)
+	})
+}
+
+// UpdateBankName sets the "bank_name" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateBankName() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateBankName()
+	})
+}
+
+// SetAccountNo sets the "account_no" field.
+func (u *PartnerAccountUpsertBulk) SetAccountNo(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetAccountNo(v)
+	})
+}
+
+// UpdateAccountNo sets the "account_no" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateAccountNo() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateAccountNo()
+	})
+}
+
+// SetSwiftCode sets the "swift_code" field.
+func (u *PartnerAccountUpsertBulk) SetSwiftCode(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetSwiftCode(v)
+	})
+}
+
+// UpdateSwiftCode sets the "swift_code" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateSwiftCode() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateSwiftCode()
+	})
+}
+
+// ClearSwiftCode clears the value of the "swift_code" field.
+func (u *PartnerAccountUpsertBulk) ClearSwiftCode() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.ClearSwiftCode()
+	})
+}
+
+// SetUsage sets the "usage" field.
+func (u *PartnerAccountUpsertBulk) SetUsage(v partneraccount.Usage) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetUsage(v)
+	})
+}
+
+// UpdateUsage sets the "usage" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateUsage() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateUsage()
+	})
+}
+
+// SetIsDefaultReceivable sets the "is_default_receivable" field.
+func (u *PartnerAccountUpsertBulk) SetIsDefaultReceivable(v bool) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetIsDefaultReceivable(v)
+	})
+}
+
+// UpdateIsDefaultReceivable sets the "is_default_receivable" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateIsDefaultReceivable() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateIsDefaultReceivable()
+	})
+}
+
+// SetIsDefaultPayable sets the "is_default_payable" field.
+func (u *PartnerAccountUpsertBulk) SetIsDefaultPayable(v bool) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetIsDefaultPayable(v)
+	})
+}
+
+// UpdateIsDefaultPayable sets the "is_default_payable" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateIsDefaultPayable() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateIsDefaultPayable()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PartnerAccountUpsertBulk) SetEnabled(v bool) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateEnabled() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *PartnerAccountUpsertBulk) SetRemark(v string) *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *PartnerAccountUpsertBulk) UpdateRemark() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *PartnerAccountUpsertBulk) ClearRemark() *PartnerAccountUpsertBulk {
+	return u.Update(func(s *PartnerAccountUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAccountUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerAccountCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAccountCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAccountUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

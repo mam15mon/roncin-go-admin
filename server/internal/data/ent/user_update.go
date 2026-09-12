@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
@@ -36,6 +37,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
@@ -260,6 +262,26 @@ func (_u *UserUpdate) SetNillableDingtalkName(v *string) *UserUpdate {
 // ClearDingtalkName clears the value of the "dingtalk_name" field.
 func (_u *UserUpdate) ClearDingtalkName() *UserUpdate {
 	_u.mutation.ClearDingtalkName()
+	return _u
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (_u *UserUpdate) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserUpdate {
+	_u.mutation.SetDingtalkRequestedOrganizationID(v)
+	return _u
+}
+
+// SetNillableDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkRequestedOrganizationID(v *uuid.UUID) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkRequestedOrganizationID(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (_u *UserUpdate) ClearDingtalkRequestedOrganizationID() *UserUpdate {
+	_u.mutation.ClearDingtalkRequestedOrganizationID()
 	return _u
 }
 
@@ -1024,6 +1046,41 @@ func (_u *UserUpdate) AddConfirmedSeaSharedContainers(v ...*SeaSharedContainer) 
 		ids[i] = v[i].ID
 	}
 	return _u.AddConfirmedSeaSharedContainerIDs(ids...)
+}
+
+// AddCreatedDingtalkInvitationIDs adds the "created_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *UserUpdate) AddCreatedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCreatedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddCreatedDingtalkInvitations adds the "created_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdate) AddCreatedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedDingtalkInvitationIDs(ids...)
+}
+
+// AddConsumedDingtalkInvitationIDs adds the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *UserUpdate) AddConsumedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddConsumedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddConsumedDingtalkInvitations adds the "consumed_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdate) AddConsumedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConsumedDingtalkInvitationIDs(ids...)
+}
+
+// SetDingtalkRequestedOrganization sets the "dingtalk_requested_organization" edge to the Organization entity.
+func (_u *UserUpdate) SetDingtalkRequestedOrganization(v *Organization) *UserUpdate {
+	return _u.SetDingtalkRequestedOrganizationID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -2058,6 +2115,54 @@ func (_u *UserUpdate) RemoveConfirmedSeaSharedContainers(v ...*SeaSharedContaine
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveConfirmedSeaSharedContainerIDs(ids...)
+}
+
+// ClearCreatedDingtalkInvitations clears all "created_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdate) ClearCreatedDingtalkInvitations() *UserUpdate {
+	_u.mutation.ClearCreatedDingtalkInvitations()
+	return _u
+}
+
+// RemoveCreatedDingtalkInvitationIDs removes the "created_dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *UserUpdate) RemoveCreatedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCreatedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedDingtalkInvitations removes "created_dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *UserUpdate) RemoveCreatedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedDingtalkInvitationIDs(ids...)
+}
+
+// ClearConsumedDingtalkInvitations clears all "consumed_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdate) ClearConsumedDingtalkInvitations() *UserUpdate {
+	_u.mutation.ClearConsumedDingtalkInvitations()
+	return _u
+}
+
+// RemoveConsumedDingtalkInvitationIDs removes the "consumed_dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *UserUpdate) RemoveConsumedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveConsumedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveConsumedDingtalkInvitations removes "consumed_dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *UserUpdate) RemoveConsumedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConsumedDingtalkInvitationIDs(ids...)
+}
+
+// ClearDingtalkRequestedOrganization clears the "dingtalk_requested_organization" edge to the Organization entity.
+func (_u *UserUpdate) ClearDingtalkRequestedOrganization() *UserUpdate {
+	_u.mutation.ClearDingtalkRequestedOrganization()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -4435,6 +4540,125 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.CreatedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.CreatedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConsumedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConsumedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.ConsumedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsumedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkRequestedOrganizationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.DingtalkRequestedOrganizationTable,
+			Columns: []string{user.DingtalkRequestedOrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkRequestedOrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.DingtalkRequestedOrganizationTable,
+			Columns: []string{user.DingtalkRequestedOrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -4652,6 +4876,26 @@ func (_u *UserUpdateOne) SetNillableDingtalkName(v *string) *UserUpdateOne {
 // ClearDingtalkName clears the value of the "dingtalk_name" field.
 func (_u *UserUpdateOne) ClearDingtalkName() *UserUpdateOne {
 	_u.mutation.ClearDingtalkName()
+	return _u
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (_u *UserUpdateOne) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetDingtalkRequestedOrganizationID(v)
+	return _u
+}
+
+// SetNillableDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkRequestedOrganizationID(v *uuid.UUID) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkRequestedOrganizationID(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (_u *UserUpdateOne) ClearDingtalkRequestedOrganizationID() *UserUpdateOne {
+	_u.mutation.ClearDingtalkRequestedOrganizationID()
 	return _u
 }
 
@@ -5416,6 +5660,41 @@ func (_u *UserUpdateOne) AddConfirmedSeaSharedContainers(v ...*SeaSharedContaine
 		ids[i] = v[i].ID
 	}
 	return _u.AddConfirmedSeaSharedContainerIDs(ids...)
+}
+
+// AddCreatedDingtalkInvitationIDs adds the "created_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *UserUpdateOne) AddCreatedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCreatedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddCreatedDingtalkInvitations adds the "created_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdateOne) AddCreatedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedDingtalkInvitationIDs(ids...)
+}
+
+// AddConsumedDingtalkInvitationIDs adds the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *UserUpdateOne) AddConsumedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddConsumedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddConsumedDingtalkInvitations adds the "consumed_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdateOne) AddConsumedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConsumedDingtalkInvitationIDs(ids...)
+}
+
+// SetDingtalkRequestedOrganization sets the "dingtalk_requested_organization" edge to the Organization entity.
+func (_u *UserUpdateOne) SetDingtalkRequestedOrganization(v *Organization) *UserUpdateOne {
+	return _u.SetDingtalkRequestedOrganizationID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -6450,6 +6729,54 @@ func (_u *UserUpdateOne) RemoveConfirmedSeaSharedContainers(v ...*SeaSharedConta
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveConfirmedSeaSharedContainerIDs(ids...)
+}
+
+// ClearCreatedDingtalkInvitations clears all "created_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdateOne) ClearCreatedDingtalkInvitations() *UserUpdateOne {
+	_u.mutation.ClearCreatedDingtalkInvitations()
+	return _u
+}
+
+// RemoveCreatedDingtalkInvitationIDs removes the "created_dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *UserUpdateOne) RemoveCreatedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCreatedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedDingtalkInvitations removes "created_dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *UserUpdateOne) RemoveCreatedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedDingtalkInvitationIDs(ids...)
+}
+
+// ClearConsumedDingtalkInvitations clears all "consumed_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *UserUpdateOne) ClearConsumedDingtalkInvitations() *UserUpdateOne {
+	_u.mutation.ClearConsumedDingtalkInvitations()
+	return _u
+}
+
+// RemoveConsumedDingtalkInvitationIDs removes the "consumed_dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *UserUpdateOne) RemoveConsumedDingtalkInvitationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveConsumedDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveConsumedDingtalkInvitations removes "consumed_dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *UserUpdateOne) RemoveConsumedDingtalkInvitations(v ...*DingTalkInvitation) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConsumedDingtalkInvitationIDs(ids...)
+}
+
+// ClearDingtalkRequestedOrganization clears the "dingtalk_requested_organization" edge to the Organization entity.
+func (_u *UserUpdateOne) ClearDingtalkRequestedOrganization() *UserUpdateOne {
+	_u.mutation.ClearDingtalkRequestedOrganization()
+	return _u
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -8850,6 +9177,125 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seasharedcontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.CreatedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConsumedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConsumedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.ConsumedDingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsumedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkRequestedOrganizationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.DingtalkRequestedOrganizationTable,
+			Columns: []string{user.DingtalkRequestedOrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkRequestedOrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.DingtalkRequestedOrganizationTable,
+			Columns: []string{user.DingtalkRequestedOrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

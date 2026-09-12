@@ -87,3 +87,27 @@ describe('提成导出权限', () => {
     ).toBe(true);
   });
 });
+
+describe('钉钉邀请与注册审批权限', () => {
+  it('组织范围且拥有邀请管理权限时可管理钉钉邀请，并计入用户管理聚合', () => {
+    const result = access(
+      currentUser([
+        'system.user.read',
+        'system.user.dingtalk_invitation.manage',
+      ]),
+    );
+    expect(result.canManageDingTalkInvitations).toBe(true);
+    expect(result.canManageUsers).toBe(true);
+  });
+
+  it('只有用户读取权限或本人范围时不可管理钉钉邀请', () => {
+    expect(
+      access(currentUser(['system.user.read'])).canManageDingTalkInvitations,
+    ).toBe(false);
+    expect(
+      access(
+        currentUserWithSelfScope(['system.user.dingtalk_invitation.manage']),
+      ).canManageDingTalkInvitations,
+    ).toBe(false);
+  });
+});

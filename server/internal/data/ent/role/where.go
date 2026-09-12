@@ -461,6 +461,29 @@ func HasOrderUnlockApproverCandidatesWith(preds ...predicate.OrderUnlockApprover
 	})
 }
 
+// HasDingtalkInvitations applies the HasEdge predicate on the "dingtalk_invitations" edge.
+func HasDingtalkInvitations() predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DingtalkInvitationsTable, DingtalkInvitationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkInvitationsWith applies the HasEdge predicate on the "dingtalk_invitations" edge with a given conditions (other predicates).
+func HasDingtalkInvitationsWith(preds ...predicate.DingTalkInvitation) predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := newDingtalkInvitationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Role) predicate.Role {
 	return predicate.Role(sql.AndPredicates(predicates...))

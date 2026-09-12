@@ -462,6 +462,78 @@ var (
 			},
 		},
 	}
+	// DingTalkInvitationsColumns holds the columns for the "ding_talk_invitations" table.
+	DingTalkInvitationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "mobile", Type: field.TypeString, Size: 32},
+		{Name: "display_name", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "CONSUMED", "EXPIRED", "REVOKED"}, Default: "PENDING"},
+		{Name: "consumed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID},
+		{Name: "invited_by", Type: field.TypeUUID},
+		{Name: "consumed_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// DingTalkInvitationsTable holds the schema information for the "ding_talk_invitations" table.
+	DingTalkInvitationsTable = &schema.Table{
+		Name:       "ding_talk_invitations",
+		Columns:    DingTalkInvitationsColumns,
+		PrimaryKey: []*schema.Column{DingTalkInvitationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ding_talk_invitations_organizations_dingtalk_invitations",
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "ding_talk_invitations_roles_dingtalk_invitations",
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[9]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "ding_talk_invitations_users_created_dingtalk_invitations",
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "ding_talk_invitations_users_consumed_dingtalk_invitations",
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "dingtalkinvitation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{DingTalkInvitationsColumns[2]},
+			},
+			{
+				Name:    "dingtalkinvitation_organization_id_mobile",
+				Unique:  true,
+				Columns: []*schema.Column{DingTalkInvitationsColumns[8], DingTalkInvitationsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'PENDING'",
+				},
+			},
+			{
+				Name:    "dingtalkinvitation_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{DingTalkInvitationsColumns[7]},
+			},
+			{
+				Name:    "dingtalkinvitation_invited_by",
+				Unique:  false,
+				Columns: []*schema.Column{DingTalkInvitationsColumns[10]},
+			},
+		},
+	}
 	// EnterpriseResourcesColumns holds the columns for the "enterprise_resources" table.
 	EnterpriseResourcesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2736,7 +2808,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "channel", Type: field.TypeEnum, Enums: []string{"DINGTALK"}},
-		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED"}},
+		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED", "DINGTALK_REGISTRATION_PENDING", "DINGTALK_REGISTRATION_REJECTED", "DINGTALK_INVITATION_ACTIVATED"}},
 		{Name: "resource_type", Type: field.TypeString, Size: 64},
 		{Name: "resource_id", Type: field.TypeUUID},
 		{Name: "reference_code", Type: field.TypeString, Nullable: true, Size: 64},
@@ -6591,12 +6663,21 @@ var (
 		{Name: "is_bootstrap_admin", Type: field.TypeBool, Default: false},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "dingtalk_requested_organization_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_organizations_dingtalk_registration_requests",
+				Columns:    []*schema.Column{UsersColumns[16]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "user_updated_at",
@@ -6630,6 +6711,11 @@ var (
 				Name:    "user_dingtalk_userid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[11]},
+			},
+			{
+				Name:    "user_dingtalk_requested_organization_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[16]},
 			},
 		},
 	}
@@ -6669,6 +6755,7 @@ var (
 		CurrenciesTable,
 		DingTalkApprovalDispatchesTable,
 		DingTalkApprovalInboxEventsTable,
+		DingTalkInvitationsTable,
 		EnterpriseResourcesTable,
 		EnterpriseResourceAddressesTable,
 		EnterpriseResourceAddressTypesTable,
@@ -6787,6 +6874,10 @@ func init() {
 		"ding_talk_approval_inbox_events_attempts_check": "attempts >= 0",
 		"ding_talk_approval_inbox_events_status_check":   "status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'IGNORED', 'FAILED')",
 	}
+	DingTalkInvitationsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	DingTalkInvitationsTable.ForeignKeys[1].RefTable = RolesTable
+	DingTalkInvitationsTable.ForeignKeys[2].RefTable = UsersTable
+	DingTalkInvitationsTable.ForeignKeys[3].RefTable = UsersTable
 	EnterpriseResourcesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	EnterpriseResourcesTable.ForeignKeys[1].RefTable = UsersTable
 	EnterpriseResourcesTable.ForeignKeys[2].RefTable = UsersTable
@@ -7114,6 +7205,7 @@ func init() {
 	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	UsersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable
 	RolePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
 }

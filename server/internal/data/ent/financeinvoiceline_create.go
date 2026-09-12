@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type FinanceInvoiceLineCreate struct {
 	config
 	mutation *FinanceInvoiceLineMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -275,6 +278,7 @@ func (_c *FinanceInvoiceLineCreate) createSpec() (*FinanceInvoiceLine, *sqlgraph
 		_node = &FinanceInvoiceLine{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financeinvoiceline.Table, sqlgraph.NewFieldSpec(financeinvoiceline.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -343,11 +347,206 @@ func (_c *FinanceInvoiceLineCreate) createSpec() (*FinanceInvoiceLine, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceInvoiceLine.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceInvoiceLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceInvoiceLineCreate) OnConflict(opts ...sql.ConflictOption) *FinanceInvoiceLineUpsertOne {
+	_c.conflict = opts
+	return &FinanceInvoiceLineUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceInvoiceLineCreate) OnConflictColumns(columns ...string) *FinanceInvoiceLineUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceInvoiceLineUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceInvoiceLineUpsertOne is the builder for "upsert"-ing
+	//  one FinanceInvoiceLine node.
+	FinanceInvoiceLineUpsertOne struct {
+		create *FinanceInvoiceLineCreate
+	}
+
+	// FinanceInvoiceLineUpsert is the "OnConflict" setter.
+	FinanceInvoiceLineUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceLineUpsert) SetUpdatedAt(v time.Time) *FinanceInvoiceLineUpsert {
+	u.Set(financeinvoiceline.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceLineUpsert) UpdateUpdatedAt() *FinanceInvoiceLineUpsert {
+	u.SetExcluded(financeinvoiceline.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeinvoiceline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceInvoiceLineUpsertOne) UpdateNewValues() *FinanceInvoiceLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financeinvoiceline.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financeinvoiceline.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.InvoiceID(); exists {
+			s.SetIgnore(financeinvoiceline.FieldInvoiceID)
+		}
+		if _, exists := u.create.mutation.LineNo(); exists {
+			s.SetIgnore(financeinvoiceline.FieldLineNo)
+		}
+		if _, exists := u.create.mutation.ItemCode(); exists {
+			s.SetIgnore(financeinvoiceline.FieldItemCode)
+		}
+		if _, exists := u.create.mutation.ItemName(); exists {
+			s.SetIgnore(financeinvoiceline.FieldItemName)
+		}
+		if _, exists := u.create.mutation.TaxRate(); exists {
+			s.SetIgnore(financeinvoiceline.FieldTaxRate)
+		}
+		if _, exists := u.create.mutation.NetAmount(); exists {
+			s.SetIgnore(financeinvoiceline.FieldNetAmount)
+		}
+		if _, exists := u.create.mutation.TaxAmount(); exists {
+			s.SetIgnore(financeinvoiceline.FieldTaxAmount)
+		}
+		if _, exists := u.create.mutation.TotalAmount(); exists {
+			s.SetIgnore(financeinvoiceline.FieldTotalAmount)
+		}
+		if _, exists := u.create.mutation.Currency(); exists {
+			s.SetIgnore(financeinvoiceline.FieldCurrency)
+		}
+		if _, exists := u.create.mutation.SourceLineCount(); exists {
+			s.SetIgnore(financeinvoiceline.FieldSourceLineCount)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceInvoiceLineUpsertOne) Ignore() *FinanceInvoiceLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceInvoiceLineUpsertOne) DoNothing() *FinanceInvoiceLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceInvoiceLineCreate.OnConflict
+// documentation for more info.
+func (u *FinanceInvoiceLineUpsertOne) Update(set func(*FinanceInvoiceLineUpsert)) *FinanceInvoiceLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceInvoiceLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceLineUpsertOne) SetUpdatedAt(v time.Time) *FinanceInvoiceLineUpsertOne {
+	return u.Update(func(s *FinanceInvoiceLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceLineUpsertOne) UpdateUpdatedAt() *FinanceInvoiceLineUpsertOne {
+	return u.Update(func(s *FinanceInvoiceLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceInvoiceLineUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceInvoiceLineCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceInvoiceLineUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceInvoiceLineUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceInvoiceLineUpsertOne.ID is not supported by MySQL driver. Use FinanceInvoiceLineUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceInvoiceLineUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceInvoiceLineCreateBulk is the builder for creating many FinanceInvoiceLine entities in bulk.
 type FinanceInvoiceLineCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceInvoiceLineCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceInvoiceLine entities in the database.
@@ -377,6 +576,7 @@ func (_c *FinanceInvoiceLineCreateBulk) Save(ctx context.Context) ([]*FinanceInv
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -423,6 +623,167 @@ func (_c *FinanceInvoiceLineCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceInvoiceLineCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceInvoiceLine.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceInvoiceLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceInvoiceLineCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceInvoiceLineUpsertBulk {
+	_c.conflict = opts
+	return &FinanceInvoiceLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceInvoiceLineCreateBulk) OnConflictColumns(columns ...string) *FinanceInvoiceLineUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceInvoiceLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceInvoiceLineUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceInvoiceLine nodes.
+type FinanceInvoiceLineUpsertBulk struct {
+	create *FinanceInvoiceLineCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeinvoiceline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceInvoiceLineUpsertBulk) UpdateNewValues() *FinanceInvoiceLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financeinvoiceline.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financeinvoiceline.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.InvoiceID(); exists {
+				s.SetIgnore(financeinvoiceline.FieldInvoiceID)
+			}
+			if _, exists := b.mutation.LineNo(); exists {
+				s.SetIgnore(financeinvoiceline.FieldLineNo)
+			}
+			if _, exists := b.mutation.ItemCode(); exists {
+				s.SetIgnore(financeinvoiceline.FieldItemCode)
+			}
+			if _, exists := b.mutation.ItemName(); exists {
+				s.SetIgnore(financeinvoiceline.FieldItemName)
+			}
+			if _, exists := b.mutation.TaxRate(); exists {
+				s.SetIgnore(financeinvoiceline.FieldTaxRate)
+			}
+			if _, exists := b.mutation.NetAmount(); exists {
+				s.SetIgnore(financeinvoiceline.FieldNetAmount)
+			}
+			if _, exists := b.mutation.TaxAmount(); exists {
+				s.SetIgnore(financeinvoiceline.FieldTaxAmount)
+			}
+			if _, exists := b.mutation.TotalAmount(); exists {
+				s.SetIgnore(financeinvoiceline.FieldTotalAmount)
+			}
+			if _, exists := b.mutation.Currency(); exists {
+				s.SetIgnore(financeinvoiceline.FieldCurrency)
+			}
+			if _, exists := b.mutation.SourceLineCount(); exists {
+				s.SetIgnore(financeinvoiceline.FieldSourceLineCount)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoiceLine.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceInvoiceLineUpsertBulk) Ignore() *FinanceInvoiceLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceInvoiceLineUpsertBulk) DoNothing() *FinanceInvoiceLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceInvoiceLineCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceInvoiceLineUpsertBulk) Update(set func(*FinanceInvoiceLineUpsert)) *FinanceInvoiceLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceInvoiceLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceLineUpsertBulk) SetUpdatedAt(v time.Time) *FinanceInvoiceLineUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceLineUpsertBulk) UpdateUpdatedAt() *FinanceInvoiceLineUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceInvoiceLineUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceInvoiceLineCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceInvoiceLineCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceInvoiceLineUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

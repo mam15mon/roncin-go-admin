@@ -145,6 +145,48 @@ service AdminService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.audit.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/audit-logs"};
   }
+
+  // CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
+  rpc CreateDingTalkInvitation(CreateDingTalkInvitationRequest) returns (CreateDingTalkInvitationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/admin/dingtalk/invitations"
+      body: "*"
+    };
+  }
+
+  rpc ListDingTalkInvitations(ListDingTalkInvitationsRequest) returns (ListDingTalkInvitationsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/invitations"};
+  }
+
+  rpc RevokeDingTalkInvitation(RevokeDingTalkInvitationRequest) returns (RevokeDingTalkInvitationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {delete: "/api/v1/admin/dingtalk/invitations/{id}"};
+  }
+
+  // ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
+  rpc ListDingTalkRegistrations(ListDingTalkRegistrationsRequest) returns (ListDingTalkRegistrationsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/registrations"};
+  }
+
+  // ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
+  rpc ApproveDingTalkRegistration(ApproveDingTalkRegistrationRequest) returns (ApproveDingTalkRegistrationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/admin/dingtalk/registrations/{id}/approval"
+      body: "*"
+    };
+  }
+
+  rpc RejectDingTalkRegistration(RejectDingTalkRegistrationRequest) returns (RejectDingTalkRegistrationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/admin/dingtalk/registrations/{id}/rejection"
+      body: "*"
+    };
+  }
 }
 
 enum DataScope {
@@ -549,4 +591,132 @@ message ListAuditLogsResponse {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+enum DingTalkInvitationStatus {
+  DING_TALK_INVITATION_STATUS_UNSPECIFIED = 0;
+  DING_TALK_INVITATION_STATUS_PENDING = 1;
+  DING_TALK_INVITATION_STATUS_CONSUMED = 2;
+  DING_TALK_INVITATION_STATUS_EXPIRED = 3;
+  DING_TALK_INVITATION_STATUS_REVOKED = 4;
+}
+
+message CreateDingTalkInvitationRequest {
+  // 国内手机号；服务端归一化 +86/0086 前缀后按 11 位校验。
+  string mobile = 1 [(google.api.field_behavior) = REQUIRED];
+  // 目标组织；必须是调用者可写范围内的组织。
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  // 激活后授予的初始角色（必须属于目标组织）。
+  string role_id = 3 [(google.api.field_behavior) = REQUIRED];
+  // 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
+  optional string display_name = 4;
+  // 有效期（小时）；缺省 72，允许 1-720。
+  optional int32 expires_in_hours = 5;
+}
+
+message CreateDingTalkInvitationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkInvitation data = 4;
+  string trace_id = 5;
+}
+
+message ListDingTalkInvitationsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  // 按组织过滤；必须是调用者可写范围内的组织。
+  optional string organization_id = 3;
+  optional DingTalkInvitationStatus status = 4;
+}
+
+message ListDingTalkInvitationsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated DingTalkInvitation data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message RevokeDingTalkInvitationRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RevokeDingTalkInvitationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}
+
+// 手机号展示统一脱敏（138****1234），完整号码不离开服务端。
+message DingTalkInvitation {
+  string id = 1;
+  string organization_id = 2;
+  string organization_name = 3;
+  string role_id = 4;
+  string role_name = 5;
+  string mobile_masked = 6;
+  optional string display_name = 7;
+  DingTalkInvitationStatus status = 8;
+  optional string consumed_name = 9;
+  string created_at = 10;
+  string expires_at = 11;
+  string inviter_name = 12;
+}
+
+message ListDingTalkRegistrationsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// 待审批注册：钉钉姓名/头像来自扫码返回，供管理员人工认领。
+message DingTalkRegistration {
+  string user_id = 1;
+  string display_name = 2;
+  optional string avatar_url = 3;
+  optional string requested_organization_id = 4;
+  string requested_organization_name = 5;
+  string registered_at = 6;
+}
+
+message ListDingTalkRegistrationsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated DingTalkRegistration data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message ApproveDingTalkRegistrationRequest {
+  // 注册用户的 ID（待审批队列中的 user_id）。
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  // 同意时授予的初始角色，必须属于注册的目标组织。
+  repeated string role_ids = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ApproveDingTalkRegistrationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkRegistration data = 4;
+  string trace_id = 5;
+}
+
+message RejectDingTalkRegistrationRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string reason = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RejectDingTalkRegistrationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
 }

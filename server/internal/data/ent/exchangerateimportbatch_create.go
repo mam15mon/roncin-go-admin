@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type ExchangeRateImportBatchCreate struct {
 	config
 	mutation *ExchangeRateImportBatchMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -382,6 +385,7 @@ func (_c *ExchangeRateImportBatchCreate) createSpec() (*ExchangeRateImportBatch,
 		_node = &ExchangeRateImportBatch{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(exchangerateimportbatch.Table, sqlgraph.NewFieldSpec(exchangerateimportbatch.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -465,11 +469,394 @@ func (_c *ExchangeRateImportBatchCreate) createSpec() (*ExchangeRateImportBatch,
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ExchangeRateImportBatchUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ExchangeRateImportBatchCreate) OnConflict(opts ...sql.ConflictOption) *ExchangeRateImportBatchUpsertOne {
+	_c.conflict = opts
+	return &ExchangeRateImportBatchUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ExchangeRateImportBatchCreate) OnConflictColumns(columns ...string) *ExchangeRateImportBatchUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ExchangeRateImportBatchUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ExchangeRateImportBatchUpsertOne is the builder for "upsert"-ing
+	//  one ExchangeRateImportBatch node.
+	ExchangeRateImportBatchUpsertOne struct {
+		create *ExchangeRateImportBatchCreate
+	}
+
+	// ExchangeRateImportBatchUpsert is the "OnConflict" setter.
+	ExchangeRateImportBatchUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateImportBatchUpsert) SetUpdatedAt(v time.Time) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateUpdatedAt() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *ExchangeRateImportBatchUpsert) SetStatus(v exchangerateimportbatch.Status) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateStatus() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldStatus)
+	return u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsert) SetIdempotencyKey(v string) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldIdempotencyKey, v)
+	return u
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateIdempotencyKey() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldIdempotencyKey)
+	return u
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsert) ClearIdempotencyKey() *ExchangeRateImportBatchUpsert {
+	u.SetNull(exchangerateimportbatch.FieldIdempotencyKey)
+	return u
+}
+
+// SetImportedCount sets the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsert) SetImportedCount(v int) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldImportedCount, v)
+	return u
+}
+
+// UpdateImportedCount sets the "imported_count" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateImportedCount() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldImportedCount)
+	return u
+}
+
+// AddImportedCount adds v to the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsert) AddImportedCount(v int) *ExchangeRateImportBatchUpsert {
+	u.Add(exchangerateimportbatch.FieldImportedCount, v)
+	return u
+}
+
+// SetImportedAt sets the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsert) SetImportedAt(v time.Time) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldImportedAt, v)
+	return u
+}
+
+// UpdateImportedAt sets the "imported_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateImportedAt() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldImportedAt)
+	return u
+}
+
+// ClearImportedAt clears the value of the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsert) ClearImportedAt() *ExchangeRateImportBatchUpsert {
+	u.SetNull(exchangerateimportbatch.FieldImportedAt)
+	return u
+}
+
+// SetImportedBy sets the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsert) SetImportedBy(v uuid.UUID) *ExchangeRateImportBatchUpsert {
+	u.Set(exchangerateimportbatch.FieldImportedBy, v)
+	return u
+}
+
+// UpdateImportedBy sets the "imported_by" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsert) UpdateImportedBy() *ExchangeRateImportBatchUpsert {
+	u.SetExcluded(exchangerateimportbatch.FieldImportedBy)
+	return u
+}
+
+// ClearImportedBy clears the value of the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsert) ClearImportedBy() *ExchangeRateImportBatchUpsert {
+	u.SetNull(exchangerateimportbatch.FieldImportedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(exchangerateimportbatch.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ExchangeRateImportBatchUpsertOne) UpdateNewValues() *ExchangeRateImportBatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OwnerOrganizationID(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldOwnerOrganizationID)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldCreatedBy)
+		}
+		if _, exists := u.create.mutation.FileName(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldFileName)
+		}
+		if _, exists := u.create.mutation.FileChecksum(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldFileChecksum)
+		}
+		if _, exists := u.create.mutation.TemplateVersion(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldTemplateVersion)
+		}
+		if _, exists := u.create.mutation.PreviewTokenHash(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldPreviewTokenHash)
+		}
+		if _, exists := u.create.mutation.ExpiresAt(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldExpiresAt)
+		}
+		if _, exists := u.create.mutation.TotalCount(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldTotalCount)
+		}
+		if _, exists := u.create.mutation.ValidCount(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldValidCount)
+		}
+		if _, exists := u.create.mutation.InvalidCount(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldInvalidCount)
+		}
+		if _, exists := u.create.mutation.Rows(); exists {
+			s.SetIgnore(exchangerateimportbatch.FieldRows)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ExchangeRateImportBatchUpsertOne) Ignore() *ExchangeRateImportBatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ExchangeRateImportBatchUpsertOne) DoNothing() *ExchangeRateImportBatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ExchangeRateImportBatchCreate.OnConflict
+// documentation for more info.
+func (u *ExchangeRateImportBatchUpsertOne) Update(set func(*ExchangeRateImportBatchUpsert)) *ExchangeRateImportBatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ExchangeRateImportBatchUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetUpdatedAt(v time.Time) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateUpdatedAt() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetStatus(v exchangerateimportbatch.Status) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateStatus() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetIdempotencyKey(v string) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateIdempotencyKey() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsertOne) ClearIdempotencyKey() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearIdempotencyKey()
+	})
+}
+
+// SetImportedCount sets the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetImportedCount(v int) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedCount(v)
+	})
+}
+
+// AddImportedCount adds v to the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsertOne) AddImportedCount(v int) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.AddImportedCount(v)
+	})
+}
+
+// UpdateImportedCount sets the "imported_count" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateImportedCount() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedCount()
+	})
+}
+
+// SetImportedAt sets the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetImportedAt(v time.Time) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedAt(v)
+	})
+}
+
+// UpdateImportedAt sets the "imported_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateImportedAt() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedAt()
+	})
+}
+
+// ClearImportedAt clears the value of the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsertOne) ClearImportedAt() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearImportedAt()
+	})
+}
+
+// SetImportedBy sets the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsertOne) SetImportedBy(v uuid.UUID) *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedBy(v)
+	})
+}
+
+// UpdateImportedBy sets the "imported_by" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertOne) UpdateImportedBy() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedBy()
+	})
+}
+
+// ClearImportedBy clears the value of the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsertOne) ClearImportedBy() *ExchangeRateImportBatchUpsertOne {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearImportedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *ExchangeRateImportBatchUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ExchangeRateImportBatchCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ExchangeRateImportBatchUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ExchangeRateImportBatchUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ExchangeRateImportBatchUpsertOne.ID is not supported by MySQL driver. Use ExchangeRateImportBatchUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ExchangeRateImportBatchUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ExchangeRateImportBatchCreateBulk is the builder for creating many ExchangeRateImportBatch entities in bulk.
 type ExchangeRateImportBatchCreateBulk struct {
 	config
 	err      error
 	builders []*ExchangeRateImportBatchCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ExchangeRateImportBatch entities in the database.
@@ -499,6 +886,7 @@ func (_c *ExchangeRateImportBatchCreateBulk) Save(ctx context.Context) ([]*Excha
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -545,6 +933,271 @@ func (_c *ExchangeRateImportBatchCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ExchangeRateImportBatchCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ExchangeRateImportBatch.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ExchangeRateImportBatchUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ExchangeRateImportBatchCreateBulk) OnConflict(opts ...sql.ConflictOption) *ExchangeRateImportBatchUpsertBulk {
+	_c.conflict = opts
+	return &ExchangeRateImportBatchUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ExchangeRateImportBatchCreateBulk) OnConflictColumns(columns ...string) *ExchangeRateImportBatchUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ExchangeRateImportBatchUpsertBulk{
+		create: _c,
+	}
+}
+
+// ExchangeRateImportBatchUpsertBulk is the builder for "upsert"-ing
+// a bulk of ExchangeRateImportBatch nodes.
+type ExchangeRateImportBatchUpsertBulk struct {
+	create *ExchangeRateImportBatchCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(exchangerateimportbatch.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateNewValues() *ExchangeRateImportBatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OwnerOrganizationID(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldOwnerOrganizationID)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldCreatedBy)
+			}
+			if _, exists := b.mutation.FileName(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldFileName)
+			}
+			if _, exists := b.mutation.FileChecksum(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldFileChecksum)
+			}
+			if _, exists := b.mutation.TemplateVersion(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldTemplateVersion)
+			}
+			if _, exists := b.mutation.PreviewTokenHash(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldPreviewTokenHash)
+			}
+			if _, exists := b.mutation.ExpiresAt(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldExpiresAt)
+			}
+			if _, exists := b.mutation.TotalCount(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldTotalCount)
+			}
+			if _, exists := b.mutation.ValidCount(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldValidCount)
+			}
+			if _, exists := b.mutation.InvalidCount(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldInvalidCount)
+			}
+			if _, exists := b.mutation.Rows(); exists {
+				s.SetIgnore(exchangerateimportbatch.FieldRows)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateImportBatch.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ExchangeRateImportBatchUpsertBulk) Ignore() *ExchangeRateImportBatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ExchangeRateImportBatchUpsertBulk) DoNothing() *ExchangeRateImportBatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ExchangeRateImportBatchCreateBulk.OnConflict
+// documentation for more info.
+func (u *ExchangeRateImportBatchUpsertBulk) Update(set func(*ExchangeRateImportBatchUpsert)) *ExchangeRateImportBatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ExchangeRateImportBatchUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetUpdatedAt(v time.Time) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateUpdatedAt() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetStatus(v exchangerateimportbatch.Status) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateStatus() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetIdempotencyKey(v string) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateIdempotencyKey() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (u *ExchangeRateImportBatchUpsertBulk) ClearIdempotencyKey() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearIdempotencyKey()
+	})
+}
+
+// SetImportedCount sets the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetImportedCount(v int) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedCount(v)
+	})
+}
+
+// AddImportedCount adds v to the "imported_count" field.
+func (u *ExchangeRateImportBatchUpsertBulk) AddImportedCount(v int) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.AddImportedCount(v)
+	})
+}
+
+// UpdateImportedCount sets the "imported_count" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateImportedCount() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedCount()
+	})
+}
+
+// SetImportedAt sets the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetImportedAt(v time.Time) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedAt(v)
+	})
+}
+
+// UpdateImportedAt sets the "imported_at" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateImportedAt() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedAt()
+	})
+}
+
+// ClearImportedAt clears the value of the "imported_at" field.
+func (u *ExchangeRateImportBatchUpsertBulk) ClearImportedAt() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearImportedAt()
+	})
+}
+
+// SetImportedBy sets the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsertBulk) SetImportedBy(v uuid.UUID) *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.SetImportedBy(v)
+	})
+}
+
+// UpdateImportedBy sets the "imported_by" field to the value that was provided on create.
+func (u *ExchangeRateImportBatchUpsertBulk) UpdateImportedBy() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.UpdateImportedBy()
+	})
+}
+
+// ClearImportedBy clears the value of the "imported_by" field.
+func (u *ExchangeRateImportBatchUpsertBulk) ClearImportedBy() *ExchangeRateImportBatchUpsertBulk {
+	return u.Update(func(s *ExchangeRateImportBatchUpsert) {
+		s.ClearImportedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *ExchangeRateImportBatchUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ExchangeRateImportBatchCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ExchangeRateImportBatchCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ExchangeRateImportBatchUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

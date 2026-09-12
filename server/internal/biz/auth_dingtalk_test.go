@@ -40,7 +40,7 @@ func (s *dingTalkProviderStub) ResolveIdentity(context.Context, string) (*DingTa
 }
 
 func TestAuthUsecaseStartDingTalkLogin(t *testing.T) {
-	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{enabled: true}, &dingTalkRegistrationTokenCodecStub{})
+	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{enabled: true}, &dingTalkRegistrationTokenCodecStub{}, nil, nil, nil)
 	enabled, authorizeURL, state, expiresAt, err := usecase.StartDingTalkLogin()
 	if err != nil {
 		t.Fatalf("StartDingTalkLogin() error = %v", err)
@@ -54,8 +54,7 @@ func TestAuthUsecaseDingTalkUnregisteredLoginRequiresConfirmation(t *testing.T) 
 	repo := &wecomAuthRepoStub{}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	codec := &dingTalkRegistrationTokenCodecStub{}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec)
-
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec, nil, nil, nil)
 	result, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
 	if err != nil {
 		t.Fatalf("LoginDingTalk() error = %v", err)
@@ -77,9 +76,8 @@ func TestAuthUsecaseDingTalkRegistrationWaitsForAuthorization(t *testing.T) {
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: provider.identity}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec)
-
-	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token")
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec, nil, nil, nil)
+	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.Nil)
 	if err != nil {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v", err)
 	}
@@ -98,8 +96,7 @@ func TestAuthUsecaseDingTalkPendingLoginDoesNotCreateSession(t *testing.T) {
 		credential: &Credential{UserID: userID, DisplayName: "张三", PrimaryOrganizationID: organizationID, Enabled: false},
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, &dingTalkRegistrationTokenCodecStub{})
-
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, &dingTalkRegistrationTokenCodecStub{}, nil, nil, nil)
 	_, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
 	if err != ErrDingTalkAuthorizationPending {
 		t.Fatalf("LoginDingTalk() error = %v, want ErrDingTalkAuthorizationPending", err)
@@ -115,9 +112,8 @@ func TestAuthUsecaseDingTalkRegistrationRejectsEnabledAccount(t *testing.T) {
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: provider.identity}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec)
-
-	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token"); err != ErrDingTalkAlreadyRegistered {
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec, nil, nil, nil)
+	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.Nil); err != ErrDingTalkAlreadyRegistered {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v, want ErrDingTalkAlreadyRegistered", err)
 	}
 }
@@ -129,8 +125,7 @@ func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSession(t *testing.T) {
 		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, &dingTalkRegistrationTokenCodecStub{})
-
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, &dingTalkRegistrationTokenCodecStub{}, nil, nil, nil)
 	result, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
 	if err != nil {
 		t.Fatalf("LoginDingTalk() error = %v", err)

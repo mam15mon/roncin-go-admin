@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type NumberSequenceCreate struct {
 	config
 	mutation *NumberSequenceMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -209,6 +212,7 @@ func (_c *NumberSequenceCreate) createSpec() (*NumberSequence, *sqlgraph.CreateS
 		_node = &NumberSequence{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(numbersequence.Table, sqlgraph.NewFieldSpec(numbersequence.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -249,11 +253,244 @@ func (_c *NumberSequenceCreate) createSpec() (*NumberSequence, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NumberSequence.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NumberSequenceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NumberSequenceCreate) OnConflict(opts ...sql.ConflictOption) *NumberSequenceUpsertOne {
+	_c.conflict = opts
+	return &NumberSequenceUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NumberSequenceCreate) OnConflictColumns(columns ...string) *NumberSequenceUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NumberSequenceUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// NumberSequenceUpsertOne is the builder for "upsert"-ing
+	//  one NumberSequence node.
+	NumberSequenceUpsertOne struct {
+		create *NumberSequenceCreate
+	}
+
+	// NumberSequenceUpsert is the "OnConflict" setter.
+	NumberSequenceUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberSequenceUpsert) SetUpdatedAt(v time.Time) *NumberSequenceUpsert {
+	u.Set(numbersequence.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberSequenceUpsert) UpdateUpdatedAt() *NumberSequenceUpsert {
+	u.SetExcluded(numbersequence.FieldUpdatedAt)
+	return u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *NumberSequenceUpsert) SetRuleID(v uuid.UUID) *NumberSequenceUpsert {
+	u.Set(numbersequence.FieldRuleID, v)
+	return u
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NumberSequenceUpsert) UpdateRuleID() *NumberSequenceUpsert {
+	u.SetExcluded(numbersequence.FieldRuleID)
+	return u
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *NumberSequenceUpsert) SetCurrentValue(v int64) *NumberSequenceUpsert {
+	u.Set(numbersequence.FieldCurrentValue, v)
+	return u
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *NumberSequenceUpsert) UpdateCurrentValue() *NumberSequenceUpsert {
+	u.SetExcluded(numbersequence.FieldCurrentValue)
+	return u
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *NumberSequenceUpsert) AddCurrentValue(v int64) *NumberSequenceUpsert {
+	u.Add(numbersequence.FieldCurrentValue, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(numbersequence.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NumberSequenceUpsertOne) UpdateNewValues() *NumberSequenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(numbersequence.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(numbersequence.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.PeriodKey(); exists {
+			s.SetIgnore(numbersequence.FieldPeriodKey)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *NumberSequenceUpsertOne) Ignore() *NumberSequenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NumberSequenceUpsertOne) DoNothing() *NumberSequenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NumberSequenceCreate.OnConflict
+// documentation for more info.
+func (u *NumberSequenceUpsertOne) Update(set func(*NumberSequenceUpsert)) *NumberSequenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NumberSequenceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberSequenceUpsertOne) SetUpdatedAt(v time.Time) *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberSequenceUpsertOne) UpdateUpdatedAt() *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *NumberSequenceUpsertOne) SetRuleID(v uuid.UUID) *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NumberSequenceUpsertOne) UpdateRuleID() *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *NumberSequenceUpsertOne) SetCurrentValue(v int64) *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetCurrentValue(v)
+	})
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *NumberSequenceUpsertOne) AddCurrentValue(v int64) *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.AddCurrentValue(v)
+	})
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *NumberSequenceUpsertOne) UpdateCurrentValue() *NumberSequenceUpsertOne {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateCurrentValue()
+	})
+}
+
+// Exec executes the query.
+func (u *NumberSequenceUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NumberSequenceCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NumberSequenceUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *NumberSequenceUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: NumberSequenceUpsertOne.ID is not supported by MySQL driver. Use NumberSequenceUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *NumberSequenceUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // NumberSequenceCreateBulk is the builder for creating many NumberSequence entities in bulk.
 type NumberSequenceCreateBulk struct {
 	config
 	err      error
 	builders []*NumberSequenceCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the NumberSequence entities in the database.
@@ -283,6 +520,7 @@ func (_c *NumberSequenceCreateBulk) Save(ctx context.Context) ([]*NumberSequence
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -329,6 +567,175 @@ func (_c *NumberSequenceCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *NumberSequenceCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NumberSequence.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NumberSequenceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NumberSequenceCreateBulk) OnConflict(opts ...sql.ConflictOption) *NumberSequenceUpsertBulk {
+	_c.conflict = opts
+	return &NumberSequenceUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NumberSequenceCreateBulk) OnConflictColumns(columns ...string) *NumberSequenceUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NumberSequenceUpsertBulk{
+		create: _c,
+	}
+}
+
+// NumberSequenceUpsertBulk is the builder for "upsert"-ing
+// a bulk of NumberSequence nodes.
+type NumberSequenceUpsertBulk struct {
+	create *NumberSequenceCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(numbersequence.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NumberSequenceUpsertBulk) UpdateNewValues() *NumberSequenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(numbersequence.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(numbersequence.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.PeriodKey(); exists {
+				s.SetIgnore(numbersequence.FieldPeriodKey)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NumberSequence.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *NumberSequenceUpsertBulk) Ignore() *NumberSequenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NumberSequenceUpsertBulk) DoNothing() *NumberSequenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NumberSequenceCreateBulk.OnConflict
+// documentation for more info.
+func (u *NumberSequenceUpsertBulk) Update(set func(*NumberSequenceUpsert)) *NumberSequenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NumberSequenceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberSequenceUpsertBulk) SetUpdatedAt(v time.Time) *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberSequenceUpsertBulk) UpdateUpdatedAt() *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *NumberSequenceUpsertBulk) SetRuleID(v uuid.UUID) *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NumberSequenceUpsertBulk) UpdateRuleID() *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// SetCurrentValue sets the "current_value" field.
+func (u *NumberSequenceUpsertBulk) SetCurrentValue(v int64) *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.SetCurrentValue(v)
+	})
+}
+
+// AddCurrentValue adds v to the "current_value" field.
+func (u *NumberSequenceUpsertBulk) AddCurrentValue(v int64) *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.AddCurrentValue(v)
+	})
+}
+
+// UpdateCurrentValue sets the "current_value" field to the value that was provided on create.
+func (u *NumberSequenceUpsertBulk) UpdateCurrentValue() *NumberSequenceUpsertBulk {
+	return u.Update(func(s *NumberSequenceUpsert) {
+		s.UpdateCurrentValue()
+	})
+}
+
+// Exec executes the query.
+func (u *NumberSequenceUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NumberSequenceCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NumberSequenceCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NumberSequenceUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type ExchangeRateSettingCreate struct {
 	config
 	mutation *ExchangeRateSettingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -241,6 +244,7 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 		_node = &ExchangeRateSetting{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(exchangeratesetting.Table, sqlgraph.NewFieldSpec(exchangeratesetting.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -284,11 +288,371 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ExchangeRateSetting.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ExchangeRateSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ExchangeRateSettingCreate) OnConflict(opts ...sql.ConflictOption) *ExchangeRateSettingUpsertOne {
+	_c.conflict = opts
+	return &ExchangeRateSettingUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ExchangeRateSettingCreate) OnConflictColumns(columns ...string) *ExchangeRateSettingUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ExchangeRateSettingUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ExchangeRateSettingUpsertOne is the builder for "upsert"-ing
+	//  one ExchangeRateSetting node.
+	ExchangeRateSettingUpsertOne struct {
+		create *ExchangeRateSettingCreate
+	}
+
+	// ExchangeRateSettingUpsert is the "OnConflict" setter.
+	ExchangeRateSettingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateSettingUpsert) SetUpdatedAt(v time.Time) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateUpdatedAt() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ExchangeRateSettingUpsert) SetOrganizationID(v uuid.UUID) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateOrganizationID() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldOrganizationID)
+	return u
+}
+
+// SetFromCurrency sets the "from_currency" field.
+func (u *ExchangeRateSettingUpsert) SetFromCurrency(v string) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldFromCurrency, v)
+	return u
+}
+
+// UpdateFromCurrency sets the "from_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateFromCurrency() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldFromCurrency)
+	return u
+}
+
+// SetToCurrency sets the "to_currency" field.
+func (u *ExchangeRateSettingUpsert) SetToCurrency(v string) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldToCurrency, v)
+	return u
+}
+
+// UpdateToCurrency sets the "to_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateToCurrency() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldToCurrency)
+	return u
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *ExchangeRateSettingUpsert) SetEffectiveFrom(v time.Time) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldEffectiveFrom, v)
+	return u
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateEffectiveFrom() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldEffectiveFrom)
+	return u
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *ExchangeRateSettingUpsert) SetEffectiveTo(v time.Time) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldEffectiveTo, v)
+	return u
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateEffectiveTo() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldEffectiveTo)
+	return u
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *ExchangeRateSettingUpsert) ClearEffectiveTo() *ExchangeRateSettingUpsert {
+	u.SetNull(exchangeratesetting.FieldEffectiveTo)
+	return u
+}
+
+// SetRate sets the "rate" field.
+func (u *ExchangeRateSettingUpsert) SetRate(v string) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldRate, v)
+	return u
+}
+
+// UpdateRate sets the "rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateRate() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldRate)
+	return u
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *ExchangeRateSettingUpsert) SetIsActive(v bool) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldIsActive, v)
+	return u
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateIsActive() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldIsActive)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(exchangeratesetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ExchangeRateSettingUpsertOne) UpdateNewValues() *ExchangeRateSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(exchangeratesetting.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(exchangeratesetting.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ExchangeRateSettingUpsertOne) Ignore() *ExchangeRateSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ExchangeRateSettingUpsertOne) DoNothing() *ExchangeRateSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ExchangeRateSettingCreate.OnConflict
+// documentation for more info.
+func (u *ExchangeRateSettingUpsertOne) Update(set func(*ExchangeRateSettingUpsert)) *ExchangeRateSettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ExchangeRateSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateSettingUpsertOne) SetUpdatedAt(v time.Time) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateUpdatedAt() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ExchangeRateSettingUpsertOne) SetOrganizationID(v uuid.UUID) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateOrganizationID() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetFromCurrency sets the "from_currency" field.
+func (u *ExchangeRateSettingUpsertOne) SetFromCurrency(v string) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetFromCurrency(v)
+	})
+}
+
+// UpdateFromCurrency sets the "from_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateFromCurrency() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateFromCurrency()
+	})
+}
+
+// SetToCurrency sets the "to_currency" field.
+func (u *ExchangeRateSettingUpsertOne) SetToCurrency(v string) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetToCurrency(v)
+	})
+}
+
+// UpdateToCurrency sets the "to_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateToCurrency() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateToCurrency()
+	})
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *ExchangeRateSettingUpsertOne) SetEffectiveFrom(v time.Time) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetEffectiveFrom(v)
+	})
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateEffectiveFrom() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateEffectiveFrom()
+	})
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *ExchangeRateSettingUpsertOne) SetEffectiveTo(v time.Time) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetEffectiveTo(v)
+	})
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateEffectiveTo() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateEffectiveTo()
+	})
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *ExchangeRateSettingUpsertOne) ClearEffectiveTo() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearEffectiveTo()
+	})
+}
+
+// SetRate sets the "rate" field.
+func (u *ExchangeRateSettingUpsertOne) SetRate(v string) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetRate(v)
+	})
+}
+
+// UpdateRate sets the "rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateRate() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateRate()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *ExchangeRateSettingUpsertOne) SetIsActive(v bool) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateIsActive() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// Exec executes the query.
+func (u *ExchangeRateSettingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ExchangeRateSettingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ExchangeRateSettingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ExchangeRateSettingUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ExchangeRateSettingUpsertOne.ID is not supported by MySQL driver. Use ExchangeRateSettingUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ExchangeRateSettingUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ExchangeRateSettingCreateBulk is the builder for creating many ExchangeRateSetting entities in bulk.
 type ExchangeRateSettingCreateBulk struct {
 	config
 	err      error
 	builders []*ExchangeRateSettingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ExchangeRateSetting entities in the database.
@@ -318,6 +682,7 @@ func (_c *ExchangeRateSettingCreateBulk) Save(ctx context.Context) ([]*ExchangeR
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -364,6 +729,242 @@ func (_c *ExchangeRateSettingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ExchangeRateSettingCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ExchangeRateSetting.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ExchangeRateSettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ExchangeRateSettingCreateBulk) OnConflict(opts ...sql.ConflictOption) *ExchangeRateSettingUpsertBulk {
+	_c.conflict = opts
+	return &ExchangeRateSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ExchangeRateSettingCreateBulk) OnConflictColumns(columns ...string) *ExchangeRateSettingUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ExchangeRateSettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// ExchangeRateSettingUpsertBulk is the builder for "upsert"-ing
+// a bulk of ExchangeRateSetting nodes.
+type ExchangeRateSettingUpsertBulk struct {
+	create *ExchangeRateSettingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(exchangeratesetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ExchangeRateSettingUpsertBulk) UpdateNewValues() *ExchangeRateSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(exchangeratesetting.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(exchangeratesetting.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ExchangeRateSetting.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ExchangeRateSettingUpsertBulk) Ignore() *ExchangeRateSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ExchangeRateSettingUpsertBulk) DoNothing() *ExchangeRateSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ExchangeRateSettingCreateBulk.OnConflict
+// documentation for more info.
+func (u *ExchangeRateSettingUpsertBulk) Update(set func(*ExchangeRateSettingUpsert)) *ExchangeRateSettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ExchangeRateSettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ExchangeRateSettingUpsertBulk) SetUpdatedAt(v time.Time) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateUpdatedAt() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ExchangeRateSettingUpsertBulk) SetOrganizationID(v uuid.UUID) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateOrganizationID() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetFromCurrency sets the "from_currency" field.
+func (u *ExchangeRateSettingUpsertBulk) SetFromCurrency(v string) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetFromCurrency(v)
+	})
+}
+
+// UpdateFromCurrency sets the "from_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateFromCurrency() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateFromCurrency()
+	})
+}
+
+// SetToCurrency sets the "to_currency" field.
+func (u *ExchangeRateSettingUpsertBulk) SetToCurrency(v string) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetToCurrency(v)
+	})
+}
+
+// UpdateToCurrency sets the "to_currency" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateToCurrency() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateToCurrency()
+	})
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *ExchangeRateSettingUpsertBulk) SetEffectiveFrom(v time.Time) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetEffectiveFrom(v)
+	})
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateEffectiveFrom() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateEffectiveFrom()
+	})
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *ExchangeRateSettingUpsertBulk) SetEffectiveTo(v time.Time) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetEffectiveTo(v)
+	})
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateEffectiveTo() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateEffectiveTo()
+	})
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *ExchangeRateSettingUpsertBulk) ClearEffectiveTo() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearEffectiveTo()
+	})
+}
+
+// SetRate sets the "rate" field.
+func (u *ExchangeRateSettingUpsertBulk) SetRate(v string) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetRate(v)
+	})
+}
+
+// UpdateRate sets the "rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateRate() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateRate()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *ExchangeRateSettingUpsertBulk) SetIsActive(v bool) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateIsActive() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// Exec executes the query.
+func (u *ExchangeRateSettingUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ExchangeRateSettingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ExchangeRateSettingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ExchangeRateSettingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

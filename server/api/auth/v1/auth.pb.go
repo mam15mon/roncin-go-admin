@@ -238,9 +238,11 @@ func (x *DingTalkLoginRequest) GetState() string {
 }
 
 type RegisterDingTalkUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 可选：自选要加入的目标公司；缺省走总部兜底（通知总部管理员审批）。
+	OrganizationId *string `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RegisterDingTalkUserRequest) Reset() {
@@ -271,6 +273,13 @@ func (x *RegisterDingTalkUserRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use RegisterDingTalkUserRequest.ProtoReflect.Descriptor instead.
 func (*RegisterDingTalkUserRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RegisterDingTalkUserRequest) GetOrganizationId() string {
+	if x != nil && x.OrganizationId != nil {
+		return *x.OrganizationId
+	}
+	return ""
 }
 
 type GetWeComLoginConfigResponse struct {
@@ -811,12 +820,14 @@ func (x *DingTalkLoginResponse) GetTraceId() string {
 }
 
 type DingTalkLoginResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        DingTalkLoginStatus    `protobuf:"varint,1,opt,name=status,proto3,enum=auth.v1.DingTalkLoginStatus" json:"status,omitempty"`
-	CurrentUser   *CurrentUser           `protobuf:"bytes,2,opt,name=current_user,json=currentUser,proto3,oneof" json:"current_user,omitempty"`
-	DisplayName   *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Status      DingTalkLoginStatus    `protobuf:"varint,1,opt,name=status,proto3,enum=auth.v1.DingTalkLoginStatus" json:"status,omitempty"`
+	CurrentUser *CurrentUser           `protobuf:"bytes,2,opt,name=current_user,json=currentUser,proto3,oneof" json:"current_user,omitempty"`
+	DisplayName *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	// REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。
+	RegistrationOrganizations []*OrganizationChoice `protobuf:"bytes,4,rep,name=registration_organizations,json=registrationOrganizations,proto3" json:"registration_organizations,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *DingTalkLoginResult) Reset() {
@@ -870,13 +881,20 @@ func (x *DingTalkLoginResult) GetDisplayName() string {
 	return ""
 }
 
+func (x *DingTalkLoginResult) GetRegistrationOrganizations() []*OrganizationChoice {
+	if x != nil {
+		return x.RegistrationOrganizations
+	}
+	return nil
+}
+
 type RegisterDingTalkUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *DingTalkRegistration  `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Success       bool                              `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                             `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                            `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkRegistrationConfirmation `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                            `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -932,7 +950,7 @@ func (x *RegisterDingTalkUserResponse) GetMessage() string {
 	return ""
 }
 
-func (x *RegisterDingTalkUserResponse) GetData() *DingTalkRegistration {
+func (x *RegisterDingTalkUserResponse) GetData() *DingTalkRegistrationConfirmation {
 	if x != nil {
 		return x.Data
 	}
@@ -946,7 +964,7 @@ func (x *RegisterDingTalkUserResponse) GetTraceId() string {
 	return ""
 }
 
-type DingTalkRegistration struct {
+type DingTalkRegistrationConfirmation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DisplayName   string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
@@ -954,20 +972,20 @@ type DingTalkRegistration struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DingTalkRegistration) Reset() {
-	*x = DingTalkRegistration{}
+func (x *DingTalkRegistrationConfirmation) Reset() {
+	*x = DingTalkRegistrationConfirmation{}
 	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DingTalkRegistration) String() string {
+func (x *DingTalkRegistrationConfirmation) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DingTalkRegistration) ProtoMessage() {}
+func (*DingTalkRegistrationConfirmation) ProtoMessage() {}
 
-func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
+func (x *DingTalkRegistrationConfirmation) ProtoReflect() protoreflect.Message {
 	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -979,19 +997,19 @@ func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DingTalkRegistration.ProtoReflect.Descriptor instead.
-func (*DingTalkRegistration) Descriptor() ([]byte, []int) {
+// Deprecated: Use DingTalkRegistrationConfirmation.ProtoReflect.Descriptor instead.
+func (*DingTalkRegistrationConfirmation) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *DingTalkRegistration) GetDisplayName() string {
+func (x *DingTalkRegistrationConfirmation) GetDisplayName() string {
 	if x != nil {
 		return x.DisplayName
 	}
 	return ""
 }
 
-func (x *DingTalkRegistration) GetStatus() string {
+func (x *DingTalkRegistrationConfirmation) GetStatus() string {
 	if x != nil {
 		return x.Status
 	}
@@ -1683,8 +1701,10 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x05state\x18\x02 \x01(\tB\x03\xe0A\x02R\x05state\"S\n" +
 	"\x14DingTalkLoginRequest\x12 \n" +
 	"\tauth_code\x18\x01 \x01(\tB\x03\xe0A\x02R\bauthCode\x12\x19\n" +
-	"\x05state\x18\x02 \x01(\tB\x03\xe0A\x02R\x05state\"\x1d\n" +
-	"\x1bRegisterDingTalkUserRequest\"\xaf\x01\n" +
+	"\x05state\x18\x02 \x01(\tB\x03\xe0A\x02R\x05state\"_\n" +
+	"\x1bRegisterDingTalkUserRequest\x12,\n" +
+	"\x0forganization_id\x18\x01 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01B\x12\n" +
+	"\x10_organization_id\"\xaf\x01\n" +
 	"\x1bGetWeComLoginConfigResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -1725,20 +1745,21 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.auth.v1.DingTalkLoginResultR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xd3\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaf\x02\n" +
 	"\x13DingTalkLoginResult\x124\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x1c.auth.v1.DingTalkLoginStatusR\x06status\x12<\n" +
 	"\fcurrent_user\x18\x02 \x01(\v2\x14.auth.v1.CurrentUserH\x00R\vcurrentUser\x88\x01\x01\x12&\n" +
-	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01B\x0f\n" +
+	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01\x12Z\n" +
+	"\x1aregistration_organizations\x18\x04 \x03(\v2\x1b.auth.v1.OrganizationChoiceR\x19registrationOrganizationsB\x0f\n" +
 	"\r_current_userB\x0f\n" +
-	"\r_display_name\"\xb4\x01\n" +
+	"\r_display_name\"\xc0\x01\n" +
 	"\x1cRegisterDingTalkUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
-	"\x04data\x18\x04 \x01(\v2\x1d.auth.v1.DingTalkRegistrationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"Q\n" +
-	"\x14DingTalkRegistration\x12!\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12=\n" +
+	"\x04data\x18\x04 \x01(\v2).auth.v1.DingTalkRegistrationConfirmationR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"]\n" +
+	" DingTalkRegistrationConfirmation\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"\x99\x01\n" +
 	"\n" +
@@ -1824,33 +1845,33 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_auth_v1_auth_proto_goTypes = []any{
-	(DingTalkLoginStatus)(0),               // 0: auth.v1.DingTalkLoginStatus
-	(*LoginRequest)(nil),                   // 1: auth.v1.LoginRequest
-	(*WeComLoginRequest)(nil),              // 2: auth.v1.WeComLoginRequest
-	(*DingTalkLoginRequest)(nil),           // 3: auth.v1.DingTalkLoginRequest
-	(*RegisterDingTalkUserRequest)(nil),    // 4: auth.v1.RegisterDingTalkUserRequest
-	(*GetWeComLoginConfigResponse)(nil),    // 5: auth.v1.GetWeComLoginConfigResponse
-	(*WeComLoginConfig)(nil),               // 6: auth.v1.WeComLoginConfig
-	(*GetDingTalkLoginConfigResponse)(nil), // 7: auth.v1.GetDingTalkLoginConfigResponse
-	(*DingTalkLoginConfig)(nil),            // 8: auth.v1.DingTalkLoginConfig
-	(*SwitchOrganizationRequest)(nil),      // 9: auth.v1.SwitchOrganizationRequest
-	(*LoginResponse)(nil),                  // 10: auth.v1.LoginResponse
-	(*WeComLoginResponse)(nil),             // 11: auth.v1.WeComLoginResponse
-	(*DingTalkLoginResponse)(nil),          // 12: auth.v1.DingTalkLoginResponse
-	(*DingTalkLoginResult)(nil),            // 13: auth.v1.DingTalkLoginResult
-	(*RegisterDingTalkUserResponse)(nil),   // 14: auth.v1.RegisterDingTalkUserResponse
-	(*DingTalkRegistration)(nil),           // 15: auth.v1.DingTalkRegistration
-	(*MeResponse)(nil),                     // 16: auth.v1.MeResponse
-	(*SwitchOrganizationResponse)(nil),     // 17: auth.v1.SwitchOrganizationResponse
-	(*OrganizationChoice)(nil),             // 18: auth.v1.OrganizationChoice
-	(*LogoutResponse)(nil),                 // 19: auth.v1.LogoutResponse
-	(*CurrentUser)(nil),                    // 20: auth.v1.CurrentUser
-	(*Organization)(nil),                   // 21: auth.v1.Organization
-	(*RoleScope)(nil),                      // 22: auth.v1.RoleScope
-	(*GetWeComLoginConfigRequest)(nil),     // 23: auth.v1.GetWeComLoginConfigRequest
-	(*GetDingTalkLoginConfigRequest)(nil),  // 24: auth.v1.GetDingTalkLoginConfigRequest
-	(*LogoutRequest)(nil),                  // 25: auth.v1.LogoutRequest
-	(*MeRequest)(nil),                      // 26: auth.v1.MeRequest
+	(DingTalkLoginStatus)(0),                 // 0: auth.v1.DingTalkLoginStatus
+	(*LoginRequest)(nil),                     // 1: auth.v1.LoginRequest
+	(*WeComLoginRequest)(nil),                // 2: auth.v1.WeComLoginRequest
+	(*DingTalkLoginRequest)(nil),             // 3: auth.v1.DingTalkLoginRequest
+	(*RegisterDingTalkUserRequest)(nil),      // 4: auth.v1.RegisterDingTalkUserRequest
+	(*GetWeComLoginConfigResponse)(nil),      // 5: auth.v1.GetWeComLoginConfigResponse
+	(*WeComLoginConfig)(nil),                 // 6: auth.v1.WeComLoginConfig
+	(*GetDingTalkLoginConfigResponse)(nil),   // 7: auth.v1.GetDingTalkLoginConfigResponse
+	(*DingTalkLoginConfig)(nil),              // 8: auth.v1.DingTalkLoginConfig
+	(*SwitchOrganizationRequest)(nil),        // 9: auth.v1.SwitchOrganizationRequest
+	(*LoginResponse)(nil),                    // 10: auth.v1.LoginResponse
+	(*WeComLoginResponse)(nil),               // 11: auth.v1.WeComLoginResponse
+	(*DingTalkLoginResponse)(nil),            // 12: auth.v1.DingTalkLoginResponse
+	(*DingTalkLoginResult)(nil),              // 13: auth.v1.DingTalkLoginResult
+	(*RegisterDingTalkUserResponse)(nil),     // 14: auth.v1.RegisterDingTalkUserResponse
+	(*DingTalkRegistrationConfirmation)(nil), // 15: auth.v1.DingTalkRegistrationConfirmation
+	(*MeResponse)(nil),                       // 16: auth.v1.MeResponse
+	(*SwitchOrganizationResponse)(nil),       // 17: auth.v1.SwitchOrganizationResponse
+	(*OrganizationChoice)(nil),               // 18: auth.v1.OrganizationChoice
+	(*LogoutResponse)(nil),                   // 19: auth.v1.LogoutResponse
+	(*CurrentUser)(nil),                      // 20: auth.v1.CurrentUser
+	(*Organization)(nil),                     // 21: auth.v1.Organization
+	(*RoleScope)(nil),                        // 22: auth.v1.RoleScope
+	(*GetWeComLoginConfigRequest)(nil),       // 23: auth.v1.GetWeComLoginConfigRequest
+	(*GetDingTalkLoginConfigRequest)(nil),    // 24: auth.v1.GetDingTalkLoginConfigRequest
+	(*LogoutRequest)(nil),                    // 25: auth.v1.LogoutRequest
+	(*MeRequest)(nil),                        // 26: auth.v1.MeRequest
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	6,  // 0: auth.v1.GetWeComLoginConfigResponse.data:type_name -> auth.v1.WeComLoginConfig
@@ -1861,36 +1882,37 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	13, // 5: auth.v1.DingTalkLoginResponse.data:type_name -> auth.v1.DingTalkLoginResult
 	0,  // 6: auth.v1.DingTalkLoginResult.status:type_name -> auth.v1.DingTalkLoginStatus
 	20, // 7: auth.v1.DingTalkLoginResult.current_user:type_name -> auth.v1.CurrentUser
-	15, // 8: auth.v1.RegisterDingTalkUserResponse.data:type_name -> auth.v1.DingTalkRegistration
-	20, // 9: auth.v1.MeResponse.data:type_name -> auth.v1.CurrentUser
-	20, // 10: auth.v1.SwitchOrganizationResponse.data:type_name -> auth.v1.CurrentUser
-	18, // 11: auth.v1.SwitchOrganizationResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
-	21, // 12: auth.v1.CurrentUser.current_organization:type_name -> auth.v1.Organization
-	21, // 13: auth.v1.CurrentUser.organizations:type_name -> auth.v1.Organization
-	22, // 14: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
-	1,  // 15: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	23, // 16: auth.v1.AuthService.GetWeComLoginConfig:input_type -> auth.v1.GetWeComLoginConfigRequest
-	2,  // 17: auth.v1.AuthService.WeComLogin:input_type -> auth.v1.WeComLoginRequest
-	24, // 18: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
-	3,  // 19: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
-	4,  // 20: auth.v1.AuthService.RegisterDingTalkUser:input_type -> auth.v1.RegisterDingTalkUserRequest
-	25, // 21: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	26, // 22: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
-	9,  // 23: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
-	10, // 24: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	5,  // 25: auth.v1.AuthService.GetWeComLoginConfig:output_type -> auth.v1.GetWeComLoginConfigResponse
-	11, // 26: auth.v1.AuthService.WeComLogin:output_type -> auth.v1.WeComLoginResponse
-	7,  // 27: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
-	12, // 28: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
-	14, // 29: auth.v1.AuthService.RegisterDingTalkUser:output_type -> auth.v1.RegisterDingTalkUserResponse
-	19, // 30: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	16, // 31: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	17, // 32: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	18, // 8: auth.v1.DingTalkLoginResult.registration_organizations:type_name -> auth.v1.OrganizationChoice
+	15, // 9: auth.v1.RegisterDingTalkUserResponse.data:type_name -> auth.v1.DingTalkRegistrationConfirmation
+	20, // 10: auth.v1.MeResponse.data:type_name -> auth.v1.CurrentUser
+	20, // 11: auth.v1.SwitchOrganizationResponse.data:type_name -> auth.v1.CurrentUser
+	18, // 12: auth.v1.SwitchOrganizationResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
+	21, // 13: auth.v1.CurrentUser.current_organization:type_name -> auth.v1.Organization
+	21, // 14: auth.v1.CurrentUser.organizations:type_name -> auth.v1.Organization
+	22, // 15: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
+	1,  // 16: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	23, // 17: auth.v1.AuthService.GetWeComLoginConfig:input_type -> auth.v1.GetWeComLoginConfigRequest
+	2,  // 18: auth.v1.AuthService.WeComLogin:input_type -> auth.v1.WeComLoginRequest
+	24, // 19: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
+	3,  // 20: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
+	4,  // 21: auth.v1.AuthService.RegisterDingTalkUser:input_type -> auth.v1.RegisterDingTalkUserRequest
+	25, // 22: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	26, // 23: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
+	9,  // 24: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
+	10, // 25: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	5,  // 26: auth.v1.AuthService.GetWeComLoginConfig:output_type -> auth.v1.GetWeComLoginConfigResponse
+	11, // 27: auth.v1.AuthService.WeComLogin:output_type -> auth.v1.WeComLoginResponse
+	7,  // 28: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
+	12, // 29: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
+	14, // 30: auth.v1.AuthService.RegisterDingTalkUser:output_type -> auth.v1.RegisterDingTalkUserResponse
+	19, // 31: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	16, // 32: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	17, // 33: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -1899,6 +1921,7 @@ func file_auth_v1_auth_proto_init() {
 		return
 	}
 	file_auth_v1_auth_proto_msgTypes[0].OneofWrappers = []any{}
+	file_auth_v1_auth_proto_msgTypes[3].OneofWrappers = []any{}
 	file_auth_v1_auth_proto_msgTypes[5].OneofWrappers = []any{}
 	file_auth_v1_auth_proto_msgTypes[7].OneofWrappers = []any{}
 	file_auth_v1_auth_proto_msgTypes[12].OneofWrappers = []any{}

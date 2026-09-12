@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type EnterpriseResourceAssigneeCreate struct {
 	config
 	mutation *EnterpriseResourceAssigneeMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -187,6 +190,7 @@ func (_c *EnterpriseResourceAssigneeCreate) createSpec() (*EnterpriseResourceAss
 		_node = &EnterpriseResourceAssignee{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresourceassignee.Table, sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -236,11 +240,182 @@ func (_c *EnterpriseResourceAssigneeCreate) createSpec() (*EnterpriseResourceAss
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAssigneeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAssigneeCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAssigneeUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourceAssigneeUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAssigneeCreate) OnConflictColumns(columns ...string) *EnterpriseResourceAssigneeUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAssigneeUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourceAssigneeUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResourceAssignee node.
+	EnterpriseResourceAssigneeUpsertOne struct {
+		create *EnterpriseResourceAssigneeCreate
+	}
+
+	// EnterpriseResourceAssigneeUpsert is the "OnConflict" setter.
+	EnterpriseResourceAssigneeUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAssigneeUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourceAssigneeUpsert {
+	u.Set(enterpriseresourceassignee.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAssigneeUpsert) UpdateUpdatedAt() *EnterpriseResourceAssigneeUpsert {
+	u.SetExcluded(enterpriseresourceassignee.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceassignee.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAssigneeUpsertOne) UpdateNewValues() *EnterpriseResourceAssigneeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresourceassignee.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresourceassignee.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterpriseresourceassignee.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.UserID(); exists {
+			s.SetIgnore(enterpriseresourceassignee.FieldUserID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourceAssigneeUpsertOne) Ignore() *EnterpriseResourceAssigneeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAssigneeUpsertOne) DoNothing() *EnterpriseResourceAssigneeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAssigneeCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAssigneeUpsertOne) Update(set func(*EnterpriseResourceAssigneeUpsert)) *EnterpriseResourceAssigneeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAssigneeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAssigneeUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourceAssigneeUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAssigneeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAssigneeUpsertOne) UpdateUpdatedAt() *EnterpriseResourceAssigneeUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAssigneeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAssigneeUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAssigneeCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAssigneeUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourceAssigneeUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourceAssigneeUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourceAssigneeUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourceAssigneeUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourceAssigneeCreateBulk is the builder for creating many EnterpriseResourceAssignee entities in bulk.
 type EnterpriseResourceAssigneeCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourceAssigneeCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResourceAssignee entities in the database.
@@ -270,6 +445,7 @@ func (_c *EnterpriseResourceAssigneeCreateBulk) Save(ctx context.Context) ([]*En
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -316,6 +492,143 @@ func (_c *EnterpriseResourceAssigneeCreateBulk) Exec(ctx context.Context) error 
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourceAssigneeCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAssignee.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAssigneeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAssigneeCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAssigneeUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourceAssigneeUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAssigneeCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourceAssigneeUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAssigneeUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourceAssigneeUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResourceAssignee nodes.
+type EnterpriseResourceAssigneeUpsertBulk struct {
+	create *EnterpriseResourceAssigneeCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceassignee.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAssigneeUpsertBulk) UpdateNewValues() *EnterpriseResourceAssigneeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresourceassignee.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresourceassignee.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterpriseresourceassignee.FieldResourceID)
+			}
+			if _, exists := b.mutation.UserID(); exists {
+				s.SetIgnore(enterpriseresourceassignee.FieldUserID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAssignee.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourceAssigneeUpsertBulk) Ignore() *EnterpriseResourceAssigneeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAssigneeUpsertBulk) DoNothing() *EnterpriseResourceAssigneeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAssigneeCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAssigneeUpsertBulk) Update(set func(*EnterpriseResourceAssigneeUpsert)) *EnterpriseResourceAssigneeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAssigneeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAssigneeUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourceAssigneeUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAssigneeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAssigneeUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceAssigneeUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAssigneeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAssigneeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourceAssigneeCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAssigneeCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAssigneeUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

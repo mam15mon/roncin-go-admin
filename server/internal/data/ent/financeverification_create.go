@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type FinanceVerificationCreate struct {
 	config
 	mutation *FinanceVerificationMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -511,6 +514,7 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 		_node = &FinanceVerification{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financeverification.Table, sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -693,11 +697,439 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceVerification.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceVerificationUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceVerificationCreate) OnConflict(opts ...sql.ConflictOption) *FinanceVerificationUpsertOne {
+	_c.conflict = opts
+	return &FinanceVerificationUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceVerificationCreate) OnConflictColumns(columns ...string) *FinanceVerificationUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceVerificationUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceVerificationUpsertOne is the builder for "upsert"-ing
+	//  one FinanceVerification node.
+	FinanceVerificationUpsertOne struct {
+		create *FinanceVerificationCreate
+	}
+
+	// FinanceVerificationUpsert is the "OnConflict" setter.
+	FinanceVerificationUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceVerificationUpsert) SetUpdatedAt(v time.Time) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateUpdatedAt() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceVerificationUpsert) SetStatus(v financeverification.Status) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateStatus() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldStatus)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceVerificationUpsert) SetNote(v string) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateNote() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceVerificationUpsert) ClearNote() *FinanceVerificationUpsert {
+	u.SetNull(financeverification.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceVerificationUpsert) SetVersion(v uint64) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateVersion() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceVerificationUpsert) AddVersion(v uint64) *FinanceVerificationUpsert {
+	u.Add(financeverification.FieldVersion, v)
+	return u
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceVerificationUpsert) SetReversedAt(v time.Time) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldReversedAt, v)
+	return u
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateReversedAt() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldReversedAt)
+	return u
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceVerificationUpsert) ClearReversedAt() *FinanceVerificationUpsert {
+	u.SetNull(financeverification.FieldReversedAt)
+	return u
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceVerificationUpsert) SetReversedBy(v uuid.UUID) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldReversedBy, v)
+	return u
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateReversedBy() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldReversedBy)
+	return u
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceVerificationUpsert) ClearReversedBy() *FinanceVerificationUpsert {
+	u.SetNull(financeverification.FieldReversedBy)
+	return u
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceVerificationUpsert) SetReversalReason(v string) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldReversalReason, v)
+	return u
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateReversalReason() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldReversalReason)
+	return u
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceVerificationUpsert) ClearReversalReason() *FinanceVerificationUpsert {
+	u.SetNull(financeverification.FieldReversalReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeverification.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceVerificationUpsertOne) UpdateNewValues() *FinanceVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financeverification.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financeverification.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financeverification.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.VerificationNo(); exists {
+			s.SetIgnore(financeverification.FieldVerificationNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(financeverification.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.Direction(); exists {
+			s.SetIgnore(financeverification.FieldDirection)
+		}
+		if _, exists := u.create.mutation.SettlementPartyID(); exists {
+			s.SetIgnore(financeverification.FieldSettlementPartyID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyName(); exists {
+			s.SetIgnore(financeverification.FieldSettlementPartyName)
+		}
+		if _, exists := u.create.mutation.Currency(); exists {
+			s.SetIgnore(financeverification.FieldCurrency)
+		}
+		if _, exists := u.create.mutation.Amount(); exists {
+			s.SetIgnore(financeverification.FieldAmount)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financeverification.FieldBaseCurrency)
+		}
+		if _, exists := u.create.mutation.BaseAmount(); exists {
+			s.SetIgnore(financeverification.FieldBaseAmount)
+		}
+		if _, exists := u.create.mutation.BillBaseAmount(); exists {
+			s.SetIgnore(financeverification.FieldBillBaseAmount)
+		}
+		if _, exists := u.create.mutation.CashflowBaseAmount(); exists {
+			s.SetIgnore(financeverification.FieldCashflowBaseAmount)
+		}
+		if _, exists := u.create.mutation.ExchangeGainLoss(); exists {
+			s.SetIgnore(financeverification.FieldExchangeGainLoss)
+		}
+		if _, exists := u.create.mutation.VerificationDate(); exists {
+			s.SetIgnore(financeverification.FieldVerificationDate)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceVerificationUpsertOne) Ignore() *FinanceVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceVerificationUpsertOne) DoNothing() *FinanceVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceVerificationCreate.OnConflict
+// documentation for more info.
+func (u *FinanceVerificationUpsertOne) Update(set func(*FinanceVerificationUpsert)) *FinanceVerificationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceVerificationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceVerificationUpsertOne) SetUpdatedAt(v time.Time) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateUpdatedAt() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceVerificationUpsertOne) SetStatus(v financeverification.Status) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateStatus() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceVerificationUpsertOne) SetNote(v string) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateNote() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceVerificationUpsertOne) ClearNote() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceVerificationUpsertOne) SetVersion(v uint64) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceVerificationUpsertOne) AddVersion(v uint64) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateVersion() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceVerificationUpsertOne) SetReversedAt(v time.Time) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversedAt(v)
+	})
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateReversedAt() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversedAt()
+	})
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceVerificationUpsertOne) ClearReversedAt() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversedAt()
+	})
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceVerificationUpsertOne) SetReversedBy(v uuid.UUID) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversedBy(v)
+	})
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateReversedBy() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversedBy()
+	})
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceVerificationUpsertOne) ClearReversedBy() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversedBy()
+	})
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceVerificationUpsertOne) SetReversalReason(v string) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversalReason(v)
+	})
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateReversalReason() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversalReason()
+	})
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceVerificationUpsertOne) ClearReversalReason() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversalReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceVerificationUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceVerificationCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceVerificationUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceVerificationUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceVerificationUpsertOne.ID is not supported by MySQL driver. Use FinanceVerificationUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceVerificationUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceVerificationCreateBulk is the builder for creating many FinanceVerification entities in bulk.
 type FinanceVerificationCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceVerificationCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceVerification entities in the database.
@@ -727,6 +1159,7 @@ func (_c *FinanceVerificationCreateBulk) Save(ctx context.Context) ([]*FinanceVe
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -773,6 +1206,298 @@ func (_c *FinanceVerificationCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceVerificationCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceVerification.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceVerificationUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceVerificationCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceVerificationUpsertBulk {
+	_c.conflict = opts
+	return &FinanceVerificationUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceVerificationCreateBulk) OnConflictColumns(columns ...string) *FinanceVerificationUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceVerificationUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceVerificationUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceVerification nodes.
+type FinanceVerificationUpsertBulk struct {
+	create *FinanceVerificationCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeverification.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceVerificationUpsertBulk) UpdateNewValues() *FinanceVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financeverification.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financeverification.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financeverification.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.VerificationNo(); exists {
+				s.SetIgnore(financeverification.FieldVerificationNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(financeverification.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.Direction(); exists {
+				s.SetIgnore(financeverification.FieldDirection)
+			}
+			if _, exists := b.mutation.SettlementPartyID(); exists {
+				s.SetIgnore(financeverification.FieldSettlementPartyID)
+			}
+			if _, exists := b.mutation.SettlementPartyName(); exists {
+				s.SetIgnore(financeverification.FieldSettlementPartyName)
+			}
+			if _, exists := b.mutation.Currency(); exists {
+				s.SetIgnore(financeverification.FieldCurrency)
+			}
+			if _, exists := b.mutation.Amount(); exists {
+				s.SetIgnore(financeverification.FieldAmount)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financeverification.FieldBaseCurrency)
+			}
+			if _, exists := b.mutation.BaseAmount(); exists {
+				s.SetIgnore(financeverification.FieldBaseAmount)
+			}
+			if _, exists := b.mutation.BillBaseAmount(); exists {
+				s.SetIgnore(financeverification.FieldBillBaseAmount)
+			}
+			if _, exists := b.mutation.CashflowBaseAmount(); exists {
+				s.SetIgnore(financeverification.FieldCashflowBaseAmount)
+			}
+			if _, exists := b.mutation.ExchangeGainLoss(); exists {
+				s.SetIgnore(financeverification.FieldExchangeGainLoss)
+			}
+			if _, exists := b.mutation.VerificationDate(); exists {
+				s.SetIgnore(financeverification.FieldVerificationDate)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceVerification.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceVerificationUpsertBulk) Ignore() *FinanceVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceVerificationUpsertBulk) DoNothing() *FinanceVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceVerificationCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceVerificationUpsertBulk) Update(set func(*FinanceVerificationUpsert)) *FinanceVerificationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceVerificationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceVerificationUpsertBulk) SetUpdatedAt(v time.Time) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateUpdatedAt() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceVerificationUpsertBulk) SetStatus(v financeverification.Status) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateStatus() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceVerificationUpsertBulk) SetNote(v string) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateNote() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceVerificationUpsertBulk) ClearNote() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceVerificationUpsertBulk) SetVersion(v uint64) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceVerificationUpsertBulk) AddVersion(v uint64) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateVersion() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceVerificationUpsertBulk) SetReversedAt(v time.Time) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversedAt(v)
+	})
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateReversedAt() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversedAt()
+	})
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceVerificationUpsertBulk) ClearReversedAt() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversedAt()
+	})
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceVerificationUpsertBulk) SetReversedBy(v uuid.UUID) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversedBy(v)
+	})
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateReversedBy() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversedBy()
+	})
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceVerificationUpsertBulk) ClearReversedBy() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversedBy()
+	})
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceVerificationUpsertBulk) SetReversalReason(v string) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetReversalReason(v)
+	})
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateReversalReason() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateReversalReason()
+	})
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceVerificationUpsertBulk) ClearReversalReason() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.ClearReversalReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceVerificationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceVerificationCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceVerificationCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceVerificationUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type OrderFeeEnterpriseTagCreate struct {
 	config
 	mutation *OrderFeeEnterpriseTagMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -205,6 +208,7 @@ func (_c *OrderFeeEnterpriseTagCreate) createSpec() (*OrderFeeEnterpriseTag, *sq
 		_node = &OrderFeeEnterpriseTag{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderfeeenterprisetag.Table, sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -271,11 +275,185 @@ func (_c *OrderFeeEnterpriseTagCreate) createSpec() (*OrderFeeEnterpriseTag, *sq
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderFeeEnterpriseTagUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderFeeEnterpriseTagCreate) OnConflict(opts ...sql.ConflictOption) *OrderFeeEnterpriseTagUpsertOne {
+	_c.conflict = opts
+	return &OrderFeeEnterpriseTagUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderFeeEnterpriseTagCreate) OnConflictColumns(columns ...string) *OrderFeeEnterpriseTagUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderFeeEnterpriseTagUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderFeeEnterpriseTagUpsertOne is the builder for "upsert"-ing
+	//  one OrderFeeEnterpriseTag node.
+	OrderFeeEnterpriseTagUpsertOne struct {
+		create *OrderFeeEnterpriseTagCreate
+	}
+
+	// OrderFeeEnterpriseTagUpsert is the "OnConflict" setter.
+	OrderFeeEnterpriseTagUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeEnterpriseTagUpsert) SetUpdatedAt(v time.Time) *OrderFeeEnterpriseTagUpsert {
+	u.Set(orderfeeenterprisetag.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeEnterpriseTagUpsert) UpdateUpdatedAt() *OrderFeeEnterpriseTagUpsert {
+	u.SetExcluded(orderfeeenterprisetag.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderfeeenterprisetag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderFeeEnterpriseTagUpsertOne) UpdateNewValues() *OrderFeeEnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderfeeenterprisetag.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderfeeenterprisetag.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(orderfeeenterprisetag.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderFeeID(); exists {
+			s.SetIgnore(orderfeeenterprisetag.FieldOrderFeeID)
+		}
+		if _, exists := u.create.mutation.TagResourceID(); exists {
+			s.SetIgnore(orderfeeenterprisetag.FieldTagResourceID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderFeeEnterpriseTagUpsertOne) Ignore() *OrderFeeEnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderFeeEnterpriseTagUpsertOne) DoNothing() *OrderFeeEnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderFeeEnterpriseTagCreate.OnConflict
+// documentation for more info.
+func (u *OrderFeeEnterpriseTagUpsertOne) Update(set func(*OrderFeeEnterpriseTagUpsert)) *OrderFeeEnterpriseTagUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderFeeEnterpriseTagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeEnterpriseTagUpsertOne) SetUpdatedAt(v time.Time) *OrderFeeEnterpriseTagUpsertOne {
+	return u.Update(func(s *OrderFeeEnterpriseTagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeEnterpriseTagUpsertOne) UpdateUpdatedAt() *OrderFeeEnterpriseTagUpsertOne {
+	return u.Update(func(s *OrderFeeEnterpriseTagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderFeeEnterpriseTagUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderFeeEnterpriseTagCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderFeeEnterpriseTagUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderFeeEnterpriseTagUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderFeeEnterpriseTagUpsertOne.ID is not supported by MySQL driver. Use OrderFeeEnterpriseTagUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderFeeEnterpriseTagUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderFeeEnterpriseTagCreateBulk is the builder for creating many OrderFeeEnterpriseTag entities in bulk.
 type OrderFeeEnterpriseTagCreateBulk struct {
 	config
 	err      error
 	builders []*OrderFeeEnterpriseTagCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderFeeEnterpriseTag entities in the database.
@@ -305,6 +483,7 @@ func (_c *OrderFeeEnterpriseTagCreateBulk) Save(ctx context.Context) ([]*OrderFe
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -351,6 +530,146 @@ func (_c *OrderFeeEnterpriseTagCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderFeeEnterpriseTagCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderFeeEnterpriseTag.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderFeeEnterpriseTagUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderFeeEnterpriseTagCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderFeeEnterpriseTagUpsertBulk {
+	_c.conflict = opts
+	return &OrderFeeEnterpriseTagUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderFeeEnterpriseTagCreateBulk) OnConflictColumns(columns ...string) *OrderFeeEnterpriseTagUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderFeeEnterpriseTagUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderFeeEnterpriseTagUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderFeeEnterpriseTag nodes.
+type OrderFeeEnterpriseTagUpsertBulk struct {
+	create *OrderFeeEnterpriseTagCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderfeeenterprisetag.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderFeeEnterpriseTagUpsertBulk) UpdateNewValues() *OrderFeeEnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderfeeenterprisetag.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderfeeenterprisetag.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(orderfeeenterprisetag.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderFeeID(); exists {
+				s.SetIgnore(orderfeeenterprisetag.FieldOrderFeeID)
+			}
+			if _, exists := b.mutation.TagResourceID(); exists {
+				s.SetIgnore(orderfeeenterprisetag.FieldTagResourceID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderFeeEnterpriseTag.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderFeeEnterpriseTagUpsertBulk) Ignore() *OrderFeeEnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderFeeEnterpriseTagUpsertBulk) DoNothing() *OrderFeeEnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderFeeEnterpriseTagCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderFeeEnterpriseTagUpsertBulk) Update(set func(*OrderFeeEnterpriseTagUpsert)) *OrderFeeEnterpriseTagUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderFeeEnterpriseTagUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeEnterpriseTagUpsertBulk) SetUpdatedAt(v time.Time) *OrderFeeEnterpriseTagUpsertBulk {
+	return u.Update(func(s *OrderFeeEnterpriseTagUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeEnterpriseTagUpsertBulk) UpdateUpdatedAt() *OrderFeeEnterpriseTagUpsertBulk {
+	return u.Update(func(s *OrderFeeEnterpriseTagUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderFeeEnterpriseTagUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderFeeEnterpriseTagCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderFeeEnterpriseTagCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderFeeEnterpriseTagUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

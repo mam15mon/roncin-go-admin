@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -42,6 +43,8 @@ type User struct {
 	DingtalkUserid *string `json:"dingtalk_userid,omitempty"`
 	// DingtalkName holds the value of the "dingtalk_name" field.
 	DingtalkName *string `json:"dingtalk_name,omitempty"`
+	// DingtalkRequestedOrganizationID holds the value of the "dingtalk_requested_organization_id" field.
+	DingtalkRequestedOrganizationID *uuid.UUID `json:"dingtalk_requested_organization_id,omitempty"`
 	// IsBootstrapAdmin holds the value of the "is_bootstrap_admin" field.
 	IsBootstrapAdmin bool `json:"is_bootstrap_admin,omitempty"`
 	// Enabled holds the value of the "enabled" field.
@@ -154,9 +157,15 @@ type UserEdges struct {
 	CreatedSeaDocumentModeChangeEvents []*SeaDocumentModeChangeEvent `json:"created_sea_document_mode_change_events,omitempty"`
 	// ConfirmedSeaSharedContainers holds the value of the confirmed_sea_shared_containers edge.
 	ConfirmedSeaSharedContainers []*SeaSharedContainer `json:"confirmed_sea_shared_containers,omitempty"`
+	// CreatedDingtalkInvitations holds the value of the created_dingtalk_invitations edge.
+	CreatedDingtalkInvitations []*DingTalkInvitation `json:"created_dingtalk_invitations,omitempty"`
+	// ConsumedDingtalkInvitations holds the value of the consumed_dingtalk_invitations edge.
+	ConsumedDingtalkInvitations []*DingTalkInvitation `json:"consumed_dingtalk_invitations,omitempty"`
+	// DingtalkRequestedOrganization holds the value of the dingtalk_requested_organization edge.
+	DingtalkRequestedOrganization *Organization `json:"dingtalk_requested_organization,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [49]bool
+	loadedTypes [52]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -600,11 +609,42 @@ func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, e
 	return nil, &NotLoadedError{edge: "confirmed_sea_shared_containers"}
 }
 
+// CreatedDingtalkInvitationsOrErr returns the CreatedDingtalkInvitations value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
+	if e.loadedTypes[49] {
+		return e.CreatedDingtalkInvitations, nil
+	}
+	return nil, &NotLoadedError{edge: "created_dingtalk_invitations"}
+}
+
+// ConsumedDingtalkInvitationsOrErr returns the ConsumedDingtalkInvitations value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ConsumedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
+	if e.loadedTypes[50] {
+		return e.ConsumedDingtalkInvitations, nil
+	}
+	return nil, &NotLoadedError{edge: "consumed_dingtalk_invitations"}
+}
+
+// DingtalkRequestedOrganizationOrErr returns the DingtalkRequestedOrganization value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) DingtalkRequestedOrganizationOrErr() (*Organization, error) {
+	if e.DingtalkRequestedOrganization != nil {
+		return e.DingtalkRequestedOrganization, nil
+	} else if e.loadedTypes[51] {
+		return nil, &NotFoundError{label: organization.Label}
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_requested_organization"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldDingtalkRequestedOrganizationID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case user.FieldIsBootstrapAdmin, user.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldSearchKeywords:
@@ -713,6 +753,13 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DingtalkName = new(string)
 				*_m.DingtalkName = value.String
+			}
+		case user.FieldDingtalkRequestedOrganizationID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_requested_organization_id", values[i])
+			} else if value.Valid {
+				_m.DingtalkRequestedOrganizationID = new(uuid.UUID)
+				*_m.DingtalkRequestedOrganizationID = *value.S.(*uuid.UUID)
 			}
 		case user.FieldIsBootstrapAdmin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -990,6 +1037,21 @@ func (_m *User) QueryConfirmedSeaSharedContainers() *SeaSharedContainerQuery {
 	return NewUserClient(_m.config).QueryConfirmedSeaSharedContainers(_m)
 }
 
+// QueryCreatedDingtalkInvitations queries the "created_dingtalk_invitations" edge of the User entity.
+func (_m *User) QueryCreatedDingtalkInvitations() *DingTalkInvitationQuery {
+	return NewUserClient(_m.config).QueryCreatedDingtalkInvitations(_m)
+}
+
+// QueryConsumedDingtalkInvitations queries the "consumed_dingtalk_invitations" edge of the User entity.
+func (_m *User) QueryConsumedDingtalkInvitations() *DingTalkInvitationQuery {
+	return NewUserClient(_m.config).QueryConsumedDingtalkInvitations(_m)
+}
+
+// QueryDingtalkRequestedOrganization queries the "dingtalk_requested_organization" edge of the User entity.
+func (_m *User) QueryDingtalkRequestedOrganization() *OrganizationQuery {
+	return NewUserClient(_m.config).QueryDingtalkRequestedOrganization(_m)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -1060,6 +1122,11 @@ func (_m *User) String() string {
 	if v := _m.DingtalkName; v != nil {
 		builder.WriteString("dingtalk_name=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.DingtalkRequestedOrganizationID; v != nil {
+		builder.WriteString("dingtalk_requested_organization_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("is_bootstrap_admin=")

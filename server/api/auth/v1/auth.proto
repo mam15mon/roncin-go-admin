@@ -91,7 +91,10 @@ message DingTalkLoginRequest {
   string state = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-message RegisterDingTalkUserRequest {}
+message RegisterDingTalkUserRequest {
+  // 可选：自选要加入的目标公司；缺省走总部兜底（通知总部管理员审批）。
+  optional string organization_id = 1;
+}
 
 message GetWeComLoginConfigResponse {
   bool success = 1;
@@ -159,17 +162,19 @@ message DingTalkLoginResult {
   DingTalkLoginStatus status = 1;
   optional CurrentUser current_user = 2;
   optional string display_name = 3;
+  // REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。
+  repeated OrganizationChoice registration_organizations = 4;
 }
 
 message RegisterDingTalkUserResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  DingTalkRegistration data = 4;
+  DingTalkRegistrationConfirmation data = 4;
   string trace_id = 5;
 }
 
-message DingTalkRegistration {
+message DingTalkRegistrationConfirmation {
   string display_name = 1;
   string status = 2;
 }

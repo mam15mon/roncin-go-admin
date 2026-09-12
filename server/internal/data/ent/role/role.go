@@ -40,6 +40,8 @@ const (
 	EdgeOrganizationAccesses = "organization_accesses"
 	// EdgeOrderUnlockApproverCandidates holds the string denoting the order_unlock_approver_candidates edge name in mutations.
 	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
+	// EdgeDingtalkInvitations holds the string denoting the dingtalk_invitations edge name in mutations.
+	EdgeDingtalkInvitations = "dingtalk_invitations"
 	// Table holds the table name of the role in the database.
 	Table = "roles"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -75,6 +77,13 @@ const (
 	OrderUnlockApproverCandidatesInverseTable = "order_unlock_approver_candidates"
 	// OrderUnlockApproverCandidatesColumn is the table column denoting the order_unlock_approver_candidates relation/edge.
 	OrderUnlockApproverCandidatesColumn = "role_id"
+	// DingtalkInvitationsTable is the table that holds the dingtalk_invitations relation/edge.
+	DingtalkInvitationsTable = "ding_talk_invitations"
+	// DingtalkInvitationsInverseTable is the table name for the DingTalkInvitation entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkinvitation" package.
+	DingtalkInvitationsInverseTable = "ding_talk_invitations"
+	// DingtalkInvitationsColumn is the table column denoting the dingtalk_invitations relation/edge.
+	DingtalkInvitationsColumn = "role_id"
 )
 
 // Columns holds all SQL columns for role fields.
@@ -255,6 +264,20 @@ func ByOrderUnlockApproverCandidates(term sql.OrderTerm, terms ...sql.OrderTerm)
 		sqlgraph.OrderByNeighborTerms(s, newOrderUnlockApproverCandidatesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDingtalkInvitationsCount orders the results by dingtalk_invitations count.
+func ByDingtalkInvitationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDingtalkInvitationsStep(), opts...)
+	}
+}
+
+// ByDingtalkInvitations orders the results by dingtalk_invitations terms.
+func ByDingtalkInvitations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkInvitationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -288,5 +311,12 @@ func newOrderUnlockApproverCandidatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderUnlockApproverCandidatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockApproverCandidatesTable, OrderUnlockApproverCandidatesColumn),
+	)
+}
+func newDingtalkInvitationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkInvitationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DingtalkInvitationsTable, DingtalkInvitationsColumn),
 	)
 }

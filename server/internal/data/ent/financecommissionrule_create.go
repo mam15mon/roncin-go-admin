@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type FinanceCommissionRuleCreate struct {
 	config
 	mutation *FinanceCommissionRuleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -335,6 +338,7 @@ func (_c *FinanceCommissionRuleCreate) createSpec() (*FinanceCommissionRule, *sq
 		_node = &FinanceCommissionRule{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financecommissionrule.Table, sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -419,11 +423,465 @@ func (_c *FinanceCommissionRuleCreate) createSpec() (*FinanceCommissionRule, *sq
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCommissionRule.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCommissionRuleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCommissionRuleCreate) OnConflict(opts ...sql.ConflictOption) *FinanceCommissionRuleUpsertOne {
+	_c.conflict = opts
+	return &FinanceCommissionRuleUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCommissionRuleCreate) OnConflictColumns(columns ...string) *FinanceCommissionRuleUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCommissionRuleUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceCommissionRuleUpsertOne is the builder for "upsert"-ing
+	//  one FinanceCommissionRule node.
+	FinanceCommissionRuleUpsertOne struct {
+		create *FinanceCommissionRuleCreate
+	}
+
+	// FinanceCommissionRuleUpsert is the "OnConflict" setter.
+	FinanceCommissionRuleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionRuleUpsert) SetUpdatedAt(v time.Time) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateUpdatedAt() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldUpdatedAt)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *FinanceCommissionRuleUpsert) SetName(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateName() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldName)
+	return u
+}
+
+// SetPersonnelRole sets the "personnel_role" field.
+func (u *FinanceCommissionRuleUpsert) SetPersonnelRole(v financecommissionrule.PersonnelRole) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldPersonnelRole, v)
+	return u
+}
+
+// UpdatePersonnelRole sets the "personnel_role" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdatePersonnelRole() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldPersonnelRole)
+	return u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionRuleUpsert) SetCalculationBasis(v financecommissionrule.CalculationBasis) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldCalculationBasis, v)
+	return u
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateCalculationBasis() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldCalculationBasis)
+	return u
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionRuleUpsert) SetRatePercent(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldRatePercent, v)
+	return u
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateRatePercent() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldRatePercent)
+	return u
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *FinanceCommissionRuleUpsert) SetEffectiveFrom(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldEffectiveFrom, v)
+	return u
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateEffectiveFrom() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldEffectiveFrom)
+	return u
+}
+
+// ClearEffectiveFrom clears the value of the "effective_from" field.
+func (u *FinanceCommissionRuleUpsert) ClearEffectiveFrom() *FinanceCommissionRuleUpsert {
+	u.SetNull(financecommissionrule.FieldEffectiveFrom)
+	return u
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *FinanceCommissionRuleUpsert) SetEffectiveTo(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldEffectiveTo, v)
+	return u
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateEffectiveTo() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldEffectiveTo)
+	return u
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *FinanceCommissionRuleUpsert) ClearEffectiveTo() *FinanceCommissionRuleUpsert {
+	u.SetNull(financecommissionrule.FieldEffectiveTo)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FinanceCommissionRuleUpsert) SetEnabled(v bool) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateEnabled() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldEnabled)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionRuleUpsert) SetNote(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateNote() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionRuleUpsert) ClearNote() *FinanceCommissionRuleUpsert {
+	u.SetNull(financecommissionrule.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionRuleUpsert) SetVersion(v uint64) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateVersion() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionRuleUpsert) AddVersion(v uint64) *FinanceCommissionRuleUpsert {
+	u.Add(financecommissionrule.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecommissionrule.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCommissionRuleUpsertOne) UpdateNewValues() *FinanceCommissionRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financecommissionrule.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financecommissionrule.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financecommissionrule.FieldOrganizationID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceCommissionRuleUpsertOne) Ignore() *FinanceCommissionRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCommissionRuleUpsertOne) DoNothing() *FinanceCommissionRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCommissionRuleCreate.OnConflict
+// documentation for more info.
+func (u *FinanceCommissionRuleUpsertOne) Update(set func(*FinanceCommissionRuleUpsert)) *FinanceCommissionRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCommissionRuleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionRuleUpsertOne) SetUpdatedAt(v time.Time) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateUpdatedAt() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FinanceCommissionRuleUpsertOne) SetName(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateName() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetPersonnelRole sets the "personnel_role" field.
+func (u *FinanceCommissionRuleUpsertOne) SetPersonnelRole(v financecommissionrule.PersonnelRole) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetPersonnelRole(v)
+	})
+}
+
+// UpdatePersonnelRole sets the "personnel_role" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdatePersonnelRole() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdatePersonnelRole()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionRuleUpsertOne) SetCalculationBasis(v financecommissionrule.CalculationBasis) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateCalculationBasis() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionRuleUpsertOne) SetRatePercent(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetRatePercent(v)
+	})
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateRatePercent() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateRatePercent()
+	})
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *FinanceCommissionRuleUpsertOne) SetEffectiveFrom(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEffectiveFrom(v)
+	})
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateEffectiveFrom() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEffectiveFrom()
+	})
+}
+
+// ClearEffectiveFrom clears the value of the "effective_from" field.
+func (u *FinanceCommissionRuleUpsertOne) ClearEffectiveFrom() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearEffectiveFrom()
+	})
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *FinanceCommissionRuleUpsertOne) SetEffectiveTo(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEffectiveTo(v)
+	})
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateEffectiveTo() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEffectiveTo()
+	})
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *FinanceCommissionRuleUpsertOne) ClearEffectiveTo() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearEffectiveTo()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FinanceCommissionRuleUpsertOne) SetEnabled(v bool) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateEnabled() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionRuleUpsertOne) SetNote(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateNote() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionRuleUpsertOne) ClearNote() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionRuleUpsertOne) SetVersion(v uint64) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionRuleUpsertOne) AddVersion(v uint64) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateVersion() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCommissionRuleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCommissionRuleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCommissionRuleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceCommissionRuleUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceCommissionRuleUpsertOne.ID is not supported by MySQL driver. Use FinanceCommissionRuleUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceCommissionRuleUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceCommissionRuleCreateBulk is the builder for creating many FinanceCommissionRule entities in bulk.
 type FinanceCommissionRuleCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceCommissionRuleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceCommissionRule entities in the database.
@@ -453,6 +911,7 @@ func (_c *FinanceCommissionRuleCreateBulk) Save(ctx context.Context) ([]*Finance
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -499,6 +958,294 @@ func (_c *FinanceCommissionRuleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceCommissionRuleCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCommissionRule.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCommissionRuleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCommissionRuleCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceCommissionRuleUpsertBulk {
+	_c.conflict = opts
+	return &FinanceCommissionRuleUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCommissionRuleCreateBulk) OnConflictColumns(columns ...string) *FinanceCommissionRuleUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCommissionRuleUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceCommissionRuleUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceCommissionRule nodes.
+type FinanceCommissionRuleUpsertBulk struct {
+	create *FinanceCommissionRuleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecommissionrule.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCommissionRuleUpsertBulk) UpdateNewValues() *FinanceCommissionRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financecommissionrule.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financecommissionrule.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financecommissionrule.FieldOrganizationID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionRule.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceCommissionRuleUpsertBulk) Ignore() *FinanceCommissionRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCommissionRuleUpsertBulk) DoNothing() *FinanceCommissionRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCommissionRuleCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceCommissionRuleUpsertBulk) Update(set func(*FinanceCommissionRuleUpsert)) *FinanceCommissionRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCommissionRuleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateUpdatedAt() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetName(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateName() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetPersonnelRole sets the "personnel_role" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetPersonnelRole(v financecommissionrule.PersonnelRole) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetPersonnelRole(v)
+	})
+}
+
+// UpdatePersonnelRole sets the "personnel_role" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdatePersonnelRole() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdatePersonnelRole()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetCalculationBasis(v financecommissionrule.CalculationBasis) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateCalculationBasis() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetRatePercent(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetRatePercent(v)
+	})
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateRatePercent() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateRatePercent()
+	})
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetEffectiveFrom(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEffectiveFrom(v)
+	})
+}
+
+// UpdateEffectiveFrom sets the "effective_from" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateEffectiveFrom() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEffectiveFrom()
+	})
+}
+
+// ClearEffectiveFrom clears the value of the "effective_from" field.
+func (u *FinanceCommissionRuleUpsertBulk) ClearEffectiveFrom() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearEffectiveFrom()
+	})
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetEffectiveTo(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEffectiveTo(v)
+	})
+}
+
+// UpdateEffectiveTo sets the "effective_to" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateEffectiveTo() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEffectiveTo()
+	})
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (u *FinanceCommissionRuleUpsertBulk) ClearEffectiveTo() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearEffectiveTo()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetEnabled(v bool) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateEnabled() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetNote(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateNote() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionRuleUpsertBulk) ClearNote() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetVersion(v uint64) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionRuleUpsertBulk) AddVersion(v uint64) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateVersion() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCommissionRuleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceCommissionRuleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCommissionRuleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCommissionRuleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

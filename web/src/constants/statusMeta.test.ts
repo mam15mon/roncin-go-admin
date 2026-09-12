@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { DingTalkInvitationStatus } from '@/enums.generated';
 import {
   businessTypeMeta,
+  dingTalkInvitationStatusMeta,
   makeValueEnum,
   normalizeBusinessType,
   normalizeOrderFeeStatus,
@@ -24,5 +26,29 @@ describe('状态展示元数据', () => {
   it('从同一份元数据生成表格枚举和展示文本', () => {
     expect(makeValueEnum(orderFeeStatusMeta)['2']).toEqual({ text: '已确认' });
     expect(statusText(businessTypeMeta, 4)).toBe('空运进口');
+  });
+
+  it('钉钉邀请状态四态全覆盖且以生成常量为键', () => {
+    expect(
+      dingTalkInvitationStatusMeta[
+        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING
+      ],
+    ).toEqual({ text: '待使用', color: 'processing' });
+    expect(
+      dingTalkInvitationStatusMeta[
+        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_CONSUMED
+      ],
+    ).toEqual({ text: '已激活', color: 'success' });
+    expect(
+      dingTalkInvitationStatusMeta[
+        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_EXPIRED
+      ],
+    ).toEqual({ text: '已过期', color: 'default' });
+    expect(
+      dingTalkInvitationStatusMeta[
+        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_REVOKED
+      ],
+    ).toEqual({ text: '已撤销', color: 'default' });
+    expect(Object.keys(dingTalkInvitationStatusMeta)).toHaveLength(4);
   });
 });

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type PartnerAliasCreate struct {
 	config
 	mutation *PartnerAliasMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -256,6 +259,7 @@ func (_c *PartnerAliasCreate) createSpec() (*PartnerAlias, *sqlgraph.CreateSpec)
 		_node = &PartnerAlias{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partneralias.Table, sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -304,11 +308,319 @@ func (_c *PartnerAliasCreate) createSpec() (*PartnerAlias, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAlias.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAliasUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAliasCreate) OnConflict(opts ...sql.ConflictOption) *PartnerAliasUpsertOne {
+	_c.conflict = opts
+	return &PartnerAliasUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAliasCreate) OnConflictColumns(columns ...string) *PartnerAliasUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAliasUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerAliasUpsertOne is the builder for "upsert"-ing
+	//  one PartnerAlias node.
+	PartnerAliasUpsertOne struct {
+		create *PartnerAliasCreate
+	}
+
+	// PartnerAliasUpsert is the "OnConflict" setter.
+	PartnerAliasUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAliasUpsert) SetUpdatedAt(v time.Time) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdateUpdatedAt() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAliasUpsert) SetPartnerID(v uuid.UUID) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdatePartnerID() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldPartnerID)
+	return u
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *PartnerAliasUpsert) SetAliasName(v string) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldAliasName, v)
+	return u
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdateAliasName() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldAliasName)
+	return u
+}
+
+// SetNormalizedAliasName sets the "normalized_alias_name" field.
+func (u *PartnerAliasUpsert) SetNormalizedAliasName(v string) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldNormalizedAliasName, v)
+	return u
+}
+
+// UpdateNormalizedAliasName sets the "normalized_alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdateNormalizedAliasName() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldNormalizedAliasName)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAliasUpsert) SetSortOrder(v int) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdateSortOrder() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAliasUpsert) AddSortOrder(v int) *PartnerAliasUpsert {
+	u.Add(partneralias.FieldSortOrder, v)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerAliasUpsert) SetSearchKeywords(v string) *PartnerAliasUpsert {
+	u.Set(partneralias.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerAliasUpsert) UpdateSearchKeywords() *PartnerAliasUpsert {
+	u.SetExcluded(partneralias.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partneralias.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAliasUpsertOne) UpdateNewValues() *PartnerAliasUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partneralias.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partneralias.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerAliasUpsertOne) Ignore() *PartnerAliasUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAliasUpsertOne) DoNothing() *PartnerAliasUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAliasCreate.OnConflict
+// documentation for more info.
+func (u *PartnerAliasUpsertOne) Update(set func(*PartnerAliasUpsert)) *PartnerAliasUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAliasUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAliasUpsertOne) SetUpdatedAt(v time.Time) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdateUpdatedAt() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAliasUpsertOne) SetPartnerID(v uuid.UUID) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdatePartnerID() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *PartnerAliasUpsertOne) SetAliasName(v string) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetAliasName(v)
+	})
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdateAliasName() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateAliasName()
+	})
+}
+
+// SetNormalizedAliasName sets the "normalized_alias_name" field.
+func (u *PartnerAliasUpsertOne) SetNormalizedAliasName(v string) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetNormalizedAliasName(v)
+	})
+}
+
+// UpdateNormalizedAliasName sets the "normalized_alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdateNormalizedAliasName() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateNormalizedAliasName()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAliasUpsertOne) SetSortOrder(v int) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAliasUpsertOne) AddSortOrder(v int) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdateSortOrder() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerAliasUpsertOne) SetSearchKeywords(v string) *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerAliasUpsertOne) UpdateSearchKeywords() *PartnerAliasUpsertOne {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAliasUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAliasCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAliasUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerAliasUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerAliasUpsertOne.ID is not supported by MySQL driver. Use PartnerAliasUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerAliasUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerAliasCreateBulk is the builder for creating many PartnerAlias entities in bulk.
 type PartnerAliasCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerAliasCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerAlias entities in the database.
@@ -338,6 +650,7 @@ func (_c *PartnerAliasCreateBulk) Save(ctx context.Context) ([]*PartnerAlias, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -384,6 +697,214 @@ func (_c *PartnerAliasCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerAliasCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAlias.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAliasUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAliasCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerAliasUpsertBulk {
+	_c.conflict = opts
+	return &PartnerAliasUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAliasCreateBulk) OnConflictColumns(columns ...string) *PartnerAliasUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAliasUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerAliasUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerAlias nodes.
+type PartnerAliasUpsertBulk struct {
+	create *PartnerAliasCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partneralias.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAliasUpsertBulk) UpdateNewValues() *PartnerAliasUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partneralias.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partneralias.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAlias.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerAliasUpsertBulk) Ignore() *PartnerAliasUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAliasUpsertBulk) DoNothing() *PartnerAliasUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAliasCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerAliasUpsertBulk) Update(set func(*PartnerAliasUpsert)) *PartnerAliasUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAliasUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAliasUpsertBulk) SetUpdatedAt(v time.Time) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdateUpdatedAt() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAliasUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdatePartnerID() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetAliasName sets the "alias_name" field.
+func (u *PartnerAliasUpsertBulk) SetAliasName(v string) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetAliasName(v)
+	})
+}
+
+// UpdateAliasName sets the "alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdateAliasName() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateAliasName()
+	})
+}
+
+// SetNormalizedAliasName sets the "normalized_alias_name" field.
+func (u *PartnerAliasUpsertBulk) SetNormalizedAliasName(v string) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetNormalizedAliasName(v)
+	})
+}
+
+// UpdateNormalizedAliasName sets the "normalized_alias_name" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdateNormalizedAliasName() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateNormalizedAliasName()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PartnerAliasUpsertBulk) SetSortOrder(v int) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PartnerAliasUpsertBulk) AddSortOrder(v int) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdateSortOrder() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerAliasUpsertBulk) SetSearchKeywords(v string) *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerAliasUpsertBulk) UpdateSearchKeywords() *PartnerAliasUpsertBulk {
+	return u.Update(func(s *PartnerAliasUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAliasUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerAliasCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAliasCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAliasUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

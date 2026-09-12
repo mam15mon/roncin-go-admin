@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -141,6 +142,7 @@ const (
 	TypeCurrency                       = "Currency"
 	TypeDingTalkApprovalDispatch       = "DingTalkApprovalDispatch"
 	TypeDingTalkApprovalInboxEvent     = "DingTalkApprovalInboxEvent"
+	TypeDingTalkInvitation             = "DingTalkInvitation"
 	TypeEnterpriseResource             = "EnterpriseResource"
 	TypeEnterpriseResourceAddress      = "EnterpriseResourceAddress"
 	TypeEnterpriseResourceAddressType  = "EnterpriseResourceAddressType"
@@ -10556,6 +10558,1156 @@ func (m *DingTalkApprovalInboxEventMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DingTalkApprovalInboxEventMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DingTalkApprovalInboxEvent edge %s", name)
+}
+
+// DingTalkInvitationMutation represents an operation that mutates the DingTalkInvitation nodes in the graph.
+type DingTalkInvitationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	mobile              *string
+	display_name        *string
+	status              *dingtalkinvitation.Status
+	consumed_at         *time.Time
+	expires_at          *time.Time
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	role                *uuid.UUID
+	clearedrole         bool
+	inviter             *uuid.UUID
+	clearedinviter      bool
+	consumer            *uuid.UUID
+	clearedconsumer     bool
+	done                bool
+	oldValue            func(context.Context) (*DingTalkInvitation, error)
+	predicates          []predicate.DingTalkInvitation
+}
+
+var _ ent.Mutation = (*DingTalkInvitationMutation)(nil)
+
+// dingtalkinvitationOption allows management of the mutation configuration using functional options.
+type dingtalkinvitationOption func(*DingTalkInvitationMutation)
+
+// newDingTalkInvitationMutation creates new mutation for the DingTalkInvitation entity.
+func newDingTalkInvitationMutation(c config, op Op, opts ...dingtalkinvitationOption) *DingTalkInvitationMutation {
+	m := &DingTalkInvitationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDingTalkInvitation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDingTalkInvitationID sets the ID field of the mutation.
+func withDingTalkInvitationID(id uuid.UUID) dingtalkinvitationOption {
+	return func(m *DingTalkInvitationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DingTalkInvitation
+		)
+		m.oldValue = func(ctx context.Context) (*DingTalkInvitation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DingTalkInvitation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDingTalkInvitation sets the old DingTalkInvitation of the mutation.
+func withDingTalkInvitation(node *DingTalkInvitation) dingtalkinvitationOption {
+	return func(m *DingTalkInvitationMutation) {
+		m.oldValue = func(context.Context) (*DingTalkInvitation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DingTalkInvitationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DingTalkInvitationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DingTalkInvitation entities.
+func (m *DingTalkInvitationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DingTalkInvitationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DingTalkInvitationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DingTalkInvitation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DingTalkInvitationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DingTalkInvitationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DingTalkInvitationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DingTalkInvitationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DingTalkInvitationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DingTalkInvitationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *DingTalkInvitationMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *DingTalkInvitationMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *DingTalkInvitationMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetRoleID sets the "role_id" field.
+func (m *DingTalkInvitationMutation) SetRoleID(u uuid.UUID) {
+	m.role = &u
+}
+
+// RoleID returns the value of the "role_id" field in the mutation.
+func (m *DingTalkInvitationMutation) RoleID() (r uuid.UUID, exists bool) {
+	v := m.role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoleID returns the old "role_id" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldRoleID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoleID: %w", err)
+	}
+	return oldValue.RoleID, nil
+}
+
+// ResetRoleID resets all changes to the "role_id" field.
+func (m *DingTalkInvitationMutation) ResetRoleID() {
+	m.role = nil
+}
+
+// SetMobile sets the "mobile" field.
+func (m *DingTalkInvitationMutation) SetMobile(s string) {
+	m.mobile = &s
+}
+
+// Mobile returns the value of the "mobile" field in the mutation.
+func (m *DingTalkInvitationMutation) Mobile() (r string, exists bool) {
+	v := m.mobile
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMobile returns the old "mobile" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldMobile(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMobile is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMobile requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMobile: %w", err)
+	}
+	return oldValue.Mobile, nil
+}
+
+// ResetMobile resets all changes to the "mobile" field.
+func (m *DingTalkInvitationMutation) ResetMobile() {
+	m.mobile = nil
+}
+
+// SetDisplayName sets the "display_name" field.
+func (m *DingTalkInvitationMutation) SetDisplayName(s string) {
+	m.display_name = &s
+}
+
+// DisplayName returns the value of the "display_name" field in the mutation.
+func (m *DingTalkInvitationMutation) DisplayName() (r string, exists bool) {
+	v := m.display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayName returns the old "display_name" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayName: %w", err)
+	}
+	return oldValue.DisplayName, nil
+}
+
+// ClearDisplayName clears the value of the "display_name" field.
+func (m *DingTalkInvitationMutation) ClearDisplayName() {
+	m.display_name = nil
+	m.clearedFields[dingtalkinvitation.FieldDisplayName] = struct{}{}
+}
+
+// DisplayNameCleared returns if the "display_name" field was cleared in this mutation.
+func (m *DingTalkInvitationMutation) DisplayNameCleared() bool {
+	_, ok := m.clearedFields[dingtalkinvitation.FieldDisplayName]
+	return ok
+}
+
+// ResetDisplayName resets all changes to the "display_name" field.
+func (m *DingTalkInvitationMutation) ResetDisplayName() {
+	m.display_name = nil
+	delete(m.clearedFields, dingtalkinvitation.FieldDisplayName)
+}
+
+// SetInvitedBy sets the "invited_by" field.
+func (m *DingTalkInvitationMutation) SetInvitedBy(u uuid.UUID) {
+	m.inviter = &u
+}
+
+// InvitedBy returns the value of the "invited_by" field in the mutation.
+func (m *DingTalkInvitationMutation) InvitedBy() (r uuid.UUID, exists bool) {
+	v := m.inviter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInvitedBy returns the old "invited_by" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldInvitedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInvitedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInvitedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInvitedBy: %w", err)
+	}
+	return oldValue.InvitedBy, nil
+}
+
+// ResetInvitedBy resets all changes to the "invited_by" field.
+func (m *DingTalkInvitationMutation) ResetInvitedBy() {
+	m.inviter = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *DingTalkInvitationMutation) SetStatus(d dingtalkinvitation.Status) {
+	m.status = &d
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *DingTalkInvitationMutation) Status() (r dingtalkinvitation.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldStatus(ctx context.Context) (v dingtalkinvitation.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *DingTalkInvitationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetConsumedBy sets the "consumed_by" field.
+func (m *DingTalkInvitationMutation) SetConsumedBy(u uuid.UUID) {
+	m.consumer = &u
+}
+
+// ConsumedBy returns the value of the "consumed_by" field in the mutation.
+func (m *DingTalkInvitationMutation) ConsumedBy() (r uuid.UUID, exists bool) {
+	v := m.consumer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsumedBy returns the old "consumed_by" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldConsumedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsumedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsumedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsumedBy: %w", err)
+	}
+	return oldValue.ConsumedBy, nil
+}
+
+// ClearConsumedBy clears the value of the "consumed_by" field.
+func (m *DingTalkInvitationMutation) ClearConsumedBy() {
+	m.consumer = nil
+	m.clearedFields[dingtalkinvitation.FieldConsumedBy] = struct{}{}
+}
+
+// ConsumedByCleared returns if the "consumed_by" field was cleared in this mutation.
+func (m *DingTalkInvitationMutation) ConsumedByCleared() bool {
+	_, ok := m.clearedFields[dingtalkinvitation.FieldConsumedBy]
+	return ok
+}
+
+// ResetConsumedBy resets all changes to the "consumed_by" field.
+func (m *DingTalkInvitationMutation) ResetConsumedBy() {
+	m.consumer = nil
+	delete(m.clearedFields, dingtalkinvitation.FieldConsumedBy)
+}
+
+// SetConsumedAt sets the "consumed_at" field.
+func (m *DingTalkInvitationMutation) SetConsumedAt(t time.Time) {
+	m.consumed_at = &t
+}
+
+// ConsumedAt returns the value of the "consumed_at" field in the mutation.
+func (m *DingTalkInvitationMutation) ConsumedAt() (r time.Time, exists bool) {
+	v := m.consumed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsumedAt returns the old "consumed_at" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldConsumedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsumedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsumedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsumedAt: %w", err)
+	}
+	return oldValue.ConsumedAt, nil
+}
+
+// ClearConsumedAt clears the value of the "consumed_at" field.
+func (m *DingTalkInvitationMutation) ClearConsumedAt() {
+	m.consumed_at = nil
+	m.clearedFields[dingtalkinvitation.FieldConsumedAt] = struct{}{}
+}
+
+// ConsumedAtCleared returns if the "consumed_at" field was cleared in this mutation.
+func (m *DingTalkInvitationMutation) ConsumedAtCleared() bool {
+	_, ok := m.clearedFields[dingtalkinvitation.FieldConsumedAt]
+	return ok
+}
+
+// ResetConsumedAt resets all changes to the "consumed_at" field.
+func (m *DingTalkInvitationMutation) ResetConsumedAt() {
+	m.consumed_at = nil
+	delete(m.clearedFields, dingtalkinvitation.FieldConsumedAt)
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *DingTalkInvitationMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *DingTalkInvitationMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *DingTalkInvitationMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *DingTalkInvitationMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[dingtalkinvitation.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *DingTalkInvitationMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *DingTalkInvitationMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *DingTalkInvitationMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearRole clears the "role" edge to the Role entity.
+func (m *DingTalkInvitationMutation) ClearRole() {
+	m.clearedrole = true
+	m.clearedFields[dingtalkinvitation.FieldRoleID] = struct{}{}
+}
+
+// RoleCleared reports if the "role" edge to the Role entity was cleared.
+func (m *DingTalkInvitationMutation) RoleCleared() bool {
+	return m.clearedrole
+}
+
+// RoleIDs returns the "role" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RoleID instead. It exists only for internal usage by the builders.
+func (m *DingTalkInvitationMutation) RoleIDs() (ids []uuid.UUID) {
+	if id := m.role; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRole resets all changes to the "role" edge.
+func (m *DingTalkInvitationMutation) ResetRole() {
+	m.role = nil
+	m.clearedrole = false
+}
+
+// SetInviterID sets the "inviter" edge to the User entity by id.
+func (m *DingTalkInvitationMutation) SetInviterID(id uuid.UUID) {
+	m.inviter = &id
+}
+
+// ClearInviter clears the "inviter" edge to the User entity.
+func (m *DingTalkInvitationMutation) ClearInviter() {
+	m.clearedinviter = true
+	m.clearedFields[dingtalkinvitation.FieldInvitedBy] = struct{}{}
+}
+
+// InviterCleared reports if the "inviter" edge to the User entity was cleared.
+func (m *DingTalkInvitationMutation) InviterCleared() bool {
+	return m.clearedinviter
+}
+
+// InviterID returns the "inviter" edge ID in the mutation.
+func (m *DingTalkInvitationMutation) InviterID() (id uuid.UUID, exists bool) {
+	if m.inviter != nil {
+		return *m.inviter, true
+	}
+	return
+}
+
+// InviterIDs returns the "inviter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InviterID instead. It exists only for internal usage by the builders.
+func (m *DingTalkInvitationMutation) InviterIDs() (ids []uuid.UUID) {
+	if id := m.inviter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInviter resets all changes to the "inviter" edge.
+func (m *DingTalkInvitationMutation) ResetInviter() {
+	m.inviter = nil
+	m.clearedinviter = false
+}
+
+// SetConsumerID sets the "consumer" edge to the User entity by id.
+func (m *DingTalkInvitationMutation) SetConsumerID(id uuid.UUID) {
+	m.consumer = &id
+}
+
+// ClearConsumer clears the "consumer" edge to the User entity.
+func (m *DingTalkInvitationMutation) ClearConsumer() {
+	m.clearedconsumer = true
+	m.clearedFields[dingtalkinvitation.FieldConsumedBy] = struct{}{}
+}
+
+// ConsumerCleared reports if the "consumer" edge to the User entity was cleared.
+func (m *DingTalkInvitationMutation) ConsumerCleared() bool {
+	return m.ConsumedByCleared() || m.clearedconsumer
+}
+
+// ConsumerID returns the "consumer" edge ID in the mutation.
+func (m *DingTalkInvitationMutation) ConsumerID() (id uuid.UUID, exists bool) {
+	if m.consumer != nil {
+		return *m.consumer, true
+	}
+	return
+}
+
+// ConsumerIDs returns the "consumer" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ConsumerID instead. It exists only for internal usage by the builders.
+func (m *DingTalkInvitationMutation) ConsumerIDs() (ids []uuid.UUID) {
+	if id := m.consumer; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetConsumer resets all changes to the "consumer" edge.
+func (m *DingTalkInvitationMutation) ResetConsumer() {
+	m.consumer = nil
+	m.clearedconsumer = false
+}
+
+// Where appends a list predicates to the DingTalkInvitationMutation builder.
+func (m *DingTalkInvitationMutation) Where(ps ...predicate.DingTalkInvitation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DingTalkInvitationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DingTalkInvitationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DingTalkInvitation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DingTalkInvitationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DingTalkInvitationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DingTalkInvitation).
+func (m *DingTalkInvitationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DingTalkInvitationMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, dingtalkinvitation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, dingtalkinvitation.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, dingtalkinvitation.FieldOrganizationID)
+	}
+	if m.role != nil {
+		fields = append(fields, dingtalkinvitation.FieldRoleID)
+	}
+	if m.mobile != nil {
+		fields = append(fields, dingtalkinvitation.FieldMobile)
+	}
+	if m.display_name != nil {
+		fields = append(fields, dingtalkinvitation.FieldDisplayName)
+	}
+	if m.inviter != nil {
+		fields = append(fields, dingtalkinvitation.FieldInvitedBy)
+	}
+	if m.status != nil {
+		fields = append(fields, dingtalkinvitation.FieldStatus)
+	}
+	if m.consumer != nil {
+		fields = append(fields, dingtalkinvitation.FieldConsumedBy)
+	}
+	if m.consumed_at != nil {
+		fields = append(fields, dingtalkinvitation.FieldConsumedAt)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, dingtalkinvitation.FieldExpiresAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DingTalkInvitationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case dingtalkinvitation.FieldCreatedAt:
+		return m.CreatedAt()
+	case dingtalkinvitation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case dingtalkinvitation.FieldOrganizationID:
+		return m.OrganizationID()
+	case dingtalkinvitation.FieldRoleID:
+		return m.RoleID()
+	case dingtalkinvitation.FieldMobile:
+		return m.Mobile()
+	case dingtalkinvitation.FieldDisplayName:
+		return m.DisplayName()
+	case dingtalkinvitation.FieldInvitedBy:
+		return m.InvitedBy()
+	case dingtalkinvitation.FieldStatus:
+		return m.Status()
+	case dingtalkinvitation.FieldConsumedBy:
+		return m.ConsumedBy()
+	case dingtalkinvitation.FieldConsumedAt:
+		return m.ConsumedAt()
+	case dingtalkinvitation.FieldExpiresAt:
+		return m.ExpiresAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DingTalkInvitationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case dingtalkinvitation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case dingtalkinvitation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case dingtalkinvitation.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case dingtalkinvitation.FieldRoleID:
+		return m.OldRoleID(ctx)
+	case dingtalkinvitation.FieldMobile:
+		return m.OldMobile(ctx)
+	case dingtalkinvitation.FieldDisplayName:
+		return m.OldDisplayName(ctx)
+	case dingtalkinvitation.FieldInvitedBy:
+		return m.OldInvitedBy(ctx)
+	case dingtalkinvitation.FieldStatus:
+		return m.OldStatus(ctx)
+	case dingtalkinvitation.FieldConsumedBy:
+		return m.OldConsumedBy(ctx)
+	case dingtalkinvitation.FieldConsumedAt:
+		return m.OldConsumedAt(ctx)
+	case dingtalkinvitation.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DingTalkInvitation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DingTalkInvitationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case dingtalkinvitation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case dingtalkinvitation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case dingtalkinvitation.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case dingtalkinvitation.FieldRoleID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoleID(v)
+		return nil
+	case dingtalkinvitation.FieldMobile:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMobile(v)
+		return nil
+	case dingtalkinvitation.FieldDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayName(v)
+		return nil
+	case dingtalkinvitation.FieldInvitedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInvitedBy(v)
+		return nil
+	case dingtalkinvitation.FieldStatus:
+		v, ok := value.(dingtalkinvitation.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case dingtalkinvitation.FieldConsumedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsumedBy(v)
+		return nil
+	case dingtalkinvitation.FieldConsumedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsumedAt(v)
+		return nil
+	case dingtalkinvitation.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkInvitation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DingTalkInvitationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DingTalkInvitationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DingTalkInvitationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DingTalkInvitation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DingTalkInvitationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(dingtalkinvitation.FieldDisplayName) {
+		fields = append(fields, dingtalkinvitation.FieldDisplayName)
+	}
+	if m.FieldCleared(dingtalkinvitation.FieldConsumedBy) {
+		fields = append(fields, dingtalkinvitation.FieldConsumedBy)
+	}
+	if m.FieldCleared(dingtalkinvitation.FieldConsumedAt) {
+		fields = append(fields, dingtalkinvitation.FieldConsumedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DingTalkInvitationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DingTalkInvitationMutation) ClearField(name string) error {
+	switch name {
+	case dingtalkinvitation.FieldDisplayName:
+		m.ClearDisplayName()
+		return nil
+	case dingtalkinvitation.FieldConsumedBy:
+		m.ClearConsumedBy()
+		return nil
+	case dingtalkinvitation.FieldConsumedAt:
+		m.ClearConsumedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkInvitation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DingTalkInvitationMutation) ResetField(name string) error {
+	switch name {
+	case dingtalkinvitation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case dingtalkinvitation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case dingtalkinvitation.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case dingtalkinvitation.FieldRoleID:
+		m.ResetRoleID()
+		return nil
+	case dingtalkinvitation.FieldMobile:
+		m.ResetMobile()
+		return nil
+	case dingtalkinvitation.FieldDisplayName:
+		m.ResetDisplayName()
+		return nil
+	case dingtalkinvitation.FieldInvitedBy:
+		m.ResetInvitedBy()
+		return nil
+	case dingtalkinvitation.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case dingtalkinvitation.FieldConsumedBy:
+		m.ResetConsumedBy()
+		return nil
+	case dingtalkinvitation.FieldConsumedAt:
+		m.ResetConsumedAt()
+		return nil
+	case dingtalkinvitation.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkInvitation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DingTalkInvitationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.organization != nil {
+		edges = append(edges, dingtalkinvitation.EdgeOrganization)
+	}
+	if m.role != nil {
+		edges = append(edges, dingtalkinvitation.EdgeRole)
+	}
+	if m.inviter != nil {
+		edges = append(edges, dingtalkinvitation.EdgeInviter)
+	}
+	if m.consumer != nil {
+		edges = append(edges, dingtalkinvitation.EdgeConsumer)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DingTalkInvitationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case dingtalkinvitation.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case dingtalkinvitation.EdgeRole:
+		if id := m.role; id != nil {
+			return []ent.Value{*id}
+		}
+	case dingtalkinvitation.EdgeInviter:
+		if id := m.inviter; id != nil {
+			return []ent.Value{*id}
+		}
+	case dingtalkinvitation.EdgeConsumer:
+		if id := m.consumer; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DingTalkInvitationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DingTalkInvitationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DingTalkInvitationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedorganization {
+		edges = append(edges, dingtalkinvitation.EdgeOrganization)
+	}
+	if m.clearedrole {
+		edges = append(edges, dingtalkinvitation.EdgeRole)
+	}
+	if m.clearedinviter {
+		edges = append(edges, dingtalkinvitation.EdgeInviter)
+	}
+	if m.clearedconsumer {
+		edges = append(edges, dingtalkinvitation.EdgeConsumer)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DingTalkInvitationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case dingtalkinvitation.EdgeOrganization:
+		return m.clearedorganization
+	case dingtalkinvitation.EdgeRole:
+		return m.clearedrole
+	case dingtalkinvitation.EdgeInviter:
+		return m.clearedinviter
+	case dingtalkinvitation.EdgeConsumer:
+		return m.clearedconsumer
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DingTalkInvitationMutation) ClearEdge(name string) error {
+	switch name {
+	case dingtalkinvitation.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case dingtalkinvitation.EdgeRole:
+		m.ClearRole()
+		return nil
+	case dingtalkinvitation.EdgeInviter:
+		m.ClearInviter()
+		return nil
+	case dingtalkinvitation.EdgeConsumer:
+		m.ClearConsumer()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkInvitation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DingTalkInvitationMutation) ResetEdge(name string) error {
+	switch name {
+	case dingtalkinvitation.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case dingtalkinvitation.EdgeRole:
+		m.ResetRole()
+		return nil
+	case dingtalkinvitation.EdgeInviter:
+		m.ResetInviter()
+		return nil
+	case dingtalkinvitation.EdgeConsumer:
+		m.ResetConsumer()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkInvitation edge %s", name)
 }
 
 // EnterpriseResourceMutation represents an operation that mutates the EnterpriseResource nodes in the graph.
@@ -95389,6 +96541,12 @@ type OrganizationMutation struct {
 	sea_shared_container_allocations        map[uuid.UUID]struct{}
 	removedsea_shared_container_allocations map[uuid.UUID]struct{}
 	clearedsea_shared_container_allocations bool
+	dingtalk_invitations                    map[uuid.UUID]struct{}
+	removeddingtalk_invitations             map[uuid.UUID]struct{}
+	cleareddingtalk_invitations             bool
+	dingtalk_registration_requests          map[uuid.UUID]struct{}
+	removeddingtalk_registration_requests   map[uuid.UUID]struct{}
+	cleareddingtalk_registration_requests   bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -99169,6 +100327,114 @@ func (m *OrganizationMutation) ResetSeaSharedContainerAllocations() {
 	m.removedsea_shared_container_allocations = nil
 }
 
+// AddDingtalkInvitationIDs adds the "dingtalk_invitations" edge to the DingTalkInvitation entity by ids.
+func (m *OrganizationMutation) AddDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.dingtalk_invitations == nil {
+		m.dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDingtalkInvitations clears the "dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *OrganizationMutation) ClearDingtalkInvitations() {
+	m.cleareddingtalk_invitations = true
+}
+
+// DingtalkInvitationsCleared reports if the "dingtalk_invitations" edge to the DingTalkInvitation entity was cleared.
+func (m *OrganizationMutation) DingtalkInvitationsCleared() bool {
+	return m.cleareddingtalk_invitations
+}
+
+// RemoveDingtalkInvitationIDs removes the "dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (m *OrganizationMutation) RemoveDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.removeddingtalk_invitations == nil {
+		m.removeddingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.dingtalk_invitations, ids[i])
+		m.removeddingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDingtalkInvitations returns the removed IDs of the "dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *OrganizationMutation) RemovedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DingtalkInvitationsIDs returns the "dingtalk_invitations" edge IDs in the mutation.
+func (m *OrganizationMutation) DingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDingtalkInvitations resets all changes to the "dingtalk_invitations" edge.
+func (m *OrganizationMutation) ResetDingtalkInvitations() {
+	m.dingtalk_invitations = nil
+	m.cleareddingtalk_invitations = false
+	m.removeddingtalk_invitations = nil
+}
+
+// AddDingtalkRegistrationRequestIDs adds the "dingtalk_registration_requests" edge to the User entity by ids.
+func (m *OrganizationMutation) AddDingtalkRegistrationRequestIDs(ids ...uuid.UUID) {
+	if m.dingtalk_registration_requests == nil {
+		m.dingtalk_registration_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.dingtalk_registration_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDingtalkRegistrationRequests clears the "dingtalk_registration_requests" edge to the User entity.
+func (m *OrganizationMutation) ClearDingtalkRegistrationRequests() {
+	m.cleareddingtalk_registration_requests = true
+}
+
+// DingtalkRegistrationRequestsCleared reports if the "dingtalk_registration_requests" edge to the User entity was cleared.
+func (m *OrganizationMutation) DingtalkRegistrationRequestsCleared() bool {
+	return m.cleareddingtalk_registration_requests
+}
+
+// RemoveDingtalkRegistrationRequestIDs removes the "dingtalk_registration_requests" edge to the User entity by IDs.
+func (m *OrganizationMutation) RemoveDingtalkRegistrationRequestIDs(ids ...uuid.UUID) {
+	if m.removeddingtalk_registration_requests == nil {
+		m.removeddingtalk_registration_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.dingtalk_registration_requests, ids[i])
+		m.removeddingtalk_registration_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDingtalkRegistrationRequests returns the removed IDs of the "dingtalk_registration_requests" edge to the User entity.
+func (m *OrganizationMutation) RemovedDingtalkRegistrationRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddingtalk_registration_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DingtalkRegistrationRequestsIDs returns the "dingtalk_registration_requests" edge IDs in the mutation.
+func (m *OrganizationMutation) DingtalkRegistrationRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.dingtalk_registration_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDingtalkRegistrationRequests resets all changes to the "dingtalk_registration_requests" edge.
+func (m *OrganizationMutation) ResetDingtalkRegistrationRequests() {
+	m.dingtalk_registration_requests = nil
+	m.cleareddingtalk_registration_requests = false
+	m.removeddingtalk_registration_requests = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -99453,7 +100719,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 62)
+	edges := make([]string, 0, 64)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -99639,6 +100905,12 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.sea_shared_container_allocations != nil {
 		edges = append(edges, organization.EdgeSeaSharedContainerAllocations)
+	}
+	if m.dingtalk_invitations != nil {
+		edges = append(edges, organization.EdgeDingtalkInvitations)
+	}
+	if m.dingtalk_registration_requests != nil {
+		edges = append(edges, organization.EdgeDingtalkRegistrationRequests)
 	}
 	return edges
 }
@@ -100017,13 +101289,25 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.dingtalk_invitations))
+		for id := range m.dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeDingtalkRegistrationRequests:
+		ids := make([]ent.Value, 0, len(m.dingtalk_registration_requests))
+		for id := range m.dingtalk_registration_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 62)
+	edges := make([]string, 0, 64)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -100206,6 +101490,12 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_shared_container_allocations != nil {
 		edges = append(edges, organization.EdgeSeaSharedContainerAllocations)
+	}
+	if m.removeddingtalk_invitations != nil {
+		edges = append(edges, organization.EdgeDingtalkInvitations)
+	}
+	if m.removeddingtalk_registration_requests != nil {
+		edges = append(edges, organization.EdgeDingtalkRegistrationRequests)
 	}
 	return edges
 }
@@ -100580,13 +101870,25 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.removeddingtalk_invitations))
+		for id := range m.removeddingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeDingtalkRegistrationRequests:
+		ids := make([]ent.Value, 0, len(m.removeddingtalk_registration_requests))
+		for id := range m.removeddingtalk_registration_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 62)
+	edges := make([]string, 0, 64)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -100773,6 +102075,12 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedsea_shared_container_allocations {
 		edges = append(edges, organization.EdgeSeaSharedContainerAllocations)
 	}
+	if m.cleareddingtalk_invitations {
+		edges = append(edges, organization.EdgeDingtalkInvitations)
+	}
+	if m.cleareddingtalk_registration_requests {
+		edges = append(edges, organization.EdgeDingtalkRegistrationRequests)
+	}
 	return edges
 }
 
@@ -100904,6 +102212,10 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_shared_containers
 	case organization.EdgeSeaSharedContainerAllocations:
 		return m.clearedsea_shared_container_allocations
+	case organization.EdgeDingtalkInvitations:
+		return m.cleareddingtalk_invitations
+	case organization.EdgeDingtalkRegistrationRequests:
+		return m.cleareddingtalk_registration_requests
 	}
 	return false
 }
@@ -101108,6 +102420,12 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeSeaSharedContainerAllocations:
 		m.ResetSeaSharedContainerAllocations()
+		return nil
+	case organization.EdgeDingtalkInvitations:
+		m.ResetDingtalkInvitations()
+		return nil
+	case organization.EdgeDingtalkRegistrationRequests:
+		m.ResetDingtalkRegistrationRequests()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
@@ -116085,6 +117403,9 @@ type RoleMutation struct {
 	order_unlock_approver_candidates        map[uuid.UUID]struct{}
 	removedorder_unlock_approver_candidates map[uuid.UUID]struct{}
 	clearedorder_unlock_approver_candidates bool
+	dingtalk_invitations                    map[uuid.UUID]struct{}
+	removeddingtalk_invitations             map[uuid.UUID]struct{}
+	cleareddingtalk_invitations             bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Role, error)
 	predicates                              []predicate.Role
@@ -116689,6 +118010,60 @@ func (m *RoleMutation) ResetOrderUnlockApproverCandidates() {
 	m.removedorder_unlock_approver_candidates = nil
 }
 
+// AddDingtalkInvitationIDs adds the "dingtalk_invitations" edge to the DingTalkInvitation entity by ids.
+func (m *RoleMutation) AddDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.dingtalk_invitations == nil {
+		m.dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDingtalkInvitations clears the "dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *RoleMutation) ClearDingtalkInvitations() {
+	m.cleareddingtalk_invitations = true
+}
+
+// DingtalkInvitationsCleared reports if the "dingtalk_invitations" edge to the DingTalkInvitation entity was cleared.
+func (m *RoleMutation) DingtalkInvitationsCleared() bool {
+	return m.cleareddingtalk_invitations
+}
+
+// RemoveDingtalkInvitationIDs removes the "dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (m *RoleMutation) RemoveDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.removeddingtalk_invitations == nil {
+		m.removeddingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.dingtalk_invitations, ids[i])
+		m.removeddingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDingtalkInvitations returns the removed IDs of the "dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *RoleMutation) RemovedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DingtalkInvitationsIDs returns the "dingtalk_invitations" edge IDs in the mutation.
+func (m *RoleMutation) DingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDingtalkInvitations resets all changes to the "dingtalk_invitations" edge.
+func (m *RoleMutation) ResetDingtalkInvitations() {
+	m.dingtalk_invitations = nil
+	m.cleareddingtalk_invitations = false
+	m.removeddingtalk_invitations = nil
+}
+
 // Where appends a list predicates to the RoleMutation builder.
 func (m *RoleMutation) Where(ps ...predicate.Role) {
 	m.predicates = append(m.predicates, ps...)
@@ -116924,7 +118299,7 @@ func (m *RoleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.organization != nil {
 		edges = append(edges, role.EdgeOrganization)
 	}
@@ -116939,6 +118314,9 @@ func (m *RoleMutation) AddedEdges() []string {
 	}
 	if m.order_unlock_approver_candidates != nil {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
+	}
+	if m.dingtalk_invitations != nil {
+		edges = append(edges, role.EdgeDingtalkInvitations)
 	}
 	return edges
 }
@@ -116975,13 +118353,19 @@ func (m *RoleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case role.EdgeDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.dingtalk_invitations))
+		for id := range m.dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedpermissions != nil {
 		edges = append(edges, role.EdgePermissions)
 	}
@@ -116993,6 +118377,9 @@ func (m *RoleMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_unlock_approver_candidates != nil {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
+	}
+	if m.removeddingtalk_invitations != nil {
+		edges = append(edges, role.EdgeDingtalkInvitations)
 	}
 	return edges
 }
@@ -117025,13 +118412,19 @@ func (m *RoleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case role.EdgeDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.removeddingtalk_invitations))
+		for id := range m.removeddingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedorganization {
 		edges = append(edges, role.EdgeOrganization)
 	}
@@ -117046,6 +118439,9 @@ func (m *RoleMutation) ClearedEdges() []string {
 	}
 	if m.clearedorder_unlock_approver_candidates {
 		edges = append(edges, role.EdgeOrderUnlockApproverCandidates)
+	}
+	if m.cleareddingtalk_invitations {
+		edges = append(edges, role.EdgeDingtalkInvitations)
 	}
 	return edges
 }
@@ -117064,6 +118460,8 @@ func (m *RoleMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization_accesses
 	case role.EdgeOrderUnlockApproverCandidates:
 		return m.clearedorder_unlock_approver_candidates
+	case role.EdgeDingtalkInvitations:
+		return m.cleareddingtalk_invitations
 	}
 	return false
 }
@@ -117097,6 +118495,9 @@ func (m *RoleMutation) ResetEdge(name string) error {
 		return nil
 	case role.EdgeOrderUnlockApproverCandidates:
 		m.ResetOrderUnlockApproverCandidates()
+		return nil
+	case role.EdgeDingtalkInvitations:
+		m.ResetDingtalkInvitations()
 		return nil
 	}
 	return fmt.Errorf("unknown Role edge %s", name)
@@ -152644,6 +154045,14 @@ type UserMutation struct {
 	confirmed_sea_shared_containers                 map[uuid.UUID]struct{}
 	removedconfirmed_sea_shared_containers          map[uuid.UUID]struct{}
 	clearedconfirmed_sea_shared_containers          bool
+	created_dingtalk_invitations                    map[uuid.UUID]struct{}
+	removedcreated_dingtalk_invitations             map[uuid.UUID]struct{}
+	clearedcreated_dingtalk_invitations             bool
+	consumed_dingtalk_invitations                   map[uuid.UUID]struct{}
+	removedconsumed_dingtalk_invitations            map[uuid.UUID]struct{}
+	clearedconsumed_dingtalk_invitations            bool
+	dingtalk_requested_organization                 *uuid.UUID
+	cleareddingtalk_requested_organization          bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -153300,6 +154709,55 @@ func (m *UserMutation) DingtalkNameCleared() bool {
 func (m *UserMutation) ResetDingtalkName() {
 	m.dingtalk_name = nil
 	delete(m.clearedFields, user.FieldDingtalkName)
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (m *UserMutation) SetDingtalkRequestedOrganizationID(u uuid.UUID) {
+	m.dingtalk_requested_organization = &u
+}
+
+// DingtalkRequestedOrganizationID returns the value of the "dingtalk_requested_organization_id" field in the mutation.
+func (m *UserMutation) DingtalkRequestedOrganizationID() (r uuid.UUID, exists bool) {
+	v := m.dingtalk_requested_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkRequestedOrganizationID returns the old "dingtalk_requested_organization_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkRequestedOrganizationID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkRequestedOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkRequestedOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkRequestedOrganizationID: %w", err)
+	}
+	return oldValue.DingtalkRequestedOrganizationID, nil
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (m *UserMutation) ClearDingtalkRequestedOrganizationID() {
+	m.dingtalk_requested_organization = nil
+	m.clearedFields[user.FieldDingtalkRequestedOrganizationID] = struct{}{}
+}
+
+// DingtalkRequestedOrganizationIDCleared returns if the "dingtalk_requested_organization_id" field was cleared in this mutation.
+func (m *UserMutation) DingtalkRequestedOrganizationIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkRequestedOrganizationID]
+	return ok
+}
+
+// ResetDingtalkRequestedOrganizationID resets all changes to the "dingtalk_requested_organization_id" field.
+func (m *UserMutation) ResetDingtalkRequestedOrganizationID() {
+	m.dingtalk_requested_organization = nil
+	delete(m.clearedFields, user.FieldDingtalkRequestedOrganizationID)
 }
 
 // SetIsBootstrapAdmin sets the "is_bootstrap_admin" field.
@@ -156056,6 +157514,141 @@ func (m *UserMutation) ResetConfirmedSeaSharedContainers() {
 	m.removedconfirmed_sea_shared_containers = nil
 }
 
+// AddCreatedDingtalkInvitationIDs adds the "created_dingtalk_invitations" edge to the DingTalkInvitation entity by ids.
+func (m *UserMutation) AddCreatedDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.created_dingtalk_invitations == nil {
+		m.created_dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedDingtalkInvitations clears the "created_dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *UserMutation) ClearCreatedDingtalkInvitations() {
+	m.clearedcreated_dingtalk_invitations = true
+}
+
+// CreatedDingtalkInvitationsCleared reports if the "created_dingtalk_invitations" edge to the DingTalkInvitation entity was cleared.
+func (m *UserMutation) CreatedDingtalkInvitationsCleared() bool {
+	return m.clearedcreated_dingtalk_invitations
+}
+
+// RemoveCreatedDingtalkInvitationIDs removes the "created_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (m *UserMutation) RemoveCreatedDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.removedcreated_dingtalk_invitations == nil {
+		m.removedcreated_dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_dingtalk_invitations, ids[i])
+		m.removedcreated_dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedDingtalkInvitations returns the removed IDs of the "created_dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *UserMutation) RemovedCreatedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedDingtalkInvitationsIDs returns the "created_dingtalk_invitations" edge IDs in the mutation.
+func (m *UserMutation) CreatedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.created_dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedDingtalkInvitations resets all changes to the "created_dingtalk_invitations" edge.
+func (m *UserMutation) ResetCreatedDingtalkInvitations() {
+	m.created_dingtalk_invitations = nil
+	m.clearedcreated_dingtalk_invitations = false
+	m.removedcreated_dingtalk_invitations = nil
+}
+
+// AddConsumedDingtalkInvitationIDs adds the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity by ids.
+func (m *UserMutation) AddConsumedDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.consumed_dingtalk_invitations == nil {
+		m.consumed_dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.consumed_dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearConsumedDingtalkInvitations clears the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *UserMutation) ClearConsumedDingtalkInvitations() {
+	m.clearedconsumed_dingtalk_invitations = true
+}
+
+// ConsumedDingtalkInvitationsCleared reports if the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity was cleared.
+func (m *UserMutation) ConsumedDingtalkInvitationsCleared() bool {
+	return m.clearedconsumed_dingtalk_invitations
+}
+
+// RemoveConsumedDingtalkInvitationIDs removes the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (m *UserMutation) RemoveConsumedDingtalkInvitationIDs(ids ...uuid.UUID) {
+	if m.removedconsumed_dingtalk_invitations == nil {
+		m.removedconsumed_dingtalk_invitations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.consumed_dingtalk_invitations, ids[i])
+		m.removedconsumed_dingtalk_invitations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedConsumedDingtalkInvitations returns the removed IDs of the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity.
+func (m *UserMutation) RemovedConsumedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedconsumed_dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ConsumedDingtalkInvitationsIDs returns the "consumed_dingtalk_invitations" edge IDs in the mutation.
+func (m *UserMutation) ConsumedDingtalkInvitationsIDs() (ids []uuid.UUID) {
+	for id := range m.consumed_dingtalk_invitations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetConsumedDingtalkInvitations resets all changes to the "consumed_dingtalk_invitations" edge.
+func (m *UserMutation) ResetConsumedDingtalkInvitations() {
+	m.consumed_dingtalk_invitations = nil
+	m.clearedconsumed_dingtalk_invitations = false
+	m.removedconsumed_dingtalk_invitations = nil
+}
+
+// ClearDingtalkRequestedOrganization clears the "dingtalk_requested_organization" edge to the Organization entity.
+func (m *UserMutation) ClearDingtalkRequestedOrganization() {
+	m.cleareddingtalk_requested_organization = true
+	m.clearedFields[user.FieldDingtalkRequestedOrganizationID] = struct{}{}
+}
+
+// DingtalkRequestedOrganizationCleared reports if the "dingtalk_requested_organization" edge to the Organization entity was cleared.
+func (m *UserMutation) DingtalkRequestedOrganizationCleared() bool {
+	return m.DingtalkRequestedOrganizationIDCleared() || m.cleareddingtalk_requested_organization
+}
+
+// DingtalkRequestedOrganizationIDs returns the "dingtalk_requested_organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DingtalkRequestedOrganizationID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) DingtalkRequestedOrganizationIDs() (ids []uuid.UUID) {
+	if id := m.dingtalk_requested_organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDingtalkRequestedOrganization resets all changes to the "dingtalk_requested_organization" edge.
+func (m *UserMutation) ResetDingtalkRequestedOrganization() {
+	m.dingtalk_requested_organization = nil
+	m.cleareddingtalk_requested_organization = false
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -156090,7 +157683,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -156126,6 +157719,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.dingtalk_name != nil {
 		fields = append(fields, user.FieldDingtalkName)
+	}
+	if m.dingtalk_requested_organization != nil {
+		fields = append(fields, user.FieldDingtalkRequestedOrganizationID)
 	}
 	if m.is_bootstrap_admin != nil {
 		fields = append(fields, user.FieldIsBootstrapAdmin)
@@ -156168,6 +157764,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DingtalkUserid()
 	case user.FieldDingtalkName:
 		return m.DingtalkName()
+	case user.FieldDingtalkRequestedOrganizationID:
+		return m.DingtalkRequestedOrganizationID()
 	case user.FieldIsBootstrapAdmin:
 		return m.IsBootstrapAdmin()
 	case user.FieldEnabled:
@@ -156207,6 +157805,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDingtalkUserid(ctx)
 	case user.FieldDingtalkName:
 		return m.OldDingtalkName(ctx)
+	case user.FieldDingtalkRequestedOrganizationID:
+		return m.OldDingtalkRequestedOrganizationID(ctx)
 	case user.FieldIsBootstrapAdmin:
 		return m.OldIsBootstrapAdmin(ctx)
 	case user.FieldEnabled:
@@ -156306,6 +157906,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDingtalkName(v)
 		return nil
+	case user.FieldDingtalkRequestedOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkRequestedOrganizationID(v)
+		return nil
 	case user.FieldIsBootstrapAdmin:
 		v, ok := value.(bool)
 		if !ok {
@@ -156384,6 +157991,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDingtalkName) {
 		fields = append(fields, user.FieldDingtalkName)
 	}
+	if m.FieldCleared(user.FieldDingtalkRequestedOrganizationID) {
+		fields = append(fields, user.FieldDingtalkRequestedOrganizationID)
+	}
 	return fields
 }
 
@@ -156424,6 +158034,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDingtalkName:
 		m.ClearDingtalkName()
+		return nil
+	case user.FieldDingtalkRequestedOrganizationID:
+		m.ClearDingtalkRequestedOrganizationID()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -156469,6 +158082,9 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldDingtalkName:
 		m.ResetDingtalkName()
 		return nil
+	case user.FieldDingtalkRequestedOrganizationID:
+		m.ResetDingtalkRequestedOrganizationID()
+		return nil
 	case user.FieldIsBootstrapAdmin:
 		m.ResetIsBootstrapAdmin()
 		return nil
@@ -156484,7 +158100,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 52)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -156631,6 +158247,15 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.confirmed_sea_shared_containers != nil {
 		edges = append(edges, user.EdgeConfirmedSeaSharedContainers)
+	}
+	if m.created_dingtalk_invitations != nil {
+		edges = append(edges, user.EdgeCreatedDingtalkInvitations)
+	}
+	if m.consumed_dingtalk_invitations != nil {
+		edges = append(edges, user.EdgeConsumedDingtalkInvitations)
+	}
+	if m.dingtalk_requested_organization != nil {
+		edges = append(edges, user.EdgeDingtalkRequestedOrganization)
 	}
 	return edges
 }
@@ -156933,13 +158558,29 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.created_dingtalk_invitations))
+		for id := range m.created_dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeConsumedDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.consumed_dingtalk_invitations))
+		for id := range m.consumed_dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeDingtalkRequestedOrganization:
+		if id := m.dingtalk_requested_organization; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 52)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -157086,6 +158727,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedconfirmed_sea_shared_containers != nil {
 		edges = append(edges, user.EdgeConfirmedSeaSharedContainers)
+	}
+	if m.removedcreated_dingtalk_invitations != nil {
+		edges = append(edges, user.EdgeCreatedDingtalkInvitations)
+	}
+	if m.removedconsumed_dingtalk_invitations != nil {
+		edges = append(edges, user.EdgeConsumedDingtalkInvitations)
 	}
 	return edges
 }
@@ -157388,13 +159035,25 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.removedcreated_dingtalk_invitations))
+		for id := range m.removedcreated_dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeConsumedDingtalkInvitations:
+		ids := make([]ent.Value, 0, len(m.removedconsumed_dingtalk_invitations))
+		for id := range m.removedconsumed_dingtalk_invitations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 52)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -157542,6 +159201,15 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedconfirmed_sea_shared_containers {
 		edges = append(edges, user.EdgeConfirmedSeaSharedContainers)
 	}
+	if m.clearedcreated_dingtalk_invitations {
+		edges = append(edges, user.EdgeCreatedDingtalkInvitations)
+	}
+	if m.clearedconsumed_dingtalk_invitations {
+		edges = append(edges, user.EdgeConsumedDingtalkInvitations)
+	}
+	if m.cleareddingtalk_requested_organization {
+		edges = append(edges, user.EdgeDingtalkRequestedOrganization)
+	}
 	return edges
 }
 
@@ -157647,6 +159315,12 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcreated_sea_document_mode_change_events
 	case user.EdgeConfirmedSeaSharedContainers:
 		return m.clearedconfirmed_sea_shared_containers
+	case user.EdgeCreatedDingtalkInvitations:
+		return m.clearedcreated_dingtalk_invitations
+	case user.EdgeConsumedDingtalkInvitations:
+		return m.clearedconsumed_dingtalk_invitations
+	case user.EdgeDingtalkRequestedOrganization:
+		return m.cleareddingtalk_requested_organization
 	}
 	return false
 }
@@ -157655,6 +159329,9 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
+	case user.EdgeDingtalkRequestedOrganization:
+		m.ClearDingtalkRequestedOrganization()
+		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
@@ -157809,6 +159486,15 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeConfirmedSeaSharedContainers:
 		m.ResetConfirmedSeaSharedContainers()
+		return nil
+	case user.EdgeCreatedDingtalkInvitations:
+		m.ResetCreatedDingtalkInvitations()
+		return nil
+	case user.EdgeConsumedDingtalkInvitations:
+		m.ResetConsumedDingtalkInvitations()
+		return nil
+	case user.EdgeDingtalkRequestedOrganization:
+		m.ResetDingtalkRequestedOrganization()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

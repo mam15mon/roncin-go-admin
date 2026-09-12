@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type DingTalkApprovalInboxEventCreate struct {
 	config
 	mutation *DingTalkApprovalInboxEventMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -398,6 +401,7 @@ func (_c *DingTalkApprovalInboxEventCreate) createSpec() (*DingTalkApprovalInbox
 		_node = &DingTalkApprovalInboxEvent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(dingtalkapprovalinboxevent.Table, sqlgraph.NewFieldSpec(dingtalkapprovalinboxevent.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -469,11 +473,493 @@ func (_c *DingTalkApprovalInboxEventCreate) createSpec() (*DingTalkApprovalInbox
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DingTalkApprovalInboxEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DingTalkApprovalInboxEventCreate) OnConflict(opts ...sql.ConflictOption) *DingTalkApprovalInboxEventUpsertOne {
+	_c.conflict = opts
+	return &DingTalkApprovalInboxEventUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DingTalkApprovalInboxEventCreate) OnConflictColumns(columns ...string) *DingTalkApprovalInboxEventUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DingTalkApprovalInboxEventUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// DingTalkApprovalInboxEventUpsertOne is the builder for "upsert"-ing
+	//  one DingTalkApprovalInboxEvent node.
+	DingTalkApprovalInboxEventUpsertOne struct {
+		create *DingTalkApprovalInboxEventCreate
+	}
+
+	// DingTalkApprovalInboxEventUpsert is the "OnConflict" setter.
+	DingTalkApprovalInboxEventUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetOrganizationID(v uuid.UUID) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateOrganizationID() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldOrganizationID)
+	return u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearOrganizationID() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldOrganizationID)
+	return u
+}
+
+// SetParsedSummary sets the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetParsedSummary(v string) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldParsedSummary, v)
+	return u
+}
+
+// UpdateParsedSummary sets the "parsed_summary" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateParsedSummary() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldParsedSummary)
+	return u
+}
+
+// ClearParsedSummary clears the value of the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearParsedSummary() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldParsedSummary)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetStatus(v dingtalkapprovalinboxevent.Status) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateStatus() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldStatus)
+	return u
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetAttempts(v int) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldAttempts, v)
+	return u
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateAttempts() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldAttempts)
+	return u
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsert) AddAttempts(v int) *DingTalkApprovalInboxEventUpsert {
+	u.Add(dingtalkapprovalinboxevent.FieldAttempts, v)
+	return u
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetNextRunAt(v time.Time) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldNextRunAt, v)
+	return u
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateNextRunAt() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldNextRunAt)
+	return u
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetProcessingToken(v string) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldProcessingToken, v)
+	return u
+}
+
+// UpdateProcessingToken sets the "processing_token" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateProcessingToken() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldProcessingToken)
+	return u
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearProcessingToken() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldProcessingToken)
+	return u
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetProcessingExpiresAt(v time.Time) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldProcessingExpiresAt, v)
+	return u
+}
+
+// UpdateProcessingExpiresAt sets the "processing_expires_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateProcessingExpiresAt() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldProcessingExpiresAt)
+	return u
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearProcessingExpiresAt() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldProcessingExpiresAt)
+	return u
+}
+
+// SetResultCode sets the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetResultCode(v string) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldResultCode, v)
+	return u
+}
+
+// UpdateResultCode sets the "result_code" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateResultCode() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldResultCode)
+	return u
+}
+
+// ClearResultCode clears the value of the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearResultCode() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldResultCode)
+	return u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsert) SetErrorMessage(v string) *DingTalkApprovalInboxEventUpsert {
+	u.Set(dingtalkapprovalinboxevent.FieldErrorMessage, v)
+	return u
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsert) UpdateErrorMessage() *DingTalkApprovalInboxEventUpsert {
+	u.SetExcluded(dingtalkapprovalinboxevent.FieldErrorMessage)
+	return u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsert) ClearErrorMessage() *DingTalkApprovalInboxEventUpsert {
+	u.SetNull(dingtalkapprovalinboxevent.FieldErrorMessage)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dingtalkapprovalinboxevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateNewValues() *DingTalkApprovalInboxEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.EventID(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldEventID)
+		}
+		if _, exists := u.create.mutation.CorpID(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldCorpID)
+		}
+		if _, exists := u.create.mutation.EventType(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldEventType)
+		}
+		if _, exists := u.create.mutation.ProcessInstanceID(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldProcessInstanceID)
+		}
+		if _, exists := u.create.mutation.ReceivedAt(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldReceivedAt)
+		}
+		if _, exists := u.create.mutation.EncryptedPayloadHash(); exists {
+			s.SetIgnore(dingtalkapprovalinboxevent.FieldEncryptedPayloadHash)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DingTalkApprovalInboxEventUpsertOne) Ignore() *DingTalkApprovalInboxEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DingTalkApprovalInboxEventUpsertOne) DoNothing() *DingTalkApprovalInboxEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DingTalkApprovalInboxEventCreate.OnConflict
+// documentation for more info.
+func (u *DingTalkApprovalInboxEventUpsertOne) Update(set func(*DingTalkApprovalInboxEventUpsert)) *DingTalkApprovalInboxEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DingTalkApprovalInboxEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetOrganizationID(v uuid.UUID) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateOrganizationID() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearOrganizationID() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearOrganizationID()
+	})
+}
+
+// SetParsedSummary sets the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetParsedSummary(v string) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetParsedSummary(v)
+	})
+}
+
+// UpdateParsedSummary sets the "parsed_summary" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateParsedSummary() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateParsedSummary()
+	})
+}
+
+// ClearParsedSummary clears the value of the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearParsedSummary() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearParsedSummary()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetStatus(v dingtalkapprovalinboxevent.Status) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateStatus() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetAttempts(v int) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) AddAttempts(v int) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateAttempts() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetNextRunAt(v time.Time) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetNextRunAt(v)
+	})
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateNextRunAt() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateNextRunAt()
+	})
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetProcessingToken(v string) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetProcessingToken(v)
+	})
+}
+
+// UpdateProcessingToken sets the "processing_token" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateProcessingToken() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateProcessingToken()
+	})
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearProcessingToken() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearProcessingToken()
+	})
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetProcessingExpiresAt(v time.Time) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetProcessingExpiresAt(v)
+	})
+}
+
+// UpdateProcessingExpiresAt sets the "processing_expires_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateProcessingExpiresAt() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateProcessingExpiresAt()
+	})
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearProcessingExpiresAt() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearProcessingExpiresAt()
+	})
+}
+
+// SetResultCode sets the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetResultCode(v string) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetResultCode(v)
+	})
+}
+
+// UpdateResultCode sets the "result_code" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateResultCode() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateResultCode()
+	})
+}
+
+// ClearResultCode clears the value of the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearResultCode() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearResultCode()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) SetErrorMessage(v string) *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertOne) UpdateErrorMessage() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsertOne) ClearErrorMessage() *DingTalkApprovalInboxEventUpsertOne {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
+// Exec executes the query.
+func (u *DingTalkApprovalInboxEventUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DingTalkApprovalInboxEventCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DingTalkApprovalInboxEventUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DingTalkApprovalInboxEventUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: DingTalkApprovalInboxEventUpsertOne.ID is not supported by MySQL driver. Use DingTalkApprovalInboxEventUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DingTalkApprovalInboxEventUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DingTalkApprovalInboxEventCreateBulk is the builder for creating many DingTalkApprovalInboxEvent entities in bulk.
 type DingTalkApprovalInboxEventCreateBulk struct {
 	config
 	err      error
 	builders []*DingTalkApprovalInboxEventCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the DingTalkApprovalInboxEvent entities in the database.
@@ -503,6 +989,7 @@ func (_c *DingTalkApprovalInboxEventCreateBulk) Save(ctx context.Context) ([]*Di
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -549,6 +1036,316 @@ func (_c *DingTalkApprovalInboxEventCreateBulk) Exec(ctx context.Context) error 
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *DingTalkApprovalInboxEventCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DingTalkApprovalInboxEvent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DingTalkApprovalInboxEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DingTalkApprovalInboxEventCreateBulk) OnConflict(opts ...sql.ConflictOption) *DingTalkApprovalInboxEventUpsertBulk {
+	_c.conflict = opts
+	return &DingTalkApprovalInboxEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DingTalkApprovalInboxEventCreateBulk) OnConflictColumns(columns ...string) *DingTalkApprovalInboxEventUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DingTalkApprovalInboxEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// DingTalkApprovalInboxEventUpsertBulk is the builder for "upsert"-ing
+// a bulk of DingTalkApprovalInboxEvent nodes.
+type DingTalkApprovalInboxEventUpsertBulk struct {
+	create *DingTalkApprovalInboxEventCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dingtalkapprovalinboxevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateNewValues() *DingTalkApprovalInboxEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.EventID(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldEventID)
+			}
+			if _, exists := b.mutation.CorpID(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldCorpID)
+			}
+			if _, exists := b.mutation.EventType(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldEventType)
+			}
+			if _, exists := b.mutation.ProcessInstanceID(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldProcessInstanceID)
+			}
+			if _, exists := b.mutation.ReceivedAt(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldReceivedAt)
+			}
+			if _, exists := b.mutation.EncryptedPayloadHash(); exists {
+				s.SetIgnore(dingtalkapprovalinboxevent.FieldEncryptedPayloadHash)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalInboxEvent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DingTalkApprovalInboxEventUpsertBulk) Ignore() *DingTalkApprovalInboxEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DingTalkApprovalInboxEventUpsertBulk) DoNothing() *DingTalkApprovalInboxEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DingTalkApprovalInboxEventCreateBulk.OnConflict
+// documentation for more info.
+func (u *DingTalkApprovalInboxEventUpsertBulk) Update(set func(*DingTalkApprovalInboxEventUpsert)) *DingTalkApprovalInboxEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DingTalkApprovalInboxEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetOrganizationID(v uuid.UUID) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateOrganizationID() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearOrganizationID() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearOrganizationID()
+	})
+}
+
+// SetParsedSummary sets the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetParsedSummary(v string) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetParsedSummary(v)
+	})
+}
+
+// UpdateParsedSummary sets the "parsed_summary" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateParsedSummary() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateParsedSummary()
+	})
+}
+
+// ClearParsedSummary clears the value of the "parsed_summary" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearParsedSummary() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearParsedSummary()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetStatus(v dingtalkapprovalinboxevent.Status) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateStatus() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetAttempts(v int) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) AddAttempts(v int) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateAttempts() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetNextRunAt(v time.Time) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetNextRunAt(v)
+	})
+}
+
+// UpdateNextRunAt sets the "next_run_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateNextRunAt() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateNextRunAt()
+	})
+}
+
+// SetProcessingToken sets the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetProcessingToken(v string) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetProcessingToken(v)
+	})
+}
+
+// UpdateProcessingToken sets the "processing_token" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateProcessingToken() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateProcessingToken()
+	})
+}
+
+// ClearProcessingToken clears the value of the "processing_token" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearProcessingToken() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearProcessingToken()
+	})
+}
+
+// SetProcessingExpiresAt sets the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetProcessingExpiresAt(v time.Time) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetProcessingExpiresAt(v)
+	})
+}
+
+// UpdateProcessingExpiresAt sets the "processing_expires_at" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateProcessingExpiresAt() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateProcessingExpiresAt()
+	})
+}
+
+// ClearProcessingExpiresAt clears the value of the "processing_expires_at" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearProcessingExpiresAt() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearProcessingExpiresAt()
+	})
+}
+
+// SetResultCode sets the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetResultCode(v string) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetResultCode(v)
+	})
+}
+
+// UpdateResultCode sets the "result_code" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateResultCode() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateResultCode()
+	})
+}
+
+// ClearResultCode clears the value of the "result_code" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearResultCode() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearResultCode()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) SetErrorMessage(v string) *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *DingTalkApprovalInboxEventUpsertBulk) UpdateErrorMessage() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ClearErrorMessage() *DingTalkApprovalInboxEventUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalInboxEventUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
+// Exec executes the query.
+func (u *DingTalkApprovalInboxEventUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DingTalkApprovalInboxEventCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DingTalkApprovalInboxEventCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DingTalkApprovalInboxEventUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

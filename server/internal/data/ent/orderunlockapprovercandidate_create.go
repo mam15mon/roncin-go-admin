@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type OrderUnlockApproverCandidateCreate struct {
 	config
 	mutation *OrderUnlockApproverCandidateMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -230,6 +233,7 @@ func (_c *OrderUnlockApproverCandidateCreate) createSpec() (*OrderUnlockApprover
 		_node = &OrderUnlockApproverCandidate{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderunlockapprovercandidate.Table, sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -317,11 +321,168 @@ func (_c *OrderUnlockApproverCandidateCreate) createSpec() (*OrderUnlockApprover
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUnlockApproverCandidateUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderUnlockApproverCandidateCreate) OnConflict(opts ...sql.ConflictOption) *OrderUnlockApproverCandidateUpsertOne {
+	_c.conflict = opts
+	return &OrderUnlockApproverCandidateUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderUnlockApproverCandidateCreate) OnConflictColumns(columns ...string) *OrderUnlockApproverCandidateUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUnlockApproverCandidateUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderUnlockApproverCandidateUpsertOne is the builder for "upsert"-ing
+	//  one OrderUnlockApproverCandidate node.
+	OrderUnlockApproverCandidateUpsertOne struct {
+		create *OrderUnlockApproverCandidateCreate
+	}
+
+	// OrderUnlockApproverCandidateUpsert is the "OnConflict" setter.
+	OrderUnlockApproverCandidateUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderunlockapprovercandidate.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUnlockApproverCandidateUpsertOne) UpdateNewValues() *OrderUnlockApproverCandidateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.RequestID(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldRequestID)
+		}
+		if _, exists := u.create.mutation.UserID(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldUserID)
+		}
+		if _, exists := u.create.mutation.MembershipID(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldMembershipID)
+		}
+		if _, exists := u.create.mutation.RoleID(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldRoleID)
+		}
+		if _, exists := u.create.mutation.DisplayNameSnapshot(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldDisplayNameSnapshot)
+		}
+		if _, exists := u.create.mutation.DingtalkUseridSnapshot(); exists {
+			s.SetIgnore(orderunlockapprovercandidate.FieldDingtalkUseridSnapshot)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderUnlockApproverCandidateUpsertOne) Ignore() *OrderUnlockApproverCandidateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUnlockApproverCandidateUpsertOne) DoNothing() *OrderUnlockApproverCandidateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderUnlockApproverCandidateCreate.OnConflict
+// documentation for more info.
+func (u *OrderUnlockApproverCandidateUpsertOne) Update(set func(*OrderUnlockApproverCandidateUpsert)) *OrderUnlockApproverCandidateUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUnlockApproverCandidateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *OrderUnlockApproverCandidateUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderUnlockApproverCandidateCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUnlockApproverCandidateUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderUnlockApproverCandidateUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderUnlockApproverCandidateUpsertOne.ID is not supported by MySQL driver. Use OrderUnlockApproverCandidateUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderUnlockApproverCandidateUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderUnlockApproverCandidateCreateBulk is the builder for creating many OrderUnlockApproverCandidate entities in bulk.
 type OrderUnlockApproverCandidateCreateBulk struct {
 	config
 	err      error
 	builders []*OrderUnlockApproverCandidateCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderUnlockApproverCandidate entities in the database.
@@ -351,6 +512,7 @@ func (_c *OrderUnlockApproverCandidateCreateBulk) Save(ctx context.Context) ([]*
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -397,6 +559,141 @@ func (_c *OrderUnlockApproverCandidateCreateBulk) Exec(ctx context.Context) erro
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderUnlockApproverCandidateCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderUnlockApproverCandidate.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUnlockApproverCandidateUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderUnlockApproverCandidateCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderUnlockApproverCandidateUpsertBulk {
+	_c.conflict = opts
+	return &OrderUnlockApproverCandidateUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderUnlockApproverCandidateCreateBulk) OnConflictColumns(columns ...string) *OrderUnlockApproverCandidateUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUnlockApproverCandidateUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderUnlockApproverCandidateUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderUnlockApproverCandidate nodes.
+type OrderUnlockApproverCandidateUpsertBulk struct {
+	create *OrderUnlockApproverCandidateCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderunlockapprovercandidate.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUnlockApproverCandidateUpsertBulk) UpdateNewValues() *OrderUnlockApproverCandidateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.RequestID(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldRequestID)
+			}
+			if _, exists := b.mutation.UserID(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldUserID)
+			}
+			if _, exists := b.mutation.MembershipID(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldMembershipID)
+			}
+			if _, exists := b.mutation.RoleID(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldRoleID)
+			}
+			if _, exists := b.mutation.DisplayNameSnapshot(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldDisplayNameSnapshot)
+			}
+			if _, exists := b.mutation.DingtalkUseridSnapshot(); exists {
+				s.SetIgnore(orderunlockapprovercandidate.FieldDingtalkUseridSnapshot)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockApproverCandidate.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderUnlockApproverCandidateUpsertBulk) Ignore() *OrderUnlockApproverCandidateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUnlockApproverCandidateUpsertBulk) DoNothing() *OrderUnlockApproverCandidateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderUnlockApproverCandidateCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderUnlockApproverCandidateUpsertBulk) Update(set func(*OrderUnlockApproverCandidateUpsert)) *OrderUnlockApproverCandidateUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUnlockApproverCandidateUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *OrderUnlockApproverCandidateUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderUnlockApproverCandidateCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderUnlockApproverCandidateCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUnlockApproverCandidateUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type EnterpriseResourceImageCreate struct {
 	config
 	mutation *EnterpriseResourceImageMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -301,6 +304,7 @@ func (_c *EnterpriseResourceImageCreate) createSpec() (*EnterpriseResourceImage,
 		_node = &EnterpriseResourceImage{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresourceimage.Table, sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -378,11 +382,406 @@ func (_c *EnterpriseResourceImageCreate) createSpec() (*EnterpriseResourceImage,
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceImage.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceImageUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceImageCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceImageUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourceImageUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceImageCreate) OnConflictColumns(columns ...string) *EnterpriseResourceImageUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceImageUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourceImageUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResourceImage node.
+	EnterpriseResourceImageUpsertOne struct {
+		create *EnterpriseResourceImageCreate
+	}
+
+	// EnterpriseResourceImageUpsert is the "OnConflict" setter.
+	EnterpriseResourceImageUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceImageUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateUpdatedAt() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldUpdatedAt)
+	return u
+}
+
+// SetFileName sets the "file_name" field.
+func (u *EnterpriseResourceImageUpsert) SetFileName(v string) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldFileName, v)
+	return u
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateFileName() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldFileName)
+	return u
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *EnterpriseResourceImageUpsert) SetMimeType(v string) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldMimeType, v)
+	return u
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateMimeType() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldMimeType)
+	return u
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *EnterpriseResourceImageUpsert) SetFileSize(v int64) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldFileSize, v)
+	return u
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateFileSize() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldFileSize)
+	return u
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *EnterpriseResourceImageUpsert) AddFileSize(v int64) *EnterpriseResourceImageUpsert {
+	u.Add(enterpriseresourceimage.FieldFileSize, v)
+	return u
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *EnterpriseResourceImageUpsert) SetChecksum(v string) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldChecksum, v)
+	return u
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateChecksum() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldChecksum)
+	return u
+}
+
+// SetWidth sets the "width" field.
+func (u *EnterpriseResourceImageUpsert) SetWidth(v int) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldWidth, v)
+	return u
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateWidth() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldWidth)
+	return u
+}
+
+// AddWidth adds v to the "width" field.
+func (u *EnterpriseResourceImageUpsert) AddWidth(v int) *EnterpriseResourceImageUpsert {
+	u.Add(enterpriseresourceimage.FieldWidth, v)
+	return u
+}
+
+// ClearWidth clears the value of the "width" field.
+func (u *EnterpriseResourceImageUpsert) ClearWidth() *EnterpriseResourceImageUpsert {
+	u.SetNull(enterpriseresourceimage.FieldWidth)
+	return u
+}
+
+// SetHeight sets the "height" field.
+func (u *EnterpriseResourceImageUpsert) SetHeight(v int) *EnterpriseResourceImageUpsert {
+	u.Set(enterpriseresourceimage.FieldHeight, v)
+	return u
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsert) UpdateHeight() *EnterpriseResourceImageUpsert {
+	u.SetExcluded(enterpriseresourceimage.FieldHeight)
+	return u
+}
+
+// AddHeight adds v to the "height" field.
+func (u *EnterpriseResourceImageUpsert) AddHeight(v int) *EnterpriseResourceImageUpsert {
+	u.Add(enterpriseresourceimage.FieldHeight, v)
+	return u
+}
+
+// ClearHeight clears the value of the "height" field.
+func (u *EnterpriseResourceImageUpsert) ClearHeight() *EnterpriseResourceImageUpsert {
+	u.SetNull(enterpriseresourceimage.FieldHeight)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceimage.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceImageUpsertOne) UpdateNewValues() *EnterpriseResourceImageUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresourceimage.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresourceimage.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterpriseresourceimage.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.ObjectKey(); exists {
+			s.SetIgnore(enterpriseresourceimage.FieldObjectKey)
+		}
+		if _, exists := u.create.mutation.UploadedBy(); exists {
+			s.SetIgnore(enterpriseresourceimage.FieldUploadedBy)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourceImageUpsertOne) Ignore() *EnterpriseResourceImageUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceImageUpsertOne) DoNothing() *EnterpriseResourceImageUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceImageCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceImageUpsertOne) Update(set func(*EnterpriseResourceImageUpsert)) *EnterpriseResourceImageUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceImageUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceImageUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateUpdatedAt() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *EnterpriseResourceImageUpsertOne) SetFileName(v string) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateFileName() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *EnterpriseResourceImageUpsertOne) SetMimeType(v string) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateMimeType() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *EnterpriseResourceImageUpsertOne) SetFileSize(v int64) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *EnterpriseResourceImageUpsertOne) AddFileSize(v int64) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateFileSize() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *EnterpriseResourceImageUpsertOne) SetChecksum(v string) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateChecksum() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// SetWidth sets the "width" field.
+func (u *EnterpriseResourceImageUpsertOne) SetWidth(v int) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *EnterpriseResourceImageUpsertOne) AddWidth(v int) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateWidth() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// ClearWidth clears the value of the "width" field.
+func (u *EnterpriseResourceImageUpsertOne) ClearWidth() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.ClearWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *EnterpriseResourceImageUpsertOne) SetHeight(v int) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *EnterpriseResourceImageUpsertOne) AddHeight(v int) *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertOne) UpdateHeight() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// ClearHeight clears the value of the "height" field.
+func (u *EnterpriseResourceImageUpsertOne) ClearHeight() *EnterpriseResourceImageUpsertOne {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.ClearHeight()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceImageUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceImageCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceImageUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourceImageUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourceImageUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourceImageUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourceImageUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourceImageCreateBulk is the builder for creating many EnterpriseResourceImage entities in bulk.
 type EnterpriseResourceImageCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourceImageCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResourceImage entities in the database.
@@ -412,6 +811,7 @@ func (_c *EnterpriseResourceImageCreateBulk) Save(ctx context.Context) ([]*Enter
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -458,6 +858,265 @@ func (_c *EnterpriseResourceImageCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourceImageCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceImage.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceImageUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceImageCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceImageUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourceImageUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceImageCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourceImageUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceImageUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourceImageUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResourceImage nodes.
+type EnterpriseResourceImageUpsertBulk struct {
+	create *EnterpriseResourceImageCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceimage.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceImageUpsertBulk) UpdateNewValues() *EnterpriseResourceImageUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresourceimage.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresourceimage.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterpriseresourceimage.FieldResourceID)
+			}
+			if _, exists := b.mutation.ObjectKey(); exists {
+				s.SetIgnore(enterpriseresourceimage.FieldObjectKey)
+			}
+			if _, exists := b.mutation.UploadedBy(); exists {
+				s.SetIgnore(enterpriseresourceimage.FieldUploadedBy)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceImage.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourceImageUpsertBulk) Ignore() *EnterpriseResourceImageUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceImageUpsertBulk) DoNothing() *EnterpriseResourceImageUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceImageCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceImageUpsertBulk) Update(set func(*EnterpriseResourceImageUpsert)) *EnterpriseResourceImageUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceImageUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetFileName(v string) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateFileName() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetMimeType(v string) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateMimeType() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetFileSize(v int64) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *EnterpriseResourceImageUpsertBulk) AddFileSize(v int64) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateFileSize() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetChecksum(v string) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateChecksum() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// SetWidth sets the "width" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetWidth(v int) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetWidth(v)
+	})
+}
+
+// AddWidth adds v to the "width" field.
+func (u *EnterpriseResourceImageUpsertBulk) AddWidth(v int) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddWidth(v)
+	})
+}
+
+// UpdateWidth sets the "width" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateWidth() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateWidth()
+	})
+}
+
+// ClearWidth clears the value of the "width" field.
+func (u *EnterpriseResourceImageUpsertBulk) ClearWidth() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.ClearWidth()
+	})
+}
+
+// SetHeight sets the "height" field.
+func (u *EnterpriseResourceImageUpsertBulk) SetHeight(v int) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.SetHeight(v)
+	})
+}
+
+// AddHeight adds v to the "height" field.
+func (u *EnterpriseResourceImageUpsertBulk) AddHeight(v int) *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.AddHeight(v)
+	})
+}
+
+// UpdateHeight sets the "height" field to the value that was provided on create.
+func (u *EnterpriseResourceImageUpsertBulk) UpdateHeight() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.UpdateHeight()
+	})
+}
+
+// ClearHeight clears the value of the "height" field.
+func (u *EnterpriseResourceImageUpsertBulk) ClearHeight() *EnterpriseResourceImageUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceImageUpsert) {
+		s.ClearHeight()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceImageUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourceImageCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceImageCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceImageUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
