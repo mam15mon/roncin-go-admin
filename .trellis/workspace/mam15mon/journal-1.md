@@ -1235,3 +1235,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 47: 钉钉任务收尾：P3 清单修复轮与 biz 分层重构
+<!-- trellis-session: v=2 fp=c26446132931db7c -->
+
+**Date**: 2026-09-13
+**Task**: 钉钉任务收尾：P3 清单修复轮与 biz 分层重构
+**Branch**: `main`
+
+### Summary
+
+完成钉钉任务 P3 遗留清单修复与 biz 分层重构。P3 修复轮：列表接口收窄 Token（新增 GetDingTalkInvitation 详情接口与 ListTransferOrganizations）、CONSUMED 定向码双入口拦截、缺省 TTL 72h→168h、代管文案对齐 PRD 3.3、邀请参数统一 ?invite=。评审发现新 P1：新代管后缀（54 字节）超过 notification_deliveries.parameter MaxLen(64) 字节校验，导致转派/追溯注册整笔事务回滚（真实库集成复现）；修复为 parameter 扩容 256（迁移 20260912220000）+ clampNotificationBytes 按字节 UTF-8 边界截断（消除 rune/byte 错配存量隐患，15 个新单测）。biz 重构：向上追溯算法上移为 biz 包级函数（与原 data 实现逐行等价），data 复合方法收窄为转派事务回调私有函数（FOR SHARE 语义不变），usecase 纯透传删除。复检全部通过，收尾全量门禁 web 628/628 + server 全量 + govulncheck 零漏洞。遗留小项：ListTransferOrganizations 无 keyword 过滤（选择器约定）、管理侧仓储接口 ListApproverRecipients/GetParentOrganizationID 暂无调用方、后缀硬编码「总部」在命中中间祖先时文案与实际路由组织可能不符（与 PRD 原文一致）。main 领先 origin/main 12 个工作提交，未推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `68abd60d` | feat(auth,admin): 收窄钉钉邀请 Token 暴露并对齐代管通知与 PRD 文案 |
+| `291a6435` | feat(web): 钉钉邀请二维码下载与邀请参数口径统一 |
+| `0a317642` | refactor(auth,admin): 钉钉审批追溯决策上移 biz 层 |
+
+### Status
+
+[OK] **Completed**
