@@ -1,6 +1,7 @@
 import { act, render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DingTalkInvitationKind } from '@/enums.generated';
 
 const serviceMocks = vi.hoisted(() => ({
   createInvitation: vi.fn(),
@@ -22,6 +23,12 @@ vi.mock('@ant-design/pro-components', () => ({
   ProFormText: (props: Record<string, unknown>) => {
     formItems.set(String(props.name), props);
     return null;
+  },
+  ProFormRadio: {
+    Group: (props: Record<string, unknown>) => {
+      formItems.set(String(props.name), props);
+      return null;
+    },
   },
 }));
 
@@ -112,8 +119,60 @@ describe('InvitationFormModal', () => {
     });
   });
 
-  it('提交参数规范化：手机号与备注姓名去空格，空备注不发送', async () => {
-    serviceMocks.createInvitation.mockResolvedValue({});
+  it('提交参数规范化：定向邀请手机号与备注姓名去空格，空备注不发送', async () => {
+    serviceMocks.createInvitation.mockResolvedValue({
+      data: { id: 'inv-1' },
+      invitationUrl: '/login?invite=tok-1',
+    });
+    const onSuccess = vi.fn();
+    await act(async () => {
+      render(
+        <InvitationFormModal
+          open
+          onOpenChange={() => {}}
+          formRef={formRef}
+          organizations={organizations}
+          currentOrganizationId="org-1"
+          canReadRoles
+          onReload={() => {}}
+          onSuccess={onSuccess}
+        />,
+      );
+    });
+
+    const modalProps = modalState.props;
+    expect(modalProps).toBeTruthy();
+    let finishResult: unknown;
+    await act(async () => {
+      finishResult = await modalProps?.onFinish?.({
+        kind: DingTalkInvitationKind.DING_TALK_INVITATION_KIND_TARGETED,
+        mobile: ' 13800138000 ',
+        organizationId: 'org-2',
+        roleId: 'role-9',
+        displayName: '  张三  ',
+        expiresInHours: 168,
+      });
+    });
+    expect(finishResult).toBe(true);
+    expect(serviceMocks.createInvitation).toHaveBeenCalledWith({
+      kind: DingTalkInvitationKind.DING_TALK_INVITATION_KIND_TARGETED,
+      mobile: '13800138000',
+      organizationId: 'org-2',
+      roleId: 'role-9',
+      displayName: '张三',
+      expiresInHours: 168,
+    });
+    expect(onSuccess).toHaveBeenCalledWith(
+      { id: 'inv-1' },
+      '/login?invite=tok-1',
+    );
+  });
+
+  it('通用入职码模式：手机号不发送，角色为可选', async () => {
+    serviceMocks.createInvitation.mockResolvedValue({
+      data: { id: 'inv-2' },
+      invitationUrl: '/login?invite=generic-tok',
+    });
     await act(async () => {
       render(
         <InvitationFormModal
@@ -133,41 +192,23 @@ describe('InvitationFormModal', () => {
     let finishResult: unknown;
     await act(async () => {
       finishResult = await modalProps?.onFinish?.({
-        mobile: ' 13800138000 ',
-        organizationId: 'org-2',
-        roleId: 'role-9',
-        displayName: '  张三  ',
-        expiresInHours: 168,
+        kind: DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC,
+        organizationId: 'org-1',
+        expiresInHours: 72,
       });
     });
     expect(finishResult).toBe(true);
     expect(serviceMocks.createInvitation).toHaveBeenCalledWith({
-      mobile: '13800138000',
-      organizationId: 'org-2',
-      roleId: 'role-9',
-      displayName: '张三',
-      expiresInHours: 168,
-    });
-
-    await act(async () => {
-      await modalProps?.onFinish?.({
-        mobile: '13800138001',
-        organizationId: 'org-1',
-        roleId: 'role-1',
-        displayName: '   ',
-        expiresInHours: 72,
-      });
-    });
-    expect(serviceMocks.createInvitation).toHaveBeenLastCalledWith({
-      mobile: '13800138001',
+      kind: DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC,
+      mobile: undefined,
       organizationId: 'org-1',
-      roleId: 'role-1',
+      roleId: undefined,
       displayName: undefined,
       expiresInHours: 72,
     });
   });
 
-  it('手机号与目标组织、初始角色为必填校验', async () => {
+  it('定向模式下手机号与目标组织、初始角色为必填校验', async () => {
     await act(async () => {
       render(
         <InvitationFormModal

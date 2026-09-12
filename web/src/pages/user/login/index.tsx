@@ -9,9 +9,21 @@ import {
   WechatWorkOutlined,
 } from '@ant-design/icons';
 import { Helmet, Link, useModel } from '@umijs/max';
-import { App, Button, Checkbox, Divider, Form, Input, Modal, Spin } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Checkbox,
+  Divider,
+  Form,
+  Input,
+  Modal,
+  Spin,
+} from 'antd';
+import dayjs from 'dayjs';
 import React, { startTransition, useEffect, useState } from 'react';
 import {
+  authServiceGetDingTalkInvitationInfo,
   authServiceGetDingTalkLoginConfig,
   authServiceGetWeComLoginConfig,
   authServiceLogin,
@@ -51,6 +63,9 @@ export default function Login() {
   const [organizationOptions, setOrganizationOptions] =
     useState<LoginOrganizationOption[]>();
   const [pendingRedirect, setPendingRedirect] = useState('/');
+  const [invitationInfo, setInvitationInfo] =
+    useState<API.DingTalkInvitationPublicInfo>();
+  const [invitationError, setInvitationError] = useState<string>();
 
   useEffect(() => {
     authServiceGetWeComLoginConfig({ skipErrorHandler: true })
@@ -59,6 +74,28 @@ export default function Login() {
     authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
       .then((response) => setDingtalkEnabled(response.data?.enabled ?? false))
       .catch(() => setDingtalkEnabled(false));
+
+    const url = new URL(window.location.href);
+    const inviteToken =
+      url.searchParams.get('invite') || url.searchParams.get('token');
+    if (inviteToken) {
+      sessionStorage.setItem('dingtalk_invitation_token', inviteToken);
+      authServiceGetDingTalkInvitationInfo(
+        { token: inviteToken },
+        { skipErrorHandler: true },
+      )
+        .then((response) => {
+          if (response.data) {
+            setInvitationInfo(response.data);
+          }
+        })
+        .catch((error) => {
+          setInvitationError(
+            error instanceof Error ? error.message : '邀请链接无效或已过期',
+          );
+          sessionStorage.removeItem('dingtalk_invitation_token');
+        });
+    }
   }, []);
 
   const finishLogin = (redirect: string) => {
@@ -221,6 +258,37 @@ export default function Login() {
               <h1 className={styles.headerTitle}>登录</h1>
             </div>
 
+            {invitationInfo && (
+              <Alert
+                type="info"
+                showIcon
+                message={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
+                description={
+                  <div style={{ fontSize: 13, marginTop: 4 }}>
+                    <div>
+                      邀请人：{invitationInfo.inviterName || '管理员'}
+                      {invitationInfo.expiresAt &&
+                        ` · 有效期至 ${dayjs(invitationInfo.expiresAt).format('YYYY-MM-DD HH:mm')}`}
+                    </div>
+                    <div style={{ marginTop: 4, color: '#475569' }}>
+                      请点击下方「钉钉登录」使用企业钉钉扫码加入。
+                    </div>
+                  </div>
+                }
+                style={{ marginBottom: 20 }}
+              />
+            )}
+
+            {invitationError && (
+              <Alert
+                type="warning"
+                showIcon
+                message="邀请链接已失效"
+                description={invitationError}
+                style={{ marginBottom: 20 }}
+              />
+            )}
+
             {/* 登录表单 */}
             <Form<API.LoginRequest>
               form={form}
@@ -370,11 +438,21 @@ export default function Login() {
                         disabled={loading || wecomLoading || dingtalkLoading}
                         onClick={handleDingTalkLogin}
                       >
-                        钉钉登录
+                        {invitationInfo
+                          ? `使用钉钉扫码进入【${invitationInfo.organizationName || '专属通道'}】`
+                          : '钉钉登录'}
                       </Button>
                       <div style={{ textAlign: 'center', fontSize: 13 }}>
                         首次使用？
-                        <Link to="/user/register">使用钉钉扫码注册</Link>
+                        <Link
+                          to={
+                            invitationInfo
+                              ? `/user/register?invite=${sessionStorage.getItem('dingtalk_invitation_token') || ''}`
+                              : '/user/register'
+                          }
+                        >
+                          使用钉钉扫码注册
+                        </Link>
                       </div>
                     </>
                   )}

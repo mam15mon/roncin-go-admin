@@ -14,11 +14,13 @@ const {
   dingTalkLogin,
   registerDingTalkUser,
   switchOrganization,
+  getInvitationInfo,
   messageSuccessMock,
 } = vi.hoisted(() => ({
   dingTalkLogin: vi.fn(),
   registerDingTalkUser: vi.fn(),
   switchOrganization: vi.fn(),
+  getInvitationInfo: vi.fn(),
   messageSuccessMock: vi.fn(),
 }));
 
@@ -41,6 +43,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceDingTalkLogin: dingTalkLogin,
   authServiceRegisterDingTalkUser: registerDingTalkUser,
   authServiceSwitchOrganization: switchOrganization,
+  authServiceGetDingTalkInvitationInfo: getInvitationInfo,
 }));
 
 function authenticatedUser(
@@ -316,5 +319,57 @@ describe('DingTalkCallback', () => {
     });
     expect(switchOrganization).not.toHaveBeenCalled();
     expect(messageSuccessMock).toHaveBeenCalledWith('钉钉登录成功');
+  });
+
+  it('携带 invitationToken 时不渲染公司选择，直接绑定专属通道并携带 token 注册', async () => {
+    sessionStorage.setItem('dingtalk_invitation_token', 'invite-token-abc');
+    getInvitationInfo.mockResolvedValueOnce({
+      data: {
+        organizationName: '天津分公司',
+        inviterName: '张经理',
+      },
+    });
+    dingTalkLogin.mockResolvedValueOnce({
+      data: {
+        status: 2,
+        displayName: '孙七',
+        registrationOrganizations: [
+          {
+            organizationId: 'org-cd',
+            organizationName: '成都分公司',
+            organizationCode: 'CD',
+          },
+          {
+            organizationId: 'org-tj',
+            organizationName: '天津分公司',
+            organizationCode: 'TJ',
+          },
+        ],
+      },
+    });
+    registerDingTalkUser.mockResolvedValueOnce({
+      data: { displayName: '孙七', status: 'PENDING' },
+    });
+
+    render(
+      <App>
+        <DingTalkCallback />
+      </App>,
+    );
+
+    expect(await screen.findByText('确认注册')).toBeInTheDocument();
+    expect(screen.getByText(/已确认 孙七 属于本企业/)).toBeInTheDocument();
+    expect(screen.getByText(/天津分公司/)).toBeInTheDocument();
+    // 专属邀请模式下不渲染公司自选下拉框
+    expect(screen.queryByText('要加入的公司')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('确认注册'));
+
+    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
+    expect(registerDingTalkUser).toHaveBeenCalledWith(
+      { invitationToken: 'invite-token-abc' },
+      { skipErrorHandler: true },
+    );
+    expect(sessionStorage.getItem('dingtalk_invitation_token')).toBeNull();
   });
 });

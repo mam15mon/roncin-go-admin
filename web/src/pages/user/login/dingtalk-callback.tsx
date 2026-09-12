@@ -5,6 +5,7 @@ import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { DingTalkLoginStatus } from '@/enums.generated';
 import {
   authServiceDingTalkLogin,
+  authServiceGetDingTalkInvitationInfo,
   authServiceRegisterDingTalkUser,
 } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
@@ -52,8 +53,30 @@ export default function DingTalkCallback() {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
   const [organizationOptions, setOrganizationOptions] =
     useState<LoginOrganizationOption[]>();
+  const [invitationToken, setInvitationToken] = useState('');
+  const [invitationInfo, setInvitationInfo] =
+    useState<API.DingTalkInvitationPublicInfo>();
   const pendingRedirectRef = useRef('/');
   const handled = useRef(false);
+
+  useEffect(() => {
+    const token =
+      sessionStorage.getItem('dingtalk_invitation_token') ||
+      new URL(window.location.href).searchParams.get('invite') ||
+      new URL(window.location.href).searchParams.get('invitation_token') ||
+      '';
+    if (token) {
+      setInvitationToken(token);
+      authServiceGetDingTalkInvitationInfo(
+        { token },
+        { skipErrorHandler: true },
+      )
+        .then((response) => {
+          if (response.data) setInvitationInfo(response.data);
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (handled.current) return;
@@ -104,6 +127,7 @@ export default function DingTalkCallback() {
           return;
         }
         message.success('钉钉登录成功');
+        sessionStorage.removeItem('dingtalk_invitation_token');
         window.location.replace(storedRedirect());
       })
       .catch((error) => {
@@ -114,10 +138,16 @@ export default function DingTalkCallback() {
   const confirmRegistration = async () => {
     setRegistrationLoading(true);
     try {
+      const activeToken =
+        invitationToken ||
+        sessionStorage.getItem('dingtalk_invitation_token') ||
+        undefined;
       const response = await authServiceRegisterDingTalkUser(
-        selectedOrganizationId
-          ? { organizationId: selectedOrganizationId }
-          : {},
+        activeToken
+          ? { invitationToken: activeToken }
+          : selectedOrganizationId
+            ? { organizationId: selectedOrganizationId }
+            : {},
         { skipErrorHandler: true },
       );
       if (!response.data) {
@@ -126,6 +156,7 @@ export default function DingTalkCallback() {
       }
       setRegisteredName(response.data.displayName ?? registrationName);
       setRegistrationName('');
+      sessionStorage.removeItem('dingtalk_invitation_token');
     } catch (error) {
       setFailure(loginFailure(error));
       setRegistrationName('');
@@ -143,7 +174,11 @@ export default function DingTalkCallback() {
         <Result
           status="success"
           title="入职或返聘申请已提交"
-          subTitle={`${registeredName}，企业身份验证已通过。请等待管理员重新确认所属组织和角色，授权完成后即可使用钉钉登录。`}
+          subTitle={
+            invitationInfo?.organizationName
+              ? `${registeredName}，企业身份验证已通过。申请已转交【${invitationInfo.organizationName}】管理员审批，授权完成后即可使用钉钉登录。`
+              : `${registeredName}，企业身份验证已通过。请等待管理员重新确认所属组织和角色，授权完成后即可使用钉钉登录。`
+          }
           extra={
             <Button
               type="primary"
@@ -161,13 +196,15 @@ export default function DingTalkCallback() {
           icon={<DingdingOutlined style={{ color: '#1677ff' }} />}
           title="钉钉身份验证完成"
           subTitle={
-            registrationOrganizations.length > 1
-              ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由总部审批。`
-              : `已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`
+            invitationToken
+              ? `已确认 ${registrationName} 属于本企业。您正通过【${invitationInfo?.organizationName || '专属通道'}】申请入职，确认后将转交该分公司管理员审批。`
+              : registrationOrganizations.length > 1
+                ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由总部审批。`
+                : `已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`
           }
           extra={
             <Space orientation="vertical" size={16}>
-              {registrationOrganizations.length > 1 && (
+              {!invitationToken && registrationOrganizations.length > 1 && (
                 <div>
                   <div
                     style={{
