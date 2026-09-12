@@ -35,6 +35,8 @@ const (
 	FieldBilledFeeUnitPriceEditable = "billed_fee_unit_price_editable"
 	// FieldBilledFeeTaxRateEditable holds the string denoting the billed_fee_tax_rate_editable field in the database.
 	FieldBilledFeeTaxRateEditable = "billed_fee_tax_rate_editable"
+	// FieldCreditLimitSelectionAllowed holds the string denoting the credit_limit_selection_allowed field in the database.
+	FieldCreditLimitSelectionAllowed = "credit_limit_selection_allowed"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldUpdatedBy holds the string denoting the updated_by field in the database.
@@ -74,6 +76,7 @@ var Columns = []string{
 	FieldBilledFeeQuantityEditable,
 	FieldBilledFeeUnitPriceEditable,
 	FieldBilledFeeTaxRateEditable,
+	FieldCreditLimitSelectionAllowed,
 	FieldVersion,
 	FieldUpdatedBy,
 }
@@ -109,6 +112,8 @@ var (
 	DefaultBilledFeeUnitPriceEditable bool
 	// DefaultBilledFeeTaxRateEditable holds the default value on creation for the "billed_fee_tax_rate_editable" field.
 	DefaultBilledFeeTaxRateEditable bool
+	// DefaultCreditLimitSelectionAllowed holds the default value on creation for the "credit_limit_selection_allowed" field.
+	DefaultCreditLimitSelectionAllowed bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
@@ -171,6 +176,11 @@ func ByBilledFeeUnitPriceEditable(opts ...sql.OrderTermOption) OrderOption {
 // ByBilledFeeTaxRateEditable orders the results by the billed_fee_tax_rate_editable field.
 func ByBilledFeeTaxRateEditable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBilledFeeTaxRateEditable, opts...).ToFunc()
+}
+
+// ByCreditLimitSelectionAllowed orders the results by the credit_limit_selection_allowed field.
+func ByCreditLimitSelectionAllowed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreditLimitSelectionAllowed, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

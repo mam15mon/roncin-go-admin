@@ -99,4 +99,45 @@ func TestPartnerSettlementRuleValidatesCreditLimitCurrencyPair(t *testing.T) {
 	}
 }
 
+func TestPartnerSettlementRuleValidatesPaymentTermsDays(t *testing.T) {
+	usecase := NewPartnerSettlementRuleUsecase(&partnerSettlementRuleRepoStub{})
+	zero, thirty, negative, overLimit := 0, 30, -1, 3651
+
+	valid, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
+		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+		SettlementCurrency: "CNY", PaymentTermsDays: &thirty,
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if valid.PaymentTermsDays == nil || *valid.PaymentTermsDays != thirty {
+		t.Fatalf("payment terms days 应被透传: %#v", valid)
+	}
+
+	zeroDays, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
+		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+		SettlementCurrency: "CNY", PaymentTermsDays: &zero,
+	})
+	if err != nil || zeroDays.PaymentTermsDays == nil || *zeroDays.PaymentTermsDays != 0 {
+		t.Fatalf("0 天账期应合法: rule=%#v err=%v", zeroDays, err)
+	}
+
+	for _, paymentTermsDays := range []*int{&negative, &overLimit} {
+		if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
+			StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+			SettlementCurrency: "CNY", PaymentTermsDays: paymentTermsDays,
+		}); err != ErrPartnerSettlementRuleInvalidArgument {
+			t.Fatalf("账期 %d 天应返回参数错误, got %v", *paymentTermsDays, err)
+		}
+	}
+
+	updated, err := usecase.Update(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
+		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+		SettlementCurrency: "CNY", PaymentTermsDays: nil,
+	})
+	if err != nil || updated.PaymentTermsDays != nil {
+		t.Fatalf("清空账期应保存为 NULL: rule=%#v err=%v", updated, err)
+	}
+}
+
 var _ PartnerSettlementRuleRepo = (*partnerSettlementRuleRepoStub)(nil)

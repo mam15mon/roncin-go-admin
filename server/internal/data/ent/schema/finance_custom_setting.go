@@ -23,6 +23,8 @@ func (FinanceCustomSetting) Fields() []ent.Field {
 		field.Bool("billed_fee_quantity_editable").Default(false),
 		field.Bool("billed_fee_unit_price_editable").Default(false),
 		field.Bool("billed_fee_tax_rate_editable").Default(false),
+		// 超信用额度后是否仍允许选择往来单位：true 仅提醒（默认），false 直接干预拦截。
+		field.Bool("credit_limit_selection_allowed").Default(true).Comment("超信用额度后是否仍允许选择往来单位"),
 		field.Uint64("version").Default(1),
 		field.UUID("updated_by", uuid.Nil),
 	}

@@ -52,6 +52,18 @@ service SettlementService {
     option (google.api.http) = {put: "/api/v1/finance/custom-settings/billed-fee-edit-policy" body: "*"};
   }
 
+  // GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+  rpc GetCreditLimitControlPolicy(GetCreditLimitControlPolicyRequest) returns (GetCreditLimitControlPolicyResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/custom-settings/credit-limit-control-policy"};
+  }
+
+  // UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+  rpc UpdateCreditLimitControlPolicy(UpdateCreditLimitControlPolicyRequest) returns (UpdateCreditLimitControlPolicyResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/custom-settings/credit-limit-control-policy" body: "*"};
+  }
+
   rpc ListBills(ListBillsRequest) returns (ListBillsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/bills"};
@@ -436,6 +448,46 @@ message UpdateBilledFeeEditPolicyResponse {
   string trace_id = 5;
 }
 
+// CreditLimitControlPolicy 是组织级信用额度管控策略：
+// allow_selection_when_credit_exceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；
+// false 为直接干预模式，超额客户在选择器中禁用且服务端在订单、应收费用写入时拦截。
+message CreditLimitControlPolicy {
+  string organization_id = 1;
+  bool allow_selection_when_credit_exceeded = 2;
+  // 未保存过策略时为 0；首次保存需携带 expected_version=0。
+  uint64 version = 3;
+  optional string updated_at = 4;
+  optional string updated_by = 5;
+}
+
+message GetCreditLimitControlPolicyRequest {
+  optional string organization_id = 1;
+}
+
+message GetCreditLimitControlPolicyResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  CreditLimitControlPolicy data = 4;
+  string trace_id = 5;
+  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+  bool can_update = 6;
+}
+
+message UpdateCreditLimitControlPolicyRequest {
+  optional string organization_id = 1;
+  bool allow_selection_when_credit_exceeded = 2;
+  google.protobuf.UInt64Value expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateCreditLimitControlPolicyResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  CreditLimitControlPolicy data = 4;
+  string trace_id = 5;
+}
+
 message ListBillsRequest {
   int32 page = 1;
   int32 page_size = 2;
@@ -621,6 +673,11 @@ message BillBatchPreviewGroup {
   string estimated_invoice_amount = 19;
   bool is_casual = 20;
   optional int32 default_payment_terms_days = 21;
+  // 信用额度比对信息（折本位币口径）：额度来自客户角色激活结算规则，余额来自已确认应收账单未核销总额。
+  optional string credit_limit_amount = 22;
+  optional string credit_currency = 23;
+  optional string current_unsettled_amount = 24;
+  bool is_credit_exceeded = 25;
 }
 
 message PreviewBillBatchResponse {
@@ -916,7 +973,7 @@ enum FinanceOrganizationPurpose {
 message FinanceOrganizationOption { string id = 1; string code = 2; string name = 3; string base_currency = 4; }
 message ListFinanceOrganizationOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 2; }
 message ListFinanceOrganizationOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceOrganizationOption data = 4; string trace_id = 5; }
-message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; bool is_casual = 4; }
+message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; bool is_casual = 4; bool credit_exceeded = 5; }
 message ListFinanceSettlementPartyOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; string organization_id = 2 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 3; int32 page = 4; int32 page_size = 5; }
 message ListFinanceSettlementPartyOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementPartyOption data = 4; int64 total = 5; string trace_id = 6; }
 message FinanceCommission { string id=1; string commission_no=2; optional string verification_id=3; optional string verification_no=4; string employee_id=5; string employee_name=6; FinanceCommissionStatus status=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; optional string rule_id=22; optional string rule_name=23; optional string personnel_role=24; optional string calculation_basis=25; uint64 rule_version=26; string calculation_version=27; repeated FinanceCommissionLine lines=28; repeated FinanceCommissionAdjustment adjustments=29; string adjustment_amount=30; string effective_commission_amount=31; int32 customer_count=32; int32 order_count=33; int32 fee_count=34; string commission_base_amount=35; string commission_date=36; string cny_exchange_rate=37; string cny_exchange_rate_source=38; string cny_exchange_rate_date=39; optional string cny_exchange_rate_setting_id=40; string cny_commission_amount=41; string cny_adjustment_amount=42; string cny_effective_commission_amount=43; string organization_id=44; string organization_name=45; optional string confirmed_by=46; optional string paid_by=47; optional string cancelled_by=48; optional string netting_id=49; optional string netting_no=50; }

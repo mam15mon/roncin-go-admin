@@ -26,6 +26,8 @@ const (
 	SettlementService_ResetFeeLedgerPreference_FullMethodName                  = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 	SettlementService_GetBilledFeeEditPolicy_FullMethodName                    = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
 	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName                 = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
+	SettlementService_GetCreditLimitControlPolicy_FullMethodName               = "/finance.v1.SettlementService/GetCreditLimitControlPolicy"
+	SettlementService_UpdateCreditLimitControlPolicy_FullMethodName            = "/finance.v1.SettlementService/UpdateCreditLimitControlPolicy"
 	SettlementService_ListBills_FullMethodName                                 = "/finance.v1.SettlementService/ListBills"
 	SettlementService_ListBillCreationCandidates_FullMethodName                = "/finance.v1.SettlementService/ListBillCreationCandidates"
 	SettlementService_ListBillSettlementAccountCandidates_FullMethodName       = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
@@ -112,6 +114,10 @@ type SettlementServiceClient interface {
 	GetBilledFeeEditPolicy(ctx context.Context, in *GetBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*GetBilledFeeEditPolicyResponse, error)
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error)
+	// GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+	GetCreditLimitControlPolicy(ctx context.Context, in *GetCreditLimitControlPolicyRequest, opts ...grpc.CallOption) (*GetCreditLimitControlPolicyResponse, error)
+	// UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+	UpdateCreditLimitControlPolicy(ctx context.Context, in *UpdateCreditLimitControlPolicyRequest, opts ...grpc.CallOption) (*UpdateCreditLimitControlPolicyResponse, error)
 	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
 	ListBillCreationCandidates(ctx context.Context, in *ListBillCreationCandidatesRequest, opts ...grpc.CallOption) (*ListBillCreationCandidatesResponse, error)
 	ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountCandidatesResponse, error)
@@ -256,6 +262,26 @@ func (c *settlementServiceClient) UpdateBilledFeeEditPolicy(ctx context.Context,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateBilledFeeEditPolicyResponse)
 	err := c.cc.Invoke(ctx, SettlementService_UpdateBilledFeeEditPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetCreditLimitControlPolicy(ctx context.Context, in *GetCreditLimitControlPolicyRequest, opts ...grpc.CallOption) (*GetCreditLimitControlPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCreditLimitControlPolicyResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetCreditLimitControlPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) UpdateCreditLimitControlPolicy(ctx context.Context, in *UpdateCreditLimitControlPolicyRequest, opts ...grpc.CallOption) (*UpdateCreditLimitControlPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCreditLimitControlPolicyResponse)
+	err := c.cc.Invoke(ctx, SettlementService_UpdateCreditLimitControlPolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -931,6 +957,10 @@ type SettlementServiceServer interface {
 	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
+	// GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+	GetCreditLimitControlPolicy(context.Context, *GetCreditLimitControlPolicyRequest) (*GetCreditLimitControlPolicyResponse, error)
+	// UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+	UpdateCreditLimitControlPolicy(context.Context, *UpdateCreditLimitControlPolicyRequest) (*UpdateCreditLimitControlPolicyResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
 	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
@@ -1031,6 +1061,12 @@ func (UnimplementedSettlementServiceServer) GetBilledFeeEditPolicy(context.Conte
 }
 func (UnimplementedSettlementServiceServer) UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateBilledFeeEditPolicy not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetCreditLimitControlPolicy(context.Context, *GetCreditLimitControlPolicyRequest) (*GetCreditLimitControlPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCreditLimitControlPolicy not implemented")
+}
+func (UnimplementedSettlementServiceServer) UpdateCreditLimitControlPolicy(context.Context, *UpdateCreditLimitControlPolicyRequest) (*UpdateCreditLimitControlPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCreditLimitControlPolicy not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBills not implemented")
@@ -1370,6 +1406,42 @@ func _SettlementService_UpdateBilledFeeEditPolicy_Handler(srv interface{}, ctx c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).UpdateBilledFeeEditPolicy(ctx, req.(*UpdateBilledFeeEditPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetCreditLimitControlPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCreditLimitControlPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetCreditLimitControlPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetCreditLimitControlPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetCreditLimitControlPolicy(ctx, req.(*GetCreditLimitControlPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_UpdateCreditLimitControlPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCreditLimitControlPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).UpdateCreditLimitControlPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_UpdateCreditLimitControlPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).UpdateCreditLimitControlPolicy(ctx, req.(*UpdateCreditLimitControlPolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2578,6 +2650,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBilledFeeEditPolicy",
 			Handler:    _SettlementService_UpdateBilledFeeEditPolicy_Handler,
+		},
+		{
+			MethodName: "GetCreditLimitControlPolicy",
+			Handler:    _SettlementService_GetCreditLimitControlPolicy_Handler,
+		},
+		{
+			MethodName: "UpdateCreditLimitControlPolicy",
+			Handler:    _SettlementService_UpdateCreditLimitControlPolicy_Handler,
 		},
 		{
 			MethodName: "ListBills",

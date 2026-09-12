@@ -783,6 +783,7 @@ message PartnerSettlementRule {
   string updated_at = 11;
   optional int64 credit_limit_minor = 12;
   optional string credit_currency = 13;
+  optional int32 payment_terms_days = 14;
 }
 
 message PartnerSettlementRuleInput {
@@ -795,6 +796,7 @@ message PartnerSettlementRuleInput {
   bool is_active = 7;
   optional int64 credit_limit_minor = 8;
   optional string credit_currency = 9;
+  optional int32 payment_terms_days = 10;
 }
 
 message ListPartnerSettlementRulesRequest {

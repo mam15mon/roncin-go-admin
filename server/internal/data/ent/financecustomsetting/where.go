@@ -106,6 +106,11 @@ func BilledFeeTaxRateEditable(v bool) predicate.FinanceCustomSetting {
 	return predicate.FinanceCustomSetting(sql.FieldEQ(FieldBilledFeeTaxRateEditable, v))
 }
 
+// CreditLimitSelectionAllowed applies equality check predicate on the "credit_limit_selection_allowed" field. It's identical to CreditLimitSelectionAllowedEQ.
+func CreditLimitSelectionAllowed(v bool) predicate.FinanceCustomSetting {
+	return predicate.FinanceCustomSetting(sql.FieldEQ(FieldCreditLimitSelectionAllowed, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.FinanceCustomSetting {
 	return predicate.FinanceCustomSetting(sql.FieldEQ(FieldVersion, v))
@@ -284,6 +289,16 @@ func BilledFeeTaxRateEditableEQ(v bool) predicate.FinanceCustomSetting {
 // BilledFeeTaxRateEditableNEQ applies the NEQ predicate on the "billed_fee_tax_rate_editable" field.
 func BilledFeeTaxRateEditableNEQ(v bool) predicate.FinanceCustomSetting {
 	return predicate.FinanceCustomSetting(sql.FieldNEQ(FieldBilledFeeTaxRateEditable, v))
+}
+
+// CreditLimitSelectionAllowedEQ applies the EQ predicate on the "credit_limit_selection_allowed" field.
+func CreditLimitSelectionAllowedEQ(v bool) predicate.FinanceCustomSetting {
+	return predicate.FinanceCustomSetting(sql.FieldEQ(FieldCreditLimitSelectionAllowed, v))
+}
+
+// CreditLimitSelectionAllowedNEQ applies the NEQ predicate on the "credit_limit_selection_allowed" field.
+func CreditLimitSelectionAllowedNEQ(v bool) predicate.FinanceCustomSetting {
+	return predicate.FinanceCustomSetting(sql.FieldNEQ(FieldCreditLimitSelectionAllowed, v))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

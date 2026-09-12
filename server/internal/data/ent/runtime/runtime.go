@@ -3377,8 +3377,12 @@ func init() {
 	financecustomsettingDescBilledFeeTaxRateEditable := financecustomsettingFields[7].Descriptor()
 	// financecustomsetting.DefaultBilledFeeTaxRateEditable holds the default value on creation for the billed_fee_tax_rate_editable field.
 	financecustomsetting.DefaultBilledFeeTaxRateEditable = financecustomsettingDescBilledFeeTaxRateEditable.Default.(bool)
+	// financecustomsettingDescCreditLimitSelectionAllowed is the schema descriptor for credit_limit_selection_allowed field.
+	financecustomsettingDescCreditLimitSelectionAllowed := financecustomsettingFields[8].Descriptor()
+	// financecustomsetting.DefaultCreditLimitSelectionAllowed holds the default value on creation for the credit_limit_selection_allowed field.
+	financecustomsetting.DefaultCreditLimitSelectionAllowed = financecustomsettingDescCreditLimitSelectionAllowed.Default.(bool)
 	// financecustomsettingDescVersion is the schema descriptor for version field.
-	financecustomsettingDescVersion := financecustomsettingFields[8].Descriptor()
+	financecustomsettingDescVersion := financecustomsettingFields[9].Descriptor()
 	// financecustomsetting.DefaultVersion holds the default value on creation for the version field.
 	financecustomsetting.DefaultVersion = financecustomsettingDescVersion.Default.(uint64)
 	// financecustomsettingDescID is the schema descriptor for id field.
@@ -6706,8 +6710,26 @@ func init() {
 			return nil
 		}
 	}()
+	// partnersettlementruleDescPaymentTermsDays is the schema descriptor for payment_terms_days field.
+	partnersettlementruleDescPaymentTermsDays := partnersettlementruleFields[9].Descriptor()
+	// partnersettlementrule.PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
+	partnersettlementrule.PaymentTermsDaysValidator = func() func(int) error {
+		validators := partnersettlementruleDescPaymentTermsDays.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(payment_terms_days int) error {
+			for _, fn := range fns {
+				if err := fn(payment_terms_days); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// partnersettlementruleDescIsActive is the schema descriptor for is_active field.
-	partnersettlementruleDescIsActive := partnersettlementruleFields[9].Descriptor()
+	partnersettlementruleDescIsActive := partnersettlementruleFields[10].Descriptor()
 	// partnersettlementrule.DefaultIsActive holds the default value on creation for the is_active field.
 	partnersettlementrule.DefaultIsActive = partnersettlementruleDescIsActive.Default.(bool)
 	// partnersettlementruleDescID is the schema descriptor for id field.

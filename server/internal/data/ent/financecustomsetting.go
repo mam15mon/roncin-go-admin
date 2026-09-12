@@ -40,6 +40,8 @@ type FinanceCustomSetting struct {
 	BilledFeeUnitPriceEditable bool `json:"billed_fee_unit_price_editable,omitempty"`
 	// BilledFeeTaxRateEditable holds the value of the "billed_fee_tax_rate_editable" field.
 	BilledFeeTaxRateEditable bool `json:"billed_fee_tax_rate_editable,omitempty"`
+	// 超信用额度后是否仍允许选择往来单位
+	CreditLimitSelectionAllowed bool `json:"credit_limit_selection_allowed,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// UpdatedBy holds the value of the "updated_by" field.
@@ -88,7 +90,7 @@ func (*FinanceCustomSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecustomsetting.FieldBilledFeeEditEnabled, financecustomsetting.FieldBilledFeeNameEditable, financecustomsetting.FieldBilledFeeCurrencyEditable, financecustomsetting.FieldBilledFeeExchangeRateEditable, financecustomsetting.FieldBilledFeeQuantityEditable, financecustomsetting.FieldBilledFeeUnitPriceEditable, financecustomsetting.FieldBilledFeeTaxRateEditable:
+		case financecustomsetting.FieldBilledFeeEditEnabled, financecustomsetting.FieldBilledFeeNameEditable, financecustomsetting.FieldBilledFeeCurrencyEditable, financecustomsetting.FieldBilledFeeExchangeRateEditable, financecustomsetting.FieldBilledFeeQuantityEditable, financecustomsetting.FieldBilledFeeUnitPriceEditable, financecustomsetting.FieldBilledFeeTaxRateEditable, financecustomsetting.FieldCreditLimitSelectionAllowed:
 			values[i] = new(sql.NullBool)
 		case financecustomsetting.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -177,6 +179,12 @@ func (_m *FinanceCustomSetting) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.BilledFeeTaxRateEditable = value.Bool
 			}
+		case financecustomsetting.FieldCreditLimitSelectionAllowed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field credit_limit_selection_allowed", values[i])
+			} else if value.Valid {
+				_m.CreditLimitSelectionAllowed = value.Bool
+			}
 		case financecustomsetting.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -264,6 +272,9 @@ func (_m *FinanceCustomSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("billed_fee_tax_rate_editable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BilledFeeTaxRateEditable))
+	builder.WriteString(", ")
+	builder.WriteString("credit_limit_selection_allowed=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CreditLimitSelectionAllowed))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

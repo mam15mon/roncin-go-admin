@@ -2056,6 +2056,7 @@ var (
 		{Name: "billed_fee_quantity_editable", Type: field.TypeBool, Default: false},
 		{Name: "billed_fee_unit_price_editable", Type: field.TypeBool, Default: false},
 		{Name: "billed_fee_tax_rate_editable", Type: field.TypeBool, Default: false},
+		{Name: "credit_limit_selection_allowed", Type: field.TypeBool, Default: true},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "updated_by", Type: field.TypeUUID},
@@ -2068,13 +2069,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_custom_settings_organizations_finance_custom_setting",
-				Columns:    []*schema.Column{FinanceCustomSettingsColumns[11]},
+				Columns:    []*schema.Column{FinanceCustomSettingsColumns[12]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_custom_settings_users_updated_finance_custom_settings",
-				Columns:    []*schema.Column{FinanceCustomSettingsColumns[12]},
+				Columns:    []*schema.Column{FinanceCustomSettingsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2088,7 +2089,7 @@ var (
 			{
 				Name:    "finance_custom_setting_organization_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCustomSettingsColumns[11]},
+				Columns: []*schema.Column{FinanceCustomSettingsColumns[12]},
 			},
 		},
 	}
@@ -4989,6 +4990,7 @@ var (
 		{Name: "settlement_currency", Type: field.TypeString, Size: 3},
 		{Name: "credit_limit_minor", Type: field.TypeInt64, Nullable: true},
 		{Name: "credit_currency", Type: field.TypeString, Nullable: true, Size: 3},
+		{Name: "payment_terms_days", Type: field.TypeInt, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "partner_role_id", Type: field.TypeUUID},
 	}
@@ -5000,7 +5002,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_settlement_rules_partner_roles_settlement_rules",
-				Columns:    []*schema.Column{PartnerSettlementRulesColumns[12]},
+				Columns:    []*schema.Column{PartnerSettlementRulesColumns[13]},
 				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5014,12 +5016,12 @@ var (
 			{
 				Name:    "partner_settlement_rule_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[12], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[13], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
 			},
 			{
 				Name:    "partnersettlementrule_partner_role_id_is_active",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[12], PartnerSettlementRulesColumns[11]},
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[13], PartnerSettlementRulesColumns[12]},
 			},
 		},
 	}

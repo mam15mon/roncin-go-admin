@@ -24,6 +24,8 @@ func (PartnerSettlementRule) Fields() []ent.Field {
 		field.String("settlement_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.Int64("credit_limit_minor").Optional().Nillable().Min(0),
 		field.String("credit_currency").Optional().Nillable().MinLen(3).MaxLen(3),
+		// 默认信用账期天数（账单日 + N 天），NULL 表示未配置，由财务手工录入。
+		field.Int("payment_terms_days").Optional().Nillable().Min(0).Max(3650).Comment("默认信用账期天数"),
 		field.Bool("is_active").Default(true),
 	}
 }

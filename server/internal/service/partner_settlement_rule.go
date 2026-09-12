@@ -189,6 +189,10 @@ func partnerSettlementRuleFromAPI(value *v1.PartnerSettlementRuleInput) *biz.Par
 		item := value.GetCreditCurrency()
 		result.CreditCurrency = &item
 	}
+	if value.PaymentTermsDays != nil {
+		item := int(value.GetPaymentTermsDays())
+		result.PaymentTermsDays = &item
+	}
 	return result
 }
 
@@ -211,5 +215,14 @@ func partnerSettlementRuleToAPI(value *biz.PartnerSettlementRule) *v1.PartnerSet
 	result.SettlementBase = partnerSettlementBaseToAPI(value.SettlementBase)
 	result.CreditLimitMinor = value.CreditLimitMinor
 	result.CreditCurrency = value.CreditCurrency
+	result.PaymentTermsDays = int32PtrFromInt(value.PaymentTermsDays)
 	return result
+}
+
+func int32PtrFromInt(value *int) *int32 {
+	if value == nil {
+		return nil
+	}
+	item := int32(*value)
+	return &item
 }

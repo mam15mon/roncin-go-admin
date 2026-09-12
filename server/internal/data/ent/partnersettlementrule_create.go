@@ -147,6 +147,20 @@ func (_c *PartnerSettlementRuleCreate) SetNillableCreditCurrency(v *string) *Par
 	return _c
 }
 
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_c *PartnerSettlementRuleCreate) SetPaymentTermsDays(v int) *PartnerSettlementRuleCreate {
+	_c.mutation.SetPaymentTermsDays(v)
+	return _c
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_c *PartnerSettlementRuleCreate) SetNillablePaymentTermsDays(v *int) *PartnerSettlementRuleCreate {
+	if v != nil {
+		_c.SetPaymentTermsDays(*v)
+	}
+	return _c
+}
+
 // SetIsActive sets the "is_active" field.
 func (_c *PartnerSettlementRuleCreate) SetIsActive(v bool) *PartnerSettlementRuleCreate {
 	_c.mutation.SetIsActive(v)
@@ -283,6 +297,11 @@ func (_c *PartnerSettlementRuleCreate) check() error {
 			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.PaymentTermsDays(); ok {
+		if err := partnersettlementrule.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.payment_terms_days": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "PartnerSettlementRule.is_active"`)}
 	}
@@ -364,6 +383,10 @@ func (_c *PartnerSettlementRuleCreate) createSpec() (*PartnerSettlementRule, *sq
 	if value, ok := _c.mutation.CreditCurrency(); ok {
 		_spec.SetField(partnersettlementrule.FieldCreditCurrency, field.TypeString, value)
 		_node.CreditCurrency = &value
+	}
+	if value, ok := _c.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
+		_node.PaymentTermsDays = &value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)
@@ -603,6 +626,30 @@ func (u *PartnerSettlementRuleUpsert) UpdateCreditCurrency() *PartnerSettlementR
 // ClearCreditCurrency clears the value of the "credit_currency" field.
 func (u *PartnerSettlementRuleUpsert) ClearCreditCurrency() *PartnerSettlementRuleUpsert {
 	u.SetNull(partnersettlementrule.FieldCreditCurrency)
+	return u
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsert) SetPaymentTermsDays(v int) *PartnerSettlementRuleUpsert {
+	u.Set(partnersettlementrule.FieldPaymentTermsDays, v)
+	return u
+}
+
+// UpdatePaymentTermsDays sets the "payment_terms_days" field to the value that was provided on create.
+func (u *PartnerSettlementRuleUpsert) UpdatePaymentTermsDays() *PartnerSettlementRuleUpsert {
+	u.SetExcluded(partnersettlementrule.FieldPaymentTermsDays)
+	return u
+}
+
+// AddPaymentTermsDays adds v to the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsert) AddPaymentTermsDays(v int) *PartnerSettlementRuleUpsert {
+	u.Add(partnersettlementrule.FieldPaymentTermsDays, v)
+	return u
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsert) ClearPaymentTermsDays() *PartnerSettlementRuleUpsert {
+	u.SetNull(partnersettlementrule.FieldPaymentTermsDays)
 	return u
 }
 
@@ -862,6 +909,34 @@ func (u *PartnerSettlementRuleUpsertOne) UpdateCreditCurrency() *PartnerSettleme
 func (u *PartnerSettlementRuleUpsertOne) ClearCreditCurrency() *PartnerSettlementRuleUpsertOne {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
 		s.ClearCreditCurrency()
+	})
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertOne) SetPaymentTermsDays(v int) *PartnerSettlementRuleUpsertOne {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.SetPaymentTermsDays(v)
+	})
+}
+
+// AddPaymentTermsDays adds v to the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertOne) AddPaymentTermsDays(v int) *PartnerSettlementRuleUpsertOne {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.AddPaymentTermsDays(v)
+	})
+}
+
+// UpdatePaymentTermsDays sets the "payment_terms_days" field to the value that was provided on create.
+func (u *PartnerSettlementRuleUpsertOne) UpdatePaymentTermsDays() *PartnerSettlementRuleUpsertOne {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.UpdatePaymentTermsDays()
+	})
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertOne) ClearPaymentTermsDays() *PartnerSettlementRuleUpsertOne {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.ClearPaymentTermsDays()
 	})
 }
 
@@ -1290,6 +1365,34 @@ func (u *PartnerSettlementRuleUpsertBulk) UpdateCreditCurrency() *PartnerSettlem
 func (u *PartnerSettlementRuleUpsertBulk) ClearCreditCurrency() *PartnerSettlementRuleUpsertBulk {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
 		s.ClearCreditCurrency()
+	})
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertBulk) SetPaymentTermsDays(v int) *PartnerSettlementRuleUpsertBulk {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.SetPaymentTermsDays(v)
+	})
+}
+
+// AddPaymentTermsDays adds v to the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertBulk) AddPaymentTermsDays(v int) *PartnerSettlementRuleUpsertBulk {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.AddPaymentTermsDays(v)
+	})
+}
+
+// UpdatePaymentTermsDays sets the "payment_terms_days" field to the value that was provided on create.
+func (u *PartnerSettlementRuleUpsertBulk) UpdatePaymentTermsDays() *PartnerSettlementRuleUpsertBulk {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.UpdatePaymentTermsDays()
+	})
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (u *PartnerSettlementRuleUpsertBulk) ClearPaymentTermsDays() *PartnerSettlementRuleUpsertBulk {
+	return u.Update(func(s *PartnerSettlementRuleUpsert) {
+		s.ClearPaymentTermsDays()
 	})
 }
 

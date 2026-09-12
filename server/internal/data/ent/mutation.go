@@ -44966,6 +44966,7 @@ type FinanceCustomSettingMutation struct {
 	billed_fee_quantity_editable      *bool
 	billed_fee_unit_price_editable    *bool
 	billed_fee_tax_rate_editable      *bool
+	credit_limit_selection_allowed    *bool
 	version                           *uint64
 	addversion                        *int64
 	clearedFields                     map[string]struct{}
@@ -45442,6 +45443,42 @@ func (m *FinanceCustomSettingMutation) ResetBilledFeeTaxRateEditable() {
 	m.billed_fee_tax_rate_editable = nil
 }
 
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (m *FinanceCustomSettingMutation) SetCreditLimitSelectionAllowed(b bool) {
+	m.credit_limit_selection_allowed = &b
+}
+
+// CreditLimitSelectionAllowed returns the value of the "credit_limit_selection_allowed" field in the mutation.
+func (m *FinanceCustomSettingMutation) CreditLimitSelectionAllowed() (r bool, exists bool) {
+	v := m.credit_limit_selection_allowed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreditLimitSelectionAllowed returns the old "credit_limit_selection_allowed" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldCreditLimitSelectionAllowed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreditLimitSelectionAllowed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreditLimitSelectionAllowed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreditLimitSelectionAllowed: %w", err)
+	}
+	return oldValue.CreditLimitSelectionAllowed, nil
+}
+
+// ResetCreditLimitSelectionAllowed resets all changes to the "credit_limit_selection_allowed" field.
+func (m *FinanceCustomSettingMutation) ResetCreditLimitSelectionAllowed() {
+	m.credit_limit_selection_allowed = nil
+}
+
 // SetVersion sets the "version" field.
 func (m *FinanceCustomSettingMutation) SetVersion(u uint64) {
 	m.version = &u
@@ -45635,7 +45672,7 @@ func (m *FinanceCustomSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCustomSettingMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, financecustomsetting.FieldCreatedAt)
 	}
@@ -45665,6 +45702,9 @@ func (m *FinanceCustomSettingMutation) Fields() []string {
 	}
 	if m.billed_fee_tax_rate_editable != nil {
 		fields = append(fields, financecustomsetting.FieldBilledFeeTaxRateEditable)
+	}
+	if m.credit_limit_selection_allowed != nil {
+		fields = append(fields, financecustomsetting.FieldCreditLimitSelectionAllowed)
 	}
 	if m.version != nil {
 		fields = append(fields, financecustomsetting.FieldVersion)
@@ -45700,6 +45740,8 @@ func (m *FinanceCustomSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.BilledFeeUnitPriceEditable()
 	case financecustomsetting.FieldBilledFeeTaxRateEditable:
 		return m.BilledFeeTaxRateEditable()
+	case financecustomsetting.FieldCreditLimitSelectionAllowed:
+		return m.CreditLimitSelectionAllowed()
 	case financecustomsetting.FieldVersion:
 		return m.Version()
 	case financecustomsetting.FieldUpdatedBy:
@@ -45733,6 +45775,8 @@ func (m *FinanceCustomSettingMutation) OldField(ctx context.Context, name string
 		return m.OldBilledFeeUnitPriceEditable(ctx)
 	case financecustomsetting.FieldBilledFeeTaxRateEditable:
 		return m.OldBilledFeeTaxRateEditable(ctx)
+	case financecustomsetting.FieldCreditLimitSelectionAllowed:
+		return m.OldCreditLimitSelectionAllowed(ctx)
 	case financecustomsetting.FieldVersion:
 		return m.OldVersion(ctx)
 	case financecustomsetting.FieldUpdatedBy:
@@ -45815,6 +45859,13 @@ func (m *FinanceCustomSettingMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBilledFeeTaxRateEditable(v)
+		return nil
+	case financecustomsetting.FieldCreditLimitSelectionAllowed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreditLimitSelectionAllowed(v)
 		return nil
 	case financecustomsetting.FieldVersion:
 		v, ok := value.(uint64)
@@ -45923,6 +45974,9 @@ func (m *FinanceCustomSettingMutation) ResetField(name string) error {
 		return nil
 	case financecustomsetting.FieldBilledFeeTaxRateEditable:
 		m.ResetBilledFeeTaxRateEditable()
+		return nil
+	case financecustomsetting.FieldCreditLimitSelectionAllowed:
+		m.ResetCreditLimitSelectionAllowed()
 		return nil
 	case financecustomsetting.FieldVersion:
 		m.ResetVersion()
@@ -114441,6 +114495,8 @@ type PartnerSettlementRuleMutation struct {
 	credit_limit_minor       *int64
 	addcredit_limit_minor    *int64
 	credit_currency          *string
+	payment_terms_days       *int
+	addpayment_terms_days    *int
 	is_active                *bool
 	clearedFields            map[string]struct{}
 	partner_role             *uuid.UUID
@@ -115078,6 +115134,76 @@ func (m *PartnerSettlementRuleMutation) ResetCreditCurrency() {
 	delete(m.clearedFields, partnersettlementrule.FieldCreditCurrency)
 }
 
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (m *PartnerSettlementRuleMutation) SetPaymentTermsDays(i int) {
+	m.payment_terms_days = &i
+	m.addpayment_terms_days = nil
+}
+
+// PaymentTermsDays returns the value of the "payment_terms_days" field in the mutation.
+func (m *PartnerSettlementRuleMutation) PaymentTermsDays() (r int, exists bool) {
+	v := m.payment_terms_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentTermsDays returns the old "payment_terms_days" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldPaymentTermsDays(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentTermsDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentTermsDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentTermsDays: %w", err)
+	}
+	return oldValue.PaymentTermsDays, nil
+}
+
+// AddPaymentTermsDays adds i to the "payment_terms_days" field.
+func (m *PartnerSettlementRuleMutation) AddPaymentTermsDays(i int) {
+	if m.addpayment_terms_days != nil {
+		*m.addpayment_terms_days += i
+	} else {
+		m.addpayment_terms_days = &i
+	}
+}
+
+// AddedPaymentTermsDays returns the value that was added to the "payment_terms_days" field in this mutation.
+func (m *PartnerSettlementRuleMutation) AddedPaymentTermsDays() (r int, exists bool) {
+	v := m.addpayment_terms_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (m *PartnerSettlementRuleMutation) ClearPaymentTermsDays() {
+	m.payment_terms_days = nil
+	m.addpayment_terms_days = nil
+	m.clearedFields[partnersettlementrule.FieldPaymentTermsDays] = struct{}{}
+}
+
+// PaymentTermsDaysCleared returns if the "payment_terms_days" field was cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) PaymentTermsDaysCleared() bool {
+	_, ok := m.clearedFields[partnersettlementrule.FieldPaymentTermsDays]
+	return ok
+}
+
+// ResetPaymentTermsDays resets all changes to the "payment_terms_days" field.
+func (m *PartnerSettlementRuleMutation) ResetPaymentTermsDays() {
+	m.payment_terms_days = nil
+	m.addpayment_terms_days = nil
+	delete(m.clearedFields, partnersettlementrule.FieldPaymentTermsDays)
+}
+
 // SetIsActive sets the "is_active" field.
 func (m *PartnerSettlementRuleMutation) SetIsActive(b bool) {
 	m.is_active = &b
@@ -115175,7 +115301,7 @@ func (m *PartnerSettlementRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerSettlementRuleMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, partnersettlementrule.FieldCreatedAt)
 	}
@@ -115208,6 +115334,9 @@ func (m *PartnerSettlementRuleMutation) Fields() []string {
 	}
 	if m.credit_currency != nil {
 		fields = append(fields, partnersettlementrule.FieldCreditCurrency)
+	}
+	if m.payment_terms_days != nil {
+		fields = append(fields, partnersettlementrule.FieldPaymentTermsDays)
 	}
 	if m.is_active != nil {
 		fields = append(fields, partnersettlementrule.FieldIsActive)
@@ -115242,6 +115371,8 @@ func (m *PartnerSettlementRuleMutation) Field(name string) (ent.Value, bool) {
 		return m.CreditLimitMinor()
 	case partnersettlementrule.FieldCreditCurrency:
 		return m.CreditCurrency()
+	case partnersettlementrule.FieldPaymentTermsDays:
+		return m.PaymentTermsDays()
 	case partnersettlementrule.FieldIsActive:
 		return m.IsActive()
 	}
@@ -115275,6 +115406,8 @@ func (m *PartnerSettlementRuleMutation) OldField(ctx context.Context, name strin
 		return m.OldCreditLimitMinor(ctx)
 	case partnersettlementrule.FieldCreditCurrency:
 		return m.OldCreditCurrency(ctx)
+	case partnersettlementrule.FieldPaymentTermsDays:
+		return m.OldPaymentTermsDays(ctx)
 	case partnersettlementrule.FieldIsActive:
 		return m.OldIsActive(ctx)
 	}
@@ -115363,6 +115496,13 @@ func (m *PartnerSettlementRuleMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetCreditCurrency(v)
 		return nil
+	case partnersettlementrule.FieldPaymentTermsDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentTermsDays(v)
+		return nil
 	case partnersettlementrule.FieldIsActive:
 		v, ok := value.(bool)
 		if !ok {
@@ -115387,6 +115527,9 @@ func (m *PartnerSettlementRuleMutation) AddedFields() []string {
 	if m.addcredit_limit_minor != nil {
 		fields = append(fields, partnersettlementrule.FieldCreditLimitMinor)
 	}
+	if m.addpayment_terms_days != nil {
+		fields = append(fields, partnersettlementrule.FieldPaymentTermsDays)
+	}
 	return fields
 }
 
@@ -115401,6 +115544,8 @@ func (m *PartnerSettlementRuleMutation) AddedField(name string) (ent.Value, bool
 		return m.AddedSettlementCycleDays()
 	case partnersettlementrule.FieldCreditLimitMinor:
 		return m.AddedCreditLimitMinor()
+	case partnersettlementrule.FieldPaymentTermsDays:
+		return m.AddedPaymentTermsDays()
 	}
 	return nil, false
 }
@@ -115431,6 +115576,13 @@ func (m *PartnerSettlementRuleMutation) AddField(name string, value ent.Value) e
 		}
 		m.AddCreditLimitMinor(v)
 		return nil
+	case partnersettlementrule.FieldPaymentTermsDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPaymentTermsDays(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PartnerSettlementRule numeric field %s", name)
 }
@@ -115453,6 +115605,9 @@ func (m *PartnerSettlementRuleMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(partnersettlementrule.FieldCreditCurrency) {
 		fields = append(fields, partnersettlementrule.FieldCreditCurrency)
+	}
+	if m.FieldCleared(partnersettlementrule.FieldPaymentTermsDays) {
+		fields = append(fields, partnersettlementrule.FieldPaymentTermsDays)
 	}
 	return fields
 }
@@ -115482,6 +115637,9 @@ func (m *PartnerSettlementRuleMutation) ClearField(name string) error {
 		return nil
 	case partnersettlementrule.FieldCreditCurrency:
 		m.ClearCreditCurrency()
+		return nil
+	case partnersettlementrule.FieldPaymentTermsDays:
+		m.ClearPaymentTermsDays()
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerSettlementRule nullable field %s", name)
@@ -115523,6 +115681,9 @@ func (m *PartnerSettlementRuleMutation) ResetField(name string) error {
 		return nil
 	case partnersettlementrule.FieldCreditCurrency:
 		m.ResetCreditCurrency()
+		return nil
+	case partnersettlementrule.FieldPaymentTermsDays:
+		m.ResetPaymentTermsDays()
 		return nil
 	case partnersettlementrule.FieldIsActive:
 		m.ResetIsActive()

@@ -96,6 +96,11 @@ func CreditCurrency(v string) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldCreditCurrency, v))
 }
 
+// PaymentTermsDays applies equality check predicate on the "payment_terms_days" field. It's identical to PaymentTermsDaysEQ.
+func PaymentTermsDays(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldPaymentTermsDays, v))
+}
+
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldIsActive, v))
@@ -559,6 +564,56 @@ func CreditCurrencyEqualFold(v string) predicate.PartnerSettlementRule {
 // CreditCurrencyContainsFold applies the ContainsFold predicate on the "credit_currency" field.
 func CreditCurrencyContainsFold(v string) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldContainsFold(FieldCreditCurrency, v))
+}
+
+// PaymentTermsDaysEQ applies the EQ predicate on the "payment_terms_days" field.
+func PaymentTermsDaysEQ(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysNEQ applies the NEQ predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNEQ(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNEQ(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysIn applies the In predicate on the "payment_terms_days" field.
+func PaymentTermsDaysIn(vs ...int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIn(FieldPaymentTermsDays, vs...))
+}
+
+// PaymentTermsDaysNotIn applies the NotIn predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNotIn(vs ...int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotIn(FieldPaymentTermsDays, vs...))
+}
+
+// PaymentTermsDaysGT applies the GT predicate on the "payment_terms_days" field.
+func PaymentTermsDaysGT(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGT(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysGTE applies the GTE predicate on the "payment_terms_days" field.
+func PaymentTermsDaysGTE(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGTE(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysLT applies the LT predicate on the "payment_terms_days" field.
+func PaymentTermsDaysLT(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLT(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysLTE applies the LTE predicate on the "payment_terms_days" field.
+func PaymentTermsDaysLTE(v int) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLTE(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysIsNil applies the IsNil predicate on the "payment_terms_days" field.
+func PaymentTermsDaysIsNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIsNull(FieldPaymentTermsDays))
+}
+
+// PaymentTermsDaysNotNil applies the NotNil predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNotNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotNull(FieldPaymentTermsDays))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.
