@@ -816,16 +816,9 @@ func getParentOrganizationID(ctx context.Context, client *ent.Client, orgID uuid
 	return nil, false, nil
 }
 
-// ListApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的祖先节点（直至总部根节点）。
-// 属于通知兜底而非权限变更。
-func (r *dingTalkRegistrationRepo) ListApproverRecipientsWithEscalation(ctx context.Context, targetOrgID uuid.UUID) ([]*biz.DingTalkApproverRecipient, uuid.UUID, bool, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, uuid.Nil, false, err
-	}
-	return listApproverRecipientsWithEscalation(ctx, client, targetOrgID, inTransaction(ctx))
-}
-
+// listApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的祖先节点（直至总部根节点）。
+// 属于通知兜底而非权限变更。仅供转派事务回调内部使用（显式传事务客户端并强制 FOR SHARE），
+// 普通上下文的追溯决策在 biz 层组合仓储原语完成（见 biz.ListApproverRecipientsWithEscalation）。
 func listApproverRecipientsWithEscalation(ctx context.Context, client *ent.Client, targetOrgID uuid.UUID, lockReads bool) ([]*biz.DingTalkApproverRecipient, uuid.UUID, bool, error) {
 	currID := targetOrgID
 	isEscalated := false

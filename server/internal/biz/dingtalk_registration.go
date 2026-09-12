@@ -91,7 +91,6 @@ type DingTalkRegistrationRepo interface {
 	RejectRegistration(context.Context, *DingTalkRegistrationDecision) error
 	TransferRegistration(context.Context, *DingTalkRegistrationDecision, uuid.UUID) error
 	ListApproverRecipients(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, error)
-	ListApproverRecipientsWithEscalation(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error)
 	GetParentOrganizationID(context.Context, uuid.UUID) (*uuid.UUID, bool, error)
 	ListRegistrationOrganizations(context.Context) ([]OrganizationChoice, error)
 }
@@ -365,13 +364,6 @@ func (uc *DingTalkRegistrationUsecase) ListTransferOrganizations(ctx context.Con
 		return nil, ErrAdminInvalidArgument
 	}
 	return uc.repo.ListRegistrationOrganizations(ctx)
-}
-
-func (uc *DingTalkRegistrationUsecase) ListApproverRecipientsWithEscalation(ctx context.Context, targetOrgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
-	if targetOrgID == uuid.Nil {
-		return nil, uuid.Nil, false, ErrAdminInvalidArgument
-	}
-	return uc.repo.ListApproverRecipientsWithEscalation(ctx, targetOrgID)
 }
 
 // validateRolePrivilege 邀请与审批授予的初始角色都不得超出调用者自身权限，

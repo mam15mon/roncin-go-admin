@@ -711,7 +711,8 @@ func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
 		SetRoleID(hqRole.ID).
 		Save(fixture.ctx)
 
-	recipients, escalatedOrgID, isEscalated, err := fixture.repo.ListApproverRecipientsWithEscalation(fixture.ctx, subBranch.ID)
+	// 追溯决策已上移 biz 层（组合仓储原语），此处经 biz 函数驱动同一仓储原语验证真实库行为。
+	recipients, escalatedOrgID, isEscalated, err := biz.ListApproverRecipientsWithEscalation(fixture.ctx, fixture.repo, subBranch.ID)
 	if err != nil {
 		t.Fatalf("向上追溯失败: %v", err)
 	}

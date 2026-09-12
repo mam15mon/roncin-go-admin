@@ -84,11 +84,9 @@ type dingTalkLoginRegistrationRepoStub struct {
 	registrationOrgs   []OrganizationChoice
 	organization       *Organization
 	headquartersID     uuid.UUID
-	recipients         []*DingTalkApproverRecipient
+	recipientsByOrg    map[uuid.UUID][]*DingTalkApproverRecipient
 	requestedOrg       *uuid.UUID
 	approverIDs        []uuid.UUID
-	escalatedOrgID     uuid.UUID
-	isEscalated        bool
 }
 
 func (s *dingTalkLoginRegistrationRepoStub) FindActiveInvitationByMobile(_ context.Context, mobile string) (*DingTalkInvitation, error) {
@@ -129,17 +127,7 @@ func (s *dingTalkLoginRegistrationRepoStub) FindHeadquartersOrganizationID(conte
 }
 
 func (s *dingTalkLoginRegistrationRepoStub) ListApproverRecipients(_ context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, error) {
-	if s.headquartersID != uuid.Nil && organizationID != s.headquartersID && s.organization != nil && organizationID != s.organization.ID {
-		return nil, nil
-	}
-	return s.recipients, nil
-}
-
-func (s *dingTalkLoginRegistrationRepoStub) ListApproverRecipientsWithEscalation(_ context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
-	if s.isEscalated {
-		return s.recipients, s.escalatedOrgID, true, nil
-	}
-	return s.recipients, organizationID, false, nil
+	return s.recipientsByOrg[organizationID], nil
 }
 
 func (s *dingTalkLoginRegistrationRepoStub) GetParentOrganizationID(_ context.Context, _ uuid.UUID) (*uuid.UUID, bool, error) {
@@ -240,8 +228,10 @@ func TestAuthUsecaseConfirmDingTalkRegistrationRoutesRequestedOrganization(t *te
 		created:    true,
 	}
 	invitations := &dingTalkLoginRegistrationRepoStub{
-		organization:   &Organization{ID: targetOrganizationID, Code: "CD", Name: "成都公司"},
-		recipients:     []*DingTalkApproverRecipient{{UserID: approverID, DisplayName: "成都管理员"}},
+		organization: &Organization{ID: targetOrganizationID, Code: "CD", Name: "成都公司"},
+		recipientsByOrg: map[uuid.UUID][]*DingTalkApproverRecipient{
+			targetOrganizationID: {{UserID: approverID, DisplayName: "成都管理员"}},
+		},
 		headquartersID: uuid.New(),
 	}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
@@ -277,11 +267,13 @@ func TestAuthUsecaseConfirmDingTalkRegistrationAnnotatesEscalatedNotice(t *testi
 		created:    true,
 	}
 	invitations := &dingTalkLoginRegistrationRepoStub{
-		organization:   &Organization{ID: targetOrganizationID, Code: "QD", Name: "青岛分公司"},
-		recipients:     []*DingTalkApproverRecipient{{UserID: hqApproverID, DisplayName: "总部管理员"}},
+		organization: &Organization{ID: targetOrganizationID, Code: "QD", Name: "青岛分公司"},
+		// 青岛分公司无审批人且无上级（stub 无父级），审批人只配置在总部：
+		// 追溯算法应走「根链为空兜底总部」分支并标记代管。
+		recipientsByOrg: map[uuid.UUID][]*DingTalkApproverRecipient{
+			escalatedOrgID: {{UserID: hqApproverID, DisplayName: "总部管理员"}},
+		},
 		headquartersID: escalatedOrgID,
-		escalatedOrgID: escalatedOrgID,
-		isEscalated:    true,
 	}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
@@ -306,7 +298,9 @@ func TestAuthUsecaseConfirmDingTalkRegistrationFallsBackToHeadquarters(t *testin
 	}
 	invitations := &dingTalkLoginRegistrationRepoStub{
 		headquartersID: headquartersID,
-		recipients:     []*DingTalkApproverRecipient{{UserID: hqApprover, DisplayName: "总部管理员"}},
+		recipientsByOrg: map[uuid.UUID][]*DingTalkApproverRecipient{
+			headquartersID: {{UserID: hqApprover, DisplayName: "总部管理员"}},
+		},
 	}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
@@ -354,7 +348,9 @@ func TestAuthUsecaseConfirmDingTalkRegistrationLocksOrganizationFromToken(t *tes
 			Status:           DingTalkInvitationStatusPending,
 			ExpiresAt:        time.Now().Add(time.Hour),
 		},
-		recipients: []*DingTalkApproverRecipient{{UserID: approverID, DisplayName: "分公司管理员"}},
+		recipientsByOrg: map[uuid.UUID][]*DingTalkApproverRecipient{
+			invitationOrgID: {{UserID: approverID, DisplayName: "分公司管理员"}},
+		},
 	}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "受邀员工"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
@@ -420,24 +416,21 @@ func TestAuthUsecaseGetDingTalkInvitationInfoAndRateLimiting(t *testing.T) {
 // ===== 管理侧：邀请与审批用例 =====
 
 type dingTalkRegistrationRepoStub struct {
-	createdInvitation   *DingTalkInvitation
-	createErr           error
-	revokedID           uuid.UUID
-	revokedOrgIDs       []uuid.UUID
-	registration        *DingTalkRegistration
-	approved            *DingTalkRegistrationDecision
-	rejected            *DingTalkRegistrationDecision
-	transferDecision    *DingTalkRegistrationDecision
-	transferTargetOrg   uuid.UUID
-	transferErr         error
-	escalatedRecipients []*DingTalkApproverRecipient
-	escalatedOrgID      uuid.UUID
-	isEscalated         bool
-	parentOrgs          map[uuid.UUID]*uuid.UUID
-	actorRoles          []*AdminRoleProfile
-	roleProfiles        []*AdminRoleProfile
-	actorRolesErr       error
-	roleProfilesErr     error
+	createdInvitation *DingTalkInvitation
+	createErr         error
+	revokedID         uuid.UUID
+	revokedOrgIDs     []uuid.UUID
+	registration      *DingTalkRegistration
+	approved          *DingTalkRegistrationDecision
+	rejected          *DingTalkRegistrationDecision
+	transferDecision  *DingTalkRegistrationDecision
+	transferTargetOrg uuid.UUID
+	transferErr       error
+	parentOrgs        map[uuid.UUID]*uuid.UUID
+	actorRoles        []*AdminRoleProfile
+	roleProfiles      []*AdminRoleProfile
+	actorRolesErr     error
+	roleProfilesErr   error
 }
 
 func (s *dingTalkRegistrationRepoStub) GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error) {
@@ -502,13 +495,6 @@ func (s *dingTalkRegistrationRepoStub) TransferRegistration(_ context.Context, d
 
 func (s *dingTalkRegistrationRepoStub) ListApproverRecipients(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, error) {
 	return nil, nil
-}
-
-func (s *dingTalkRegistrationRepoStub) ListApproverRecipientsWithEscalation(_ context.Context, orgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
-	if s.escalatedRecipients != nil {
-		return s.escalatedRecipients, s.escalatedOrgID, s.isEscalated, nil
-	}
-	return nil, orgID, false, nil
 }
 
 func (s *dingTalkRegistrationRepoStub) GetParentOrganizationID(_ context.Context, orgID uuid.UUID) (*uuid.UUID, bool, error) {

@@ -170,10 +170,55 @@ type DingTalkLoginRegistrationRepo interface {
 	// ListApproverRecipients 返回目标组织内持有钉钉邀请管理权限的启用中用户
 	// （按最近活跃截断），作为注册审批通知的收件人。
 	ListApproverRecipients(ctx context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, error)
-	// ListApproverRecipientsWithEscalation 沿 parent_id 向上追溯首个有候选审批人的祖先（或总部）。
-	ListApproverRecipientsWithEscalation(ctx context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error)
 	// GetParentOrganizationID 查询组织的父级组织 ID。
 	GetParentOrganizationID(ctx context.Context, orgID uuid.UUID) (*uuid.UUID, bool, error)
+}
+
+// ListApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的
+// 祖先节点（直至总部根节点），根链均无审批人时兜底总部；属于通知兜底而非权限变更。
+// 追溯决策由 biz 组合仓储原语完成；一键转派事务内的 FOR SHARE 变体保留在 data 层。
+func ListApproverRecipientsWithEscalation(ctx context.Context, repo DingTalkLoginRegistrationRepo, targetOrgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
+	if targetOrgID == uuid.Nil {
+		return nil, uuid.Nil, false, ErrAdminInvalidArgument
+	}
+	currID := targetOrgID
+	isEscalated := false
+	visited := make(map[uuid.UUID]bool)
+	for depth := 0; depth < 20; depth++ {
+		if visited[currID] {
+			break
+		}
+		visited[currID] = true
+
+		recipients, err := repo.ListApproverRecipients(ctx, currID)
+		if err != nil {
+			return nil, uuid.Nil, false, err
+		}
+		if len(recipients) > 0 {
+			return recipients, currID, isEscalated, nil
+		}
+		parentID, hasParent, err := repo.GetParentOrganizationID(ctx, currID)
+		if err != nil {
+			return nil, uuid.Nil, false, err
+		}
+		if !hasParent || parentID == nil {
+			// 已达根组织，若当前不是总部且总部存在，尝试兜底总部
+			hqID, hqErr := repo.FindHeadquartersOrganizationID(ctx)
+			if hqErr == nil && hqID != currID {
+				hqRecipients, hqQueryErr := repo.ListApproverRecipients(ctx, hqID)
+				if hqQueryErr != nil {
+					return nil, uuid.Nil, false, hqQueryErr
+				}
+				if len(hqRecipients) > 0 {
+					return hqRecipients, hqID, true, nil
+				}
+			}
+			return nil, currID, isEscalated, nil
+		}
+		currID = *parentID
+		isEscalated = true
+	}
+	return nil, currID, isEscalated, nil
 }
 
 type DingTalkLoginStatus string
@@ -891,7 +936,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 				return nil, hqErr
 			}
 		}
-		recipients, _, isEscalated, recipientErr := uc.dingTalkRegistrations.ListApproverRecipientsWithEscalation(ctx, routingOrganizationID)
+		recipients, _, isEscalated, recipientErr := ListApproverRecipientsWithEscalation(ctx, uc.dingTalkRegistrations, routingOrganizationID)
 		if recipientErr != nil {
 			return nil, recipientErr
 		}
