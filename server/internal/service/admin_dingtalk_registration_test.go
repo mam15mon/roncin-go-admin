@@ -12,13 +12,17 @@ import (
 )
 
 func TestDingTalkInvitationToAPIMasksMobile(t *testing.T) {
+	roleID := uuid.New()
+	mobile := "13800138000"
 	invitation := &biz.DingTalkInvitation{
 		ID:               uuid.New(),
+		Token:            "test-token",
+		Kind:             biz.DingTalkInvitationKindTargeted,
 		OrganizationID:   uuid.New(),
 		OrganizationName: "成都公司",
-		RoleID:           uuid.New(),
+		RoleID:           &roleID,
 		RoleName:         "操作员",
-		Mobile:           "13800138000",
+		Mobile:           &mobile,
 		DisplayName:      "备注姓名",
 		Status:           biz.DingTalkInvitationStatusPending,
 		CreatedAt:        time.Now().UTC(),
@@ -26,10 +30,10 @@ func TestDingTalkInvitationToAPIMasksMobile(t *testing.T) {
 	}
 
 	api := dingTalkInvitationToAPI(invitation)
-	if api.MobileMasked != "138****8000" {
-		t.Fatalf("手机号应脱敏输出，实际 %q", api.MobileMasked)
+	if api.MobileMasked == nil || *api.MobileMasked != "138****8000" {
+		t.Fatalf("手机号应脱敏输出，实际 %v", api.MobileMasked)
 	}
-	if api.MobileMasked == invitation.Mobile {
+	if *api.MobileMasked == *invitation.Mobile {
 		t.Fatal("完整手机号不得离开服务端")
 	}
 	if api.DisplayName == nil || *api.DisplayName != "备注姓名" {
@@ -89,17 +93,20 @@ func TestDingTalkRegistrationToAPIIncludesRequestedOrganization(t *testing.T) {
 func TestAdminServiceCreateDingTalkInvitationRejectsInvalidUUID(t *testing.T) {
 	service := NewAdminService(nil, nil)
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: uuid.New()})
+	mobile := "13800138000"
+	validRole := uuid.NewString()
+	invalidRole := "not-a-uuid"
 	if _, err := service.CreateDingTalkInvitation(ctx, &v1.CreateDingTalkInvitationRequest{
-		Mobile:         "13800138000",
+		Mobile:         &mobile,
 		OrganizationId: "not-a-uuid",
-		RoleId:         uuid.NewString(),
+		RoleId:         &validRole,
 	}); err != biz.ErrAdminInvalidArgument {
 		t.Fatalf("非法组织 ID 错误 = %v，期望 ErrAdminInvalidArgument", err)
 	}
 	if _, err := service.CreateDingTalkInvitation(ctx, &v1.CreateDingTalkInvitationRequest{
-		Mobile:         "13800138000",
+		Mobile:         &mobile,
 		OrganizationId: uuid.NewString(),
-		RoleId:         "not-a-uuid",
+		RoleId:         &invalidRole,
 	}); err != biz.ErrAdminInvalidArgument {
 		t.Fatalf("非法角色 ID 错误 = %v，期望 ErrAdminInvalidArgument", err)
 	}

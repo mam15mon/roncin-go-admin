@@ -39,6 +39,7 @@ const OperationAdminServiceRejectDingTalkRegistration = "/admin.v1.AdminService/
 const OperationAdminServiceResetUserPassword = "/admin.v1.AdminService/ResetUserPassword"
 const OperationAdminServiceRevokeDingTalkInvitation = "/admin.v1.AdminService/RevokeDingTalkInvitation"
 const OperationAdminServiceTerminateUser = "/admin.v1.AdminService/TerminateUser"
+const OperationAdminServiceTransferDingTalkRegistration = "/admin.v1.AdminService/TransferDingTalkRegistration"
 const OperationAdminServiceUpdateOrganization = "/admin.v1.AdminService/UpdateOrganization"
 const OperationAdminServiceUpdateRole = "/admin.v1.AdminService/UpdateRole"
 const OperationAdminServiceUpdateUser = "/admin.v1.AdminService/UpdateUser"
@@ -71,6 +72,8 @@ type AdminServiceHTTPServer interface {
 	RevokeDingTalkInvitation(context.Context, *RevokeDingTalkInvitationRequest) (*RevokeDingTalkInvitationResponse, error)
 	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error)
+	// TransferDingTalkRegistration TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+	TransferDingTalkRegistration(context.Context, *TransferDingTalkRegistrationRequest) (*TransferDingTalkRegistrationResponse, error)
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
@@ -105,6 +108,7 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/admin/dingtalk/registrations", _AdminService_ListDingTalkRegistrations0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{id}/approval", _AdminService_ApproveDingTalkRegistration0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{id}/rejection", _AdminService_RejectDingTalkRegistration0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/admin/dingtalk/registrations/{user_id}/transfer", _AdminService_TransferDingTalkRegistration0_HTTP_Handler(srv))
 }
 
 func _AdminService_ListOrganizations0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
@@ -646,6 +650,28 @@ func _AdminService_RejectDingTalkRegistration0_HTTP_Handler(srv AdminServiceHTTP
 	}
 }
 
+func _AdminService_TransferDingTalkRegistration0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TransferDingTalkRegistrationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceTransferDingTalkRegistration)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TransferDingTalkRegistration(ctx, req.(*TransferDingTalkRegistrationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TransferDingTalkRegistrationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AdminServiceHTTPClient interface {
 	// ApproveDingTalkRegistration ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
 	ApproveDingTalkRegistration(ctx context.Context, req *ApproveDingTalkRegistrationRequest, opts ...http.CallOption) (rsp *ApproveDingTalkRegistrationResponse, err error)
@@ -673,6 +699,8 @@ type AdminServiceHTTPClient interface {
 	RevokeDingTalkInvitation(ctx context.Context, req *RevokeDingTalkInvitationRequest, opts ...http.CallOption) (rsp *RevokeDingTalkInvitationResponse, err error)
 	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(ctx context.Context, req *TerminateUserRequest, opts ...http.CallOption) (rsp *TerminateUserResponse, err error)
+	// TransferDingTalkRegistration TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+	TransferDingTalkRegistration(ctx context.Context, req *TransferDingTalkRegistrationRequest, opts ...http.CallOption) (rsp *TransferDingTalkRegistrationResponse, err error)
 	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *UpdateOrganizationResponse, err error)
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *UpdateRoleResponse, err error)
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UpdateUserResponse, err error)
@@ -1045,6 +1073,24 @@ func (c *AdminServiceHTTPClientImpl) TerminateUser(ctx context.Context, in *Term
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAdminServiceTerminateUser),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TransferDingTalkRegistration TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+func (c *AdminServiceHTTPClientImpl) TransferDingTalkRegistration(ctx context.Context, in *TransferDingTalkRegistrationRequest, opts ...http.CallOption) (*TransferDingTalkRegistrationResponse, error) {
+	var out TransferDingTalkRegistrationResponse
+	pattern := "/api/v1/admin/dingtalk/registrations/{user_id}/transfer"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceTransferDingTalkRegistration),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -89,7 +89,14 @@ type dingTalkLoginRegistrationRepoStub struct {
 }
 
 func (s *dingTalkLoginRegistrationRepoStub) FindActiveInvitationByMobile(_ context.Context, mobile string) (*DingTalkInvitation, error) {
-	if s.invitation == nil || s.invitation.Mobile != mobile {
+	if s.invitation == nil || s.invitation.Mobile == nil || *s.invitation.Mobile != mobile {
+		return nil, ErrDingTalkInvitationNotFound
+	}
+	return s.invitation, s.invitationErr
+}
+
+func (s *dingTalkLoginRegistrationRepoStub) FindInvitationByToken(_ context.Context, token string) (*DingTalkInvitation, error) {
+	if s.invitation == nil || s.invitation.Token != token {
 		return nil, ErrDingTalkInvitationNotFound
 	}
 	return s.invitation, s.invitationErr
@@ -125,6 +132,14 @@ func (s *dingTalkLoginRegistrationRepoStub) ListApproverRecipients(_ context.Con
 	return s.recipients, nil
 }
 
+func (s *dingTalkLoginRegistrationRepoStub) ListApproverRecipientsWithEscalation(_ context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
+	return s.recipients, organizationID, false, nil
+}
+
+func (s *dingTalkLoginRegistrationRepoStub) GetParentOrganizationID(_ context.Context, _ uuid.UUID) (*uuid.UUID, bool, error) {
+	return nil, false, nil
+}
+
 func newDingTalkLoginUsecase(repo AuthRepo, registrations DingTalkLoginRegistrationRepo, directory DingTalkDirectoryLookup, codec DingTalkRegistrationTokenCodec) *AuthUsecase {
 	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}, codec, registrations, directory, nil)
 }
@@ -132,8 +147,9 @@ func newDingTalkLoginUsecase(repo AuthRepo, registrations DingTalkLoginRegistrat
 func TestAuthUsecaseDingTalkInvitationAutoActivatesAndCreatesSession(t *testing.T) {
 	targetOrganizationID := uuid.New()
 	repo := &wecomAuthRepoStub{}
+	mobile := "13800138000"
 	invitations := &dingTalkLoginRegistrationRepoStub{
-		invitation: &DingTalkInvitation{ID: uuid.New(), OrganizationID: targetOrganizationID, Mobile: "13800138000", Status: DingTalkInvitationStatusPending, ExpiresAt: time.Now().Add(time.Hour)},
+		invitation: &DingTalkInvitation{ID: uuid.New(), Kind: DingTalkInvitationKindTargeted, OrganizationID: targetOrganizationID, Mobile: &mobile, Status: DingTalkInvitationStatusPending, ExpiresAt: time.Now().Add(time.Hour)},
 	}
 	directory := &dingTalkDirectoryStub{mobile: "+86 138 0013 8000"}
 	codec := &dingTalkRegistrationTokenCodecStub{}
@@ -179,8 +195,9 @@ func TestAuthUsecaseDingTalkInvitationDegradesOnDirectoryFailure(t *testing.T) {
 
 func TestAuthUsecaseDingTalkInvitationDegradesOnConsumeConflict(t *testing.T) {
 	repo := &wecomAuthRepoStub{}
+	mobile := "13800138000"
 	invitations := &dingTalkLoginRegistrationRepoStub{
-		invitation: &DingTalkInvitation{ID: uuid.New(), OrganizationID: uuid.New(), Mobile: "13800138000", Status: DingTalkInvitationStatusPending, ExpiresAt: time.Now().Add(time.Hour)},
+		invitation: &DingTalkInvitation{ID: uuid.New(), Kind: DingTalkInvitationKindTargeted, OrganizationID: uuid.New(), Mobile: &mobile, Status: DingTalkInvitationStatusPending, ExpiresAt: time.Now().Add(time.Hour)},
 		consumeErr: ErrDingTalkInvitationNotConsumable,
 	}
 	usecase := newDingTalkLoginUsecase(repo, invitations, &dingTalkDirectoryStub{mobile: "13800138000"}, &dingTalkRegistrationTokenCodecStub{})
@@ -224,7 +241,7 @@ func TestAuthUsecaseConfirmDingTalkRegistrationRoutesRequestedOrganization(t *te
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
 
-	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", targetOrganizationID)
+	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "", targetOrganizationID)
 	if err != nil {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v", err)
 	}
@@ -253,7 +270,7 @@ func TestAuthUsecaseConfirmDingTalkRegistrationFallsBackToHeadquarters(t *testin
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
 
-	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.Nil); err != nil {
+	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "", uuid.Nil); err != nil {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v", err)
 	}
 	if repo.registeredRequestedOrg != nil {
@@ -270,11 +287,88 @@ func TestAuthUsecaseConfirmDingTalkRegistrationRejectsInvalidOrganization(t *tes
 	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
 
-	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.New()); err != ErrDingTalkRegistrationOrgInvalid {
+	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "", uuid.New()); err != ErrDingTalkRegistrationOrgInvalid {
 		t.Fatalf("无效目标组织错误 = %v，期望 ErrDingTalkRegistrationOrgInvalid", err)
 	}
 	if repo.created || repo.registeredApproverIDs != nil {
 		t.Fatal("组织校验失败不应落库注册")
+	}
+}
+
+func TestAuthUsecaseConfirmDingTalkRegistrationLocksOrganizationFromToken(t *testing.T) {
+	invitationOrgID := uuid.New()
+	bogusClientOrgID := uuid.New()
+	approverID := uuid.New()
+	repo := &wecomAuthRepoStub{
+		credential: &Credential{UserID: uuid.New(), DisplayName: "受邀员工", PrimaryOrganizationID: uuid.New(), Enabled: false},
+		created:    true,
+	}
+	invitations := &dingTalkLoginRegistrationRepoStub{
+		invitation: &DingTalkInvitation{
+			ID:             uuid.New(),
+			Token:          "valid-token-12345",
+			Kind:           DingTalkInvitationKindGeneric,
+			OrganizationID: invitationOrgID,
+			Status:         DingTalkInvitationStatusPending,
+			ExpiresAt:      time.Now().Add(time.Hour),
+		},
+		recipients: []*DingTalkApproverRecipient{{UserID: approverID, DisplayName: "分公司管理员"}},
+	}
+	codec := &dingTalkRegistrationTokenCodecStub{identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "受邀员工"}}
+	usecase := newDingTalkLoginUsecase(repo, invitations, nil, codec)
+
+	// 传入伪造的目标组织 bogusClientOrgID，断言服务端根据 Token 强绑定 invitationOrgID
+	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "valid-token-12345", bogusClientOrgID)
+	if err != nil {
+		t.Fatalf("ConfirmDingTalkRegistration() error = %v", err)
+	}
+	if registration.Status != "PENDING" {
+		t.Fatalf("registration status = %v", registration.Status)
+	}
+	if repo.registeredRequestedOrg == nil || *repo.registeredRequestedOrg != invitationOrgID {
+		t.Fatalf("应根据 Token 锁定组织 %v，实际落库 %v", invitationOrgID, repo.registeredRequestedOrg)
+	}
+}
+
+func TestAuthUsecaseGetDingTalkInvitationInfoAndRateLimiting(t *testing.T) {
+	orgID := uuid.New()
+	now := time.Now().UTC()
+	invitations := &dingTalkLoginRegistrationRepoStub{
+		invitation: &DingTalkInvitation{
+			ID:               uuid.New(),
+			Token:            "test-public-token",
+			Kind:             DingTalkInvitationKindGeneric,
+			OrganizationID:   orgID,
+			OrganizationName: "上海分公司",
+			InviterName:      "李经理",
+			Status:           DingTalkInvitationStatusPending,
+			ExpiresAt:        now.Add(24 * time.Hour),
+		},
+	}
+	rateRepo := &loginRateLimitRepoStub{counts: make(map[string]int)}
+	usecase := NewAuthUsecase(rateRepo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{enabled: true}, nil, invitations, nil, nil)
+
+	// 1. 正常查询：返回最小化公开信息（组织名、邀请人、有效期）
+	info, err := usecase.GetDingTalkInvitationInfo(context.Background(), "test-public-token", "1.2.3.4")
+	if err != nil {
+		t.Fatalf("GetDingTalkInvitationInfo() error = %v", err)
+	}
+	if info.OrganizationName != "上海分公司" || info.InviterDisplayName != "李经理" {
+		t.Fatalf("返回公开信息不符合预期: %#v", info)
+	}
+
+	// 2. 错误 Token：触发失败计数
+	for i := 0; i < 5; i++ {
+		_, err := usecase.GetDingTalkInvitationInfo(context.Background(), "non-existent-token", "1.2.3.4")
+		if err != ErrDingTalkInvitationNotFound {
+			t.Fatalf("查询不存在邀请应返回 ErrDingTalkInvitationNotFound，实际 %v", err)
+		}
+	}
+
+	// 3. 第 6 次触发 IP 登录同款限流
+	_, err = usecase.GetDingTalkInvitationInfo(context.Background(), "test-public-token", "1.2.3.4")
+	if err != ErrLoginRateLimited {
+		t.Fatalf("超限后应返回 ErrLoginRateLimited，实际 %v", err)
 	}
 }
 
@@ -285,13 +379,20 @@ type dingTalkRegistrationRepoStub struct {
 	createErr         error
 	revokedID         uuid.UUID
 	revokedOrgIDs     []uuid.UUID
-	registration      *DingTalkRegistration
-	approved          *DingTalkRegistrationDecision
-	rejected          *DingTalkRegistrationDecision
-	actorRoles        []*AdminRoleProfile
-	roleProfiles      []*AdminRoleProfile
-	actorRolesErr     error
-	roleProfilesErr   error
+	registration        *DingTalkRegistration
+	approved            *DingTalkRegistrationDecision
+	rejected            *DingTalkRegistrationDecision
+	transferDecision    *DingTalkRegistrationDecision
+	transferTargetOrg   uuid.UUID
+	transferErr         error
+	escalatedRecipients []*DingTalkApproverRecipient
+	escalatedOrgID      uuid.UUID
+	isEscalated         bool
+	parentOrgs          map[uuid.UUID]*uuid.UUID
+	actorRoles          []*AdminRoleProfile
+	roleProfiles        []*AdminRoleProfile
+	actorRolesErr       error
+	roleProfilesErr     error
 }
 
 func (s *dingTalkRegistrationRepoStub) GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error) {
@@ -320,6 +421,13 @@ func (s *dingTalkRegistrationRepoStub) RevokeInvitation(_ context.Context, _ uui
 	return nil, nil
 }
 
+func (s *dingTalkRegistrationRepoStub) FindInvitationByToken(_ context.Context, token string) (*DingTalkInvitation, error) {
+	if s.createdInvitation != nil && s.createdInvitation.Token == token {
+		return s.createdInvitation, nil
+	}
+	return nil, ErrDingTalkInvitationNotFound
+}
+
 func (s *dingTalkRegistrationRepoStub) GetPendingRegistration(_ context.Context, userID uuid.UUID) (*DingTalkRegistration, error) {
 	if s.registration == nil || s.registration.UserID != userID {
 		return nil, ErrDingTalkRegistrationNotFound
@@ -341,8 +449,30 @@ func (s *dingTalkRegistrationRepoStub) RejectRegistration(_ context.Context, dec
 	return nil
 }
 
+func (s *dingTalkRegistrationRepoStub) TransferRegistration(_ context.Context, decision *DingTalkRegistrationDecision, targetOrgID uuid.UUID) error {
+	s.transferDecision = decision
+	s.transferTargetOrg = targetOrgID
+	return s.transferErr
+}
+
 func (s *dingTalkRegistrationRepoStub) ListApproverRecipients(context.Context, uuid.UUID) ([]*DingTalkApproverRecipient, error) {
 	return nil, nil
+}
+
+func (s *dingTalkRegistrationRepoStub) ListApproverRecipientsWithEscalation(_ context.Context, orgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
+	if s.escalatedRecipients != nil {
+		return s.escalatedRecipients, s.escalatedOrgID, s.isEscalated, nil
+	}
+	return nil, orgID, false, nil
+}
+
+func (s *dingTalkRegistrationRepoStub) GetParentOrganizationID(_ context.Context, orgID uuid.UUID) (*uuid.UUID, bool, error) {
+	if s.parentOrgs != nil {
+		if parentID, ok := s.parentOrgs[orgID]; ok {
+			return parentID, true, nil
+		}
+	}
+	return nil, false, nil
 }
 
 func dingTalkInvitationManagePrincipal(organizationID uuid.UUID) *Principal {
@@ -363,15 +493,44 @@ func TestDingTalkRegistrationUsecaseCreateInvitationValidatesAndNormalizes(t *te
 	}
 	usecase := NewDingTalkRegistrationUsecase(repo)
 
-	created, err := usecase.CreateInvitation(context.Background(), dingTalkInvitationManagePrincipal(organizationID), "+86 138 0013-8000", " 备注姓名 ", organizationID, roleID, 0)
+	created, err := usecase.CreateInvitation(context.Background(), dingTalkInvitationManagePrincipal(organizationID), DingTalkInvitationKindTargeted, "+86 138 0013-8000", " 备注姓名 ", organizationID, &roleID, 0)
 	if err != nil {
 		t.Fatalf("CreateInvitation() error = %v", err)
 	}
-	if created.Mobile != "13800138000" || created.DisplayName != "备注姓名" {
+	if created.Mobile == nil || *created.Mobile != "13800138000" || created.DisplayName != "备注姓名" {
 		t.Fatalf("邀请应存归一化手机号与去空格备注: %#v", created)
+	}
+	if created.Token == "" || len(created.Token) != 32 {
+		t.Fatalf("应生成 128-bit (32 字符 Hex) Token: %q", created.Token)
+	}
+	if created.Kind != DingTalkInvitationKindTargeted {
+		t.Fatalf("邀请类型应为 TARGETED: %v", created.Kind)
 	}
 	if created.ExpiresAt.Before(time.Now().Add(DingTalkInvitationDefaultTTLHours*time.Hour - time.Minute)) {
 		t.Fatalf("缺省有效期应为 %d 小时: %v", DingTalkInvitationDefaultTTLHours, created.ExpiresAt)
+	}
+}
+
+func TestDingTalkRegistrationUsecaseCreateGenericInvitation(t *testing.T) {
+	organizationID := uuid.New()
+	repo := &dingTalkRegistrationRepoStub{}
+	usecase := NewDingTalkRegistrationUsecase(repo)
+
+	created, err := usecase.CreateInvitation(context.Background(), dingTalkInvitationManagePrincipal(organizationID), DingTalkInvitationKindGeneric, "", "通用入职码", organizationID, nil, 24)
+	if err != nil {
+		t.Fatalf("CreateInvitation() error = %v", err)
+	}
+	if created.Mobile != nil {
+		t.Fatalf("通用码手机号必须为 nil: %v", created.Mobile)
+	}
+	if created.Kind != DingTalkInvitationKindGeneric {
+		t.Fatalf("类型应为 GENERIC: %v", created.Kind)
+	}
+	if created.RoleID != nil {
+		t.Fatalf("未传角色应为 nil: %v", created.RoleID)
+	}
+	if created.Token == "" || len(created.Token) != 32 {
+		t.Fatalf("应生成 128-bit Token: %q", created.Token)
 	}
 }
 
@@ -395,7 +554,8 @@ func TestDingTalkRegistrationUsecaseCreateInvitationRejectsBadInput(t *testing.T
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if _, err := usecase.CreateInvitation(context.Background(), dingTalkInvitationManagePrincipal(organizationID), test.mobile, "", test.orgID, test.roleID, test.ttl); err != test.expectedErr {
+			testRoleID := test.roleID
+			if _, err := usecase.CreateInvitation(context.Background(), dingTalkInvitationManagePrincipal(organizationID), DingTalkInvitationKindTargeted, test.mobile, "", test.orgID, &testRoleID, test.ttl); err != test.expectedErr {
 				t.Fatalf("CreateInvitation() error = %v, want %v", err, test.expectedErr)
 			}
 		})
@@ -468,6 +628,43 @@ func TestDingTalkRegistrationUsecaseRejectBuildsNotification(t *testing.T) {
 	}
 	if repo.rejected.Notification == nil || repo.rejected.Notification.RecipientUserID != userID || repo.rejected.Notification.Template != NotificationTemplateDingTalkRegistrationRejected {
 		t.Fatalf("拒绝应携带本人通知: %#v", repo.rejected.Notification)
+	}
+}
+
+func TestDingTalkRegistrationUsecaseTransferRegistration(t *testing.T) {
+	orgID := uuid.New()
+	targetOrgID := uuid.New()
+	userID := uuid.New()
+	repo := &dingTalkRegistrationRepoStub{
+		registration: &DingTalkRegistration{UserID: userID, IntakeOrganizationID: orgID},
+	}
+	usecase := NewDingTalkRegistrationUsecase(repo)
+
+	// 1. 同组织转派拦截
+	if err := usecase.TransferRegistration(context.Background(), dingTalkInvitationManagePrincipal(orgID), userID, orgID, "转派理由"); err != ErrDingTalkRegistrationTransferSame {
+		t.Fatalf("同组织转派错误 = %v，期望 ErrDingTalkRegistrationTransferSame", err)
+	}
+
+	// 2. 理由为空拦截
+	if err := usecase.TransferRegistration(context.Background(), dingTalkInvitationManagePrincipal(orgID), userID, targetOrgID, "  "); err != ErrDingTalkRegistrationReasonMissing {
+		t.Fatalf("空理由错误 = %v，期望 ErrDingTalkRegistrationReasonMissing", err)
+	}
+
+	// 3. 越权转派拦截
+	otherOrgID := uuid.New()
+	if err := usecase.TransferRegistration(context.Background(), dingTalkInvitationManagePrincipal(otherOrgID), userID, targetOrgID, "转派理由"); err != ErrPermissionDenied {
+		t.Fatalf("越权转派错误 = %v，期望 ErrPermissionDenied", err)
+	}
+
+	// 4. 正常转派成功
+	if err := usecase.TransferRegistration(context.Background(), dingTalkInvitationManagePrincipal(orgID), userID, targetOrgID, "员工实际归属上海分公司"); err != nil {
+		t.Fatalf("正常转派失败: %v", err)
+	}
+	if repo.transferTargetOrg != targetOrgID {
+		t.Fatalf("转派目标组织 = %v, 期望 %v", repo.transferTargetOrg, targetOrgID)
+	}
+	if repo.transferDecision == nil || repo.transferDecision.Reason != "员工实际归属上海分公司" {
+		t.Fatalf("转派决策 = %#v", repo.transferDecision)
 	}
 }
 

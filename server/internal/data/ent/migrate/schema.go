@@ -467,13 +467,15 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "mobile", Type: field.TypeString, Size: 32},
+		{Name: "token", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"TARGETED", "GENERIC"}, Default: "TARGETED"},
+		{Name: "mobile", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "display_name", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "CONSUMED", "EXPIRED", "REVOKED"}, Default: "PENDING"},
 		{Name: "consumed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "expires_at", Type: field.TypeTime},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "role_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "invited_by", Type: field.TypeUUID},
 		{Name: "consumed_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -485,25 +487,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ding_talk_invitations_organizations_dingtalk_invitations",
-				Columns:    []*schema.Column{DingTalkInvitationsColumns[8]},
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "ding_talk_invitations_roles_dingtalk_invitations",
-				Columns:    []*schema.Column{DingTalkInvitationsColumns[9]},
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[11]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "ding_talk_invitations_users_created_dingtalk_invitations",
-				Columns:    []*schema.Column{DingTalkInvitationsColumns[10]},
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "ding_talk_invitations_users_consumed_dingtalk_invitations",
-				Columns:    []*schema.Column{DingTalkInvitationsColumns[11]},
+				Columns:    []*schema.Column{DingTalkInvitationsColumns[13]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -517,20 +519,20 @@ var (
 			{
 				Name:    "dingtalkinvitation_organization_id_mobile",
 				Unique:  true,
-				Columns: []*schema.Column{DingTalkInvitationsColumns[8], DingTalkInvitationsColumns[3]},
+				Columns: []*schema.Column{DingTalkInvitationsColumns[10], DingTalkInvitationsColumns[5]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "status = 'PENDING'",
+					Where: "status = 'PENDING' AND kind = 'TARGETED' AND mobile IS NOT NULL AND mobile != ''",
 				},
 			},
 			{
 				Name:    "dingtalkinvitation_expires_at",
 				Unique:  false,
-				Columns: []*schema.Column{DingTalkInvitationsColumns[7]},
+				Columns: []*schema.Column{DingTalkInvitationsColumns[9]},
 			},
 			{
 				Name:    "dingtalkinvitation_invited_by",
 				Unique:  false,
-				Columns: []*schema.Column{DingTalkInvitationsColumns[10]},
+				Columns: []*schema.Column{DingTalkInvitationsColumns[12]},
 			},
 		},
 	}

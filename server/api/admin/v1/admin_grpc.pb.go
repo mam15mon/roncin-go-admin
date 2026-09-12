@@ -19,32 +19,33 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_ListOrganizations_FullMethodName           = "/admin.v1.AdminService/ListOrganizations"
-	AdminService_CreateOrganization_FullMethodName          = "/admin.v1.AdminService/CreateOrganization"
-	AdminService_UpdateOrganization_FullMethodName          = "/admin.v1.AdminService/UpdateOrganization"
-	AdminService_ListUsers_FullMethodName                   = "/admin.v1.AdminService/ListUsers"
-	AdminService_CreateUser_FullMethodName                  = "/admin.v1.AdminService/CreateUser"
-	AdminService_UpdateUser_FullMethodName                  = "/admin.v1.AdminService/UpdateUser"
-	AdminService_ListUserMemberships_FullMethodName         = "/admin.v1.AdminService/ListUserMemberships"
-	AdminService_CreateUserMembership_FullMethodName        = "/admin.v1.AdminService/CreateUserMembership"
-	AdminService_UpdateUserMembership_FullMethodName        = "/admin.v1.AdminService/UpdateUserMembership"
-	AdminService_DeleteUserMembership_FullMethodName        = "/admin.v1.AdminService/DeleteUserMembership"
-	AdminService_TerminateUser_FullMethodName               = "/admin.v1.AdminService/TerminateUser"
-	AdminService_AuthorizeWeComUser_FullMethodName          = "/admin.v1.AdminService/AuthorizeWeComUser"
-	AdminService_AuthorizeDingTalkUser_FullMethodName       = "/admin.v1.AdminService/AuthorizeDingTalkUser"
-	AdminService_ResetUserPassword_FullMethodName           = "/admin.v1.AdminService/ResetUserPassword"
-	AdminService_ListRoles_FullMethodName                   = "/admin.v1.AdminService/ListRoles"
-	AdminService_ListOrganizationRoles_FullMethodName       = "/admin.v1.AdminService/ListOrganizationRoles"
-	AdminService_CreateRole_FullMethodName                  = "/admin.v1.AdminService/CreateRole"
-	AdminService_UpdateRole_FullMethodName                  = "/admin.v1.AdminService/UpdateRole"
-	AdminService_ListPermissions_FullMethodName             = "/admin.v1.AdminService/ListPermissions"
-	AdminService_ListAuditLogs_FullMethodName               = "/admin.v1.AdminService/ListAuditLogs"
-	AdminService_CreateDingTalkInvitation_FullMethodName    = "/admin.v1.AdminService/CreateDingTalkInvitation"
-	AdminService_ListDingTalkInvitations_FullMethodName     = "/admin.v1.AdminService/ListDingTalkInvitations"
-	AdminService_RevokeDingTalkInvitation_FullMethodName    = "/admin.v1.AdminService/RevokeDingTalkInvitation"
-	AdminService_ListDingTalkRegistrations_FullMethodName   = "/admin.v1.AdminService/ListDingTalkRegistrations"
-	AdminService_ApproveDingTalkRegistration_FullMethodName = "/admin.v1.AdminService/ApproveDingTalkRegistration"
-	AdminService_RejectDingTalkRegistration_FullMethodName  = "/admin.v1.AdminService/RejectDingTalkRegistration"
+	AdminService_ListOrganizations_FullMethodName            = "/admin.v1.AdminService/ListOrganizations"
+	AdminService_CreateOrganization_FullMethodName           = "/admin.v1.AdminService/CreateOrganization"
+	AdminService_UpdateOrganization_FullMethodName           = "/admin.v1.AdminService/UpdateOrganization"
+	AdminService_ListUsers_FullMethodName                    = "/admin.v1.AdminService/ListUsers"
+	AdminService_CreateUser_FullMethodName                   = "/admin.v1.AdminService/CreateUser"
+	AdminService_UpdateUser_FullMethodName                   = "/admin.v1.AdminService/UpdateUser"
+	AdminService_ListUserMemberships_FullMethodName          = "/admin.v1.AdminService/ListUserMemberships"
+	AdminService_CreateUserMembership_FullMethodName         = "/admin.v1.AdminService/CreateUserMembership"
+	AdminService_UpdateUserMembership_FullMethodName         = "/admin.v1.AdminService/UpdateUserMembership"
+	AdminService_DeleteUserMembership_FullMethodName         = "/admin.v1.AdminService/DeleteUserMembership"
+	AdminService_TerminateUser_FullMethodName                = "/admin.v1.AdminService/TerminateUser"
+	AdminService_AuthorizeWeComUser_FullMethodName           = "/admin.v1.AdminService/AuthorizeWeComUser"
+	AdminService_AuthorizeDingTalkUser_FullMethodName        = "/admin.v1.AdminService/AuthorizeDingTalkUser"
+	AdminService_ResetUserPassword_FullMethodName            = "/admin.v1.AdminService/ResetUserPassword"
+	AdminService_ListRoles_FullMethodName                    = "/admin.v1.AdminService/ListRoles"
+	AdminService_ListOrganizationRoles_FullMethodName        = "/admin.v1.AdminService/ListOrganizationRoles"
+	AdminService_CreateRole_FullMethodName                   = "/admin.v1.AdminService/CreateRole"
+	AdminService_UpdateRole_FullMethodName                   = "/admin.v1.AdminService/UpdateRole"
+	AdminService_ListPermissions_FullMethodName              = "/admin.v1.AdminService/ListPermissions"
+	AdminService_ListAuditLogs_FullMethodName                = "/admin.v1.AdminService/ListAuditLogs"
+	AdminService_CreateDingTalkInvitation_FullMethodName     = "/admin.v1.AdminService/CreateDingTalkInvitation"
+	AdminService_ListDingTalkInvitations_FullMethodName      = "/admin.v1.AdminService/ListDingTalkInvitations"
+	AdminService_RevokeDingTalkInvitation_FullMethodName     = "/admin.v1.AdminService/RevokeDingTalkInvitation"
+	AdminService_ListDingTalkRegistrations_FullMethodName    = "/admin.v1.AdminService/ListDingTalkRegistrations"
+	AdminService_ApproveDingTalkRegistration_FullMethodName  = "/admin.v1.AdminService/ApproveDingTalkRegistration"
+	AdminService_RejectDingTalkRegistration_FullMethodName   = "/admin.v1.AdminService/RejectDingTalkRegistration"
+	AdminService_TransferDingTalkRegistration_FullMethodName = "/admin.v1.AdminService/TransferDingTalkRegistration"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -81,6 +82,8 @@ type AdminServiceClient interface {
 	// ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
 	ApproveDingTalkRegistration(ctx context.Context, in *ApproveDingTalkRegistrationRequest, opts ...grpc.CallOption) (*ApproveDingTalkRegistrationResponse, error)
 	RejectDingTalkRegistration(ctx context.Context, in *RejectDingTalkRegistrationRequest, opts ...grpc.CallOption) (*RejectDingTalkRegistrationResponse, error)
+	// TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+	TransferDingTalkRegistration(ctx context.Context, in *TransferDingTalkRegistrationRequest, opts ...grpc.CallOption) (*TransferDingTalkRegistrationResponse, error)
 }
 
 type adminServiceClient struct {
@@ -351,6 +354,16 @@ func (c *adminServiceClient) RejectDingTalkRegistration(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *adminServiceClient) TransferDingTalkRegistration(ctx context.Context, in *TransferDingTalkRegistrationRequest, opts ...grpc.CallOption) (*TransferDingTalkRegistrationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransferDingTalkRegistrationResponse)
+	err := c.cc.Invoke(ctx, AdminService_TransferDingTalkRegistration_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
@@ -385,6 +398,8 @@ type AdminServiceServer interface {
 	// ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
 	ApproveDingTalkRegistration(context.Context, *ApproveDingTalkRegistrationRequest) (*ApproveDingTalkRegistrationResponse, error)
 	RejectDingTalkRegistration(context.Context, *RejectDingTalkRegistrationRequest) (*RejectDingTalkRegistrationResponse, error)
+	// TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+	TransferDingTalkRegistration(context.Context, *TransferDingTalkRegistrationRequest) (*TransferDingTalkRegistrationResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -472,6 +487,9 @@ func (UnimplementedAdminServiceServer) ApproveDingTalkRegistration(context.Conte
 }
 func (UnimplementedAdminServiceServer) RejectDingTalkRegistration(context.Context, *RejectDingTalkRegistrationRequest) (*RejectDingTalkRegistrationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RejectDingTalkRegistration not implemented")
+}
+func (UnimplementedAdminServiceServer) TransferDingTalkRegistration(context.Context, *TransferDingTalkRegistrationRequest) (*TransferDingTalkRegistrationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TransferDingTalkRegistration not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -962,6 +980,24 @@ func _AdminService_RejectDingTalkRegistration_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_TransferDingTalkRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferDingTalkRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).TransferDingTalkRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_TransferDingTalkRegistration_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).TransferDingTalkRegistration(ctx, req.(*TransferDingTalkRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1072,6 +1108,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RejectDingTalkRegistration",
 			Handler:    _AdminService_RejectDingTalkRegistration_Handler,
+		},
+		{
+			MethodName: "TransferDingTalkRegistration",
+			Handler:    _AdminService_TransferDingTalkRegistration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

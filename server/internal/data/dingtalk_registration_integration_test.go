@@ -15,6 +15,7 @@ import (
 	invitationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	notificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	roleassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -126,10 +127,15 @@ func newDingTalkRegistrationFixture(t *testing.T) *dingTalkRegistrationFixture {
 }
 
 func (f *dingTalkRegistrationFixture) createInvitationInput(mobile string, organizationID uuid.UUID, expiresAt time.Time) *biz.DingTalkInvitation {
+	token, _ := biz.GenerateInvitationToken()
+	roleID := f.staffRole.ID
+	m := mobile
 	return &biz.DingTalkInvitation{
+		Token:          token,
+		Kind:           biz.DingTalkInvitationKindTargeted,
 		OrganizationID: organizationID,
-		RoleID:         f.staffRole.ID,
-		Mobile:         mobile,
+		RoleID:         &roleID,
+		Mobile:         &m,
 		DisplayName:    "备注-" + mobile,
 		InvitedBy:      f.inviter.ID,
 		Status:         biz.DingTalkInvitationStatusPending,
@@ -284,10 +290,13 @@ func TestDingTalkInvitationMatchPrefersEarliestAcrossOrganizations(t *testing.T)
 
 	mobile := "13700137000"
 	audit := &biz.AuditEvent{UserID: &fixture.inviter.ID, Action: "admin.dingtalk.invitation.create", Result: "success", Details: map[string]string{}}
+	token1, _ := biz.GenerateInvitationToken()
 	first, err := fixture.repo.CreateInvitation(fixture.ctx, &biz.DingTalkInvitation{
+		Token:          token1,
+		Kind:           biz.DingTalkInvitationKindTargeted,
 		OrganizationID: fixture.branch.ID,
-		RoleID:         fixture.staffRole.ID,
-		Mobile:         mobile,
+		RoleID:         &fixture.staffRole.ID,
+		Mobile:         &mobile,
 		InvitedBy:      fixture.inviter.ID,
 		Status:         biz.DingTalkInvitationStatusPending,
 		ExpiresAt:      time.Now().Add(time.Hour),
@@ -297,10 +306,13 @@ func TestDingTalkInvitationMatchPrefersEarliestAcrossOrganizations(t *testing.T)
 	}
 	// 确保两条邀请 created_at 严格递增，避免同毫秒建行退化为 ID 排序。
 	time.Sleep(10 * time.Millisecond)
+	token2, _ := biz.GenerateInvitationToken()
 	second, err := fixture.repo.CreateInvitation(fixture.ctx, &biz.DingTalkInvitation{
+		Token:          token2,
+		Kind:           biz.DingTalkInvitationKindTargeted,
 		OrganizationID: otherOrganization.ID,
-		RoleID:         otherRole.ID,
-		Mobile:         mobile,
+		RoleID:         &otherRole.ID,
+		Mobile:         &mobile,
 		InvitedBy:      fixture.inviter.ID,
 		Status:         biz.DingTalkInvitationStatusPending,
 		ExpiresAt:      time.Now().Add(time.Hour),
@@ -619,5 +631,112 @@ func TestDingTalkApproverRecipientsLimitByActivity(t *testing.T) {
 	first := recipients[0]
 	if first.UserID != mostActive {
 		t.Fatalf("最近活跃者应排首: %#v", recipients)
+	}
+}
+
+func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
+	fixture := newDingTalkRegistrationFixture(t)
+	// 1. 创建 GENERIC 邀请（手机号为空，Token 128-bit）
+	token, err := biz.GenerateInvitationToken()
+	if err != nil {
+		t.Fatalf("生成 Token 失败: %v", err)
+	}
+	genericInvitation, err := fixture.repo.CreateInvitation(fixture.ctx, &biz.DingTalkInvitation{
+		Token:          token,
+		Kind:           biz.DingTalkInvitationKindGeneric,
+		OrganizationID: fixture.branch.ID,
+		DisplayName:    "分公司通用扩招码",
+		InvitedBy:      fixture.inviter.ID,
+		Status:         biz.DingTalkInvitationStatusPending,
+		ExpiresAt:      time.Now().Add(72 * time.Hour),
+	}, &biz.AuditEvent{UserID: &fixture.inviter.ID, Action: "admin.dingtalk.invitation.create", Result: "success", Details: map[string]string{}})
+	if err != nil {
+		t.Fatalf("创建通用邀请失败: %v", err)
+	}
+	if genericInvitation.Kind != biz.DingTalkInvitationKindGeneric || genericInvitation.Mobile != nil {
+		t.Fatalf("通用邀请属性异常: %#v", genericInvitation)
+	}
+
+	// 2. 通过 Token 查询邀请公开信息
+	found, err := fixture.repo.FindInvitationByToken(fixture.ctx, token)
+	if err != nil {
+		t.Fatalf("FindInvitationByToken 失败: %v", err)
+	}
+	if found.ID != genericInvitation.ID {
+		t.Fatalf("Token 查询结果不一致: %v vs %v", found.ID, genericInvitation.ID)
+	}
+
+	// 3. 向上追溯：创建新分公司（无管理员），断言向上追溯命中总部
+	subBranch, err := fixture.data.db.Organization.Create().
+		SetCode("SUB-" + fixture.suffix).
+		SetName("二级办事处-" + fixture.suffix).
+		SetKind(organizationent.KindCompany).
+		SetParentID(fixture.headquarters.ID).
+		SetEnabled(true).
+		Save(fixture.ctx)
+	if err != nil {
+		t.Fatalf("创建二级办事处失败: %v", err)
+	}
+	// 在总部配置审批人
+	managePermission, _ := fixture.data.db.Permission.Query().Where(permissionent.KeyEQ(access.UserDingTalkInvitationManage)).Only(fixture.ctx)
+	hqRole, _ := fixture.data.db.Role.Create().
+		SetOrganizationID(fixture.headquarters.ID).
+		SetName("总部管理员角色-" + fixture.suffix).
+		SetCode("hq_admin_" + fixture.suffix).
+		SetEnabled(true).
+		AddPermissions(managePermission).
+		Save(fixture.ctx)
+	hqAdmin, _ := fixture.data.db.User.Create().
+		SetDisplayName("总部审批人").
+		SetDingtalkUnionid("hq-union-" + fixture.suffix).
+		SetDingtalkUserid("hq-user-" + fixture.suffix).
+		SetDingtalkName("总部审批人").
+		SetEnabled(true).
+		Save(fixture.ctx)
+	hqMembership, _ := fixture.data.db.Membership.Create().
+		SetUserID(hqAdmin.ID).
+		SetOrganizationID(fixture.headquarters.ID).
+		SetPrimary(true).
+		SetEnabled(true).
+		Save(fixture.ctx)
+	fixture.data.db.RoleAssignment.Create().
+		SetMembershipID(hqMembership.ID).
+		SetRoleID(hqRole.ID).
+		Save(fixture.ctx)
+
+	recipients, escalatedOrgID, isEscalated, err := fixture.repo.ListApproverRecipientsWithEscalation(fixture.ctx, subBranch.ID)
+	if err != nil {
+		t.Fatalf("向上追溯失败: %v", err)
+	}
+	if !isEscalated || escalatedOrgID != fixture.headquarters.ID || len(recipients) == 0 {
+		t.Fatalf("办事处无审批人应向上追溯至总部: isEscalated=%v, escalatedOrgID=%v, recipients=%v", isEscalated, escalatedOrgID, recipients)
+	}
+
+	// 4. 转派测试：注册员工初建在 branch，转派至 subBranch
+	employeeIdentity := &biz.DingTalkIdentity{UnionID: "transfer-union-" + fixture.suffix, UserID: "transfer-user-" + fixture.suffix, CorpID: "ding-corp", Name: "转派员工"}
+	cred, created, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, employeeIdentity, &fixture.branch.ID, nil, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+	if err != nil || !created {
+		t.Fatalf("注册失败: %v", err)
+	}
+
+	// 尝试转派到同一组织：应拦截
+	decision := &biz.DingTalkRegistrationDecision{
+		ActorID:         hqAdmin.ID,
+		UserID:          cred.UserID,
+		OrganizationIDs: []uuid.UUID{fixture.branch.ID, fixture.headquarters.ID, subBranch.ID},
+		Reason:          "转派至办事处",
+		Audit:           &biz.AuditEvent{Action: "admin.dingtalk.registration.transfer", Result: "success", Details: map[string]string{}},
+	}
+	if err := fixture.repo.TransferRegistration(fixture.ctx, decision, fixture.branch.ID); err != biz.ErrDingTalkRegistrationTransferSame {
+		t.Fatalf("转派至同组织应拦截，实际: %v", err)
+	}
+
+	// 正常转派至 subBranch
+	if err := fixture.repo.TransferRegistration(fixture.ctx, decision, subBranch.ID); err != nil {
+		t.Fatalf("转派至办事处失败: %v", err)
+	}
+	updatedUser, err := fixture.data.db.User.Get(fixture.ctx, cred.UserID)
+	if err != nil || updatedUser.DingtalkRequestedOrganizationID == nil || *updatedUser.DingtalkRequestedOrganizationID != subBranch.ID {
+		t.Fatalf("转派后目标组织未更新: %v", updatedUser.DingtalkRequestedOrganizationID)
 	}
 }

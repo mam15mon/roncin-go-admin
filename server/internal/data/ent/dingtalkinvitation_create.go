@@ -55,6 +55,26 @@ func (_c *DingTalkInvitationCreate) SetNillableUpdatedAt(v *time.Time) *DingTalk
 	return _c
 }
 
+// SetToken sets the "token" field.
+func (_c *DingTalkInvitationCreate) SetToken(v string) *DingTalkInvitationCreate {
+	_c.mutation.SetToken(v)
+	return _c
+}
+
+// SetKind sets the "kind" field.
+func (_c *DingTalkInvitationCreate) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationCreate {
+	_c.mutation.SetKind(v)
+	return _c
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_c *DingTalkInvitationCreate) SetNillableKind(v *dingtalkinvitation.Kind) *DingTalkInvitationCreate {
+	if v != nil {
+		_c.SetKind(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *DingTalkInvitationCreate) SetOrganizationID(v uuid.UUID) *DingTalkInvitationCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -67,9 +87,25 @@ func (_c *DingTalkInvitationCreate) SetRoleID(v uuid.UUID) *DingTalkInvitationCr
 	return _c
 }
 
+// SetNillableRoleID sets the "role_id" field if the given value is not nil.
+func (_c *DingTalkInvitationCreate) SetNillableRoleID(v *uuid.UUID) *DingTalkInvitationCreate {
+	if v != nil {
+		_c.SetRoleID(*v)
+	}
+	return _c
+}
+
 // SetMobile sets the "mobile" field.
 func (_c *DingTalkInvitationCreate) SetMobile(v string) *DingTalkInvitationCreate {
 	_c.mutation.SetMobile(v)
+	return _c
+}
+
+// SetNillableMobile sets the "mobile" field if the given value is not nil.
+func (_c *DingTalkInvitationCreate) SetNillableMobile(v *string) *DingTalkInvitationCreate {
+	if v != nil {
+		_c.SetMobile(*v)
+	}
 	return _c
 }
 
@@ -238,6 +274,10 @@ func (_c *DingTalkInvitationCreate) defaults() {
 		v := dingtalkinvitation.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Kind(); !ok {
+		v := dingtalkinvitation.DefaultKind
+		_c.mutation.SetKind(v)
+	}
 	if _, ok := _c.mutation.DisplayName(); !ok {
 		v := dingtalkinvitation.DefaultDisplayName
 		_c.mutation.SetDisplayName(v)
@@ -260,14 +300,24 @@ func (_c *DingTalkInvitationCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "DingTalkInvitation.updated_at"`)}
 	}
+	if _, ok := _c.mutation.Token(); !ok {
+		return &ValidationError{Name: "token", err: errors.New(`ent: missing required field "DingTalkInvitation.token"`)}
+	}
+	if v, ok := _c.mutation.Token(); ok {
+		if err := dingtalkinvitation.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.token": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Kind(); !ok {
+		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "DingTalkInvitation.kind"`)}
+	}
+	if v, ok := _c.mutation.Kind(); ok {
+		if err := dingtalkinvitation.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.kind": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "DingTalkInvitation.organization_id"`)}
-	}
-	if _, ok := _c.mutation.RoleID(); !ok {
-		return &ValidationError{Name: "role_id", err: errors.New(`ent: missing required field "DingTalkInvitation.role_id"`)}
-	}
-	if _, ok := _c.mutation.Mobile(); !ok {
-		return &ValidationError{Name: "mobile", err: errors.New(`ent: missing required field "DingTalkInvitation.mobile"`)}
 	}
 	if v, ok := _c.mutation.Mobile(); ok {
 		if err := dingtalkinvitation.MobileValidator(v); err != nil {
@@ -295,9 +345,6 @@ func (_c *DingTalkInvitationCreate) check() error {
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "DingTalkInvitation.organization"`)}
-	}
-	if len(_c.mutation.RoleIDs()) == 0 {
-		return &ValidationError{Name: "role", err: errors.New(`ent: missing required edge "DingTalkInvitation.role"`)}
 	}
 	if len(_c.mutation.InviterIDs()) == 0 {
 		return &ValidationError{Name: "inviter", err: errors.New(`ent: missing required edge "DingTalkInvitation.inviter"`)}
@@ -346,9 +393,17 @@ func (_c *DingTalkInvitationCreate) createSpec() (*DingTalkInvitation, *sqlgraph
 		_spec.SetField(dingtalkinvitation.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.Token(); ok {
+		_spec.SetField(dingtalkinvitation.FieldToken, field.TypeString, value)
+		_node.Token = value
+	}
+	if value, ok := _c.mutation.Kind(); ok {
+		_spec.SetField(dingtalkinvitation.FieldKind, field.TypeEnum, value)
+		_node.Kind = value
+	}
 	if value, ok := _c.mutation.Mobile(); ok {
 		_spec.SetField(dingtalkinvitation.FieldMobile, field.TypeString, value)
-		_node.Mobile = value
+		_node.Mobile = &value
 	}
 	if value, ok := _c.mutation.DisplayName(); ok {
 		_spec.SetField(dingtalkinvitation.FieldDisplayName, field.TypeString, value)
@@ -397,7 +452,7 @@ func (_c *DingTalkInvitationCreate) createSpec() (*DingTalkInvitation, *sqlgraph
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.RoleID = nodes[0]
+		_node.RoleID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.InviterIDs(); len(nodes) > 0 {
@@ -498,6 +553,30 @@ func (u *DingTalkInvitationUpsert) UpdateUpdatedAt() *DingTalkInvitationUpsert {
 	return u
 }
 
+// SetToken sets the "token" field.
+func (u *DingTalkInvitationUpsert) SetToken(v string) *DingTalkInvitationUpsert {
+	u.Set(dingtalkinvitation.FieldToken, v)
+	return u
+}
+
+// UpdateToken sets the "token" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsert) UpdateToken() *DingTalkInvitationUpsert {
+	u.SetExcluded(dingtalkinvitation.FieldToken)
+	return u
+}
+
+// SetKind sets the "kind" field.
+func (u *DingTalkInvitationUpsert) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationUpsert {
+	u.Set(dingtalkinvitation.FieldKind, v)
+	return u
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsert) UpdateKind() *DingTalkInvitationUpsert {
+	u.SetExcluded(dingtalkinvitation.FieldKind)
+	return u
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (u *DingTalkInvitationUpsert) SetOrganizationID(v uuid.UUID) *DingTalkInvitationUpsert {
 	u.Set(dingtalkinvitation.FieldOrganizationID, v)
@@ -522,6 +601,12 @@ func (u *DingTalkInvitationUpsert) UpdateRoleID() *DingTalkInvitationUpsert {
 	return u
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (u *DingTalkInvitationUpsert) ClearRoleID() *DingTalkInvitationUpsert {
+	u.SetNull(dingtalkinvitation.FieldRoleID)
+	return u
+}
+
 // SetMobile sets the "mobile" field.
 func (u *DingTalkInvitationUpsert) SetMobile(v string) *DingTalkInvitationUpsert {
 	u.Set(dingtalkinvitation.FieldMobile, v)
@@ -531,6 +616,12 @@ func (u *DingTalkInvitationUpsert) SetMobile(v string) *DingTalkInvitationUpsert
 // UpdateMobile sets the "mobile" field to the value that was provided on create.
 func (u *DingTalkInvitationUpsert) UpdateMobile() *DingTalkInvitationUpsert {
 	u.SetExcluded(dingtalkinvitation.FieldMobile)
+	return u
+}
+
+// ClearMobile clears the value of the "mobile" field.
+func (u *DingTalkInvitationUpsert) ClearMobile() *DingTalkInvitationUpsert {
+	u.SetNull(dingtalkinvitation.FieldMobile)
 	return u
 }
 
@@ -689,6 +780,34 @@ func (u *DingTalkInvitationUpsertOne) UpdateUpdatedAt() *DingTalkInvitationUpser
 	})
 }
 
+// SetToken sets the "token" field.
+func (u *DingTalkInvitationUpsertOne) SetToken(v string) *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.SetToken(v)
+	})
+}
+
+// UpdateToken sets the "token" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsertOne) UpdateToken() *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.UpdateToken()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *DingTalkInvitationUpsertOne) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsertOne) UpdateKind() *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.UpdateKind()
+	})
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (u *DingTalkInvitationUpsertOne) SetOrganizationID(v uuid.UUID) *DingTalkInvitationUpsertOne {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
@@ -717,6 +836,13 @@ func (u *DingTalkInvitationUpsertOne) UpdateRoleID() *DingTalkInvitationUpsertOn
 	})
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (u *DingTalkInvitationUpsertOne) ClearRoleID() *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.ClearRoleID()
+	})
+}
+
 // SetMobile sets the "mobile" field.
 func (u *DingTalkInvitationUpsertOne) SetMobile(v string) *DingTalkInvitationUpsertOne {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
@@ -728,6 +854,13 @@ func (u *DingTalkInvitationUpsertOne) SetMobile(v string) *DingTalkInvitationUps
 func (u *DingTalkInvitationUpsertOne) UpdateMobile() *DingTalkInvitationUpsertOne {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
 		s.UpdateMobile()
+	})
+}
+
+// ClearMobile clears the value of the "mobile" field.
+func (u *DingTalkInvitationUpsertOne) ClearMobile() *DingTalkInvitationUpsertOne {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.ClearMobile()
 	})
 }
 
@@ -1068,6 +1201,34 @@ func (u *DingTalkInvitationUpsertBulk) UpdateUpdatedAt() *DingTalkInvitationUpse
 	})
 }
 
+// SetToken sets the "token" field.
+func (u *DingTalkInvitationUpsertBulk) SetToken(v string) *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.SetToken(v)
+	})
+}
+
+// UpdateToken sets the "token" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsertBulk) UpdateToken() *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.UpdateToken()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *DingTalkInvitationUpsertBulk) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *DingTalkInvitationUpsertBulk) UpdateKind() *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.UpdateKind()
+	})
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (u *DingTalkInvitationUpsertBulk) SetOrganizationID(v uuid.UUID) *DingTalkInvitationUpsertBulk {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
@@ -1096,6 +1257,13 @@ func (u *DingTalkInvitationUpsertBulk) UpdateRoleID() *DingTalkInvitationUpsertB
 	})
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (u *DingTalkInvitationUpsertBulk) ClearRoleID() *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.ClearRoleID()
+	})
+}
+
 // SetMobile sets the "mobile" field.
 func (u *DingTalkInvitationUpsertBulk) SetMobile(v string) *DingTalkInvitationUpsertBulk {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
@@ -1107,6 +1275,13 @@ func (u *DingTalkInvitationUpsertBulk) SetMobile(v string) *DingTalkInvitationUp
 func (u *DingTalkInvitationUpsertBulk) UpdateMobile() *DingTalkInvitationUpsertBulk {
 	return u.Update(func(s *DingTalkInvitationUpsert) {
 		s.UpdateMobile()
+	})
+}
+
+// ClearMobile clears the value of the "mobile" field.
+func (u *DingTalkInvitationUpsertBulk) ClearMobile() *DingTalkInvitationUpsertBulk {
+	return u.Update(func(s *DingTalkInvitationUpsert) {
+		s.ClearMobile()
 	})
 }
 

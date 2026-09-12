@@ -836,9 +836,12 @@ func (_q *RoleQuery) loadDingtalkInvitations(ctx context.Context, query *DingTal
 	}
 	for _, n := range neighbors {
 		fk := n.RoleID
-		node, ok := nodeids[fk]
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "role_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "role_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "role_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

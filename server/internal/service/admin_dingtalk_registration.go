@@ -13,6 +13,10 @@ import (
 
 // CreateDingTalkInvitation 预建扫码邀请（通道 A）：目标组织必须在调用者按
 // 「钉钉邀请与注册审批」权限解析的可写范围内；手机号归一化后入库，响应只回脱敏形式。
+// CreateDingTalkInvitation 预建扫码邀请：
+// - TARGETED（定向）：手机号必填，扫码匹配后秒级激活；
+// - GENERIC（通用）：手机号为空，支持多人多次扫码，扫码生成待审批注册。
+// 响应返回脱敏数据与邀请链接（/login?invite=<token>）。
 func (s *AdminService) CreateDingTalkInvitation(ctx context.Context, request *v1.CreateDingTalkInvitationRequest) (*v1.CreateDingTalkInvitationResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -22,19 +26,35 @@ func (s *AdminService) CreateDingTalkInvitation(ctx context.Context, request *v1
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roleID, err := uuid.Parse(strings.TrimSpace(request.GetRoleId()))
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+	kind := biz.DingTalkInvitationKindTargeted
+	if request.GetKind() == v1.DingTalkInvitationKind_DING_TALK_INVITATION_KIND_GENERIC {
+		kind = biz.DingTalkInvitationKindGeneric
+	}
+	var roleID *uuid.UUID
+	if request.RoleId != nil && strings.TrimSpace(request.GetRoleId()) != "" {
+		parsedRoleID, parseErr := uuid.Parse(strings.TrimSpace(request.GetRoleId()))
+		if parseErr != nil {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		roleID = &parsedRoleID
 	}
 	displayName := ""
 	if request.DisplayName != nil {
 		displayName = request.GetDisplayName()
 	}
-	created, err := s.dingTalkRegistrations.CreateInvitation(ctx, principal, request.GetMobile(), displayName, organizationID, roleID, int(request.GetExpiresInHours()))
+	mobile := ""
+	if request.Mobile != nil {
+		mobile = request.GetMobile()
+	}
+	created, err := s.dingTalkRegistrations.CreateInvitation(ctx, principal, kind, mobile, displayName, organizationID, roleID, int(request.GetExpiresInHours()))
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.CreateDingTalkInvitationResponse{Data: dingTalkInvitationToAPI(created)}), nil
+	invitationURL := "/login?invite=" + created.Token
+	return ok(ctx, &v1.CreateDingTalkInvitationResponse{
+		Data:          dingTalkInvitationToAPI(created),
+		InvitationUrl: invitationURL,
+	}), nil
 }
 
 func (s *AdminService) ListDingTalkInvitations(ctx context.Context, request *v1.ListDingTalkInvitationsRequest) (*v1.ListDingTalkInvitationsResponse, error) {
@@ -142,6 +162,29 @@ func (s *AdminService) RejectDingTalkRegistration(ctx context.Context, request *
 	return ok(ctx, &v1.RejectDingTalkRegistrationResponse{}), nil
 }
 
+func (s *AdminService) TransferDingTalkRegistration(ctx context.Context, request *v1.TransferDingTalkRegistrationRequest) (*v1.TransferDingTalkRegistrationResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(request.GetUserId()))
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	targetOrgID, err := uuid.Parse(strings.TrimSpace(request.GetTargetOrganizationId()))
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	reason := strings.TrimSpace(request.GetReason())
+	if reason == "" {
+		return nil, biz.ErrDingTalkRegistrationReasonMissing
+	}
+	if err := s.dingTalkRegistrations.TransferRegistration(ctx, principal, userID, targetOrgID, reason); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.TransferDingTalkRegistrationResponse{}), nil
+}
+
 func dingTalkInvitationStatusFromAPI(value v1.DingTalkInvitationStatus) (biz.DingTalkInvitationStatus, error) {
 	switch value {
 	case v1.DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_PENDING:
@@ -174,17 +217,32 @@ func dingTalkInvitationStatusToAPI(value biz.DingTalkInvitationStatus) v1.DingTa
 
 // dingTalkInvitationToAPI 输出邀请视图；手机号在此统一脱敏，完整号码不出服务端。
 func dingTalkInvitationToAPI(value *biz.DingTalkInvitation) *v1.DingTalkInvitation {
+	if value == nil {
+		return nil
+	}
+	kind := v1.DingTalkInvitationKind_DING_TALK_INVITATION_KIND_TARGETED
+	if value.Kind == biz.DingTalkInvitationKindGeneric {
+		kind = v1.DingTalkInvitationKind_DING_TALK_INVITATION_KIND_GENERIC
+	}
 	result := &v1.DingTalkInvitation{
 		Id:               value.ID.String(),
+		Token:            value.Token,
+		Kind:             kind,
 		OrganizationId:   value.OrganizationID.String(),
 		OrganizationName: value.OrganizationName,
-		RoleId:           value.RoleID.String(),
-		RoleName:         value.RoleName,
-		MobileMasked:     biz.MaskDingTalkMobile(value.Mobile),
 		Status:           dingTalkInvitationStatusToAPI(value.Status),
 		CreatedAt:        value.CreatedAt.Format(time.RFC3339),
 		ExpiresAt:        value.ExpiresAt.Format(time.RFC3339),
 		InviterName:      value.InviterName,
+	}
+	if value.RoleID != nil {
+		roleIDStr := value.RoleID.String()
+		result.RoleId = &roleIDStr
+		result.RoleName = &value.RoleName
+	}
+	if value.Mobile != nil {
+		masked := biz.MaskDingTalkMobile(*value.Mobile)
+		result.MobileMasked = &masked
 	}
 	if value.DisplayName != "" {
 		result.DisplayName = &value.DisplayName

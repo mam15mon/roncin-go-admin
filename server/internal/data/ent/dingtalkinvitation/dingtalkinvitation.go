@@ -20,6 +20,10 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldToken holds the string denoting the token field in the database.
+	FieldToken = "token"
+	// FieldKind holds the string denoting the kind field in the database.
+	FieldKind = "kind"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
 	// FieldRoleID holds the string denoting the role_id field in the database.
@@ -83,6 +87,8 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldToken,
+	FieldKind,
 	FieldOrganizationID,
 	FieldRoleID,
 	FieldMobile,
@@ -111,6 +117,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	TokenValidator func(string) error
 	// MobileValidator is a validator for the "mobile" field. It is called by the builders before save.
 	MobileValidator func(string) error
 	// DefaultDisplayName holds the default value on creation for the "display_name" field.
@@ -120,6 +128,32 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Kind defines the type for the "kind" enum field.
+type Kind string
+
+// KindTARGETED is the default value of the Kind enum.
+const DefaultKind = KindTARGETED
+
+// Kind values.
+const (
+	KindTARGETED Kind = "TARGETED"
+	KindGENERIC  Kind = "GENERIC"
+)
+
+func (k Kind) String() string {
+	return string(k)
+}
+
+// KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
+func KindValidator(k Kind) error {
+	switch k {
+	case KindTARGETED, KindGENERIC:
+		return nil
+	default:
+		return fmt.Errorf("dingtalkinvitation: invalid enum value for kind field: %q", k)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -165,6 +199,16 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByToken orders the results by the token field.
+func ByToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldToken, opts...).ToFunc()
+}
+
+// ByKind orders the results by the kind field.
+func ByKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKind, opts...).ToFunc()
 }
 
 // ByOrganizationID orders the results by the organization_id field.
