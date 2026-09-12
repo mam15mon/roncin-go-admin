@@ -1667,6 +1667,29 @@ func HasAllocationsWith(preds ...predicate.FinanceNettingAllocation) predicate.F
 	})
 }
 
+// HasCommissions applies the HasEdge predicate on the "commissions" edge.
+func HasCommissions() predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CommissionsTable, CommissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommissionsWith applies the HasEdge predicate on the "commissions" edge with a given conditions (other predicates).
+func HasCommissionsWith(preds ...predicate.FinanceCommission) predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := newCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceNetting) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.AndPredicates(predicates...))

@@ -11,6 +11,7 @@ import (
 )
 
 // FinanceCommission 保存某员工在指定订单期间内的客户、订单利润和提成汇总快照。
+// 来源二选一：核销（verification_id）或对冲（netting_id），恰好一个非空，由服务层校验。
 type FinanceCommission struct{ ent.Schema }
 
 func (FinanceCommission) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -20,8 +21,10 @@ func (FinanceCommission) Fields() []ent.Field {
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("commission_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
-		field.UUID("verification_id", uuid.Nil).Immutable(),
-		field.String("verification_no").NotEmpty().MaxLen(64).Immutable(),
+		field.UUID("verification_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("verification_no").Optional().Nillable().MaxLen(64).Immutable(),
+		field.UUID("netting_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("netting_no").Optional().Nillable().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
 		field.Int("customer_count").NonNegative().Immutable(),
@@ -64,7 +67,8 @@ func (FinanceCommission) Fields() []ent.Field {
 func (FinanceCommission) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("finance_commissions").Field("organization_id").Unique().Required().Immutable(),
-		edge.From("verification", FinanceVerification.Type).Ref("commissions").Field("verification_id").Unique().Required().Immutable(),
+		edge.From("verification", FinanceVerification.Type).Ref("commissions").Field("verification_id").Unique().Immutable(),
+		edge.From("netting", FinanceNetting.Type).Ref("commissions").Field("netting_id").Unique().Immutable(),
 		edge.From("employee", User.Type).Ref("finance_commissions").Field("employee_id").Unique().Required().Immutable(),
 		edge.From("rule", FinanceCommissionRule.Type).Ref("commissions").Field("rule_id").Unique().Immutable(),
 		edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_commissions").Field("confirmed_by").Unique(),
@@ -79,11 +83,21 @@ func (FinanceCommission) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "commission_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
+		// 活跃去重按来源拆分：同来源同员工同角色仅一条非终态提成。
 		index.Fields("organization_id", "verification_id", "employee_id", "personnel_role").
-			StorageKey("finance_commissions_target_active_unique").
+			StorageKey("finance_commissions_verification_active_unique").
 			Unique().
-			Annotations(entsql.IndexWhere("status <> 'CANCELLED'")),
-		index.Fields("verification_id", "employee_id", "status"),
+			Annotations(entsql.IndexWhere("status <> 'CANCELLED' AND verification_id IS NOT NULL")),
+		index.Fields("organization_id", "netting_id", "employee_id", "personnel_role").
+			StorageKey("finance_commissions_netting_active_unique").
+			Unique().
+			Annotations(entsql.IndexWhere("status <> 'CANCELLED' AND netting_id IS NOT NULL")),
+		index.Fields("verification_id", "employee_id", "status").
+			StorageKey("financecommission_source_employee_status").
+			Annotations(entsql.IndexWhere("verification_id IS NOT NULL")),
+		index.Fields("netting_id", "employee_id", "status").
+			StorageKey("financecommission_netting_employee_status").
+			Annotations(entsql.IndexWhere("netting_id IS NOT NULL")),
 		index.Fields("organization_id", "commission_date"),
 		index.Fields("organization_id", "status", "created_at"),
 	}

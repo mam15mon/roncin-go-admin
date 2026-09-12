@@ -58,6 +58,7 @@ const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListB
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
 const OperationSettlementServiceListCommissionEmployees = "/finance.v1.SettlementService/ListCommissionEmployees"
+const OperationSettlementServiceListCommissionNettingCandidates = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
 const OperationSettlementServiceListCommissionRuleCandidates = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
 const OperationSettlementServiceListCommissionRules = "/finance.v1.SettlementService/ListCommissionRules"
 const OperationSettlementServiceListCommissionVerificationCandidates = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
@@ -133,6 +134,8 @@ type SettlementServiceHTTPServer interface {
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
+	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+	ListCommissionNettingCandidates(context.Context, *ListCommissionNettingCandidatesRequest) (*ListCommissionNettingCandidatesResponse, error)
 	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
 	ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
@@ -219,6 +222,7 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("GET", "/api/v1/finance/verifications/creation-candidates", _SettlementService_ListVerificationCreationCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/verifications", _SettlementService_ListVerifications0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/verification-candidates", _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commissions/netting-candidates", _SettlementService_ListCommissionNettingCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications", _SettlementService_CreateVerification0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/nettings", _SettlementService_ListNettings0_HTTP_Handler(srv))
@@ -1120,6 +1124,25 @@ func _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv S
 	}
 }
 
+func _SettlementService_ListCommissionNettingCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCommissionNettingCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCommissionNettingCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCommissionNettingCandidates(ctx, req.(*ListCommissionNettingCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCommissionNettingCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_CreateVerification0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateVerificationRequest
@@ -1719,6 +1742,8 @@ type SettlementServiceHTTPClient interface {
 	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
 	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidatesResponse, err error)
 	ListCommissionEmployees(ctx context.Context, req *ListCommissionEmployeesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
+	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+	ListCommissionNettingCandidates(ctx context.Context, req *ListCommissionNettingCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionNettingCandidatesResponse, err error)
 	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
 	ListCommissionRuleCandidates(ctx context.Context, req *ListCommissionRuleCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionRuleCandidatesResponse, err error)
 	ListCommissionRules(ctx context.Context, req *ListCommissionRulesRequest, opts ...http.CallOption) (rsp *ListCommissionRulesResponse, err error)
@@ -2442,6 +2467,23 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionEmployees(ctx context.Co
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListCommissionEmployees),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) ListCommissionNettingCandidates(ctx context.Context, in *ListCommissionNettingCandidatesRequest, opts ...http.CallOption) (*ListCommissionNettingCandidatesResponse, error) {
+	var out ListCommissionNettingCandidatesResponse
+	pattern := "/api/v1/finance/commissions/netting-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCommissionNettingCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

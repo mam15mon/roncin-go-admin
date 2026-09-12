@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -33,9 +34,13 @@ type FinanceCommission struct {
 	// IdempotencyKey holds the value of the "idempotency_key" field.
 	IdempotencyKey string `json:"idempotency_key,omitempty"`
 	// VerificationID holds the value of the "verification_id" field.
-	VerificationID uuid.UUID `json:"verification_id,omitempty"`
+	VerificationID *uuid.UUID `json:"verification_id,omitempty"`
 	// VerificationNo holds the value of the "verification_no" field.
-	VerificationNo string `json:"verification_no,omitempty"`
+	VerificationNo *string `json:"verification_no,omitempty"`
+	// NettingID holds the value of the "netting_id" field.
+	NettingID *uuid.UUID `json:"netting_id,omitempty"`
+	// NettingNo holds the value of the "netting_no" field.
+	NettingNo *string `json:"netting_no,omitempty"`
 	// EmployeeID holds the value of the "employee_id" field.
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
@@ -120,6 +125,8 @@ type FinanceCommissionEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// Verification holds the value of the verification edge.
 	Verification *FinanceVerification `json:"verification,omitempty"`
+	// Netting holds the value of the netting edge.
+	Netting *FinanceNetting `json:"netting,omitempty"`
 	// Employee holds the value of the employee edge.
 	Employee *User `json:"employee,omitempty"`
 	// Rule holds the value of the rule edge.
@@ -136,7 +143,7 @@ type FinanceCommissionEdges struct {
 	Adjustments []*FinanceCommissionAdjustment `json:"adjustments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -161,12 +168,23 @@ func (e FinanceCommissionEdges) VerificationOrErr() (*FinanceVerification, error
 	return nil, &NotLoadedError{edge: "verification"}
 }
 
+// NettingOrErr returns the Netting value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionEdges) NettingOrErr() (*FinanceNetting, error) {
+	if e.Netting != nil {
+		return e.Netting, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: financenetting.Label}
+	}
+	return nil, &NotLoadedError{edge: "netting"}
+}
+
 // EmployeeOrErr returns the Employee value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceCommissionEdges) EmployeeOrErr() (*User, error) {
 	if e.Employee != nil {
 		return e.Employee, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "employee"}
@@ -177,7 +195,7 @@ func (e FinanceCommissionEdges) EmployeeOrErr() (*User, error) {
 func (e FinanceCommissionEdges) RuleOrErr() (*FinanceCommissionRule, error) {
 	if e.Rule != nil {
 		return e.Rule, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: financecommissionrule.Label}
 	}
 	return nil, &NotLoadedError{edge: "rule"}
@@ -188,7 +206,7 @@ func (e FinanceCommissionEdges) RuleOrErr() (*FinanceCommissionRule, error) {
 func (e FinanceCommissionEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -199,7 +217,7 @@ func (e FinanceCommissionEdges) ConfirmedByUserOrErr() (*User, error) {
 func (e FinanceCommissionEdges) PaidByUserOrErr() (*User, error) {
 	if e.PaidByUser != nil {
 		return e.PaidByUser, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "paid_by_user"}
@@ -210,7 +228,7 @@ func (e FinanceCommissionEdges) PaidByUserOrErr() (*User, error) {
 func (e FinanceCommissionEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[6] {
+	} else if e.loadedTypes[7] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -219,7 +237,7 @@ func (e FinanceCommissionEdges) CancelledByUserOrErr() (*User, error) {
 // LinesOrErr returns the Lines value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceCommissionEdges) LinesOrErr() ([]*FinanceCommissionLine, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Lines, nil
 	}
 	return nil, &NotLoadedError{edge: "lines"}
@@ -228,7 +246,7 @@ func (e FinanceCommissionEdges) LinesOrErr() ([]*FinanceCommissionLine, error) {
 // AdjustmentsOrErr returns the Adjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceCommissionEdges) AdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Adjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "adjustments"}
@@ -239,15 +257,15 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommission.FieldRuleID, financecommission.FieldCnyExchangeRateSettingID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
+		case financecommission.FieldVerificationID, financecommission.FieldNettingID, financecommission.FieldRuleID, financecommission.FieldCnyExchangeRateSettingID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommission.FieldCustomerCount, financecommission.FieldOrderCount, financecommission.FieldFeeCount, financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldNettingNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
-		case financecommission.FieldID, financecommission.FieldOrganizationID, financecommission.FieldVerificationID, financecommission.FieldEmployeeID:
+		case financecommission.FieldID, financecommission.FieldOrganizationID, financecommission.FieldEmployeeID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -301,16 +319,32 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				_m.IdempotencyKey = value.String
 			}
 		case financecommission.FieldVerificationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field verification_id", values[i])
-			} else if value != nil {
-				_m.VerificationID = *value
+			} else if value.Valid {
+				_m.VerificationID = new(uuid.UUID)
+				*_m.VerificationID = *value.S.(*uuid.UUID)
 			}
 		case financecommission.FieldVerificationNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field verification_no", values[i])
 			} else if value.Valid {
-				_m.VerificationNo = value.String
+				_m.VerificationNo = new(string)
+				*_m.VerificationNo = value.String
+			}
+		case financecommission.FieldNettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field netting_id", values[i])
+			} else if value.Valid {
+				_m.NettingID = new(uuid.UUID)
+				*_m.NettingID = *value.S.(*uuid.UUID)
+			}
+		case financecommission.FieldNettingNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field netting_no", values[i])
+			} else if value.Valid {
+				_m.NettingNo = new(string)
+				*_m.NettingNo = value.String
 			}
 		case financecommission.FieldEmployeeID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -564,6 +598,11 @@ func (_m *FinanceCommission) QueryVerification() *FinanceVerificationQuery {
 	return NewFinanceCommissionClient(_m.config).QueryVerification(_m)
 }
 
+// QueryNetting queries the "netting" edge of the FinanceCommission entity.
+func (_m *FinanceCommission) QueryNetting() *FinanceNettingQuery {
+	return NewFinanceCommissionClient(_m.config).QueryNetting(_m)
+}
+
 // QueryEmployee queries the "employee" edge of the FinanceCommission entity.
 func (_m *FinanceCommission) QueryEmployee() *UserQuery {
 	return NewFinanceCommissionClient(_m.config).QueryEmployee(_m)
@@ -637,11 +676,25 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString("idempotency_key=")
 	builder.WriteString(_m.IdempotencyKey)
 	builder.WriteString(", ")
-	builder.WriteString("verification_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.VerificationID))
+	if v := _m.VerificationID; v != nil {
+		builder.WriteString("verification_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("verification_no=")
-	builder.WriteString(_m.VerificationNo)
+	if v := _m.VerificationNo; v != nil {
+		builder.WriteString("verification_no=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.NettingID; v != nil {
+		builder.WriteString("netting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.NettingNo; v != nil {
+		builder.WriteString("netting_no=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("employee_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EmployeeID))

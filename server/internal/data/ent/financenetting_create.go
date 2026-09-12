@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -393,6 +394,21 @@ func (_c *FinanceNettingCreate) AddAllocations(v ...*FinanceNettingAllocation) *
 		ids[i] = v[i].ID
 	}
 	return _c.AddAllocationIDs(ids...)
+}
+
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_c *FinanceNettingCreate) AddCommissionIDs(ids ...uuid.UUID) *FinanceNettingCreate {
+	_c.mutation.AddCommissionIDs(ids...)
+	return _c
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_c *FinanceNettingCreate) AddCommissions(v ...*FinanceCommission) *FinanceNettingCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCommissionIDs(ids...)
 }
 
 // Mutation returns the FinanceNettingMutation object of the builder.
@@ -784,6 +800,22 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionsTable,
+			Columns: []string{financenetting.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

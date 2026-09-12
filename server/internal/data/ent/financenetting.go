@@ -96,9 +96,11 @@ type FinanceNettingEdges struct {
 	ReversedByUser *User `json:"reversed_by_user,omitempty"`
 	// Allocations holds the value of the allocations edge.
 	Allocations []*FinanceNettingAllocation `json:"allocations,omitempty"`
+	// Commissions holds the value of the commissions edge.
+	Commissions []*FinanceCommission `json:"commissions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -174,6 +176,15 @@ func (e FinanceNettingEdges) AllocationsOrErr() ([]*FinanceNettingAllocation, er
 		return e.Allocations, nil
 	}
 	return nil, &NotLoadedError{edge: "allocations"}
+}
+
+// CommissionsOrErr returns the Commissions value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceNettingEdges) CommissionsOrErr() ([]*FinanceCommission, error) {
+	if e.loadedTypes[7] {
+		return e.Commissions, nil
+	}
+	return nil, &NotLoadedError{edge: "commissions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -424,6 +435,11 @@ func (_m *FinanceNetting) QueryReversedByUser() *UserQuery {
 // QueryAllocations queries the "allocations" edge of the FinanceNetting entity.
 func (_m *FinanceNetting) QueryAllocations() *FinanceNettingAllocationQuery {
 	return NewFinanceNettingClient(_m.config).QueryAllocations(_m)
+}
+
+// QueryCommissions queries the "commissions" edge of the FinanceNetting entity.
+func (_m *FinanceNetting) QueryCommissions() *FinanceCommissionQuery {
+	return NewFinanceNettingClient(_m.config).QueryCommissions(_m)
 }
 
 // Update returns a builder for updating this FinanceNetting.

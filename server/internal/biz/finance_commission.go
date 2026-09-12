@@ -54,6 +54,7 @@ const (
 	CommissionAdjustmentDecrease                   CommissionAdjustmentDirection  = "DECREASE"
 	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"
 	CommissionAdjustmentSourceVerificationReversal CommissionAdjustmentSourceType = "VERIFICATION_REVERSAL"
+	CommissionAdjustmentSourceNettingReversal      CommissionAdjustmentSourceType = "NETTING_REVERSAL"
 	cnyCurrency                                                                   = "CNY"
 )
 
@@ -124,9 +125,10 @@ func (s *CommissionCNYSnapshot) ApplyCommissionAmount(commissionAmount decimal.D
 }
 
 // ResolveCommissionCNYRate 是预览与创建共用的 CNY 汇率快照纯计算函数：
-// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种按提成生成日解析到的
-// CNY→本位币基准汇率倒数派生（round 8 位），来源 DERIVED。
-// 禁止浮点数、补差与零值回退；汇率缺失或日期无效时返回业务错误。
+// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种直接固化
+// resolvedRate——即总部基准汇率表按提成生成日解析到的「本位币 → CNY」正向汇率
+// （round 8 位），来源 DERIVED。禁止浮点数、补差与零值回退；汇率缺失或日期无效时
+// 返回业务错误。
 func ResolveCommissionCNYRate(baseCurrency, commissionDate string, resolvedRate decimal.Decimal) (*CommissionCNYSnapshot, error) {
 	if baseCurrency == "" || !validFinanceDate(commissionDate) {
 		return nil, ErrCommissionInvalid
@@ -140,62 +142,61 @@ func ResolveCommissionCNYRate(baseCurrency, commissionDate string, resolvedRate 
 	if !resolvedRate.IsPositive() {
 		return nil, ErrExchangeRateInvalidArgument
 	}
-	rate := decimal.NewFromInt(1).Div(resolvedRate).Round(8)
-	if !rate.IsPositive() {
-		return nil, ErrExchangeRateInvalidArgument
-	}
-	snapshot.ExchangeRate = rate
+	snapshot.ExchangeRate = resolvedRate.Round(8)
 	snapshot.ExchangeRateSource = CommissionCNYRateSourceDerived
 	return snapshot, nil
 }
 
 // CommissionCalculation 是预览和创建提成共用的计算结果，不包含持久化状态。
+// 来源二选一：VerificationID 或 NettingID 恰好一个非空（uuid.Nil 表示未提供）。
 type CommissionCalculation struct {
-	VerificationID, EmployeeID, RuleID             uuid.UUID
-	VerificationNo, EmployeeName, RuleName         string
-	BaseCurrency                                   string
-	PersonnelRole                                  CommissionPersonnelRole
-	CalculationBasis                               CommissionCalculationBasis
-	RuleVersion                                    uint64
-	CalculationVersion, SourceFingerprint          string
-	CustomerCount, OrderCount, FeeCount            int
-	RealizedRevenue, AllocatedCost, RealizedProfit decimal.Decimal
-	CommissionBaseAmount                           decimal.Decimal
-	RatePercent, CommissionAmount                  decimal.Decimal
-	Lines                                          []*FinanceCommissionLine
-	CNY                                            *CommissionCNYSnapshot
+	VerificationID, NettingID, EmployeeID, RuleID     uuid.UUID
+	VerificationNo, NettingNo, EmployeeName, RuleName string
+	BaseCurrency                                      string
+	PersonnelRole                                     CommissionPersonnelRole
+	CalculationBasis                                  CommissionCalculationBasis
+	RuleVersion                                       uint64
+	CalculationVersion, SourceFingerprint             string
+	CustomerCount, OrderCount, FeeCount               int
+	RealizedRevenue, AllocatedCost, RealizedProfit    decimal.Decimal
+	CommissionBaseAmount                              decimal.Decimal
+	RatePercent, CommissionAmount                     decimal.Decimal
+	Lines                                             []*FinanceCommissionLine
+	CNY                                               *CommissionCNYSnapshot
 }
 
+// FinanceCommission 保存提成快照；来源二选一：VerificationID/VerificationNo 或
+// NettingID/NettingNo，恰好一组非空（uuid.Nil/空串表示未提供）。
 type FinanceCommission struct {
-	ID, OrganizationID, VerificationID, EmployeeID, RuleID     uuid.UUID
-	CommissionNo, IdempotencyKey, VerificationNo, EmployeeName string
-	OrganizationName                                           string
-	RuleName                                                   string
-	PersonnelRole                                              CommissionPersonnelRole
-	CalculationBasis                                           CommissionCalculationBasis
-	RuleVersion                                                uint64
-	CalculationVersion, SourceFingerprint                      string
-	Status                                                     CommissionStatus
-	BaseCurrency                                               string
-	CustomerCount, OrderCount, FeeCount                        int
-	RealizedRevenue, AllocatedCost, RealizedProfit             decimal.Decimal
-	CommissionBaseAmount                                       decimal.Decimal
-	RatePercent, CommissionAmount                              decimal.Decimal
-	CommissionDate                                             string
-	CNYExchangeRate                                            decimal.Decimal
-	CNYExchangeRateSource, CNYExchangeRateDate                 string
-	CNYExchangeRateSettingID                                   *uuid.UUID
-	CNYCommissionAmount                                        decimal.Decimal
-	Note                                                       *string
-	Version                                                    uint64
-	ConfirmedAt, PaidAt, CancelledAt                           *time.Time
-	ConfirmedBy, PaidBy, CancelledBy                           *uuid.UUID
-	CancellationReason                                         *string
-	CreatedAt, UpdatedAt                                       time.Time
-	Lines                                                      []*FinanceCommissionLine
-	Adjustments                                                []*FinanceCommissionAdjustment
-	AdjustmentAmount, EffectiveCommissionAmount                decimal.Decimal
-	CNYAdjustmentAmount, CNYEffectiveCommissionAmount          decimal.Decimal
+	ID, OrganizationID, VerificationID, NettingID, EmployeeID, RuleID     uuid.UUID
+	CommissionNo, IdempotencyKey, VerificationNo, NettingNo, EmployeeName string
+	OrganizationName                                                      string
+	RuleName                                                              string
+	PersonnelRole                                                         CommissionPersonnelRole
+	CalculationBasis                                                      CommissionCalculationBasis
+	RuleVersion                                                           uint64
+	CalculationVersion, SourceFingerprint                                 string
+	Status                                                                CommissionStatus
+	BaseCurrency                                                          string
+	CustomerCount, OrderCount, FeeCount                                   int
+	RealizedRevenue, AllocatedCost, RealizedProfit                        decimal.Decimal
+	CommissionBaseAmount                                                  decimal.Decimal
+	RatePercent, CommissionAmount                                         decimal.Decimal
+	CommissionDate                                                        string
+	CNYExchangeRate                                                       decimal.Decimal
+	CNYExchangeRateSource, CNYExchangeRateDate                            string
+	CNYExchangeRateSettingID                                              *uuid.UUID
+	CNYCommissionAmount                                                   decimal.Decimal
+	Note                                                                  *string
+	Version                                                               uint64
+	ConfirmedAt, PaidAt, CancelledAt                                      *time.Time
+	ConfirmedBy, PaidBy, CancelledBy                                      *uuid.UUID
+	CancellationReason                                                    *string
+	CreatedAt, UpdatedAt                                                  time.Time
+	Lines                                                                 []*FinanceCommissionLine
+	Adjustments                                                           []*FinanceCommissionAdjustment
+	AdjustmentAmount, EffectiveCommissionAmount                           decimal.Decimal
+	CNYAdjustmentAmount, CNYEffectiveCommissionAmount                     decimal.Decimal
 }
 
 type CommissionFilter struct {
@@ -307,6 +308,15 @@ type CommissionCandidateListResult struct {
 	Total          int64
 	Page, PageSize int
 }
+type CommissionNettingCandidateFilter struct {
+	Page, PageSize int
+	Keyword        string
+}
+type CommissionNettingCandidateListResult struct {
+	Items          []*FinanceNetting
+	Total          int64
+	Page, PageSize int
+}
 type FinanceCommissionRule struct {
 	ID, OrganizationID               uuid.UUID
 	Name                             string
@@ -342,10 +352,12 @@ type UpdateCommissionRuleInput struct {
 	CreateCommissionRuleInput
 	ExpectedVersion uint64
 }
+
+// CreateCommissionInput 的来源二选一：VerificationID 与 NettingID 恰好一个非空。
 type CreateCommissionInput struct {
-	VerificationID, EmployeeID, RuleID uuid.UUID
-	Note                               *string
-	IdempotencyKey                     string
+	VerificationID, NettingID, EmployeeID, RuleID uuid.UUID
+	Note                                          *string
+	IdempotencyKey                                string
 }
 
 type CreateCommissionAdjustmentInput struct {
@@ -376,8 +388,9 @@ type CommissionRepo interface {
 	ListEmployees(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListEmployeesScoped(context.Context, []uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
-	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
-	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
+	ListNettingCandidates(context.Context, uuid.UUID, CommissionNettingCandidateFilter) (*CommissionNettingCandidateListResult, error)
+	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
+	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	ListRulesScoped(context.Context, []uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	GetRuleScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionRule, error)
@@ -409,6 +422,20 @@ func (u *CommissionUsecase) ListCandidates(ctx context.Context, org uuid.UUID, f
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.ListCandidates(ctx, org, f)
+}
+
+// validCommissionSource 校验提成来源二选一：核销与对冲恰好一个非空。
+func validCommissionSource(verificationID, nettingID uuid.UUID) bool {
+	return (verificationID != uuid.Nil) != (nettingID != uuid.Nil)
+}
+
+// ListNettingCandidates 返回可用于计提的已确认对冲单候选（存在应收分摊）。
+func (u *CommissionUsecase) ListNettingCandidates(ctx context.Context, org uuid.UUID, f CommissionNettingCandidateFilter) (*CommissionNettingCandidateListResult, error) {
+	f.Keyword = strings.TrimSpace(f.Keyword)
+	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 {
+		return nil, ErrCommissionInvalid
+	}
+	return u.repo.ListNettingCandidates(ctx, org, f)
 }
 
 type CommissionUsecase struct {
@@ -534,22 +561,23 @@ func (u *CommissionUsecase) GetAdjustmentScoped(ctx context.Context, organizatio
 	return u.repo.GetAdjustmentScoped(ctx, organizationIDs, id)
 }
 
-func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
-	if org == uuid.Nil || verificationID == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil {
+// Preview 按核销或对冲来源二选一预览提成计算，并按生成日解析 CNY 汇率快照。
+func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
+	if org == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil || !validCommissionSource(verificationID, nettingID) {
 		return nil, ErrCommissionInvalid
 	}
 	if u.exchangeRate == nil {
 		return nil, ErrCommissionInvalid
 	}
-	calculation, err := u.repo.Preview(ctx, org, verificationID, employeeID, ruleID)
+	calculation, err := u.repo.Preview(ctx, org, verificationID, nettingID, employeeID, ruleID)
 	if err != nil {
 		return nil, err
 	}
-	generation, err := u.repo.GetGenerationContext(ctx, org, verificationID)
+	generation, err := u.repo.GetGenerationContext(ctx, org, verificationID, nettingID)
 	if err != nil {
 		return nil, err
 	}
-	resolvedRate, err := u.exchangeRate.ResolveRate(ctx, org, cnyCurrency, generation.CommissionDate)
+	resolvedRate, err := u.exchangeRate.ResolveBaseRate(ctx, org, generation.BaseCurrency, cnyCurrency, generation.CommissionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -638,10 +666,16 @@ func CalculateCommissionLine(realizedRevenue, totalReceivable, totalPayable, rat
 	return allocatedCost, realizedProfit, base, amount, nil
 }
 
+// sameCommissionCreateIntent 判断幂等重放请求与已存在提成是否语义一致：
+// 来源（核销/对冲二选一）、员工、规则与备注都必须相同。
+func sameCommissionCreateIntent(old *FinanceCommission, in CreateCommissionInput) bool {
+	return old.VerificationID == in.VerificationID && old.NettingID == in.NettingID && old.EmployeeID == in.EmployeeID && old.RuleID == in.RuleID && stringPointersEqual(old.Note, in.Note)
+}
+
 func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateCommissionInput) (*FinanceCommission, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
-	if org == uuid.Nil || actor == uuid.Nil || in.VerificationID == uuid.Nil || in.EmployeeID == uuid.Nil || in.RuleID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
+	if org == uuid.Nil || actor == uuid.Nil || !validCommissionSource(in.VerificationID, in.NettingID) || in.EmployeeID == uuid.Nil || in.RuleID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return nil, ErrCommissionInvalid
 	}
 	if u.exchangeRate == nil || u.transactor == nil {
@@ -650,7 +684,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	if old, err := u.repo.GetByKey(ctx, org, in.IdempotencyKey); err != nil {
 		return nil, err
 	} else if old != nil {
-		if old.VerificationID != in.VerificationID || old.EmployeeID != in.EmployeeID || old.RuleID != in.RuleID || !stringPointersEqual(old.Note, in.Note) {
+		if !sameCommissionCreateIntent(old, in) {
 			return nil, ErrCommissionDuplicate
 		}
 		return old, nil
@@ -660,15 +694,15 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
+	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, NettingID: in.NettingID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
 	// 生成上下文读取、汇率解析与提成写入在同一共享事务内完成；
 	// CNY 快照不依赖预览结果，按事务内解析结果固化。
 	err = u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID)
+		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID, in.NettingID)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		resolvedRate, transactionErr := u.exchangeRate.ResolveRate(txCtx, org, cnyCurrency, generation.CommissionDate)
+		resolvedRate, transactionErr := u.exchangeRate.ResolveBaseRate(txCtx, org, generation.BaseCurrency, cnyCurrency, generation.CommissionDate)
 		if transactionErr != nil {
 			return transactionErr
 		}
@@ -683,7 +717,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	}
 	// 并发重试可能在预查后命中幂等唯一索引；仅在请求语义一致时重放原结果。
 	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
-	if lookupErr == nil && old != nil && old.VerificationID == in.VerificationID && old.EmployeeID == in.EmployeeID && old.RuleID == in.RuleID && stringPointersEqual(old.Note, in.Note) {
+	if lookupErr == nil && old != nil && sameCommissionCreateIntent(old, in) {
 		return old, nil
 	}
 	return nil, err

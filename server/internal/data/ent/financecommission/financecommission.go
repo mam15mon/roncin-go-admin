@@ -30,6 +30,10 @@ const (
 	FieldVerificationID = "verification_id"
 	// FieldVerificationNo holds the string denoting the verification_no field in the database.
 	FieldVerificationNo = "verification_no"
+	// FieldNettingID holds the string denoting the netting_id field in the database.
+	FieldNettingID = "netting_id"
+	// FieldNettingNo holds the string denoting the netting_no field in the database.
+	FieldNettingNo = "netting_no"
 	// FieldEmployeeID holds the string denoting the employee_id field in the database.
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
@@ -106,6 +110,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeVerification holds the string denoting the verification edge name in mutations.
 	EdgeVerification = "verification"
+	// EdgeNetting holds the string denoting the netting edge name in mutations.
+	EdgeNetting = "netting"
 	// EdgeEmployee holds the string denoting the employee edge name in mutations.
 	EdgeEmployee = "employee"
 	// EdgeRule holds the string denoting the rule edge name in mutations.
@@ -136,6 +142,13 @@ const (
 	VerificationInverseTable = "finance_verifications"
 	// VerificationColumn is the table column denoting the verification relation/edge.
 	VerificationColumn = "verification_id"
+	// NettingTable is the table that holds the netting relation/edge.
+	NettingTable = "finance_commissions"
+	// NettingInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	NettingInverseTable = "finance_nettings"
+	// NettingColumn is the table column denoting the netting relation/edge.
+	NettingColumn = "netting_id"
 	// EmployeeTable is the table that holds the employee relation/edge.
 	EmployeeTable = "finance_commissions"
 	// EmployeeInverseTable is the table name for the User entity.
@@ -197,6 +210,8 @@ var Columns = []string{
 	FieldIdempotencyKey,
 	FieldVerificationID,
 	FieldVerificationNo,
+	FieldNettingID,
+	FieldNettingNo,
 	FieldEmployeeID,
 	FieldEmployeeName,
 	FieldCustomerCount,
@@ -258,6 +273,8 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// VerificationNoValidator is a validator for the "verification_no" field. It is called by the builders before save.
 	VerificationNoValidator func(string) error
+	// NettingNoValidator is a validator for the "netting_no" field. It is called by the builders before save.
+	NettingNoValidator func(string) error
 	// EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	EmployeeNameValidator func(string) error
 	// CustomerCountValidator is a validator for the "customer_count" field. It is called by the builders before save.
@@ -392,6 +409,16 @@ func ByVerificationID(opts ...sql.OrderTermOption) OrderOption {
 // ByVerificationNo orders the results by the verification_no field.
 func ByVerificationNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVerificationNo, opts...).ToFunc()
+}
+
+// ByNettingID orders the results by the netting_id field.
+func ByNettingID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNettingID, opts...).ToFunc()
+}
+
+// ByNettingNo orders the results by the netting_no field.
+func ByNettingNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNettingNo, opts...).ToFunc()
 }
 
 // ByEmployeeID orders the results by the employee_id field.
@@ -588,6 +615,13 @@ func ByVerificationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
+// ByNettingField orders the results by netting field.
+func ByNettingField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNettingStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByEmployeeField orders the results by employee field.
 func ByEmployeeField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -662,6 +696,13 @@ func newVerificationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VerificationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, VerificationTable, VerificationColumn),
+	)
+}
+func newNettingStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NettingInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, NettingTable, NettingColumn),
 	)
 }
 func newEmployeeStep() *sqlgraph.Step {

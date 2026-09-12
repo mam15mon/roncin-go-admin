@@ -6152,6 +6152,22 @@ func (c *FinanceCommissionClient) QueryVerification(_m *FinanceCommission) *Fina
 	return query
 }
 
+// QueryNetting queries the netting edge of a FinanceCommission.
+func (c *FinanceCommissionClient) QueryNetting(_m *FinanceCommission) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.NettingTable, financecommission.NettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEmployee queries the employee edge of a FinanceCommission.
 func (c *FinanceCommissionClient) QueryEmployee(_m *FinanceCommission) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -8014,6 +8030,22 @@ func (c *FinanceNettingClient) QueryAllocations(_m *FinanceNetting) *FinanceNett
 			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
 			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.AllocationsTable, financenetting.AllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCommissions queries the commissions edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryCommissions(_m *FinanceNetting) *FinanceCommissionQuery {
+	query := (&FinanceCommissionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financecommission.Table, financecommission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.CommissionsTable, financenetting.CommissionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

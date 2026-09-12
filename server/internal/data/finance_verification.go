@@ -341,7 +341,7 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		if x.Version != version || x.Status != ver.StatusACTIVE {
 			return biz.ErrVerificationTransition
 		}
-		if reconcileErr := reconcileCommissionsForVerificationReversal(ctx, tx, org, id, actor, reason); reconcileErr != nil {
+		if reconcileErr := reconcileCommissionsForSourceReversal(ctx, tx, org, commissionReversalSource{verificationID: id}, actor, reason); reconcileErr != nil {
 			return reconcileErr
 		}
 		if _, updateErr := tx.FinanceVerificationAllocation.Update().Where(alloc.VerificationIDEQ(id), alloc.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
@@ -359,17 +359,43 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 	return r.Get(ctx, org, id)
 }
 
-// reconcileCommissionsForVerificationReversal 在同一事务内撤销未支付提成，或对已支付提成形成待追回冲减。
-func reconcileCommissionsForVerificationReversal(ctx context.Context, tx *ent.Tx, org, verificationID, actor uuid.UUID, reason string) error {
-	commissions, err := tx.FinanceCommission.Query().Where(
-		commission.OrganizationIDEQ(org), commission.VerificationIDEQ(verificationID), commission.StatusNEQ(commission.StatusCANCELLED),
-	).Order(commission.ByID()).ForUpdate().All(ctx)
+// commissionReversalSource 描述提成冲减联动的来源单：核销或对冲二选一。
+type commissionReversalSource struct {
+	verificationID uuid.UUID // 核销来源（与 nettingID 二选一）
+	nettingID      uuid.UUID // 对冲来源
+}
+
+// reconcileCommissionsForSourceReversal 在同一事务内对来源为指定核销/对冲单的提成执行
+// 与反核销同款处理：无已支付敞口时取消（含未支付调整），有敞口时生成 CONFIRMED
+// 冲减调整（Clawback），PAID 父单状态保持不变。费用财务锁的净额判定按调整单
+// 状态与金额自动覆盖两种来源，无需在此改锁。
+func reconcileCommissionsForSourceReversal(ctx context.Context, tx *ent.Tx, org uuid.UUID, source commissionReversalSource, actor uuid.UUID, reason string) error {
+	sourcePredicates := []predicate.FinanceCommission{
+		commission.OrganizationIDEQ(org),
+		commission.StatusNEQ(commission.StatusCANCELLED),
+	}
+	// 来源路由：按非空来源字段直连，不引入多态来源抽象。
+	sourceID := source.verificationID
+	sourceType := adjustment.SourceTypeVERIFICATION_REVERSAL
+	actionLabel := "核销撤销"
+	idempotencyPrefix := "vr"
+	if source.nettingID != uuid.Nil {
+		sourcePredicates = append(sourcePredicates, commission.NettingIDEQ(source.nettingID))
+		sourceID = source.nettingID
+		sourceType = adjustment.SourceTypeNETTING_REVERSAL
+		actionLabel = "对冲反转"
+		idempotencyPrefix = "nt"
+	} else {
+		sourcePredicates = append(sourcePredicates, commission.VerificationIDEQ(source.verificationID))
+	}
+	commissions, err := tx.FinanceCommission.Query().Where(sourcePredicates...).
+		Order(commission.ByID()).ForUpdate().All(ctx)
 	if err != nil {
 		return err
 	}
 	now := time.Now().UTC()
-	cancellationReason := limitedFinanceReason("核销撤销自动取消：" + reason)
-	recoveryReason := limitedFinanceReason("核销撤销自动冲减：" + reason)
+	cancellationReason := limitedFinanceReason(actionLabel + "自动取消：" + reason)
+	recoveryReason := limitedFinanceReason(actionLabel + "自动冲减：" + reason)
 	for _, parent := range commissions {
 		lines, queryErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID)).Order(commissionline.ByID()).ForUpdate().All(ctx)
 		if queryErr != nil {
@@ -430,15 +456,18 @@ func reconcileCommissionsForVerificationReversal(ctx context.Context, tx *ent.Tx
 				return biz.ErrCommissionSource
 			}
 			sequence++
-			idempotencyKey := fmt.Sprintf("vr:%s:%s:%s", verificationID, parent.ID, line.OrderID)
-			_, createErr := tx.FinanceCommissionAdjustment.Create().
+			idempotencyKey := fmt.Sprintf("%s:%s:%s:%s", idempotencyPrefix, sourceID, parent.ID, line.OrderID)
+			recoveryCreate := tx.FinanceCommissionAdjustment.Create().
 				SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(org).SetCommissionID(parent.ID).SetOrderID(line.OrderID).
 				SetAdjustmentNo(fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)).SetIdempotencyKey(idempotencyKey).
 				SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
-				SetSourceType(adjustment.SourceTypeVERIFICATION_REVERSAL).SetSourceVerificationID(verificationID).
+				SetSourceType(sourceType).
 				SetDirection(adjustment.DirectionDECREASE).SetStatus(adjustment.StatusCONFIRMED).SetBaseCurrency(parent.BaseCurrency).
-				SetAmount(recovery.Amount.StringFixed(8)).SetReason(recoveryReason).SetVersion(1).SetConfirmedAt(now).SetConfirmedBy(actor).Save(ctx)
-			if createErr != nil {
+				SetAmount(recovery.Amount.StringFixed(8)).SetReason(recoveryReason).SetVersion(1).SetConfirmedAt(now).SetConfirmedBy(actor)
+			if sourceType == adjustment.SourceTypeVERIFICATION_REVERSAL {
+				recoveryCreate = recoveryCreate.SetSourceVerificationID(sourceID)
+			}
+			if _, createErr := recoveryCreate.Save(ctx); createErr != nil {
 				return createErr
 			}
 		}

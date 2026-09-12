@@ -142,6 +142,30 @@ func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID u
 	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, currency, rateContext.BaseCurrency, targetDate)
 }
 
+// ResolveBaseRate 按目标日期在总部基准汇率表解析 fromCurrency → toCurrency 的
+// 正向汇率；两币相同恒为 1，不要求目标币种等于组织基准币种。提成 CNY 折算用它
+// 解析「本位币 → CNY」，避免总部只维护 X→CNY 基准时反查 CNY→X 报缺失。
+// 与 ResolveRate 一致，先在事务内读取组织汇率上下文再短路，保证同事务内的
+// 组织上下文读取语义不变。
+func (uc *ExchangeRateUsecase) ResolveBaseRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, targetDate string) (decimal.Decimal, error) {
+	fromCurrency = strings.ToUpper(strings.TrimSpace(fromCurrency))
+	toCurrency = strings.ToUpper(strings.TrimSpace(toCurrency))
+	if organizationID == uuid.Nil || !currencyPattern.MatchString(fromCurrency) || !currencyPattern.MatchString(toCurrency) {
+		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+	}
+	if _, valid := parseExchangeRateLookupTime(targetDate); !valid {
+		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+	}
+	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+	if fromCurrency == toCurrency {
+		return decimal.NewFromInt(1), nil
+	}
+	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, fromCurrency, toCurrency, targetDate)
+}
+
 func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID uuid.UUID) (string, error) {
 	if organizationID == uuid.Nil {
 		return "", ErrExchangeRateInvalidArgument

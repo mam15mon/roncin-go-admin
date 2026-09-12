@@ -25,7 +25,7 @@ func (FinanceCommissionAdjustment) Fields() []ent.Field {
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
-		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL").Default("MANUAL").Immutable(),
+		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL").Default("MANUAL").Immutable(),
 		field.UUID("source_verification_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Enum("direction").Values("INCREASE", "DECREASE").Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "PAID", "CANCELLED").Default("DRAFT"),

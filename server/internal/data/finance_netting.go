@@ -422,6 +422,8 @@ func (r *financeNettingRepo) Cancel(ctx context.Context, organizationID, actorID
 
 // Reverse 沿用创建/确认的锁顺序（先对冲单后分摊），反转后分摊失效、双方账单未结余额恢复。
 // 账单余额由有效分摊派生，反转不需要改写账单行，也不触碰发票与账单折算快照。
+// 来源为该对冲单的提成在同一事务内执行与反核销同款处理：未支付取消、有已支付
+// 敞口生成 CONFIRMED 冲减调整（Clawback）。
 func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceNetting, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, err := tx.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
@@ -433,6 +435,9 @@ func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorI
 		}
 		if item.Status != financenettingent.StatusCONFIRMED {
 			return biz.ErrFinanceNettingTransition
+		}
+		if reconcileErr := reconcileCommissionsForSourceReversal(ctx, tx, organizationID, commissionReversalSource{nettingID: id}, actorID, reason); reconcileErr != nil {
+			return reconcileErr
 		}
 		if _, err = tx.FinanceNettingAllocation.Update().Where(financenettingallocationent.NettingIDEQ(id), financenettingallocationent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
 			return err

@@ -556,8 +556,8 @@ func (f *commissionPostgresFixture) requireCommittedState(commissionID uuid.UUID
 	if comm.CnyExchangeRate != "1.00000000" || comm.CnyExchangeRateSource != commission.CnyExchangeRateSourceBASE_CURRENCY || comm.CnyExchangeRateDate != financeCommissionIntegrationDate || comm.CnyExchangeRateSettingID != nil || comm.CnyCommissionAmount != "60.00000000" {
 		f.t.Fatalf("已提交提成 CNY 快照不符: rate=%s source=%s date=%s settingID=%v amount=%s", comm.CnyExchangeRate, comm.CnyExchangeRateSource, comm.CnyExchangeRateDate, comm.CnyExchangeRateSettingID, comm.CnyCommissionAmount)
 	}
-	if comm.VerificationID != f.verificationID || comm.EmployeeID != f.employeeID || comm.RuleID == nil || *comm.RuleID != f.ruleID || comm.SourceFingerprint == "" || comm.CustomerCount != 1 || comm.OrderCount != 1 || comm.FeeCount != 2 {
-		f.t.Fatalf("已提交提成来源统计不符: verification=%s employee=%s rule=%v fingerprint=%q customers=%d orders=%d fees=%d", comm.VerificationID, comm.EmployeeID, comm.RuleID, comm.SourceFingerprint, comm.CustomerCount, comm.OrderCount, comm.FeeCount)
+	if valueOrNilUUID(comm.VerificationID) != f.verificationID || comm.NettingID != nil || comm.EmployeeID != f.employeeID || comm.RuleID == nil || *comm.RuleID != f.ruleID || comm.SourceFingerprint == "" || comm.CustomerCount != 1 || comm.OrderCount != 1 || comm.FeeCount != 2 {
+		f.t.Fatalf("已提交提成来源统计不符: verification=%v netting=%v employee=%s rule=%v fingerprint=%q customers=%d orders=%d fees=%d", comm.VerificationID, comm.NettingID, comm.EmployeeID, comm.RuleID, comm.SourceFingerprint, comm.CustomerCount, comm.OrderCount, comm.FeeCount)
 	}
 	lines, err := f.data.db.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(commissionID), commissionline.OrganizationIDEQ(f.organizationID)).All(ctx)
 	if err != nil || len(lines) != 1 {

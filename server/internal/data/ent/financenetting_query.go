@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -37,6 +38,7 @@ type FinanceNettingQuery struct {
 	withCancelledByUser *UserQuery
 	withReversedByUser  *UserQuery
 	withAllocations     *FinanceNettingAllocationQuery
+	withCommissions     *FinanceCommissionQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -221,6 +223,28 @@ func (_q *FinanceNettingQuery) QueryAllocations() *FinanceNettingAllocationQuery
 			sqlgraph.From(financenetting.Table, financenetting.FieldID, selector),
 			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.AllocationsTable, financenetting.AllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCommissions chains the current query on the "commissions" edge.
+func (_q *FinanceNettingQuery) QueryCommissions() *FinanceCommissionQuery {
+	query := (&FinanceCommissionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, selector),
+			sqlgraph.To(financecommission.Table, financecommission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.CommissionsTable, financenetting.CommissionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -427,6 +451,7 @@ func (_q *FinanceNettingQuery) Clone() *FinanceNettingQuery {
 		withCancelledByUser: _q.withCancelledByUser.Clone(),
 		withReversedByUser:  _q.withReversedByUser.Clone(),
 		withAllocations:     _q.withAllocations.Clone(),
+		withCommissions:     _q.withCommissions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -510,6 +535,17 @@ func (_q *FinanceNettingQuery) WithAllocations(opts ...func(*FinanceNettingAlloc
 	return _q
 }
 
+// WithCommissions tells the query-builder to eager-load the nodes that are connected to
+// the "commissions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceNettingQuery) WithCommissions(opts ...func(*FinanceCommissionQuery)) *FinanceNettingQuery {
+	query := (&FinanceCommissionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCommissions = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -588,7 +624,7 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*FinanceNetting{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
 			_q.withBatch != nil,
@@ -596,6 +632,7 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			_q.withCancelledByUser != nil,
 			_q.withReversedByUser != nil,
 			_q.withAllocations != nil,
+			_q.withCommissions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -661,6 +698,13 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			func(n *FinanceNetting, e *FinanceNettingAllocation) {
 				n.Edges.Allocations = append(n.Edges.Allocations, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCommissions; query != nil {
+		if err := _q.loadCommissions(ctx, query, nodes,
+			func(n *FinanceNetting) { n.Edges.Commissions = []*FinanceCommission{} },
+			func(n *FinanceNetting, e *FinanceCommission) { n.Edges.Commissions = append(n.Edges.Commissions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -878,6 +922,39 @@ func (_q *FinanceNettingQuery) loadAllocations(ctx context.Context, query *Finan
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "netting_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceNettingQuery) loadCommissions(ctx context.Context, query *FinanceCommissionQuery, nodes []*FinanceNetting, init func(*FinanceNetting), assign func(*FinanceNetting, *FinanceCommission)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceNetting)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommission.FieldNettingID)
+	}
+	query.Where(predicate.FinanceCommission(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financenetting.CommissionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.NettingID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "netting_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "netting_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

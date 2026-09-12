@@ -462,9 +462,6 @@ func (_u *FinanceCommissionUpdate) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommission.organization"`)
 	}
-	if _u.mutation.VerificationCleared() && len(_u.mutation.VerificationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FinanceCommission.verification"`)
-	}
 	if _u.mutation.EmployeeCleared() && len(_u.mutation.EmployeeIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommission.employee"`)
 	}
@@ -485,6 +482,12 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.VerificationNoCleared() {
+		_spec.ClearField(financecommission.FieldVerificationNo, field.TypeString)
+	}
+	if _u.mutation.NettingNoCleared() {
+		_spec.ClearField(financecommission.FieldNettingNo, field.TypeString)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)
@@ -1183,9 +1186,6 @@ func (_u *FinanceCommissionUpdateOne) check() error {
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommission.organization"`)
 	}
-	if _u.mutation.VerificationCleared() && len(_u.mutation.VerificationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FinanceCommission.verification"`)
-	}
 	if _u.mutation.EmployeeCleared() && len(_u.mutation.EmployeeIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommission.employee"`)
 	}
@@ -1223,6 +1223,12 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.VerificationNoCleared() {
+		_spec.ClearField(financecommission.FieldVerificationNo, field.TypeString)
+	}
+	if _u.mutation.NettingNoCleared() {
+		_spec.ClearField(financecommission.FieldNettingNo, field.TypeString)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)

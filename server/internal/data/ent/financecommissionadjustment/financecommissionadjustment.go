@@ -229,6 +229,7 @@ const DefaultSourceType = SourceTypeMANUAL
 const (
 	SourceTypeMANUAL                SourceType = "MANUAL"
 	SourceTypeVERIFICATION_REVERSAL SourceType = "VERIFICATION_REVERSAL"
+	SourceTypeNETTING_REVERSAL      SourceType = "NETTING_REVERSAL"
 )
 
 func (st SourceType) String() string {
@@ -238,7 +239,7 @@ func (st SourceType) String() string {
 // SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
 func SourceTypeValidator(st SourceType) error {
 	switch st {
-	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL:
+	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL:
 		return nil
 	default:
 		return fmt.Errorf("financecommissionadjustment: invalid enum value for source_type field: %q", st)

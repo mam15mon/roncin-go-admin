@@ -55,6 +55,7 @@ func (FinanceNetting) Edges() []ent.Edge {
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_nettings").Field("cancelled_by").Unique(),
 		edge.From("reversed_by_user", User.Type).Ref("reversed_finance_nettings").Field("reversed_by").Unique(),
 		edge.To("allocations", FinanceNettingAllocation.Type),
+		edge.To("commissions", FinanceCommission.Type),
 	}
 }
 
