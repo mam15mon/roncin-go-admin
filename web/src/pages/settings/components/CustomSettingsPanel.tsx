@@ -1,4 +1,8 @@
-import { FileTextOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  FileTextOutlined,
+  ReloadOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
 import {
   App,
   Button,
@@ -16,7 +20,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import {
   settlementServiceGetBilledFeeEditPolicy,
+  settlementServiceGetCreditLimitControlPolicy,
   settlementServiceUpdateBilledFeeEditPolicy,
+  settlementServiceUpdateCreditLimitControlPolicy,
 } from '@/services/roncin/settlementService';
 import { formatDate } from '@/utils/format';
 
@@ -49,6 +55,25 @@ export function CustomSettingsPanel() {
     useState<API.BilledFeeEditPolicy>();
   const [canUpdateBilledFeePolicy, setCanUpdateBilledFeePolicy] =
     useState(false);
+  const [creditPolicy, setCreditPolicy] =
+    useState<API.CreditLimitControlPolicy>();
+  const [canUpdateCreditPolicy, setCanUpdateCreditPolicy] = useState(false);
+  const [savingCreditPolicy, setSavingCreditPolicy] = useState(false);
+
+  const loadCreditPolicy = useCallback(async () => {
+    try {
+      const policyRes = await settlementServiceGetCreditLimitControlPolicy({});
+      if (!policyRes.data) {
+        throw new Error('信用额度管控策略响应不完整');
+      }
+      setCreditPolicy(policyRes.data);
+      setCanUpdateCreditPolicy(Boolean(policyRes.canUpdate));
+    } catch (e: any) {
+      setCreditPolicy(undefined);
+      setCanUpdateCreditPolicy(false);
+      message.error(e.message || '读取信用额度管控策略失败');
+    }
+  }, [message]);
 
   const loadBilledFeePolicy = useCallback(async () => {
     setLoadingPolicy(true);
@@ -70,7 +95,8 @@ export function CustomSettingsPanel() {
 
   useEffect(() => {
     void loadBilledFeePolicy();
-  }, [loadBilledFeePolicy]);
+    void loadCreditPolicy();
+  }, [loadBilledFeePolicy, loadCreditPolicy]);
 
   // 1. 保存账单费用修改总开关
   const handleToggleBilledFeePolicy = async (checked: boolean) => {
@@ -111,6 +137,28 @@ export function CustomSettingsPanel() {
       await loadBilledFeePolicy();
     } finally {
       setSavingPolicy(false);
+    }
+  };
+
+  // 3. 保存信用额度管控开关（true 仅提醒；false 直接干预拦截）
+  const handleToggleCreditPolicy = async (checked: boolean) => {
+    setSavingCreditPolicy(true);
+    try {
+      const response = await settlementServiceUpdateCreditLimitControlPolicy({
+        allowSelectionWhenCreditExceeded: checked,
+        expectedVersion: creditPolicy?.version ?? '0',
+      });
+      setCreditPolicy(response.data);
+      message.success(
+        checked
+          ? '已开启：超额往来单位仅提醒，仍可选择与录单'
+          : '已关闭：超额往来单位将被置灰禁用并在保存时拦截',
+      );
+    } catch (e: any) {
+      message.error(e.message || '更新信用额度管控策略失败，请刷新重试');
+      await loadCreditPolicy();
+    } finally {
+      setSavingCreditPolicy(false);
     }
   };
 
@@ -179,6 +227,7 @@ export function CustomSettingsPanel() {
                 <Switch
                   checkedChildren="已开启"
                   unCheckedChildren="已关闭"
+                  aria-label="账单费用修改开关"
                   checked={Boolean(billedFeePolicy?.enabled)}
                   loading={savingPolicy}
                   disabled={!canUpdateBilledFeePolicy || loadingPolicy}
@@ -217,6 +266,82 @@ export function CustomSettingsPanel() {
                 />
               </div>
             </div>
+          </div>
+        </SectionCard>
+
+        {/* 往来单位信用额度管控策略 */}
+        <SectionCard
+          title="往来单位信用额度管控策略"
+          extra={
+            <Button
+              type="text"
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={() => void loadCreditPolicy()}
+              loading={savingCreditPolicy}
+            >
+              刷新
+            </Button>
+          }
+        >
+          <div
+            style={{
+              padding: '16px 20px',
+              backgroundColor: '#fafafa',
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <Row align="middle" justify="space-between" gutter={[16, 16]}>
+              <Col xs={24} md={18}>
+                <Space vertical size={6} style={{ width: '100%' }}>
+                  <Space align="center" size={8} wrap>
+                    <SafetyCertificateOutlined
+                      style={{ fontSize: 16, color: '#1677ff' }}
+                    />
+                    <Text
+                      strong
+                      style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}
+                    >
+                      往来户超信用额度后是否可以选择
+                    </Text>
+                    {creditPolicy?.allowSelectionWhenCreditExceeded ? (
+                      <Tag color="warning">仅提醒模式</Tag>
+                    ) : (
+                      <Tag color="error">直接干预模式</Tag>
+                    )}
+                  </Space>
+                  <Paragraph
+                    type="secondary"
+                    style={{ margin: 0, fontSize: 13, lineHeight: '22px' }}
+                  >
+                    开启后（默认），当往来单位应收未核销金额（本币）超出信用额度时，系统仅在选择与建账时提供黄色预警提醒，仍允许选择与录单；关闭后，超额往来单位将被直接干预拦截，在下拉选择器中置灰禁用且无法选择该往来户，订单保存与应收费用录入时服务端也会拒绝入库。
+                  </Paragraph>
+                  {creditPolicy?.updatedAt && (
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      最近修改时间：{formatDate(creditPolicy.updatedAt)}
+                      {creditPolicy.updatedBy
+                        ? `（操作人：${creditPolicy.updatedBy}）`
+                        : ''}
+                    </Text>
+                  )}
+                </Space>
+              </Col>
+              <Col xs={24} md={6} style={{ textAlign: 'right' }}>
+                <Switch
+                  checkedChildren="仅提醒"
+                  unCheckedChildren="直接干预"
+                  aria-label="信用额度管控开关"
+                  checked={Boolean(
+                    creditPolicy?.allowSelectionWhenCreditExceeded,
+                  )}
+                  loading={savingCreditPolicy}
+                  disabled={!canUpdateCreditPolicy || savingCreditPolicy}
+                  onChange={handleToggleCreditPolicy}
+                  style={{ minWidth: 70 }}
+                />
+              </Col>
+            </Row>
           </div>
         </SectionCard>
       </Space>

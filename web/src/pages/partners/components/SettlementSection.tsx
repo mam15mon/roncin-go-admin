@@ -210,6 +210,25 @@ export default function SettlementSection({
         </Row>
 
         <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
+          {/* 默认账期天数 */}
+          <Col xs={24} sm={12} md={4}>
+            <ProFormDigit
+              name="paymentTermsDays"
+              label={
+                <Space size={4}>
+                  <span>默认账期(天)</span>
+                  <Tooltip title="应收账单创建时按该天数默认带出账期（账单日 + N 天），可调整；留空表示未配置">
+                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                  </Tooltip>
+                </Space>
+              }
+              placeholder="例如: 30"
+              min={0}
+              max={3650}
+              fieldProps={{ precision: 0 }}
+            />
+          </Col>
+
           {/* 结算币种 */}
           <Col xs={24} sm={12} md={4}>
             <ProFormSelect

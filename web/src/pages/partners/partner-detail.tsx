@@ -303,6 +303,7 @@ export default function PartnerDetailPage() {
               settlementCurrency: currentRule?.settlementCurrency ?? 'CNY',
               creditDays: currentRule?.settlementCycleDays ?? 30,
               creditLimit: creditAmount,
+              paymentTermsDays: currentRule?.paymentTermsDays,
             });
           }
         })
@@ -502,6 +503,7 @@ export default function PartnerDetailPage() {
         settlementCycleDays: Number(values.creditDays || 30),
         creditLimitMinor,
         creditCurrency: values.settlementCurrency || 'CNY',
+        paymentTermsDays: values.paymentTermsDays,
         isActive: true,
       };
 

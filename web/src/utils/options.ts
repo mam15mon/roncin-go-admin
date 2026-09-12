@@ -11,7 +11,26 @@ export type SelectOption = {
   code?: string;
   name?: string;
   isCasual?: boolean;
+  /** 契约字段：该往来户已配置信用额度且折本币未核销总额超出额度（仅客户方向有意义）。 */
+  creditExceeded?: boolean;
+  disabled?: boolean;
 };
+
+/**
+ * 直接干预模式下把超额客户候选项置灰禁用；
+ * 仅提醒模式原样返回，标签与禁用状态都经契约字段渲染，不污染 label。
+ */
+export function disableCreditExceededOptions<T extends SelectOption>(
+  options: T[],
+  interventionActive: boolean,
+): T[] {
+  if (!interventionActive) {
+    return options;
+  }
+  return options.map((option) =>
+    option.creditExceeded ? { ...option, disabled: true } : option,
+  );
+}
 
 type PartnerSearchOptions = {
   role?: number;

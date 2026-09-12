@@ -28,9 +28,21 @@ import {
 import { unwrapList } from '@/utils/api';
 
 const roleOptions = [
-  { label: '客户', value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, color: 'blue' },
-  { label: '供应商', value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER, color: 'green' },
-  { label: '国外代理', value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT, color: 'purple' },
+  {
+    label: '客户',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+    color: 'blue',
+  },
+  {
+    label: '供应商',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+    color: 'green',
+  },
+  {
+    label: '国外代理',
+    value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
+    color: 'purple',
+  },
 ];
 
 const roleMap = new Map<number, (typeof roleOptions)[number]>(
@@ -42,8 +54,14 @@ const roleLabels: Record<number, string> = Object.fromEntries(
 );
 
 const statementModeOptions = [
-  { label: '单票对账', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE },
-  { label: '汇总对账', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_MULTI },
+  {
+    label: '单票对账',
+    value: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
+  },
+  {
+    label: '汇总对账',
+    value: PartnerStatementMode.PARTNER_STATEMENT_MODE_MULTI,
+  },
 ];
 
 const statementModeLabels: Record<number, string> = Object.fromEntries(
@@ -51,14 +69,38 @@ const statementModeLabels: Record<number, string> = Object.fromEntries(
 );
 
 const settlementMethodOptions = [
-  { label: '单票结算', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET },
-  { label: '月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_MONTHLY },
-  { label: '周结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_WEEKLY },
-  { label: '半月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY },
-  { label: '双月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BI_MONTHLY },
-  { label: '季结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_QUARTERLY },
-  { label: '45天', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_DAYS_45 },
-  { label: '预付', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID },
+  {
+    label: '单票结算',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
+  },
+  {
+    label: '月结',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_MONTHLY,
+  },
+  {
+    label: '周结',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_WEEKLY,
+  },
+  {
+    label: '半月结',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY,
+  },
+  {
+    label: '双月结',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BI_MONTHLY,
+  },
+  {
+    label: '季结',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_QUARTERLY,
+  },
+  {
+    label: '45天',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_DAYS_45,
+  },
+  {
+    label: '预付',
+    value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID,
+  },
 ];
 
 const settlementMethodLabels: Record<number, string> = Object.fromEntries(
@@ -66,9 +108,18 @@ const settlementMethodLabels: Record<number, string> = Object.fromEntries(
 );
 
 const settlementBaseOptions = [
-  { label: '账单日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE },
-  { label: '开航日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_SAILING_DATE },
-  { label: '到港日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE },
+  {
+    label: '账单日',
+    value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
+  },
+  {
+    label: '开航日',
+    value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_SAILING_DATE,
+  },
+  {
+    label: '到港日',
+    value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE,
+  },
 ];
 
 const settlementBaseLabels: Record<number, string> = Object.fromEntries(
@@ -88,6 +139,10 @@ type SettlementRuleFormValues = {
   settlementCycleDays?: number;
   settlementCurrency?: string;
   isActive?: boolean;
+  /** 默认信用账期天数（账单日 + N 天），留空表示未配置。 */
+  paymentTermsDays?: number;
+  /** 信用额度（元），提交时换算为最小货币单位 creditLimitMinor。 */
+  creditLimitAmount?: number;
 };
 
 type SettlementRulesPanelProps = {
@@ -162,6 +217,22 @@ export default function SettlementRulesPanel({
       render: (_, record) =>
         record.settlementCycleDays != null
           ? `${record.settlementCycleDays} 天`
+          : '-',
+    },
+    {
+      title: '默认账期',
+      dataIndex: 'paymentTermsDays',
+      width: 100,
+      render: (_, record) =>
+        record.paymentTermsDays != null ? `${record.paymentTermsDays} 天` : '-',
+    },
+    {
+      title: '信用额度',
+      dataIndex: 'creditLimitMinor',
+      width: 120,
+      render: (_, record) =>
+        record.creditLimitMinor != null
+          ? `${Number(record.creditLimitMinor) / 100} ${record.creditCurrency ?? ''}`.trim()
           : '-',
     },
     {
@@ -261,14 +332,23 @@ export default function SettlementRulesPanel({
         open={modalOpen}
         formRef={formRef}
         initialValues={
-          editingRule ?? {
-            roleType: partner?.roles?.[0]?.type ?? 1,
-            statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
-            settlementMethod:
-              PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
-            settlementCurrency: 'CNY',
-            isActive: true,
-          }
+          editingRule
+            ? {
+                ...editingRule,
+                creditLimitAmount:
+                  editingRule.creditLimitMinor != null
+                    ? Number(editingRule.creditLimitMinor) / 100
+                    : undefined,
+              }
+            : {
+                roleType: partner?.roles?.[0]?.type ?? 1,
+                statementMode:
+                  PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
+                settlementMethod:
+                  PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
+                settlementCurrency: 'CNY',
+                isActive: true,
+              }
         }
         modalProps={{
           destroyOnHidden: true,
@@ -294,6 +374,18 @@ export default function SettlementRulesPanel({
             settlementCycleDays: values.settlementCycleDays,
             settlementCurrency: values.settlementCurrency.trim().toUpperCase(),
             isActive: values.isActive ?? false,
+            paymentTermsDays: values.paymentTermsDays,
+            creditLimitMinor:
+              values.creditLimitAmount !== undefined &&
+              values.creditLimitAmount !== null
+                ? String(Math.round(Number(values.creditLimitAmount) * 100))
+                : undefined,
+            // 信用额度必与币种成对出现；未填额度时同步清空币种，两字段一起置空。
+            creditCurrency:
+              values.creditLimitAmount !== undefined &&
+              values.creditLimitAmount !== null
+                ? values.settlementCurrency.trim().toUpperCase()
+                : undefined,
           };
           if (editingRule?.id) {
             await partnerServiceUpdatePartnerSettlementRule(
@@ -370,6 +462,22 @@ export default function SettlementRulesPanel({
           min={1}
           placeholder="例如: 30"
           fieldProps={{ precision: 0 }}
+        />
+        <ProFormDigit
+          name="paymentTermsDays"
+          label="默认账期（天）"
+          tooltip="应收账单创建时按该天数默认带出账期（账单日 + N 天），财务可调整；留空表示未配置"
+          min={0}
+          max={3650}
+          placeholder="例如: 30"
+          fieldProps={{ precision: 0 }}
+        />
+        <ProFormDigit
+          name="creditLimitAmount"
+          label="信用额度（元）"
+          tooltip="超出该额度的应收未核销金额将触发信用预警；按管控策略可能被直接拦截"
+          min={0}
+          fieldProps={{ precision: 2, addonAfter: '元' }}
         />
         <ProFormText
           name="settlementCurrency"

@@ -21,6 +21,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencyOptions, type SelectOption } from '@/utils/options';
+import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 
 const { Text } = Typography;
 
@@ -184,11 +185,6 @@ export default function BillGroupCard({
     form,
   );
   const billDate = Form.useWatch(['groups', groupKey, 'billDate'], form);
-  const isCasualCustomer = group.isCasual && group.direction === 'RECEIVABLE';
-  const hasCasualWarning =
-    isCasualCustomer &&
-    typeof paymentTermsDays === 'number' &&
-    paymentTermsDays > 0;
   const derivedDueDate =
     billDate && typeof paymentTermsDays === 'number'
       ? dayjs(billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
@@ -245,14 +241,17 @@ export default function BillGroupCard({
           }
         />
       )}
-      {hasCasualWarning && (
-        <Alert
-          type="warning"
-          showIcon
-          style={{ marginBottom: 16 }}
-          description={`该客户为单次合作散客，建议现结；当前已设置 ${paymentTermsDays} 天账期，请注意资金回款风险`}
-        />
-      )}
+      <BillTermsCreditWarnings
+        direction={group.direction}
+        isCasual={group.isCasual}
+        paymentTermsDays={paymentTermsDays}
+        creditLimitAmount={group.creditLimitAmount}
+        creditCurrency={group.creditCurrency}
+        currentUnsettledAmount={group.currentUnsettledAmount}
+        isCreditExceeded={group.isCreditExceeded}
+        billAmount={group.totalAmount}
+        billCurrency={group.currency}
+      />
       <Row gutter={16} style={{ marginBottom: 8 }}>
         <Col xs={24} md={8}>
           <Form.Item
@@ -285,9 +284,10 @@ export default function BillGroupCard({
             name={['groups', groupKey, 'paymentTermsDays'] as NamePath}
             label="账期（天）"
             extra={
-              hasCasualWarning ? (
+              group.isCasual && group.direction === 'RECEIVABLE' ? (
                 <Text type="warning" style={{ fontSize: 12 }}>
-                  建议现结{derivedDueDate ? ` (到期: ${derivedDueDate})` : ''}
+                  建议现结
+                  {derivedDueDate ? ` (到期: ${derivedDueDate})` : ''}
                 </Text>
               ) : derivedDueDate ? (
                 <Text type="secondary" style={{ fontSize: 12 }}>

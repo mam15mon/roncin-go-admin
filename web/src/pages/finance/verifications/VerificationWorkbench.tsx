@@ -21,14 +21,20 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
+import { useCreditLimitIntervention } from '@/hooks/useCreditLimitIntervention';
 import {
   settlementServiceCreateVerification,
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions,
   settlementServiceListVerificationCreationCandidates,
 } from '@/services/roncin/settlementService';
-import { getCurrencyOptions, type SelectOption } from '@/utils/options';
+import {
+  disableCreditExceededOptions,
+  getCurrencyOptions,
+  type SelectOption,
+} from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
 import {
   buildVerificationAllocations,
@@ -80,6 +86,8 @@ export default function VerificationWorkbench({
   const [candidateLoading, setCandidateLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const partnerSearchSequence = useRef(0);
+  // 直接干预模式下超额客户禁选（标签与禁用都由契约字段渲染）。
+  const creditInterventionActive = useCreditLimitIntervention();
 
   const resetSelections = () => {
     setSelectedCashflowIds([]);
@@ -110,15 +118,19 @@ export default function VerificationWorkbench({
             page: 1,
             pageSize: 50,
           });
-        const options = (response.data ?? [])
-          .filter((item) => item.id)
-          .map((item) => ({
-            value: item.id as string,
-            label:
-              item.name && item.code
-                ? `${item.name} (${item.code})`
-                : item.name || item.code || item.id || '',
-          }));
+        const options = disableCreditExceededOptions(
+          (response.data ?? [])
+            .filter((item) => item.id)
+            .map((item) => ({
+              value: item.id as string,
+              label:
+                item.name && item.code
+                  ? `${item.name} (${item.code})`
+                  : item.name || item.code || item.id || '',
+              creditExceeded: Boolean(item.creditExceeded),
+            })),
+          creditInterventionActive,
+        );
         if (sequence !== partnerSearchSequence.current) return;
         setPartnerOptions((current) => {
           const selected = current.find(
@@ -137,7 +149,7 @@ export default function VerificationWorkbench({
         }
       }
     },
-    [message, scope.organizationId],
+    [creditInterventionActive, message, scope.organizationId],
   );
 
   useEffect(() => {
@@ -454,6 +466,21 @@ export default function VerificationWorkbench({
               }
               disabled={!scope.organizationId}
               options={partnerOptions}
+              optionRender={(option) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <span>{option.label}</span>
+                  <PartnerSelectOptionTags
+                    data={option.data as { creditExceeded?: boolean }}
+                  />
+                </div>
+              )}
               onChange={(settlementPartyId) => {
                 clearCandidates();
                 setScope((value) => ({ ...value, settlementPartyId }));
