@@ -1,34 +1,41 @@
-# 钉钉注册审批与通知路由 Implementation Plan
+# 钉钉分公司专属邀请与入职审批 Implementation Plan
 
-> 默认排在 auth-org-switcher 之后串行；若用户明确插队则提前。
-> 自 main 拉取 `feat/dingtalk-registration-approval` 分支。
+## Phase 1: 服务端核心模型与业务闭环 (Server Models & Biz)
 
-## Phase 1: 服务端（Schema/迁移/邀请与激活原语/登录改造/通知路由，原子单元）
+1. **Schema & 迁移脚本**：
+   - 完善 `dingtalk_invitations` Schema（增加 `token`，`mobile` 与 `role_id` 设为可选）；
+   - `users` 增加 `dingtalk_requested_organization_id`；
+   - 更新数据库迁移 SQL；执行 `go -C server generate`。
+2. **Proto 契约与权限清单**：
+   - `RegisterDingTalkUserRequest` 改造为携带 `invitation_token`；
+   - 增加邀请管理（创建/查询/撤销）与审批流转（查询/同意/拒绝/转派）接口；
+   - 维护 `server/internal/access/manifest.go` 权限清单，重新生成权限键与 OpenAPI/客户端代码。
+3. **biz 领域层业务逻辑**：
+   - 实现 `DingTalkRegistrationUsecase`：邀请创建、撤销、列表；
+   - 通道 A 手机号匹配与免审秒激活逻辑；
+   - 通道 B 待审批入队、审批通过（User 激活 + Membership + 赋权）、驳回、一键转派（Transfer）；
+   - 钉钉企业通讯录手机号点查与企业白名单校验；
+   - 单元测试（针对状态机、权限边界、转派）。
+4. **data 仓储层与事务封装**：
+   - 事务保证：审批同意/转派的悲观锁与原子提交；
+   - 钉钉工作通知卡片异步入队。
+5. **service 传输层接入**：
+   - 转换 HTTP/gRPC DTO 并接入鉴权中间件；
+   - 全套 Go 编译与单元测试验证。
 
-1. Ent：`dingtalk_invitations` 实体 + 部分唯一索引；credentials 加
-   `requested_organization_id`；迁移 SQL（含索引）；`go -C server generate`。
-2. Proto：邀请 CRUD、注册审批 approve/reject、审批队列查询、注册确认带组织；
-   权限码入 manifest + permission-keys 重生成；`make -C server api`。
-3. biz：邀请用例、`LoginDingTalk` 匹配链（企业 token 手机号反查——按 userId 取
-   通讯录 mobile 或 getbymobile 择一）、激活原语（enable+membership+角色+通知）、
-   审批/拒绝用例（幂等）、手机号规范化与脱敏。
-4. data：邀请仓储、通知后台任务类型与收件人路由查询、审计。
-5. service：新 RPC handler 与 DTO。
-6. 测试（design 第 4 节 biz/data 集成全量）。
-7. 验证：build/vet/test 全量 + data 集成全量 + migrate:dev。
+## Phase 2: 前端管理后台与扫码落地页 (Web)
 
-## Phase 2: 前端
+1. **前端邀请管理与审批弹窗**：
+   - 在用户管理中增加「+ 邀请成员」弹窗（支持生成二维码与链接、定向手机号）；
+   - 待审批人员列表与处理弹窗（支持分配角色同意、驳回理由填写、一键转派兄弟公司）。
+2. **扫码落地页改造**：
+   - 扫码携带 `?invite=<token>` 时，展示分公司欢迎卡片与安全提示；
+   - 彻底移除前端公开自选分公司的下拉框。
+3. **前端代码检查**：
+   - 定向 vitest 测试与 Biome 检查。
 
-1. `generate:web-client`；邀请管理页（分公司管理员视角：建邀请/列表/撤销，手机号
-   脱敏展示）；审批队列页（PENDING 列表 + 同意/拒绝，钉钉姓名/头像认领）。
-2. 登录注册确认视图补"选择要加入的公司"（多组织时）。
-3. 验证：tsc/biome/定向 vitest。
+## Phase 3: 全量门禁与收尾 (Verification)
 
-## Phase 3: 门禁与收尾
-
-1. `pnpm run check:server` + `pnpm run check:web`；
-2. spec：沉淀"注册审批与通知路由契约"（身份真相源/匹配键/双通道/路由规则）；
-3. 提交分组：
-   - `feat(auth): 钉钉邀请与自动激活通道`
-   - `feat(auth): 注册审批队列与目标组织通知路由`
-   - `feat(web): 邀请管理与审批队列页面`
+1. `pnpm run check:server` 与 `pnpm run check:web`；
+2. 真实流程端到端验证；
+3. 按 Conventional Commits 分组提交。

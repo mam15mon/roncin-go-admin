@@ -1,107 +1,124 @@
-# 钉钉注册审批与通知路由 Technical Design
+# 钉钉分公司专属邀请与入职审批 Technical Design
 
-## 1. Architecture & Design Principles
+## 1. 架构与设计原则 (Architecture & Principles)
 
-1. **钉钉是身份真相源**：账号身份字段（unionId/userId/姓名/头像）只来自扫码返回；
-  邀请预存仅承载管理员决策（手机号/组织/角色），不复制身份。
-2. **双通道统一出口**：邀请（自动）与认领（审批）最终都走同一"激活原语"——
-  enable credential + membership + 初始角色 + 通知本人，差别只在触发方式。
-3. **通知即后台任务**：复用既有 BackgroundTask + 钉钉工作通知通道，注册/审批事件
-  即时入队，不做轮询。
+1. **凭证唯一定位，客户端零信任**：
+   - 目标组织由服务端的有效 `Invitation` 记录唯一解析，前端注册请求只传 `invitation_token`，禁止前端直接提交 `organization_id`。
+2. **钉钉是身份真相源**：
+   - 用户身份字段（UnionID / 企业 UserID / 姓名 / 头像 / CorpID）只来自钉钉扫码返回；
+   - 邀请记录仅存储业务决策字段（目标组织、预设角色、定向手机号、邀请人、过期时间）。
+3. **两类邀请统一处理，激活原语一致**：
+   - 通用邀请（审批入职）与定向邀请（免审秒入职）共享同一底层激活原语：`enable user + create target membership + assign roles + audit + notify`。
+4. **精确通知与分公司隔离**：
+   - 审批提醒仅推向目标分公司具有审批权限的人员；
+   - 本期纠错环为「拒绝后重新扫码自选组织」；一键转派（Transfer）记为延后能力，本期不实现（实施修订）。
 
-## 2. Core Modules & Data Models
+---
 
-### 2.1 Ent Schema
+## 2. 核心模块与数据模型 (Data Models)
 
-`dingtalk_invitations`（新实体）：
-
-```text
-id, organization_id (FK), role_id (FK, 初始角色),
-mobile (加密或明文 + 展示脱敏，见 2.5), display_name (备注，可空),
-invited_by (FK user), status: PENDING | CONSUMED | EXPIRED | REVOKED,
-consumed_by (FK credential/account, 可空), consumed_at,
-expires_at, created_at/updated_at
-部分唯一索引: (organization_id, mobile) WHERE status = 'PENDING'  -- 活跃邀请唯一
-```
-
-`dingtalk_credentials`（既有）增加：`requested_organization_id`（可空 FK，通道 B 自选
-目标公司，存量行为 NULL = 总部兜底）。
-
-迁移手写（时间戳命名），含脱敏与索引。
-
-### 2.2 biz 层
-
-- `CreateDingTalkInvitation`（管理端）：校验调用者对目标组织持用户管理权限（组织范围
-  判定复用既有 scope 谓词）、初始角色属于目标组织；手机号规范化（+86 前缀处理）。
-- `LoginDingTalk` 改造（`biz/auth.go`）：换出企业 userId 后：
-  1. 既有 `FindDingTalkCredential` 命中 → 原逻辑不变；
-  2. 未注册 → 调 `matchInvitationByUser(ctx, userID, corpID)`：企业 token 按手机号
-     反查 userId（getbymobile，逐条活跃邀请比对；或先按 userId 取通讯录 mobile 再等值
-     查——实施时按 API 权限成本择一）；
-  3. 命中 → 事务内消费邀请 + 激活原语（enable + membership + 角色 + 通知本人/邀请人）
-     → 直接返回 Authenticated 会话；
-  4. 未命中 → RegistrationRequired，registration token 携带自选组织要求（通道 B）。
-- `ConfirmDingTalkRegistration` 改造：请求带目标组织 ID，落 `requested_organization_id`，
-  入队审批通知。
-- `ApproveDingTalkRegistration` / `RejectDingTalkRegistration`（新）：一站式审批原语，
-  幂等（凭 credential 状态机 PENDING→active）；拒绝写原因并通知本人。
-
-### 2.3 审批通知路由
-
-- 新增后台任务类型 `dingtalk.registration.pending`：收件人 = 目标组织（无目标 = 总部）
-  下持用户管理权限且启用中的用户集合（复用权限清单查询，Limit 上限保护 + 取最新
-  活跃 N 人策略）；内容含注册人姓名/头像/目标组织/时间与审批入口路径。
-- 复用 `NotificationUsecase` 渲染与重试；审批完成事件（已批准通知本人模板已有）。
-
-### 2.4 API（api/auth/v1 + admin 域）
-
-- `POST /api/v1/auth/dingtalk/invitations`（创建邀请，目标组织的管理权限 +
-  DATA_SCOPE 校验目标组织）、`GET .../invitations`（列表，组织范围）、
-  `DELETE .../invitations/{id}`（撤销）；
-- `POST /api/v1/auth/dingtalk/registrations/{id}:approve|reject`（审批，目标组织管理
-  权限）+ `GET .../registrations?status=PENDING`（审批队列）；
-- 注册确认请求带 `organization_id`（可选）。
-- 权限码：新增 `system.admin.dingtalk_invitation.manage`（或并入既有用户管理权限组，
-  实施时按 manifest 分组惯例定），manifest + permission-keys 重生成。
-
-### 2.5 手机号处理
-
-- 存储明文（匹配需要等值查询；数据库在本系统信任边界内）+ 展示层脱敏
-  `138****1234`；日志与审计只记脱敏形式。
-- 规范化：去空格、+86/0086 前缀归一，存规范化结果。
-
-## 3. Validation & Error Matrix
-
-| 条件 | 行为 |
-| --- | --- |
-| 扫码 userId 与活跃邀请手机号反查命中 | 自动激活直达会话 |
-| 邀请存在但已过期/撤销 | 按无邀请处理，落通道 B |
-| 通道 B 未选组织 | 默认总部兜底，通知总部管理员 |
-| 非目标组织管理员调审批/邀请接口 | 403 |
-| 同手机号重复活跃邀请 | 409（唯一索引兜底） |
-| 邀请已被消费 | 状态 CONSUMED，再扫走通道 B |
-
-## 4. Tests Required
-
-- biz：邀请生命周期（建/过期/撤销/消费）、扫码自动激活匹配链（mock 反查）、通道 B
-  自选组织落库、审批原语幂等、通知入队断言、权限路由（目标组织外 403）；
-- data/集成（隔离 schema）：真实邀请→扫码→自动激活全链路、审批同意/拒绝、
-  唯一约束冲突、脱敏展示；
-- service/web：邀请管理页与审批队列页基础用例；登录选择组织流程；
-- 回归：既有钉钉登录/注册/会话测试全绿。
-
-## 5. Wrong vs Correct
-
-### Wrong
+### 2.1 Ent Schema: `dingtalk_invitations`
 
 ```text
-# 预存整套身份（姓名/部门/头像复制进邀请表），扫码后两边数据打架
-# 或：注册后群发通知给所有管理员，总部被分公司加人刷屏
+id: UUID (PK)
+token: string(64), UNIQUE NOT NULL      -- 邀请短码/Token，用于拼装二维码/URL
+organization_id: UUID (FK -> organizations.id)
+role_id: UUID (FK -> roles.id, OPTIONAL) -- 预设初始角色
+mobile: string(32), OPTIONAL            -- 定向手机号（模式 B 必填，模式 A 为空）
+display_name: string(100), OPTIONAL     -- 备注姓名
+invited_by: UUID (FK -> users.id)
+status: PENDING | CONSUMED | EXPIRED | REVOKED
+consumed_by: UUID (FK -> users.id, OPTIONAL)
+consumed_at: timestamp, OPTIONAL
+expires_at: timestamp NOT NULL
+created_at / updated_at: timestamp
+
+索引:
+- UNIQUE (token)
+- UNIQUE (organization_id, mobile) WHERE status = 'PENDING' AND mobile != ''  -- 活跃定向邀请唯一
+- INDEX (organization_id, status)
+- INDEX (expires_at)
 ```
 
-### Correct
+### 2.2 用户与待审批记录扩展
+
+- `users.dingtalk_requested_organization_id`: UUID (FK -> organizations.id, 可空)
+  - 记录通过通用邀请扫码后申请加入的分公司；
+  - 纠错环为拒绝后重新扫码重选组织（重新确认入队新路由，见 data 层实现）。
+
+### 2.3 审批流转状态机
 
 ```text
-# 预存仅手机号+组织+角色；匹配键 = 企业 token 手机号反查 userId
-# 通知只路由目标组织的管理员；身份字段永远以钉钉扫码返回为准
+[发起邀请] (PENDING)
+    |
+    +---> (模式 B: 定向扫码) ---> 手机号匹配成功 ---> 自动 CONSUMED ---> 账号激活入职
+    |
+    +---> (模式 A: 通用扫码) ---> 提交申请 (User: PENDING) ---> 钉钉通知分公司管理员
+                                    |
+                                    +---> 管理员 [同意] ---> User 激活 + Membership 建立
+                                    +---> 管理员 [拒绝] ---> 停用并记录理由 + 钉钉通知本人
+                                    +---> [纠错环] 被拒者重新扫码自选组织（延后：一键转派）
 ```
+
+---
+
+## 3. 业务层与接口设计 (biz & API)
+
+### 3.1 业务用例 (`DingTalkRegistrationUsecase`)
+
+- `CreateInvitation(principal, orgID, roleID, mobile, displayName, expiresInDays)`:
+  - 校验调用者具有目标分公司的邀请权限；
+  - 若为定向手机号，校验手机号合法性并规范化；
+  - 生成密码学安全的随机 `token`。
+- `ListInvitations(principal, options)`:
+  - 按数据范围过滤本分公司的邀请记录。
+- `RevokeInvitation(principal, id)`:
+  - 撤销未消费的活跃邀请。
+- `ListApproverRecipients(ctx, orgID)`:
+  - 查找指定组织内持有用户审批权限的启用中人员；
+  - 若候选人数为 0，自动沿着 `organization.parent_id` 逐级向上追溯，直至根组织（总部），实现无管理员分公司的总部代管通知路由。
+- `ApproveRegistration(principal, userID, roleIDs)`:
+  - 校验审批人权限：要求对该申请的目标分公司具有管理权限（支持本分公司管理员或具有跨分公司/集团管理权限的总部管理员）；
+  - 事务内激活 User、建立 target membership、赋权、写审计、异步发钉钉通知。
+- `RejectRegistration(principal, userID, reason)`:
+  - 驳回申请，记录拒绝原因，异步通知新员工。
+- `TransferRegistration(principal, userID, targetOrgID, reason)`:
+  - 将待审批记录的 `requested_organization_id` 转移至目标分公司；
+  - 重新向新目标分公司的管理员推送审批工作通知。
+
+### 3.2 契约变更 (`server/api/auth/v1/auth.proto` & `admin.proto`)
+
+- `RegisterDingTalkUserRequest`:
+  - 移除 `optional string organization_id`；
+  - 增加 `string invitation_token = 1;`
+- 新增 `InvitationService` / 或合并至 `AuthService`：
+  - `CreateDingTalkInvitation` / `ListDingTalkInvitations` / `RevokeDingTalkInvitation`
+  - `ListPendingDingTalkRegistrations` / `ApproveDingTalkRegistration` / `RejectDingTalkRegistration` / `TransferDingTalkRegistration`
+
+---
+
+## 4. 验证与错误矩阵 (Validation & Errors)
+
+| 场景 | 校验规则 | 预期结果 |
+| :--- | :--- | :--- |
+| 非本企业钉钉扫码 | `corp_id` 比对不一致 | 403 `ErrDingTalkNotCorporateMember` |
+| 无效或过期 Token 扫码 | Token 不存在或 `expires_at < now` | 400 `ErrDingTalkInvitationExpired` |
+| 定向邀请手机号不匹配 | 扫码者手机号 != 邀请手机号 | 403 `ErrDingTalkInvitationMobileMismatch` |
+| 跨组织非法越权审批 | 审批人可写范围不包含目标分公司 | 403 `ErrPermissionDenied` |
+| 重复审批/驳回 | User 已经处于激活或已处理状态 | 409 `ErrDingTalkRegistrationAlreadyProcessed` |
+
+---
+
+## 5. 测试与门禁要求 (Tests)
+
+- **单元测试 (`biz`)**：
+  - 邀请 Token 生成与过期验证；
+  - 定向手机号自动激活匹配逻辑（mock 钉钉通讯录）；
+  - 待审批、同意、拒绝状态流转与权限判定。
+- **数据层与集成测试 (`data`)**：
+  - PostgreSQL 事务原子性：同意审批时 User 启用与 Membership 创建必须在同一事务；
+  - 唯一索引约束校验。
+- **前端验证**：
+  - 邀请管理列表与弹窗；
+  - 扫码落地页锁定目标分公司展示；
+  - 待审批弹窗支持同意（分配角色）与拒绝。
