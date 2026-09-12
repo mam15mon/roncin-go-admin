@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -88,6 +90,120 @@ func enqueueDingTalkUserAuthorizedNotification(ctx context.Context, tx *ent.Tx, 
 	}
 	return nil
 }
+
+// enqueueDingTalkRegistrationPendingNotifications 在注册同事务内向审批人入队
+// 「注册待审批」通知。通知模型是 1 任务 = 1 明细 = 1 收件人，因此任务与明细
+// ID 按 (注册人, 路由组织, 收件人) 三元组确定性生成并 OnConflict DoNothing：
+// 每位收件人各得一条独立任务与明细，重复确认注册时同一收件人不重复提醒。
+// 取舍：被拒绝后重新注册的同组织注册不会再次提醒（旧任务已存在），
+// 审批队列实时查询兜底，审批人仍能在队列页发现该注册。
+func enqueueDingTalkRegistrationPendingNotifications(ctx context.Context, tx *ent.Tx, routingOrganizationID uuid.UUID, registrantUserID uuid.UUID, registrantName, organizationName string, recipientUserIDs []uuid.UUID) error {
+	if len(recipientUserIDs) == 0 {
+		return nil
+	}
+	referenceCode, parameter := clampNotificationText(registrantName), clampNotificationText(organizationName)
+	if referenceCode == "" || parameter == "" {
+		return nil
+	}
+	now := time.Now()
+	for _, recipientUserID := range recipientUserIDs {
+		intentID := uuid.NewSHA1(dingTalkNotificationNamespace, []byte(fmt.Sprintf("registration-pending:%s:%s:%s", registrantUserID, routingOrganizationID, recipientUserID)))
+		if err := tx.BackgroundTask.Create().
+			SetID(intentID).
+			SetOrganizationID(routingOrganizationID).
+			SetKind(backgroundtaskent.KindDINGTALK_NOTIFICATION).
+			SetIdempotencyKey("registration-pending:" + intentID.String()).
+			SetStatus(backgroundtaskent.StatusPENDING).
+			SetAttempts(0).
+			SetMaxAttempts(5).
+			SetNextRunAt(now).
+			OnConflict(entsql.DoNothing()).
+			Exec(ctx); err != nil {
+			return err
+		}
+		if err := tx.NotificationDelivery.Create().
+			SetBackgroundTaskID(intentID).
+			SetRecipientUserID(recipientUserID).
+			SetChannel(notificationent.ChannelDINGTALK).
+			SetTemplate(notificationent.TemplateDINGTALK_REGISTRATION_PENDING).
+			SetResourceType("USER").
+			SetResourceID(registrantUserID).
+			SetReferenceCode(referenceCode).
+			SetParameter(parameter).
+			OnConflict(entsql.DoNothing()).
+			Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// enqueueDingTalkRegistrationRejectedNotification 通知注册本人审批被拒绝；
+// 拒绝原因截断后随通知明细投递。
+func enqueueDingTalkRegistrationRejectedNotification(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, recipient *ent.User, reason string, intent *biz.NotificationIntent) error {
+	if intent == nil || intent.ID == uuid.Nil || intent.RecipientUserID != recipient.ID || intent.Channel != biz.NotificationChannelDingTalk || intent.Template != biz.NotificationTemplateDingTalkRegistrationRejected {
+		return fmt.Errorf("注册拒绝通知意图不合法")
+	}
+	return createDingTalkNotificationDelivery(ctx, tx, organizationID, recipient.ID, notificationent.TemplateDINGTALK_REGISTRATION_REJECTED, "USER", recipient.ID, "", clampNotificationText(reason), intent.ID)
+}
+
+// enqueueDingTalkInvitationActivatedNotification 通知邀请人其邀请的员工已自动激活。
+func enqueueDingTalkInvitationActivatedNotification(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, recipient *ent.User, activatedName, organizationName string, intent *biz.NotificationIntent) error {
+	if intent == nil || intent.ID == uuid.Nil || intent.RecipientUserID != recipient.ID || intent.Channel != biz.NotificationChannelDingTalk || intent.Template != biz.NotificationTemplateDingTalkInvitationActivated {
+		return fmt.Errorf("邀请激活通知意图不合法")
+	}
+	referenceCode, parameter := clampNotificationText(activatedName), clampNotificationText(organizationName)
+	if referenceCode == "" || parameter == "" {
+		return nil
+	}
+	return createDingTalkNotificationDelivery(ctx, tx, organizationID, recipient.ID, notificationent.TemplateDINGTALK_INVITATION_ACTIVATED, "USER", recipient.ID, referenceCode, parameter, intent.ID)
+}
+
+// createDingTalkNotificationDelivery 建立通知任务与明细的通用封装。
+func createDingTalkNotificationDelivery(ctx context.Context, tx *ent.Tx, organizationID, recipientUserID uuid.UUID, template notificationent.Template, resourceType string, resourceID uuid.UUID, referenceCode, parameter string, taskID uuid.UUID) error {
+	now := time.Now()
+	if _, err := tx.BackgroundTask.Create().
+		SetID(taskID).
+		SetOrganizationID(organizationID).
+		SetKind(backgroundtaskent.KindDINGTALK_NOTIFICATION).
+		SetIdempotencyKey("dingtalk-notice:" + taskID.String()).
+		SetStatus(backgroundtaskent.StatusPENDING).
+		SetAttempts(0).
+		SetMaxAttempts(5).
+		SetNextRunAt(now).
+		Save(ctx); err != nil {
+		return err
+	}
+	create := tx.NotificationDelivery.Create().
+		SetBackgroundTaskID(taskID).
+		SetRecipientUserID(recipientUserID).
+		SetChannel(notificationent.ChannelDINGTALK).
+		SetTemplate(template).
+		SetResourceType(resourceType).
+		SetResourceID(resourceID)
+	if referenceCode != "" {
+		create.SetReferenceCode(referenceCode)
+	}
+	if parameter != "" {
+		create.SetParameter(parameter)
+	}
+	_, err := create.Save(ctx)
+	return err
+}
+
+// clampNotificationText 把通知明细文本截断到字段上限（64 个字符），按字符截断避免
+// 超长组织名或拒绝原因导致入库失败。
+func clampNotificationText(value string) string {
+	value = strings.TrimSpace(value)
+	if utf8.RuneCountInString(value) <= 64 {
+		return value
+	}
+	return string([]rune(value)[:64])
+}
+
+// dingTalkNotificationNamespace 用于派生确定性通知任务 ID（注册审批提醒按
+// 注册人 + 组织去重），随机生成的固定命名空间，无业务含义。
+var dingTalkNotificationNamespace = uuid.NewSHA1(uuid.NameSpaceURL, []byte("roncin-dingtalk-notification"))
 
 func (r *notificationRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (*biz.NotificationDelivery, error) {
 	client, err := r.data.client(ctx)

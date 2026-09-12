@@ -90,6 +90,8 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),
 		edge.To("sea_shared_containers", SeaSharedContainer.Type),
 		edge.To("sea_shared_container_allocations", SeaSharedContainerAllocation.Type),
+		edge.To("dingtalk_invitations", DingTalkInvitation.Type),
+		edge.To("dingtalk_registration_requests", User.Type),
 	}
 }
 

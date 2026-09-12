@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type DingTalkApprovalDispatchCreate struct {
 	config
 	mutation *DingTalkApprovalDispatchMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -339,6 +342,7 @@ func (_c *DingTalkApprovalDispatchCreate) createSpec() (*DingTalkApprovalDispatc
 		_node = &DingTalkApprovalDispatch{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(dingtalkapprovaldispatch.Table, sqlgraph.NewFieldSpec(dingtalkapprovaldispatch.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -437,11 +441,340 @@ func (_c *DingTalkApprovalDispatchCreate) createSpec() (*DingTalkApprovalDispatc
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DingTalkApprovalDispatchUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DingTalkApprovalDispatchCreate) OnConflict(opts ...sql.ConflictOption) *DingTalkApprovalDispatchUpsertOne {
+	_c.conflict = opts
+	return &DingTalkApprovalDispatchUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DingTalkApprovalDispatchCreate) OnConflictColumns(columns ...string) *DingTalkApprovalDispatchUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DingTalkApprovalDispatchUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// DingTalkApprovalDispatchUpsertOne is the builder for "upsert"-ing
+	//  one DingTalkApprovalDispatch node.
+	DingTalkApprovalDispatchUpsertOne struct {
+		create *DingTalkApprovalDispatchCreate
+	}
+
+	// DingTalkApprovalDispatchUpsert is the "OnConflict" setter.
+	DingTalkApprovalDispatchUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DingTalkApprovalDispatchUpsert) SetUpdatedAt(v time.Time) *DingTalkApprovalDispatchUpsert {
+	u.Set(dingtalkapprovaldispatch.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsert) UpdateUpdatedAt() *DingTalkApprovalDispatchUpsert {
+	u.SetExcluded(dingtalkapprovaldispatch.FieldUpdatedAt)
+	return u
+}
+
+// SetDispatchStatus sets the "dispatch_status" field.
+func (u *DingTalkApprovalDispatchUpsert) SetDispatchStatus(v dingtalkapprovaldispatch.DispatchStatus) *DingTalkApprovalDispatchUpsert {
+	u.Set(dingtalkapprovaldispatch.FieldDispatchStatus, v)
+	return u
+}
+
+// UpdateDispatchStatus sets the "dispatch_status" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsert) UpdateDispatchStatus() *DingTalkApprovalDispatchUpsert {
+	u.SetExcluded(dingtalkapprovaldispatch.FieldDispatchStatus)
+	return u
+}
+
+// SetProcessInstanceID sets the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsert) SetProcessInstanceID(v string) *DingTalkApprovalDispatchUpsert {
+	u.Set(dingtalkapprovaldispatch.FieldProcessInstanceID, v)
+	return u
+}
+
+// UpdateProcessInstanceID sets the "process_instance_id" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsert) UpdateProcessInstanceID() *DingTalkApprovalDispatchUpsert {
+	u.SetExcluded(dingtalkapprovaldispatch.FieldProcessInstanceID)
+	return u
+}
+
+// ClearProcessInstanceID clears the value of the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsert) ClearProcessInstanceID() *DingTalkApprovalDispatchUpsert {
+	u.SetNull(dingtalkapprovaldispatch.FieldProcessInstanceID)
+	return u
+}
+
+// SetResponseDigest sets the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsert) SetResponseDigest(v string) *DingTalkApprovalDispatchUpsert {
+	u.Set(dingtalkapprovaldispatch.FieldResponseDigest, v)
+	return u
+}
+
+// UpdateResponseDigest sets the "response_digest" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsert) UpdateResponseDigest() *DingTalkApprovalDispatchUpsert {
+	u.SetExcluded(dingtalkapprovaldispatch.FieldResponseDigest)
+	return u
+}
+
+// ClearResponseDigest clears the value of the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsert) ClearResponseDigest() *DingTalkApprovalDispatchUpsert {
+	u.SetNull(dingtalkapprovaldispatch.FieldResponseDigest)
+	return u
+}
+
+// SetErrorCategory sets the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsert) SetErrorCategory(v string) *DingTalkApprovalDispatchUpsert {
+	u.Set(dingtalkapprovaldispatch.FieldErrorCategory, v)
+	return u
+}
+
+// UpdateErrorCategory sets the "error_category" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsert) UpdateErrorCategory() *DingTalkApprovalDispatchUpsert {
+	u.SetExcluded(dingtalkapprovaldispatch.FieldErrorCategory)
+	return u
+}
+
+// ClearErrorCategory clears the value of the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsert) ClearErrorCategory() *DingTalkApprovalDispatchUpsert {
+	u.SetNull(dingtalkapprovaldispatch.FieldErrorCategory)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dingtalkapprovaldispatch.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateNewValues() *DingTalkApprovalDispatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.BackgroundTaskID(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldBackgroundTaskID)
+		}
+		if _, exists := u.create.mutation.UnlockRequestID(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldUnlockRequestID)
+		}
+		if _, exists := u.create.mutation.ProcessCodeSnapshot(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldProcessCodeSnapshot)
+		}
+		if _, exists := u.create.mutation.ApplicantDingtalkUserid(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldApplicantDingtalkUserid)
+		}
+		if _, exists := u.create.mutation.CandidateDingtalkUserids(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldCandidateDingtalkUserids)
+		}
+		if _, exists := u.create.mutation.RequestPayloadHash(); exists {
+			s.SetIgnore(dingtalkapprovaldispatch.FieldRequestPayloadHash)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *DingTalkApprovalDispatchUpsertOne) Ignore() *DingTalkApprovalDispatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DingTalkApprovalDispatchUpsertOne) DoNothing() *DingTalkApprovalDispatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DingTalkApprovalDispatchCreate.OnConflict
+// documentation for more info.
+func (u *DingTalkApprovalDispatchUpsertOne) Update(set func(*DingTalkApprovalDispatchUpsert)) *DingTalkApprovalDispatchUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DingTalkApprovalDispatchUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DingTalkApprovalDispatchUpsertOne) SetUpdatedAt(v time.Time) *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateUpdatedAt() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDispatchStatus sets the "dispatch_status" field.
+func (u *DingTalkApprovalDispatchUpsertOne) SetDispatchStatus(v dingtalkapprovaldispatch.DispatchStatus) *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetDispatchStatus(v)
+	})
+}
+
+// UpdateDispatchStatus sets the "dispatch_status" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateDispatchStatus() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateDispatchStatus()
+	})
+}
+
+// SetProcessInstanceID sets the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsertOne) SetProcessInstanceID(v string) *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetProcessInstanceID(v)
+	})
+}
+
+// UpdateProcessInstanceID sets the "process_instance_id" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateProcessInstanceID() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateProcessInstanceID()
+	})
+}
+
+// ClearProcessInstanceID clears the value of the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsertOne) ClearProcessInstanceID() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearProcessInstanceID()
+	})
+}
+
+// SetResponseDigest sets the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsertOne) SetResponseDigest(v string) *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetResponseDigest(v)
+	})
+}
+
+// UpdateResponseDigest sets the "response_digest" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateResponseDigest() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateResponseDigest()
+	})
+}
+
+// ClearResponseDigest clears the value of the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsertOne) ClearResponseDigest() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearResponseDigest()
+	})
+}
+
+// SetErrorCategory sets the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsertOne) SetErrorCategory(v string) *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetErrorCategory(v)
+	})
+}
+
+// UpdateErrorCategory sets the "error_category" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertOne) UpdateErrorCategory() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateErrorCategory()
+	})
+}
+
+// ClearErrorCategory clears the value of the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsertOne) ClearErrorCategory() *DingTalkApprovalDispatchUpsertOne {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearErrorCategory()
+	})
+}
+
+// Exec executes the query.
+func (u *DingTalkApprovalDispatchUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DingTalkApprovalDispatchCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DingTalkApprovalDispatchUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *DingTalkApprovalDispatchUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: DingTalkApprovalDispatchUpsertOne.ID is not supported by MySQL driver. Use DingTalkApprovalDispatchUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *DingTalkApprovalDispatchUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // DingTalkApprovalDispatchCreateBulk is the builder for creating many DingTalkApprovalDispatch entities in bulk.
 type DingTalkApprovalDispatchCreateBulk struct {
 	config
 	err      error
 	builders []*DingTalkApprovalDispatchCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the DingTalkApprovalDispatch entities in the database.
@@ -471,6 +804,7 @@ func (_c *DingTalkApprovalDispatchCreateBulk) Save(ctx context.Context) ([]*Ding
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -517,6 +851,235 @@ func (_c *DingTalkApprovalDispatchCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *DingTalkApprovalDispatchCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.DingTalkApprovalDispatch.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.DingTalkApprovalDispatchUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *DingTalkApprovalDispatchCreateBulk) OnConflict(opts ...sql.ConflictOption) *DingTalkApprovalDispatchUpsertBulk {
+	_c.conflict = opts
+	return &DingTalkApprovalDispatchUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *DingTalkApprovalDispatchCreateBulk) OnConflictColumns(columns ...string) *DingTalkApprovalDispatchUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &DingTalkApprovalDispatchUpsertBulk{
+		create: _c,
+	}
+}
+
+// DingTalkApprovalDispatchUpsertBulk is the builder for "upsert"-ing
+// a bulk of DingTalkApprovalDispatch nodes.
+type DingTalkApprovalDispatchUpsertBulk struct {
+	create *DingTalkApprovalDispatchCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(dingtalkapprovaldispatch.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateNewValues() *DingTalkApprovalDispatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.BackgroundTaskID(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldBackgroundTaskID)
+			}
+			if _, exists := b.mutation.UnlockRequestID(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldUnlockRequestID)
+			}
+			if _, exists := b.mutation.ProcessCodeSnapshot(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldProcessCodeSnapshot)
+			}
+			if _, exists := b.mutation.ApplicantDingtalkUserid(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldApplicantDingtalkUserid)
+			}
+			if _, exists := b.mutation.CandidateDingtalkUserids(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldCandidateDingtalkUserids)
+			}
+			if _, exists := b.mutation.RequestPayloadHash(); exists {
+				s.SetIgnore(dingtalkapprovaldispatch.FieldRequestPayloadHash)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.DingTalkApprovalDispatch.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *DingTalkApprovalDispatchUpsertBulk) Ignore() *DingTalkApprovalDispatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *DingTalkApprovalDispatchUpsertBulk) DoNothing() *DingTalkApprovalDispatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the DingTalkApprovalDispatchCreateBulk.OnConflict
+// documentation for more info.
+func (u *DingTalkApprovalDispatchUpsertBulk) Update(set func(*DingTalkApprovalDispatchUpsert)) *DingTalkApprovalDispatchUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&DingTalkApprovalDispatchUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) SetUpdatedAt(v time.Time) *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateUpdatedAt() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDispatchStatus sets the "dispatch_status" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) SetDispatchStatus(v dingtalkapprovaldispatch.DispatchStatus) *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetDispatchStatus(v)
+	})
+}
+
+// UpdateDispatchStatus sets the "dispatch_status" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateDispatchStatus() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateDispatchStatus()
+	})
+}
+
+// SetProcessInstanceID sets the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) SetProcessInstanceID(v string) *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetProcessInstanceID(v)
+	})
+}
+
+// UpdateProcessInstanceID sets the "process_instance_id" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateProcessInstanceID() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateProcessInstanceID()
+	})
+}
+
+// ClearProcessInstanceID clears the value of the "process_instance_id" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) ClearProcessInstanceID() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearProcessInstanceID()
+	})
+}
+
+// SetResponseDigest sets the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) SetResponseDigest(v string) *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetResponseDigest(v)
+	})
+}
+
+// UpdateResponseDigest sets the "response_digest" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateResponseDigest() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateResponseDigest()
+	})
+}
+
+// ClearResponseDigest clears the value of the "response_digest" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) ClearResponseDigest() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearResponseDigest()
+	})
+}
+
+// SetErrorCategory sets the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) SetErrorCategory(v string) *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.SetErrorCategory(v)
+	})
+}
+
+// UpdateErrorCategory sets the "error_category" field to the value that was provided on create.
+func (u *DingTalkApprovalDispatchUpsertBulk) UpdateErrorCategory() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.UpdateErrorCategory()
+	})
+}
+
+// ClearErrorCategory clears the value of the "error_category" field.
+func (u *DingTalkApprovalDispatchUpsertBulk) ClearErrorCategory() *DingTalkApprovalDispatchUpsertBulk {
+	return u.Update(func(s *DingTalkApprovalDispatchUpsert) {
+		s.ClearErrorCategory()
+	})
+}
+
+// Exec executes the query.
+func (u *DingTalkApprovalDispatchUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the DingTalkApprovalDispatchCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for DingTalkApprovalDispatchCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *DingTalkApprovalDispatchUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

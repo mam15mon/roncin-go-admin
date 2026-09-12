@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type EnterpriseResourceAddressCreate struct {
 	config
 	mutation *EnterpriseResourceAddressMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -311,6 +314,7 @@ func (_c *EnterpriseResourceAddressCreate) createSpec() (*EnterpriseResourceAddr
 		_node = &EnterpriseResourceAddress{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresourceaddress.Table, sqlgraph.NewFieldSpec(enterpriseresourceaddress.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -375,11 +379,465 @@ func (_c *EnterpriseResourceAddressCreate) createSpec() (*EnterpriseResourceAddr
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAddressUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAddressUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourceAddressUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressCreate) OnConflictColumns(columns ...string) *EnterpriseResourceAddressUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAddressUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourceAddressUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResourceAddress node.
+	EnterpriseResourceAddressUpsertOne struct {
+		create *EnterpriseResourceAddressCreate
+	}
+
+	// EnterpriseResourceAddressUpsert is the "OnConflict" setter.
+	EnterpriseResourceAddressUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateUpdatedAt() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldUpdatedAt)
+	return u
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsert) SetContactName(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldContactName, v)
+	return u
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateContactName() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldContactName)
+	return u
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsert) ClearContactName() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldContactName)
+	return u
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsert) SetContactPhone(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldContactPhone, v)
+	return u
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateContactPhone() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldContactPhone)
+	return u
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsert) ClearContactPhone() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldContactPhone)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourceAddressUpsert) SetCountryCode(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateCountryCode() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldCountryCode)
+	return u
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *EnterpriseResourceAddressUpsert) SetProvinceCode(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldProvinceCode, v)
+	return u
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateProvinceCode() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldProvinceCode)
+	return u
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *EnterpriseResourceAddressUpsert) ClearProvinceCode() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldProvinceCode)
+	return u
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *EnterpriseResourceAddressUpsert) SetCityCode(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldCityCode, v)
+	return u
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateCityCode() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldCityCode)
+	return u
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *EnterpriseResourceAddressUpsert) ClearCityCode() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldCityCode)
+	return u
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *EnterpriseResourceAddressUpsert) SetDistrictCode(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldDistrictCode, v)
+	return u
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateDistrictCode() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldDistrictCode)
+	return u
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *EnterpriseResourceAddressUpsert) ClearDistrictCode() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldDistrictCode)
+	return u
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *EnterpriseResourceAddressUpsert) SetAddressDetail(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldAddressDetail, v)
+	return u
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateAddressDetail() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldAddressDetail)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourceAddressUpsert) SetRemark(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateRemark() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourceAddressUpsert) ClearRemark() *EnterpriseResourceAddressUpsert {
+	u.SetNull(enterpriseresourceaddress.FieldRemark)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceaddress.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressUpsertOne) UpdateNewValues() *EnterpriseResourceAddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresourceaddress.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresourceaddress.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterpriseresourceaddress.FieldResourceID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourceAddressUpsertOne) Ignore() *EnterpriseResourceAddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAddressUpsertOne) DoNothing() *EnterpriseResourceAddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAddressCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAddressUpsertOne) Update(set func(*EnterpriseResourceAddressUpsert)) *EnterpriseResourceAddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAddressUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateUpdatedAt() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetContactName(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetContactName(v)
+	})
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateContactName() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateContactName()
+	})
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearContactName() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearContactName()
+	})
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetContactPhone(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetContactPhone(v)
+	})
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateContactPhone() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateContactPhone()
+	})
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearContactPhone() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearContactPhone()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetCountryCode(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateCountryCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetProvinceCode(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetProvinceCode(v)
+	})
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateProvinceCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateProvinceCode()
+	})
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearProvinceCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearProvinceCode()
+	})
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetCityCode(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetCityCode(v)
+	})
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateCityCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateCityCode()
+	})
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearCityCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearCityCode()
+	})
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetDistrictCode(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetDistrictCode(v)
+	})
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateDistrictCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateDistrictCode()
+	})
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearDistrictCode() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearDistrictCode()
+	})
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetAddressDetail(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetAddressDetail(v)
+	})
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateAddressDetail() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateAddressDetail()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetRemark(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateRemark() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourceAddressUpsertOne) ClearRemark() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAddressUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAddressCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAddressUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourceAddressUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourceAddressUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourceAddressUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourceAddressUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourceAddressCreateBulk is the builder for creating many EnterpriseResourceAddress entities in bulk.
 type EnterpriseResourceAddressCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourceAddressCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResourceAddress entities in the database.
@@ -409,6 +867,7 @@ func (_c *EnterpriseResourceAddressCreateBulk) Save(ctx context.Context) ([]*Ent
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -455,6 +914,294 @@ func (_c *EnterpriseResourceAddressCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourceAddressCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceAddress.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceAddressUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceAddressUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourceAddressUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceAddressCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourceAddressUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceAddressUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourceAddressUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResourceAddress nodes.
+type EnterpriseResourceAddressUpsertBulk struct {
+	create *EnterpriseResourceAddressCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceaddress.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateNewValues() *EnterpriseResourceAddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresourceaddress.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresourceaddress.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterpriseresourceaddress.FieldResourceID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceAddress.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourceAddressUpsertBulk) Ignore() *EnterpriseResourceAddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceAddressUpsertBulk) DoNothing() *EnterpriseResourceAddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceAddressCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceAddressUpsertBulk) Update(set func(*EnterpriseResourceAddressUpsert)) *EnterpriseResourceAddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceAddressUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetContactName(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetContactName(v)
+	})
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateContactName() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateContactName()
+	})
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearContactName() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearContactName()
+	})
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetContactPhone(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetContactPhone(v)
+	})
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateContactPhone() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateContactPhone()
+	})
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearContactPhone() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearContactPhone()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetCountryCode(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateCountryCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetProvinceCode(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetProvinceCode(v)
+	})
+}
+
+// UpdateProvinceCode sets the "province_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateProvinceCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateProvinceCode()
+	})
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearProvinceCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearProvinceCode()
+	})
+}
+
+// SetCityCode sets the "city_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetCityCode(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetCityCode(v)
+	})
+}
+
+// UpdateCityCode sets the "city_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateCityCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateCityCode()
+	})
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearCityCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearCityCode()
+	})
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetDistrictCode(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetDistrictCode(v)
+	})
+}
+
+// UpdateDistrictCode sets the "district_code" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateDistrictCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateDistrictCode()
+	})
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearDistrictCode() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearDistrictCode()
+	})
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetAddressDetail(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetAddressDetail(v)
+	})
+}
+
+// UpdateAddressDetail sets the "address_detail" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateAddressDetail() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateAddressDetail()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetRemark(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateRemark() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourceAddressUpsertBulk) ClearRemark() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceAddressUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourceAddressCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceAddressCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceAddressUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

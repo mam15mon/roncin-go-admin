@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -26,6 +28,7 @@ type OrderFeeCreate struct {
 	config
 	mutation *OrderFeeMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -696,6 +699,7 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_node = &OrderFee{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderfee.Table, sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -936,11 +940,1128 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderFee.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderFeeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderFeeCreate) OnConflict(opts ...sql.ConflictOption) *OrderFeeUpsertOne {
+	_c.conflict = opts
+	return &OrderFeeUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderFeeCreate) OnConflictColumns(columns ...string) *OrderFeeUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderFeeUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderFeeUpsertOne is the builder for "upsert"-ing
+	//  one OrderFee node.
+	OrderFeeUpsertOne struct {
+		create *OrderFeeCreate
+	}
+
+	// OrderFeeUpsert is the "OnConflict" setter.
+	OrderFeeUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeUpsert) SetUpdatedAt(v time.Time) *OrderFeeUpsert {
+	u.Set(orderfee.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateUpdatedAt() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldUpdatedAt)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderFeeUpsert) SetOrderID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateOrderID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldOrderID)
+	return u
+}
+
+// SetDirection sets the "direction" field.
+func (u *OrderFeeUpsert) SetDirection(v orderfee.Direction) *OrderFeeUpsert {
+	u.Set(orderfee.FieldDirection, v)
+	return u
+}
+
+// UpdateDirection sets the "direction" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateDirection() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldDirection)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderFeeUpsert) SetStatus(v orderfee.Status) *OrderFeeUpsert {
+	u.Set(orderfee.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateStatus() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldStatus)
+	return u
+}
+
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (u *OrderFeeUpsert) SetFeeSettingID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldFeeSettingID, v)
+	return u
+}
+
+// UpdateFeeSettingID sets the "fee_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateFeeSettingID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldFeeSettingID)
+	return u
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (u *OrderFeeUpsert) ClearFeeSettingID() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldFeeSettingID)
+	return u
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *OrderFeeUpsert) SetFeeCode(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldFeeCode, v)
+	return u
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateFeeCode() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldFeeCode)
+	return u
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *OrderFeeUpsert) SetFeeName(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldFeeName, v)
+	return u
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateFeeName() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldFeeName)
+	return u
+}
+
+// SetFeeNameEn sets the "fee_name_en" field.
+func (u *OrderFeeUpsert) SetFeeNameEn(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldFeeNameEn, v)
+	return u
+}
+
+// UpdateFeeNameEn sets the "fee_name_en" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateFeeNameEn() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldFeeNameEn)
+	return u
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (u *OrderFeeUpsert) ClearFeeNameEn() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldFeeNameEn)
+	return u
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (u *OrderFeeUpsert) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldSettlementPartyID, v)
+	return u
+}
+
+// UpdateSettlementPartyID sets the "settlement_party_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateSettlementPartyID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldSettlementPartyID)
+	return u
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *OrderFeeUpsert) SetBillingUnitID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldBillingUnitID, v)
+	return u
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateBillingUnitID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldBillingUnitID)
+	return u
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (u *OrderFeeUpsert) ClearBillingUnitID() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldBillingUnitID)
+	return u
+}
+
+// SetBillingUnit sets the "billing_unit" field.
+func (u *OrderFeeUpsert) SetBillingUnit(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldBillingUnit, v)
+	return u
+}
+
+// UpdateBillingUnit sets the "billing_unit" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateBillingUnit() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldBillingUnit)
+	return u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *OrderFeeUpsert) SetTaxRate(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldTaxRate, v)
+	return u
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateTaxRate() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldTaxRate)
+	return u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *OrderFeeUpsert) ClearTaxRate() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldTaxRate)
+	return u
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (u *OrderFeeUpsert) SetTaxableServiceName(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldTaxableServiceName, v)
+	return u
+}
+
+// UpdateTaxableServiceName sets the "taxable_service_name" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateTaxableServiceName() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldTaxableServiceName)
+	return u
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (u *OrderFeeUpsert) ClearTaxableServiceName() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldTaxableServiceName)
+	return u
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *OrderFeeUpsert) SetQuantity(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldQuantity, v)
+	return u
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateQuantity() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldQuantity)
+	return u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *OrderFeeUpsert) SetUnitPrice(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldUnitPrice, v)
+	return u
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateUnitPrice() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldUnitPrice)
+	return u
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *OrderFeeUpsert) SetTotalAmount(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldTotalAmount, v)
+	return u
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateTotalAmount() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldTotalAmount)
+	return u
+}
+
+// SetTaxInclusive sets the "tax_inclusive" field.
+func (u *OrderFeeUpsert) SetTaxInclusive(v bool) *OrderFeeUpsert {
+	u.Set(orderfee.FieldTaxInclusive, v)
+	return u
+}
+
+// UpdateTaxInclusive sets the "tax_inclusive" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateTaxInclusive() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldTaxInclusive)
+	return u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *OrderFeeUpsert) SetNetAmount(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldNetAmount, v)
+	return u
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateNetAmount() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldNetAmount)
+	return u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *OrderFeeUpsert) SetTaxAmount(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldTaxAmount, v)
+	return u
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateTaxAmount() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldTaxAmount)
+	return u
+}
+
+// SetCurrency sets the "currency" field.
+func (u *OrderFeeUpsert) SetCurrency(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateCurrency() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldCurrency)
+	return u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *OrderFeeUpsert) SetExchangeRate(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldExchangeRate, v)
+	return u
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateExchangeRate() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldExchangeRate)
+	return u
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *OrderFeeUpsert) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeUpsert {
+	u.Set(orderfee.FieldExchangeRateSource, v)
+	return u
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateExchangeRateSource() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldExchangeRateSource)
+	return u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *OrderFeeUpsert) SetExchangeRateDate(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldExchangeRateDate, v)
+	return u
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateExchangeRateDate() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldExchangeRateDate)
+	return u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsert) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldExchangeRateSettingID, v)
+	return u
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateExchangeRateSettingID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldExchangeRateSettingID)
+	return u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsert) ClearExchangeRateSettingID() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldExchangeRateSettingID)
+	return u
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (u *OrderFeeUpsert) SetBaseCurrency(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldBaseCurrency, v)
+	return u
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateBaseCurrency() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldBaseCurrency)
+	return u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *OrderFeeUpsert) SetBaseCurrencyAmount(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldBaseCurrencyAmount, v)
+	return u
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateBaseCurrencyAmount() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldBaseCurrencyAmount)
+	return u
+}
+
+// SetExpenseDate sets the "expense_date" field.
+func (u *OrderFeeUpsert) SetExpenseDate(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldExpenseDate, v)
+	return u
+}
+
+// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateExpenseDate() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldExpenseDate)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *OrderFeeUpsert) SetNote(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateNote() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderFeeUpsert) ClearNote() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderFeeUpsert) SetVersion(v uint64) *OrderFeeUpsert {
+	u.Set(orderfee.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateVersion() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderFeeUpsert) AddVersion(v uint64) *OrderFeeUpsert {
+	u.Add(orderfee.FieldVersion, v)
+	return u
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *OrderFeeUpsert) SetCancelledAt(v time.Time) *OrderFeeUpsert {
+	u.Set(orderfee.FieldCancelledAt, v)
+	return u
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateCancelledAt() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldCancelledAt)
+	return u
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *OrderFeeUpsert) ClearCancelledAt() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldCancelledAt)
+	return u
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *OrderFeeUpsert) SetCancelledBy(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldCancelledBy, v)
+	return u
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateCancelledBy() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldCancelledBy)
+	return u
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *OrderFeeUpsert) ClearCancelledBy() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldCancelledBy)
+	return u
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *OrderFeeUpsert) SetCancellationReason(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldCancellationReason, v)
+	return u
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateCancellationReason() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldCancellationReason)
+	return u
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *OrderFeeUpsert) ClearCancellationReason() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldCancellationReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderfee.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderFeeUpsertOne) UpdateNewValues() *OrderFeeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderfee.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderfee.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(orderfee.FieldIdempotencyKey)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderFeeUpsertOne) Ignore() *OrderFeeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderFeeUpsertOne) DoNothing() *OrderFeeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderFeeCreate.OnConflict
+// documentation for more info.
+func (u *OrderFeeUpsertOne) Update(set func(*OrderFeeUpsert)) *OrderFeeUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderFeeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeUpsertOne) SetUpdatedAt(v time.Time) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateUpdatedAt() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderFeeUpsertOne) SetOrderID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateOrderID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetDirection sets the "direction" field.
+func (u *OrderFeeUpsertOne) SetDirection(v orderfee.Direction) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetDirection(v)
+	})
+}
+
+// UpdateDirection sets the "direction" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateDirection() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateDirection()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderFeeUpsertOne) SetStatus(v orderfee.Status) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateStatus() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (u *OrderFeeUpsertOne) SetFeeSettingID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeSettingID(v)
+	})
+}
+
+// UpdateFeeSettingID sets the "fee_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateFeeSettingID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeSettingID()
+	})
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (u *OrderFeeUpsertOne) ClearFeeSettingID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearFeeSettingID()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *OrderFeeUpsertOne) SetFeeCode(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateFeeCode() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *OrderFeeUpsertOne) SetFeeName(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeName(v)
+	})
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateFeeName() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeName()
+	})
+}
+
+// SetFeeNameEn sets the "fee_name_en" field.
+func (u *OrderFeeUpsertOne) SetFeeNameEn(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeNameEn(v)
+	})
+}
+
+// UpdateFeeNameEn sets the "fee_name_en" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateFeeNameEn() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeNameEn()
+	})
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (u *OrderFeeUpsertOne) ClearFeeNameEn() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearFeeNameEn()
+	})
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (u *OrderFeeUpsertOne) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSettlementPartyID(v)
+	})
+}
+
+// UpdateSettlementPartyID sets the "settlement_party_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateSettlementPartyID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSettlementPartyID()
+	})
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *OrderFeeUpsertOne) SetBillingUnitID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBillingUnitID(v)
+	})
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateBillingUnitID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBillingUnitID()
+	})
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (u *OrderFeeUpsertOne) ClearBillingUnitID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearBillingUnitID()
+	})
+}
+
+// SetBillingUnit sets the "billing_unit" field.
+func (u *OrderFeeUpsertOne) SetBillingUnit(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBillingUnit(v)
+	})
+}
+
+// UpdateBillingUnit sets the "billing_unit" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateBillingUnit() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBillingUnit()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *OrderFeeUpsertOne) SetTaxRate(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateTaxRate() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *OrderFeeUpsertOne) ClearTaxRate() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearTaxRate()
+	})
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (u *OrderFeeUpsertOne) SetTaxableServiceName(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxableServiceName(v)
+	})
+}
+
+// UpdateTaxableServiceName sets the "taxable_service_name" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateTaxableServiceName() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxableServiceName()
+	})
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (u *OrderFeeUpsertOne) ClearTaxableServiceName() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearTaxableServiceName()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *OrderFeeUpsertOne) SetQuantity(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateQuantity() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *OrderFeeUpsertOne) SetUnitPrice(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateUnitPrice() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *OrderFeeUpsertOne) SetTotalAmount(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateTotalAmount() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetTaxInclusive sets the "tax_inclusive" field.
+func (u *OrderFeeUpsertOne) SetTaxInclusive(v bool) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxInclusive(v)
+	})
+}
+
+// UpdateTaxInclusive sets the "tax_inclusive" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateTaxInclusive() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxInclusive()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *OrderFeeUpsertOne) SetNetAmount(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateNetAmount() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *OrderFeeUpsertOne) SetTaxAmount(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateTaxAmount() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *OrderFeeUpsertOne) SetCurrency(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateCurrency() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *OrderFeeUpsertOne) SetExchangeRate(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateExchangeRate() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *OrderFeeUpsertOne) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateSource(v)
+	})
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateExchangeRateSource() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateSource()
+	})
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *OrderFeeUpsertOne) SetExchangeRateDate(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateDate(v)
+	})
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateExchangeRateDate() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateDate()
+	})
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsertOne) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateSettingID(v)
+	})
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateExchangeRateSettingID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateSettingID()
+	})
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsertOne) ClearExchangeRateSettingID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearExchangeRateSettingID()
+	})
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (u *OrderFeeUpsertOne) SetBaseCurrency(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBaseCurrency(v)
+	})
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateBaseCurrency() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBaseCurrency()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *OrderFeeUpsertOne) SetBaseCurrencyAmount(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateBaseCurrencyAmount() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetExpenseDate sets the "expense_date" field.
+func (u *OrderFeeUpsertOne) SetExpenseDate(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExpenseDate(v)
+	})
+}
+
+// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateExpenseDate() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExpenseDate()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderFeeUpsertOne) SetNote(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateNote() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderFeeUpsertOne) ClearNote() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderFeeUpsertOne) SetVersion(v uint64) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderFeeUpsertOne) AddVersion(v uint64) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateVersion() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *OrderFeeUpsertOne) SetCancelledAt(v time.Time) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateCancelledAt() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *OrderFeeUpsertOne) ClearCancelledAt() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *OrderFeeUpsertOne) SetCancelledBy(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateCancelledBy() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *OrderFeeUpsertOne) ClearCancelledBy() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *OrderFeeUpsertOne) SetCancellationReason(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateCancellationReason() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *OrderFeeUpsertOne) ClearCancellationReason() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderFeeUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderFeeCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderFeeUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderFeeUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderFeeUpsertOne.ID is not supported by MySQL driver. Use OrderFeeUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderFeeUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderFeeCreateBulk is the builder for creating many OrderFee entities in bulk.
 type OrderFeeCreateBulk struct {
 	config
 	err      error
 	builders []*OrderFeeCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderFee entities in the database.
@@ -970,6 +2091,7 @@ func (_c *OrderFeeCreateBulk) Save(ctx context.Context) ([]*OrderFee, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1016,6 +2138,651 @@ func (_c *OrderFeeCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderFeeCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderFee.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderFeeUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderFeeCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderFeeUpsertBulk {
+	_c.conflict = opts
+	return &OrderFeeUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderFeeCreateBulk) OnConflictColumns(columns ...string) *OrderFeeUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderFeeUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderFeeUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderFee nodes.
+type OrderFeeUpsertBulk struct {
+	create *OrderFeeCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderfee.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderFeeUpsertBulk) UpdateNewValues() *OrderFeeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderfee.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderfee.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(orderfee.FieldIdempotencyKey)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderFee.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderFeeUpsertBulk) Ignore() *OrderFeeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderFeeUpsertBulk) DoNothing() *OrderFeeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderFeeCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderFeeUpsertBulk) Update(set func(*OrderFeeUpsert)) *OrderFeeUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderFeeUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderFeeUpsertBulk) SetUpdatedAt(v time.Time) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateUpdatedAt() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderFeeUpsertBulk) SetOrderID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateOrderID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetDirection sets the "direction" field.
+func (u *OrderFeeUpsertBulk) SetDirection(v orderfee.Direction) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetDirection(v)
+	})
+}
+
+// UpdateDirection sets the "direction" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateDirection() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateDirection()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderFeeUpsertBulk) SetStatus(v orderfee.Status) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateStatus() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (u *OrderFeeUpsertBulk) SetFeeSettingID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeSettingID(v)
+	})
+}
+
+// UpdateFeeSettingID sets the "fee_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateFeeSettingID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeSettingID()
+	})
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (u *OrderFeeUpsertBulk) ClearFeeSettingID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearFeeSettingID()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *OrderFeeUpsertBulk) SetFeeCode(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateFeeCode() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *OrderFeeUpsertBulk) SetFeeName(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeName(v)
+	})
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateFeeName() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeName()
+	})
+}
+
+// SetFeeNameEn sets the "fee_name_en" field.
+func (u *OrderFeeUpsertBulk) SetFeeNameEn(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetFeeNameEn(v)
+	})
+}
+
+// UpdateFeeNameEn sets the "fee_name_en" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateFeeNameEn() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateFeeNameEn()
+	})
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (u *OrderFeeUpsertBulk) ClearFeeNameEn() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearFeeNameEn()
+	})
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (u *OrderFeeUpsertBulk) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSettlementPartyID(v)
+	})
+}
+
+// UpdateSettlementPartyID sets the "settlement_party_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateSettlementPartyID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSettlementPartyID()
+	})
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (u *OrderFeeUpsertBulk) SetBillingUnitID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBillingUnitID(v)
+	})
+}
+
+// UpdateBillingUnitID sets the "billing_unit_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateBillingUnitID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBillingUnitID()
+	})
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (u *OrderFeeUpsertBulk) ClearBillingUnitID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearBillingUnitID()
+	})
+}
+
+// SetBillingUnit sets the "billing_unit" field.
+func (u *OrderFeeUpsertBulk) SetBillingUnit(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBillingUnit(v)
+	})
+}
+
+// UpdateBillingUnit sets the "billing_unit" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateBillingUnit() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBillingUnit()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *OrderFeeUpsertBulk) SetTaxRate(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateTaxRate() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *OrderFeeUpsertBulk) ClearTaxRate() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearTaxRate()
+	})
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (u *OrderFeeUpsertBulk) SetTaxableServiceName(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxableServiceName(v)
+	})
+}
+
+// UpdateTaxableServiceName sets the "taxable_service_name" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateTaxableServiceName() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxableServiceName()
+	})
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (u *OrderFeeUpsertBulk) ClearTaxableServiceName() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearTaxableServiceName()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *OrderFeeUpsertBulk) SetQuantity(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateQuantity() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *OrderFeeUpsertBulk) SetUnitPrice(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateUnitPrice() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *OrderFeeUpsertBulk) SetTotalAmount(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateTotalAmount() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetTaxInclusive sets the "tax_inclusive" field.
+func (u *OrderFeeUpsertBulk) SetTaxInclusive(v bool) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxInclusive(v)
+	})
+}
+
+// UpdateTaxInclusive sets the "tax_inclusive" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateTaxInclusive() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxInclusive()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *OrderFeeUpsertBulk) SetNetAmount(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateNetAmount() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *OrderFeeUpsertBulk) SetTaxAmount(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateTaxAmount() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *OrderFeeUpsertBulk) SetCurrency(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateCurrency() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *OrderFeeUpsertBulk) SetExchangeRate(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateExchangeRate() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *OrderFeeUpsertBulk) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateSource(v)
+	})
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateExchangeRateSource() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateSource()
+	})
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *OrderFeeUpsertBulk) SetExchangeRateDate(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateDate(v)
+	})
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateExchangeRateDate() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateDate()
+	})
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsertBulk) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExchangeRateSettingID(v)
+	})
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateExchangeRateSettingID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExchangeRateSettingID()
+	})
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *OrderFeeUpsertBulk) ClearExchangeRateSettingID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearExchangeRateSettingID()
+	})
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (u *OrderFeeUpsertBulk) SetBaseCurrency(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBaseCurrency(v)
+	})
+}
+
+// UpdateBaseCurrency sets the "base_currency" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateBaseCurrency() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBaseCurrency()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *OrderFeeUpsertBulk) SetBaseCurrencyAmount(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateBaseCurrencyAmount() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetExpenseDate sets the "expense_date" field.
+func (u *OrderFeeUpsertBulk) SetExpenseDate(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetExpenseDate(v)
+	})
+}
+
+// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateExpenseDate() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateExpenseDate()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderFeeUpsertBulk) SetNote(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateNote() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderFeeUpsertBulk) ClearNote() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderFeeUpsertBulk) SetVersion(v uint64) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderFeeUpsertBulk) AddVersion(v uint64) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateVersion() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *OrderFeeUpsertBulk) SetCancelledAt(v time.Time) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateCancelledAt() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *OrderFeeUpsertBulk) ClearCancelledAt() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *OrderFeeUpsertBulk) SetCancelledBy(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateCancelledBy() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *OrderFeeUpsertBulk) ClearCancelledBy() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *OrderFeeUpsertBulk) SetCancellationReason(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateCancellationReason() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *OrderFeeUpsertBulk) ClearCancellationReason() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderFeeUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderFeeCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderFeeCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderFeeUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

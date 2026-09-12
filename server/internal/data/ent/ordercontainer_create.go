@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type OrderContainerCreate struct {
 	config
 	mutation *OrderContainerMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -311,6 +314,7 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 		_node = &OrderContainer{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ordercontainer.Table, sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -392,11 +396,514 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderContainer.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderContainerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderContainerCreate) OnConflict(opts ...sql.ConflictOption) *OrderContainerUpsertOne {
+	_c.conflict = opts
+	return &OrderContainerUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderContainerCreate) OnConflictColumns(columns ...string) *OrderContainerUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderContainerUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderContainerUpsertOne is the builder for "upsert"-ing
+	//  one OrderContainer node.
+	OrderContainerUpsertOne struct {
+		create *OrderContainerCreate
+	}
+
+	// OrderContainerUpsert is the "OnConflict" setter.
+	OrderContainerUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderContainerUpsert) SetUpdatedAt(v time.Time) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateUpdatedAt() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderContainerUpsert) SetOrganizationID(v uuid.UUID) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateOrganizationID() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldOrganizationID)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderContainerUpsert) SetOrderID(v uuid.UUID) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateOrderID() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldOrderID)
+	return u
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *OrderContainerUpsert) SetContainerNo(v string) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldContainerNo, v)
+	return u
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateContainerNo() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldContainerNo)
+	return u
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *OrderContainerUpsert) SetContainerSpecID(v uuid.UUID) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldContainerSpecID, v)
+	return u
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateContainerSpecID() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldContainerSpecID)
+	return u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *OrderContainerUpsert) SetPackageCount(v int) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldPackageCount, v)
+	return u
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdatePackageCount() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldPackageCount)
+	return u
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *OrderContainerUpsert) AddPackageCount(v int) *OrderContainerUpsert {
+	u.Add(ordercontainer.FieldPackageCount, v)
+	return u
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *OrderContainerUpsert) SetSealNo(v string) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldSealNo, v)
+	return u
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateSealNo() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldSealNo)
+	return u
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *OrderContainerUpsert) ClearSealNo() *OrderContainerUpsert {
+	u.SetNull(ordercontainer.FieldSealNo)
+	return u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *OrderContainerUpsert) SetGrossWeightKg(v float64) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldGrossWeightKg, v)
+	return u
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateGrossWeightKg() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldGrossWeightKg)
+	return u
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *OrderContainerUpsert) AddGrossWeightKg(v float64) *OrderContainerUpsert {
+	u.Add(ordercontainer.FieldGrossWeightKg, v)
+	return u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *OrderContainerUpsert) SetVolumeCbm(v float64) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldVolumeCbm, v)
+	return u
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateVolumeCbm() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldVolumeCbm)
+	return u
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *OrderContainerUpsert) AddVolumeCbm(v float64) *OrderContainerUpsert {
+	u.Add(ordercontainer.FieldVolumeCbm, v)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *OrderContainerUpsert) SetNote(v string) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateNote() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderContainerUpsert) ClearNote() *OrderContainerUpsert {
+	u.SetNull(ordercontainer.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderContainerUpsert) SetVersion(v uint64) *OrderContainerUpsert {
+	u.Set(ordercontainer.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderContainerUpsert) UpdateVersion() *OrderContainerUpsert {
+	u.SetExcluded(ordercontainer.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderContainerUpsert) AddVersion(v uint64) *OrderContainerUpsert {
+	u.Add(ordercontainer.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordercontainer.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderContainerUpsertOne) UpdateNewValues() *OrderContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(ordercontainer.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ordercontainer.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderContainerUpsertOne) Ignore() *OrderContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderContainerUpsertOne) DoNothing() *OrderContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderContainerCreate.OnConflict
+// documentation for more info.
+func (u *OrderContainerUpsertOne) Update(set func(*OrderContainerUpsert)) *OrderContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderContainerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderContainerUpsertOne) SetUpdatedAt(v time.Time) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateUpdatedAt() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderContainerUpsertOne) SetOrganizationID(v uuid.UUID) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateOrganizationID() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderContainerUpsertOne) SetOrderID(v uuid.UUID) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateOrderID() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *OrderContainerUpsertOne) SetContainerNo(v string) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetContainerNo(v)
+	})
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateContainerNo() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateContainerNo()
+	})
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *OrderContainerUpsertOne) SetContainerSpecID(v uuid.UUID) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetContainerSpecID(v)
+	})
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateContainerSpecID() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateContainerSpecID()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *OrderContainerUpsertOne) SetPackageCount(v int) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *OrderContainerUpsertOne) AddPackageCount(v int) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdatePackageCount() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *OrderContainerUpsertOne) SetSealNo(v string) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetSealNo(v)
+	})
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateSealNo() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateSealNo()
+	})
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *OrderContainerUpsertOne) ClearSealNo() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.ClearSealNo()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *OrderContainerUpsertOne) SetGrossWeightKg(v float64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *OrderContainerUpsertOne) AddGrossWeightKg(v float64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateGrossWeightKg() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *OrderContainerUpsertOne) SetVolumeCbm(v float64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *OrderContainerUpsertOne) AddVolumeCbm(v float64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateVolumeCbm() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderContainerUpsertOne) SetNote(v string) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateNote() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderContainerUpsertOne) ClearNote() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderContainerUpsertOne) SetVersion(v uint64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderContainerUpsertOne) AddVersion(v uint64) *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderContainerUpsertOne) UpdateVersion() *OrderContainerUpsertOne {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderContainerUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderContainerCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderContainerUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderContainerUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderContainerUpsertOne.ID is not supported by MySQL driver. Use OrderContainerUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderContainerUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderContainerCreateBulk is the builder for creating many OrderContainer entities in bulk.
 type OrderContainerCreateBulk struct {
 	config
 	err      error
 	builders []*OrderContainerCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderContainer entities in the database.
@@ -426,6 +933,7 @@ func (_c *OrderContainerCreateBulk) Save(ctx context.Context) ([]*OrderContainer
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -472,6 +980,319 @@ func (_c *OrderContainerCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderContainerCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderContainer.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderContainerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderContainerCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderContainerUpsertBulk {
+	_c.conflict = opts
+	return &OrderContainerUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderContainerCreateBulk) OnConflictColumns(columns ...string) *OrderContainerUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderContainerUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderContainerUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderContainer nodes.
+type OrderContainerUpsertBulk struct {
+	create *OrderContainerCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(ordercontainer.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderContainerUpsertBulk) UpdateNewValues() *OrderContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(ordercontainer.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ordercontainer.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderContainer.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderContainerUpsertBulk) Ignore() *OrderContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderContainerUpsertBulk) DoNothing() *OrderContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderContainerCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderContainerUpsertBulk) Update(set func(*OrderContainerUpsert)) *OrderContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderContainerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderContainerUpsertBulk) SetUpdatedAt(v time.Time) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateUpdatedAt() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderContainerUpsertBulk) SetOrganizationID(v uuid.UUID) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateOrganizationID() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *OrderContainerUpsertBulk) SetOrderID(v uuid.UUID) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateOrderID() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *OrderContainerUpsertBulk) SetContainerNo(v string) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetContainerNo(v)
+	})
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateContainerNo() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateContainerNo()
+	})
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *OrderContainerUpsertBulk) SetContainerSpecID(v uuid.UUID) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetContainerSpecID(v)
+	})
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateContainerSpecID() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateContainerSpecID()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *OrderContainerUpsertBulk) SetPackageCount(v int) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *OrderContainerUpsertBulk) AddPackageCount(v int) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdatePackageCount() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *OrderContainerUpsertBulk) SetSealNo(v string) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetSealNo(v)
+	})
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateSealNo() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateSealNo()
+	})
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *OrderContainerUpsertBulk) ClearSealNo() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.ClearSealNo()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *OrderContainerUpsertBulk) SetGrossWeightKg(v float64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *OrderContainerUpsertBulk) AddGrossWeightKg(v float64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateGrossWeightKg() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *OrderContainerUpsertBulk) SetVolumeCbm(v float64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *OrderContainerUpsertBulk) AddVolumeCbm(v float64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateVolumeCbm() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *OrderContainerUpsertBulk) SetNote(v string) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateNote() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *OrderContainerUpsertBulk) ClearNote() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderContainerUpsertBulk) SetVersion(v uint64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderContainerUpsertBulk) AddVersion(v uint64) *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderContainerUpsertBulk) UpdateVersion() *OrderContainerUpsertBulk {
+	return u.Update(func(s *OrderContainerUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderContainerUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderContainerCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderContainerCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderContainerUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

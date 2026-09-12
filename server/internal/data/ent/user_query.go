@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
@@ -38,6 +39,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
@@ -108,6 +110,9 @@ type UserQuery struct {
 	withCreatedSeaTransportExecutionVersions  *SeaTransportExecutionVersionQuery
 	withCreatedSeaDocumentModeChangeEvents    *SeaDocumentModeChangeEventQuery
 	withConfirmedSeaSharedContainers          *SeaSharedContainerQuery
+	withCreatedDingtalkInvitations            *DingTalkInvitationQuery
+	withConsumedDingtalkInvitations           *DingTalkInvitationQuery
+	withDingtalkRequestedOrganization         *OrganizationQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -1223,6 +1228,72 @@ func (_q *UserQuery) QueryConfirmedSeaSharedContainers() *SeaSharedContainerQuer
 	return query
 }
 
+// QueryCreatedDingtalkInvitations chains the current query on the "created_dingtalk_invitations" edge.
+func (_q *UserQuery) QueryCreatedDingtalkInvitations() *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedDingtalkInvitationsTable, user.CreatedDingtalkInvitationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConsumedDingtalkInvitations chains the current query on the "consumed_dingtalk_invitations" edge.
+func (_q *UserQuery) QueryConsumedDingtalkInvitations() *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConsumedDingtalkInvitationsTable, user.ConsumedDingtalkInvitationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDingtalkRequestedOrganization chains the current query on the "dingtalk_requested_organization" edge.
+func (_q *UserQuery) QueryDingtalkRequestedOrganization() *OrganizationQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.DingtalkRequestedOrganizationTable, user.DingtalkRequestedOrganizationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -1464,6 +1535,9 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCreatedSeaTransportExecutionVersions:  _q.withCreatedSeaTransportExecutionVersions.Clone(),
 		withCreatedSeaDocumentModeChangeEvents:    _q.withCreatedSeaDocumentModeChangeEvents.Clone(),
 		withConfirmedSeaSharedContainers:          _q.withConfirmedSeaSharedContainers.Clone(),
+		withCreatedDingtalkInvitations:            _q.withCreatedDingtalkInvitations.Clone(),
+		withConsumedDingtalkInvitations:           _q.withConsumedDingtalkInvitations.Clone(),
+		withDingtalkRequestedOrganization:         _q.withDingtalkRequestedOrganization.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -2009,6 +2083,39 @@ func (_q *UserQuery) WithConfirmedSeaSharedContainers(opts ...func(*SeaSharedCon
 	return _q
 }
 
+// WithCreatedDingtalkInvitations tells the query-builder to eager-load the nodes that are connected to
+// the "created_dingtalk_invitations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedDingtalkInvitations(opts ...func(*DingTalkInvitationQuery)) *UserQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedDingtalkInvitations = query
+	return _q
+}
+
+// WithConsumedDingtalkInvitations tells the query-builder to eager-load the nodes that are connected to
+// the "consumed_dingtalk_invitations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConsumedDingtalkInvitations(opts ...func(*DingTalkInvitationQuery)) *UserQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConsumedDingtalkInvitations = query
+	return _q
+}
+
+// WithDingtalkRequestedOrganization tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_requested_organization" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithDingtalkRequestedOrganization(opts ...func(*OrganizationQuery)) *UserQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkRequestedOrganization = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -2087,7 +2194,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [49]bool{
+		loadedTypes = [52]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2137,6 +2244,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCreatedSeaTransportExecutionVersions != nil,
 			_q.withCreatedSeaDocumentModeChangeEvents != nil,
 			_q.withConfirmedSeaSharedContainers != nil,
+			_q.withCreatedDingtalkInvitations != nil,
+			_q.withConsumedDingtalkInvitations != nil,
+			_q.withDingtalkRequestedOrganization != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2586,6 +2696,30 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User, e *SeaSharedContainer) {
 				n.Edges.ConfirmedSeaSharedContainers = append(n.Edges.ConfirmedSeaSharedContainers, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedDingtalkInvitations; query != nil {
+		if err := _q.loadCreatedDingtalkInvitations(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedDingtalkInvitations = []*DingTalkInvitation{} },
+			func(n *User, e *DingTalkInvitation) {
+				n.Edges.CreatedDingtalkInvitations = append(n.Edges.CreatedDingtalkInvitations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConsumedDingtalkInvitations; query != nil {
+		if err := _q.loadConsumedDingtalkInvitations(ctx, query, nodes,
+			func(n *User) { n.Edges.ConsumedDingtalkInvitations = []*DingTalkInvitation{} },
+			func(n *User, e *DingTalkInvitation) {
+				n.Edges.ConsumedDingtalkInvitations = append(n.Edges.ConsumedDingtalkInvitations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkRequestedOrganization; query != nil {
+		if err := _q.loadDingtalkRequestedOrganization(ctx, query, nodes, nil,
+			func(n *User, e *Organization) { n.Edges.DingtalkRequestedOrganization = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -4155,6 +4289,101 @@ func (_q *UserQuery) loadConfirmedSeaSharedContainers(ctx context.Context, query
 	}
 	return nil
 }
+func (_q *UserQuery) loadCreatedDingtalkInvitations(ctx context.Context, query *DingTalkInvitationQuery, nodes []*User, init func(*User), assign func(*User, *DingTalkInvitation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkinvitation.FieldInvitedBy)
+	}
+	query.Where(predicate.DingTalkInvitation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedDingtalkInvitationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.InvitedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "invited_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConsumedDingtalkInvitations(ctx context.Context, query *DingTalkInvitationQuery, nodes []*User, init func(*User), assign func(*User, *DingTalkInvitation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkinvitation.FieldConsumedBy)
+	}
+	query.Where(predicate.DingTalkInvitation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConsumedDingtalkInvitationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConsumedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "consumed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "consumed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadDingtalkRequestedOrganization(ctx context.Context, query *OrganizationQuery, nodes []*User, init func(*User), assign func(*User, *Organization)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*User)
+	for i := range nodes {
+		if nodes[i].DingtalkRequestedOrganizationID == nil {
+			continue
+		}
+		fk := *nodes[i].DingtalkRequestedOrganizationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(organization.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "dingtalk_requested_organization_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -4183,6 +4412,9 @@ func (_q *UserQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != user.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withDingtalkRequestedOrganization != nil {
+			_spec.Node.AddColumnOnce(user.FieldDingtalkRequestedOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

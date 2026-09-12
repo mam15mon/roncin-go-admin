@@ -145,3 +145,61 @@ func jsonResponse(status int, body string) *http.Response {
 		Body:       io.NopCloser(strings.NewReader(body)),
 	}
 }
+
+// TestDingTalkLookupMobileFailureNeverLeaksAccessToken 回归钉钉令牌日志红线：
+// user/get 请求地址携带 access_token，网络失败时 *url.Error 会把完整地址带进
+// 错误串；LookupMobileByUserID 的失败分支必须丢弃原始错误只回固定文案。
+func TestDingTalkLookupMobileFailureNeverLeaksAccessToken(t *testing.T) {
+	provider := &dingTalkIdentityProvider{
+		enabled:      true,
+		clientID:     "client-id",
+		clientSecret: "client-secret",
+		client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+			if request.URL.Path == "/topapi/user/get" {
+				return nil, &url.Error{Op: "Post", URL: request.URL.String(), Err: io.ErrUnexpectedEOF}
+			}
+			if request.URL.String() == dingTalkAppTokenURL {
+				return jsonResponse(http.StatusOK, `{"accessToken":"app-access-token","expireIn":7200}`), nil
+			}
+			t.Fatalf("非预期钉钉请求: %s", request.URL)
+			return nil, nil
+		})},
+	}
+
+	_, err := provider.LookupMobileByUserID(context.Background(), "ding-user-id")
+	if err == nil {
+		t.Fatal("网络失败应返回错误（由登录链路降级人工审批）")
+	}
+	if strings.Contains(err.Error(), "access_token") || strings.Contains(err.Error(), "app-access-token") {
+		t.Fatalf("失败错误不得携带访问令牌: %v", err)
+	}
+}
+
+func TestDingTalkLookupMobileReturnsDirectoryMobile(t *testing.T) {
+	provider := &dingTalkIdentityProvider{
+		enabled:      true,
+		clientID:     "client-id",
+		clientSecret: "client-secret",
+		client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+			if request.URL.Path == "/topapi/user/get" {
+				if request.URL.Query().Get("access_token") != "app-access-token" {
+					t.Fatal("通讯录点查接口缺少应用访问令牌")
+				}
+				return jsonResponse(http.StatusOK, `{"errcode":0,"errmsg":"ok","result":{"mobile":"+86 138 0013-8000"}}`), nil
+			}
+			if request.URL.String() == dingTalkAppTokenURL {
+				return jsonResponse(http.StatusOK, `{"accessToken":"app-access-token","expireIn":7200}`), nil
+			}
+			t.Fatalf("非预期钉钉请求: %s", request.URL)
+			return nil, nil
+		})},
+	}
+
+	mobile, err := provider.LookupMobileByUserID(context.Background(), " ding-user-id ")
+	if err != nil {
+		t.Fatalf("LookupMobileByUserID() error = %v", err)
+	}
+	if mobile != "+86 138 0013-8000" {
+		t.Fatalf("手机号应原样返回（归一化由 biz 统一处理）: %q", mobile)
+	}
+}

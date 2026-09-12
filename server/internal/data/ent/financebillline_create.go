@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type FinanceBillLineCreate struct {
 	config
 	mutation *FinanceBillLineMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -373,6 +376,7 @@ func (_c *FinanceBillLineCreate) createSpec() (*FinanceBillLine, *sqlgraph.Creat
 		_node = &FinanceBillLine{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financebillline.Table, sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -495,11 +499,516 @@ func (_c *FinanceBillLineCreate) createSpec() (*FinanceBillLine, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceBillLine.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceBillLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceBillLineCreate) OnConflict(opts ...sql.ConflictOption) *FinanceBillLineUpsertOne {
+	_c.conflict = opts
+	return &FinanceBillLineUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceBillLineCreate) OnConflictColumns(columns ...string) *FinanceBillLineUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceBillLineUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceBillLineUpsertOne is the builder for "upsert"-ing
+	//  one FinanceBillLine node.
+	FinanceBillLineUpsertOne struct {
+		create *FinanceBillLineCreate
+	}
+
+	// FinanceBillLineUpsert is the "OnConflict" setter.
+	FinanceBillLineUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceBillLineUpsert) SetUpdatedAt(v time.Time) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateUpdatedAt() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldUpdatedAt)
+	return u
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FinanceBillLineUpsert) SetFeeCode(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldFeeCode, v)
+	return u
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateFeeCode() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldFeeCode)
+	return u
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *FinanceBillLineUpsert) SetFeeName(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldFeeName, v)
+	return u
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateFeeName() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldFeeName)
+	return u
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *FinanceBillLineUpsert) SetQuantity(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldQuantity, v)
+	return u
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateQuantity() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldQuantity)
+	return u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *FinanceBillLineUpsert) SetUnitPrice(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldUnitPrice, v)
+	return u
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateUnitPrice() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldUnitPrice)
+	return u
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceBillLineUpsert) SetTotalAmount(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldTotalAmount, v)
+	return u
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateTotalAmount() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldTotalAmount)
+	return u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceBillLineUpsert) SetNetAmount(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldNetAmount, v)
+	return u
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateNetAmount() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldNetAmount)
+	return u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceBillLineUpsert) SetTaxAmount(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldTaxAmount, v)
+	return u
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateTaxAmount() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldTaxAmount)
+	return u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FinanceBillLineUpsert) SetTaxRate(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldTaxRate, v)
+	return u
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateTaxRate() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldTaxRate)
+	return u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *FinanceBillLineUpsert) ClearTaxRate() *FinanceBillLineUpsert {
+	u.SetNull(financebillline.FieldTaxRate)
+	return u
+}
+
+// SetCurrency sets the "currency" field.
+func (u *FinanceBillLineUpsert) SetCurrency(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldCurrency, v)
+	return u
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateCurrency() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldCurrency)
+	return u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceBillLineUpsert) SetExchangeRate(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldExchangeRate, v)
+	return u
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateExchangeRate() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldExchangeRate)
+	return u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceBillLineUpsert) SetBaseCurrencyAmount(v string) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldBaseCurrencyAmount, v)
+	return u
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateBaseCurrencyAmount() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldBaseCurrencyAmount)
+	return u
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceBillLineUpsert) SetActive(v bool) *FinanceBillLineUpsert {
+	u.Set(financebillline.FieldActive, v)
+	return u
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceBillLineUpsert) UpdateActive() *FinanceBillLineUpsert {
+	u.SetExcluded(financebillline.FieldActive)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financebillline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceBillLineUpsertOne) UpdateNewValues() *FinanceBillLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financebillline.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financebillline.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.BillID(); exists {
+			s.SetIgnore(financebillline.FieldBillID)
+		}
+		if _, exists := u.create.mutation.OrderFeeID(); exists {
+			s.SetIgnore(financebillline.FieldOrderFeeID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(financebillline.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(financebillline.FieldOrderNo)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financebillline.FieldBaseCurrency)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceBillLineUpsertOne) Ignore() *FinanceBillLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceBillLineUpsertOne) DoNothing() *FinanceBillLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceBillLineCreate.OnConflict
+// documentation for more info.
+func (u *FinanceBillLineUpsertOne) Update(set func(*FinanceBillLineUpsert)) *FinanceBillLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceBillLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceBillLineUpsertOne) SetUpdatedAt(v time.Time) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateUpdatedAt() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FinanceBillLineUpsertOne) SetFeeCode(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateFeeCode() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *FinanceBillLineUpsertOne) SetFeeName(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetFeeName(v)
+	})
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateFeeName() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateFeeName()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *FinanceBillLineUpsertOne) SetQuantity(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateQuantity() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *FinanceBillLineUpsertOne) SetUnitPrice(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateUnitPrice() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceBillLineUpsertOne) SetTotalAmount(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateTotalAmount() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceBillLineUpsertOne) SetNetAmount(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateNetAmount() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceBillLineUpsertOne) SetTaxAmount(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateTaxAmount() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FinanceBillLineUpsertOne) SetTaxRate(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateTaxRate() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *FinanceBillLineUpsertOne) ClearTaxRate() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.ClearTaxRate()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *FinanceBillLineUpsertOne) SetCurrency(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateCurrency() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceBillLineUpsertOne) SetExchangeRate(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateExchangeRate() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceBillLineUpsertOne) SetBaseCurrencyAmount(v string) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateBaseCurrencyAmount() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceBillLineUpsertOne) SetActive(v bool) *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertOne) UpdateActive() *FinanceBillLineUpsertOne {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceBillLineUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceBillLineCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceBillLineUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceBillLineUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceBillLineUpsertOne.ID is not supported by MySQL driver. Use FinanceBillLineUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceBillLineUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceBillLineCreateBulk is the builder for creating many FinanceBillLine entities in bulk.
 type FinanceBillLineCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceBillLineCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceBillLine entities in the database.
@@ -529,6 +1038,7 @@ func (_c *FinanceBillLineCreateBulk) Save(ctx context.Context) ([]*FinanceBillLi
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -575,6 +1085,327 @@ func (_c *FinanceBillLineCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceBillLineCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceBillLine.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceBillLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceBillLineCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceBillLineUpsertBulk {
+	_c.conflict = opts
+	return &FinanceBillLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceBillLineCreateBulk) OnConflictColumns(columns ...string) *FinanceBillLineUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceBillLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceBillLineUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceBillLine nodes.
+type FinanceBillLineUpsertBulk struct {
+	create *FinanceBillLineCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financebillline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceBillLineUpsertBulk) UpdateNewValues() *FinanceBillLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financebillline.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financebillline.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.BillID(); exists {
+				s.SetIgnore(financebillline.FieldBillID)
+			}
+			if _, exists := b.mutation.OrderFeeID(); exists {
+				s.SetIgnore(financebillline.FieldOrderFeeID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(financebillline.FieldOrderID)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(financebillline.FieldOrderNo)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financebillline.FieldBaseCurrency)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceBillLine.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceBillLineUpsertBulk) Ignore() *FinanceBillLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceBillLineUpsertBulk) DoNothing() *FinanceBillLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceBillLineCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceBillLineUpsertBulk) Update(set func(*FinanceBillLineUpsert)) *FinanceBillLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceBillLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceBillLineUpsertBulk) SetUpdatedAt(v time.Time) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateUpdatedAt() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (u *FinanceBillLineUpsertBulk) SetFeeCode(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetFeeCode(v)
+	})
+}
+
+// UpdateFeeCode sets the "fee_code" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateFeeCode() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateFeeCode()
+	})
+}
+
+// SetFeeName sets the "fee_name" field.
+func (u *FinanceBillLineUpsertBulk) SetFeeName(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetFeeName(v)
+	})
+}
+
+// UpdateFeeName sets the "fee_name" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateFeeName() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateFeeName()
+	})
+}
+
+// SetQuantity sets the "quantity" field.
+func (u *FinanceBillLineUpsertBulk) SetQuantity(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetQuantity(v)
+	})
+}
+
+// UpdateQuantity sets the "quantity" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateQuantity() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateQuantity()
+	})
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (u *FinanceBillLineUpsertBulk) SetUnitPrice(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetUnitPrice(v)
+	})
+}
+
+// UpdateUnitPrice sets the "unit_price" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateUnitPrice() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateUnitPrice()
+	})
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceBillLineUpsertBulk) SetTotalAmount(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateTotalAmount() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceBillLineUpsertBulk) SetNetAmount(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateNetAmount() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceBillLineUpsertBulk) SetTaxAmount(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateTaxAmount() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (u *FinanceBillLineUpsertBulk) SetTaxRate(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetTaxRate(v)
+	})
+}
+
+// UpdateTaxRate sets the "tax_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateTaxRate() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateTaxRate()
+	})
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (u *FinanceBillLineUpsertBulk) ClearTaxRate() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.ClearTaxRate()
+	})
+}
+
+// SetCurrency sets the "currency" field.
+func (u *FinanceBillLineUpsertBulk) SetCurrency(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetCurrency(v)
+	})
+}
+
+// UpdateCurrency sets the "currency" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateCurrency() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateCurrency()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceBillLineUpsertBulk) SetExchangeRate(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateExchangeRate() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceBillLineUpsertBulk) SetBaseCurrencyAmount(v string) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateBaseCurrencyAmount() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceBillLineUpsertBulk) SetActive(v bool) *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceBillLineUpsertBulk) UpdateActive() *FinanceBillLineUpsertBulk {
+	return u.Update(func(s *FinanceBillLineUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceBillLineUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceBillLineCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceBillLineCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceBillLineUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

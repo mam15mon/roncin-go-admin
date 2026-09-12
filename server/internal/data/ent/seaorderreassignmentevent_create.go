@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -28,6 +30,7 @@ type SeaOrderReassignmentEventCreate struct {
 	config
 	mutation *SeaOrderReassignmentEventMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -514,6 +517,7 @@ func (_c *SeaOrderReassignmentEventCreate) createSpec() (*SeaOrderReassignmentEv
 		_node = &SeaOrderReassignmentEvent{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seaorderreassignmentevent.Table, sqlgraph.NewFieldSpec(seaorderreassignmentevent.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -746,11 +750,228 @@ func (_c *SeaOrderReassignmentEventCreate) createSpec() (*SeaOrderReassignmentEv
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaOrderReassignmentEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaOrderReassignmentEventCreate) OnConflict(opts ...sql.ConflictOption) *SeaOrderReassignmentEventUpsertOne {
+	_c.conflict = opts
+	return &SeaOrderReassignmentEventUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaOrderReassignmentEventCreate) OnConflictColumns(columns ...string) *SeaOrderReassignmentEventUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaOrderReassignmentEventUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaOrderReassignmentEventUpsertOne is the builder for "upsert"-ing
+	//  one SeaOrderReassignmentEvent node.
+	SeaOrderReassignmentEventUpsertOne struct {
+		create *SeaOrderReassignmentEventCreate
+	}
+
+	// SeaOrderReassignmentEventUpsert is the "OnConflict" setter.
+	SeaOrderReassignmentEventUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seaorderreassignmentevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaOrderReassignmentEventUpsertOne) UpdateNewValues() *SeaOrderReassignmentEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldOrderNo)
+		}
+		if _, exists := u.create.mutation.SplitEventID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldSplitEventID)
+		}
+		if _, exists := u.create.mutation.SplitResultID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldSplitResultID)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldRequestFingerprint)
+		}
+		if _, exists := u.create.mutation.PreviousMasterBillID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldPreviousMasterBillID)
+		}
+		if _, exists := u.create.mutation.TargetMasterBillID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldTargetMasterBillID)
+		}
+		if _, exists := u.create.mutation.PreviousTransportExecutionID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldPreviousTransportExecutionID)
+		}
+		if _, exists := u.create.mutation.TargetTransportExecutionID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldTargetTransportExecutionID)
+		}
+		if _, exists := u.create.mutation.PreviousLinkID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldPreviousLinkID)
+		}
+		if _, exists := u.create.mutation.TargetLinkID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldTargetLinkID)
+		}
+		if _, exists := u.create.mutation.PreviousLinkVersion(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldPreviousLinkVersion)
+		}
+		if _, exists := u.create.mutation.TargetLinkVersion(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldTargetLinkVersion)
+		}
+		if _, exists := u.create.mutation.Reason(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldReason)
+		}
+		if _, exists := u.create.mutation.ResponsibilityType(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldResponsibilityType)
+		}
+		if _, exists := u.create.mutation.ResponsiblePartnerID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldResponsiblePartnerID)
+		}
+		if _, exists := u.create.mutation.ResponsiblePartnerName(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldResponsiblePartnerName)
+		}
+		if _, exists := u.create.mutation.BeforeSnapshot(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldBeforeSnapshot)
+		}
+		if _, exists := u.create.mutation.AfterSnapshot(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldAfterSnapshot)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldCreatedBy)
+		}
+		if _, exists := u.create.mutation.ConfirmedByParty(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldConfirmedByParty)
+		}
+		if _, exists := u.create.mutation.ConfirmedAt(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldConfirmedAt)
+		}
+		if _, exists := u.create.mutation.ConfirmationNote(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldConfirmationNote)
+		}
+		if _, exists := u.create.mutation.ConfirmationAttachmentID(); exists {
+			s.SetIgnore(seaorderreassignmentevent.FieldConfirmationAttachmentID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaOrderReassignmentEventUpsertOne) Ignore() *SeaOrderReassignmentEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaOrderReassignmentEventUpsertOne) DoNothing() *SeaOrderReassignmentEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaOrderReassignmentEventCreate.OnConflict
+// documentation for more info.
+func (u *SeaOrderReassignmentEventUpsertOne) Update(set func(*SeaOrderReassignmentEventUpsert)) *SeaOrderReassignmentEventUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaOrderReassignmentEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaOrderReassignmentEventUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaOrderReassignmentEventCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaOrderReassignmentEventUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaOrderReassignmentEventUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaOrderReassignmentEventUpsertOne.ID is not supported by MySQL driver. Use SeaOrderReassignmentEventUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaOrderReassignmentEventUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaOrderReassignmentEventCreateBulk is the builder for creating many SeaOrderReassignmentEvent entities in bulk.
 type SeaOrderReassignmentEventCreateBulk struct {
 	config
 	err      error
 	builders []*SeaOrderReassignmentEventCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaOrderReassignmentEvent entities in the database.
@@ -780,6 +1001,7 @@ func (_c *SeaOrderReassignmentEventCreateBulk) Save(ctx context.Context) ([]*Sea
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -826,6 +1048,201 @@ func (_c *SeaOrderReassignmentEventCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaOrderReassignmentEventCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaOrderReassignmentEvent.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaOrderReassignmentEventUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaOrderReassignmentEventCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaOrderReassignmentEventUpsertBulk {
+	_c.conflict = opts
+	return &SeaOrderReassignmentEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaOrderReassignmentEventCreateBulk) OnConflictColumns(columns ...string) *SeaOrderReassignmentEventUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaOrderReassignmentEventUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaOrderReassignmentEventUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaOrderReassignmentEvent nodes.
+type SeaOrderReassignmentEventUpsertBulk struct {
+	create *SeaOrderReassignmentEventCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seaorderreassignmentevent.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaOrderReassignmentEventUpsertBulk) UpdateNewValues() *SeaOrderReassignmentEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldOrderID)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldOrderNo)
+			}
+			if _, exists := b.mutation.SplitEventID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldSplitEventID)
+			}
+			if _, exists := b.mutation.SplitResultID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldSplitResultID)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldRequestFingerprint)
+			}
+			if _, exists := b.mutation.PreviousMasterBillID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldPreviousMasterBillID)
+			}
+			if _, exists := b.mutation.TargetMasterBillID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldTargetMasterBillID)
+			}
+			if _, exists := b.mutation.PreviousTransportExecutionID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldPreviousTransportExecutionID)
+			}
+			if _, exists := b.mutation.TargetTransportExecutionID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldTargetTransportExecutionID)
+			}
+			if _, exists := b.mutation.PreviousLinkID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldPreviousLinkID)
+			}
+			if _, exists := b.mutation.TargetLinkID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldTargetLinkID)
+			}
+			if _, exists := b.mutation.PreviousLinkVersion(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldPreviousLinkVersion)
+			}
+			if _, exists := b.mutation.TargetLinkVersion(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldTargetLinkVersion)
+			}
+			if _, exists := b.mutation.Reason(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldReason)
+			}
+			if _, exists := b.mutation.ResponsibilityType(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldResponsibilityType)
+			}
+			if _, exists := b.mutation.ResponsiblePartnerID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldResponsiblePartnerID)
+			}
+			if _, exists := b.mutation.ResponsiblePartnerName(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldResponsiblePartnerName)
+			}
+			if _, exists := b.mutation.BeforeSnapshot(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldBeforeSnapshot)
+			}
+			if _, exists := b.mutation.AfterSnapshot(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldAfterSnapshot)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldCreatedBy)
+			}
+			if _, exists := b.mutation.ConfirmedByParty(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldConfirmedByParty)
+			}
+			if _, exists := b.mutation.ConfirmedAt(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldConfirmedAt)
+			}
+			if _, exists := b.mutation.ConfirmationNote(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldConfirmationNote)
+			}
+			if _, exists := b.mutation.ConfirmationAttachmentID(); exists {
+				s.SetIgnore(seaorderreassignmentevent.FieldConfirmationAttachmentID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaOrderReassignmentEvent.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaOrderReassignmentEventUpsertBulk) Ignore() *SeaOrderReassignmentEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaOrderReassignmentEventUpsertBulk) DoNothing() *SeaOrderReassignmentEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaOrderReassignmentEventCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaOrderReassignmentEventUpsertBulk) Update(set func(*SeaOrderReassignmentEventUpsert)) *SeaOrderReassignmentEventUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaOrderReassignmentEventUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaOrderReassignmentEventUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaOrderReassignmentEventCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaOrderReassignmentEventCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaOrderReassignmentEventUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

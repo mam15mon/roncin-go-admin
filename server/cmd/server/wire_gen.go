@@ -57,7 +57,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		cleanup()
 		return nil, nil, err
 	}
-	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, weComIdentityProvider, dingTalkIdentityProvider, dingTalkRegistrationTokenCodec)
+	dingTalkRegistrationRepo := data.NewDingTalkRegistrationRepo(dataData)
+	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, weComIdentityProvider, dingTalkIdentityProvider, dingTalkRegistrationTokenCodec, dingTalkRegistrationRepo, dingTalkIdentityProvider, logger)
 	authService := service.NewAuthService(authUsecase, sessionPolicy)
 	partnerRepo := data.NewPartnerRepo(dataData)
 	partnerUsecase := biz.NewPartnerUsecase(partnerRepo)
@@ -76,7 +77,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	partnerService := service.NewPartnerService(partnerUsecase, partnerAccountUsecase, partnerContractUsecase, partnerSettlementRuleUsecase, partnerAttachmentUsecase, partnerShippingPresetUsecase, partnerInvoiceProfileUsecase)
 	adminRepo := data.NewAdminRepo(dataData)
 	adminUsecase := biz.NewAdminUsecase(adminRepo)
-	adminService := service.NewAdminService(adminUsecase)
+	dingTalkRegistrationUsecase := biz.NewDingTalkRegistrationUsecase(dingTalkRegistrationRepo)
+	adminService := service.NewAdminService(adminUsecase, dingTalkRegistrationUsecase)
 	masterDataRepo := data.NewMasterDataRepo(dataData)
 	masterDataUsecase := biz.NewMasterDataUsecase(masterDataRepo)
 	industryReferenceRepo := data.NewIndustryReferenceRepo(dataData)

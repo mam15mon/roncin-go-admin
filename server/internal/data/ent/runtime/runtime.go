@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -1010,6 +1011,51 @@ func init() {
 	dingtalkapprovalinboxeventDescID := dingtalkapprovalinboxeventMixinFields0[0].Descriptor()
 	// dingtalkapprovalinboxevent.DefaultID holds the default value on creation for the id field.
 	dingtalkapprovalinboxevent.DefaultID = dingtalkapprovalinboxeventDescID.Default.(func() uuid.UUID)
+	dingtalkinvitationMixin := schema.DingTalkInvitation{}.Mixin()
+	dingtalkinvitationMixinFields0 := dingtalkinvitationMixin[0].Fields()
+	_ = dingtalkinvitationMixinFields0
+	dingtalkinvitationMixinFields1 := dingtalkinvitationMixin[1].Fields()
+	_ = dingtalkinvitationMixinFields1
+	dingtalkinvitationFields := schema.DingTalkInvitation{}.Fields()
+	_ = dingtalkinvitationFields
+	// dingtalkinvitationDescCreatedAt is the schema descriptor for created_at field.
+	dingtalkinvitationDescCreatedAt := dingtalkinvitationMixinFields1[0].Descriptor()
+	// dingtalkinvitation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dingtalkinvitation.DefaultCreatedAt = dingtalkinvitationDescCreatedAt.Default.(func() time.Time)
+	// dingtalkinvitationDescUpdatedAt is the schema descriptor for updated_at field.
+	dingtalkinvitationDescUpdatedAt := dingtalkinvitationMixinFields1[1].Descriptor()
+	// dingtalkinvitation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dingtalkinvitation.DefaultUpdatedAt = dingtalkinvitationDescUpdatedAt.Default.(func() time.Time)
+	// dingtalkinvitation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dingtalkinvitation.UpdateDefaultUpdatedAt = dingtalkinvitationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// dingtalkinvitationDescMobile is the schema descriptor for mobile field.
+	dingtalkinvitationDescMobile := dingtalkinvitationFields[2].Descriptor()
+	// dingtalkinvitation.MobileValidator is a validator for the "mobile" field. It is called by the builders before save.
+	dingtalkinvitation.MobileValidator = func() func(string) error {
+		validators := dingtalkinvitationDescMobile.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mobile string) error {
+			for _, fn := range fns {
+				if err := fn(mobile); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// dingtalkinvitationDescDisplayName is the schema descriptor for display_name field.
+	dingtalkinvitationDescDisplayName := dingtalkinvitationFields[3].Descriptor()
+	// dingtalkinvitation.DefaultDisplayName holds the default value on creation for the display_name field.
+	dingtalkinvitation.DefaultDisplayName = dingtalkinvitationDescDisplayName.Default.(string)
+	// dingtalkinvitation.DisplayNameValidator is a validator for the "display_name" field. It is called by the builders before save.
+	dingtalkinvitation.DisplayNameValidator = dingtalkinvitationDescDisplayName.Validators[0].(func(string) error)
+	// dingtalkinvitationDescID is the schema descriptor for id field.
+	dingtalkinvitationDescID := dingtalkinvitationMixinFields0[0].Descriptor()
+	// dingtalkinvitation.DefaultID holds the default value on creation for the id field.
+	dingtalkinvitation.DefaultID = dingtalkinvitationDescID.Default.(func() uuid.UUID)
 	enterpriseresourceMixin := schema.EnterpriseResource{}.Mixin()
 	enterpriseresourceHooks := schema.EnterpriseResource{}.Hooks()
 	enterpriseresource.Hooks[0] = enterpriseresourceHooks[0]
@@ -8469,15 +8515,15 @@ func init() {
 	// user.DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
 	user.DingtalkNameValidator = userDescDingtalkName.Validators[0].(func(string) error)
 	// userDescIsBootstrapAdmin is the schema descriptor for is_bootstrap_admin field.
-	userDescIsBootstrapAdmin := userFields[10].Descriptor()
+	userDescIsBootstrapAdmin := userFields[11].Descriptor()
 	// user.DefaultIsBootstrapAdmin holds the default value on creation for the is_bootstrap_admin field.
 	user.DefaultIsBootstrapAdmin = userDescIsBootstrapAdmin.Default.(bool)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[11].Descriptor()
+	userDescEnabled := userFields[12].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescSearchKeywords is the schema descriptor for search_keywords field.
-	userDescSearchKeywords := userFields[12].Descriptor()
+	userDescSearchKeywords := userFields[13].Descriptor()
 	// user.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	user.DefaultSearchKeywords = userDescSearchKeywords.Default.(string)
 	// userDescID is the schema descriptor for id field.

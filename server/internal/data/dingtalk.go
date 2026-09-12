@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	dingTalkAuthorizeURL = "https://login.dingtalk.com/oauth2/auth"
-	dingTalkTokenURL     = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
-	dingTalkProfileURL   = "https://api.dingtalk.com/v1.0/contact/users/me"
-	dingTalkAppTokenURL  = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
-	dingTalkUserIDURL    = "https://oapi.dingtalk.com/topapi/user/getbyunionid"
-	dingTalkRobotURL     = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
+	dingTalkAuthorizeURL  = "https://login.dingtalk.com/oauth2/auth"
+	dingTalkTokenURL      = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
+	dingTalkProfileURL    = "https://api.dingtalk.com/v1.0/contact/users/me"
+	dingTalkAppTokenURL   = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
+	dingTalkUserIDURL     = "https://oapi.dingtalk.com/topapi/user/getbyunionid"
+	dingTalkUserDetailURL = "https://oapi.dingtalk.com/topapi/user/get"
+	dingTalkRobotURL      = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
 )
 
 type dingTalkTokenResponse struct {
@@ -48,6 +49,14 @@ type dingTalkUserIDResponse struct {
 	ErrorMessage string `json:"errmsg"`
 	Result       struct {
 		UserID string `json:"userid"`
+	} `json:"result"`
+}
+
+type dingTalkUserDetailResponse struct {
+	ErrorCode    int    `json:"errcode"`
+	ErrorMessage string `json:"errmsg"`
+	Result       struct {
+		Mobile string `json:"mobile"`
 	} `json:"result"`
 }
 
@@ -163,6 +172,38 @@ func (p *dingTalkIdentityProvider) resolveEnterpriseUserID(ctx context.Context, 
 	return userID, nil
 }
 
+// LookupMobileByUserID 用企业通讯录 access token 按 userId 点查成员手机号，
+// 与 unionid → userid 转换共用同一 token 获取路径，不建通讯录全量同步。
+// 接口不可用、成员不在可见范围或手机号为空（个人隐私设置）都返回错误，
+// 由调用方降级人工审批通道；调用链中禁止把该错误透出给登录用户。
+// 错误范式与 resolveEnterpriseUserID 一致：失败分支只返回固定文案、不包装
+// 原始错误——请求 URL 携带 access_token，*url.Error 会把完整地址（含令牌）
+// 带进上层日志，禁止以 %w 形式上抛。
+func (p *dingTalkIdentityProvider) LookupMobileByUserID(ctx context.Context, dingTalkUserID string) (string, error) {
+	userID := strings.TrimSpace(dingTalkUserID)
+	if !p.enabled || userID == "" {
+		return "", fmt.Errorf("钉钉通讯录手机号查询未启用")
+	}
+	accessToken, err := p.enterpriseAccessToken(ctx)
+	if err != nil {
+		return "", fmt.Errorf("获取钉钉企业访问令牌失败")
+	}
+	endpoint := dingTalkUserDetailURL + "?access_token=" + url.QueryEscape(accessToken)
+	var response dingTalkUserDetailResponse
+	status, err := p.requestJSON(ctx, http.MethodPost, endpoint, map[string]string{"userid": userID}, "", &response)
+	if err != nil {
+		return "", fmt.Errorf("查询钉钉通讯录成员失败")
+	}
+	if status == http.StatusForbidden || response.ErrorCode != 0 {
+		return "", fmt.Errorf("钉钉通讯录成员查询被拒绝（errcode=%d）", response.ErrorCode)
+	}
+	mobile := strings.TrimSpace(response.Result.Mobile)
+	if mobile == "" {
+		return "", fmt.Errorf("钉钉通讯录成员未登记手机号")
+	}
+	return mobile, nil
+}
+
 func (p *dingTalkIdentityProvider) enterpriseAccessToken(ctx context.Context) (string, error) {
 	p.tokenMu.Lock()
 	defer p.tokenMu.Unlock()
@@ -260,3 +301,4 @@ func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endp
 
 var _ biz.DingTalkIdentityProvider = (*dingTalkIdentityProvider)(nil)
 var _ biz.DingTalkNotificationSender = (*dingTalkIdentityProvider)(nil)
+var _ biz.DingTalkDirectoryLookup = (*dingTalkIdentityProvider)(nil)

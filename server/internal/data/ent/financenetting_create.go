@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type FinanceNettingCreate struct {
 	config
 	mutation *FinanceNettingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -605,6 +608,7 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 		_node = &FinanceNetting{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financenetting.Table, sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -826,11 +830,631 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceNetting.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceNettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceNettingCreate) OnConflict(opts ...sql.ConflictOption) *FinanceNettingUpsertOne {
+	_c.conflict = opts
+	return &FinanceNettingUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceNettingCreate) OnConflictColumns(columns ...string) *FinanceNettingUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceNettingUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceNettingUpsertOne is the builder for "upsert"-ing
+	//  one FinanceNetting node.
+	FinanceNettingUpsertOne struct {
+		create *FinanceNettingCreate
+	}
+
+	// FinanceNettingUpsert is the "OnConflict" setter.
+	FinanceNettingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingUpsert) SetUpdatedAt(v time.Time) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateUpdatedAt() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceNettingUpsert) SetStatus(v financenetting.Status) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateStatus() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldStatus)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceNettingUpsert) SetNote(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateNote() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceNettingUpsert) ClearNote() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceNettingUpsert) SetVersion(v uint64) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateVersion() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceNettingUpsert) AddVersion(v uint64) *FinanceNettingUpsert {
+	u.Add(financenetting.FieldVersion, v)
+	return u
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceNettingUpsert) SetConfirmedAt(v time.Time) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldConfirmedAt, v)
+	return u
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateConfirmedAt() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldConfirmedAt)
+	return u
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceNettingUpsert) ClearConfirmedAt() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldConfirmedAt)
+	return u
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceNettingUpsert) SetConfirmedBy(v uuid.UUID) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldConfirmedBy, v)
+	return u
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateConfirmedBy() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldConfirmedBy)
+	return u
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceNettingUpsert) ClearConfirmedBy() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldConfirmedBy)
+	return u
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceNettingUpsert) SetCancelledAt(v time.Time) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldCancelledAt, v)
+	return u
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateCancelledAt() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldCancelledAt)
+	return u
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceNettingUpsert) ClearCancelledAt() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldCancelledAt)
+	return u
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceNettingUpsert) SetCancelledBy(v uuid.UUID) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldCancelledBy, v)
+	return u
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateCancelledBy() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldCancelledBy)
+	return u
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceNettingUpsert) ClearCancelledBy() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldCancelledBy)
+	return u
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceNettingUpsert) SetCancellationReason(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldCancellationReason, v)
+	return u
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateCancellationReason() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldCancellationReason)
+	return u
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceNettingUpsert) ClearCancellationReason() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldCancellationReason)
+	return u
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceNettingUpsert) SetReversedAt(v time.Time) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldReversedAt, v)
+	return u
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateReversedAt() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldReversedAt)
+	return u
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceNettingUpsert) ClearReversedAt() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldReversedAt)
+	return u
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceNettingUpsert) SetReversedBy(v uuid.UUID) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldReversedBy, v)
+	return u
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateReversedBy() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldReversedBy)
+	return u
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceNettingUpsert) ClearReversedBy() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldReversedBy)
+	return u
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceNettingUpsert) SetReversalReason(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldReversalReason, v)
+	return u
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateReversalReason() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldReversalReason)
+	return u
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceNettingUpsert) ClearReversalReason() *FinanceNettingUpsert {
+	u.SetNull(financenetting.FieldReversalReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financenetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceNettingUpsertOne) UpdateNewValues() *FinanceNettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financenetting.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financenetting.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financenetting.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.NettingNo(); exists {
+			s.SetIgnore(financenetting.FieldNettingNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(financenetting.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestHash(); exists {
+			s.SetIgnore(financenetting.FieldRequestHash)
+		}
+		if _, exists := u.create.mutation.BatchID(); exists {
+			s.SetIgnore(financenetting.FieldBatchID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyID(); exists {
+			s.SetIgnore(financenetting.FieldSettlementPartyID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyName(); exists {
+			s.SetIgnore(financenetting.FieldSettlementPartyName)
+		}
+		if _, exists := u.create.mutation.Currency(); exists {
+			s.SetIgnore(financenetting.FieldCurrency)
+		}
+		if _, exists := u.create.mutation.Amount(); exists {
+			s.SetIgnore(financenetting.FieldAmount)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financenetting.FieldBaseCurrency)
+		}
+		if _, exists := u.create.mutation.BaseCurrencyAmount(); exists {
+			s.SetIgnore(financenetting.FieldBaseCurrencyAmount)
+		}
+		if _, exists := u.create.mutation.PayableBaseAmount(); exists {
+			s.SetIgnore(financenetting.FieldPayableBaseAmount)
+		}
+		if _, exists := u.create.mutation.ExchangeGainLoss(); exists {
+			s.SetIgnore(financenetting.FieldExchangeGainLoss)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceNettingUpsertOne) Ignore() *FinanceNettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceNettingUpsertOne) DoNothing() *FinanceNettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceNettingCreate.OnConflict
+// documentation for more info.
+func (u *FinanceNettingUpsertOne) Update(set func(*FinanceNettingUpsert)) *FinanceNettingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceNettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingUpsertOne) SetUpdatedAt(v time.Time) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateUpdatedAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceNettingUpsertOne) SetStatus(v financenetting.Status) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateStatus() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceNettingUpsertOne) SetNote(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateNote() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceNettingUpsertOne) ClearNote() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceNettingUpsertOne) SetVersion(v uint64) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceNettingUpsertOne) AddVersion(v uint64) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateVersion() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceNettingUpsertOne) SetConfirmedAt(v time.Time) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateConfirmedAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceNettingUpsertOne) ClearConfirmedAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceNettingUpsertOne) SetConfirmedBy(v uuid.UUID) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateConfirmedBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceNettingUpsertOne) ClearConfirmedBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceNettingUpsertOne) SetCancelledAt(v time.Time) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateCancelledAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceNettingUpsertOne) ClearCancelledAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceNettingUpsertOne) SetCancelledBy(v uuid.UUID) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateCancelledBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceNettingUpsertOne) ClearCancelledBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceNettingUpsertOne) SetCancellationReason(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateCancellationReason() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceNettingUpsertOne) ClearCancellationReason() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceNettingUpsertOne) SetReversedAt(v time.Time) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversedAt(v)
+	})
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateReversedAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversedAt()
+	})
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceNettingUpsertOne) ClearReversedAt() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversedAt()
+	})
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceNettingUpsertOne) SetReversedBy(v uuid.UUID) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversedBy(v)
+	})
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateReversedBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversedBy()
+	})
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceNettingUpsertOne) ClearReversedBy() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversedBy()
+	})
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceNettingUpsertOne) SetReversalReason(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversalReason(v)
+	})
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateReversalReason() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversalReason()
+	})
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceNettingUpsertOne) ClearReversalReason() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversalReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceNettingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceNettingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceNettingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceNettingUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceNettingUpsertOne.ID is not supported by MySQL driver. Use FinanceNettingUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceNettingUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceNettingCreateBulk is the builder for creating many FinanceNetting entities in bulk.
 type FinanceNettingCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceNettingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceNetting entities in the database.
@@ -860,6 +1484,7 @@ func (_c *FinanceNettingCreateBulk) Save(ctx context.Context) ([]*FinanceNetting
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -906,6 +1531,400 @@ func (_c *FinanceNettingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceNettingCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceNetting.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceNettingUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceNettingCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceNettingUpsertBulk {
+	_c.conflict = opts
+	return &FinanceNettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceNettingCreateBulk) OnConflictColumns(columns ...string) *FinanceNettingUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceNettingUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceNettingUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceNetting nodes.
+type FinanceNettingUpsertBulk struct {
+	create *FinanceNettingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financenetting.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceNettingUpsertBulk) UpdateNewValues() *FinanceNettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financenetting.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financenetting.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financenetting.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.NettingNo(); exists {
+				s.SetIgnore(financenetting.FieldNettingNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(financenetting.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestHash(); exists {
+				s.SetIgnore(financenetting.FieldRequestHash)
+			}
+			if _, exists := b.mutation.BatchID(); exists {
+				s.SetIgnore(financenetting.FieldBatchID)
+			}
+			if _, exists := b.mutation.SettlementPartyID(); exists {
+				s.SetIgnore(financenetting.FieldSettlementPartyID)
+			}
+			if _, exists := b.mutation.SettlementPartyName(); exists {
+				s.SetIgnore(financenetting.FieldSettlementPartyName)
+			}
+			if _, exists := b.mutation.Currency(); exists {
+				s.SetIgnore(financenetting.FieldCurrency)
+			}
+			if _, exists := b.mutation.Amount(); exists {
+				s.SetIgnore(financenetting.FieldAmount)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financenetting.FieldBaseCurrency)
+			}
+			if _, exists := b.mutation.BaseCurrencyAmount(); exists {
+				s.SetIgnore(financenetting.FieldBaseCurrencyAmount)
+			}
+			if _, exists := b.mutation.PayableBaseAmount(); exists {
+				s.SetIgnore(financenetting.FieldPayableBaseAmount)
+			}
+			if _, exists := b.mutation.ExchangeGainLoss(); exists {
+				s.SetIgnore(financenetting.FieldExchangeGainLoss)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNetting.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceNettingUpsertBulk) Ignore() *FinanceNettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceNettingUpsertBulk) DoNothing() *FinanceNettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceNettingCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceNettingUpsertBulk) Update(set func(*FinanceNettingUpsert)) *FinanceNettingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceNettingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingUpsertBulk) SetUpdatedAt(v time.Time) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateUpdatedAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceNettingUpsertBulk) SetStatus(v financenetting.Status) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateStatus() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceNettingUpsertBulk) SetNote(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateNote() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceNettingUpsertBulk) ClearNote() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceNettingUpsertBulk) SetVersion(v uint64) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceNettingUpsertBulk) AddVersion(v uint64) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateVersion() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceNettingUpsertBulk) SetConfirmedAt(v time.Time) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateConfirmedAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceNettingUpsertBulk) ClearConfirmedAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceNettingUpsertBulk) SetConfirmedBy(v uuid.UUID) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateConfirmedBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceNettingUpsertBulk) ClearConfirmedBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceNettingUpsertBulk) SetCancelledAt(v time.Time) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateCancelledAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceNettingUpsertBulk) ClearCancelledAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceNettingUpsertBulk) SetCancelledBy(v uuid.UUID) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateCancelledBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceNettingUpsertBulk) ClearCancelledBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceNettingUpsertBulk) SetCancellationReason(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateCancellationReason() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceNettingUpsertBulk) ClearCancellationReason() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (u *FinanceNettingUpsertBulk) SetReversedAt(v time.Time) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversedAt(v)
+	})
+}
+
+// UpdateReversedAt sets the "reversed_at" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateReversedAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversedAt()
+	})
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (u *FinanceNettingUpsertBulk) ClearReversedAt() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversedAt()
+	})
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (u *FinanceNettingUpsertBulk) SetReversedBy(v uuid.UUID) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversedBy(v)
+	})
+}
+
+// UpdateReversedBy sets the "reversed_by" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateReversedBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversedBy()
+	})
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (u *FinanceNettingUpsertBulk) ClearReversedBy() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversedBy()
+	})
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (u *FinanceNettingUpsertBulk) SetReversalReason(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetReversalReason(v)
+	})
+}
+
+// UpdateReversalReason sets the "reversal_reason" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateReversalReason() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateReversalReason()
+	})
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (u *FinanceNettingUpsertBulk) ClearReversalReason() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.ClearReversalReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceNettingUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceNettingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceNettingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceNettingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

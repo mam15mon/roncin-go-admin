@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type LoginRateLimitBucketCreate struct {
 	config
 	mutation *LoginRateLimitBucketMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -188,6 +191,7 @@ func (_c *LoginRateLimitBucketCreate) createSpec() (*LoginRateLimitBucket, *sqlg
 		_node = &LoginRateLimitBucket{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(loginratelimitbucket.Table, sqlgraph.NewFieldSpec(loginratelimitbucket.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -215,11 +219,267 @@ func (_c *LoginRateLimitBucketCreate) createSpec() (*LoginRateLimitBucket, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.LoginRateLimitBucket.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.LoginRateLimitBucketUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *LoginRateLimitBucketCreate) OnConflict(opts ...sql.ConflictOption) *LoginRateLimitBucketUpsertOne {
+	_c.conflict = opts
+	return &LoginRateLimitBucketUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *LoginRateLimitBucketCreate) OnConflictColumns(columns ...string) *LoginRateLimitBucketUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &LoginRateLimitBucketUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// LoginRateLimitBucketUpsertOne is the builder for "upsert"-ing
+	//  one LoginRateLimitBucket node.
+	LoginRateLimitBucketUpsertOne struct {
+		create *LoginRateLimitBucketCreate
+	}
+
+	// LoginRateLimitBucketUpsert is the "OnConflict" setter.
+	LoginRateLimitBucketUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *LoginRateLimitBucketUpsert) SetUpdatedAt(v time.Time) *LoginRateLimitBucketUpsert {
+	u.Set(loginratelimitbucket.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsert) UpdateUpdatedAt() *LoginRateLimitBucketUpsert {
+	u.SetExcluded(loginratelimitbucket.FieldUpdatedAt)
+	return u
+}
+
+// SetKeyHash sets the "key_hash" field.
+func (u *LoginRateLimitBucketUpsert) SetKeyHash(v string) *LoginRateLimitBucketUpsert {
+	u.Set(loginratelimitbucket.FieldKeyHash, v)
+	return u
+}
+
+// UpdateKeyHash sets the "key_hash" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsert) UpdateKeyHash() *LoginRateLimitBucketUpsert {
+	u.SetExcluded(loginratelimitbucket.FieldKeyHash)
+	return u
+}
+
+// SetWindowStartedAt sets the "window_started_at" field.
+func (u *LoginRateLimitBucketUpsert) SetWindowStartedAt(v time.Time) *LoginRateLimitBucketUpsert {
+	u.Set(loginratelimitbucket.FieldWindowStartedAt, v)
+	return u
+}
+
+// UpdateWindowStartedAt sets the "window_started_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsert) UpdateWindowStartedAt() *LoginRateLimitBucketUpsert {
+	u.SetExcluded(loginratelimitbucket.FieldWindowStartedAt)
+	return u
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *LoginRateLimitBucketUpsert) SetAttempts(v int) *LoginRateLimitBucketUpsert {
+	u.Set(loginratelimitbucket.FieldAttempts, v)
+	return u
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsert) UpdateAttempts() *LoginRateLimitBucketUpsert {
+	u.SetExcluded(loginratelimitbucket.FieldAttempts)
+	return u
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *LoginRateLimitBucketUpsert) AddAttempts(v int) *LoginRateLimitBucketUpsert {
+	u.Add(loginratelimitbucket.FieldAttempts, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(loginratelimitbucket.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *LoginRateLimitBucketUpsertOne) UpdateNewValues() *LoginRateLimitBucketUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(loginratelimitbucket.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(loginratelimitbucket.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *LoginRateLimitBucketUpsertOne) Ignore() *LoginRateLimitBucketUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *LoginRateLimitBucketUpsertOne) DoNothing() *LoginRateLimitBucketUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the LoginRateLimitBucketCreate.OnConflict
+// documentation for more info.
+func (u *LoginRateLimitBucketUpsertOne) Update(set func(*LoginRateLimitBucketUpsert)) *LoginRateLimitBucketUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&LoginRateLimitBucketUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *LoginRateLimitBucketUpsertOne) SetUpdatedAt(v time.Time) *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertOne) UpdateUpdatedAt() *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetKeyHash sets the "key_hash" field.
+func (u *LoginRateLimitBucketUpsertOne) SetKeyHash(v string) *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetKeyHash(v)
+	})
+}
+
+// UpdateKeyHash sets the "key_hash" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertOne) UpdateKeyHash() *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateKeyHash()
+	})
+}
+
+// SetWindowStartedAt sets the "window_started_at" field.
+func (u *LoginRateLimitBucketUpsertOne) SetWindowStartedAt(v time.Time) *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetWindowStartedAt(v)
+	})
+}
+
+// UpdateWindowStartedAt sets the "window_started_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertOne) UpdateWindowStartedAt() *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateWindowStartedAt()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *LoginRateLimitBucketUpsertOne) SetAttempts(v int) *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *LoginRateLimitBucketUpsertOne) AddAttempts(v int) *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertOne) UpdateAttempts() *LoginRateLimitBucketUpsertOne {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// Exec executes the query.
+func (u *LoginRateLimitBucketUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for LoginRateLimitBucketCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *LoginRateLimitBucketUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *LoginRateLimitBucketUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: LoginRateLimitBucketUpsertOne.ID is not supported by MySQL driver. Use LoginRateLimitBucketUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *LoginRateLimitBucketUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // LoginRateLimitBucketCreateBulk is the builder for creating many LoginRateLimitBucket entities in bulk.
 type LoginRateLimitBucketCreateBulk struct {
 	config
 	err      error
 	builders []*LoginRateLimitBucketCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the LoginRateLimitBucket entities in the database.
@@ -249,6 +509,7 @@ func (_c *LoginRateLimitBucketCreateBulk) Save(ctx context.Context) ([]*LoginRat
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -295,6 +556,186 @@ func (_c *LoginRateLimitBucketCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *LoginRateLimitBucketCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.LoginRateLimitBucket.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.LoginRateLimitBucketUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *LoginRateLimitBucketCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginRateLimitBucketUpsertBulk {
+	_c.conflict = opts
+	return &LoginRateLimitBucketUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *LoginRateLimitBucketCreateBulk) OnConflictColumns(columns ...string) *LoginRateLimitBucketUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &LoginRateLimitBucketUpsertBulk{
+		create: _c,
+	}
+}
+
+// LoginRateLimitBucketUpsertBulk is the builder for "upsert"-ing
+// a bulk of LoginRateLimitBucket nodes.
+type LoginRateLimitBucketUpsertBulk struct {
+	create *LoginRateLimitBucketCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(loginratelimitbucket.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *LoginRateLimitBucketUpsertBulk) UpdateNewValues() *LoginRateLimitBucketUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(loginratelimitbucket.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(loginratelimitbucket.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.LoginRateLimitBucket.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *LoginRateLimitBucketUpsertBulk) Ignore() *LoginRateLimitBucketUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *LoginRateLimitBucketUpsertBulk) DoNothing() *LoginRateLimitBucketUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the LoginRateLimitBucketCreateBulk.OnConflict
+// documentation for more info.
+func (u *LoginRateLimitBucketUpsertBulk) Update(set func(*LoginRateLimitBucketUpsert)) *LoginRateLimitBucketUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&LoginRateLimitBucketUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *LoginRateLimitBucketUpsertBulk) SetUpdatedAt(v time.Time) *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertBulk) UpdateUpdatedAt() *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetKeyHash sets the "key_hash" field.
+func (u *LoginRateLimitBucketUpsertBulk) SetKeyHash(v string) *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetKeyHash(v)
+	})
+}
+
+// UpdateKeyHash sets the "key_hash" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertBulk) UpdateKeyHash() *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateKeyHash()
+	})
+}
+
+// SetWindowStartedAt sets the "window_started_at" field.
+func (u *LoginRateLimitBucketUpsertBulk) SetWindowStartedAt(v time.Time) *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetWindowStartedAt(v)
+	})
+}
+
+// UpdateWindowStartedAt sets the "window_started_at" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertBulk) UpdateWindowStartedAt() *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateWindowStartedAt()
+	})
+}
+
+// SetAttempts sets the "attempts" field.
+func (u *LoginRateLimitBucketUpsertBulk) SetAttempts(v int) *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.SetAttempts(v)
+	})
+}
+
+// AddAttempts adds v to the "attempts" field.
+func (u *LoginRateLimitBucketUpsertBulk) AddAttempts(v int) *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.AddAttempts(v)
+	})
+}
+
+// UpdateAttempts sets the "attempts" field to the value that was provided on create.
+func (u *LoginRateLimitBucketUpsertBulk) UpdateAttempts() *LoginRateLimitBucketUpsertBulk {
+	return u.Update(func(s *LoginRateLimitBucketUpsert) {
+		s.UpdateAttempts()
+	})
+}
+
+// Exec executes the query.
+func (u *LoginRateLimitBucketUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LoginRateLimitBucketCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for LoginRateLimitBucketCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *LoginRateLimitBucketUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

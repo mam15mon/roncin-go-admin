@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type FinanceNettingAllocationCreate struct {
 	config
 	mutation *FinanceNettingAllocationMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -254,6 +257,7 @@ func (_c *FinanceNettingAllocationCreate) createSpec() (*FinanceNettingAllocatio
 		_node = &FinanceNettingAllocation{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financenettingallocation.Table, sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -323,11 +327,220 @@ func (_c *FinanceNettingAllocationCreate) createSpec() (*FinanceNettingAllocatio
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceNettingAllocation.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceNettingAllocationUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceNettingAllocationCreate) OnConflict(opts ...sql.ConflictOption) *FinanceNettingAllocationUpsertOne {
+	_c.conflict = opts
+	return &FinanceNettingAllocationUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceNettingAllocationCreate) OnConflictColumns(columns ...string) *FinanceNettingAllocationUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceNettingAllocationUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceNettingAllocationUpsertOne is the builder for "upsert"-ing
+	//  one FinanceNettingAllocation node.
+	FinanceNettingAllocationUpsertOne struct {
+		create *FinanceNettingAllocationCreate
+	}
+
+	// FinanceNettingAllocationUpsert is the "OnConflict" setter.
+	FinanceNettingAllocationUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingAllocationUpsert) SetUpdatedAt(v time.Time) *FinanceNettingAllocationUpsert {
+	u.Set(financenettingallocation.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsert) UpdateUpdatedAt() *FinanceNettingAllocationUpsert {
+	u.SetExcluded(financenettingallocation.FieldUpdatedAt)
+	return u
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceNettingAllocationUpsert) SetActive(v bool) *FinanceNettingAllocationUpsert {
+	u.Set(financenettingallocation.FieldActive, v)
+	return u
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsert) UpdateActive() *FinanceNettingAllocationUpsert {
+	u.SetExcluded(financenettingallocation.FieldActive)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financenettingallocation.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceNettingAllocationUpsertOne) UpdateNewValues() *FinanceNettingAllocationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financenettingallocation.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financenettingallocation.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.NettingID(); exists {
+			s.SetIgnore(financenettingallocation.FieldNettingID)
+		}
+		if _, exists := u.create.mutation.BillID(); exists {
+			s.SetIgnore(financenettingallocation.FieldBillID)
+		}
+		if _, exists := u.create.mutation.BillNo(); exists {
+			s.SetIgnore(financenettingallocation.FieldBillNo)
+		}
+		if _, exists := u.create.mutation.Direction(); exists {
+			s.SetIgnore(financenettingallocation.FieldDirection)
+		}
+		if _, exists := u.create.mutation.Amount(); exists {
+			s.SetIgnore(financenettingallocation.FieldAmount)
+		}
+		if _, exists := u.create.mutation.BaseCurrencyAmount(); exists {
+			s.SetIgnore(financenettingallocation.FieldBaseCurrencyAmount)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceNettingAllocationUpsertOne) Ignore() *FinanceNettingAllocationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceNettingAllocationUpsertOne) DoNothing() *FinanceNettingAllocationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceNettingAllocationCreate.OnConflict
+// documentation for more info.
+func (u *FinanceNettingAllocationUpsertOne) Update(set func(*FinanceNettingAllocationUpsert)) *FinanceNettingAllocationUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceNettingAllocationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingAllocationUpsertOne) SetUpdatedAt(v time.Time) *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertOne) UpdateUpdatedAt() *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceNettingAllocationUpsertOne) SetActive(v bool) *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertOne) UpdateActive() *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceNettingAllocationUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceNettingAllocationCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceNettingAllocationUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceNettingAllocationUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceNettingAllocationUpsertOne.ID is not supported by MySQL driver. Use FinanceNettingAllocationUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceNettingAllocationUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceNettingAllocationCreateBulk is the builder for creating many FinanceNettingAllocation entities in bulk.
 type FinanceNettingAllocationCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceNettingAllocationCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceNettingAllocation entities in the database.
@@ -357,6 +570,7 @@ func (_c *FinanceNettingAllocationCreateBulk) Save(ctx context.Context) ([]*Fina
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -403,6 +617,169 @@ func (_c *FinanceNettingAllocationCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceNettingAllocationCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceNettingAllocation.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceNettingAllocationUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceNettingAllocationCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceNettingAllocationUpsertBulk {
+	_c.conflict = opts
+	return &FinanceNettingAllocationUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceNettingAllocationCreateBulk) OnConflictColumns(columns ...string) *FinanceNettingAllocationUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceNettingAllocationUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceNettingAllocationUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceNettingAllocation nodes.
+type FinanceNettingAllocationUpsertBulk struct {
+	create *FinanceNettingAllocationCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financenettingallocation.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceNettingAllocationUpsertBulk) UpdateNewValues() *FinanceNettingAllocationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financenettingallocation.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financenettingallocation.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.NettingID(); exists {
+				s.SetIgnore(financenettingallocation.FieldNettingID)
+			}
+			if _, exists := b.mutation.BillID(); exists {
+				s.SetIgnore(financenettingallocation.FieldBillID)
+			}
+			if _, exists := b.mutation.BillNo(); exists {
+				s.SetIgnore(financenettingallocation.FieldBillNo)
+			}
+			if _, exists := b.mutation.Direction(); exists {
+				s.SetIgnore(financenettingallocation.FieldDirection)
+			}
+			if _, exists := b.mutation.Amount(); exists {
+				s.SetIgnore(financenettingallocation.FieldAmount)
+			}
+			if _, exists := b.mutation.BaseCurrencyAmount(); exists {
+				s.SetIgnore(financenettingallocation.FieldBaseCurrencyAmount)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceNettingAllocation.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceNettingAllocationUpsertBulk) Ignore() *FinanceNettingAllocationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceNettingAllocationUpsertBulk) DoNothing() *FinanceNettingAllocationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceNettingAllocationCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceNettingAllocationUpsertBulk) Update(set func(*FinanceNettingAllocationUpsert)) *FinanceNettingAllocationUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceNettingAllocationUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceNettingAllocationUpsertBulk) SetUpdatedAt(v time.Time) *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertBulk) UpdateUpdatedAt() *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FinanceNettingAllocationUpsertBulk) SetActive(v bool) *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertBulk) UpdateActive() *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceNettingAllocationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceNettingAllocationCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceNettingAllocationCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceNettingAllocationUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

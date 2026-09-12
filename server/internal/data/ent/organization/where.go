@@ -1932,6 +1932,52 @@ func HasSeaSharedContainerAllocationsWith(preds ...predicate.SeaSharedContainerA
 	})
 }
 
+// HasDingtalkInvitations applies the HasEdge predicate on the "dingtalk_invitations" edge.
+func HasDingtalkInvitations() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DingtalkInvitationsTable, DingtalkInvitationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkInvitationsWith applies the HasEdge predicate on the "dingtalk_invitations" edge with a given conditions (other predicates).
+func HasDingtalkInvitationsWith(preds ...predicate.DingTalkInvitation) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newDingtalkInvitationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDingtalkRegistrationRequests applies the HasEdge predicate on the "dingtalk_registration_requests" edge.
+func HasDingtalkRegistrationRequests() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DingtalkRegistrationRequestsTable, DingtalkRegistrationRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkRegistrationRequestsWith applies the HasEdge predicate on the "dingtalk_registration_requests" edge with a given conditions (other predicates).
+func HasDingtalkRegistrationRequestsWith(preds ...predicate.User) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newDingtalkRegistrationRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
@@ -74,6 +75,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrganizationQuery is the builder for querying Organization entities.
@@ -145,6 +147,8 @@ type OrganizationQuery struct {
 	withSeaDocumentModeChangeEvents   *SeaDocumentModeChangeEventQuery
 	withSeaSharedContainers           *SeaSharedContainerQuery
 	withSeaSharedContainerAllocations *SeaSharedContainerAllocationQuery
+	withDingtalkInvitations           *DingTalkInvitationQuery
+	withDingtalkRegistrationRequests  *UserQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -1546,6 +1550,50 @@ func (_q *OrganizationQuery) QuerySeaSharedContainerAllocations() *SeaSharedCont
 	return query
 }
 
+// QueryDingtalkInvitations chains the current query on the "dingtalk_invitations" edge.
+func (_q *OrganizationQuery) QueryDingtalkInvitations() *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkInvitationsTable, organization.DingtalkInvitationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDingtalkRegistrationRequests chains the current query on the "dingtalk_registration_requests" edge.
+func (_q *OrganizationQuery) QueryDingtalkRegistrationRequests() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkRegistrationRequestsTable, organization.DingtalkRegistrationRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -1800,6 +1848,8 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withSeaDocumentModeChangeEvents:   _q.withSeaDocumentModeChangeEvents.Clone(),
 		withSeaSharedContainers:           _q.withSeaSharedContainers.Clone(),
 		withSeaSharedContainerAllocations: _q.withSeaSharedContainerAllocations.Clone(),
+		withDingtalkInvitations:           _q.withDingtalkInvitations.Clone(),
+		withDingtalkRegistrationRequests:  _q.withDingtalkRegistrationRequests.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -2488,6 +2538,28 @@ func (_q *OrganizationQuery) WithSeaSharedContainerAllocations(opts ...func(*Sea
 	return _q
 }
 
+// WithDingtalkInvitations tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_invitations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithDingtalkInvitations(opts ...func(*DingTalkInvitationQuery)) *OrganizationQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkInvitations = query
+	return _q
+}
+
+// WithDingtalkRegistrationRequests tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_registration_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithDingtalkRegistrationRequests(opts ...func(*UserQuery)) *OrganizationQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkRegistrationRequests = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -2566,7 +2638,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [62]bool{
+		loadedTypes = [64]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2629,6 +2701,8 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSeaDocumentModeChangeEvents != nil,
 			_q.withSeaSharedContainers != nil,
 			_q.withSeaSharedContainerAllocations != nil,
+			_q.withDingtalkInvitations != nil,
+			_q.withDingtalkRegistrationRequests != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -3155,6 +3229,24 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.SeaSharedContainerAllocations = []*SeaSharedContainerAllocation{} },
 			func(n *Organization, e *SeaSharedContainerAllocation) {
 				n.Edges.SeaSharedContainerAllocations = append(n.Edges.SeaSharedContainerAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkInvitations; query != nil {
+		if err := _q.loadDingtalkInvitations(ctx, query, nodes,
+			func(n *Organization) { n.Edges.DingtalkInvitations = []*DingTalkInvitation{} },
+			func(n *Organization, e *DingTalkInvitation) {
+				n.Edges.DingtalkInvitations = append(n.Edges.DingtalkInvitations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkRegistrationRequests; query != nil {
+		if err := _q.loadDingtalkRegistrationRequests(ctx, query, nodes,
+			func(n *Organization) { n.Edges.DingtalkRegistrationRequests = []*User{} },
+			func(n *Organization, e *User) {
+				n.Edges.DingtalkRegistrationRequests = append(n.Edges.DingtalkRegistrationRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -5028,6 +5120,69 @@ func (_q *OrganizationQuery) loadSeaSharedContainerAllocations(ctx context.Conte
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadDingtalkInvitations(ctx context.Context, query *DingTalkInvitationQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *DingTalkInvitation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkinvitation.FieldOrganizationID)
+	}
+	query.Where(predicate.DingTalkInvitation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.DingtalkInvitationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadDingtalkRegistrationRequests(ctx context.Context, query *UserQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(user.FieldDingtalkRequestedOrganizationID)
+	}
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.DingtalkRegistrationRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DingtalkRequestedOrganizationID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "dingtalk_requested_organization_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "dingtalk_requested_organization_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type NumberRuleCreate struct {
 	config
 	mutation *NumberRuleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -312,6 +315,7 @@ func (_c *NumberRuleCreate) createSpec() (*NumberRule, *sqlgraph.CreateSpec) {
 		_node = &NumberRule{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(numberrule.Table, sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -384,11 +388,371 @@ func (_c *NumberRuleCreate) createSpec() (*NumberRule, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NumberRule.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NumberRuleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NumberRuleCreate) OnConflict(opts ...sql.ConflictOption) *NumberRuleUpsertOne {
+	_c.conflict = opts
+	return &NumberRuleUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NumberRuleCreate) OnConflictColumns(columns ...string) *NumberRuleUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NumberRuleUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// NumberRuleUpsertOne is the builder for "upsert"-ing
+	//  one NumberRule node.
+	NumberRuleUpsertOne struct {
+		create *NumberRuleCreate
+	}
+
+	// NumberRuleUpsert is the "OnConflict" setter.
+	NumberRuleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberRuleUpsert) SetUpdatedAt(v time.Time) *NumberRuleUpsert {
+	u.Set(numberrule.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateUpdatedAt() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *NumberRuleUpsert) SetOrganizationID(v uuid.UUID) *NumberRuleUpsert {
+	u.Set(numberrule.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateOrganizationID() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldOrganizationID)
+	return u
+}
+
+// SetDocumentType sets the "document_type" field.
+func (u *NumberRuleUpsert) SetDocumentType(v numberrule.DocumentType) *NumberRuleUpsert {
+	u.Set(numberrule.FieldDocumentType, v)
+	return u
+}
+
+// UpdateDocumentType sets the "document_type" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateDocumentType() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldDocumentType)
+	return u
+}
+
+// SetPrefix sets the "prefix" field.
+func (u *NumberRuleUpsert) SetPrefix(v string) *NumberRuleUpsert {
+	u.Set(numberrule.FieldPrefix, v)
+	return u
+}
+
+// UpdatePrefix sets the "prefix" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdatePrefix() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldPrefix)
+	return u
+}
+
+// SetDateFormat sets the "date_format" field.
+func (u *NumberRuleUpsert) SetDateFormat(v numberrule.DateFormat) *NumberRuleUpsert {
+	u.Set(numberrule.FieldDateFormat, v)
+	return u
+}
+
+// UpdateDateFormat sets the "date_format" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateDateFormat() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldDateFormat)
+	return u
+}
+
+// SetSequenceLength sets the "sequence_length" field.
+func (u *NumberRuleUpsert) SetSequenceLength(v int) *NumberRuleUpsert {
+	u.Set(numberrule.FieldSequenceLength, v)
+	return u
+}
+
+// UpdateSequenceLength sets the "sequence_length" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateSequenceLength() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldSequenceLength)
+	return u
+}
+
+// AddSequenceLength adds v to the "sequence_length" field.
+func (u *NumberRuleUpsert) AddSequenceLength(v int) *NumberRuleUpsert {
+	u.Add(numberrule.FieldSequenceLength, v)
+	return u
+}
+
+// SetResetPolicy sets the "reset_policy" field.
+func (u *NumberRuleUpsert) SetResetPolicy(v numberrule.ResetPolicy) *NumberRuleUpsert {
+	u.Set(numberrule.FieldResetPolicy, v)
+	return u
+}
+
+// UpdateResetPolicy sets the "reset_policy" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateResetPolicy() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldResetPolicy)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *NumberRuleUpsert) SetEnabled(v bool) *NumberRuleUpsert {
+	u.Set(numberrule.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *NumberRuleUpsert) UpdateEnabled() *NumberRuleUpsert {
+	u.SetExcluded(numberrule.FieldEnabled)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(numberrule.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NumberRuleUpsertOne) UpdateNewValues() *NumberRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(numberrule.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(numberrule.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *NumberRuleUpsertOne) Ignore() *NumberRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NumberRuleUpsertOne) DoNothing() *NumberRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NumberRuleCreate.OnConflict
+// documentation for more info.
+func (u *NumberRuleUpsertOne) Update(set func(*NumberRuleUpsert)) *NumberRuleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NumberRuleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberRuleUpsertOne) SetUpdatedAt(v time.Time) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateUpdatedAt() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *NumberRuleUpsertOne) SetOrganizationID(v uuid.UUID) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateOrganizationID() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetDocumentType sets the "document_type" field.
+func (u *NumberRuleUpsertOne) SetDocumentType(v numberrule.DocumentType) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetDocumentType(v)
+	})
+}
+
+// UpdateDocumentType sets the "document_type" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateDocumentType() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateDocumentType()
+	})
+}
+
+// SetPrefix sets the "prefix" field.
+func (u *NumberRuleUpsertOne) SetPrefix(v string) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetPrefix(v)
+	})
+}
+
+// UpdatePrefix sets the "prefix" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdatePrefix() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdatePrefix()
+	})
+}
+
+// SetDateFormat sets the "date_format" field.
+func (u *NumberRuleUpsertOne) SetDateFormat(v numberrule.DateFormat) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetDateFormat(v)
+	})
+}
+
+// UpdateDateFormat sets the "date_format" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateDateFormat() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateDateFormat()
+	})
+}
+
+// SetSequenceLength sets the "sequence_length" field.
+func (u *NumberRuleUpsertOne) SetSequenceLength(v int) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetSequenceLength(v)
+	})
+}
+
+// AddSequenceLength adds v to the "sequence_length" field.
+func (u *NumberRuleUpsertOne) AddSequenceLength(v int) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.AddSequenceLength(v)
+	})
+}
+
+// UpdateSequenceLength sets the "sequence_length" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateSequenceLength() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateSequenceLength()
+	})
+}
+
+// SetResetPolicy sets the "reset_policy" field.
+func (u *NumberRuleUpsertOne) SetResetPolicy(v numberrule.ResetPolicy) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetResetPolicy(v)
+	})
+}
+
+// UpdateResetPolicy sets the "reset_policy" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateResetPolicy() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateResetPolicy()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *NumberRuleUpsertOne) SetEnabled(v bool) *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *NumberRuleUpsertOne) UpdateEnabled() *NumberRuleUpsertOne {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// Exec executes the query.
+func (u *NumberRuleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NumberRuleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NumberRuleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *NumberRuleUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: NumberRuleUpsertOne.ID is not supported by MySQL driver. Use NumberRuleUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *NumberRuleUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // NumberRuleCreateBulk is the builder for creating many NumberRule entities in bulk.
 type NumberRuleCreateBulk struct {
 	config
 	err      error
 	builders []*NumberRuleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the NumberRule entities in the database.
@@ -418,6 +782,7 @@ func (_c *NumberRuleCreateBulk) Save(ctx context.Context) ([]*NumberRule, error)
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -464,6 +829,242 @@ func (_c *NumberRuleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *NumberRuleCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NumberRule.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NumberRuleUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NumberRuleCreateBulk) OnConflict(opts ...sql.ConflictOption) *NumberRuleUpsertBulk {
+	_c.conflict = opts
+	return &NumberRuleUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NumberRuleCreateBulk) OnConflictColumns(columns ...string) *NumberRuleUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NumberRuleUpsertBulk{
+		create: _c,
+	}
+}
+
+// NumberRuleUpsertBulk is the builder for "upsert"-ing
+// a bulk of NumberRule nodes.
+type NumberRuleUpsertBulk struct {
+	create *NumberRuleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(numberrule.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NumberRuleUpsertBulk) UpdateNewValues() *NumberRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(numberrule.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(numberrule.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NumberRule.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *NumberRuleUpsertBulk) Ignore() *NumberRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NumberRuleUpsertBulk) DoNothing() *NumberRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NumberRuleCreateBulk.OnConflict
+// documentation for more info.
+func (u *NumberRuleUpsertBulk) Update(set func(*NumberRuleUpsert)) *NumberRuleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NumberRuleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NumberRuleUpsertBulk) SetUpdatedAt(v time.Time) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateUpdatedAt() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *NumberRuleUpsertBulk) SetOrganizationID(v uuid.UUID) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateOrganizationID() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetDocumentType sets the "document_type" field.
+func (u *NumberRuleUpsertBulk) SetDocumentType(v numberrule.DocumentType) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetDocumentType(v)
+	})
+}
+
+// UpdateDocumentType sets the "document_type" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateDocumentType() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateDocumentType()
+	})
+}
+
+// SetPrefix sets the "prefix" field.
+func (u *NumberRuleUpsertBulk) SetPrefix(v string) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetPrefix(v)
+	})
+}
+
+// UpdatePrefix sets the "prefix" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdatePrefix() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdatePrefix()
+	})
+}
+
+// SetDateFormat sets the "date_format" field.
+func (u *NumberRuleUpsertBulk) SetDateFormat(v numberrule.DateFormat) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetDateFormat(v)
+	})
+}
+
+// UpdateDateFormat sets the "date_format" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateDateFormat() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateDateFormat()
+	})
+}
+
+// SetSequenceLength sets the "sequence_length" field.
+func (u *NumberRuleUpsertBulk) SetSequenceLength(v int) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetSequenceLength(v)
+	})
+}
+
+// AddSequenceLength adds v to the "sequence_length" field.
+func (u *NumberRuleUpsertBulk) AddSequenceLength(v int) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.AddSequenceLength(v)
+	})
+}
+
+// UpdateSequenceLength sets the "sequence_length" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateSequenceLength() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateSequenceLength()
+	})
+}
+
+// SetResetPolicy sets the "reset_policy" field.
+func (u *NumberRuleUpsertBulk) SetResetPolicy(v numberrule.ResetPolicy) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetResetPolicy(v)
+	})
+}
+
+// UpdateResetPolicy sets the "reset_policy" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateResetPolicy() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateResetPolicy()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *NumberRuleUpsertBulk) SetEnabled(v bool) *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *NumberRuleUpsertBulk) UpdateEnabled() *NumberRuleUpsertBulk {
+	return u.Update(func(s *NumberRuleUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// Exec executes the query.
+func (u *NumberRuleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NumberRuleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NumberRuleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NumberRuleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

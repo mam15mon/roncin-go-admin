@@ -117,6 +117,18 @@ func (f DingTalkApprovalInboxEventFunc) Mutate(ctx context.Context, m ent.Mutati
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkApprovalInboxEventMutation", m)
 }
 
+// The DingTalkInvitationFunc type is an adapter to allow the use of ordinary
+// function as DingTalkInvitation mutator.
+type DingTalkInvitationFunc func(context.Context, *ent.DingTalkInvitationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DingTalkInvitationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DingTalkInvitationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkInvitationMutation", m)
+}
+
 // The EnterpriseResourceFunc type is an adapter to allow the use of ordinary
 // function as EnterpriseResource mutator.
 type EnterpriseResourceFunc func(context.Context, *ent.EnterpriseResourceMutation) (ent.Value, error)

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type MasterDataItemCreate struct {
 	config
 	mutation *MasterDataItemMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -414,6 +417,7 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 		_node = &MasterDataItem{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(masterdataitem.Table, sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -522,11 +526,517 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.MasterDataItem.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.MasterDataItemUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *MasterDataItemCreate) OnConflict(opts ...sql.ConflictOption) *MasterDataItemUpsertOne {
+	_c.conflict = opts
+	return &MasterDataItemUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *MasterDataItemCreate) OnConflictColumns(columns ...string) *MasterDataItemUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &MasterDataItemUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// MasterDataItemUpsertOne is the builder for "upsert"-ing
+	//  one MasterDataItem node.
+	MasterDataItemUpsertOne struct {
+		create *MasterDataItemCreate
+	}
+
+	// MasterDataItemUpsert is the "OnConflict" setter.
+	MasterDataItemUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MasterDataItemUpsert) SetUpdatedAt(v time.Time) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateUpdatedAt() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *MasterDataItemUpsert) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateOrganizationID() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldOrganizationID)
+	return u
+}
+
+// SetKind sets the "kind" field.
+func (u *MasterDataItemUpsert) SetKind(v masterdataitem.Kind) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldKind, v)
+	return u
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateKind() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldKind)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *MasterDataItemUpsert) SetName(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateName() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldName)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *MasterDataItemUpsert) SetNameEn(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateNameEn() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldNameEn)
+	return u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *MasterDataItemUpsert) ClearNameEn() *MasterDataItemUpsert {
+	u.SetNull(masterdataitem.FieldNameEn)
+	return u
+}
+
+// SetParentCode sets the "parent_code" field.
+func (u *MasterDataItemUpsert) SetParentCode(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldParentCode, v)
+	return u
+}
+
+// UpdateParentCode sets the "parent_code" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateParentCode() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldParentCode)
+	return u
+}
+
+// ClearParentCode clears the value of the "parent_code" field.
+func (u *MasterDataItemUpsert) ClearParentCode() *MasterDataItemUpsert {
+	u.SetNull(masterdataitem.FieldParentCode)
+	return u
+}
+
+// SetTeuFactor sets the "teu_factor" field.
+func (u *MasterDataItemUpsert) SetTeuFactor(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldTeuFactor, v)
+	return u
+}
+
+// UpdateTeuFactor sets the "teu_factor" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateTeuFactor() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldTeuFactor)
+	return u
+}
+
+// ClearTeuFactor clears the value of the "teu_factor" field.
+func (u *MasterDataItemUpsert) ClearTeuFactor() *MasterDataItemUpsert {
+	u.SetNull(masterdataitem.FieldTeuFactor)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *MasterDataItemUpsert) SetSource(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateSource() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldSource)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *MasterDataItemUpsert) SetSortOrder(v int) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateSortOrder() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *MasterDataItemUpsert) AddSortOrder(v int) *MasterDataItemUpsert {
+	u.Add(masterdataitem.FieldSortOrder, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *MasterDataItemUpsert) SetEnabled(v bool) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateEnabled() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldEnabled)
+	return u
+}
+
+// SetAttributes sets the "attributes" field.
+func (u *MasterDataItemUpsert) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldAttributes, v)
+	return u
+}
+
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateAttributes() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldAttributes)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *MasterDataItemUpsert) SetSearchKeywords(v string) *MasterDataItemUpsert {
+	u.Set(masterdataitem.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *MasterDataItemUpsert) UpdateSearchKeywords() *MasterDataItemUpsert {
+	u.SetExcluded(masterdataitem.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(masterdataitem.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *MasterDataItemUpsertOne) UpdateNewValues() *MasterDataItemUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(masterdataitem.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(masterdataitem.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.Code(); exists {
+			s.SetIgnore(masterdataitem.FieldCode)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *MasterDataItemUpsertOne) Ignore() *MasterDataItemUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *MasterDataItemUpsertOne) DoNothing() *MasterDataItemUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the MasterDataItemCreate.OnConflict
+// documentation for more info.
+func (u *MasterDataItemUpsertOne) Update(set func(*MasterDataItemUpsert)) *MasterDataItemUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&MasterDataItemUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MasterDataItemUpsertOne) SetUpdatedAt(v time.Time) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateUpdatedAt() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *MasterDataItemUpsertOne) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateOrganizationID() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *MasterDataItemUpsertOne) SetKind(v masterdataitem.Kind) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateKind() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateKind()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *MasterDataItemUpsertOne) SetName(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateName() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *MasterDataItemUpsertOne) SetNameEn(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateNameEn() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *MasterDataItemUpsertOne) ClearNameEn() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetParentCode sets the "parent_code" field.
+func (u *MasterDataItemUpsertOne) SetParentCode(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetParentCode(v)
+	})
+}
+
+// UpdateParentCode sets the "parent_code" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateParentCode() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateParentCode()
+	})
+}
+
+// ClearParentCode clears the value of the "parent_code" field.
+func (u *MasterDataItemUpsertOne) ClearParentCode() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearParentCode()
+	})
+}
+
+// SetTeuFactor sets the "teu_factor" field.
+func (u *MasterDataItemUpsertOne) SetTeuFactor(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetTeuFactor(v)
+	})
+}
+
+// UpdateTeuFactor sets the "teu_factor" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateTeuFactor() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateTeuFactor()
+	})
+}
+
+// ClearTeuFactor clears the value of the "teu_factor" field.
+func (u *MasterDataItemUpsertOne) ClearTeuFactor() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearTeuFactor()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *MasterDataItemUpsertOne) SetSource(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateSource() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *MasterDataItemUpsertOne) SetSortOrder(v int) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *MasterDataItemUpsertOne) AddSortOrder(v int) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateSortOrder() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *MasterDataItemUpsertOne) SetEnabled(v bool) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateEnabled() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetAttributes sets the "attributes" field.
+func (u *MasterDataItemUpsertOne) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetAttributes(v)
+	})
+}
+
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateAttributes() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateAttributes()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *MasterDataItemUpsertOne) SetSearchKeywords(v string) *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *MasterDataItemUpsertOne) UpdateSearchKeywords() *MasterDataItemUpsertOne {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *MasterDataItemUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for MasterDataItemCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *MasterDataItemUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *MasterDataItemUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: MasterDataItemUpsertOne.ID is not supported by MySQL driver. Use MasterDataItemUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *MasterDataItemUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // MasterDataItemCreateBulk is the builder for creating many MasterDataItem entities in bulk.
 type MasterDataItemCreateBulk struct {
 	config
 	err      error
 	builders []*MasterDataItemCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the MasterDataItem entities in the database.
@@ -556,6 +1066,7 @@ func (_c *MasterDataItemCreateBulk) Save(ctx context.Context) ([]*MasterDataItem
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -602,6 +1113,322 @@ func (_c *MasterDataItemCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *MasterDataItemCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.MasterDataItem.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.MasterDataItemUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *MasterDataItemCreateBulk) OnConflict(opts ...sql.ConflictOption) *MasterDataItemUpsertBulk {
+	_c.conflict = opts
+	return &MasterDataItemUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *MasterDataItemCreateBulk) OnConflictColumns(columns ...string) *MasterDataItemUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &MasterDataItemUpsertBulk{
+		create: _c,
+	}
+}
+
+// MasterDataItemUpsertBulk is the builder for "upsert"-ing
+// a bulk of MasterDataItem nodes.
+type MasterDataItemUpsertBulk struct {
+	create *MasterDataItemCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(masterdataitem.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *MasterDataItemUpsertBulk) UpdateNewValues() *MasterDataItemUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(masterdataitem.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(masterdataitem.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Code(); exists {
+				s.SetIgnore(masterdataitem.FieldCode)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.MasterDataItem.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *MasterDataItemUpsertBulk) Ignore() *MasterDataItemUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *MasterDataItemUpsertBulk) DoNothing() *MasterDataItemUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the MasterDataItemCreateBulk.OnConflict
+// documentation for more info.
+func (u *MasterDataItemUpsertBulk) Update(set func(*MasterDataItemUpsert)) *MasterDataItemUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&MasterDataItemUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MasterDataItemUpsertBulk) SetUpdatedAt(v time.Time) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateUpdatedAt() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *MasterDataItemUpsertBulk) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateOrganizationID() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetKind sets the "kind" field.
+func (u *MasterDataItemUpsertBulk) SetKind(v masterdataitem.Kind) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetKind(v)
+	})
+}
+
+// UpdateKind sets the "kind" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateKind() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateKind()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *MasterDataItemUpsertBulk) SetName(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateName() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *MasterDataItemUpsertBulk) SetNameEn(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateNameEn() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *MasterDataItemUpsertBulk) ClearNameEn() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearNameEn()
+	})
+}
+
+// SetParentCode sets the "parent_code" field.
+func (u *MasterDataItemUpsertBulk) SetParentCode(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetParentCode(v)
+	})
+}
+
+// UpdateParentCode sets the "parent_code" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateParentCode() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateParentCode()
+	})
+}
+
+// ClearParentCode clears the value of the "parent_code" field.
+func (u *MasterDataItemUpsertBulk) ClearParentCode() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearParentCode()
+	})
+}
+
+// SetTeuFactor sets the "teu_factor" field.
+func (u *MasterDataItemUpsertBulk) SetTeuFactor(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetTeuFactor(v)
+	})
+}
+
+// UpdateTeuFactor sets the "teu_factor" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateTeuFactor() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateTeuFactor()
+	})
+}
+
+// ClearTeuFactor clears the value of the "teu_factor" field.
+func (u *MasterDataItemUpsertBulk) ClearTeuFactor() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.ClearTeuFactor()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *MasterDataItemUpsertBulk) SetSource(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateSource() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *MasterDataItemUpsertBulk) SetSortOrder(v int) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *MasterDataItemUpsertBulk) AddSortOrder(v int) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateSortOrder() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *MasterDataItemUpsertBulk) SetEnabled(v bool) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateEnabled() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetAttributes sets the "attributes" field.
+func (u *MasterDataItemUpsertBulk) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetAttributes(v)
+	})
+}
+
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateAttributes() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateAttributes()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *MasterDataItemUpsertBulk) SetSearchKeywords(v string) *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *MasterDataItemUpsertBulk) UpdateSearchKeywords() *MasterDataItemUpsertBulk {
+	return u.Update(func(s *MasterDataItemUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *MasterDataItemUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the MasterDataItemCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for MasterDataItemCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *MasterDataItemUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

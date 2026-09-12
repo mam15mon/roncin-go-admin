@@ -14,9 +14,12 @@ import (
 var ErrNotificationNotFound = errors.NotFound("NOTIFICATION_NOT_FOUND", "通知明细不存在")
 
 const (
-	NotificationChannelDingTalk              = "DINGTALK"
-	NotificationTemplateOrderPersonnelAssign = "ORDER_PERSONNEL_ASSIGNED"
-	NotificationTemplateUserAuthorized       = "USER_AUTHORIZED"
+	NotificationChannelDingTalk                      = "DINGTALK"
+	NotificationTemplateOrderPersonnelAssign         = "ORDER_PERSONNEL_ASSIGNED"
+	NotificationTemplateUserAuthorized               = "USER_AUTHORIZED"
+	NotificationTemplateDingTalkRegistrationPending  = "DINGTALK_REGISTRATION_PENDING"
+	NotificationTemplateDingTalkRegistrationRejected = "DINGTALK_REGISTRATION_REJECTED"
+	NotificationTemplateDingTalkInvitationActivated  = "DINGTALK_INVITATION_ACTIVATED"
 )
 
 // NotificationIntent 是业务用例交给仓储、并与业务写入同事务落库的通知意图。
@@ -76,6 +79,27 @@ func NewDingTalkUserAuthorizedNotification(recipientUserID uuid.UUID) *Notificat
 		RecipientUserID: recipientUserID,
 		Channel:         NotificationChannelDingTalk,
 		Template:        NotificationTemplateUserAuthorized,
+	}
+}
+
+// NewDingTalkRegistrationRejectedNotification 通知注册本人审批被拒绝；
+// 拒绝原因经仓储截断后写入通知明细 Parameter。
+func NewDingTalkRegistrationRejectedNotification(recipientUserID uuid.UUID) *NotificationIntent {
+	return &NotificationIntent{
+		ID:              uuid.Must(uuid.NewV7()),
+		RecipientUserID: recipientUserID,
+		Channel:         NotificationChannelDingTalk,
+		Template:        NotificationTemplateDingTalkRegistrationRejected,
+	}
+}
+
+// NewDingTalkInvitationActivatedNotification 通知邀请人其邀请的员工已自动激活。
+func NewDingTalkInvitationActivatedNotification(recipientUserID uuid.UUID) *NotificationIntent {
+	return &NotificationIntent{
+		ID:              uuid.Must(uuid.NewV7()),
+		RecipientUserID: recipientUserID,
+		Channel:         NotificationChannelDingTalk,
+		Template:        NotificationTemplateDingTalkInvitationActivated,
 	}
 }
 
@@ -149,6 +173,30 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 			return "", fmt.Errorf("通知明细不完整")
 		}
 		return fmt.Sprintf("【Roncin 账号授权完成】\n%s，您的所属组织和角色已完成授权。\n现在可以使用钉钉扫码登录 Roncin 系统。", displayName), nil
+	case NotificationTemplateDingTalkRegistrationPending:
+		registrantName := strings.TrimSpace(delivery.ReferenceCode)
+		organizationName := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "USER" || registrantName == "" || organizationName == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【Roncin 新成员注册待审批】\n%s 申请加入组织：%s\n请登录 Roncin 管理后台的钉钉注册审批队列处理。", registrantName, organizationName), nil
+	case NotificationTemplateDingTalkRegistrationRejected:
+		displayName := strings.TrimSpace(delivery.RecipientDisplayName)
+		reason := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "USER" || displayName == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		if reason == "" {
+			reason = "未提供"
+		}
+		return fmt.Sprintf("【Roncin 注册审批结果】\n%s，您的注册申请未通过审核。\n原因：%s\n如有疑问请联系管理员。", displayName, reason), nil
+	case NotificationTemplateDingTalkInvitationActivated:
+		activatedName := strings.TrimSpace(delivery.ReferenceCode)
+		organizationName := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "USER" || activatedName == "" || organizationName == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【Roncin 邀请已激活】\n您邀请的 %s 已完成激活并加入 %s，可直接使用钉钉扫码登录。", activatedName, organizationName), nil
 	default:
 		return "", fmt.Errorf("通知渠道或模板不受支持")
 	}

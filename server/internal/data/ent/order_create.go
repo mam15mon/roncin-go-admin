@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -52,6 +54,7 @@ type OrderCreate struct {
 	config
 	mutation *OrderMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1858,6 +1861,7 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_node = &Order{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(order.Table, sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -2657,11 +2661,2649 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Order.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderCreate) OnConflict(opts ...sql.ConflictOption) *OrderUpsertOne {
+	_c.conflict = opts
+	return &OrderUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderCreate) OnConflictColumns(columns ...string) *OrderUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderUpsertOne is the builder for "upsert"-ing
+	//  one Order node.
+	OrderUpsertOne struct {
+		create *OrderCreate
+	}
+
+	// OrderUpsert is the "OnConflict" setter.
+	OrderUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderUpsert) SetUpdatedAt(v time.Time) *OrderUpsert {
+	u.Set(order.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateUpdatedAt() *OrderUpsert {
+	u.SetExcluded(order.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderUpsert) SetOrganizationID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateOrganizationID() *OrderUpsert {
+	u.SetExcluded(order.FieldOrganizationID)
+	return u
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderUpsert) SetCustomerID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldCustomerID, v)
+	return u
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCustomerID() *OrderUpsert {
+	u.SetExcluded(order.FieldCustomerID)
+	return u
+}
+
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (u *OrderUpsert) SetCustomerReferenceNo(v string) *OrderUpsert {
+	u.Set(order.FieldCustomerReferenceNo, v)
+	return u
+}
+
+// UpdateCustomerReferenceNo sets the "customer_reference_no" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCustomerReferenceNo() *OrderUpsert {
+	u.SetExcluded(order.FieldCustomerReferenceNo)
+	return u
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (u *OrderUpsert) ClearCustomerReferenceNo() *OrderUpsert {
+	u.SetNull(order.FieldCustomerReferenceNo)
+	return u
+}
+
+// SetInternalReferenceNo sets the "internal_reference_no" field.
+func (u *OrderUpsert) SetInternalReferenceNo(v string) *OrderUpsert {
+	u.Set(order.FieldInternalReferenceNo, v)
+	return u
+}
+
+// UpdateInternalReferenceNo sets the "internal_reference_no" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateInternalReferenceNo() *OrderUpsert {
+	u.SetExcluded(order.FieldInternalReferenceNo)
+	return u
+}
+
+// ClearInternalReferenceNo clears the value of the "internal_reference_no" field.
+func (u *OrderUpsert) ClearInternalReferenceNo() *OrderUpsert {
+	u.SetNull(order.FieldInternalReferenceNo)
+	return u
+}
+
+// SetShipperShortName sets the "shipper_short_name" field.
+func (u *OrderUpsert) SetShipperShortName(v string) *OrderUpsert {
+	u.Set(order.FieldShipperShortName, v)
+	return u
+}
+
+// UpdateShipperShortName sets the "shipper_short_name" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShipperShortName() *OrderUpsert {
+	u.SetExcluded(order.FieldShipperShortName)
+	return u
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (u *OrderUpsert) SetConsigneeShortName(v string) *OrderUpsert {
+	u.Set(order.FieldConsigneeShortName, v)
+	return u
+}
+
+// UpdateConsigneeShortName sets the "consignee_short_name" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateConsigneeShortName() *OrderUpsert {
+	u.SetExcluded(order.FieldConsigneeShortName)
+	return u
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *OrderUpsert) SetShippingLineID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldShippingLineID, v)
+	return u
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShippingLineID() *OrderUpsert {
+	u.SetExcluded(order.FieldShippingLineID)
+	return u
+}
+
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (u *OrderUpsert) ClearShippingLineID() *OrderUpsert {
+	u.SetNull(order.FieldShippingLineID)
+	return u
+}
+
+// SetBookingAgentID sets the "booking_agent_id" field.
+func (u *OrderUpsert) SetBookingAgentID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldBookingAgentID, v)
+	return u
+}
+
+// UpdateBookingAgentID sets the "booking_agent_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateBookingAgentID() *OrderUpsert {
+	u.SetExcluded(order.FieldBookingAgentID)
+	return u
+}
+
+// ClearBookingAgentID clears the value of the "booking_agent_id" field.
+func (u *OrderUpsert) ClearBookingAgentID() *OrderUpsert {
+	u.SetNull(order.FieldBookingAgentID)
+	return u
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (u *OrderUpsert) SetForeignAgentID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldForeignAgentID, v)
+	return u
+}
+
+// UpdateForeignAgentID sets the "foreign_agent_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateForeignAgentID() *OrderUpsert {
+	u.SetExcluded(order.FieldForeignAgentID)
+	return u
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (u *OrderUpsert) ClearForeignAgentID() *OrderUpsert {
+	u.SetNull(order.FieldForeignAgentID)
+	return u
+}
+
+// SetShippingAgentID sets the "shipping_agent_id" field.
+func (u *OrderUpsert) SetShippingAgentID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldShippingAgentID, v)
+	return u
+}
+
+// UpdateShippingAgentID sets the "shipping_agent_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShippingAgentID() *OrderUpsert {
+	u.SetExcluded(order.FieldShippingAgentID)
+	return u
+}
+
+// ClearShippingAgentID clears the value of the "shipping_agent_id" field.
+func (u *OrderUpsert) ClearShippingAgentID() *OrderUpsert {
+	u.SetNull(order.FieldShippingAgentID)
+	return u
+}
+
+// SetContractNo sets the "contract_no" field.
+func (u *OrderUpsert) SetContractNo(v string) *OrderUpsert {
+	u.Set(order.FieldContractNo, v)
+	return u
+}
+
+// UpdateContractNo sets the "contract_no" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateContractNo() *OrderUpsert {
+	u.SetExcluded(order.FieldContractNo)
+	return u
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (u *OrderUpsert) ClearContractNo() *OrderUpsert {
+	u.SetNull(order.FieldContractNo)
+	return u
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (u *OrderUpsert) SetCargoValue(v string) *OrderUpsert {
+	u.Set(order.FieldCargoValue, v)
+	return u
+}
+
+// UpdateCargoValue sets the "cargo_value" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCargoValue() *OrderUpsert {
+	u.SetExcluded(order.FieldCargoValue)
+	return u
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (u *OrderUpsert) ClearCargoValue() *OrderUpsert {
+	u.SetNull(order.FieldCargoValue)
+	return u
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (u *OrderUpsert) SetCargoCurrency(v string) *OrderUpsert {
+	u.Set(order.FieldCargoCurrency, v)
+	return u
+}
+
+// UpdateCargoCurrency sets the "cargo_currency" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCargoCurrency() *OrderUpsert {
+	u.SetExcluded(order.FieldCargoCurrency)
+	return u
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (u *OrderUpsert) ClearCargoCurrency() *OrderUpsert {
+	u.SetNull(order.FieldCargoCurrency)
+	return u
+}
+
+// SetInsurancePremium sets the "insurance_premium" field.
+func (u *OrderUpsert) SetInsurancePremium(v string) *OrderUpsert {
+	u.Set(order.FieldInsurancePremium, v)
+	return u
+}
+
+// UpdateInsurancePremium sets the "insurance_premium" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateInsurancePremium() *OrderUpsert {
+	u.SetExcluded(order.FieldInsurancePremium)
+	return u
+}
+
+// ClearInsurancePremium clears the value of the "insurance_premium" field.
+func (u *OrderUpsert) ClearInsurancePremium() *OrderUpsert {
+	u.SetNull(order.FieldInsurancePremium)
+	return u
+}
+
+// SetInsuranceCurrency sets the "insurance_currency" field.
+func (u *OrderUpsert) SetInsuranceCurrency(v string) *OrderUpsert {
+	u.Set(order.FieldInsuranceCurrency, v)
+	return u
+}
+
+// UpdateInsuranceCurrency sets the "insurance_currency" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateInsuranceCurrency() *OrderUpsert {
+	u.SetExcluded(order.FieldInsuranceCurrency)
+	return u
+}
+
+// ClearInsuranceCurrency clears the value of the "insurance_currency" field.
+func (u *OrderUpsert) ClearInsuranceCurrency() *OrderUpsert {
+	u.SetNull(order.FieldInsuranceCurrency)
+	return u
+}
+
+// SetUnNumber sets the "un_number" field.
+func (u *OrderUpsert) SetUnNumber(v string) *OrderUpsert {
+	u.Set(order.FieldUnNumber, v)
+	return u
+}
+
+// UpdateUnNumber sets the "un_number" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateUnNumber() *OrderUpsert {
+	u.SetExcluded(order.FieldUnNumber)
+	return u
+}
+
+// ClearUnNumber clears the value of the "un_number" field.
+func (u *OrderUpsert) ClearUnNumber() *OrderUpsert {
+	u.SetNull(order.FieldUnNumber)
+	return u
+}
+
+// SetHazardClass sets the "hazard_class" field.
+func (u *OrderUpsert) SetHazardClass(v string) *OrderUpsert {
+	u.Set(order.FieldHazardClass, v)
+	return u
+}
+
+// UpdateHazardClass sets the "hazard_class" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateHazardClass() *OrderUpsert {
+	u.SetExcluded(order.FieldHazardClass)
+	return u
+}
+
+// ClearHazardClass clears the value of the "hazard_class" field.
+func (u *OrderUpsert) ClearHazardClass() *OrderUpsert {
+	u.SetNull(order.FieldHazardClass)
+	return u
+}
+
+// SetFactoryName sets the "factory_name" field.
+func (u *OrderUpsert) SetFactoryName(v string) *OrderUpsert {
+	u.Set(order.FieldFactoryName, v)
+	return u
+}
+
+// UpdateFactoryName sets the "factory_name" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFactoryName() *OrderUpsert {
+	u.SetExcluded(order.FieldFactoryName)
+	return u
+}
+
+// ClearFactoryName clears the value of the "factory_name" field.
+func (u *OrderUpsert) ClearFactoryName() *OrderUpsert {
+	u.SetNull(order.FieldFactoryName)
+	return u
+}
+
+// SetCargoReadyAt sets the "cargo_ready_at" field.
+func (u *OrderUpsert) SetCargoReadyAt(v string) *OrderUpsert {
+	u.Set(order.FieldCargoReadyAt, v)
+	return u
+}
+
+// UpdateCargoReadyAt sets the "cargo_ready_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCargoReadyAt() *OrderUpsert {
+	u.SetExcluded(order.FieldCargoReadyAt)
+	return u
+}
+
+// ClearCargoReadyAt clears the value of the "cargo_ready_at" field.
+func (u *OrderUpsert) ClearCargoReadyAt() *OrderUpsert {
+	u.SetNull(order.FieldCargoReadyAt)
+	return u
+}
+
+// SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
+func (u *OrderUpsert) SetDeclarationCutoffAt(v string) *OrderUpsert {
+	u.Set(order.FieldDeclarationCutoffAt, v)
+	return u
+}
+
+// UpdateDeclarationCutoffAt sets the "declaration_cutoff_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateDeclarationCutoffAt() *OrderUpsert {
+	u.SetExcluded(order.FieldDeclarationCutoffAt)
+	return u
+}
+
+// ClearDeclarationCutoffAt clears the value of the "declaration_cutoff_at" field.
+func (u *OrderUpsert) ClearDeclarationCutoffAt() *OrderUpsert {
+	u.SetNull(order.FieldDeclarationCutoffAt)
+	return u
+}
+
+// SetReceivedAt sets the "received_at" field.
+func (u *OrderUpsert) SetReceivedAt(v string) *OrderUpsert {
+	u.Set(order.FieldReceivedAt, v)
+	return u
+}
+
+// UpdateReceivedAt sets the "received_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateReceivedAt() *OrderUpsert {
+	u.SetExcluded(order.FieldReceivedAt)
+	return u
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (u *OrderUpsert) ClearReceivedAt() *OrderUpsert {
+	u.SetNull(order.FieldReceivedAt)
+	return u
+}
+
+// SetBusinessType sets the "business_type" field.
+func (u *OrderUpsert) SetBusinessType(v order.BusinessType) *OrderUpsert {
+	u.Set(order.FieldBusinessType, v)
+	return u
+}
+
+// UpdateBusinessType sets the "business_type" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateBusinessType() *OrderUpsert {
+	u.SetExcluded(order.FieldBusinessType)
+	return u
+}
+
+// SetTradeDirection sets the "trade_direction" field.
+func (u *OrderUpsert) SetTradeDirection(v order.TradeDirection) *OrderUpsert {
+	u.Set(order.FieldTradeDirection, v)
+	return u
+}
+
+// UpdateTradeDirection sets the "trade_direction" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTradeDirection() *OrderUpsert {
+	u.SetExcluded(order.FieldTradeDirection)
+	return u
+}
+
+// SetTradeTerm sets the "trade_term" field.
+func (u *OrderUpsert) SetTradeTerm(v order.TradeTerm) *OrderUpsert {
+	u.Set(order.FieldTradeTerm, v)
+	return u
+}
+
+// UpdateTradeTerm sets the "trade_term" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTradeTerm() *OrderUpsert {
+	u.SetExcluded(order.FieldTradeTerm)
+	return u
+}
+
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (u *OrderUpsert) ClearTradeTerm() *OrderUpsert {
+	u.SetNull(order.FieldTradeTerm)
+	return u
+}
+
+// SetPaymentTerm sets the "payment_term" field.
+func (u *OrderUpsert) SetPaymentTerm(v order.PaymentTerm) *OrderUpsert {
+	u.Set(order.FieldPaymentTerm, v)
+	return u
+}
+
+// UpdatePaymentTerm sets the "payment_term" field to the value that was provided on create.
+func (u *OrderUpsert) UpdatePaymentTerm() *OrderUpsert {
+	u.SetExcluded(order.FieldPaymentTerm)
+	return u
+}
+
+// SetShipmentType sets the "shipment_type" field.
+func (u *OrderUpsert) SetShipmentType(v order.ShipmentType) *OrderUpsert {
+	u.Set(order.FieldShipmentType, v)
+	return u
+}
+
+// UpdateShipmentType sets the "shipment_type" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShipmentType() *OrderUpsert {
+	u.SetExcluded(order.FieldShipmentType)
+	return u
+}
+
+// ClearShipmentType clears the value of the "shipment_type" field.
+func (u *OrderUpsert) ClearShipmentType() *OrderUpsert {
+	u.SetNull(order.FieldShipmentType)
+	return u
+}
+
+// SetContainerOwnership sets the "container_ownership" field.
+func (u *OrderUpsert) SetContainerOwnership(v order.ContainerOwnership) *OrderUpsert {
+	u.Set(order.FieldContainerOwnership, v)
+	return u
+}
+
+// UpdateContainerOwnership sets the "container_ownership" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateContainerOwnership() *OrderUpsert {
+	u.SetExcluded(order.FieldContainerOwnership)
+	return u
+}
+
+// ClearContainerOwnership clears the value of the "container_ownership" field.
+func (u *OrderUpsert) ClearContainerOwnership() *OrderUpsert {
+	u.SetNull(order.FieldContainerOwnership)
+	return u
+}
+
+// SetShipmentMode sets the "shipment_mode" field.
+func (u *OrderUpsert) SetShipmentMode(v order.ShipmentMode) *OrderUpsert {
+	u.Set(order.FieldShipmentMode, v)
+	return u
+}
+
+// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShipmentMode() *OrderUpsert {
+	u.SetExcluded(order.FieldShipmentMode)
+	return u
+}
+
+// ClearShipmentMode clears the value of the "shipment_mode" field.
+func (u *OrderUpsert) ClearShipmentMode() *OrderUpsert {
+	u.SetNull(order.FieldShipmentMode)
+	return u
+}
+
+// SetFlowStatus sets the "flow_status" field.
+func (u *OrderUpsert) SetFlowStatus(v order.FlowStatus) *OrderUpsert {
+	u.Set(order.FieldFlowStatus, v)
+	return u
+}
+
+// UpdateFlowStatus sets the "flow_status" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFlowStatus() *OrderUpsert {
+	u.SetExcluded(order.FieldFlowStatus)
+	return u
+}
+
+// SetTerminationStatus sets the "termination_status" field.
+func (u *OrderUpsert) SetTerminationStatus(v order.TerminationStatus) *OrderUpsert {
+	u.Set(order.FieldTerminationStatus, v)
+	return u
+}
+
+// UpdateTerminationStatus sets the "termination_status" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTerminationStatus() *OrderUpsert {
+	u.SetExcluded(order.FieldTerminationStatus)
+	return u
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (u *OrderUpsert) SetTerminationType(v order.TerminationType) *OrderUpsert {
+	u.Set(order.FieldTerminationType, v)
+	return u
+}
+
+// UpdateTerminationType sets the "termination_type" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTerminationType() *OrderUpsert {
+	u.SetExcluded(order.FieldTerminationType)
+	return u
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (u *OrderUpsert) ClearTerminationType() *OrderUpsert {
+	u.SetNull(order.FieldTerminationType)
+	return u
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (u *OrderUpsert) SetTerminationReason(v string) *OrderUpsert {
+	u.Set(order.FieldTerminationReason, v)
+	return u
+}
+
+// UpdateTerminationReason sets the "termination_reason" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTerminationReason() *OrderUpsert {
+	u.SetExcluded(order.FieldTerminationReason)
+	return u
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (u *OrderUpsert) ClearTerminationReason() *OrderUpsert {
+	u.SetNull(order.FieldTerminationReason)
+	return u
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (u *OrderUpsert) SetTerminatedAt(v time.Time) *OrderUpsert {
+	u.Set(order.FieldTerminatedAt, v)
+	return u
+}
+
+// UpdateTerminatedAt sets the "terminated_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTerminatedAt() *OrderUpsert {
+	u.SetExcluded(order.FieldTerminatedAt)
+	return u
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (u *OrderUpsert) ClearTerminatedAt() *OrderUpsert {
+	u.SetNull(order.FieldTerminatedAt)
+	return u
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (u *OrderUpsert) SetTerminatedBy(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldTerminatedBy, v)
+	return u
+}
+
+// UpdateTerminatedBy sets the "terminated_by" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTerminatedBy() *OrderUpsert {
+	u.SetExcluded(order.FieldTerminatedBy)
+	return u
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (u *OrderUpsert) ClearTerminatedBy() *OrderUpsert {
+	u.SetNull(order.FieldTerminatedBy)
+	return u
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (u *OrderUpsert) SetClosureStatus(v order.ClosureStatus) *OrderUpsert {
+	u.Set(order.FieldClosureStatus, v)
+	return u
+}
+
+// UpdateClosureStatus sets the "closure_status" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateClosureStatus() *OrderUpsert {
+	u.SetExcluded(order.FieldClosureStatus)
+	return u
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (u *OrderUpsert) SetClosureReason(v string) *OrderUpsert {
+	u.Set(order.FieldClosureReason, v)
+	return u
+}
+
+// UpdateClosureReason sets the "closure_reason" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateClosureReason() *OrderUpsert {
+	u.SetExcluded(order.FieldClosureReason)
+	return u
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (u *OrderUpsert) ClearClosureReason() *OrderUpsert {
+	u.SetNull(order.FieldClosureReason)
+	return u
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (u *OrderUpsert) SetClosedAt(v time.Time) *OrderUpsert {
+	u.Set(order.FieldClosedAt, v)
+	return u
+}
+
+// UpdateClosedAt sets the "closed_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateClosedAt() *OrderUpsert {
+	u.SetExcluded(order.FieldClosedAt)
+	return u
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (u *OrderUpsert) ClearClosedAt() *OrderUpsert {
+	u.SetNull(order.FieldClosedAt)
+	return u
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (u *OrderUpsert) SetClosedBy(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldClosedBy, v)
+	return u
+}
+
+// UpdateClosedBy sets the "closed_by" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateClosedBy() *OrderUpsert {
+	u.SetExcluded(order.FieldClosedBy)
+	return u
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (u *OrderUpsert) ClearClosedBy() *OrderUpsert {
+	u.SetNull(order.FieldClosedBy)
+	return u
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (u *OrderUpsert) SetLockedAt(v time.Time) *OrderUpsert {
+	u.Set(order.FieldLockedAt, v)
+	return u
+}
+
+// UpdateLockedAt sets the "locked_at" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateLockedAt() *OrderUpsert {
+	u.SetExcluded(order.FieldLockedAt)
+	return u
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (u *OrderUpsert) ClearLockedAt() *OrderUpsert {
+	u.SetNull(order.FieldLockedAt)
+	return u
+}
+
+// SetLockedBy sets the "locked_by" field.
+func (u *OrderUpsert) SetLockedBy(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldLockedBy, v)
+	return u
+}
+
+// UpdateLockedBy sets the "locked_by" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateLockedBy() *OrderUpsert {
+	u.SetExcluded(order.FieldLockedBy)
+	return u
+}
+
+// ClearLockedBy clears the value of the "locked_by" field.
+func (u *OrderUpsert) ClearLockedBy() *OrderUpsert {
+	u.SetNull(order.FieldLockedBy)
+	return u
+}
+
+// SetLockGeneration sets the "lock_generation" field.
+func (u *OrderUpsert) SetLockGeneration(v uint64) *OrderUpsert {
+	u.Set(order.FieldLockGeneration, v)
+	return u
+}
+
+// UpdateLockGeneration sets the "lock_generation" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateLockGeneration() *OrderUpsert {
+	u.SetExcluded(order.FieldLockGeneration)
+	return u
+}
+
+// AddLockGeneration adds v to the "lock_generation" field.
+func (u *OrderUpsert) AddLockGeneration(v uint64) *OrderUpsert {
+	u.Add(order.FieldLockGeneration, v)
+	return u
+}
+
+// SetIsShared sets the "is_shared" field.
+func (u *OrderUpsert) SetIsShared(v bool) *OrderUpsert {
+	u.Set(order.FieldIsShared, v)
+	return u
+}
+
+// UpdateIsShared sets the "is_shared" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateIsShared() *OrderUpsert {
+	u.SetExcluded(order.FieldIsShared)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderUpsert) SetVersion(v uint64) *OrderUpsert {
+	u.Set(order.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateVersion() *OrderUpsert {
+	u.SetExcluded(order.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderUpsert) AddVersion(v uint64) *OrderUpsert {
+	u.Add(order.FieldVersion, v)
+	return u
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *OrderUpsert) SetOriginLocationID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldOriginLocationID, v)
+	return u
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateOriginLocationID() *OrderUpsert {
+	u.SetExcluded(order.FieldOriginLocationID)
+	return u
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *OrderUpsert) ClearOriginLocationID() *OrderUpsert {
+	u.SetNull(order.FieldOriginLocationID)
+	return u
+}
+
+// SetDestinationLocationID sets the "destination_location_id" field.
+func (u *OrderUpsert) SetDestinationLocationID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldDestinationLocationID, v)
+	return u
+}
+
+// UpdateDestinationLocationID sets the "destination_location_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateDestinationLocationID() *OrderUpsert {
+	u.SetExcluded(order.FieldDestinationLocationID)
+	return u
+}
+
+// ClearDestinationLocationID clears the value of the "destination_location_id" field.
+func (u *OrderUpsert) ClearDestinationLocationID() *OrderUpsert {
+	u.SetNull(order.FieldDestinationLocationID)
+	return u
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *OrderUpsert) SetDischargeLocationID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldDischargeLocationID, v)
+	return u
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateDischargeLocationID() *OrderUpsert {
+	u.SetExcluded(order.FieldDischargeLocationID)
+	return u
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *OrderUpsert) ClearDischargeLocationID() *OrderUpsert {
+	u.SetNull(order.FieldDischargeLocationID)
+	return u
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *OrderUpsert) SetTransitLocationID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldTransitLocationID, v)
+	return u
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTransitLocationID() *OrderUpsert {
+	u.SetExcluded(order.FieldTransitLocationID)
+	return u
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *OrderUpsert) ClearTransitLocationID() *OrderUpsert {
+	u.SetNull(order.FieldTransitLocationID)
+	return u
+}
+
+// SetVesselVoyage sets the "vessel_voyage" field.
+func (u *OrderUpsert) SetVesselVoyage(v string) *OrderUpsert {
+	u.Set(order.FieldVesselVoyage, v)
+	return u
+}
+
+// UpdateVesselVoyage sets the "vessel_voyage" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateVesselVoyage() *OrderUpsert {
+	u.SetExcluded(order.FieldVesselVoyage)
+	return u
+}
+
+// ClearVesselVoyage clears the value of the "vessel_voyage" field.
+func (u *OrderUpsert) ClearVesselVoyage() *OrderUpsert {
+	u.SetNull(order.FieldVesselVoyage)
+	return u
+}
+
+// SetEtd sets the "etd" field.
+func (u *OrderUpsert) SetEtd(v string) *OrderUpsert {
+	u.Set(order.FieldEtd, v)
+	return u
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateEtd() *OrderUpsert {
+	u.SetExcluded(order.FieldEtd)
+	return u
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *OrderUpsert) ClearEtd() *OrderUpsert {
+	u.SetNull(order.FieldEtd)
+	return u
+}
+
+// SetEta sets the "eta" field.
+func (u *OrderUpsert) SetEta(v string) *OrderUpsert {
+	u.Set(order.FieldEta, v)
+	return u
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateEta() *OrderUpsert {
+	u.SetExcluded(order.FieldEta)
+	return u
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *OrderUpsert) ClearEta() *OrderUpsert {
+	u.SetNull(order.FieldEta)
+	return u
+}
+
+// SetSiCutoff sets the "si_cutoff" field.
+func (u *OrderUpsert) SetSiCutoff(v string) *OrderUpsert {
+	u.Set(order.FieldSiCutoff, v)
+	return u
+}
+
+// UpdateSiCutoff sets the "si_cutoff" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateSiCutoff() *OrderUpsert {
+	u.SetExcluded(order.FieldSiCutoff)
+	return u
+}
+
+// ClearSiCutoff clears the value of the "si_cutoff" field.
+func (u *OrderUpsert) ClearSiCutoff() *OrderUpsert {
+	u.SetNull(order.FieldSiCutoff)
+	return u
+}
+
+// SetDocCutoff sets the "doc_cutoff" field.
+func (u *OrderUpsert) SetDocCutoff(v string) *OrderUpsert {
+	u.Set(order.FieldDocCutoff, v)
+	return u
+}
+
+// UpdateDocCutoff sets the "doc_cutoff" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateDocCutoff() *OrderUpsert {
+	u.SetExcluded(order.FieldDocCutoff)
+	return u
+}
+
+// ClearDocCutoff clears the value of the "doc_cutoff" field.
+func (u *OrderUpsert) ClearDocCutoff() *OrderUpsert {
+	u.SetNull(order.FieldDocCutoff)
+	return u
+}
+
+// SetCustomsCutoff sets the "customs_cutoff" field.
+func (u *OrderUpsert) SetCustomsCutoff(v string) *OrderUpsert {
+	u.Set(order.FieldCustomsCutoff, v)
+	return u
+}
+
+// UpdateCustomsCutoff sets the "customs_cutoff" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCustomsCutoff() *OrderUpsert {
+	u.SetExcluded(order.FieldCustomsCutoff)
+	return u
+}
+
+// ClearCustomsCutoff clears the value of the "customs_cutoff" field.
+func (u *OrderUpsert) ClearCustomsCutoff() *OrderUpsert {
+	u.SetNull(order.FieldCustomsCutoff)
+	return u
+}
+
+// SetVgmCutoff sets the "vgm_cutoff" field.
+func (u *OrderUpsert) SetVgmCutoff(v string) *OrderUpsert {
+	u.Set(order.FieldVgmCutoff, v)
+	return u
+}
+
+// UpdateVgmCutoff sets the "vgm_cutoff" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateVgmCutoff() *OrderUpsert {
+	u.SetExcluded(order.FieldVgmCutoff)
+	return u
+}
+
+// ClearVgmCutoff clears the value of the "vgm_cutoff" field.
+func (u *OrderUpsert) ClearVgmCutoff() *OrderUpsert {
+	u.SetNull(order.FieldVgmCutoff)
+	return u
+}
+
+// SetGoodsDescription sets the "goods_description" field.
+func (u *OrderUpsert) SetGoodsDescription(v string) *OrderUpsert {
+	u.Set(order.FieldGoodsDescription, v)
+	return u
+}
+
+// UpdateGoodsDescription sets the "goods_description" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateGoodsDescription() *OrderUpsert {
+	u.SetExcluded(order.FieldGoodsDescription)
+	return u
+}
+
+// ClearGoodsDescription clears the value of the "goods_description" field.
+func (u *OrderUpsert) ClearGoodsDescription() *OrderUpsert {
+	u.SetNull(order.FieldGoodsDescription)
+	return u
+}
+
+// SetTotalPackages sets the "total_packages" field.
+func (u *OrderUpsert) SetTotalPackages(v int) *OrderUpsert {
+	u.Set(order.FieldTotalPackages, v)
+	return u
+}
+
+// UpdateTotalPackages sets the "total_packages" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTotalPackages() *OrderUpsert {
+	u.SetExcluded(order.FieldTotalPackages)
+	return u
+}
+
+// AddTotalPackages adds v to the "total_packages" field.
+func (u *OrderUpsert) AddTotalPackages(v int) *OrderUpsert {
+	u.Add(order.FieldTotalPackages, v)
+	return u
+}
+
+// ClearTotalPackages clears the value of the "total_packages" field.
+func (u *OrderUpsert) ClearTotalPackages() *OrderUpsert {
+	u.SetNull(order.FieldTotalPackages)
+	return u
+}
+
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (u *OrderUpsert) SetTotalGrossWeightKg(v float64) *OrderUpsert {
+	u.Set(order.FieldTotalGrossWeightKg, v)
+	return u
+}
+
+// UpdateTotalGrossWeightKg sets the "total_gross_weight_kg" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTotalGrossWeightKg() *OrderUpsert {
+	u.SetExcluded(order.FieldTotalGrossWeightKg)
+	return u
+}
+
+// AddTotalGrossWeightKg adds v to the "total_gross_weight_kg" field.
+func (u *OrderUpsert) AddTotalGrossWeightKg(v float64) *OrderUpsert {
+	u.Add(order.FieldTotalGrossWeightKg, v)
+	return u
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (u *OrderUpsert) ClearTotalGrossWeightKg() *OrderUpsert {
+	u.SetNull(order.FieldTotalGrossWeightKg)
+	return u
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (u *OrderUpsert) SetTotalVolumeCbm(v float64) *OrderUpsert {
+	u.Set(order.FieldTotalVolumeCbm, v)
+	return u
+}
+
+// UpdateTotalVolumeCbm sets the "total_volume_cbm" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTotalVolumeCbm() *OrderUpsert {
+	u.SetExcluded(order.FieldTotalVolumeCbm)
+	return u
+}
+
+// AddTotalVolumeCbm adds v to the "total_volume_cbm" field.
+func (u *OrderUpsert) AddTotalVolumeCbm(v float64) *OrderUpsert {
+	u.Add(order.FieldTotalVolumeCbm, v)
+	return u
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (u *OrderUpsert) ClearTotalVolumeCbm() *OrderUpsert {
+	u.SetNull(order.FieldTotalVolumeCbm)
+	return u
+}
+
+// SetTotalPackageUnit sets the "total_package_unit" field.
+func (u *OrderUpsert) SetTotalPackageUnit(v string) *OrderUpsert {
+	u.Set(order.FieldTotalPackageUnit, v)
+	return u
+}
+
+// UpdateTotalPackageUnit sets the "total_package_unit" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateTotalPackageUnit() *OrderUpsert {
+	u.SetExcluded(order.FieldTotalPackageUnit)
+	return u
+}
+
+// ClearTotalPackageUnit clears the value of the "total_package_unit" field.
+func (u *OrderUpsert) ClearTotalPackageUnit() *OrderUpsert {
+	u.SetNull(order.FieldTotalPackageUnit)
+	return u
+}
+
+// SetSpecialRequirements sets the "special_requirements" field.
+func (u *OrderUpsert) SetSpecialRequirements(v string) *OrderUpsert {
+	u.Set(order.FieldSpecialRequirements, v)
+	return u
+}
+
+// UpdateSpecialRequirements sets the "special_requirements" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateSpecialRequirements() *OrderUpsert {
+	u.SetExcluded(order.FieldSpecialRequirements)
+	return u
+}
+
+// ClearSpecialRequirements clears the value of the "special_requirements" field.
+func (u *OrderUpsert) ClearSpecialRequirements() *OrderUpsert {
+	u.SetNull(order.FieldSpecialRequirements)
+	return u
+}
+
+// SetOrderDate sets the "order_date" field.
+func (u *OrderUpsert) SetOrderDate(v string) *OrderUpsert {
+	u.Set(order.FieldOrderDate, v)
+	return u
+}
+
+// UpdateOrderDate sets the "order_date" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateOrderDate() *OrderUpsert {
+	u.SetExcluded(order.FieldOrderDate)
+	return u
+}
+
+// ClearOrderDate clears the value of the "order_date" field.
+func (u *OrderUpsert) ClearOrderDate() *OrderUpsert {
+	u.SetNull(order.FieldOrderDate)
+	return u
+}
+
+// SetBookingNo sets the "booking_no" field.
+func (u *OrderUpsert) SetBookingNo(v string) *OrderUpsert {
+	u.Set(order.FieldBookingNo, v)
+	return u
+}
+
+// UpdateBookingNo sets the "booking_no" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateBookingNo() *OrderUpsert {
+	u.SetExcluded(order.FieldBookingNo)
+	return u
+}
+
+// ClearBookingNo clears the value of the "booking_no" field.
+func (u *OrderUpsert) ClearBookingNo() *OrderUpsert {
+	u.SetNull(order.FieldBookingNo)
+	return u
+}
+
+// SetNotes sets the "notes" field.
+func (u *OrderUpsert) SetNotes(v string) *OrderUpsert {
+	u.Set(order.FieldNotes, v)
+	return u
+}
+
+// UpdateNotes sets the "notes" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateNotes() *OrderUpsert {
+	u.SetExcluded(order.FieldNotes)
+	return u
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (u *OrderUpsert) ClearNotes() *OrderUpsert {
+	u.SetNull(order.FieldNotes)
+	return u
+}
+
+// SetBookingNotes sets the "booking_notes" field.
+func (u *OrderUpsert) SetBookingNotes(v string) *OrderUpsert {
+	u.Set(order.FieldBookingNotes, v)
+	return u
+}
+
+// UpdateBookingNotes sets the "booking_notes" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateBookingNotes() *OrderUpsert {
+	u.SetExcluded(order.FieldBookingNotes)
+	return u
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (u *OrderUpsert) ClearBookingNotes() *OrderUpsert {
+	u.SetNull(order.FieldBookingNotes)
+	return u
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (u *OrderUpsert) SetAllocationNotes(v string) *OrderUpsert {
+	u.Set(order.FieldAllocationNotes, v)
+	return u
+}
+
+// UpdateAllocationNotes sets the "allocation_notes" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateAllocationNotes() *OrderUpsert {
+	u.SetExcluded(order.FieldAllocationNotes)
+	return u
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (u *OrderUpsert) ClearAllocationNotes() *OrderUpsert {
+	u.SetNull(order.FieldAllocationNotes)
+	return u
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (u *OrderUpsert) SetOperationNotes(v string) *OrderUpsert {
+	u.Set(order.FieldOperationNotes, v)
+	return u
+}
+
+// UpdateOperationNotes sets the "operation_notes" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateOperationNotes() *OrderUpsert {
+	u.SetExcluded(order.FieldOperationNotes)
+	return u
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (u *OrderUpsert) ClearOperationNotes() *OrderUpsert {
+	u.SetNull(order.FieldOperationNotes)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(order.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUpsertOne) UpdateNewValues() *OrderUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(order.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(order.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(order.FieldOrderNo)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderUpsertOne) Ignore() *OrderUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUpsertOne) DoNothing() *OrderUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderCreate.OnConflict
+// documentation for more info.
+func (u *OrderUpsertOne) Update(set func(*OrderUpsert)) *OrderUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderUpsertOne) SetUpdatedAt(v time.Time) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateUpdatedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderUpsertOne) SetOrganizationID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateOrganizationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderUpsertOne) SetCustomerID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomerID(v)
+	})
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCustomerID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomerID()
+	})
+}
+
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (u *OrderUpsertOne) SetCustomerReferenceNo(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomerReferenceNo(v)
+	})
+}
+
+// UpdateCustomerReferenceNo sets the "customer_reference_no" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCustomerReferenceNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomerReferenceNo()
+	})
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (u *OrderUpsertOne) ClearCustomerReferenceNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCustomerReferenceNo()
+	})
+}
+
+// SetInternalReferenceNo sets the "internal_reference_no" field.
+func (u *OrderUpsertOne) SetInternalReferenceNo(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInternalReferenceNo(v)
+	})
+}
+
+// UpdateInternalReferenceNo sets the "internal_reference_no" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateInternalReferenceNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInternalReferenceNo()
+	})
+}
+
+// ClearInternalReferenceNo clears the value of the "internal_reference_no" field.
+func (u *OrderUpsertOne) ClearInternalReferenceNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInternalReferenceNo()
+	})
+}
+
+// SetShipperShortName sets the "shipper_short_name" field.
+func (u *OrderUpsertOne) SetShipperShortName(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipperShortName(v)
+	})
+}
+
+// UpdateShipperShortName sets the "shipper_short_name" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShipperShortName() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipperShortName()
+	})
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (u *OrderUpsertOne) SetConsigneeShortName(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetConsigneeShortName(v)
+	})
+}
+
+// UpdateConsigneeShortName sets the "consignee_short_name" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateConsigneeShortName() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateConsigneeShortName()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *OrderUpsertOne) SetShippingLineID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShippingLineID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (u *OrderUpsertOne) ClearShippingLineID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShippingLineID()
+	})
+}
+
+// SetBookingAgentID sets the "booking_agent_id" field.
+func (u *OrderUpsertOne) SetBookingAgentID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingAgentID(v)
+	})
+}
+
+// UpdateBookingAgentID sets the "booking_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateBookingAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingAgentID()
+	})
+}
+
+// ClearBookingAgentID clears the value of the "booking_agent_id" field.
+func (u *OrderUpsertOne) ClearBookingAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingAgentID()
+	})
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (u *OrderUpsertOne) SetForeignAgentID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetForeignAgentID(v)
+	})
+}
+
+// UpdateForeignAgentID sets the "foreign_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateForeignAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateForeignAgentID()
+	})
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (u *OrderUpsertOne) ClearForeignAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearForeignAgentID()
+	})
+}
+
+// SetShippingAgentID sets the "shipping_agent_id" field.
+func (u *OrderUpsertOne) SetShippingAgentID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShippingAgentID(v)
+	})
+}
+
+// UpdateShippingAgentID sets the "shipping_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShippingAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShippingAgentID()
+	})
+}
+
+// ClearShippingAgentID clears the value of the "shipping_agent_id" field.
+func (u *OrderUpsertOne) ClearShippingAgentID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShippingAgentID()
+	})
+}
+
+// SetContractNo sets the "contract_no" field.
+func (u *OrderUpsertOne) SetContractNo(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetContractNo(v)
+	})
+}
+
+// UpdateContractNo sets the "contract_no" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateContractNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateContractNo()
+	})
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (u *OrderUpsertOne) ClearContractNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearContractNo()
+	})
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (u *OrderUpsertOne) SetCargoValue(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoValue(v)
+	})
+}
+
+// UpdateCargoValue sets the "cargo_value" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCargoValue() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoValue()
+	})
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (u *OrderUpsertOne) ClearCargoValue() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoValue()
+	})
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (u *OrderUpsertOne) SetCargoCurrency(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoCurrency(v)
+	})
+}
+
+// UpdateCargoCurrency sets the "cargo_currency" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCargoCurrency() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoCurrency()
+	})
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (u *OrderUpsertOne) ClearCargoCurrency() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoCurrency()
+	})
+}
+
+// SetInsurancePremium sets the "insurance_premium" field.
+func (u *OrderUpsertOne) SetInsurancePremium(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInsurancePremium(v)
+	})
+}
+
+// UpdateInsurancePremium sets the "insurance_premium" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateInsurancePremium() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInsurancePremium()
+	})
+}
+
+// ClearInsurancePremium clears the value of the "insurance_premium" field.
+func (u *OrderUpsertOne) ClearInsurancePremium() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInsurancePremium()
+	})
+}
+
+// SetInsuranceCurrency sets the "insurance_currency" field.
+func (u *OrderUpsertOne) SetInsuranceCurrency(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInsuranceCurrency(v)
+	})
+}
+
+// UpdateInsuranceCurrency sets the "insurance_currency" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateInsuranceCurrency() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInsuranceCurrency()
+	})
+}
+
+// ClearInsuranceCurrency clears the value of the "insurance_currency" field.
+func (u *OrderUpsertOne) ClearInsuranceCurrency() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInsuranceCurrency()
+	})
+}
+
+// SetUnNumber sets the "un_number" field.
+func (u *OrderUpsertOne) SetUnNumber(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetUnNumber(v)
+	})
+}
+
+// UpdateUnNumber sets the "un_number" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateUnNumber() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateUnNumber()
+	})
+}
+
+// ClearUnNumber clears the value of the "un_number" field.
+func (u *OrderUpsertOne) ClearUnNumber() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearUnNumber()
+	})
+}
+
+// SetHazardClass sets the "hazard_class" field.
+func (u *OrderUpsertOne) SetHazardClass(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetHazardClass(v)
+	})
+}
+
+// UpdateHazardClass sets the "hazard_class" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateHazardClass() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateHazardClass()
+	})
+}
+
+// ClearHazardClass clears the value of the "hazard_class" field.
+func (u *OrderUpsertOne) ClearHazardClass() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearHazardClass()
+	})
+}
+
+// SetFactoryName sets the "factory_name" field.
+func (u *OrderUpsertOne) SetFactoryName(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFactoryName(v)
+	})
+}
+
+// UpdateFactoryName sets the "factory_name" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFactoryName() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFactoryName()
+	})
+}
+
+// ClearFactoryName clears the value of the "factory_name" field.
+func (u *OrderUpsertOne) ClearFactoryName() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearFactoryName()
+	})
+}
+
+// SetCargoReadyAt sets the "cargo_ready_at" field.
+func (u *OrderUpsertOne) SetCargoReadyAt(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoReadyAt(v)
+	})
+}
+
+// UpdateCargoReadyAt sets the "cargo_ready_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCargoReadyAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoReadyAt()
+	})
+}
+
+// ClearCargoReadyAt clears the value of the "cargo_ready_at" field.
+func (u *OrderUpsertOne) ClearCargoReadyAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoReadyAt()
+	})
+}
+
+// SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
+func (u *OrderUpsertOne) SetDeclarationCutoffAt(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDeclarationCutoffAt(v)
+	})
+}
+
+// UpdateDeclarationCutoffAt sets the "declaration_cutoff_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateDeclarationCutoffAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDeclarationCutoffAt()
+	})
+}
+
+// ClearDeclarationCutoffAt clears the value of the "declaration_cutoff_at" field.
+func (u *OrderUpsertOne) ClearDeclarationCutoffAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDeclarationCutoffAt()
+	})
+}
+
+// SetReceivedAt sets the "received_at" field.
+func (u *OrderUpsertOne) SetReceivedAt(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetReceivedAt(v)
+	})
+}
+
+// UpdateReceivedAt sets the "received_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateReceivedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateReceivedAt()
+	})
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (u *OrderUpsertOne) ClearReceivedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearReceivedAt()
+	})
+}
+
+// SetBusinessType sets the "business_type" field.
+func (u *OrderUpsertOne) SetBusinessType(v order.BusinessType) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBusinessType(v)
+	})
+}
+
+// UpdateBusinessType sets the "business_type" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateBusinessType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBusinessType()
+	})
+}
+
+// SetTradeDirection sets the "trade_direction" field.
+func (u *OrderUpsertOne) SetTradeDirection(v order.TradeDirection) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTradeDirection(v)
+	})
+}
+
+// UpdateTradeDirection sets the "trade_direction" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTradeDirection() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTradeDirection()
+	})
+}
+
+// SetTradeTerm sets the "trade_term" field.
+func (u *OrderUpsertOne) SetTradeTerm(v order.TradeTerm) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTradeTerm(v)
+	})
+}
+
+// UpdateTradeTerm sets the "trade_term" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTradeTerm() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTradeTerm()
+	})
+}
+
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (u *OrderUpsertOne) ClearTradeTerm() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTradeTerm()
+	})
+}
+
+// SetPaymentTerm sets the "payment_term" field.
+func (u *OrderUpsertOne) SetPaymentTerm(v order.PaymentTerm) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetPaymentTerm(v)
+	})
+}
+
+// UpdatePaymentTerm sets the "payment_term" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdatePaymentTerm() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdatePaymentTerm()
+	})
+}
+
+// SetShipmentType sets the "shipment_type" field.
+func (u *OrderUpsertOne) SetShipmentType(v order.ShipmentType) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipmentType(v)
+	})
+}
+
+// UpdateShipmentType sets the "shipment_type" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShipmentType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipmentType()
+	})
+}
+
+// ClearShipmentType clears the value of the "shipment_type" field.
+func (u *OrderUpsertOne) ClearShipmentType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShipmentType()
+	})
+}
+
+// SetContainerOwnership sets the "container_ownership" field.
+func (u *OrderUpsertOne) SetContainerOwnership(v order.ContainerOwnership) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetContainerOwnership(v)
+	})
+}
+
+// UpdateContainerOwnership sets the "container_ownership" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateContainerOwnership() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateContainerOwnership()
+	})
+}
+
+// ClearContainerOwnership clears the value of the "container_ownership" field.
+func (u *OrderUpsertOne) ClearContainerOwnership() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearContainerOwnership()
+	})
+}
+
+// SetShipmentMode sets the "shipment_mode" field.
+func (u *OrderUpsertOne) SetShipmentMode(v order.ShipmentMode) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipmentMode(v)
+	})
+}
+
+// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShipmentMode() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipmentMode()
+	})
+}
+
+// ClearShipmentMode clears the value of the "shipment_mode" field.
+func (u *OrderUpsertOne) ClearShipmentMode() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShipmentMode()
+	})
+}
+
+// SetFlowStatus sets the "flow_status" field.
+func (u *OrderUpsertOne) SetFlowStatus(v order.FlowStatus) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFlowStatus(v)
+	})
+}
+
+// UpdateFlowStatus sets the "flow_status" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFlowStatus() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFlowStatus()
+	})
+}
+
+// SetTerminationStatus sets the "termination_status" field.
+func (u *OrderUpsertOne) SetTerminationStatus(v order.TerminationStatus) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationStatus(v)
+	})
+}
+
+// UpdateTerminationStatus sets the "termination_status" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTerminationStatus() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationStatus()
+	})
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (u *OrderUpsertOne) SetTerminationType(v order.TerminationType) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationType(v)
+	})
+}
+
+// UpdateTerminationType sets the "termination_type" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTerminationType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationType()
+	})
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (u *OrderUpsertOne) ClearTerminationType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminationType()
+	})
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (u *OrderUpsertOne) SetTerminationReason(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationReason(v)
+	})
+}
+
+// UpdateTerminationReason sets the "termination_reason" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTerminationReason() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationReason()
+	})
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (u *OrderUpsertOne) ClearTerminationReason() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminationReason()
+	})
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (u *OrderUpsertOne) SetTerminatedAt(v time.Time) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminatedAt(v)
+	})
+}
+
+// UpdateTerminatedAt sets the "terminated_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTerminatedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminatedAt()
+	})
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (u *OrderUpsertOne) ClearTerminatedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminatedAt()
+	})
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (u *OrderUpsertOne) SetTerminatedBy(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminatedBy(v)
+	})
+}
+
+// UpdateTerminatedBy sets the "terminated_by" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTerminatedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminatedBy()
+	})
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (u *OrderUpsertOne) ClearTerminatedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminatedBy()
+	})
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (u *OrderUpsertOne) SetClosureStatus(v order.ClosureStatus) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosureStatus(v)
+	})
+}
+
+// UpdateClosureStatus sets the "closure_status" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateClosureStatus() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosureStatus()
+	})
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (u *OrderUpsertOne) SetClosureReason(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosureReason(v)
+	})
+}
+
+// UpdateClosureReason sets the "closure_reason" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateClosureReason() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosureReason()
+	})
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (u *OrderUpsertOne) ClearClosureReason() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosureReason()
+	})
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (u *OrderUpsertOne) SetClosedAt(v time.Time) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosedAt(v)
+	})
+}
+
+// UpdateClosedAt sets the "closed_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateClosedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosedAt()
+	})
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (u *OrderUpsertOne) ClearClosedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosedAt()
+	})
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (u *OrderUpsertOne) SetClosedBy(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosedBy(v)
+	})
+}
+
+// UpdateClosedBy sets the "closed_by" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateClosedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosedBy()
+	})
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (u *OrderUpsertOne) ClearClosedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosedBy()
+	})
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (u *OrderUpsertOne) SetLockedAt(v time.Time) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockedAt(v)
+	})
+}
+
+// UpdateLockedAt sets the "locked_at" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateLockedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockedAt()
+	})
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (u *OrderUpsertOne) ClearLockedAt() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockedAt()
+	})
+}
+
+// SetLockedBy sets the "locked_by" field.
+func (u *OrderUpsertOne) SetLockedBy(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockedBy(v)
+	})
+}
+
+// UpdateLockedBy sets the "locked_by" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateLockedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockedBy()
+	})
+}
+
+// ClearLockedBy clears the value of the "locked_by" field.
+func (u *OrderUpsertOne) ClearLockedBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockedBy()
+	})
+}
+
+// SetLockGeneration sets the "lock_generation" field.
+func (u *OrderUpsertOne) SetLockGeneration(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockGeneration(v)
+	})
+}
+
+// AddLockGeneration adds v to the "lock_generation" field.
+func (u *OrderUpsertOne) AddLockGeneration(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddLockGeneration(v)
+	})
+}
+
+// UpdateLockGeneration sets the "lock_generation" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateLockGeneration() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockGeneration()
+	})
+}
+
+// SetIsShared sets the "is_shared" field.
+func (u *OrderUpsertOne) SetIsShared(v bool) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetIsShared(v)
+	})
+}
+
+// UpdateIsShared sets the "is_shared" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateIsShared() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateIsShared()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderUpsertOne) SetVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderUpsertOne) AddVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateVersion() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *OrderUpsertOne) SetOriginLocationID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOriginLocationID(v)
+	})
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateOriginLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOriginLocationID()
+	})
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *OrderUpsertOne) ClearOriginLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOriginLocationID()
+	})
+}
+
+// SetDestinationLocationID sets the "destination_location_id" field.
+func (u *OrderUpsertOne) SetDestinationLocationID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDestinationLocationID(v)
+	})
+}
+
+// UpdateDestinationLocationID sets the "destination_location_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateDestinationLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDestinationLocationID()
+	})
+}
+
+// ClearDestinationLocationID clears the value of the "destination_location_id" field.
+func (u *OrderUpsertOne) ClearDestinationLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDestinationLocationID()
+	})
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *OrderUpsertOne) SetDischargeLocationID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDischargeLocationID(v)
+	})
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateDischargeLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDischargeLocationID()
+	})
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *OrderUpsertOne) ClearDischargeLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDischargeLocationID()
+	})
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *OrderUpsertOne) SetTransitLocationID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTransitLocationID(v)
+	})
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTransitLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTransitLocationID()
+	})
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *OrderUpsertOne) ClearTransitLocationID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTransitLocationID()
+	})
+}
+
+// SetVesselVoyage sets the "vessel_voyage" field.
+func (u *OrderUpsertOne) SetVesselVoyage(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVesselVoyage(v)
+	})
+}
+
+// UpdateVesselVoyage sets the "vessel_voyage" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateVesselVoyage() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVesselVoyage()
+	})
+}
+
+// ClearVesselVoyage clears the value of the "vessel_voyage" field.
+func (u *OrderUpsertOne) ClearVesselVoyage() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearVesselVoyage()
+	})
+}
+
+// SetEtd sets the "etd" field.
+func (u *OrderUpsertOne) SetEtd(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetEtd(v)
+	})
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateEtd() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateEtd()
+	})
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *OrderUpsertOne) ClearEtd() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearEtd()
+	})
+}
+
+// SetEta sets the "eta" field.
+func (u *OrderUpsertOne) SetEta(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetEta(v)
+	})
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateEta() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateEta()
+	})
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *OrderUpsertOne) ClearEta() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearEta()
+	})
+}
+
+// SetSiCutoff sets the "si_cutoff" field.
+func (u *OrderUpsertOne) SetSiCutoff(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSiCutoff(v)
+	})
+}
+
+// UpdateSiCutoff sets the "si_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateSiCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSiCutoff()
+	})
+}
+
+// ClearSiCutoff clears the value of the "si_cutoff" field.
+func (u *OrderUpsertOne) ClearSiCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearSiCutoff()
+	})
+}
+
+// SetDocCutoff sets the "doc_cutoff" field.
+func (u *OrderUpsertOne) SetDocCutoff(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDocCutoff(v)
+	})
+}
+
+// UpdateDocCutoff sets the "doc_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateDocCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDocCutoff()
+	})
+}
+
+// ClearDocCutoff clears the value of the "doc_cutoff" field.
+func (u *OrderUpsertOne) ClearDocCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDocCutoff()
+	})
+}
+
+// SetCustomsCutoff sets the "customs_cutoff" field.
+func (u *OrderUpsertOne) SetCustomsCutoff(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomsCutoff(v)
+	})
+}
+
+// UpdateCustomsCutoff sets the "customs_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCustomsCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomsCutoff()
+	})
+}
+
+// ClearCustomsCutoff clears the value of the "customs_cutoff" field.
+func (u *OrderUpsertOne) ClearCustomsCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCustomsCutoff()
+	})
+}
+
+// SetVgmCutoff sets the "vgm_cutoff" field.
+func (u *OrderUpsertOne) SetVgmCutoff(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVgmCutoff(v)
+	})
+}
+
+// UpdateVgmCutoff sets the "vgm_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateVgmCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVgmCutoff()
+	})
+}
+
+// ClearVgmCutoff clears the value of the "vgm_cutoff" field.
+func (u *OrderUpsertOne) ClearVgmCutoff() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearVgmCutoff()
+	})
+}
+
+// SetGoodsDescription sets the "goods_description" field.
+func (u *OrderUpsertOne) SetGoodsDescription(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetGoodsDescription(v)
+	})
+}
+
+// UpdateGoodsDescription sets the "goods_description" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateGoodsDescription() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateGoodsDescription()
+	})
+}
+
+// ClearGoodsDescription clears the value of the "goods_description" field.
+func (u *OrderUpsertOne) ClearGoodsDescription() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearGoodsDescription()
+	})
+}
+
+// SetTotalPackages sets the "total_packages" field.
+func (u *OrderUpsertOne) SetTotalPackages(v int) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalPackages(v)
+	})
+}
+
+// AddTotalPackages adds v to the "total_packages" field.
+func (u *OrderUpsertOne) AddTotalPackages(v int) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalPackages(v)
+	})
+}
+
+// UpdateTotalPackages sets the "total_packages" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTotalPackages() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalPackages()
+	})
+}
+
+// ClearTotalPackages clears the value of the "total_packages" field.
+func (u *OrderUpsertOne) ClearTotalPackages() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalPackages()
+	})
+}
+
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (u *OrderUpsertOne) SetTotalGrossWeightKg(v float64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalGrossWeightKg(v)
+	})
+}
+
+// AddTotalGrossWeightKg adds v to the "total_gross_weight_kg" field.
+func (u *OrderUpsertOne) AddTotalGrossWeightKg(v float64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalGrossWeightKg(v)
+	})
+}
+
+// UpdateTotalGrossWeightKg sets the "total_gross_weight_kg" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTotalGrossWeightKg() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalGrossWeightKg()
+	})
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (u *OrderUpsertOne) ClearTotalGrossWeightKg() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalGrossWeightKg()
+	})
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (u *OrderUpsertOne) SetTotalVolumeCbm(v float64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalVolumeCbm(v)
+	})
+}
+
+// AddTotalVolumeCbm adds v to the "total_volume_cbm" field.
+func (u *OrderUpsertOne) AddTotalVolumeCbm(v float64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalVolumeCbm(v)
+	})
+}
+
+// UpdateTotalVolumeCbm sets the "total_volume_cbm" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTotalVolumeCbm() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalVolumeCbm()
+	})
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (u *OrderUpsertOne) ClearTotalVolumeCbm() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalVolumeCbm()
+	})
+}
+
+// SetTotalPackageUnit sets the "total_package_unit" field.
+func (u *OrderUpsertOne) SetTotalPackageUnit(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalPackageUnit(v)
+	})
+}
+
+// UpdateTotalPackageUnit sets the "total_package_unit" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateTotalPackageUnit() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalPackageUnit()
+	})
+}
+
+// ClearTotalPackageUnit clears the value of the "total_package_unit" field.
+func (u *OrderUpsertOne) ClearTotalPackageUnit() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalPackageUnit()
+	})
+}
+
+// SetSpecialRequirements sets the "special_requirements" field.
+func (u *OrderUpsertOne) SetSpecialRequirements(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSpecialRequirements(v)
+	})
+}
+
+// UpdateSpecialRequirements sets the "special_requirements" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateSpecialRequirements() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSpecialRequirements()
+	})
+}
+
+// ClearSpecialRequirements clears the value of the "special_requirements" field.
+func (u *OrderUpsertOne) ClearSpecialRequirements() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearSpecialRequirements()
+	})
+}
+
+// SetOrderDate sets the "order_date" field.
+func (u *OrderUpsertOne) SetOrderDate(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOrderDate(v)
+	})
+}
+
+// UpdateOrderDate sets the "order_date" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateOrderDate() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOrderDate()
+	})
+}
+
+// ClearOrderDate clears the value of the "order_date" field.
+func (u *OrderUpsertOne) ClearOrderDate() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOrderDate()
+	})
+}
+
+// SetBookingNo sets the "booking_no" field.
+func (u *OrderUpsertOne) SetBookingNo(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingNo(v)
+	})
+}
+
+// UpdateBookingNo sets the "booking_no" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateBookingNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingNo()
+	})
+}
+
+// ClearBookingNo clears the value of the "booking_no" field.
+func (u *OrderUpsertOne) ClearBookingNo() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingNo()
+	})
+}
+
+// SetNotes sets the "notes" field.
+func (u *OrderUpsertOne) SetNotes(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetNotes(v)
+	})
+}
+
+// UpdateNotes sets the "notes" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateNotes()
+	})
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (u *OrderUpsertOne) ClearNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearNotes()
+	})
+}
+
+// SetBookingNotes sets the "booking_notes" field.
+func (u *OrderUpsertOne) SetBookingNotes(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingNotes(v)
+	})
+}
+
+// UpdateBookingNotes sets the "booking_notes" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateBookingNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingNotes()
+	})
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (u *OrderUpsertOne) ClearBookingNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingNotes()
+	})
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (u *OrderUpsertOne) SetAllocationNotes(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAllocationNotes(v)
+	})
+}
+
+// UpdateAllocationNotes sets the "allocation_notes" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateAllocationNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAllocationNotes()
+	})
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (u *OrderUpsertOne) ClearAllocationNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAllocationNotes()
+	})
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (u *OrderUpsertOne) SetOperationNotes(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOperationNotes(v)
+	})
+}
+
+// UpdateOperationNotes sets the "operation_notes" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateOperationNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOperationNotes()
+	})
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (u *OrderUpsertOne) ClearOperationNotes() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOperationNotes()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderUpsertOne.ID is not supported by MySQL driver. Use OrderUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderCreateBulk is the builder for creating many Order entities in bulk.
 type OrderCreateBulk struct {
 	config
 	err      error
 	builders []*OrderCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Order entities in the database.
@@ -2691,6 +5333,7 @@ func (_c *OrderCreateBulk) Save(ctx context.Context) ([]*Order, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -2737,6 +5380,1470 @@ func (_c *OrderCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Order.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderUpsertBulk {
+	_c.conflict = opts
+	return &OrderUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderCreateBulk) OnConflictColumns(columns ...string) *OrderUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderUpsertBulk is the builder for "upsert"-ing
+// a bulk of Order nodes.
+type OrderUpsertBulk struct {
+	create *OrderCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(order.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUpsertBulk) UpdateNewValues() *OrderUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(order.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(order.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(order.FieldOrderNo)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Order.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderUpsertBulk) Ignore() *OrderUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUpsertBulk) DoNothing() *OrderUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderUpsertBulk) Update(set func(*OrderUpsert)) *OrderUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderUpsertBulk) SetUpdatedAt(v time.Time) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateUpdatedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *OrderUpsertBulk) SetOrganizationID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateOrganizationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderUpsertBulk) SetCustomerID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomerID(v)
+	})
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCustomerID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomerID()
+	})
+}
+
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (u *OrderUpsertBulk) SetCustomerReferenceNo(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomerReferenceNo(v)
+	})
+}
+
+// UpdateCustomerReferenceNo sets the "customer_reference_no" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCustomerReferenceNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomerReferenceNo()
+	})
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (u *OrderUpsertBulk) ClearCustomerReferenceNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCustomerReferenceNo()
+	})
+}
+
+// SetInternalReferenceNo sets the "internal_reference_no" field.
+func (u *OrderUpsertBulk) SetInternalReferenceNo(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInternalReferenceNo(v)
+	})
+}
+
+// UpdateInternalReferenceNo sets the "internal_reference_no" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateInternalReferenceNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInternalReferenceNo()
+	})
+}
+
+// ClearInternalReferenceNo clears the value of the "internal_reference_no" field.
+func (u *OrderUpsertBulk) ClearInternalReferenceNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInternalReferenceNo()
+	})
+}
+
+// SetShipperShortName sets the "shipper_short_name" field.
+func (u *OrderUpsertBulk) SetShipperShortName(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipperShortName(v)
+	})
+}
+
+// UpdateShipperShortName sets the "shipper_short_name" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShipperShortName() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipperShortName()
+	})
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (u *OrderUpsertBulk) SetConsigneeShortName(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetConsigneeShortName(v)
+	})
+}
+
+// UpdateConsigneeShortName sets the "consignee_short_name" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateConsigneeShortName() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateConsigneeShortName()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *OrderUpsertBulk) SetShippingLineID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShippingLineID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// ClearShippingLineID clears the value of the "shipping_line_id" field.
+func (u *OrderUpsertBulk) ClearShippingLineID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShippingLineID()
+	})
+}
+
+// SetBookingAgentID sets the "booking_agent_id" field.
+func (u *OrderUpsertBulk) SetBookingAgentID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingAgentID(v)
+	})
+}
+
+// UpdateBookingAgentID sets the "booking_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateBookingAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingAgentID()
+	})
+}
+
+// ClearBookingAgentID clears the value of the "booking_agent_id" field.
+func (u *OrderUpsertBulk) ClearBookingAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingAgentID()
+	})
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (u *OrderUpsertBulk) SetForeignAgentID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetForeignAgentID(v)
+	})
+}
+
+// UpdateForeignAgentID sets the "foreign_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateForeignAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateForeignAgentID()
+	})
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (u *OrderUpsertBulk) ClearForeignAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearForeignAgentID()
+	})
+}
+
+// SetShippingAgentID sets the "shipping_agent_id" field.
+func (u *OrderUpsertBulk) SetShippingAgentID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShippingAgentID(v)
+	})
+}
+
+// UpdateShippingAgentID sets the "shipping_agent_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShippingAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShippingAgentID()
+	})
+}
+
+// ClearShippingAgentID clears the value of the "shipping_agent_id" field.
+func (u *OrderUpsertBulk) ClearShippingAgentID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShippingAgentID()
+	})
+}
+
+// SetContractNo sets the "contract_no" field.
+func (u *OrderUpsertBulk) SetContractNo(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetContractNo(v)
+	})
+}
+
+// UpdateContractNo sets the "contract_no" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateContractNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateContractNo()
+	})
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (u *OrderUpsertBulk) ClearContractNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearContractNo()
+	})
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (u *OrderUpsertBulk) SetCargoValue(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoValue(v)
+	})
+}
+
+// UpdateCargoValue sets the "cargo_value" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCargoValue() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoValue()
+	})
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (u *OrderUpsertBulk) ClearCargoValue() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoValue()
+	})
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (u *OrderUpsertBulk) SetCargoCurrency(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoCurrency(v)
+	})
+}
+
+// UpdateCargoCurrency sets the "cargo_currency" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCargoCurrency() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoCurrency()
+	})
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (u *OrderUpsertBulk) ClearCargoCurrency() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoCurrency()
+	})
+}
+
+// SetInsurancePremium sets the "insurance_premium" field.
+func (u *OrderUpsertBulk) SetInsurancePremium(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInsurancePremium(v)
+	})
+}
+
+// UpdateInsurancePremium sets the "insurance_premium" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateInsurancePremium() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInsurancePremium()
+	})
+}
+
+// ClearInsurancePremium clears the value of the "insurance_premium" field.
+func (u *OrderUpsertBulk) ClearInsurancePremium() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInsurancePremium()
+	})
+}
+
+// SetInsuranceCurrency sets the "insurance_currency" field.
+func (u *OrderUpsertBulk) SetInsuranceCurrency(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetInsuranceCurrency(v)
+	})
+}
+
+// UpdateInsuranceCurrency sets the "insurance_currency" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateInsuranceCurrency() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateInsuranceCurrency()
+	})
+}
+
+// ClearInsuranceCurrency clears the value of the "insurance_currency" field.
+func (u *OrderUpsertBulk) ClearInsuranceCurrency() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearInsuranceCurrency()
+	})
+}
+
+// SetUnNumber sets the "un_number" field.
+func (u *OrderUpsertBulk) SetUnNumber(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetUnNumber(v)
+	})
+}
+
+// UpdateUnNumber sets the "un_number" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateUnNumber() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateUnNumber()
+	})
+}
+
+// ClearUnNumber clears the value of the "un_number" field.
+func (u *OrderUpsertBulk) ClearUnNumber() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearUnNumber()
+	})
+}
+
+// SetHazardClass sets the "hazard_class" field.
+func (u *OrderUpsertBulk) SetHazardClass(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetHazardClass(v)
+	})
+}
+
+// UpdateHazardClass sets the "hazard_class" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateHazardClass() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateHazardClass()
+	})
+}
+
+// ClearHazardClass clears the value of the "hazard_class" field.
+func (u *OrderUpsertBulk) ClearHazardClass() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearHazardClass()
+	})
+}
+
+// SetFactoryName sets the "factory_name" field.
+func (u *OrderUpsertBulk) SetFactoryName(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFactoryName(v)
+	})
+}
+
+// UpdateFactoryName sets the "factory_name" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFactoryName() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFactoryName()
+	})
+}
+
+// ClearFactoryName clears the value of the "factory_name" field.
+func (u *OrderUpsertBulk) ClearFactoryName() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearFactoryName()
+	})
+}
+
+// SetCargoReadyAt sets the "cargo_ready_at" field.
+func (u *OrderUpsertBulk) SetCargoReadyAt(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCargoReadyAt(v)
+	})
+}
+
+// UpdateCargoReadyAt sets the "cargo_ready_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCargoReadyAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCargoReadyAt()
+	})
+}
+
+// ClearCargoReadyAt clears the value of the "cargo_ready_at" field.
+func (u *OrderUpsertBulk) ClearCargoReadyAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCargoReadyAt()
+	})
+}
+
+// SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
+func (u *OrderUpsertBulk) SetDeclarationCutoffAt(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDeclarationCutoffAt(v)
+	})
+}
+
+// UpdateDeclarationCutoffAt sets the "declaration_cutoff_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateDeclarationCutoffAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDeclarationCutoffAt()
+	})
+}
+
+// ClearDeclarationCutoffAt clears the value of the "declaration_cutoff_at" field.
+func (u *OrderUpsertBulk) ClearDeclarationCutoffAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDeclarationCutoffAt()
+	})
+}
+
+// SetReceivedAt sets the "received_at" field.
+func (u *OrderUpsertBulk) SetReceivedAt(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetReceivedAt(v)
+	})
+}
+
+// UpdateReceivedAt sets the "received_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateReceivedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateReceivedAt()
+	})
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (u *OrderUpsertBulk) ClearReceivedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearReceivedAt()
+	})
+}
+
+// SetBusinessType sets the "business_type" field.
+func (u *OrderUpsertBulk) SetBusinessType(v order.BusinessType) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBusinessType(v)
+	})
+}
+
+// UpdateBusinessType sets the "business_type" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateBusinessType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBusinessType()
+	})
+}
+
+// SetTradeDirection sets the "trade_direction" field.
+func (u *OrderUpsertBulk) SetTradeDirection(v order.TradeDirection) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTradeDirection(v)
+	})
+}
+
+// UpdateTradeDirection sets the "trade_direction" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTradeDirection() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTradeDirection()
+	})
+}
+
+// SetTradeTerm sets the "trade_term" field.
+func (u *OrderUpsertBulk) SetTradeTerm(v order.TradeTerm) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTradeTerm(v)
+	})
+}
+
+// UpdateTradeTerm sets the "trade_term" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTradeTerm() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTradeTerm()
+	})
+}
+
+// ClearTradeTerm clears the value of the "trade_term" field.
+func (u *OrderUpsertBulk) ClearTradeTerm() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTradeTerm()
+	})
+}
+
+// SetPaymentTerm sets the "payment_term" field.
+func (u *OrderUpsertBulk) SetPaymentTerm(v order.PaymentTerm) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetPaymentTerm(v)
+	})
+}
+
+// UpdatePaymentTerm sets the "payment_term" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdatePaymentTerm() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdatePaymentTerm()
+	})
+}
+
+// SetShipmentType sets the "shipment_type" field.
+func (u *OrderUpsertBulk) SetShipmentType(v order.ShipmentType) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipmentType(v)
+	})
+}
+
+// UpdateShipmentType sets the "shipment_type" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShipmentType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipmentType()
+	})
+}
+
+// ClearShipmentType clears the value of the "shipment_type" field.
+func (u *OrderUpsertBulk) ClearShipmentType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShipmentType()
+	})
+}
+
+// SetContainerOwnership sets the "container_ownership" field.
+func (u *OrderUpsertBulk) SetContainerOwnership(v order.ContainerOwnership) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetContainerOwnership(v)
+	})
+}
+
+// UpdateContainerOwnership sets the "container_ownership" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateContainerOwnership() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateContainerOwnership()
+	})
+}
+
+// ClearContainerOwnership clears the value of the "container_ownership" field.
+func (u *OrderUpsertBulk) ClearContainerOwnership() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearContainerOwnership()
+	})
+}
+
+// SetShipmentMode sets the "shipment_mode" field.
+func (u *OrderUpsertBulk) SetShipmentMode(v order.ShipmentMode) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipmentMode(v)
+	})
+}
+
+// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShipmentMode() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipmentMode()
+	})
+}
+
+// ClearShipmentMode clears the value of the "shipment_mode" field.
+func (u *OrderUpsertBulk) ClearShipmentMode() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearShipmentMode()
+	})
+}
+
+// SetFlowStatus sets the "flow_status" field.
+func (u *OrderUpsertBulk) SetFlowStatus(v order.FlowStatus) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFlowStatus(v)
+	})
+}
+
+// UpdateFlowStatus sets the "flow_status" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFlowStatus() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFlowStatus()
+	})
+}
+
+// SetTerminationStatus sets the "termination_status" field.
+func (u *OrderUpsertBulk) SetTerminationStatus(v order.TerminationStatus) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationStatus(v)
+	})
+}
+
+// UpdateTerminationStatus sets the "termination_status" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTerminationStatus() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationStatus()
+	})
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (u *OrderUpsertBulk) SetTerminationType(v order.TerminationType) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationType(v)
+	})
+}
+
+// UpdateTerminationType sets the "termination_type" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTerminationType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationType()
+	})
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (u *OrderUpsertBulk) ClearTerminationType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminationType()
+	})
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (u *OrderUpsertBulk) SetTerminationReason(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminationReason(v)
+	})
+}
+
+// UpdateTerminationReason sets the "termination_reason" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTerminationReason() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminationReason()
+	})
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (u *OrderUpsertBulk) ClearTerminationReason() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminationReason()
+	})
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (u *OrderUpsertBulk) SetTerminatedAt(v time.Time) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminatedAt(v)
+	})
+}
+
+// UpdateTerminatedAt sets the "terminated_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTerminatedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminatedAt()
+	})
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (u *OrderUpsertBulk) ClearTerminatedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminatedAt()
+	})
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (u *OrderUpsertBulk) SetTerminatedBy(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTerminatedBy(v)
+	})
+}
+
+// UpdateTerminatedBy sets the "terminated_by" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTerminatedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTerminatedBy()
+	})
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (u *OrderUpsertBulk) ClearTerminatedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTerminatedBy()
+	})
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (u *OrderUpsertBulk) SetClosureStatus(v order.ClosureStatus) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosureStatus(v)
+	})
+}
+
+// UpdateClosureStatus sets the "closure_status" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateClosureStatus() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosureStatus()
+	})
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (u *OrderUpsertBulk) SetClosureReason(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosureReason(v)
+	})
+}
+
+// UpdateClosureReason sets the "closure_reason" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateClosureReason() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosureReason()
+	})
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (u *OrderUpsertBulk) ClearClosureReason() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosureReason()
+	})
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (u *OrderUpsertBulk) SetClosedAt(v time.Time) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosedAt(v)
+	})
+}
+
+// UpdateClosedAt sets the "closed_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateClosedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosedAt()
+	})
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (u *OrderUpsertBulk) ClearClosedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosedAt()
+	})
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (u *OrderUpsertBulk) SetClosedBy(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetClosedBy(v)
+	})
+}
+
+// UpdateClosedBy sets the "closed_by" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateClosedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateClosedBy()
+	})
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (u *OrderUpsertBulk) ClearClosedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearClosedBy()
+	})
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (u *OrderUpsertBulk) SetLockedAt(v time.Time) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockedAt(v)
+	})
+}
+
+// UpdateLockedAt sets the "locked_at" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateLockedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockedAt()
+	})
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (u *OrderUpsertBulk) ClearLockedAt() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockedAt()
+	})
+}
+
+// SetLockedBy sets the "locked_by" field.
+func (u *OrderUpsertBulk) SetLockedBy(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockedBy(v)
+	})
+}
+
+// UpdateLockedBy sets the "locked_by" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateLockedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockedBy()
+	})
+}
+
+// ClearLockedBy clears the value of the "locked_by" field.
+func (u *OrderUpsertBulk) ClearLockedBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockedBy()
+	})
+}
+
+// SetLockGeneration sets the "lock_generation" field.
+func (u *OrderUpsertBulk) SetLockGeneration(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockGeneration(v)
+	})
+}
+
+// AddLockGeneration adds v to the "lock_generation" field.
+func (u *OrderUpsertBulk) AddLockGeneration(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddLockGeneration(v)
+	})
+}
+
+// UpdateLockGeneration sets the "lock_generation" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateLockGeneration() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockGeneration()
+	})
+}
+
+// SetIsShared sets the "is_shared" field.
+func (u *OrderUpsertBulk) SetIsShared(v bool) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetIsShared(v)
+	})
+}
+
+// UpdateIsShared sets the "is_shared" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateIsShared() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateIsShared()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *OrderUpsertBulk) SetVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *OrderUpsertBulk) AddVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateVersion() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetOriginLocationID sets the "origin_location_id" field.
+func (u *OrderUpsertBulk) SetOriginLocationID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOriginLocationID(v)
+	})
+}
+
+// UpdateOriginLocationID sets the "origin_location_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateOriginLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOriginLocationID()
+	})
+}
+
+// ClearOriginLocationID clears the value of the "origin_location_id" field.
+func (u *OrderUpsertBulk) ClearOriginLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOriginLocationID()
+	})
+}
+
+// SetDestinationLocationID sets the "destination_location_id" field.
+func (u *OrderUpsertBulk) SetDestinationLocationID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDestinationLocationID(v)
+	})
+}
+
+// UpdateDestinationLocationID sets the "destination_location_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateDestinationLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDestinationLocationID()
+	})
+}
+
+// ClearDestinationLocationID clears the value of the "destination_location_id" field.
+func (u *OrderUpsertBulk) ClearDestinationLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDestinationLocationID()
+	})
+}
+
+// SetDischargeLocationID sets the "discharge_location_id" field.
+func (u *OrderUpsertBulk) SetDischargeLocationID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDischargeLocationID(v)
+	})
+}
+
+// UpdateDischargeLocationID sets the "discharge_location_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateDischargeLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDischargeLocationID()
+	})
+}
+
+// ClearDischargeLocationID clears the value of the "discharge_location_id" field.
+func (u *OrderUpsertBulk) ClearDischargeLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDischargeLocationID()
+	})
+}
+
+// SetTransitLocationID sets the "transit_location_id" field.
+func (u *OrderUpsertBulk) SetTransitLocationID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTransitLocationID(v)
+	})
+}
+
+// UpdateTransitLocationID sets the "transit_location_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTransitLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTransitLocationID()
+	})
+}
+
+// ClearTransitLocationID clears the value of the "transit_location_id" field.
+func (u *OrderUpsertBulk) ClearTransitLocationID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTransitLocationID()
+	})
+}
+
+// SetVesselVoyage sets the "vessel_voyage" field.
+func (u *OrderUpsertBulk) SetVesselVoyage(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVesselVoyage(v)
+	})
+}
+
+// UpdateVesselVoyage sets the "vessel_voyage" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateVesselVoyage() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVesselVoyage()
+	})
+}
+
+// ClearVesselVoyage clears the value of the "vessel_voyage" field.
+func (u *OrderUpsertBulk) ClearVesselVoyage() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearVesselVoyage()
+	})
+}
+
+// SetEtd sets the "etd" field.
+func (u *OrderUpsertBulk) SetEtd(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetEtd(v)
+	})
+}
+
+// UpdateEtd sets the "etd" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateEtd() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateEtd()
+	})
+}
+
+// ClearEtd clears the value of the "etd" field.
+func (u *OrderUpsertBulk) ClearEtd() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearEtd()
+	})
+}
+
+// SetEta sets the "eta" field.
+func (u *OrderUpsertBulk) SetEta(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetEta(v)
+	})
+}
+
+// UpdateEta sets the "eta" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateEta() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateEta()
+	})
+}
+
+// ClearEta clears the value of the "eta" field.
+func (u *OrderUpsertBulk) ClearEta() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearEta()
+	})
+}
+
+// SetSiCutoff sets the "si_cutoff" field.
+func (u *OrderUpsertBulk) SetSiCutoff(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSiCutoff(v)
+	})
+}
+
+// UpdateSiCutoff sets the "si_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateSiCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSiCutoff()
+	})
+}
+
+// ClearSiCutoff clears the value of the "si_cutoff" field.
+func (u *OrderUpsertBulk) ClearSiCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearSiCutoff()
+	})
+}
+
+// SetDocCutoff sets the "doc_cutoff" field.
+func (u *OrderUpsertBulk) SetDocCutoff(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDocCutoff(v)
+	})
+}
+
+// UpdateDocCutoff sets the "doc_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateDocCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDocCutoff()
+	})
+}
+
+// ClearDocCutoff clears the value of the "doc_cutoff" field.
+func (u *OrderUpsertBulk) ClearDocCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDocCutoff()
+	})
+}
+
+// SetCustomsCutoff sets the "customs_cutoff" field.
+func (u *OrderUpsertBulk) SetCustomsCutoff(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCustomsCutoff(v)
+	})
+}
+
+// UpdateCustomsCutoff sets the "customs_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCustomsCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCustomsCutoff()
+	})
+}
+
+// ClearCustomsCutoff clears the value of the "customs_cutoff" field.
+func (u *OrderUpsertBulk) ClearCustomsCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCustomsCutoff()
+	})
+}
+
+// SetVgmCutoff sets the "vgm_cutoff" field.
+func (u *OrderUpsertBulk) SetVgmCutoff(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetVgmCutoff(v)
+	})
+}
+
+// UpdateVgmCutoff sets the "vgm_cutoff" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateVgmCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateVgmCutoff()
+	})
+}
+
+// ClearVgmCutoff clears the value of the "vgm_cutoff" field.
+func (u *OrderUpsertBulk) ClearVgmCutoff() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearVgmCutoff()
+	})
+}
+
+// SetGoodsDescription sets the "goods_description" field.
+func (u *OrderUpsertBulk) SetGoodsDescription(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetGoodsDescription(v)
+	})
+}
+
+// UpdateGoodsDescription sets the "goods_description" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateGoodsDescription() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateGoodsDescription()
+	})
+}
+
+// ClearGoodsDescription clears the value of the "goods_description" field.
+func (u *OrderUpsertBulk) ClearGoodsDescription() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearGoodsDescription()
+	})
+}
+
+// SetTotalPackages sets the "total_packages" field.
+func (u *OrderUpsertBulk) SetTotalPackages(v int) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalPackages(v)
+	})
+}
+
+// AddTotalPackages adds v to the "total_packages" field.
+func (u *OrderUpsertBulk) AddTotalPackages(v int) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalPackages(v)
+	})
+}
+
+// UpdateTotalPackages sets the "total_packages" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTotalPackages() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalPackages()
+	})
+}
+
+// ClearTotalPackages clears the value of the "total_packages" field.
+func (u *OrderUpsertBulk) ClearTotalPackages() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalPackages()
+	})
+}
+
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (u *OrderUpsertBulk) SetTotalGrossWeightKg(v float64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalGrossWeightKg(v)
+	})
+}
+
+// AddTotalGrossWeightKg adds v to the "total_gross_weight_kg" field.
+func (u *OrderUpsertBulk) AddTotalGrossWeightKg(v float64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalGrossWeightKg(v)
+	})
+}
+
+// UpdateTotalGrossWeightKg sets the "total_gross_weight_kg" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTotalGrossWeightKg() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalGrossWeightKg()
+	})
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (u *OrderUpsertBulk) ClearTotalGrossWeightKg() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalGrossWeightKg()
+	})
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (u *OrderUpsertBulk) SetTotalVolumeCbm(v float64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalVolumeCbm(v)
+	})
+}
+
+// AddTotalVolumeCbm adds v to the "total_volume_cbm" field.
+func (u *OrderUpsertBulk) AddTotalVolumeCbm(v float64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddTotalVolumeCbm(v)
+	})
+}
+
+// UpdateTotalVolumeCbm sets the "total_volume_cbm" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTotalVolumeCbm() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalVolumeCbm()
+	})
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (u *OrderUpsertBulk) ClearTotalVolumeCbm() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalVolumeCbm()
+	})
+}
+
+// SetTotalPackageUnit sets the "total_package_unit" field.
+func (u *OrderUpsertBulk) SetTotalPackageUnit(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetTotalPackageUnit(v)
+	})
+}
+
+// UpdateTotalPackageUnit sets the "total_package_unit" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateTotalPackageUnit() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateTotalPackageUnit()
+	})
+}
+
+// ClearTotalPackageUnit clears the value of the "total_package_unit" field.
+func (u *OrderUpsertBulk) ClearTotalPackageUnit() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearTotalPackageUnit()
+	})
+}
+
+// SetSpecialRequirements sets the "special_requirements" field.
+func (u *OrderUpsertBulk) SetSpecialRequirements(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSpecialRequirements(v)
+	})
+}
+
+// UpdateSpecialRequirements sets the "special_requirements" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateSpecialRequirements() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSpecialRequirements()
+	})
+}
+
+// ClearSpecialRequirements clears the value of the "special_requirements" field.
+func (u *OrderUpsertBulk) ClearSpecialRequirements() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearSpecialRequirements()
+	})
+}
+
+// SetOrderDate sets the "order_date" field.
+func (u *OrderUpsertBulk) SetOrderDate(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOrderDate(v)
+	})
+}
+
+// UpdateOrderDate sets the "order_date" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateOrderDate() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOrderDate()
+	})
+}
+
+// ClearOrderDate clears the value of the "order_date" field.
+func (u *OrderUpsertBulk) ClearOrderDate() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOrderDate()
+	})
+}
+
+// SetBookingNo sets the "booking_no" field.
+func (u *OrderUpsertBulk) SetBookingNo(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingNo(v)
+	})
+}
+
+// UpdateBookingNo sets the "booking_no" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateBookingNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingNo()
+	})
+}
+
+// ClearBookingNo clears the value of the "booking_no" field.
+func (u *OrderUpsertBulk) ClearBookingNo() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingNo()
+	})
+}
+
+// SetNotes sets the "notes" field.
+func (u *OrderUpsertBulk) SetNotes(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetNotes(v)
+	})
+}
+
+// UpdateNotes sets the "notes" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateNotes()
+	})
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (u *OrderUpsertBulk) ClearNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearNotes()
+	})
+}
+
+// SetBookingNotes sets the "booking_notes" field.
+func (u *OrderUpsertBulk) SetBookingNotes(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetBookingNotes(v)
+	})
+}
+
+// UpdateBookingNotes sets the "booking_notes" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateBookingNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateBookingNotes()
+	})
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (u *OrderUpsertBulk) ClearBookingNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearBookingNotes()
+	})
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (u *OrderUpsertBulk) SetAllocationNotes(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAllocationNotes(v)
+	})
+}
+
+// UpdateAllocationNotes sets the "allocation_notes" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateAllocationNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAllocationNotes()
+	})
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (u *OrderUpsertBulk) ClearAllocationNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAllocationNotes()
+	})
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (u *OrderUpsertBulk) SetOperationNotes(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetOperationNotes(v)
+	})
+}
+
+// UpdateOperationNotes sets the "operation_notes" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateOperationNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateOperationNotes()
+	})
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (u *OrderUpsertBulk) ClearOperationNotes() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearOperationNotes()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

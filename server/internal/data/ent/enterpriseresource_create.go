@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -33,6 +35,7 @@ type EnterpriseResourceCreate struct {
 	config
 	mutation *EnterpriseResourceMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -560,6 +563,7 @@ func (_c *EnterpriseResourceCreate) createSpec() (*EnterpriseResource, *sqlgraph
 		_node = &EnterpriseResource{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresource.Table, sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -838,11 +842,341 @@ func (_c *EnterpriseResourceCreate) createSpec() (*EnterpriseResource, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResource.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourceUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceCreate) OnConflictColumns(columns ...string) *EnterpriseResourceUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourceUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResource node.
+	EnterpriseResourceUpsertOne struct {
+		create *EnterpriseResourceCreate
+	}
+
+	// EnterpriseResourceUpsert is the "OnConflict" setter.
+	EnterpriseResourceUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateUpdatedAt() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldUpdatedAt)
+	return u
+}
+
+// SetShortName sets the "short_name" field.
+func (u *EnterpriseResourceUpsert) SetShortName(v string) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldShortName, v)
+	return u
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateShortName() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldShortName)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *EnterpriseResourceUpsert) SetEnabled(v bool) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateEnabled() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldEnabled)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseResourceUpsert) SetSortOrder(v int) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateSortOrder() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseResourceUpsert) AddSortOrder(v int) *EnterpriseResourceUpsert {
+	u.Add(enterpriseresource.FieldSortOrder, v)
+	return u
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *EnterpriseResourceUpsert) SetUpdatedBy(v uuid.UUID) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldUpdatedBy, v)
+	return u
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateUpdatedBy() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldUpdatedBy)
+	return u
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *EnterpriseResourceUpsert) ClearUpdatedBy() *EnterpriseResourceUpsert {
+	u.SetNull(enterpriseresource.FieldUpdatedBy)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceUpsert) SetSearchKeywords(v string) *EnterpriseResourceUpsert {
+	u.Set(enterpriseresource.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsert) UpdateSearchKeywords() *EnterpriseResourceUpsert {
+	u.SetExcluded(enterpriseresource.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresource.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceUpsertOne) UpdateNewValues() *EnterpriseResourceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresource.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresource.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(enterpriseresource.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.ResourceType(); exists {
+			s.SetIgnore(enterpriseresource.FieldResourceType)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(enterpriseresource.FieldCreatedBy)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourceUpsertOne) Ignore() *EnterpriseResourceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceUpsertOne) DoNothing() *EnterpriseResourceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceUpsertOne) Update(set func(*EnterpriseResourceUpsert)) *EnterpriseResourceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateUpdatedAt() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetShortName sets the "short_name" field.
+func (u *EnterpriseResourceUpsertOne) SetShortName(v string) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetShortName(v)
+	})
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateShortName() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateShortName()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *EnterpriseResourceUpsertOne) SetEnabled(v bool) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateEnabled() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseResourceUpsertOne) SetSortOrder(v int) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseResourceUpsertOne) AddSortOrder(v int) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateSortOrder() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *EnterpriseResourceUpsertOne) SetUpdatedBy(v uuid.UUID) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateUpdatedBy() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *EnterpriseResourceUpsertOne) ClearUpdatedBy() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.ClearUpdatedBy()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceUpsertOne) SetSearchKeywords(v string) *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertOne) UpdateSearchKeywords() *EnterpriseResourceUpsertOne {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourceUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourceUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourceUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourceUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourceCreateBulk is the builder for creating many EnterpriseResource entities in bulk.
 type EnterpriseResourceCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourceCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResource entities in the database.
@@ -872,6 +1206,7 @@ func (_c *EnterpriseResourceCreateBulk) Save(ctx context.Context) ([]*Enterprise
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -918,6 +1253,230 @@ func (_c *EnterpriseResourceCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourceCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResource.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourceCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourceUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourceUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourceCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourceUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourceUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourceUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResource nodes.
+type EnterpriseResourceUpsertBulk struct {
+	create *EnterpriseResourceCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresource.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourceUpsertBulk) UpdateNewValues() *EnterpriseResourceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresource.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresource.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(enterpriseresource.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.ResourceType(); exists {
+				s.SetIgnore(enterpriseresource.FieldResourceType)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(enterpriseresource.FieldCreatedBy)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResource.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourceUpsertBulk) Ignore() *EnterpriseResourceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourceUpsertBulk) DoNothing() *EnterpriseResourceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourceCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourceUpsertBulk) Update(set func(*EnterpriseResourceUpsert)) *EnterpriseResourceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourceUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetShortName sets the "short_name" field.
+func (u *EnterpriseResourceUpsertBulk) SetShortName(v string) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetShortName(v)
+	})
+}
+
+// UpdateShortName sets the "short_name" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateShortName() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateShortName()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *EnterpriseResourceUpsertBulk) SetEnabled(v bool) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateEnabled() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *EnterpriseResourceUpsertBulk) SetSortOrder(v int) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *EnterpriseResourceUpsertBulk) AddSortOrder(v int) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateSortOrder() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (u *EnterpriseResourceUpsertBulk) SetUpdatedBy(v uuid.UUID) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetUpdatedBy(v)
+	})
+}
+
+// UpdateUpdatedBy sets the "updated_by" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateUpdatedBy() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateUpdatedBy()
+	})
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (u *EnterpriseResourceUpsertBulk) ClearUpdatedBy() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.ClearUpdatedBy()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceUpsertBulk) SetSearchKeywords(v string) *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceUpsertBulk) UpdateSearchKeywords() *EnterpriseResourceUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourceUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourceCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourceCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourceUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

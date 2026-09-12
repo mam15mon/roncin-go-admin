@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type AirportCreate struct {
 	config
 	mutation *AirportMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -426,6 +429,7 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 		_node = &Airport{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(airport.Table, sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -510,11 +514,608 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Airport.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AirportUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AirportCreate) OnConflict(opts ...sql.ConflictOption) *AirportUpsertOne {
+	_c.conflict = opts
+	return &AirportUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AirportCreate) OnConflictColumns(columns ...string) *AirportUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AirportUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// AirportUpsertOne is the builder for "upsert"-ing
+	//  one Airport node.
+	AirportUpsertOne struct {
+		create *AirportCreate
+	}
+
+	// AirportUpsert is the "OnConflict" setter.
+	AirportUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AirportUpsert) SetUpdatedAt(v time.Time) *AirportUpsert {
+	u.Set(airport.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateUpdatedAt() *AirportUpsert {
+	u.SetExcluded(airport.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *AirportUpsert) SetOrganizationID(v uuid.UUID) *AirportUpsert {
+	u.Set(airport.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateOrganizationID() *AirportUpsert {
+	u.SetExcluded(airport.FieldOrganizationID)
+	return u
+}
+
+// SetIcaoCode sets the "icao_code" field.
+func (u *AirportUpsert) SetIcaoCode(v string) *AirportUpsert {
+	u.Set(airport.FieldIcaoCode, v)
+	return u
+}
+
+// UpdateIcaoCode sets the "icao_code" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateIcaoCode() *AirportUpsert {
+	u.SetExcluded(airport.FieldIcaoCode)
+	return u
+}
+
+// ClearIcaoCode clears the value of the "icao_code" field.
+func (u *AirportUpsert) ClearIcaoCode() *AirportUpsert {
+	u.SetNull(airport.FieldIcaoCode)
+	return u
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *AirportUpsert) SetNameZh(v string) *AirportUpsert {
+	u.Set(airport.FieldNameZh, v)
+	return u
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateNameZh() *AirportUpsert {
+	u.SetExcluded(airport.FieldNameZh)
+	return u
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *AirportUpsert) ClearNameZh() *AirportUpsert {
+	u.SetNull(airport.FieldNameZh)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *AirportUpsert) SetNameEn(v string) *AirportUpsert {
+	u.Set(airport.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateNameEn() *AirportUpsert {
+	u.SetExcluded(airport.FieldNameEn)
+	return u
+}
+
+// SetCityNameZh sets the "city_name_zh" field.
+func (u *AirportUpsert) SetCityNameZh(v string) *AirportUpsert {
+	u.Set(airport.FieldCityNameZh, v)
+	return u
+}
+
+// UpdateCityNameZh sets the "city_name_zh" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateCityNameZh() *AirportUpsert {
+	u.SetExcluded(airport.FieldCityNameZh)
+	return u
+}
+
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (u *AirportUpsert) ClearCityNameZh() *AirportUpsert {
+	u.SetNull(airport.FieldCityNameZh)
+	return u
+}
+
+// SetCityNameEn sets the "city_name_en" field.
+func (u *AirportUpsert) SetCityNameEn(v string) *AirportUpsert {
+	u.Set(airport.FieldCityNameEn, v)
+	return u
+}
+
+// UpdateCityNameEn sets the "city_name_en" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateCityNameEn() *AirportUpsert {
+	u.SetExcluded(airport.FieldCityNameEn)
+	return u
+}
+
+// ClearCityNameEn clears the value of the "city_name_en" field.
+func (u *AirportUpsert) ClearCityNameEn() *AirportUpsert {
+	u.SetNull(airport.FieldCityNameEn)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *AirportUpsert) SetCountryCode(v string) *AirportUpsert {
+	u.Set(airport.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateCountryCode() *AirportUpsert {
+	u.SetExcluded(airport.FieldCountryCode)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *AirportUpsert) SetSource(v string) *AirportUpsert {
+	u.Set(airport.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateSource() *AirportUpsert {
+	u.SetExcluded(airport.FieldSource)
+	return u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *AirportUpsert) SetSourceVersion(v string) *AirportUpsert {
+	u.Set(airport.FieldSourceVersion, v)
+	return u
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateSourceVersion() *AirportUpsert {
+	u.SetExcluded(airport.FieldSourceVersion)
+	return u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *AirportUpsert) ClearSourceVersion() *AirportUpsert {
+	u.SetNull(airport.FieldSourceVersion)
+	return u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *AirportUpsert) SetSourceHash(v string) *AirportUpsert {
+	u.Set(airport.FieldSourceHash, v)
+	return u
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateSourceHash() *AirportUpsert {
+	u.SetExcluded(airport.FieldSourceHash)
+	return u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *AirportUpsert) ClearSourceHash() *AirportUpsert {
+	u.SetNull(airport.FieldSourceHash)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *AirportUpsert) SetSortOrder(v int) *AirportUpsert {
+	u.Set(airport.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateSortOrder() *AirportUpsert {
+	u.SetExcluded(airport.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *AirportUpsert) AddSortOrder(v int) *AirportUpsert {
+	u.Add(airport.FieldSortOrder, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AirportUpsert) SetEnabled(v bool) *AirportUpsert {
+	u.Set(airport.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateEnabled() *AirportUpsert {
+	u.SetExcluded(airport.FieldEnabled)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *AirportUpsert) SetSearchKeywords(v string) *AirportUpsert {
+	u.Set(airport.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *AirportUpsert) UpdateSearchKeywords() *AirportUpsert {
+	u.SetExcluded(airport.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(airport.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AirportUpsertOne) UpdateNewValues() *AirportUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(airport.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(airport.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.IataCode(); exists {
+			s.SetIgnore(airport.FieldIataCode)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *AirportUpsertOne) Ignore() *AirportUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AirportUpsertOne) DoNothing() *AirportUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AirportCreate.OnConflict
+// documentation for more info.
+func (u *AirportUpsertOne) Update(set func(*AirportUpsert)) *AirportUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AirportUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AirportUpsertOne) SetUpdatedAt(v time.Time) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateUpdatedAt() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *AirportUpsertOne) SetOrganizationID(v uuid.UUID) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateOrganizationID() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetIcaoCode sets the "icao_code" field.
+func (u *AirportUpsertOne) SetIcaoCode(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetIcaoCode(v)
+	})
+}
+
+// UpdateIcaoCode sets the "icao_code" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateIcaoCode() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateIcaoCode()
+	})
+}
+
+// ClearIcaoCode clears the value of the "icao_code" field.
+func (u *AirportUpsertOne) ClearIcaoCode() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearIcaoCode()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *AirportUpsertOne) SetNameZh(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateNameZh() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *AirportUpsertOne) ClearNameZh() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *AirportUpsertOne) SetNameEn(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateNameEn() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCityNameZh sets the "city_name_zh" field.
+func (u *AirportUpsertOne) SetCityNameZh(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCityNameZh(v)
+	})
+}
+
+// UpdateCityNameZh sets the "city_name_zh" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateCityNameZh() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCityNameZh()
+	})
+}
+
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (u *AirportUpsertOne) ClearCityNameZh() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearCityNameZh()
+	})
+}
+
+// SetCityNameEn sets the "city_name_en" field.
+func (u *AirportUpsertOne) SetCityNameEn(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCityNameEn(v)
+	})
+}
+
+// UpdateCityNameEn sets the "city_name_en" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateCityNameEn() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCityNameEn()
+	})
+}
+
+// ClearCityNameEn clears the value of the "city_name_en" field.
+func (u *AirportUpsertOne) ClearCityNameEn() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearCityNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *AirportUpsertOne) SetCountryCode(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateCountryCode() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *AirportUpsertOne) SetSource(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateSource() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *AirportUpsertOne) SetSourceVersion(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSourceVersion(v)
+	})
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateSourceVersion() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSourceVersion()
+	})
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *AirportUpsertOne) ClearSourceVersion() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearSourceVersion()
+	})
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *AirportUpsertOne) SetSourceHash(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSourceHash(v)
+	})
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateSourceHash() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSourceHash()
+	})
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *AirportUpsertOne) ClearSourceHash() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearSourceHash()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *AirportUpsertOne) SetSortOrder(v int) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *AirportUpsertOne) AddSortOrder(v int) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateSortOrder() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AirportUpsertOne) SetEnabled(v bool) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateEnabled() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *AirportUpsertOne) SetSearchKeywords(v string) *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *AirportUpsertOne) UpdateSearchKeywords() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *AirportUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AirportCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AirportUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *AirportUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: AirportUpsertOne.ID is not supported by MySQL driver. Use AirportUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *AirportUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // AirportCreateBulk is the builder for creating many Airport entities in bulk.
 type AirportCreateBulk struct {
 	config
 	err      error
 	builders []*AirportCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Airport entities in the database.
@@ -544,6 +1145,7 @@ func (_c *AirportCreateBulk) Save(ctx context.Context) ([]*Airport, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -590,6 +1192,371 @@ func (_c *AirportCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *AirportCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Airport.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AirportUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AirportCreateBulk) OnConflict(opts ...sql.ConflictOption) *AirportUpsertBulk {
+	_c.conflict = opts
+	return &AirportUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AirportCreateBulk) OnConflictColumns(columns ...string) *AirportUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AirportUpsertBulk{
+		create: _c,
+	}
+}
+
+// AirportUpsertBulk is the builder for "upsert"-ing
+// a bulk of Airport nodes.
+type AirportUpsertBulk struct {
+	create *AirportCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(airport.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AirportUpsertBulk) UpdateNewValues() *AirportUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(airport.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(airport.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.IataCode(); exists {
+				s.SetIgnore(airport.FieldIataCode)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Airport.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *AirportUpsertBulk) Ignore() *AirportUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AirportUpsertBulk) DoNothing() *AirportUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AirportCreateBulk.OnConflict
+// documentation for more info.
+func (u *AirportUpsertBulk) Update(set func(*AirportUpsert)) *AirportUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AirportUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AirportUpsertBulk) SetUpdatedAt(v time.Time) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateUpdatedAt() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *AirportUpsertBulk) SetOrganizationID(v uuid.UUID) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateOrganizationID() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetIcaoCode sets the "icao_code" field.
+func (u *AirportUpsertBulk) SetIcaoCode(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetIcaoCode(v)
+	})
+}
+
+// UpdateIcaoCode sets the "icao_code" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateIcaoCode() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateIcaoCode()
+	})
+}
+
+// ClearIcaoCode clears the value of the "icao_code" field.
+func (u *AirportUpsertBulk) ClearIcaoCode() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearIcaoCode()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *AirportUpsertBulk) SetNameZh(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateNameZh() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *AirportUpsertBulk) ClearNameZh() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *AirportUpsertBulk) SetNameEn(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateNameEn() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCityNameZh sets the "city_name_zh" field.
+func (u *AirportUpsertBulk) SetCityNameZh(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCityNameZh(v)
+	})
+}
+
+// UpdateCityNameZh sets the "city_name_zh" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateCityNameZh() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCityNameZh()
+	})
+}
+
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (u *AirportUpsertBulk) ClearCityNameZh() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearCityNameZh()
+	})
+}
+
+// SetCityNameEn sets the "city_name_en" field.
+func (u *AirportUpsertBulk) SetCityNameEn(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCityNameEn(v)
+	})
+}
+
+// UpdateCityNameEn sets the "city_name_en" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateCityNameEn() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCityNameEn()
+	})
+}
+
+// ClearCityNameEn clears the value of the "city_name_en" field.
+func (u *AirportUpsertBulk) ClearCityNameEn() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearCityNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *AirportUpsertBulk) SetCountryCode(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateCountryCode() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *AirportUpsertBulk) SetSource(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateSource() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *AirportUpsertBulk) SetSourceVersion(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSourceVersion(v)
+	})
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateSourceVersion() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSourceVersion()
+	})
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *AirportUpsertBulk) ClearSourceVersion() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearSourceVersion()
+	})
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *AirportUpsertBulk) SetSourceHash(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSourceHash(v)
+	})
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateSourceHash() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSourceHash()
+	})
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *AirportUpsertBulk) ClearSourceHash() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearSourceHash()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *AirportUpsertBulk) SetSortOrder(v int) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *AirportUpsertBulk) AddSortOrder(v int) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateSortOrder() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *AirportUpsertBulk) SetEnabled(v bool) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateEnabled() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *AirportUpsertBulk) SetSearchKeywords(v string) *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *AirportUpsertBulk) UpdateSearchKeywords() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *AirportUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the AirportCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AirportCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AirportUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

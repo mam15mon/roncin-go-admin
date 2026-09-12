@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type EnterpriseResourcePartyCreate struct {
 	config
 	mutation *EnterpriseResourcePartyMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -443,6 +446,7 @@ func (_c *EnterpriseResourcePartyCreate) createSpec() (*EnterpriseResourceParty,
 		_node = &EnterpriseResourceParty{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(enterpriseresourceparty.Table, sqlgraph.NewFieldSpec(enterpriseresourceparty.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -535,11 +539,653 @@ func (_c *EnterpriseResourcePartyCreate) createSpec() (*EnterpriseResourceParty,
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceParty.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourcePartyUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourcePartyCreate) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourcePartyUpsertOne {
+	_c.conflict = opts
+	return &EnterpriseResourcePartyUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourcePartyCreate) OnConflictColumns(columns ...string) *EnterpriseResourcePartyUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourcePartyUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EnterpriseResourcePartyUpsertOne is the builder for "upsert"-ing
+	//  one EnterpriseResourceParty node.
+	EnterpriseResourcePartyUpsertOne struct {
+		create *EnterpriseResourcePartyCreate
+	}
+
+	// EnterpriseResourcePartyUpsert is the "OnConflict" setter.
+	EnterpriseResourcePartyUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourcePartyUpsert) SetUpdatedAt(v time.Time) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateUpdatedAt() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldUpdatedAt)
+	return u
+}
+
+// SetCompanyName sets the "company_name" field.
+func (u *EnterpriseResourcePartyUpsert) SetCompanyName(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldCompanyName, v)
+	return u
+}
+
+// UpdateCompanyName sets the "company_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateCompanyName() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldCompanyName)
+	return u
+}
+
+// SetBusinessCode sets the "business_code" field.
+func (u *EnterpriseResourcePartyUpsert) SetBusinessCode(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldBusinessCode, v)
+	return u
+}
+
+// UpdateBusinessCode sets the "business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateBusinessCode() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldBusinessCode)
+	return u
+}
+
+// ClearBusinessCode clears the value of the "business_code" field.
+func (u *EnterpriseResourcePartyUpsert) ClearBusinessCode() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldBusinessCode)
+	return u
+}
+
+// SetNormalizedBusinessCode sets the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsert) SetNormalizedBusinessCode(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldNormalizedBusinessCode, v)
+	return u
+}
+
+// UpdateNormalizedBusinessCode sets the "normalized_business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateNormalizedBusinessCode() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldNormalizedBusinessCode)
+	return u
+}
+
+// ClearNormalizedBusinessCode clears the value of the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsert) ClearNormalizedBusinessCode() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldNormalizedBusinessCode)
+	return u
+}
+
+// SetAddress sets the "address" field.
+func (u *EnterpriseResourcePartyUpsert) SetAddress(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldAddress, v)
+	return u
+}
+
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateAddress() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldAddress)
+	return u
+}
+
+// ClearAddress clears the value of the "address" field.
+func (u *EnterpriseResourcePartyUpsert) ClearAddress() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldAddress)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourcePartyUpsert) SetCountryCode(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateCountryCode() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldCountryCode)
+	return u
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsert) SetContactName(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldContactName, v)
+	return u
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateContactName() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldContactName)
+	return u
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsert) ClearContactName() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldContactName)
+	return u
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsert) SetContactPhone(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldContactPhone, v)
+	return u
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateContactPhone() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldContactPhone)
+	return u
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsert) ClearContactPhone() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldContactPhone)
+	return u
+}
+
+// SetEmail sets the "email" field.
+func (u *EnterpriseResourcePartyUpsert) SetEmail(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldEmail, v)
+	return u
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateEmail() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldEmail)
+	return u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *EnterpriseResourcePartyUpsert) ClearEmail() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldEmail)
+	return u
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsert) SetTaxIdentifier(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldTaxIdentifier, v)
+	return u
+}
+
+// UpdateTaxIdentifier sets the "tax_identifier" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateTaxIdentifier() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldTaxIdentifier)
+	return u
+}
+
+// ClearTaxIdentifier clears the value of the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsert) ClearTaxIdentifier() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldTaxIdentifier)
+	return u
+}
+
+// SetAeoCode sets the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsert) SetAeoCode(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldAeoCode, v)
+	return u
+}
+
+// UpdateAeoCode sets the "aeo_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateAeoCode() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldAeoCode)
+	return u
+}
+
+// ClearAeoCode clears the value of the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsert) ClearAeoCode() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldAeoCode)
+	return u
+}
+
+// SetCustomDisplay sets the "custom_display" field.
+func (u *EnterpriseResourcePartyUpsert) SetCustomDisplay(v bool) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldCustomDisplay, v)
+	return u
+}
+
+// UpdateCustomDisplay sets the "custom_display" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateCustomDisplay() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldCustomDisplay)
+	return u
+}
+
+// SetDisplayContent sets the "display_content" field.
+func (u *EnterpriseResourcePartyUpsert) SetDisplayContent(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldDisplayContent, v)
+	return u
+}
+
+// UpdateDisplayContent sets the "display_content" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateDisplayContent() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldDisplayContent)
+	return u
+}
+
+// ClearDisplayContent clears the value of the "display_content" field.
+func (u *EnterpriseResourcePartyUpsert) ClearDisplayContent() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldDisplayContent)
+	return u
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourcePartyUpsert) SetRemark(v string) *EnterpriseResourcePartyUpsert {
+	u.Set(enterpriseresourceparty.FieldRemark, v)
+	return u
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsert) UpdateRemark() *EnterpriseResourcePartyUpsert {
+	u.SetExcluded(enterpriseresourceparty.FieldRemark)
+	return u
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourcePartyUpsert) ClearRemark() *EnterpriseResourcePartyUpsert {
+	u.SetNull(enterpriseresourceparty.FieldRemark)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceparty.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourcePartyUpsertOne) UpdateNewValues() *EnterpriseResourcePartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(enterpriseresourceparty.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(enterpriseresourceparty.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(enterpriseresourceparty.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(enterpriseresourceparty.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.ResourceType(); exists {
+			s.SetIgnore(enterpriseresourceparty.FieldResourceType)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EnterpriseResourcePartyUpsertOne) Ignore() *EnterpriseResourcePartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourcePartyUpsertOne) DoNothing() *EnterpriseResourcePartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourcePartyCreate.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourcePartyUpsertOne) Update(set func(*EnterpriseResourcePartyUpsert)) *EnterpriseResourcePartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourcePartyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetUpdatedAt(v time.Time) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateUpdatedAt() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCompanyName sets the "company_name" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetCompanyName(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCompanyName(v)
+	})
+}
+
+// UpdateCompanyName sets the "company_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateCompanyName() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCompanyName()
+	})
+}
+
+// SetBusinessCode sets the "business_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetBusinessCode(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetBusinessCode(v)
+	})
+}
+
+// UpdateBusinessCode sets the "business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateBusinessCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateBusinessCode()
+	})
+}
+
+// ClearBusinessCode clears the value of the "business_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearBusinessCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearBusinessCode()
+	})
+}
+
+// SetNormalizedBusinessCode sets the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetNormalizedBusinessCode(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetNormalizedBusinessCode(v)
+	})
+}
+
+// UpdateNormalizedBusinessCode sets the "normalized_business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateNormalizedBusinessCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateNormalizedBusinessCode()
+	})
+}
+
+// ClearNormalizedBusinessCode clears the value of the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearNormalizedBusinessCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearNormalizedBusinessCode()
+	})
+}
+
+// SetAddress sets the "address" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetAddress(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetAddress(v)
+	})
+}
+
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateAddress() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateAddress()
+	})
+}
+
+// ClearAddress clears the value of the "address" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearAddress() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearAddress()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetCountryCode(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateCountryCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetContactName(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetContactName(v)
+	})
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateContactName() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateContactName()
+	})
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearContactName() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearContactName()
+	})
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetContactPhone(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetContactPhone(v)
+	})
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateContactPhone() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateContactPhone()
+	})
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearContactPhone() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearContactPhone()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetEmail(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateEmail() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearEmail() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetTaxIdentifier(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetTaxIdentifier(v)
+	})
+}
+
+// UpdateTaxIdentifier sets the "tax_identifier" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateTaxIdentifier() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateTaxIdentifier()
+	})
+}
+
+// ClearTaxIdentifier clears the value of the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearTaxIdentifier() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearTaxIdentifier()
+	})
+}
+
+// SetAeoCode sets the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetAeoCode(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetAeoCode(v)
+	})
+}
+
+// UpdateAeoCode sets the "aeo_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateAeoCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateAeoCode()
+	})
+}
+
+// ClearAeoCode clears the value of the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearAeoCode() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearAeoCode()
+	})
+}
+
+// SetCustomDisplay sets the "custom_display" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetCustomDisplay(v bool) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCustomDisplay(v)
+	})
+}
+
+// UpdateCustomDisplay sets the "custom_display" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateCustomDisplay() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCustomDisplay()
+	})
+}
+
+// SetDisplayContent sets the "display_content" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetDisplayContent(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetDisplayContent(v)
+	})
+}
+
+// UpdateDisplayContent sets the "display_content" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateDisplayContent() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateDisplayContent()
+	})
+}
+
+// ClearDisplayContent clears the value of the "display_content" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearDisplayContent() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearDisplayContent()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourcePartyUpsertOne) SetRemark(v string) *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertOne) UpdateRemark() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourcePartyUpsertOne) ClearRemark() *EnterpriseResourcePartyUpsertOne {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourcePartyUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourcePartyCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourcePartyUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnterpriseResourcePartyUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EnterpriseResourcePartyUpsertOne.ID is not supported by MySQL driver. Use EnterpriseResourcePartyUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnterpriseResourcePartyUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnterpriseResourcePartyCreateBulk is the builder for creating many EnterpriseResourceParty entities in bulk.
 type EnterpriseResourcePartyCreateBulk struct {
 	config
 	err      error
 	builders []*EnterpriseResourcePartyCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EnterpriseResourceParty entities in the database.
@@ -569,6 +1215,7 @@ func (_c *EnterpriseResourcePartyCreateBulk) Save(ctx context.Context) ([]*Enter
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -615,6 +1262,398 @@ func (_c *EnterpriseResourcePartyCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EnterpriseResourcePartyCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EnterpriseResourceParty.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EnterpriseResourcePartyUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EnterpriseResourcePartyCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnterpriseResourcePartyUpsertBulk {
+	_c.conflict = opts
+	return &EnterpriseResourcePartyUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EnterpriseResourcePartyCreateBulk) OnConflictColumns(columns ...string) *EnterpriseResourcePartyUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EnterpriseResourcePartyUpsertBulk{
+		create: _c,
+	}
+}
+
+// EnterpriseResourcePartyUpsertBulk is the builder for "upsert"-ing
+// a bulk of EnterpriseResourceParty nodes.
+type EnterpriseResourcePartyUpsertBulk struct {
+	create *EnterpriseResourcePartyCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(enterpriseresourceparty.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateNewValues() *EnterpriseResourcePartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(enterpriseresourceparty.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(enterpriseresourceparty.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(enterpriseresourceparty.FieldResourceID)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(enterpriseresourceparty.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.ResourceType(); exists {
+				s.SetIgnore(enterpriseresourceparty.FieldResourceType)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EnterpriseResourceParty.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EnterpriseResourcePartyUpsertBulk) Ignore() *EnterpriseResourcePartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EnterpriseResourcePartyUpsertBulk) DoNothing() *EnterpriseResourcePartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EnterpriseResourcePartyCreateBulk.OnConflict
+// documentation for more info.
+func (u *EnterpriseResourcePartyUpsertBulk) Update(set func(*EnterpriseResourcePartyUpsert)) *EnterpriseResourcePartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EnterpriseResourcePartyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetUpdatedAt(v time.Time) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateUpdatedAt() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCompanyName sets the "company_name" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetCompanyName(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCompanyName(v)
+	})
+}
+
+// UpdateCompanyName sets the "company_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateCompanyName() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCompanyName()
+	})
+}
+
+// SetBusinessCode sets the "business_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetBusinessCode(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetBusinessCode(v)
+	})
+}
+
+// UpdateBusinessCode sets the "business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateBusinessCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateBusinessCode()
+	})
+}
+
+// ClearBusinessCode clears the value of the "business_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearBusinessCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearBusinessCode()
+	})
+}
+
+// SetNormalizedBusinessCode sets the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetNormalizedBusinessCode(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetNormalizedBusinessCode(v)
+	})
+}
+
+// UpdateNormalizedBusinessCode sets the "normalized_business_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateNormalizedBusinessCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateNormalizedBusinessCode()
+	})
+}
+
+// ClearNormalizedBusinessCode clears the value of the "normalized_business_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearNormalizedBusinessCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearNormalizedBusinessCode()
+	})
+}
+
+// SetAddress sets the "address" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetAddress(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetAddress(v)
+	})
+}
+
+// UpdateAddress sets the "address" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateAddress() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateAddress()
+	})
+}
+
+// ClearAddress clears the value of the "address" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearAddress() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearAddress()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetCountryCode(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateCountryCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetContactName sets the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetContactName(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetContactName(v)
+	})
+}
+
+// UpdateContactName sets the "contact_name" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateContactName() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateContactName()
+	})
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearContactName() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearContactName()
+	})
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetContactPhone(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetContactPhone(v)
+	})
+}
+
+// UpdateContactPhone sets the "contact_phone" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateContactPhone() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateContactPhone()
+	})
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearContactPhone() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearContactPhone()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetEmail(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateEmail() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearEmail() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetTaxIdentifier(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetTaxIdentifier(v)
+	})
+}
+
+// UpdateTaxIdentifier sets the "tax_identifier" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateTaxIdentifier() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateTaxIdentifier()
+	})
+}
+
+// ClearTaxIdentifier clears the value of the "tax_identifier" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearTaxIdentifier() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearTaxIdentifier()
+	})
+}
+
+// SetAeoCode sets the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetAeoCode(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetAeoCode(v)
+	})
+}
+
+// UpdateAeoCode sets the "aeo_code" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateAeoCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateAeoCode()
+	})
+}
+
+// ClearAeoCode clears the value of the "aeo_code" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearAeoCode() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearAeoCode()
+	})
+}
+
+// SetCustomDisplay sets the "custom_display" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetCustomDisplay(v bool) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetCustomDisplay(v)
+	})
+}
+
+// UpdateCustomDisplay sets the "custom_display" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateCustomDisplay() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateCustomDisplay()
+	})
+}
+
+// SetDisplayContent sets the "display_content" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetDisplayContent(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetDisplayContent(v)
+	})
+}
+
+// UpdateDisplayContent sets the "display_content" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateDisplayContent() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateDisplayContent()
+	})
+}
+
+// ClearDisplayContent clears the value of the "display_content" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearDisplayContent() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearDisplayContent()
+	})
+}
+
+// SetRemark sets the "remark" field.
+func (u *EnterpriseResourcePartyUpsertBulk) SetRemark(v string) *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.SetRemark(v)
+	})
+}
+
+// UpdateRemark sets the "remark" field to the value that was provided on create.
+func (u *EnterpriseResourcePartyUpsertBulk) UpdateRemark() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.UpdateRemark()
+	})
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (u *EnterpriseResourcePartyUpsertBulk) ClearRemark() *EnterpriseResourcePartyUpsertBulk {
+	return u.Update(func(s *EnterpriseResourcePartyUpsert) {
+		s.ClearRemark()
+	})
+}
+
+// Exec executes the query.
+func (u *EnterpriseResourcePartyUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EnterpriseResourcePartyCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EnterpriseResourcePartyCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EnterpriseResourcePartyUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

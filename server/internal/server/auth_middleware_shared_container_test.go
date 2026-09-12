@@ -73,7 +73,7 @@ func newAuthorizationTestMiddleware(t *testing.T, principal *biz.Principal, anch
 	authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{
 		session:   &biz.Session{TokenHash: "any", UserID: uuid.New(), OrganizationID: principal.Organization.ID, ExpiresAt: time.Now().Add(time.Hour)},
 		principal: principal,
-	}, policy, nil, nil, nil)
+	}, policy, nil, nil, nil, nil, nil, nil)
 	orderUC := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil)
 	state := &middlewareHandlerState{}
 	mw := Authorization(authUC, policy, orderUC, nil)

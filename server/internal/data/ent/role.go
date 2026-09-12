@@ -51,9 +51,11 @@ type RoleEdges struct {
 	OrganizationAccesses []*RoleOrganizationAccess `json:"organization_accesses,omitempty"`
 	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
 	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
+	// DingtalkInvitations holds the value of the dingtalk_invitations edge.
+	DingtalkInvitations []*DingTalkInvitation `json:"dingtalk_invitations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -101,6 +103,15 @@ func (e RoleEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverC
 		return e.OrderUnlockApproverCandidates, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
+}
+
+// DingtalkInvitationsOrErr returns the DingtalkInvitations value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) DingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
+	if e.loadedTypes[5] {
+		return e.DingtalkInvitations, nil
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_invitations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -215,6 +226,11 @@ func (_m *Role) QueryOrganizationAccesses() *RoleOrganizationAccessQuery {
 // QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the Role entity.
 func (_m *Role) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCandidateQuery {
 	return NewRoleClient(_m.config).QueryOrderUnlockApproverCandidates(_m)
+}
+
+// QueryDingtalkInvitations queries the "dingtalk_invitations" edge of the Role entity.
+func (_m *Role) QueryDingtalkInvitations() *DingTalkInvitationQuery {
+	return NewRoleClient(_m.config).QueryDingtalkInvitations(_m)
 }
 
 // Update returns a builder for updating this Role.

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -35,6 +36,7 @@ type RoleQuery struct {
 	withAssignments                   *RoleAssignmentQuery
 	withOrganizationAccesses          *RoleOrganizationAccessQuery
 	withOrderUnlockApproverCandidates *OrderUnlockApproverCandidateQuery
+	withDingtalkInvitations           *DingTalkInvitationQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -175,6 +177,28 @@ func (_q *RoleQuery) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCa
 			sqlgraph.From(role.Table, role.FieldID, selector),
 			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderUnlockApproverCandidatesTable, role.OrderUnlockApproverCandidatesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDingtalkInvitations chains the current query on the "dingtalk_invitations" edge.
+func (_q *RoleQuery) QueryDingtalkInvitations() *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, selector),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.DingtalkInvitationsTable, role.DingtalkInvitationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -379,6 +403,7 @@ func (_q *RoleQuery) Clone() *RoleQuery {
 		withAssignments:                   _q.withAssignments.Clone(),
 		withOrganizationAccesses:          _q.withOrganizationAccesses.Clone(),
 		withOrderUnlockApproverCandidates: _q.withOrderUnlockApproverCandidates.Clone(),
+		withDingtalkInvitations:           _q.withDingtalkInvitations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -437,6 +462,17 @@ func (_q *RoleQuery) WithOrderUnlockApproverCandidates(opts ...func(*OrderUnlock
 		opt(query)
 	}
 	_q.withOrderUnlockApproverCandidates = query
+	return _q
+}
+
+// WithDingtalkInvitations tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_invitations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RoleQuery) WithDingtalkInvitations(opts ...func(*DingTalkInvitationQuery)) *RoleQuery {
+	query := (&DingTalkInvitationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkInvitations = query
 	return _q
 }
 
@@ -518,12 +554,13 @@ func (_q *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 	var (
 		nodes       = []*Role{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
 			_q.withPermissions != nil,
 			_q.withAssignments != nil,
 			_q.withOrganizationAccesses != nil,
 			_q.withOrderUnlockApproverCandidates != nil,
+			_q.withDingtalkInvitations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -581,6 +618,15 @@ func (_q *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 			func(n *Role) { n.Edges.OrderUnlockApproverCandidates = []*OrderUnlockApproverCandidate{} },
 			func(n *Role, e *OrderUnlockApproverCandidate) {
 				n.Edges.OrderUnlockApproverCandidates = append(n.Edges.OrderUnlockApproverCandidates, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkInvitations; query != nil {
+		if err := _q.loadDingtalkInvitations(ctx, query, nodes,
+			func(n *Role) { n.Edges.DingtalkInvitations = []*DingTalkInvitation{} },
+			func(n *Role, e *DingTalkInvitation) {
+				n.Edges.DingtalkInvitations = append(n.Edges.DingtalkInvitations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -753,6 +799,36 @@ func (_q *RoleQuery) loadOrderUnlockApproverCandidates(ctx context.Context, quer
 	}
 	query.Where(predicate.OrderUnlockApproverCandidate(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(role.OrderUnlockApproverCandidatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "role_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *RoleQuery) loadDingtalkInvitations(ctx context.Context, query *DingTalkInvitationQuery, nodes []*Role, init func(*Role), assign func(*Role, *DingTalkInvitation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Role)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkinvitation.FieldRoleID)
+	}
+	query.Where(predicate.DingTalkInvitation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(role.DingtalkInvitationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

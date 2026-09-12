@@ -45,7 +45,7 @@ func (*authServiceRepoStub) FindDingTalkCredential(context.Context, *biz.DingTal
 	return nil, biz.ErrDingTalkNotRegistered
 }
 
-func (*authServiceRepoStub) RegisterDingTalkCredential(context.Context, *biz.DingTalkIdentity, *biz.AuditEvent) (*biz.Credential, bool, error) {
+func (*authServiceRepoStub) RegisterDingTalkCredential(context.Context, *biz.DingTalkIdentity, *uuid.UUID, []uuid.UUID, *biz.AuditEvent) (*biz.Credential, bool, error) {
 	return nil, false, biz.ErrDingTalkDisabled
 }
 
@@ -82,7 +82,7 @@ func (*authServiceRepoStub) RevokeSession(context.Context, string, time.Time, *b
 
 func newAuthServiceForTest(repo *authServiceRepoStub) *AuthService {
 	policy := &biz.SessionPolicy{TTL: time.Hour}
-	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil, nil), policy)
+	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil, nil, nil, nil, nil), policy)
 }
 
 func authServicePasswordHash(t *testing.T) *string {

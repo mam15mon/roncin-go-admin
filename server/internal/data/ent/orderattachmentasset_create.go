@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type OrderAttachmentAssetCreate struct {
 	config
 	mutation *OrderAttachmentAssetMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -294,6 +297,7 @@ func (_c *OrderAttachmentAssetCreate) createSpec() (*OrderAttachmentAsset, *sqlg
 		_node = &OrderAttachmentAsset{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderattachmentasset.Table, sqlgraph.NewFieldSpec(orderattachmentasset.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -379,11 +383,351 @@ func (_c *OrderAttachmentAssetCreate) createSpec() (*OrderAttachmentAsset, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderAttachmentAsset.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderAttachmentAssetUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderAttachmentAssetCreate) OnConflict(opts ...sql.ConflictOption) *OrderAttachmentAssetUpsertOne {
+	_c.conflict = opts
+	return &OrderAttachmentAssetUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderAttachmentAssetCreate) OnConflictColumns(columns ...string) *OrderAttachmentAssetUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderAttachmentAssetUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderAttachmentAssetUpsertOne is the builder for "upsert"-ing
+	//  one OrderAttachmentAsset node.
+	OrderAttachmentAssetUpsertOne struct {
+		create *OrderAttachmentAssetCreate
+	}
+
+	// OrderAttachmentAssetUpsert is the "OnConflict" setter.
+	OrderAttachmentAssetUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAttachmentAssetUpsert) SetUpdatedAt(v time.Time) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateUpdatedAt() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldUpdatedAt)
+	return u
+}
+
+// SetFileName sets the "file_name" field.
+func (u *OrderAttachmentAssetUpsert) SetFileName(v string) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldFileName, v)
+	return u
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateFileName() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldFileName)
+	return u
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *OrderAttachmentAssetUpsert) SetMimeType(v string) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldMimeType, v)
+	return u
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateMimeType() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldMimeType)
+	return u
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *OrderAttachmentAssetUpsert) SetFileSize(v int64) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldFileSize, v)
+	return u
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateFileSize() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldFileSize)
+	return u
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *OrderAttachmentAssetUpsert) AddFileSize(v int64) *OrderAttachmentAssetUpsert {
+	u.Add(orderattachmentasset.FieldFileSize, v)
+	return u
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *OrderAttachmentAssetUpsert) SetChecksum(v string) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldChecksum, v)
+	return u
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateChecksum() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldChecksum)
+	return u
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *OrderAttachmentAssetUpsert) ClearChecksum() *OrderAttachmentAssetUpsert {
+	u.SetNull(orderattachmentasset.FieldChecksum)
+	return u
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsert) SetUploadedBy(v uuid.UUID) *OrderAttachmentAssetUpsert {
+	u.Set(orderattachmentasset.FieldUploadedBy, v)
+	return u
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsert) UpdateUploadedBy() *OrderAttachmentAssetUpsert {
+	u.SetExcluded(orderattachmentasset.FieldUploadedBy)
+	return u
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsert) ClearUploadedBy() *OrderAttachmentAssetUpsert {
+	u.SetNull(orderattachmentasset.FieldUploadedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderattachmentasset.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderAttachmentAssetUpsertOne) UpdateNewValues() *OrderAttachmentAssetUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderattachmentasset.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderattachmentasset.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(orderattachmentasset.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.ObjectKey(); exists {
+			s.SetIgnore(orderattachmentasset.FieldObjectKey)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderAttachmentAssetUpsertOne) Ignore() *OrderAttachmentAssetUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderAttachmentAssetUpsertOne) DoNothing() *OrderAttachmentAssetUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderAttachmentAssetCreate.OnConflict
+// documentation for more info.
+func (u *OrderAttachmentAssetUpsertOne) Update(set func(*OrderAttachmentAssetUpsert)) *OrderAttachmentAssetUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderAttachmentAssetUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAttachmentAssetUpsertOne) SetUpdatedAt(v time.Time) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateUpdatedAt() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *OrderAttachmentAssetUpsertOne) SetFileName(v string) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateFileName() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *OrderAttachmentAssetUpsertOne) SetMimeType(v string) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateMimeType() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *OrderAttachmentAssetUpsertOne) SetFileSize(v int64) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *OrderAttachmentAssetUpsertOne) AddFileSize(v int64) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateFileSize() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *OrderAttachmentAssetUpsertOne) SetChecksum(v string) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateChecksum() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *OrderAttachmentAssetUpsertOne) ClearChecksum() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.ClearChecksum()
+	})
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsertOne) SetUploadedBy(v uuid.UUID) *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetUploadedBy(v)
+	})
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertOne) UpdateUploadedBy() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateUploadedBy()
+	})
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsertOne) ClearUploadedBy() *OrderAttachmentAssetUpsertOne {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.ClearUploadedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderAttachmentAssetUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderAttachmentAssetCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderAttachmentAssetUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderAttachmentAssetUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderAttachmentAssetUpsertOne.ID is not supported by MySQL driver. Use OrderAttachmentAssetUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderAttachmentAssetUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderAttachmentAssetCreateBulk is the builder for creating many OrderAttachmentAsset entities in bulk.
 type OrderAttachmentAssetCreateBulk struct {
 	config
 	err      error
 	builders []*OrderAttachmentAssetCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderAttachmentAsset entities in the database.
@@ -413,6 +757,7 @@ func (_c *OrderAttachmentAssetCreateBulk) Save(ctx context.Context) ([]*OrderAtt
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -459,6 +804,234 @@ func (_c *OrderAttachmentAssetCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderAttachmentAssetCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderAttachmentAsset.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderAttachmentAssetUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderAttachmentAssetCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderAttachmentAssetUpsertBulk {
+	_c.conflict = opts
+	return &OrderAttachmentAssetUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderAttachmentAssetCreateBulk) OnConflictColumns(columns ...string) *OrderAttachmentAssetUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderAttachmentAssetUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderAttachmentAssetUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderAttachmentAsset nodes.
+type OrderAttachmentAssetUpsertBulk struct {
+	create *OrderAttachmentAssetCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderattachmentasset.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderAttachmentAssetUpsertBulk) UpdateNewValues() *OrderAttachmentAssetUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderattachmentasset.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderattachmentasset.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(orderattachmentasset.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.ObjectKey(); exists {
+				s.SetIgnore(orderattachmentasset.FieldObjectKey)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderAttachmentAsset.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderAttachmentAssetUpsertBulk) Ignore() *OrderAttachmentAssetUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderAttachmentAssetUpsertBulk) DoNothing() *OrderAttachmentAssetUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderAttachmentAssetCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderAttachmentAssetUpsertBulk) Update(set func(*OrderAttachmentAssetUpsert)) *OrderAttachmentAssetUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderAttachmentAssetUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetUpdatedAt(v time.Time) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateUpdatedAt() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetFileName(v string) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateFileName() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetMimeType(v string) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateMimeType() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetFileSize(v int64) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *OrderAttachmentAssetUpsertBulk) AddFileSize(v int64) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateFileSize() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetChecksum(v string) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateChecksum() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *OrderAttachmentAssetUpsertBulk) ClearChecksum() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.ClearChecksum()
+	})
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsertBulk) SetUploadedBy(v uuid.UUID) *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.SetUploadedBy(v)
+	})
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *OrderAttachmentAssetUpsertBulk) UpdateUploadedBy() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.UpdateUploadedBy()
+	})
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *OrderAttachmentAssetUpsertBulk) ClearUploadedBy() *OrderAttachmentAssetUpsertBulk {
+	return u.Update(func(s *OrderAttachmentAssetUpsert) {
+		s.ClearUploadedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderAttachmentAssetUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderAttachmentAssetCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderAttachmentAssetCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderAttachmentAssetUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

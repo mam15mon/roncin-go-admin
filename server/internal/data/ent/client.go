@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
@@ -147,6 +148,8 @@ type Client struct {
 	DingTalkApprovalDispatch *DingTalkApprovalDispatchClient
 	// DingTalkApprovalInboxEvent is the client for interacting with the DingTalkApprovalInboxEvent builders.
 	DingTalkApprovalInboxEvent *DingTalkApprovalInboxEventClient
+	// DingTalkInvitation is the client for interacting with the DingTalkInvitation builders.
+	DingTalkInvitation *DingTalkInvitationClient
 	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
 	EnterpriseResource *EnterpriseResourceClient
 	// EnterpriseResourceAddress is the client for interacting with the EnterpriseResourceAddress builders.
@@ -361,6 +364,7 @@ func (c *Client) init() {
 	c.Currency = NewCurrencyClient(c.config)
 	c.DingTalkApprovalDispatch = NewDingTalkApprovalDispatchClient(c.config)
 	c.DingTalkApprovalInboxEvent = NewDingTalkApprovalInboxEventClient(c.config)
+	c.DingTalkInvitation = NewDingTalkInvitationClient(c.config)
 	c.EnterpriseResource = NewEnterpriseResourceClient(c.config)
 	c.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(c.config)
 	c.EnterpriseResourceAddressType = NewEnterpriseResourceAddressTypeClient(c.config)
@@ -559,6 +563,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Currency:                       NewCurrencyClient(cfg),
 		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
 		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkInvitation:             NewDingTalkInvitationClient(cfg),
 		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
 		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
@@ -684,6 +689,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Currency:                       NewCurrencyClient(cfg),
 		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
 		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkInvitation:             NewDingTalkInvitationClient(cfg),
 		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
 		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
@@ -812,7 +818,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
-		c.DingTalkApprovalInboxEvent, c.EnterpriseResource,
+		c.DingTalkApprovalInboxEvent, c.DingTalkInvitation, c.EnterpriseResource,
 		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
 		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
@@ -855,7 +861,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
-		c.DingTalkApprovalInboxEvent, c.EnterpriseResource,
+		c.DingTalkApprovalInboxEvent, c.DingTalkInvitation, c.EnterpriseResource,
 		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
 		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
@@ -913,6 +919,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DingTalkApprovalDispatch.mutate(ctx, m)
 	case *DingTalkApprovalInboxEventMutation:
 		return c.DingTalkApprovalInboxEvent.mutate(ctx, m)
+	case *DingTalkInvitationMutation:
+		return c.DingTalkInvitation.mutate(ctx, m)
 	case *EnterpriseResourceMutation:
 		return c.EnterpriseResource.mutate(ctx, m)
 	case *EnterpriseResourceAddressMutation:
@@ -2503,6 +2511,203 @@ func (c *DingTalkApprovalInboxEventClient) mutate(ctx context.Context, m *DingTa
 		return (&DingTalkApprovalInboxEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DingTalkApprovalInboxEvent mutation op: %q", m.Op())
+	}
+}
+
+// DingTalkInvitationClient is a client for the DingTalkInvitation schema.
+type DingTalkInvitationClient struct {
+	config
+}
+
+// NewDingTalkInvitationClient returns a client for the DingTalkInvitation from the given config.
+func NewDingTalkInvitationClient(c config) *DingTalkInvitationClient {
+	return &DingTalkInvitationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dingtalkinvitation.Hooks(f(g(h())))`.
+func (c *DingTalkInvitationClient) Use(hooks ...Hook) {
+	c.hooks.DingTalkInvitation = append(c.hooks.DingTalkInvitation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dingtalkinvitation.Intercept(f(g(h())))`.
+func (c *DingTalkInvitationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DingTalkInvitation = append(c.inters.DingTalkInvitation, interceptors...)
+}
+
+// Create returns a builder for creating a DingTalkInvitation entity.
+func (c *DingTalkInvitationClient) Create() *DingTalkInvitationCreate {
+	mutation := newDingTalkInvitationMutation(c.config, OpCreate)
+	return &DingTalkInvitationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DingTalkInvitation entities.
+func (c *DingTalkInvitationClient) CreateBulk(builders ...*DingTalkInvitationCreate) *DingTalkInvitationCreateBulk {
+	return &DingTalkInvitationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DingTalkInvitationClient) MapCreateBulk(slice any, setFunc func(*DingTalkInvitationCreate, int)) *DingTalkInvitationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DingTalkInvitationCreateBulk{err: fmt.Errorf("calling to DingTalkInvitationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DingTalkInvitationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DingTalkInvitationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DingTalkInvitation.
+func (c *DingTalkInvitationClient) Update() *DingTalkInvitationUpdate {
+	mutation := newDingTalkInvitationMutation(c.config, OpUpdate)
+	return &DingTalkInvitationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DingTalkInvitationClient) UpdateOne(_m *DingTalkInvitation) *DingTalkInvitationUpdateOne {
+	mutation := newDingTalkInvitationMutation(c.config, OpUpdateOne, withDingTalkInvitation(_m))
+	return &DingTalkInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DingTalkInvitationClient) UpdateOneID(id uuid.UUID) *DingTalkInvitationUpdateOne {
+	mutation := newDingTalkInvitationMutation(c.config, OpUpdateOne, withDingTalkInvitationID(id))
+	return &DingTalkInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DingTalkInvitation.
+func (c *DingTalkInvitationClient) Delete() *DingTalkInvitationDelete {
+	mutation := newDingTalkInvitationMutation(c.config, OpDelete)
+	return &DingTalkInvitationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DingTalkInvitationClient) DeleteOne(_m *DingTalkInvitation) *DingTalkInvitationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DingTalkInvitationClient) DeleteOneID(id uuid.UUID) *DingTalkInvitationDeleteOne {
+	builder := c.Delete().Where(dingtalkinvitation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DingTalkInvitationDeleteOne{builder}
+}
+
+// Query returns a query builder for DingTalkInvitation.
+func (c *DingTalkInvitationClient) Query() *DingTalkInvitationQuery {
+	return &DingTalkInvitationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDingTalkInvitation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DingTalkInvitation entity by its id.
+func (c *DingTalkInvitationClient) Get(ctx context.Context, id uuid.UUID) (*DingTalkInvitation, error) {
+	return c.Query().Where(dingtalkinvitation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DingTalkInvitationClient) GetX(ctx context.Context, id uuid.UUID) *DingTalkInvitation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a DingTalkInvitation.
+func (c *DingTalkInvitationClient) QueryOrganization(_m *DingTalkInvitation) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkinvitation.Table, dingtalkinvitation.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dingtalkinvitation.OrganizationTable, dingtalkinvitation.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRole queries the role edge of a DingTalkInvitation.
+func (c *DingTalkInvitationClient) QueryRole(_m *DingTalkInvitation) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkinvitation.Table, dingtalkinvitation.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dingtalkinvitation.RoleTable, dingtalkinvitation.RoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInviter queries the inviter edge of a DingTalkInvitation.
+func (c *DingTalkInvitationClient) QueryInviter(_m *DingTalkInvitation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkinvitation.Table, dingtalkinvitation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dingtalkinvitation.InviterTable, dingtalkinvitation.InviterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConsumer queries the consumer edge of a DingTalkInvitation.
+func (c *DingTalkInvitationClient) QueryConsumer(_m *DingTalkInvitation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkinvitation.Table, dingtalkinvitation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dingtalkinvitation.ConsumerTable, dingtalkinvitation.ConsumerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DingTalkInvitationClient) Hooks() []Hook {
+	return c.hooks.DingTalkInvitation
+}
+
+// Interceptors returns the client interceptors.
+func (c *DingTalkInvitationClient) Interceptors() []Interceptor {
+	return c.inters.DingTalkInvitation
+}
+
+func (c *DingTalkInvitationClient) mutate(ctx context.Context, m *DingTalkInvitationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DingTalkInvitationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DingTalkInvitationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DingTalkInvitationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DingTalkInvitationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DingTalkInvitation mutation op: %q", m.Op())
 	}
 }
 
@@ -15579,6 +15784,38 @@ func (c *OrganizationClient) QuerySeaSharedContainerAllocations(_m *Organization
 	return query
 }
 
+// QueryDingtalkInvitations queries the dingtalk_invitations edge of a Organization.
+func (c *OrganizationClient) QueryDingtalkInvitations(_m *Organization) *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkInvitationsTable, organization.DingtalkInvitationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDingtalkRegistrationRequests queries the dingtalk_registration_requests edge of a Organization.
+func (c *OrganizationClient) QueryDingtalkRegistrationRequests(_m *Organization) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.DingtalkRegistrationRequestsTable, organization.DingtalkRegistrationRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	hooks := c.hooks.Organization
@@ -18142,6 +18379,22 @@ func (c *RoleClient) QueryOrderUnlockApproverCandidates(_m *Role) *OrderUnlockAp
 			sqlgraph.From(role.Table, role.FieldID, id),
 			sqlgraph.To(orderunlockapprovercandidate.Table, orderunlockapprovercandidate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderUnlockApproverCandidatesTable, role.OrderUnlockApproverCandidatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDingtalkInvitations queries the dingtalk_invitations edge of a Role.
+func (c *RoleClient) QueryDingtalkInvitations(_m *Role) *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.DingtalkInvitationsTable, role.DingtalkInvitationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -23776,6 +24029,54 @@ func (c *UserClient) QueryConfirmedSeaSharedContainers(_m *User) *SeaSharedConta
 	return query
 }
 
+// QueryCreatedDingtalkInvitations queries the created_dingtalk_invitations edge of a User.
+func (c *UserClient) QueryCreatedDingtalkInvitations(_m *User) *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedDingtalkInvitationsTable, user.CreatedDingtalkInvitationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConsumedDingtalkInvitations queries the consumed_dingtalk_invitations edge of a User.
+func (c *UserClient) QueryConsumedDingtalkInvitations(_m *User) *DingTalkInvitationQuery {
+	query := (&DingTalkInvitationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(dingtalkinvitation.Table, dingtalkinvitation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConsumedDingtalkInvitationsTable, user.ConsumedDingtalkInvitationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDingtalkRequestedOrganization queries the dingtalk_requested_organization edge of a User.
+func (c *UserClient) QueryDingtalkRequestedOrganization(_m *User) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.DingtalkRequestedOrganizationTable, user.DingtalkRequestedOrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -23807,19 +24108,20 @@ type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		EnterpriseResource, EnterpriseResourceAddress, EnterpriseResourceAddressType,
-		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
-		EnterpriseResourceParty, EnterpriseResourceRemark,
-		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
-		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
+		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
+		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCustomSetting,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
+		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
+		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
@@ -23838,19 +24140,20 @@ type (
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		EnterpriseResource, EnterpriseResourceAddress, EnterpriseResourceAddressType,
-		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
-		EnterpriseResourceParty, EnterpriseResourceRemark,
-		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
-		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
+		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
+		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCustomSetting,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
+		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
+		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent,
 		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,

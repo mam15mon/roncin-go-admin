@@ -160,7 +160,10 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	return r.credentialForAccount(ctx, account)
 }
 
-func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
+// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用 + 总部收口成员资格）。
+// requestedOrganizationID 为通道 B 自选目标组织（可空）；注册与「注册待审批」
+// 通知入队同事务完成，路由组织 = 自选目标 ?? 总部收口组织。
+func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity, requestedOrganizationID *uuid.UUID, approverUserIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
 	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrDingTalkLoginFailed
 	}
@@ -182,8 +185,17 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 			return nil, false, queryErr
 		}
 		if !hasActiveMembership {
-			credential, prepareErr := r.prepareDingTalkRehire(ctx, account, audit)
+			credential, prepareErr := r.prepareDingTalkRehire(ctx, account, requestedOrganizationID, approverUserIDs, audit)
 			return credential, prepareErr == nil, prepareErr
+		}
+		if account.Enabled {
+			// 已启用账号不做任何变更，由 biz 返回「已完成注册」。
+			credential, credentialErr := r.credentialForAccount(ctx, account)
+			return credential, false, credentialErr
+		}
+		// 仍处待授权状态：更新自选目标组织并（在目标变化时）重新提醒审批人。
+		if err := r.updateDingTalkRequestedOrganization(ctx, account.ID, requestedOrganizationID, approverUserIDs, dingtalkName); err != nil {
+			return nil, false, err
 		}
 		credential, credentialErr := r.credentialForAccount(ctx, account)
 		return credential, false, credentialErr
@@ -200,6 +212,9 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 			return queryErr
 		}
 		create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkUserid(dingTalkUserID).SetDingtalkName(dingtalkName).SetEnabled(false)
+		if requestedOrganizationID != nil {
+			create.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
+		}
 		if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
 			create.SetEmail(strings.TrimSpace(*identity.Email))
 		}
@@ -214,6 +229,9 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 		if _, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); createErr != nil {
 			return createErr
 		}
+		if err := enqueueDingTalkRegistrationPendingNotifications(ctx, tx, resolveRegistrationRoutingOrganization(requestedOrganizationID, headquarters.ID), account.ID, dingtalkName, headquarters.Name, approverUserIDs); err != nil {
+			return err
+		}
 		audit.UserID = &account.ID
 		audit.OrganizationID = &headquarters.ID
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -224,7 +242,58 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 	return credentialFromAccount(account, headquarters.ID), true, nil
 }
 
-func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User, audit *biz.AuditEvent) (*biz.Credential, error) {
+// resolveRegistrationRoutingOrganization 返回注册审批通知的路由组织：
+// 自选了目标组织用自选值，否则用总部收口组织（总部兜底）。
+func resolveRegistrationRoutingOrganization(requestedOrganizationID *uuid.UUID, headquartersID uuid.UUID) uuid.UUID {
+	if requestedOrganizationID != nil {
+		return *requestedOrganizationID
+	}
+	return headquartersID
+}
+
+// updateDingTalkRequestedOrganization 更新待授权注册的自选目标组织；目标组织
+// 变化时向新路由组织重新入队审批通知（确定性幂等键自动去重同一组织的重复提醒）。
+func (r *authRepo) updateDingTalkRequestedOrganization(ctx context.Context, userID uuid.UUID, requestedOrganizationID *uuid.UUID, approverUserIDs []uuid.UUID, registrantName string) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		account, queryErr := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		update := tx.User.UpdateOneID(userID)
+		changed := false
+		if requestedOrganizationID == nil {
+			if account.DingtalkRequestedOrganizationID != nil {
+				update.ClearDingtalkRequestedOrganizationID()
+				changed = true
+			}
+		} else if account.DingtalkRequestedOrganizationID == nil || *account.DingtalkRequestedOrganizationID != *requestedOrganizationID {
+			update.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
+			changed = true
+		}
+		if changed {
+			if _, updateErr := update.Save(ctx); updateErr != nil {
+				return updateErr
+			}
+		}
+		if !changed || len(approverUserIDs) == 0 {
+			return nil
+		}
+		// 自选目标变化（或清空回总部兜底）时向新路由组织重新提醒审批人。
+		var routingOrganization *ent.Organization
+		var routingErr error
+		if requestedOrganizationID != nil {
+			routingOrganization, routingErr = tx.Organization.Query().Where(organization.IDEQ(*requestedOrganizationID)).Only(ctx)
+		} else {
+			routingOrganization, routingErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+		}
+		if routingErr != nil {
+			return routingErr
+		}
+		return enqueueDingTalkRegistrationPendingNotifications(ctx, tx, routingOrganization.ID, userID, registrantName, routingOrganization.Name, approverUserIDs)
+	})
+}
+
+func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User, requestedOrganizationID *uuid.UUID, approverUserIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.Credential, error) {
 	userID := account.ID
 	var headquarters *ent.Organization
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -257,8 +326,17 @@ func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User,
 		if queryErr != nil {
 			return queryErr
 		}
-		if _, updateErr := tx.User.UpdateOneID(userID).SetEnabled(false).Save(ctx); updateErr != nil {
+		userUpdate := tx.User.UpdateOneID(userID).SetEnabled(false)
+		if requestedOrganizationID == nil {
+			userUpdate.ClearDingtalkRequestedOrganizationID()
+		} else {
+			userUpdate.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
+		}
+		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
 			return updateErr
+		}
+		if err := enqueueDingTalkRegistrationPendingNotifications(ctx, tx, resolveRegistrationRoutingOrganization(requestedOrganizationID, headquarters.ID), userID, account.DisplayName, headquarters.Name, approverUserIDs); err != nil {
+			return err
 		}
 		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
 			return updateErr

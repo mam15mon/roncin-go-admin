@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -28,6 +30,7 @@ type OrderLockRecordCreate struct {
 	config
 	mutation *OrderLockRecordMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -517,6 +520,7 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		_node = &OrderLockRecord{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderlockrecord.Table, sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -757,11 +761,439 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderLockRecord.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderLockRecordUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderLockRecordCreate) OnConflict(opts ...sql.ConflictOption) *OrderLockRecordUpsertOne {
+	_c.conflict = opts
+	return &OrderLockRecordUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderLockRecordCreate) OnConflictColumns(columns ...string) *OrderLockRecordUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderLockRecordUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderLockRecordUpsertOne is the builder for "upsert"-ing
+	//  one OrderLockRecord node.
+	OrderLockRecordUpsertOne struct {
+		create *OrderLockRecordCreate
+	}
+
+	// OrderLockRecordUpsert is the "OnConflict" setter.
+	OrderLockRecordUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUnlockedBy sets the "unlocked_by" field.
+func (u *OrderLockRecordUpsert) SetUnlockedBy(v uuid.UUID) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldUnlockedBy, v)
+	return u
+}
+
+// UpdateUnlockedBy sets the "unlocked_by" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateUnlockedBy() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldUnlockedBy)
+	return u
+}
+
+// ClearUnlockedBy clears the value of the "unlocked_by" field.
+func (u *OrderLockRecordUpsert) ClearUnlockedBy() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldUnlockedBy)
+	return u
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderLockRecordUpsert) SetUnlockedAt(v time.Time) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldUnlockedAt, v)
+	return u
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateUnlockedAt() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldUnlockedAt)
+	return u
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderLockRecordUpsert) ClearUnlockedAt() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldUnlockedAt)
+	return u
+}
+
+// SetOrderVersionAtUnlock sets the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsert) SetOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldOrderVersionAtUnlock, v)
+	return u
+}
+
+// UpdateOrderVersionAtUnlock sets the "order_version_at_unlock" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateOrderVersionAtUnlock() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldOrderVersionAtUnlock)
+	return u
+}
+
+// AddOrderVersionAtUnlock adds v to the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsert) AddOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsert {
+	u.Add(orderlockrecord.FieldOrderVersionAtUnlock, v)
+	return u
+}
+
+// ClearOrderVersionAtUnlock clears the value of the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsert) ClearOrderVersionAtUnlock() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldOrderVersionAtUnlock)
+	return u
+}
+
+// SetUnlockRequestID sets the "unlock_request_id" field.
+func (u *OrderLockRecordUpsert) SetUnlockRequestID(v uuid.UUID) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldUnlockRequestID, v)
+	return u
+}
+
+// UpdateUnlockRequestID sets the "unlock_request_id" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateUnlockRequestID() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldUnlockRequestID)
+	return u
+}
+
+// ClearUnlockRequestID clears the value of the "unlock_request_id" field.
+func (u *OrderLockRecordUpsert) ClearUnlockRequestID() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldUnlockRequestID)
+	return u
+}
+
+// SetUnlockReason sets the "unlock_reason" field.
+func (u *OrderLockRecordUpsert) SetUnlockReason(v string) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldUnlockReason, v)
+	return u
+}
+
+// UpdateUnlockReason sets the "unlock_reason" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateUnlockReason() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldUnlockReason)
+	return u
+}
+
+// ClearUnlockReason clears the value of the "unlock_reason" field.
+func (u *OrderLockRecordUpsert) ClearUnlockReason() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldUnlockReason)
+	return u
+}
+
+// SetUnlockMode sets the "unlock_mode" field.
+func (u *OrderLockRecordUpsert) SetUnlockMode(v orderlockrecord.UnlockMode) *OrderLockRecordUpsert {
+	u.Set(orderlockrecord.FieldUnlockMode, v)
+	return u
+}
+
+// UpdateUnlockMode sets the "unlock_mode" field to the value that was provided on create.
+func (u *OrderLockRecordUpsert) UpdateUnlockMode() *OrderLockRecordUpsert {
+	u.SetExcluded(orderlockrecord.FieldUnlockMode)
+	return u
+}
+
+// ClearUnlockMode clears the value of the "unlock_mode" field.
+func (u *OrderLockRecordUpsert) ClearUnlockMode() *OrderLockRecordUpsert {
+	u.SetNull(orderlockrecord.FieldUnlockMode)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderlockrecord.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderLockRecordUpsertOne) UpdateNewValues() *OrderLockRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderlockrecord.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderlockrecord.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(orderlockrecord.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(orderlockrecord.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(orderlockrecord.FieldOrderNo)
+		}
+		if _, exists := u.create.mutation.BusinessType(); exists {
+			s.SetIgnore(orderlockrecord.FieldBusinessType)
+		}
+		if _, exists := u.create.mutation.Generation(); exists {
+			s.SetIgnore(orderlockrecord.FieldGeneration)
+		}
+		if _, exists := u.create.mutation.LockedBy(); exists {
+			s.SetIgnore(orderlockrecord.FieldLockedBy)
+		}
+		if _, exists := u.create.mutation.LockedAt(); exists {
+			s.SetIgnore(orderlockrecord.FieldLockedAt)
+		}
+		if _, exists := u.create.mutation.OrderVersionAtLock(); exists {
+			s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+		}
+		if _, exists := u.create.mutation.MasterBillID(); exists {
+			s.SetIgnore(orderlockrecord.FieldMasterBillID)
+		}
+		if _, exists := u.create.mutation.MasterBillVersionID(); exists {
+			s.SetIgnore(orderlockrecord.FieldMasterBillVersionID)
+		}
+		if _, exists := u.create.mutation.TransportExecutionID(); exists {
+			s.SetIgnore(orderlockrecord.FieldTransportExecutionID)
+		}
+		if _, exists := u.create.mutation.TransportExecutionVersionID(); exists {
+			s.SetIgnore(orderlockrecord.FieldTransportExecutionVersionID)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(orderlockrecord.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(orderlockrecord.FieldRequestFingerprint)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderLockRecordUpsertOne) Ignore() *OrderLockRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderLockRecordUpsertOne) DoNothing() *OrderLockRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderLockRecordCreate.OnConflict
+// documentation for more info.
+func (u *OrderLockRecordUpsertOne) Update(set func(*OrderLockRecordUpsert)) *OrderLockRecordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderLockRecordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUnlockedBy sets the "unlocked_by" field.
+func (u *OrderLockRecordUpsertOne) SetUnlockedBy(v uuid.UUID) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockedBy(v)
+	})
+}
+
+// UpdateUnlockedBy sets the "unlocked_by" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateUnlockedBy() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockedBy()
+	})
+}
+
+// ClearUnlockedBy clears the value of the "unlocked_by" field.
+func (u *OrderLockRecordUpsertOne) ClearUnlockedBy() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockedBy()
+	})
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderLockRecordUpsertOne) SetUnlockedAt(v time.Time) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockedAt(v)
+	})
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateUnlockedAt() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockedAt()
+	})
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderLockRecordUpsertOne) ClearUnlockedAt() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockedAt()
+	})
+}
+
+// SetOrderVersionAtUnlock sets the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertOne) SetOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetOrderVersionAtUnlock(v)
+	})
+}
+
+// AddOrderVersionAtUnlock adds v to the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertOne) AddOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.AddOrderVersionAtUnlock(v)
+	})
+}
+
+// UpdateOrderVersionAtUnlock sets the "order_version_at_unlock" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateOrderVersionAtUnlock() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateOrderVersionAtUnlock()
+	})
+}
+
+// ClearOrderVersionAtUnlock clears the value of the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertOne) ClearOrderVersionAtUnlock() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearOrderVersionAtUnlock()
+	})
+}
+
+// SetUnlockRequestID sets the "unlock_request_id" field.
+func (u *OrderLockRecordUpsertOne) SetUnlockRequestID(v uuid.UUID) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockRequestID(v)
+	})
+}
+
+// UpdateUnlockRequestID sets the "unlock_request_id" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateUnlockRequestID() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockRequestID()
+	})
+}
+
+// ClearUnlockRequestID clears the value of the "unlock_request_id" field.
+func (u *OrderLockRecordUpsertOne) ClearUnlockRequestID() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockRequestID()
+	})
+}
+
+// SetUnlockReason sets the "unlock_reason" field.
+func (u *OrderLockRecordUpsertOne) SetUnlockReason(v string) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockReason(v)
+	})
+}
+
+// UpdateUnlockReason sets the "unlock_reason" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateUnlockReason() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockReason()
+	})
+}
+
+// ClearUnlockReason clears the value of the "unlock_reason" field.
+func (u *OrderLockRecordUpsertOne) ClearUnlockReason() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockReason()
+	})
+}
+
+// SetUnlockMode sets the "unlock_mode" field.
+func (u *OrderLockRecordUpsertOne) SetUnlockMode(v orderlockrecord.UnlockMode) *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockMode(v)
+	})
+}
+
+// UpdateUnlockMode sets the "unlock_mode" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertOne) UpdateUnlockMode() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockMode()
+	})
+}
+
+// ClearUnlockMode clears the value of the "unlock_mode" field.
+func (u *OrderLockRecordUpsertOne) ClearUnlockMode() *OrderLockRecordUpsertOne {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockMode()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderLockRecordUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderLockRecordCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderLockRecordUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderLockRecordUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderLockRecordUpsertOne.ID is not supported by MySQL driver. Use OrderLockRecordUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderLockRecordUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderLockRecordCreateBulk is the builder for creating many OrderLockRecord entities in bulk.
 type OrderLockRecordCreateBulk struct {
 	config
 	err      error
 	builders []*OrderLockRecordCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderLockRecord entities in the database.
@@ -791,6 +1223,7 @@ func (_c *OrderLockRecordCreateBulk) Save(ctx context.Context) ([]*OrderLockReco
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -837,6 +1270,298 @@ func (_c *OrderLockRecordCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderLockRecordCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderLockRecord.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderLockRecordUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderLockRecordCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderLockRecordUpsertBulk {
+	_c.conflict = opts
+	return &OrderLockRecordUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderLockRecordCreateBulk) OnConflictColumns(columns ...string) *OrderLockRecordUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderLockRecordUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderLockRecordUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderLockRecord nodes.
+type OrderLockRecordUpsertBulk struct {
+	create *OrderLockRecordCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderlockrecord.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderLockRecordUpsertBulk) UpdateNewValues() *OrderLockRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderlockrecord.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderlockrecord.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(orderlockrecord.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(orderlockrecord.FieldOrderID)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(orderlockrecord.FieldOrderNo)
+			}
+			if _, exists := b.mutation.BusinessType(); exists {
+				s.SetIgnore(orderlockrecord.FieldBusinessType)
+			}
+			if _, exists := b.mutation.Generation(); exists {
+				s.SetIgnore(orderlockrecord.FieldGeneration)
+			}
+			if _, exists := b.mutation.LockedBy(); exists {
+				s.SetIgnore(orderlockrecord.FieldLockedBy)
+			}
+			if _, exists := b.mutation.LockedAt(); exists {
+				s.SetIgnore(orderlockrecord.FieldLockedAt)
+			}
+			if _, exists := b.mutation.OrderVersionAtLock(); exists {
+				s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+			}
+			if _, exists := b.mutation.MasterBillID(); exists {
+				s.SetIgnore(orderlockrecord.FieldMasterBillID)
+			}
+			if _, exists := b.mutation.MasterBillVersionID(); exists {
+				s.SetIgnore(orderlockrecord.FieldMasterBillVersionID)
+			}
+			if _, exists := b.mutation.TransportExecutionID(); exists {
+				s.SetIgnore(orderlockrecord.FieldTransportExecutionID)
+			}
+			if _, exists := b.mutation.TransportExecutionVersionID(); exists {
+				s.SetIgnore(orderlockrecord.FieldTransportExecutionVersionID)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(orderlockrecord.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(orderlockrecord.FieldRequestFingerprint)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderLockRecord.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderLockRecordUpsertBulk) Ignore() *OrderLockRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderLockRecordUpsertBulk) DoNothing() *OrderLockRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderLockRecordCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderLockRecordUpsertBulk) Update(set func(*OrderLockRecordUpsert)) *OrderLockRecordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderLockRecordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUnlockedBy sets the "unlocked_by" field.
+func (u *OrderLockRecordUpsertBulk) SetUnlockedBy(v uuid.UUID) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockedBy(v)
+	})
+}
+
+// UpdateUnlockedBy sets the "unlocked_by" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateUnlockedBy() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockedBy()
+	})
+}
+
+// ClearUnlockedBy clears the value of the "unlocked_by" field.
+func (u *OrderLockRecordUpsertBulk) ClearUnlockedBy() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockedBy()
+	})
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderLockRecordUpsertBulk) SetUnlockedAt(v time.Time) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockedAt(v)
+	})
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateUnlockedAt() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockedAt()
+	})
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderLockRecordUpsertBulk) ClearUnlockedAt() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockedAt()
+	})
+}
+
+// SetOrderVersionAtUnlock sets the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertBulk) SetOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetOrderVersionAtUnlock(v)
+	})
+}
+
+// AddOrderVersionAtUnlock adds v to the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertBulk) AddOrderVersionAtUnlock(v uint64) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.AddOrderVersionAtUnlock(v)
+	})
+}
+
+// UpdateOrderVersionAtUnlock sets the "order_version_at_unlock" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateOrderVersionAtUnlock() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateOrderVersionAtUnlock()
+	})
+}
+
+// ClearOrderVersionAtUnlock clears the value of the "order_version_at_unlock" field.
+func (u *OrderLockRecordUpsertBulk) ClearOrderVersionAtUnlock() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearOrderVersionAtUnlock()
+	})
+}
+
+// SetUnlockRequestID sets the "unlock_request_id" field.
+func (u *OrderLockRecordUpsertBulk) SetUnlockRequestID(v uuid.UUID) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockRequestID(v)
+	})
+}
+
+// UpdateUnlockRequestID sets the "unlock_request_id" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateUnlockRequestID() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockRequestID()
+	})
+}
+
+// ClearUnlockRequestID clears the value of the "unlock_request_id" field.
+func (u *OrderLockRecordUpsertBulk) ClearUnlockRequestID() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockRequestID()
+	})
+}
+
+// SetUnlockReason sets the "unlock_reason" field.
+func (u *OrderLockRecordUpsertBulk) SetUnlockReason(v string) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockReason(v)
+	})
+}
+
+// UpdateUnlockReason sets the "unlock_reason" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateUnlockReason() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockReason()
+	})
+}
+
+// ClearUnlockReason clears the value of the "unlock_reason" field.
+func (u *OrderLockRecordUpsertBulk) ClearUnlockReason() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockReason()
+	})
+}
+
+// SetUnlockMode sets the "unlock_mode" field.
+func (u *OrderLockRecordUpsertBulk) SetUnlockMode(v orderlockrecord.UnlockMode) *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.SetUnlockMode(v)
+	})
+}
+
+// UpdateUnlockMode sets the "unlock_mode" field to the value that was provided on create.
+func (u *OrderLockRecordUpsertBulk) UpdateUnlockMode() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.UpdateUnlockMode()
+	})
+}
+
+// ClearUnlockMode clears the value of the "unlock_mode" field.
+func (u *OrderLockRecordUpsertBulk) ClearUnlockMode() *OrderLockRecordUpsertBulk {
+	return u.Update(func(s *OrderLockRecordUpsert) {
+		s.ClearUnlockMode()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderLockRecordUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderLockRecordCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderLockRecordCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderLockRecordUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

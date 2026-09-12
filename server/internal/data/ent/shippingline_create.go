@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -26,6 +28,7 @@ type ShippingLineCreate struct {
 	config
 	mutation *ShippingLineMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -460,6 +463,7 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 		_node = &ShippingLine{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(shippingline.Table, sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -628,11 +632,478 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ShippingLine.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ShippingLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ShippingLineCreate) OnConflict(opts ...sql.ConflictOption) *ShippingLineUpsertOne {
+	_c.conflict = opts
+	return &ShippingLineUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ShippingLineCreate) OnConflictColumns(columns ...string) *ShippingLineUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ShippingLineUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ShippingLineUpsertOne is the builder for "upsert"-ing
+	//  one ShippingLine node.
+	ShippingLineUpsertOne struct {
+		create *ShippingLineCreate
+	}
+
+	// ShippingLineUpsert is the "OnConflict" setter.
+	ShippingLineUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineUpsert) SetUpdatedAt(v time.Time) *ShippingLineUpsert {
+	u.Set(shippingline.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateUpdatedAt() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineUpsert) SetOrganizationID(v uuid.UUID) *ShippingLineUpsert {
+	u.Set(shippingline.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateOrganizationID() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldOrganizationID)
+	return u
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *ShippingLineUpsert) SetNameZh(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldNameZh, v)
+	return u
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateNameZh() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldNameZh)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *ShippingLineUpsert) SetNameEn(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateNameEn() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldNameEn)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *ShippingLineUpsert) SetCountryCode(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateCountryCode() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldCountryCode)
+	return u
+}
+
+// SetTrackingURL sets the "tracking_url" field.
+func (u *ShippingLineUpsert) SetTrackingURL(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldTrackingURL, v)
+	return u
+}
+
+// UpdateTrackingURL sets the "tracking_url" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateTrackingURL() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldTrackingURL)
+	return u
+}
+
+// ClearTrackingURL clears the value of the "tracking_url" field.
+func (u *ShippingLineUpsert) ClearTrackingURL() *ShippingLineUpsert {
+	u.SetNull(shippingline.FieldTrackingURL)
+	return u
+}
+
+// SetAlliance sets the "alliance" field.
+func (u *ShippingLineUpsert) SetAlliance(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldAlliance, v)
+	return u
+}
+
+// UpdateAlliance sets the "alliance" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateAlliance() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldAlliance)
+	return u
+}
+
+// ClearAlliance clears the value of the "alliance" field.
+func (u *ShippingLineUpsert) ClearAlliance() *ShippingLineUpsert {
+	u.SetNull(shippingline.FieldAlliance)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *ShippingLineUpsert) SetSource(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateSource() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldSource)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *ShippingLineUpsert) SetSortOrder(v int) *ShippingLineUpsert {
+	u.Set(shippingline.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateSortOrder() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *ShippingLineUpsert) AddSortOrder(v int) *ShippingLineUpsert {
+	u.Add(shippingline.FieldSortOrder, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ShippingLineUpsert) SetEnabled(v bool) *ShippingLineUpsert {
+	u.Set(shippingline.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateEnabled() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldEnabled)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *ShippingLineUpsert) SetSearchKeywords(v string) *ShippingLineUpsert {
+	u.Set(shippingline.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *ShippingLineUpsert) UpdateSearchKeywords() *ShippingLineUpsert {
+	u.SetExcluded(shippingline.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(shippingline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ShippingLineUpsertOne) UpdateNewValues() *ShippingLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(shippingline.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(shippingline.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.ScacCode(); exists {
+			s.SetIgnore(shippingline.FieldScacCode)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ShippingLineUpsertOne) Ignore() *ShippingLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ShippingLineUpsertOne) DoNothing() *ShippingLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ShippingLineCreate.OnConflict
+// documentation for more info.
+func (u *ShippingLineUpsertOne) Update(set func(*ShippingLineUpsert)) *ShippingLineUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ShippingLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineUpsertOne) SetUpdatedAt(v time.Time) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateUpdatedAt() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineUpsertOne) SetOrganizationID(v uuid.UUID) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateOrganizationID() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *ShippingLineUpsertOne) SetNameZh(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateNameZh() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *ShippingLineUpsertOne) SetNameEn(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateNameEn() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *ShippingLineUpsertOne) SetCountryCode(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateCountryCode() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetTrackingURL sets the "tracking_url" field.
+func (u *ShippingLineUpsertOne) SetTrackingURL(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetTrackingURL(v)
+	})
+}
+
+// UpdateTrackingURL sets the "tracking_url" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateTrackingURL() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateTrackingURL()
+	})
+}
+
+// ClearTrackingURL clears the value of the "tracking_url" field.
+func (u *ShippingLineUpsertOne) ClearTrackingURL() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.ClearTrackingURL()
+	})
+}
+
+// SetAlliance sets the "alliance" field.
+func (u *ShippingLineUpsertOne) SetAlliance(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetAlliance(v)
+	})
+}
+
+// UpdateAlliance sets the "alliance" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateAlliance() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateAlliance()
+	})
+}
+
+// ClearAlliance clears the value of the "alliance" field.
+func (u *ShippingLineUpsertOne) ClearAlliance() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.ClearAlliance()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *ShippingLineUpsertOne) SetSource(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateSource() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *ShippingLineUpsertOne) SetSortOrder(v int) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *ShippingLineUpsertOne) AddSortOrder(v int) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateSortOrder() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ShippingLineUpsertOne) SetEnabled(v bool) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateEnabled() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *ShippingLineUpsertOne) SetSearchKeywords(v string) *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *ShippingLineUpsertOne) UpdateSearchKeywords() *ShippingLineUpsertOne {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *ShippingLineUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ShippingLineCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ShippingLineUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ShippingLineUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ShippingLineUpsertOne.ID is not supported by MySQL driver. Use ShippingLineUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ShippingLineUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ShippingLineCreateBulk is the builder for creating many ShippingLine entities in bulk.
 type ShippingLineCreateBulk struct {
 	config
 	err      error
 	builders []*ShippingLineCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ShippingLine entities in the database.
@@ -662,6 +1133,7 @@ func (_c *ShippingLineCreateBulk) Save(ctx context.Context) ([]*ShippingLine, er
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -708,6 +1180,301 @@ func (_c *ShippingLineCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ShippingLineCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ShippingLine.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ShippingLineUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ShippingLineCreateBulk) OnConflict(opts ...sql.ConflictOption) *ShippingLineUpsertBulk {
+	_c.conflict = opts
+	return &ShippingLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ShippingLineCreateBulk) OnConflictColumns(columns ...string) *ShippingLineUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ShippingLineUpsertBulk{
+		create: _c,
+	}
+}
+
+// ShippingLineUpsertBulk is the builder for "upsert"-ing
+// a bulk of ShippingLine nodes.
+type ShippingLineUpsertBulk struct {
+	create *ShippingLineCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(shippingline.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ShippingLineUpsertBulk) UpdateNewValues() *ShippingLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(shippingline.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(shippingline.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.ScacCode(); exists {
+				s.SetIgnore(shippingline.FieldScacCode)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ShippingLine.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ShippingLineUpsertBulk) Ignore() *ShippingLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ShippingLineUpsertBulk) DoNothing() *ShippingLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ShippingLineCreateBulk.OnConflict
+// documentation for more info.
+func (u *ShippingLineUpsertBulk) Update(set func(*ShippingLineUpsert)) *ShippingLineUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ShippingLineUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *ShippingLineUpsertBulk) SetUpdatedAt(v time.Time) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateUpdatedAt() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *ShippingLineUpsertBulk) SetOrganizationID(v uuid.UUID) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateOrganizationID() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *ShippingLineUpsertBulk) SetNameZh(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateNameZh() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *ShippingLineUpsertBulk) SetNameEn(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateNameEn() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *ShippingLineUpsertBulk) SetCountryCode(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateCountryCode() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetTrackingURL sets the "tracking_url" field.
+func (u *ShippingLineUpsertBulk) SetTrackingURL(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetTrackingURL(v)
+	})
+}
+
+// UpdateTrackingURL sets the "tracking_url" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateTrackingURL() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateTrackingURL()
+	})
+}
+
+// ClearTrackingURL clears the value of the "tracking_url" field.
+func (u *ShippingLineUpsertBulk) ClearTrackingURL() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.ClearTrackingURL()
+	})
+}
+
+// SetAlliance sets the "alliance" field.
+func (u *ShippingLineUpsertBulk) SetAlliance(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetAlliance(v)
+	})
+}
+
+// UpdateAlliance sets the "alliance" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateAlliance() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateAlliance()
+	})
+}
+
+// ClearAlliance clears the value of the "alliance" field.
+func (u *ShippingLineUpsertBulk) ClearAlliance() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.ClearAlliance()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *ShippingLineUpsertBulk) SetSource(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateSource() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *ShippingLineUpsertBulk) SetSortOrder(v int) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *ShippingLineUpsertBulk) AddSortOrder(v int) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateSortOrder() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *ShippingLineUpsertBulk) SetEnabled(v bool) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateEnabled() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *ShippingLineUpsertBulk) SetSearchKeywords(v string) *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *ShippingLineUpsertBulk) UpdateSearchKeywords() *ShippingLineUpsertBulk {
+	return u.Update(func(s *ShippingLineUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *ShippingLineUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ShippingLineCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ShippingLineCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ShippingLineUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

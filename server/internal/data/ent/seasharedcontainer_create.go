@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type SeaSharedContainerCreate struct {
 	config
 	mutation *SeaSharedContainerMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -401,6 +404,7 @@ func (_c *SeaSharedContainerCreate) createSpec() (*SeaSharedContainer, *sqlgraph
 		_node = &SeaSharedContainer{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seasharedcontainer.Table, sqlgraph.NewFieldSpec(seasharedcontainer.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -523,11 +527,592 @@ func (_c *SeaSharedContainerCreate) createSpec() (*SeaSharedContainer, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaSharedContainer.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaSharedContainerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaSharedContainerCreate) OnConflict(opts ...sql.ConflictOption) *SeaSharedContainerUpsertOne {
+	_c.conflict = opts
+	return &SeaSharedContainerUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaSharedContainerCreate) OnConflictColumns(columns ...string) *SeaSharedContainerUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaSharedContainerUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaSharedContainerUpsertOne is the builder for "upsert"-ing
+	//  one SeaSharedContainer node.
+	SeaSharedContainerUpsertOne struct {
+		create *SeaSharedContainerCreate
+	}
+
+	// SeaSharedContainerUpsert is the "OnConflict" setter.
+	SeaSharedContainerUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaSharedContainerUpsert) SetUpdatedAt(v time.Time) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateUpdatedAt() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaSharedContainerUpsert) SetOrganizationID(v uuid.UUID) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateOrganizationID() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldOrganizationID)
+	return u
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaSharedContainerUpsert) SetTransportExecutionID(v uuid.UUID) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldTransportExecutionID, v)
+	return u
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateTransportExecutionID() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldTransportExecutionID)
+	return u
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *SeaSharedContainerUpsert) SetContainerNo(v string) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldContainerNo, v)
+	return u
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateContainerNo() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldContainerNo)
+	return u
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *SeaSharedContainerUpsert) SetContainerSpecID(v uuid.UUID) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldContainerSpecID, v)
+	return u
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateContainerSpecID() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldContainerSpecID)
+	return u
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *SeaSharedContainerUpsert) SetSealNo(v string) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldSealNo, v)
+	return u
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateSealNo() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldSealNo)
+	return u
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *SeaSharedContainerUpsert) ClearSealNo() *SeaSharedContainerUpsert {
+	u.SetNull(seasharedcontainer.FieldSealNo)
+	return u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaSharedContainerUpsert) SetPackageCount(v int) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldPackageCount, v)
+	return u
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdatePackageCount() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldPackageCount)
+	return u
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaSharedContainerUpsert) AddPackageCount(v int) *SeaSharedContainerUpsert {
+	u.Add(seasharedcontainer.FieldPackageCount, v)
+	return u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaSharedContainerUpsert) SetGrossWeightKg(v string) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldGrossWeightKg, v)
+	return u
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateGrossWeightKg() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldGrossWeightKg)
+	return u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaSharedContainerUpsert) SetVolumeCbm(v string) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldVolumeCbm, v)
+	return u
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateVolumeCbm() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldVolumeCbm)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaSharedContainerUpsert) SetStatus(v seasharedcontainer.Status) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateStatus() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldStatus)
+	return u
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *SeaSharedContainerUpsert) SetConfirmedAt(v time.Time) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldConfirmedAt, v)
+	return u
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateConfirmedAt() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldConfirmedAt)
+	return u
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *SeaSharedContainerUpsert) ClearConfirmedAt() *SeaSharedContainerUpsert {
+	u.SetNull(seasharedcontainer.FieldConfirmedAt)
+	return u
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *SeaSharedContainerUpsert) SetConfirmedBy(v uuid.UUID) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldConfirmedBy, v)
+	return u
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateConfirmedBy() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldConfirmedBy)
+	return u
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *SeaSharedContainerUpsert) ClearConfirmedBy() *SeaSharedContainerUpsert {
+	u.SetNull(seasharedcontainer.FieldConfirmedBy)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *SeaSharedContainerUpsert) SetNote(v string) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateNote() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaSharedContainerUpsert) ClearNote() *SeaSharedContainerUpsert {
+	u.SetNull(seasharedcontainer.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaSharedContainerUpsert) SetVersion(v uint64) *SeaSharedContainerUpsert {
+	u.Set(seasharedcontainer.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsert) UpdateVersion() *SeaSharedContainerUpsert {
+	u.SetExcluded(seasharedcontainer.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaSharedContainerUpsert) AddVersion(v uint64) *SeaSharedContainerUpsert {
+	u.Add(seasharedcontainer.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seasharedcontainer.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaSharedContainerUpsertOne) UpdateNewValues() *SeaSharedContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seasharedcontainer.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seasharedcontainer.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaSharedContainerUpsertOne) Ignore() *SeaSharedContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaSharedContainerUpsertOne) DoNothing() *SeaSharedContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaSharedContainerCreate.OnConflict
+// documentation for more info.
+func (u *SeaSharedContainerUpsertOne) Update(set func(*SeaSharedContainerUpsert)) *SeaSharedContainerUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaSharedContainerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaSharedContainerUpsertOne) SetUpdatedAt(v time.Time) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateUpdatedAt() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaSharedContainerUpsertOne) SetOrganizationID(v uuid.UUID) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateOrganizationID() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaSharedContainerUpsertOne) SetTransportExecutionID(v uuid.UUID) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetTransportExecutionID(v)
+	})
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateTransportExecutionID() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateTransportExecutionID()
+	})
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *SeaSharedContainerUpsertOne) SetContainerNo(v string) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetContainerNo(v)
+	})
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateContainerNo() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateContainerNo()
+	})
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *SeaSharedContainerUpsertOne) SetContainerSpecID(v uuid.UUID) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetContainerSpecID(v)
+	})
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateContainerSpecID() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateContainerSpecID()
+	})
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *SeaSharedContainerUpsertOne) SetSealNo(v string) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetSealNo(v)
+	})
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateSealNo() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateSealNo()
+	})
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *SeaSharedContainerUpsertOne) ClearSealNo() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearSealNo()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaSharedContainerUpsertOne) SetPackageCount(v int) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaSharedContainerUpsertOne) AddPackageCount(v int) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdatePackageCount() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaSharedContainerUpsertOne) SetGrossWeightKg(v string) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateGrossWeightKg() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaSharedContainerUpsertOne) SetVolumeCbm(v string) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateVolumeCbm() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaSharedContainerUpsertOne) SetStatus(v seasharedcontainer.Status) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateStatus() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *SeaSharedContainerUpsertOne) SetConfirmedAt(v time.Time) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateConfirmedAt() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *SeaSharedContainerUpsertOne) ClearConfirmedAt() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *SeaSharedContainerUpsertOne) SetConfirmedBy(v uuid.UUID) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateConfirmedBy() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *SeaSharedContainerUpsertOne) ClearConfirmedBy() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *SeaSharedContainerUpsertOne) SetNote(v string) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateNote() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaSharedContainerUpsertOne) ClearNote() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaSharedContainerUpsertOne) SetVersion(v uint64) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaSharedContainerUpsertOne) AddVersion(v uint64) *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertOne) UpdateVersion() *SeaSharedContainerUpsertOne {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaSharedContainerUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaSharedContainerCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaSharedContainerUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaSharedContainerUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaSharedContainerUpsertOne.ID is not supported by MySQL driver. Use SeaSharedContainerUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaSharedContainerUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaSharedContainerCreateBulk is the builder for creating many SeaSharedContainer entities in bulk.
 type SeaSharedContainerCreateBulk struct {
 	config
 	err      error
 	builders []*SeaSharedContainerCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaSharedContainer entities in the database.
@@ -557,6 +1142,7 @@ func (_c *SeaSharedContainerCreateBulk) Save(ctx context.Context) ([]*SeaSharedC
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -603,6 +1189,361 @@ func (_c *SeaSharedContainerCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaSharedContainerCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaSharedContainer.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaSharedContainerUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaSharedContainerCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaSharedContainerUpsertBulk {
+	_c.conflict = opts
+	return &SeaSharedContainerUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaSharedContainerCreateBulk) OnConflictColumns(columns ...string) *SeaSharedContainerUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaSharedContainerUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaSharedContainerUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaSharedContainer nodes.
+type SeaSharedContainerUpsertBulk struct {
+	create *SeaSharedContainerCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seasharedcontainer.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaSharedContainerUpsertBulk) UpdateNewValues() *SeaSharedContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seasharedcontainer.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seasharedcontainer.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaSharedContainer.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaSharedContainerUpsertBulk) Ignore() *SeaSharedContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaSharedContainerUpsertBulk) DoNothing() *SeaSharedContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaSharedContainerCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaSharedContainerUpsertBulk) Update(set func(*SeaSharedContainerUpsert)) *SeaSharedContainerUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaSharedContainerUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaSharedContainerUpsertBulk) SetUpdatedAt(v time.Time) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateUpdatedAt() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaSharedContainerUpsertBulk) SetOrganizationID(v uuid.UUID) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateOrganizationID() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaSharedContainerUpsertBulk) SetTransportExecutionID(v uuid.UUID) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetTransportExecutionID(v)
+	})
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateTransportExecutionID() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateTransportExecutionID()
+	})
+}
+
+// SetContainerNo sets the "container_no" field.
+func (u *SeaSharedContainerUpsertBulk) SetContainerNo(v string) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetContainerNo(v)
+	})
+}
+
+// UpdateContainerNo sets the "container_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateContainerNo() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateContainerNo()
+	})
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (u *SeaSharedContainerUpsertBulk) SetContainerSpecID(v uuid.UUID) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetContainerSpecID(v)
+	})
+}
+
+// UpdateContainerSpecID sets the "container_spec_id" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateContainerSpecID() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateContainerSpecID()
+	})
+}
+
+// SetSealNo sets the "seal_no" field.
+func (u *SeaSharedContainerUpsertBulk) SetSealNo(v string) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetSealNo(v)
+	})
+}
+
+// UpdateSealNo sets the "seal_no" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateSealNo() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateSealNo()
+	})
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (u *SeaSharedContainerUpsertBulk) ClearSealNo() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearSealNo()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaSharedContainerUpsertBulk) SetPackageCount(v int) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaSharedContainerUpsertBulk) AddPackageCount(v int) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdatePackageCount() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaSharedContainerUpsertBulk) SetGrossWeightKg(v string) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateGrossWeightKg() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaSharedContainerUpsertBulk) SetVolumeCbm(v string) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateVolumeCbm() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaSharedContainerUpsertBulk) SetStatus(v seasharedcontainer.Status) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateStatus() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *SeaSharedContainerUpsertBulk) SetConfirmedAt(v time.Time) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateConfirmedAt() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *SeaSharedContainerUpsertBulk) ClearConfirmedAt() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *SeaSharedContainerUpsertBulk) SetConfirmedBy(v uuid.UUID) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateConfirmedBy() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *SeaSharedContainerUpsertBulk) ClearConfirmedBy() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *SeaSharedContainerUpsertBulk) SetNote(v string) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateNote() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *SeaSharedContainerUpsertBulk) ClearNote() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaSharedContainerUpsertBulk) SetVersion(v uint64) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaSharedContainerUpsertBulk) AddVersion(v uint64) *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaSharedContainerUpsertBulk) UpdateVersion() *SeaSharedContainerUpsertBulk {
+	return u.Update(func(s *SeaSharedContainerUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaSharedContainerUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaSharedContainerCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaSharedContainerCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaSharedContainerUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

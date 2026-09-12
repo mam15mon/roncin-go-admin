@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -161,6 +162,21 @@ func (_u *RoleUpdate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApprover
 	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
 }
 
+// AddDingtalkInvitationIDs adds the "dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *RoleUpdate) AddDingtalkInvitationIDs(ids ...uuid.UUID) *RoleUpdate {
+	_u.mutation.AddDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddDingtalkInvitations adds the "dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *RoleUpdate) AddDingtalkInvitations(v ...*DingTalkInvitation) *RoleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDingtalkInvitationIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdate) Mutation() *RoleMutation {
 	return _u.mutation
@@ -254,6 +270,27 @@ func (_u *RoleUpdate) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockAppro
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// ClearDingtalkInvitations clears all "dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *RoleUpdate) ClearDingtalkInvitations() *RoleUpdate {
+	_u.mutation.ClearDingtalkInvitations()
+	return _u
+}
+
+// RemoveDingtalkInvitationIDs removes the "dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *RoleUpdate) RemoveDingtalkInvitationIDs(ids ...uuid.UUID) *RoleUpdate {
+	_u.mutation.RemoveDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveDingtalkInvitations removes "dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *RoleUpdate) RemoveDingtalkInvitations(v ...*DingTalkInvitation) *RoleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDingtalkInvitationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -543,6 +580,51 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.DingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.DingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{role.Label}
@@ -690,6 +772,21 @@ func (_u *RoleUpdateOne) AddOrderUnlockApproverCandidates(v ...*OrderUnlockAppro
 	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
 }
 
+// AddDingtalkInvitationIDs adds the "dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_u *RoleUpdateOne) AddDingtalkInvitationIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	_u.mutation.AddDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// AddDingtalkInvitations adds the "dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *RoleUpdateOne) AddDingtalkInvitations(v ...*DingTalkInvitation) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDingtalkInvitationIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdateOne) Mutation() *RoleMutation {
 	return _u.mutation
@@ -783,6 +880,27 @@ func (_u *RoleUpdateOne) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockAp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// ClearDingtalkInvitations clears all "dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_u *RoleUpdateOne) ClearDingtalkInvitations() *RoleUpdateOne {
+	_u.mutation.ClearDingtalkInvitations()
+	return _u
+}
+
+// RemoveDingtalkInvitationIDs removes the "dingtalk_invitations" edge to DingTalkInvitation entities by IDs.
+func (_u *RoleUpdateOne) RemoveDingtalkInvitationIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	_u.mutation.RemoveDingtalkInvitationIDs(ids...)
+	return _u
+}
+
+// RemoveDingtalkInvitations removes "dingtalk_invitations" edges to DingTalkInvitation entities.
+func (_u *RoleUpdateOne) RemoveDingtalkInvitations(v ...*DingTalkInvitation) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDingtalkInvitationIDs(ids...)
 }
 
 // Where appends a list predicates to the RoleUpdate builder.
@@ -1095,6 +1213,51 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDingtalkInvitationsIDs(); len(nodes) > 0 && !_u.mutation.DingtalkInvitationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   role.DingtalkInvitationsTable,
+			Columns: []string{role.DingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

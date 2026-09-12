@@ -105,6 +105,7 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	case biz.DingTalkLoginStatusRegistrationRequired:
 		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED
 		data.DisplayName = &result.DisplayName
+		data.RegistrationOrganizations = organizationChoicesToAPI(result.RegistrationOrganizations)
 		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), result.RegistrationToken, result.RegistrationExpiresAt, 300)
 	default:
 		return nil, biz.ErrDingTalkLoginFailed
@@ -112,12 +113,16 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
 }
 
-func (s *AuthService) RegisterDingTalkUser(ctx context.Context, _ *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
+func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
 	registrationToken := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
 		registrationToken = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkRegistrationTokenCookieName())
 	}
-	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken)
+	requestedOrganizationID, err := parseOptionalOrganizationID(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrDingTalkRegistrationOrgInvalid
+	}
+	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken, requestedOrganizationID)
 	if err != nil {
 		return nil, err
 	}

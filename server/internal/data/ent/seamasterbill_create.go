@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -30,6 +32,7 @@ type SeaMasterBillCreate struct {
 	config
 	mutation *SeaMasterBillMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -705,6 +708,7 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 		_node = &SeaMasterBill{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seamasterbill.Table, sqlgraph.NewFieldSpec(seamasterbill.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -1023,11 +1027,1008 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBill.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillCreate) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillUpsertOne {
+	_c.conflict = opts
+	return &SeaMasterBillUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillCreate) OnConflictColumns(columns ...string) *SeaMasterBillUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaMasterBillUpsertOne is the builder for "upsert"-ing
+	//  one SeaMasterBill node.
+	SeaMasterBillUpsertOne struct {
+		create *SeaMasterBillCreate
+	}
+
+	// SeaMasterBillUpsert is the "OnConflict" setter.
+	SeaMasterBillUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillUpsert) SetUpdatedAt(v time.Time) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateUpdatedAt() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillUpsert) SetOrganizationID(v uuid.UUID) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateOrganizationID() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldOrganizationID)
+	return u
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaMasterBillUpsert) SetShippingLineID(v uuid.UUID) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldShippingLineID, v)
+	return u
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateShippingLineID() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldShippingLineID)
+	return u
+}
+
+// SetMasterNo sets the "master_no" field.
+func (u *SeaMasterBillUpsert) SetMasterNo(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldMasterNo, v)
+	return u
+}
+
+// UpdateMasterNo sets the "master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateMasterNo() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldMasterNo)
+	return u
+}
+
+// SetNormalizedMasterNo sets the "normalized_master_no" field.
+func (u *SeaMasterBillUpsert) SetNormalizedMasterNo(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldNormalizedMasterNo, v)
+	return u
+}
+
+// UpdateNormalizedMasterNo sets the "normalized_master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateNormalizedMasterNo() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldNormalizedMasterNo)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillUpsert) SetStatus(v seamasterbill.Status) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateStatus() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldStatus)
+	return u
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaMasterBillUpsert) SetCurrentVersionID(v uuid.UUID) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldCurrentVersionID, v)
+	return u
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateCurrentVersionID() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldCurrentVersionID)
+	return u
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaMasterBillUpsert) ClearCurrentVersionID() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldCurrentVersionID)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillUpsert) SetVersion(v uint64) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateVersion() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillUpsert) AddVersion(v uint64) *SeaMasterBillUpsert {
+	u.Add(seamasterbill.FieldVersion, v)
+	return u
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaMasterBillUpsert) SetShipperText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldShipperText, v)
+	return u
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateShipperText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldShipperText)
+	return u
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaMasterBillUpsert) ClearShipperText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldShipperText)
+	return u
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaMasterBillUpsert) SetConsigneeText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldConsigneeText, v)
+	return u
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateConsigneeText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldConsigneeText)
+	return u
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaMasterBillUpsert) ClearConsigneeText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldConsigneeText)
+	return u
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaMasterBillUpsert) SetNotifyPartyText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldNotifyPartyText, v)
+	return u
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateNotifyPartyText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldNotifyPartyText)
+	return u
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaMasterBillUpsert) ClearNotifyPartyText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldNotifyPartyText)
+	return u
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsert) SetSecondNotifyPartyText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldSecondNotifyPartyText, v)
+	return u
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateSecondNotifyPartyText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldSecondNotifyPartyText)
+	return u
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsert) ClearSecondNotifyPartyText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldSecondNotifyPartyText)
+	return u
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaMasterBillUpsert) SetMarksText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldMarksText, v)
+	return u
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateMarksText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldMarksText)
+	return u
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaMasterBillUpsert) ClearMarksText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldMarksText)
+	return u
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaMasterBillUpsert) SetGoodsDescriptionText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldGoodsDescriptionText, v)
+	return u
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateGoodsDescriptionText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldGoodsDescriptionText)
+	return u
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaMasterBillUpsert) ClearGoodsDescriptionText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldGoodsDescriptionText)
+	return u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaMasterBillUpsert) SetPackageCount(v int) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldPackageCount, v)
+	return u
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdatePackageCount() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldPackageCount)
+	return u
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaMasterBillUpsert) AddPackageCount(v int) *SeaMasterBillUpsert {
+	u.Add(seamasterbill.FieldPackageCount, v)
+	return u
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaMasterBillUpsert) ClearPackageCount() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldPackageCount)
+	return u
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaMasterBillUpsert) SetPackageUnit(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldPackageUnit, v)
+	return u
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdatePackageUnit() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldPackageUnit)
+	return u
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaMasterBillUpsert) ClearPackageUnit() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldPackageUnit)
+	return u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsert) SetGrossWeightKg(v float64) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldGrossWeightKg, v)
+	return u
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateGrossWeightKg() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldGrossWeightKg)
+	return u
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsert) AddGrossWeightKg(v float64) *SeaMasterBillUpsert {
+	u.Add(seamasterbill.FieldGrossWeightKg, v)
+	return u
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsert) ClearGrossWeightKg() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldGrossWeightKg)
+	return u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaMasterBillUpsert) SetVolumeCbm(v float64) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldVolumeCbm, v)
+	return u
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateVolumeCbm() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldVolumeCbm)
+	return u
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaMasterBillUpsert) AddVolumeCbm(v float64) *SeaMasterBillUpsert {
+	u.Add(seamasterbill.FieldVolumeCbm, v)
+	return u
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaMasterBillUpsert) ClearVolumeCbm() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldVolumeCbm)
+	return u
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaMasterBillUpsert) SetFreightTerms(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldFreightTerms, v)
+	return u
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateFreightTerms() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldFreightTerms)
+	return u
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaMasterBillUpsert) ClearFreightTerms() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldFreightTerms)
+	return u
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaMasterBillUpsert) SetTransportTerms(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldTransportTerms, v)
+	return u
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateTransportTerms() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldTransportTerms)
+	return u
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaMasterBillUpsert) ClearTransportTerms() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldTransportTerms)
+	return u
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaMasterBillUpsert) SetBillForm(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldBillForm, v)
+	return u
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateBillForm() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldBillForm)
+	return u
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaMasterBillUpsert) ClearBillForm() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldBillForm)
+	return u
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaMasterBillUpsert) SetReleaseType(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldReleaseType, v)
+	return u
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateReleaseType() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldReleaseType)
+	return u
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaMasterBillUpsert) ClearReleaseType() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldReleaseType)
+	return u
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaMasterBillUpsert) SetClauses(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldClauses, v)
+	return u
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateClauses() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldClauses)
+	return u
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaMasterBillUpsert) ClearClauses() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldClauses)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbill.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillUpsertOne) UpdateNewValues() *SeaMasterBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seamasterbill.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seamasterbill.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaMasterBillUpsertOne) Ignore() *SeaMasterBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillUpsertOne) DoNothing() *SeaMasterBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillCreate.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillUpsertOne) Update(set func(*SeaMasterBillUpsert)) *SeaMasterBillUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillUpsertOne) SetUpdatedAt(v time.Time) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateUpdatedAt() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillUpsertOne) SetOrganizationID(v uuid.UUID) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateOrganizationID() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaMasterBillUpsertOne) SetShippingLineID(v uuid.UUID) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateShippingLineID() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// SetMasterNo sets the "master_no" field.
+func (u *SeaMasterBillUpsertOne) SetMasterNo(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetMasterNo(v)
+	})
+}
+
+// UpdateMasterNo sets the "master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateMasterNo() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateMasterNo()
+	})
+}
+
+// SetNormalizedMasterNo sets the "normalized_master_no" field.
+func (u *SeaMasterBillUpsertOne) SetNormalizedMasterNo(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetNormalizedMasterNo(v)
+	})
+}
+
+// UpdateNormalizedMasterNo sets the "normalized_master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateNormalizedMasterNo() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateNormalizedMasterNo()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillUpsertOne) SetStatus(v seamasterbill.Status) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateStatus() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaMasterBillUpsertOne) SetCurrentVersionID(v uuid.UUID) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateCurrentVersionID() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaMasterBillUpsertOne) ClearCurrentVersionID() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillUpsertOne) SetVersion(v uint64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillUpsertOne) AddVersion(v uint64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateVersion() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaMasterBillUpsertOne) SetShipperText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetShipperText(v)
+	})
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateShipperText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateShipperText()
+	})
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaMasterBillUpsertOne) ClearShipperText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearShipperText()
+	})
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaMasterBillUpsertOne) SetConsigneeText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetConsigneeText(v)
+	})
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateConsigneeText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateConsigneeText()
+	})
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaMasterBillUpsertOne) ClearConsigneeText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearConsigneeText()
+	})
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaMasterBillUpsertOne) SetNotifyPartyText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetNotifyPartyText(v)
+	})
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateNotifyPartyText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateNotifyPartyText()
+	})
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaMasterBillUpsertOne) ClearNotifyPartyText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearNotifyPartyText()
+	})
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsertOne) SetSecondNotifyPartyText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetSecondNotifyPartyText(v)
+	})
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateSecondNotifyPartyText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateSecondNotifyPartyText()
+	})
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsertOne) ClearSecondNotifyPartyText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearSecondNotifyPartyText()
+	})
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaMasterBillUpsertOne) SetMarksText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetMarksText(v)
+	})
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateMarksText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateMarksText()
+	})
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaMasterBillUpsertOne) ClearMarksText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearMarksText()
+	})
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaMasterBillUpsertOne) SetGoodsDescriptionText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetGoodsDescriptionText(v)
+	})
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateGoodsDescriptionText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateGoodsDescriptionText()
+	})
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaMasterBillUpsertOne) ClearGoodsDescriptionText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearGoodsDescriptionText()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaMasterBillUpsertOne) SetPackageCount(v int) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaMasterBillUpsertOne) AddPackageCount(v int) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdatePackageCount() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaMasterBillUpsertOne) ClearPackageCount() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearPackageCount()
+	})
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaMasterBillUpsertOne) SetPackageUnit(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetPackageUnit(v)
+	})
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdatePackageUnit() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdatePackageUnit()
+	})
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaMasterBillUpsertOne) ClearPackageUnit() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearPackageUnit()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertOne) SetGrossWeightKg(v float64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertOne) AddGrossWeightKg(v float64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateGrossWeightKg() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertOne) ClearGrossWeightKg() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaMasterBillUpsertOne) SetVolumeCbm(v float64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaMasterBillUpsertOne) AddVolumeCbm(v float64) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateVolumeCbm() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaMasterBillUpsertOne) ClearVolumeCbm() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearVolumeCbm()
+	})
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaMasterBillUpsertOne) SetFreightTerms(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetFreightTerms(v)
+	})
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateFreightTerms() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateFreightTerms()
+	})
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaMasterBillUpsertOne) ClearFreightTerms() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearFreightTerms()
+	})
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaMasterBillUpsertOne) SetTransportTerms(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetTransportTerms(v)
+	})
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateTransportTerms() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateTransportTerms()
+	})
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaMasterBillUpsertOne) ClearTransportTerms() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearTransportTerms()
+	})
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaMasterBillUpsertOne) SetBillForm(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetBillForm(v)
+	})
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateBillForm() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateBillForm()
+	})
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaMasterBillUpsertOne) ClearBillForm() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearBillForm()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaMasterBillUpsertOne) SetReleaseType(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateReleaseType() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaMasterBillUpsertOne) ClearReleaseType() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaMasterBillUpsertOne) SetClauses(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetClauses(v)
+	})
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateClauses() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateClauses()
+	})
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaMasterBillUpsertOne) ClearClauses() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearClauses()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaMasterBillUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaMasterBillUpsertOne.ID is not supported by MySQL driver. Use SeaMasterBillUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaMasterBillUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaMasterBillCreateBulk is the builder for creating many SeaMasterBill entities in bulk.
 type SeaMasterBillCreateBulk struct {
 	config
 	err      error
 	builders []*SeaMasterBillCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaMasterBill entities in the database.
@@ -1057,6 +2058,7 @@ func (_c *SeaMasterBillCreateBulk) Save(ctx context.Context) ([]*SeaMasterBill, 
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1103,6 +2105,585 @@ func (_c *SeaMasterBillCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaMasterBillCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBill.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillUpsertBulk {
+	_c.conflict = opts
+	return &SeaMasterBillUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillCreateBulk) OnConflictColumns(columns ...string) *SeaMasterBillUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaMasterBillUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaMasterBill nodes.
+type SeaMasterBillUpsertBulk struct {
+	create *SeaMasterBillCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbill.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillUpsertBulk) UpdateNewValues() *SeaMasterBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seamasterbill.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seamasterbill.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBill.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaMasterBillUpsertBulk) Ignore() *SeaMasterBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillUpsertBulk) DoNothing() *SeaMasterBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillUpsertBulk) Update(set func(*SeaMasterBillUpsert)) *SeaMasterBillUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillUpsertBulk) SetUpdatedAt(v time.Time) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateUpdatedAt() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillUpsertBulk) SetOrganizationID(v uuid.UUID) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateOrganizationID() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (u *SeaMasterBillUpsertBulk) SetShippingLineID(v uuid.UUID) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetShippingLineID(v)
+	})
+}
+
+// UpdateShippingLineID sets the "shipping_line_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateShippingLineID() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateShippingLineID()
+	})
+}
+
+// SetMasterNo sets the "master_no" field.
+func (u *SeaMasterBillUpsertBulk) SetMasterNo(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetMasterNo(v)
+	})
+}
+
+// UpdateMasterNo sets the "master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateMasterNo() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateMasterNo()
+	})
+}
+
+// SetNormalizedMasterNo sets the "normalized_master_no" field.
+func (u *SeaMasterBillUpsertBulk) SetNormalizedMasterNo(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetNormalizedMasterNo(v)
+	})
+}
+
+// UpdateNormalizedMasterNo sets the "normalized_master_no" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateNormalizedMasterNo() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateNormalizedMasterNo()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillUpsertBulk) SetStatus(v seamasterbill.Status) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateStatus() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetCurrentVersionID sets the "current_version_id" field.
+func (u *SeaMasterBillUpsertBulk) SetCurrentVersionID(v uuid.UUID) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetCurrentVersionID(v)
+	})
+}
+
+// UpdateCurrentVersionID sets the "current_version_id" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateCurrentVersionID() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateCurrentVersionID()
+	})
+}
+
+// ClearCurrentVersionID clears the value of the "current_version_id" field.
+func (u *SeaMasterBillUpsertBulk) ClearCurrentVersionID() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearCurrentVersionID()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillUpsertBulk) SetVersion(v uint64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillUpsertBulk) AddVersion(v uint64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateVersion() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (u *SeaMasterBillUpsertBulk) SetShipperText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetShipperText(v)
+	})
+}
+
+// UpdateShipperText sets the "shipper_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateShipperText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateShipperText()
+	})
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearShipperText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearShipperText()
+	})
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (u *SeaMasterBillUpsertBulk) SetConsigneeText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetConsigneeText(v)
+	})
+}
+
+// UpdateConsigneeText sets the "consignee_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateConsigneeText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateConsigneeText()
+	})
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearConsigneeText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearConsigneeText()
+	})
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (u *SeaMasterBillUpsertBulk) SetNotifyPartyText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetNotifyPartyText(v)
+	})
+}
+
+// UpdateNotifyPartyText sets the "notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateNotifyPartyText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateNotifyPartyText()
+	})
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearNotifyPartyText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearNotifyPartyText()
+	})
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsertBulk) SetSecondNotifyPartyText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetSecondNotifyPartyText(v)
+	})
+}
+
+// UpdateSecondNotifyPartyText sets the "second_notify_party_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateSecondNotifyPartyText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateSecondNotifyPartyText()
+	})
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearSecondNotifyPartyText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearSecondNotifyPartyText()
+	})
+}
+
+// SetMarksText sets the "marks_text" field.
+func (u *SeaMasterBillUpsertBulk) SetMarksText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetMarksText(v)
+	})
+}
+
+// UpdateMarksText sets the "marks_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateMarksText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateMarksText()
+	})
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearMarksText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearMarksText()
+	})
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (u *SeaMasterBillUpsertBulk) SetGoodsDescriptionText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetGoodsDescriptionText(v)
+	})
+}
+
+// UpdateGoodsDescriptionText sets the "goods_description_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateGoodsDescriptionText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateGoodsDescriptionText()
+	})
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearGoodsDescriptionText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearGoodsDescriptionText()
+	})
+}
+
+// SetPackageCount sets the "package_count" field.
+func (u *SeaMasterBillUpsertBulk) SetPackageCount(v int) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetPackageCount(v)
+	})
+}
+
+// AddPackageCount adds v to the "package_count" field.
+func (u *SeaMasterBillUpsertBulk) AddPackageCount(v int) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddPackageCount(v)
+	})
+}
+
+// UpdatePackageCount sets the "package_count" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdatePackageCount() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdatePackageCount()
+	})
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (u *SeaMasterBillUpsertBulk) ClearPackageCount() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearPackageCount()
+	})
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (u *SeaMasterBillUpsertBulk) SetPackageUnit(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetPackageUnit(v)
+	})
+}
+
+// UpdatePackageUnit sets the "package_unit" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdatePackageUnit() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdatePackageUnit()
+	})
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (u *SeaMasterBillUpsertBulk) ClearPackageUnit() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearPackageUnit()
+	})
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertBulk) SetGrossWeightKg(v float64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetGrossWeightKg(v)
+	})
+}
+
+// AddGrossWeightKg adds v to the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertBulk) AddGrossWeightKg(v float64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddGrossWeightKg(v)
+	})
+}
+
+// UpdateGrossWeightKg sets the "gross_weight_kg" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateGrossWeightKg() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateGrossWeightKg()
+	})
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (u *SeaMasterBillUpsertBulk) ClearGrossWeightKg() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearGrossWeightKg()
+	})
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (u *SeaMasterBillUpsertBulk) SetVolumeCbm(v float64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetVolumeCbm(v)
+	})
+}
+
+// AddVolumeCbm adds v to the "volume_cbm" field.
+func (u *SeaMasterBillUpsertBulk) AddVolumeCbm(v float64) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.AddVolumeCbm(v)
+	})
+}
+
+// UpdateVolumeCbm sets the "volume_cbm" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateVolumeCbm() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateVolumeCbm()
+	})
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (u *SeaMasterBillUpsertBulk) ClearVolumeCbm() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearVolumeCbm()
+	})
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (u *SeaMasterBillUpsertBulk) SetFreightTerms(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetFreightTerms(v)
+	})
+}
+
+// UpdateFreightTerms sets the "freight_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateFreightTerms() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateFreightTerms()
+	})
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (u *SeaMasterBillUpsertBulk) ClearFreightTerms() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearFreightTerms()
+	})
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (u *SeaMasterBillUpsertBulk) SetTransportTerms(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetTransportTerms(v)
+	})
+}
+
+// UpdateTransportTerms sets the "transport_terms" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateTransportTerms() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateTransportTerms()
+	})
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (u *SeaMasterBillUpsertBulk) ClearTransportTerms() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearTransportTerms()
+	})
+}
+
+// SetBillForm sets the "bill_form" field.
+func (u *SeaMasterBillUpsertBulk) SetBillForm(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetBillForm(v)
+	})
+}
+
+// UpdateBillForm sets the "bill_form" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateBillForm() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateBillForm()
+	})
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (u *SeaMasterBillUpsertBulk) ClearBillForm() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearBillForm()
+	})
+}
+
+// SetReleaseType sets the "release_type" field.
+func (u *SeaMasterBillUpsertBulk) SetReleaseType(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetReleaseType(v)
+	})
+}
+
+// UpdateReleaseType sets the "release_type" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateReleaseType() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateReleaseType()
+	})
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (u *SeaMasterBillUpsertBulk) ClearReleaseType() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearReleaseType()
+	})
+}
+
+// SetClauses sets the "clauses" field.
+func (u *SeaMasterBillUpsertBulk) SetClauses(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetClauses(v)
+	})
+}
+
+// UpdateClauses sets the "clauses" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateClauses() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateClauses()
+	})
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (u *SeaMasterBillUpsertBulk) ClearClauses() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearClauses()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaMasterBillCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -159,6 +159,10 @@ const (
 	EdgeSeaSharedContainers = "sea_shared_containers"
 	// EdgeSeaSharedContainerAllocations holds the string denoting the sea_shared_container_allocations edge name in mutations.
 	EdgeSeaSharedContainerAllocations = "sea_shared_container_allocations"
+	// EdgeDingtalkInvitations holds the string denoting the dingtalk_invitations edge name in mutations.
+	EdgeDingtalkInvitations = "dingtalk_invitations"
+	// EdgeDingtalkRegistrationRequests holds the string denoting the dingtalk_registration_requests edge name in mutations.
+	EdgeDingtalkRegistrationRequests = "dingtalk_registration_requests"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -589,6 +593,20 @@ const (
 	SeaSharedContainerAllocationsInverseTable = "sea_shared_container_allocations"
 	// SeaSharedContainerAllocationsColumn is the table column denoting the sea_shared_container_allocations relation/edge.
 	SeaSharedContainerAllocationsColumn = "organization_id"
+	// DingtalkInvitationsTable is the table that holds the dingtalk_invitations relation/edge.
+	DingtalkInvitationsTable = "ding_talk_invitations"
+	// DingtalkInvitationsInverseTable is the table name for the DingTalkInvitation entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkinvitation" package.
+	DingtalkInvitationsInverseTable = "ding_talk_invitations"
+	// DingtalkInvitationsColumn is the table column denoting the dingtalk_invitations relation/edge.
+	DingtalkInvitationsColumn = "organization_id"
+	// DingtalkRegistrationRequestsTable is the table that holds the dingtalk_registration_requests relation/edge.
+	DingtalkRegistrationRequestsTable = "users"
+	// DingtalkRegistrationRequestsInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	DingtalkRegistrationRequestsInverseTable = "users"
+	// DingtalkRegistrationRequestsColumn is the table column denoting the dingtalk_registration_requests relation/edge.
+	DingtalkRegistrationRequestsColumn = "dingtalk_requested_organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -1580,6 +1598,34 @@ func BySeaSharedContainerAllocations(term sql.OrderTerm, terms ...sql.OrderTerm)
 		sqlgraph.OrderByNeighborTerms(s, newSeaSharedContainerAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDingtalkInvitationsCount orders the results by dingtalk_invitations count.
+func ByDingtalkInvitationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDingtalkInvitationsStep(), opts...)
+	}
+}
+
+// ByDingtalkInvitations orders the results by dingtalk_invitations terms.
+func ByDingtalkInvitations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkInvitationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDingtalkRegistrationRequestsCount orders the results by dingtalk_registration_requests count.
+func ByDingtalkRegistrationRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDingtalkRegistrationRequestsStep(), opts...)
+	}
+}
+
+// ByDingtalkRegistrationRequests orders the results by dingtalk_registration_requests terms.
+func ByDingtalkRegistrationRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkRegistrationRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -2012,5 +2058,19 @@ func newSeaSharedContainerAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaSharedContainerAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaSharedContainerAllocationsTable, SeaSharedContainerAllocationsColumn),
+	)
+}
+func newDingtalkInvitationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkInvitationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DingtalkInvitationsTable, DingtalkInvitationsColumn),
+	)
+}
+func newDingtalkRegistrationRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkRegistrationRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DingtalkRegistrationRequestsTable, DingtalkRegistrationRequestsColumn),
 	)
 }

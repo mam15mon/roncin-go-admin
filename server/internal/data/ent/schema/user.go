@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/google/uuid"
 )
 
 var usernamePattern = regexp.MustCompile(`^[a-z0-9_.-]+$`)
@@ -39,6 +40,8 @@ func (User) Fields() []ent.Field {
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
 		field.String("dingtalk_userid").MaxLen(64).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
+		// 通道 B 注册时自选的目标组织；NULL 表示存量兜底（通知总部管理员）。
+		field.UUID("dingtalk_requested_organization_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_bootstrap_admin").Default(false).Immutable(),
 		field.Bool("enabled").Default(true),
 		searchKeywordsField(),
@@ -100,6 +103,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("created_sea_transport_execution_versions", SeaTransportExecutionVersion.Type),
 		edge.To("created_sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),
 		edge.To("confirmed_sea_shared_containers", SeaSharedContainer.Type),
+		edge.To("created_dingtalk_invitations", DingTalkInvitation.Type),
+		edge.To("consumed_dingtalk_invitations", DingTalkInvitation.Type),
+		edge.From("dingtalk_requested_organization", Organization.Type).Ref("dingtalk_registration_requests").Field("dingtalk_requested_organization_id").Unique(),
 	}
 }
 
@@ -110,5 +116,6 @@ func (User) Indexes() []ent.Index {
 		index.Fields("wecom_userid").Unique(),
 		index.Fields("dingtalk_unionid").Unique(),
 		index.Fields("dingtalk_userid").Unique(),
+		index.Fields("dingtalk_requested_organization_id"),
 	}
 }

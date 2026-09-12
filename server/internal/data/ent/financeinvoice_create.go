@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type FinanceInvoiceCreate struct {
 	config
 	mutation *FinanceInvoiceMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -894,6 +897,7 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 		_node = &FinanceInvoice{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financeinvoice.Table, sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -1179,11 +1183,1003 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceInvoice.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceInvoiceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceInvoiceCreate) OnConflict(opts ...sql.ConflictOption) *FinanceInvoiceUpsertOne {
+	_c.conflict = opts
+	return &FinanceInvoiceUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceInvoiceCreate) OnConflictColumns(columns ...string) *FinanceInvoiceUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceInvoiceUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceInvoiceUpsertOne is the builder for "upsert"-ing
+	//  one FinanceInvoice node.
+	FinanceInvoiceUpsertOne struct {
+		create *FinanceInvoiceCreate
+	}
+
+	// FinanceInvoiceUpsert is the "OnConflict" setter.
+	FinanceInvoiceUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceUpsert) SetUpdatedAt(v time.Time) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateUpdatedAt() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceInvoiceUpsert) SetStatus(v financeinvoice.Status) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateStatus() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldStatus)
+	return u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceInvoiceUpsert) SetExchangeRate(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldExchangeRate, v)
+	return u
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateExchangeRate() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldExchangeRate)
+	return u
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (u *FinanceInvoiceUpsert) ClearExchangeRate() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldExchangeRate)
+	return u
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsert) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldExchangeRateSource, v)
+	return u
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateExchangeRateSource() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldExchangeRateSource)
+	return u
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsert) ClearExchangeRateSource() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldExchangeRateSource)
+	return u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsert) SetExchangeRateDate(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldExchangeRateDate, v)
+	return u
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateExchangeRateDate() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldExchangeRateDate)
+	return u
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsert) ClearExchangeRateDate() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldExchangeRateDate)
+	return u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsert) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldExchangeRateSettingID, v)
+	return u
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateExchangeRateSettingID() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldExchangeRateSettingID)
+	return u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsert) ClearExchangeRateSettingID() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldExchangeRateSettingID)
+	return u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsert) SetBaseCurrencyAmount(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldBaseCurrencyAmount, v)
+	return u
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateBaseCurrencyAmount() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldBaseCurrencyAmount)
+	return u
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsert) ClearBaseCurrencyAmount() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldBaseCurrencyAmount)
+	return u
+}
+
+// SetTaxInvoiceNo sets the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsert) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldTaxInvoiceNo, v)
+	return u
+}
+
+// UpdateTaxInvoiceNo sets the "tax_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateTaxInvoiceNo() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldTaxInvoiceNo)
+	return u
+}
+
+// ClearTaxInvoiceNo clears the value of the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsert) ClearTaxInvoiceNo() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldTaxInvoiceNo)
+	return u
+}
+
+// SetInvoiceDate sets the "invoice_date" field.
+func (u *FinanceInvoiceUpsert) SetInvoiceDate(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldInvoiceDate, v)
+	return u
+}
+
+// UpdateInvoiceDate sets the "invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateInvoiceDate() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldInvoiceDate)
+	return u
+}
+
+// ClearInvoiceDate clears the value of the "invoice_date" field.
+func (u *FinanceInvoiceUpsert) ClearInvoiceDate() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldInvoiceDate)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceInvoiceUpsert) SetNote(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateNote() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceInvoiceUpsert) ClearNote() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceInvoiceUpsert) SetVersion(v uint64) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateVersion() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceInvoiceUpsert) AddVersion(v uint64) *FinanceInvoiceUpsert {
+	u.Add(financeinvoice.FieldVersion, v)
+	return u
+}
+
+// SetIssuedAt sets the "issued_at" field.
+func (u *FinanceInvoiceUpsert) SetIssuedAt(v time.Time) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldIssuedAt, v)
+	return u
+}
+
+// UpdateIssuedAt sets the "issued_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateIssuedAt() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldIssuedAt)
+	return u
+}
+
+// ClearIssuedAt clears the value of the "issued_at" field.
+func (u *FinanceInvoiceUpsert) ClearIssuedAt() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldIssuedAt)
+	return u
+}
+
+// SetIssuedBy sets the "issued_by" field.
+func (u *FinanceInvoiceUpsert) SetIssuedBy(v uuid.UUID) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldIssuedBy, v)
+	return u
+}
+
+// UpdateIssuedBy sets the "issued_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateIssuedBy() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldIssuedBy)
+	return u
+}
+
+// ClearIssuedBy clears the value of the "issued_by" field.
+func (u *FinanceInvoiceUpsert) ClearIssuedBy() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldIssuedBy)
+	return u
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceInvoiceUpsert) SetCancelledAt(v time.Time) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldCancelledAt, v)
+	return u
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateCancelledAt() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldCancelledAt)
+	return u
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceInvoiceUpsert) ClearCancelledAt() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldCancelledAt)
+	return u
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceInvoiceUpsert) SetCancelledBy(v uuid.UUID) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldCancelledBy, v)
+	return u
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateCancelledBy() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldCancelledBy)
+	return u
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceInvoiceUpsert) ClearCancelledBy() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldCancelledBy)
+	return u
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsert) SetCancellationReason(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldCancellationReason, v)
+	return u
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateCancellationReason() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldCancellationReason)
+	return u
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsert) ClearCancellationReason() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldCancellationReason)
+	return u
+}
+
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsert) SetRedInvoiceNo(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRedInvoiceNo, v)
+	return u
+}
+
+// UpdateRedInvoiceNo sets the "red_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRedInvoiceNo() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRedInvoiceNo)
+	return u
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsert) ClearRedInvoiceNo() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldRedInvoiceNo)
+	return u
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsert) SetRedInvoiceDate(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRedInvoiceDate, v)
+	return u
+}
+
+// UpdateRedInvoiceDate sets the "red_invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRedInvoiceDate() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRedInvoiceDate)
+	return u
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsert) ClearRedInvoiceDate() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldRedInvoiceDate)
+	return u
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsert) SetRedFlushedAt(v time.Time) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRedFlushedAt, v)
+	return u
+}
+
+// UpdateRedFlushedAt sets the "red_flushed_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRedFlushedAt() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRedFlushedAt)
+	return u
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsert) ClearRedFlushedAt() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldRedFlushedAt)
+	return u
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsert) SetRedFlushedBy(v uuid.UUID) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRedFlushedBy, v)
+	return u
+}
+
+// UpdateRedFlushedBy sets the "red_flushed_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRedFlushedBy() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRedFlushedBy)
+	return u
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsert) ClearRedFlushedBy() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldRedFlushedBy)
+	return u
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsert) SetRedFlushReason(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRedFlushReason, v)
+	return u
+}
+
+// UpdateRedFlushReason sets the "red_flush_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRedFlushReason() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRedFlushReason)
+	return u
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsert) ClearRedFlushReason() *FinanceInvoiceUpsert {
+	u.SetNull(financeinvoice.FieldRedFlushReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeinvoice.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceInvoiceUpsertOne) UpdateNewValues() *FinanceInvoiceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financeinvoice.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financeinvoice.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financeinvoice.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.RecordNo(); exists {
+			s.SetIgnore(financeinvoice.FieldRecordNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(financeinvoice.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.Direction(); exists {
+			s.SetIgnore(financeinvoice.FieldDirection)
+		}
+		if _, exists := u.create.mutation.InvoiceType(); exists {
+			s.SetIgnore(financeinvoice.FieldInvoiceType)
+		}
+		if _, exists := u.create.mutation.InvoiceProfileID(); exists {
+			s.SetIgnore(financeinvoice.FieldInvoiceProfileID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyID(); exists {
+			s.SetIgnore(financeinvoice.FieldSettlementPartyID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyName(); exists {
+			s.SetIgnore(financeinvoice.FieldSettlementPartyName)
+		}
+		if _, exists := u.create.mutation.InvoiceTitle(); exists {
+			s.SetIgnore(financeinvoice.FieldInvoiceTitle)
+		}
+		if _, exists := u.create.mutation.TaxpayerIdentificationNo(); exists {
+			s.SetIgnore(financeinvoice.FieldTaxpayerIdentificationNo)
+		}
+		if _, exists := u.create.mutation.RegisteredAddress(); exists {
+			s.SetIgnore(financeinvoice.FieldRegisteredAddress)
+		}
+		if _, exists := u.create.mutation.RegisteredPhone(); exists {
+			s.SetIgnore(financeinvoice.FieldRegisteredPhone)
+		}
+		if _, exists := u.create.mutation.BankName(); exists {
+			s.SetIgnore(financeinvoice.FieldBankName)
+		}
+		if _, exists := u.create.mutation.BankAccount(); exists {
+			s.SetIgnore(financeinvoice.FieldBankAccount)
+		}
+		if _, exists := u.create.mutation.Currency(); exists {
+			s.SetIgnore(financeinvoice.FieldCurrency)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financeinvoice.FieldBaseCurrency)
+		}
+		if _, exists := u.create.mutation.TotalAmount(); exists {
+			s.SetIgnore(financeinvoice.FieldTotalAmount)
+		}
+		if _, exists := u.create.mutation.NetAmount(); exists {
+			s.SetIgnore(financeinvoice.FieldNetAmount)
+		}
+		if _, exists := u.create.mutation.TaxAmount(); exists {
+			s.SetIgnore(financeinvoice.FieldTaxAmount)
+		}
+		if _, exists := u.create.mutation.BillCount(); exists {
+			s.SetIgnore(financeinvoice.FieldBillCount)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceInvoiceUpsertOne) Ignore() *FinanceInvoiceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceInvoiceUpsertOne) DoNothing() *FinanceInvoiceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceInvoiceCreate.OnConflict
+// documentation for more info.
+func (u *FinanceInvoiceUpsertOne) Update(set func(*FinanceInvoiceUpsert)) *FinanceInvoiceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceInvoiceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceUpsertOne) SetUpdatedAt(v time.Time) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateUpdatedAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceInvoiceUpsertOne) SetStatus(v financeinvoice.Status) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateStatus() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceInvoiceUpsertOne) SetExchangeRate(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateExchangeRate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (u *FinanceInvoiceUpsertOne) ClearExchangeRate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRate()
+	})
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsertOne) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateSource(v)
+	})
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateExchangeRateSource() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateSource()
+	})
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsertOne) ClearExchangeRateSource() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateSource()
+	})
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsertOne) SetExchangeRateDate(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateDate(v)
+	})
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateExchangeRateDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateDate()
+	})
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsertOne) ClearExchangeRateDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateDate()
+	})
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsertOne) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateSettingID(v)
+	})
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateExchangeRateSettingID() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateSettingID()
+	})
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsertOne) ClearExchangeRateSettingID() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateSettingID()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsertOne) SetBaseCurrencyAmount(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateBaseCurrencyAmount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsertOne) ClearBaseCurrencyAmount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearBaseCurrencyAmount()
+	})
+}
+
+// SetTaxInvoiceNo sets the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsertOne) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTaxInvoiceNo(v)
+	})
+}
+
+// UpdateTaxInvoiceNo sets the "tax_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateTaxInvoiceNo() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTaxInvoiceNo()
+	})
+}
+
+// ClearTaxInvoiceNo clears the value of the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsertOne) ClearTaxInvoiceNo() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearTaxInvoiceNo()
+	})
+}
+
+// SetInvoiceDate sets the "invoice_date" field.
+func (u *FinanceInvoiceUpsertOne) SetInvoiceDate(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetInvoiceDate(v)
+	})
+}
+
+// UpdateInvoiceDate sets the "invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateInvoiceDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateInvoiceDate()
+	})
+}
+
+// ClearInvoiceDate clears the value of the "invoice_date" field.
+func (u *FinanceInvoiceUpsertOne) ClearInvoiceDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearInvoiceDate()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceInvoiceUpsertOne) SetNote(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateNote() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceInvoiceUpsertOne) ClearNote() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceInvoiceUpsertOne) SetVersion(v uint64) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceInvoiceUpsertOne) AddVersion(v uint64) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateVersion() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetIssuedAt sets the "issued_at" field.
+func (u *FinanceInvoiceUpsertOne) SetIssuedAt(v time.Time) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetIssuedAt(v)
+	})
+}
+
+// UpdateIssuedAt sets the "issued_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateIssuedAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateIssuedAt()
+	})
+}
+
+// ClearIssuedAt clears the value of the "issued_at" field.
+func (u *FinanceInvoiceUpsertOne) ClearIssuedAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearIssuedAt()
+	})
+}
+
+// SetIssuedBy sets the "issued_by" field.
+func (u *FinanceInvoiceUpsertOne) SetIssuedBy(v uuid.UUID) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetIssuedBy(v)
+	})
+}
+
+// UpdateIssuedBy sets the "issued_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateIssuedBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateIssuedBy()
+	})
+}
+
+// ClearIssuedBy clears the value of the "issued_by" field.
+func (u *FinanceInvoiceUpsertOne) ClearIssuedBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearIssuedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceInvoiceUpsertOne) SetCancelledAt(v time.Time) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateCancelledAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceInvoiceUpsertOne) ClearCancelledAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceInvoiceUpsertOne) SetCancelledBy(v uuid.UUID) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateCancelledBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceInvoiceUpsertOne) ClearCancelledBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsertOne) SetCancellationReason(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateCancellationReason() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsertOne) ClearCancellationReason() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsertOne) SetRedInvoiceNo(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedInvoiceNo(v)
+	})
+}
+
+// UpdateRedInvoiceNo sets the "red_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRedInvoiceNo() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedInvoiceNo()
+	})
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsertOne) ClearRedInvoiceNo() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedInvoiceNo()
+	})
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsertOne) SetRedInvoiceDate(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedInvoiceDate(v)
+	})
+}
+
+// UpdateRedInvoiceDate sets the "red_invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRedInvoiceDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedInvoiceDate()
+	})
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsertOne) ClearRedInvoiceDate() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedInvoiceDate()
+	})
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsertOne) SetRedFlushedAt(v time.Time) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushedAt(v)
+	})
+}
+
+// UpdateRedFlushedAt sets the "red_flushed_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRedFlushedAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushedAt()
+	})
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsertOne) ClearRedFlushedAt() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushedAt()
+	})
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsertOne) SetRedFlushedBy(v uuid.UUID) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushedBy(v)
+	})
+}
+
+// UpdateRedFlushedBy sets the "red_flushed_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRedFlushedBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushedBy()
+	})
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsertOne) ClearRedFlushedBy() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushedBy()
+	})
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsertOne) SetRedFlushReason(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushReason(v)
+	})
+}
+
+// UpdateRedFlushReason sets the "red_flush_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRedFlushReason() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushReason()
+	})
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsertOne) ClearRedFlushReason() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceInvoiceUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceInvoiceCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceInvoiceUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceInvoiceUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceInvoiceUpsertOne.ID is not supported by MySQL driver. Use FinanceInvoiceUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceInvoiceUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceInvoiceCreateBulk is the builder for creating many FinanceInvoice entities in bulk.
 type FinanceInvoiceCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceInvoiceCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceInvoice entities in the database.
@@ -1213,6 +2209,7 @@ func (_c *FinanceInvoiceCreateBulk) Save(ctx context.Context) ([]*FinanceInvoice
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1259,6 +2256,610 @@ func (_c *FinanceInvoiceCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceInvoiceCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceInvoice.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceInvoiceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceInvoiceCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceInvoiceUpsertBulk {
+	_c.conflict = opts
+	return &FinanceInvoiceUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceInvoiceCreateBulk) OnConflictColumns(columns ...string) *FinanceInvoiceUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceInvoiceUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceInvoiceUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceInvoice nodes.
+type FinanceInvoiceUpsertBulk struct {
+	create *FinanceInvoiceCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financeinvoice.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceInvoiceUpsertBulk) UpdateNewValues() *FinanceInvoiceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financeinvoice.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financeinvoice.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financeinvoice.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.RecordNo(); exists {
+				s.SetIgnore(financeinvoice.FieldRecordNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(financeinvoice.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.Direction(); exists {
+				s.SetIgnore(financeinvoice.FieldDirection)
+			}
+			if _, exists := b.mutation.InvoiceType(); exists {
+				s.SetIgnore(financeinvoice.FieldInvoiceType)
+			}
+			if _, exists := b.mutation.InvoiceProfileID(); exists {
+				s.SetIgnore(financeinvoice.FieldInvoiceProfileID)
+			}
+			if _, exists := b.mutation.SettlementPartyID(); exists {
+				s.SetIgnore(financeinvoice.FieldSettlementPartyID)
+			}
+			if _, exists := b.mutation.SettlementPartyName(); exists {
+				s.SetIgnore(financeinvoice.FieldSettlementPartyName)
+			}
+			if _, exists := b.mutation.InvoiceTitle(); exists {
+				s.SetIgnore(financeinvoice.FieldInvoiceTitle)
+			}
+			if _, exists := b.mutation.TaxpayerIdentificationNo(); exists {
+				s.SetIgnore(financeinvoice.FieldTaxpayerIdentificationNo)
+			}
+			if _, exists := b.mutation.RegisteredAddress(); exists {
+				s.SetIgnore(financeinvoice.FieldRegisteredAddress)
+			}
+			if _, exists := b.mutation.RegisteredPhone(); exists {
+				s.SetIgnore(financeinvoice.FieldRegisteredPhone)
+			}
+			if _, exists := b.mutation.BankName(); exists {
+				s.SetIgnore(financeinvoice.FieldBankName)
+			}
+			if _, exists := b.mutation.BankAccount(); exists {
+				s.SetIgnore(financeinvoice.FieldBankAccount)
+			}
+			if _, exists := b.mutation.Currency(); exists {
+				s.SetIgnore(financeinvoice.FieldCurrency)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financeinvoice.FieldBaseCurrency)
+			}
+			if _, exists := b.mutation.TotalAmount(); exists {
+				s.SetIgnore(financeinvoice.FieldTotalAmount)
+			}
+			if _, exists := b.mutation.NetAmount(); exists {
+				s.SetIgnore(financeinvoice.FieldNetAmount)
+			}
+			if _, exists := b.mutation.TaxAmount(); exists {
+				s.SetIgnore(financeinvoice.FieldTaxAmount)
+			}
+			if _, exists := b.mutation.BillCount(); exists {
+				s.SetIgnore(financeinvoice.FieldBillCount)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceInvoice.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceInvoiceUpsertBulk) Ignore() *FinanceInvoiceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceInvoiceUpsertBulk) DoNothing() *FinanceInvoiceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceInvoiceCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceInvoiceUpsertBulk) Update(set func(*FinanceInvoiceUpsert)) *FinanceInvoiceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceInvoiceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceInvoiceUpsertBulk) SetUpdatedAt(v time.Time) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateUpdatedAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceInvoiceUpsertBulk) SetStatus(v financeinvoice.Status) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateStatus() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (u *FinanceInvoiceUpsertBulk) SetExchangeRate(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRate(v)
+	})
+}
+
+// UpdateExchangeRate sets the "exchange_rate" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateExchangeRate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRate()
+	})
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (u *FinanceInvoiceUpsertBulk) ClearExchangeRate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRate()
+	})
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsertBulk) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateSource(v)
+	})
+}
+
+// UpdateExchangeRateSource sets the "exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateExchangeRateSource() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateSource()
+	})
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (u *FinanceInvoiceUpsertBulk) ClearExchangeRateSource() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateSource()
+	})
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsertBulk) SetExchangeRateDate(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateDate(v)
+	})
+}
+
+// UpdateExchangeRateDate sets the "exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateExchangeRateDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateDate()
+	})
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (u *FinanceInvoiceUpsertBulk) ClearExchangeRateDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateDate()
+	})
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsertBulk) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetExchangeRateSettingID(v)
+	})
+}
+
+// UpdateExchangeRateSettingID sets the "exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateExchangeRateSettingID() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateExchangeRateSettingID()
+	})
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (u *FinanceInvoiceUpsertBulk) ClearExchangeRateSettingID() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearExchangeRateSettingID()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsertBulk) SetBaseCurrencyAmount(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateBaseCurrencyAmount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (u *FinanceInvoiceUpsertBulk) ClearBaseCurrencyAmount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearBaseCurrencyAmount()
+	})
+}
+
+// SetTaxInvoiceNo sets the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsertBulk) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTaxInvoiceNo(v)
+	})
+}
+
+// UpdateTaxInvoiceNo sets the "tax_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateTaxInvoiceNo() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTaxInvoiceNo()
+	})
+}
+
+// ClearTaxInvoiceNo clears the value of the "tax_invoice_no" field.
+func (u *FinanceInvoiceUpsertBulk) ClearTaxInvoiceNo() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearTaxInvoiceNo()
+	})
+}
+
+// SetInvoiceDate sets the "invoice_date" field.
+func (u *FinanceInvoiceUpsertBulk) SetInvoiceDate(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetInvoiceDate(v)
+	})
+}
+
+// UpdateInvoiceDate sets the "invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateInvoiceDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateInvoiceDate()
+	})
+}
+
+// ClearInvoiceDate clears the value of the "invoice_date" field.
+func (u *FinanceInvoiceUpsertBulk) ClearInvoiceDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearInvoiceDate()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceInvoiceUpsertBulk) SetNote(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateNote() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceInvoiceUpsertBulk) ClearNote() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceInvoiceUpsertBulk) SetVersion(v uint64) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceInvoiceUpsertBulk) AddVersion(v uint64) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateVersion() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetIssuedAt sets the "issued_at" field.
+func (u *FinanceInvoiceUpsertBulk) SetIssuedAt(v time.Time) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetIssuedAt(v)
+	})
+}
+
+// UpdateIssuedAt sets the "issued_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateIssuedAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateIssuedAt()
+	})
+}
+
+// ClearIssuedAt clears the value of the "issued_at" field.
+func (u *FinanceInvoiceUpsertBulk) ClearIssuedAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearIssuedAt()
+	})
+}
+
+// SetIssuedBy sets the "issued_by" field.
+func (u *FinanceInvoiceUpsertBulk) SetIssuedBy(v uuid.UUID) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetIssuedBy(v)
+	})
+}
+
+// UpdateIssuedBy sets the "issued_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateIssuedBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateIssuedBy()
+	})
+}
+
+// ClearIssuedBy clears the value of the "issued_by" field.
+func (u *FinanceInvoiceUpsertBulk) ClearIssuedBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearIssuedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceInvoiceUpsertBulk) SetCancelledAt(v time.Time) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateCancelledAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceInvoiceUpsertBulk) ClearCancelledAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceInvoiceUpsertBulk) SetCancelledBy(v uuid.UUID) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateCancelledBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceInvoiceUpsertBulk) ClearCancelledBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsertBulk) SetCancellationReason(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateCancellationReason() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceInvoiceUpsertBulk) ClearCancellationReason() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsertBulk) SetRedInvoiceNo(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedInvoiceNo(v)
+	})
+}
+
+// UpdateRedInvoiceNo sets the "red_invoice_no" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRedInvoiceNo() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedInvoiceNo()
+	})
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (u *FinanceInvoiceUpsertBulk) ClearRedInvoiceNo() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedInvoiceNo()
+	})
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsertBulk) SetRedInvoiceDate(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedInvoiceDate(v)
+	})
+}
+
+// UpdateRedInvoiceDate sets the "red_invoice_date" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRedInvoiceDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedInvoiceDate()
+	})
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (u *FinanceInvoiceUpsertBulk) ClearRedInvoiceDate() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedInvoiceDate()
+	})
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsertBulk) SetRedFlushedAt(v time.Time) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushedAt(v)
+	})
+}
+
+// UpdateRedFlushedAt sets the "red_flushed_at" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRedFlushedAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushedAt()
+	})
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (u *FinanceInvoiceUpsertBulk) ClearRedFlushedAt() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushedAt()
+	})
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsertBulk) SetRedFlushedBy(v uuid.UUID) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushedBy(v)
+	})
+}
+
+// UpdateRedFlushedBy sets the "red_flushed_by" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRedFlushedBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushedBy()
+	})
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (u *FinanceInvoiceUpsertBulk) ClearRedFlushedBy() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushedBy()
+	})
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsertBulk) SetRedFlushReason(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRedFlushReason(v)
+	})
+}
+
+// UpdateRedFlushReason sets the "red_flush_reason" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRedFlushReason() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRedFlushReason()
+	})
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (u *FinanceInvoiceUpsertBulk) ClearRedFlushReason() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.ClearRedFlushReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceInvoiceUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceInvoiceCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceInvoiceCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceInvoiceUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -24,6 +26,7 @@ type FinanceCommissionAdjustmentCreate struct {
 	config
 	mutation *FinanceCommissionAdjustmentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -616,6 +619,7 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 		_node = &FinanceCommissionAdjustment{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financecommissionadjustment.Table, sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -835,11 +839,598 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCommissionAdjustmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCommissionAdjustmentCreate) OnConflict(opts ...sql.ConflictOption) *FinanceCommissionAdjustmentUpsertOne {
+	_c.conflict = opts
+	return &FinanceCommissionAdjustmentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCommissionAdjustmentCreate) OnConflictColumns(columns ...string) *FinanceCommissionAdjustmentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCommissionAdjustmentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceCommissionAdjustmentUpsertOne is the builder for "upsert"-ing
+	//  one FinanceCommissionAdjustment node.
+	FinanceCommissionAdjustmentUpsertOne struct {
+		create *FinanceCommissionAdjustmentCreate
+	}
+
+	// FinanceCommissionAdjustmentUpsert is the "OnConflict" setter.
+	FinanceCommissionAdjustmentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetUpdatedAt(v time.Time) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetStatus(v financecommissionadjustment.Status) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateStatus() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldStatus)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetNote(v string) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateNote() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearNote() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetVersion(v uint64) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateVersion() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionAdjustmentUpsert) AddVersion(v uint64) *FinanceCommissionAdjustmentUpsert {
+	u.Add(financecommissionadjustment.FieldVersion, v)
+	return u
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetConfirmedAt(v time.Time) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldConfirmedAt, v)
+	return u
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateConfirmedAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldConfirmedAt)
+	return u
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearConfirmedAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldConfirmedAt)
+	return u
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetConfirmedBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldConfirmedBy, v)
+	return u
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateConfirmedBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldConfirmedBy)
+	return u
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearConfirmedBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldConfirmedBy)
+	return u
+}
+
+// SetPaidAt sets the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldPaidAt, v)
+	return u
+}
+
+// UpdatePaidAt sets the "paid_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdatePaidAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldPaidAt)
+	return u
+}
+
+// ClearPaidAt clears the value of the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearPaidAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldPaidAt)
+	return u
+}
+
+// SetPaidBy sets the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetPaidBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldPaidBy, v)
+	return u
+}
+
+// UpdatePaidBy sets the "paid_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdatePaidBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldPaidBy)
+	return u
+}
+
+// ClearPaidBy clears the value of the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearPaidBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldPaidBy)
+	return u
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetCancelledAt(v time.Time) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldCancelledAt, v)
+	return u
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateCancelledAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldCancelledAt)
+	return u
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearCancelledAt() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldCancelledAt)
+	return u
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetCancelledBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldCancelledBy, v)
+	return u
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateCancelledBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldCancelledBy)
+	return u
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearCancelledBy() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldCancelledBy)
+	return u
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetCancellationReason(v string) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldCancellationReason, v)
+	return u
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateCancellationReason() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldCancellationReason)
+	return u
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearCancellationReason() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldCancellationReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecommissionadjustment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateNewValues() *FinanceCommissionAdjustmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.CommissionID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldCommissionID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.AdjustmentNo(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldAdjustmentNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.CommissionNo(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldCommissionNo)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldOrderNo)
+		}
+		if _, exists := u.create.mutation.EmployeeID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldEmployeeID)
+		}
+		if _, exists := u.create.mutation.EmployeeName(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldEmployeeName)
+		}
+		if _, exists := u.create.mutation.SourceType(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldSourceType)
+		}
+		if _, exists := u.create.mutation.SourceVerificationID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldSourceVerificationID)
+		}
+		if _, exists := u.create.mutation.Direction(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldDirection)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldBaseCurrency)
+		}
+		if _, exists := u.create.mutation.Amount(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldAmount)
+		}
+		if _, exists := u.create.mutation.Reason(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldReason)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceCommissionAdjustmentUpsertOne) Ignore() *FinanceCommissionAdjustmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCommissionAdjustmentUpsertOne) DoNothing() *FinanceCommissionAdjustmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCommissionAdjustmentCreate.OnConflict
+// documentation for more info.
+func (u *FinanceCommissionAdjustmentUpsertOne) Update(set func(*FinanceCommissionAdjustmentUpsert)) *FinanceCommissionAdjustmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCommissionAdjustmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetUpdatedAt(v time.Time) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetStatus(v financecommissionadjustment.Status) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateStatus() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetNote(v string) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateNote() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearNote() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetVersion(v uint64) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) AddVersion(v uint64) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateVersion() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetConfirmedAt(v time.Time) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateConfirmedAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearConfirmedAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetConfirmedBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateConfirmedBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearConfirmedBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetPaidAt sets the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetPaidAt(v)
+	})
+}
+
+// UpdatePaidAt sets the "paid_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdatePaidAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdatePaidAt()
+	})
+}
+
+// ClearPaidAt clears the value of the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearPaidAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearPaidAt()
+	})
+}
+
+// SetPaidBy sets the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetPaidBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetPaidBy(v)
+	})
+}
+
+// UpdatePaidBy sets the "paid_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdatePaidBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdatePaidBy()
+	})
+}
+
+// ClearPaidBy clears the value of the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearPaidBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearPaidBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetCancelledAt(v time.Time) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateCancelledAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearCancelledAt() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetCancelledBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateCancelledBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearCancelledBy() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetCancellationReason(v string) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateCancellationReason() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearCancellationReason() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCommissionAdjustmentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCommissionAdjustmentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCommissionAdjustmentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceCommissionAdjustmentUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceCommissionAdjustmentUpsertOne.ID is not supported by MySQL driver. Use FinanceCommissionAdjustmentUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceCommissionAdjustmentUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceCommissionAdjustmentCreateBulk is the builder for creating many FinanceCommissionAdjustment entities in bulk.
 type FinanceCommissionAdjustmentCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceCommissionAdjustmentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceCommissionAdjustment entities in the database.
@@ -869,6 +1460,7 @@ func (_c *FinanceCommissionAdjustmentCreateBulk) Save(ctx context.Context) ([]*F
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -915,6 +1507,385 @@ func (_c *FinanceCommissionAdjustmentCreateBulk) Exec(ctx context.Context) error
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceCommissionAdjustmentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCommissionAdjustment.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCommissionAdjustmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCommissionAdjustmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceCommissionAdjustmentUpsertBulk {
+	_c.conflict = opts
+	return &FinanceCommissionAdjustmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCommissionAdjustmentCreateBulk) OnConflictColumns(columns ...string) *FinanceCommissionAdjustmentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCommissionAdjustmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceCommissionAdjustmentUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceCommissionAdjustment nodes.
+type FinanceCommissionAdjustmentUpsertBulk struct {
+	create *FinanceCommissionAdjustmentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecommissionadjustment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateNewValues() *FinanceCommissionAdjustmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.CommissionID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldCommissionID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldOrderID)
+			}
+			if _, exists := b.mutation.AdjustmentNo(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldAdjustmentNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.CommissionNo(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldCommissionNo)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldOrderNo)
+			}
+			if _, exists := b.mutation.EmployeeID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldEmployeeID)
+			}
+			if _, exists := b.mutation.EmployeeName(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldEmployeeName)
+			}
+			if _, exists := b.mutation.SourceType(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldSourceType)
+			}
+			if _, exists := b.mutation.SourceVerificationID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldSourceVerificationID)
+			}
+			if _, exists := b.mutation.Direction(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldDirection)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldBaseCurrency)
+			}
+			if _, exists := b.mutation.Amount(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldAmount)
+			}
+			if _, exists := b.mutation.Reason(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldReason)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCommissionAdjustment.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceCommissionAdjustmentUpsertBulk) Ignore() *FinanceCommissionAdjustmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCommissionAdjustmentUpsertBulk) DoNothing() *FinanceCommissionAdjustmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCommissionAdjustmentCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceCommissionAdjustmentUpsertBulk) Update(set func(*FinanceCommissionAdjustmentUpsert)) *FinanceCommissionAdjustmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCommissionAdjustmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetStatus(v financecommissionadjustment.Status) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateStatus() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetNote(v string) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateNote() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearNote() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetVersion(v uint64) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) AddVersion(v uint64) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateVersion() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetConfirmedAt(v time.Time) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateConfirmedAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearConfirmedAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetConfirmedBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateConfirmedBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearConfirmedBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetPaidAt sets the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetPaidAt(v)
+	})
+}
+
+// UpdatePaidAt sets the "paid_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdatePaidAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdatePaidAt()
+	})
+}
+
+// ClearPaidAt clears the value of the "paid_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearPaidAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearPaidAt()
+	})
+}
+
+// SetPaidBy sets the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetPaidBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetPaidBy(v)
+	})
+}
+
+// UpdatePaidBy sets the "paid_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdatePaidBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdatePaidBy()
+	})
+}
+
+// ClearPaidBy clears the value of the "paid_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearPaidBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearPaidBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetCancelledAt(v time.Time) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateCancelledAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearCancelledAt() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetCancelledBy(v uuid.UUID) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateCancelledBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearCancelledBy() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetCancellationReason(v string) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateCancellationReason() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearCancellationReason() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCommissionAdjustmentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceCommissionAdjustmentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCommissionAdjustmentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

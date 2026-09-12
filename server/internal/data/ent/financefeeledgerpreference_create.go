@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type FinanceFeeLedgerPreferenceCreate struct {
 	config
 	mutation *FinanceFeeLedgerPreferenceMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -274,6 +277,7 @@ func (_c *FinanceFeeLedgerPreferenceCreate) createSpec() (*FinanceFeeLedgerPrefe
 		_node = &FinanceFeeLedgerPreference{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financefeeledgerpreference.Table, sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -347,11 +351,390 @@ func (_c *FinanceFeeLedgerPreferenceCreate) createSpec() (*FinanceFeeLedgerPrefe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceFeeLedgerPreferenceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceFeeLedgerPreferenceCreate) OnConflict(opts ...sql.ConflictOption) *FinanceFeeLedgerPreferenceUpsertOne {
+	_c.conflict = opts
+	return &FinanceFeeLedgerPreferenceUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceFeeLedgerPreferenceCreate) OnConflictColumns(columns ...string) *FinanceFeeLedgerPreferenceUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceFeeLedgerPreferenceUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceFeeLedgerPreferenceUpsertOne is the builder for "upsert"-ing
+	//  one FinanceFeeLedgerPreference node.
+	FinanceFeeLedgerPreferenceUpsertOne struct {
+		create *FinanceFeeLedgerPreferenceCreate
+	}
+
+	// FinanceFeeLedgerPreferenceUpsert is the "OnConflict" setter.
+	FinanceFeeLedgerPreferenceUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetUpdatedAt(v time.Time) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateUpdatedAt() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldUpdatedAt)
+	return u
+}
+
+// SetColumns sets the "columns" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetColumns(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldColumns, v)
+	return u
+}
+
+// UpdateColumns sets the "columns" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateColumns() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldColumns)
+	return u
+}
+
+// SetPageSize sets the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetPageSize(v int) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldPageSize, v)
+	return u
+}
+
+// UpdatePageSize sets the "page_size" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdatePageSize() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldPageSize)
+	return u
+}
+
+// AddPageSize adds v to the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) AddPageSize(v int) *FinanceFeeLedgerPreferenceUpsert {
+	u.Add(financefeeledgerpreference.FieldPageSize, v)
+	return u
+}
+
+// SetSortField sets the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetSortField(v string) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldSortField, v)
+	return u
+}
+
+// UpdateSortField sets the "sort_field" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateSortField() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldSortField)
+	return u
+}
+
+// ClearSortField clears the value of the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) ClearSortField() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetNull(financefeeledgerpreference.FieldSortField)
+	return u
+}
+
+// SetSortDirection sets the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetSortDirection(v financefeeledgerpreference.SortDirection) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldSortDirection, v)
+	return u
+}
+
+// UpdateSortDirection sets the "sort_direction" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateSortDirection() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldSortDirection)
+	return u
+}
+
+// ClearSortDirection clears the value of the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) ClearSortDirection() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetNull(financefeeledgerpreference.FieldSortDirection)
+	return u
+}
+
+// SetRowColors sets the "row_colors" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetRowColors(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldRowColors, v)
+	return u
+}
+
+// UpdateRowColors sets the "row_colors" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateRowColors() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldRowColors)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) SetVersion(v uint64) *FinanceFeeLedgerPreferenceUpsert {
+	u.Set(financefeeledgerpreference.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsert) UpdateVersion() *FinanceFeeLedgerPreferenceUpsert {
+	u.SetExcluded(financefeeledgerpreference.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsert) AddVersion(v uint64) *FinanceFeeLedgerPreferenceUpsert {
+	u.Add(financefeeledgerpreference.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financefeeledgerpreference.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateNewValues() *FinanceFeeLedgerPreferenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financefeeledgerpreference.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financefeeledgerpreference.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financefeeledgerpreference.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.UserID(); exists {
+			s.SetIgnore(financefeeledgerpreference.FieldUserID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceFeeLedgerPreferenceUpsertOne) Ignore() *FinanceFeeLedgerPreferenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) DoNothing() *FinanceFeeLedgerPreferenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceFeeLedgerPreferenceCreate.OnConflict
+// documentation for more info.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) Update(set func(*FinanceFeeLedgerPreferenceUpsert)) *FinanceFeeLedgerPreferenceUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceFeeLedgerPreferenceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetUpdatedAt(v time.Time) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateUpdatedAt() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetColumns sets the "columns" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetColumns(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetColumns(v)
+	})
+}
+
+// UpdateColumns sets the "columns" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateColumns() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateColumns()
+	})
+}
+
+// SetPageSize sets the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetPageSize(v int) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetPageSize(v)
+	})
+}
+
+// AddPageSize adds v to the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) AddPageSize(v int) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.AddPageSize(v)
+	})
+}
+
+// UpdatePageSize sets the "page_size" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdatePageSize() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdatePageSize()
+	})
+}
+
+// SetSortField sets the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetSortField(v string) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetSortField(v)
+	})
+}
+
+// UpdateSortField sets the "sort_field" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateSortField() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateSortField()
+	})
+}
+
+// ClearSortField clears the value of the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) ClearSortField() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.ClearSortField()
+	})
+}
+
+// SetSortDirection sets the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetSortDirection(v financefeeledgerpreference.SortDirection) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetSortDirection(v)
+	})
+}
+
+// UpdateSortDirection sets the "sort_direction" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateSortDirection() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateSortDirection()
+	})
+}
+
+// ClearSortDirection clears the value of the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) ClearSortDirection() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.ClearSortDirection()
+	})
+}
+
+// SetRowColors sets the "row_colors" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetRowColors(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetRowColors(v)
+	})
+}
+
+// UpdateRowColors sets the "row_colors" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateRowColors() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateRowColors()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) SetVersion(v uint64) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) AddVersion(v uint64) *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) UpdateVersion() *FinanceFeeLedgerPreferenceUpsertOne {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceFeeLedgerPreferenceCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceFeeLedgerPreferenceUpsertOne.ID is not supported by MySQL driver. Use FinanceFeeLedgerPreferenceUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceFeeLedgerPreferenceUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceFeeLedgerPreferenceCreateBulk is the builder for creating many FinanceFeeLedgerPreference entities in bulk.
 type FinanceFeeLedgerPreferenceCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceFeeLedgerPreferenceCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceFeeLedgerPreference entities in the database.
@@ -381,6 +764,7 @@ func (_c *FinanceFeeLedgerPreferenceCreateBulk) Save(ctx context.Context) ([]*Fi
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -427,6 +811,255 @@ func (_c *FinanceFeeLedgerPreferenceCreateBulk) Exec(ctx context.Context) error 
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceFeeLedgerPreferenceCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceFeeLedgerPreference.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceFeeLedgerPreferenceUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceFeeLedgerPreferenceCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceFeeLedgerPreferenceUpsertBulk {
+	_c.conflict = opts
+	return &FinanceFeeLedgerPreferenceUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceFeeLedgerPreferenceCreateBulk) OnConflictColumns(columns ...string) *FinanceFeeLedgerPreferenceUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceFeeLedgerPreferenceUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceFeeLedgerPreferenceUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceFeeLedgerPreference nodes.
+type FinanceFeeLedgerPreferenceUpsertBulk struct {
+	create *FinanceFeeLedgerPreferenceCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financefeeledgerpreference.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateNewValues() *FinanceFeeLedgerPreferenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financefeeledgerpreference.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financefeeledgerpreference.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financefeeledgerpreference.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.UserID(); exists {
+				s.SetIgnore(financefeeledgerpreference.FieldUserID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceFeeLedgerPreference.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) Ignore() *FinanceFeeLedgerPreferenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) DoNothing() *FinanceFeeLedgerPreferenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceFeeLedgerPreferenceCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) Update(set func(*FinanceFeeLedgerPreferenceUpsert)) *FinanceFeeLedgerPreferenceUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceFeeLedgerPreferenceUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetUpdatedAt(v time.Time) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateUpdatedAt() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetColumns sets the "columns" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetColumns(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetColumns(v)
+	})
+}
+
+// UpdateColumns sets the "columns" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateColumns() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateColumns()
+	})
+}
+
+// SetPageSize sets the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetPageSize(v int) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetPageSize(v)
+	})
+}
+
+// AddPageSize adds v to the "page_size" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) AddPageSize(v int) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.AddPageSize(v)
+	})
+}
+
+// UpdatePageSize sets the "page_size" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdatePageSize() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdatePageSize()
+	})
+}
+
+// SetSortField sets the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetSortField(v string) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetSortField(v)
+	})
+}
+
+// UpdateSortField sets the "sort_field" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateSortField() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateSortField()
+	})
+}
+
+// ClearSortField clears the value of the "sort_field" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) ClearSortField() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.ClearSortField()
+	})
+}
+
+// SetSortDirection sets the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetSortDirection(v financefeeledgerpreference.SortDirection) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetSortDirection(v)
+	})
+}
+
+// UpdateSortDirection sets the "sort_direction" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateSortDirection() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateSortDirection()
+	})
+}
+
+// ClearSortDirection clears the value of the "sort_direction" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) ClearSortDirection() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.ClearSortDirection()
+	})
+}
+
+// SetRowColors sets the "row_colors" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetRowColors(v json.RawMessage) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetRowColors(v)
+	})
+}
+
+// UpdateRowColors sets the "row_colors" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateRowColors() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateRowColors()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) SetVersion(v uint64) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) AddVersion(v uint64) *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) UpdateVersion() *FinanceFeeLedgerPreferenceUpsertBulk {
+	return u.Update(func(s *FinanceFeeLedgerPreferenceUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceFeeLedgerPreferenceCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceFeeLedgerPreferenceCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceFeeLedgerPreferenceUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

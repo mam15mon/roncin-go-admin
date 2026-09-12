@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type PartnerAttachmentCreate struct {
 	config
 	mutation *PartnerAttachmentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -272,6 +275,7 @@ func (_c *PartnerAttachmentCreate) createSpec() (*PartnerAttachment, *sqlgraph.C
 		_node = &PartnerAttachment{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(partnerattachment.Table, sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -332,11 +336,423 @@ func (_c *PartnerAttachmentCreate) createSpec() (*PartnerAttachment, *sqlgraph.C
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAttachment.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAttachmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAttachmentCreate) OnConflict(opts ...sql.ConflictOption) *PartnerAttachmentUpsertOne {
+	_c.conflict = opts
+	return &PartnerAttachmentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAttachmentCreate) OnConflictColumns(columns ...string) *PartnerAttachmentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAttachmentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartnerAttachmentUpsertOne is the builder for "upsert"-ing
+	//  one PartnerAttachment node.
+	PartnerAttachmentUpsertOne struct {
+		create *PartnerAttachmentCreate
+	}
+
+	// PartnerAttachmentUpsert is the "OnConflict" setter.
+	PartnerAttachmentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAttachmentUpsert) SetUpdatedAt(v time.Time) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateUpdatedAt() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldUpdatedAt)
+	return u
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAttachmentUpsert) SetPartnerID(v uuid.UUID) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldPartnerID, v)
+	return u
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdatePartnerID() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldPartnerID)
+	return u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *PartnerAttachmentUpsert) SetIdempotencyKey(v string) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldIdempotencyKey, v)
+	return u
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateIdempotencyKey() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldIdempotencyKey)
+	return u
+}
+
+// SetFileName sets the "file_name" field.
+func (u *PartnerAttachmentUpsert) SetFileName(v string) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldFileName, v)
+	return u
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateFileName() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldFileName)
+	return u
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *PartnerAttachmentUpsert) SetMimeType(v string) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldMimeType, v)
+	return u
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateMimeType() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldMimeType)
+	return u
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *PartnerAttachmentUpsert) SetFileSize(v int64) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldFileSize, v)
+	return u
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateFileSize() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldFileSize)
+	return u
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *PartnerAttachmentUpsert) AddFileSize(v int64) *PartnerAttachmentUpsert {
+	u.Add(partnerattachment.FieldFileSize, v)
+	return u
+}
+
+// SetObjectKey sets the "object_key" field.
+func (u *PartnerAttachmentUpsert) SetObjectKey(v string) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldObjectKey, v)
+	return u
+}
+
+// UpdateObjectKey sets the "object_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateObjectKey() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldObjectKey)
+	return u
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *PartnerAttachmentUpsert) SetChecksum(v string) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldChecksum, v)
+	return u
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateChecksum() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldChecksum)
+	return u
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *PartnerAttachmentUpsert) ClearChecksum() *PartnerAttachmentUpsert {
+	u.SetNull(partnerattachment.FieldChecksum)
+	return u
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *PartnerAttachmentUpsert) SetUploadedBy(v uuid.UUID) *PartnerAttachmentUpsert {
+	u.Set(partnerattachment.FieldUploadedBy, v)
+	return u
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsert) UpdateUploadedBy() *PartnerAttachmentUpsert {
+	u.SetExcluded(partnerattachment.FieldUploadedBy)
+	return u
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *PartnerAttachmentUpsert) ClearUploadedBy() *PartnerAttachmentUpsert {
+	u.SetNull(partnerattachment.FieldUploadedBy)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerattachment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAttachmentUpsertOne) UpdateNewValues() *PartnerAttachmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partnerattachment.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partnerattachment.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartnerAttachmentUpsertOne) Ignore() *PartnerAttachmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAttachmentUpsertOne) DoNothing() *PartnerAttachmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAttachmentCreate.OnConflict
+// documentation for more info.
+func (u *PartnerAttachmentUpsertOne) Update(set func(*PartnerAttachmentUpsert)) *PartnerAttachmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAttachmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAttachmentUpsertOne) SetUpdatedAt(v time.Time) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateUpdatedAt() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAttachmentUpsertOne) SetPartnerID(v uuid.UUID) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdatePartnerID() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *PartnerAttachmentUpsertOne) SetIdempotencyKey(v string) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateIdempotencyKey() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *PartnerAttachmentUpsertOne) SetFileName(v string) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateFileName() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *PartnerAttachmentUpsertOne) SetMimeType(v string) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateMimeType() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *PartnerAttachmentUpsertOne) SetFileSize(v int64) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *PartnerAttachmentUpsertOne) AddFileSize(v int64) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateFileSize() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetObjectKey sets the "object_key" field.
+func (u *PartnerAttachmentUpsertOne) SetObjectKey(v string) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetObjectKey(v)
+	})
+}
+
+// UpdateObjectKey sets the "object_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateObjectKey() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateObjectKey()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *PartnerAttachmentUpsertOne) SetChecksum(v string) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateChecksum() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *PartnerAttachmentUpsertOne) ClearChecksum() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.ClearChecksum()
+	})
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *PartnerAttachmentUpsertOne) SetUploadedBy(v uuid.UUID) *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetUploadedBy(v)
+	})
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertOne) UpdateUploadedBy() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateUploadedBy()
+	})
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *PartnerAttachmentUpsertOne) ClearUploadedBy() *PartnerAttachmentUpsertOne {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.ClearUploadedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAttachmentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAttachmentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAttachmentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartnerAttachmentUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartnerAttachmentUpsertOne.ID is not supported by MySQL driver. Use PartnerAttachmentUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartnerAttachmentUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartnerAttachmentCreateBulk is the builder for creating many PartnerAttachment entities in bulk.
 type PartnerAttachmentCreateBulk struct {
 	config
 	err      error
 	builders []*PartnerAttachmentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartnerAttachment entities in the database.
@@ -366,6 +782,7 @@ func (_c *PartnerAttachmentCreateBulk) Save(ctx context.Context) ([]*PartnerAtta
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -412,6 +829,270 @@ func (_c *PartnerAttachmentCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartnerAttachmentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartnerAttachment.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartnerAttachmentUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartnerAttachmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartnerAttachmentUpsertBulk {
+	_c.conflict = opts
+	return &PartnerAttachmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartnerAttachmentCreateBulk) OnConflictColumns(columns ...string) *PartnerAttachmentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartnerAttachmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartnerAttachmentUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartnerAttachment nodes.
+type PartnerAttachmentUpsertBulk struct {
+	create *PartnerAttachmentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partnerattachment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartnerAttachmentUpsertBulk) UpdateNewValues() *PartnerAttachmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partnerattachment.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partnerattachment.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartnerAttachment.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartnerAttachmentUpsertBulk) Ignore() *PartnerAttachmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartnerAttachmentUpsertBulk) DoNothing() *PartnerAttachmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartnerAttachmentCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartnerAttachmentUpsertBulk) Update(set func(*PartnerAttachmentUpsert)) *PartnerAttachmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartnerAttachmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartnerAttachmentUpsertBulk) SetUpdatedAt(v time.Time) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateUpdatedAt() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (u *PartnerAttachmentUpsertBulk) SetPartnerID(v uuid.UUID) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetPartnerID(v)
+	})
+}
+
+// UpdatePartnerID sets the "partner_id" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdatePartnerID() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdatePartnerID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *PartnerAttachmentUpsertBulk) SetIdempotencyKey(v string) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateIdempotencyKey() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateIdempotencyKey()
+	})
+}
+
+// SetFileName sets the "file_name" field.
+func (u *PartnerAttachmentUpsertBulk) SetFileName(v string) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetFileName(v)
+	})
+}
+
+// UpdateFileName sets the "file_name" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateFileName() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateFileName()
+	})
+}
+
+// SetMimeType sets the "mime_type" field.
+func (u *PartnerAttachmentUpsertBulk) SetMimeType(v string) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetMimeType(v)
+	})
+}
+
+// UpdateMimeType sets the "mime_type" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateMimeType() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateMimeType()
+	})
+}
+
+// SetFileSize sets the "file_size" field.
+func (u *PartnerAttachmentUpsertBulk) SetFileSize(v int64) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetFileSize(v)
+	})
+}
+
+// AddFileSize adds v to the "file_size" field.
+func (u *PartnerAttachmentUpsertBulk) AddFileSize(v int64) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.AddFileSize(v)
+	})
+}
+
+// UpdateFileSize sets the "file_size" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateFileSize() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateFileSize()
+	})
+}
+
+// SetObjectKey sets the "object_key" field.
+func (u *PartnerAttachmentUpsertBulk) SetObjectKey(v string) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetObjectKey(v)
+	})
+}
+
+// UpdateObjectKey sets the "object_key" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateObjectKey() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateObjectKey()
+	})
+}
+
+// SetChecksum sets the "checksum" field.
+func (u *PartnerAttachmentUpsertBulk) SetChecksum(v string) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetChecksum(v)
+	})
+}
+
+// UpdateChecksum sets the "checksum" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateChecksum() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateChecksum()
+	})
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (u *PartnerAttachmentUpsertBulk) ClearChecksum() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.ClearChecksum()
+	})
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (u *PartnerAttachmentUpsertBulk) SetUploadedBy(v uuid.UUID) *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.SetUploadedBy(v)
+	})
+}
+
+// UpdateUploadedBy sets the "uploaded_by" field to the value that was provided on create.
+func (u *PartnerAttachmentUpsertBulk) UpdateUploadedBy() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.UpdateUploadedBy()
+	})
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (u *PartnerAttachmentUpsertBulk) ClearUploadedBy() *PartnerAttachmentUpsertBulk {
+	return u.Update(func(s *PartnerAttachmentUpsert) {
+		s.ClearUploadedBy()
+	})
+}
+
+// Exec executes the query.
+func (u *PartnerAttachmentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartnerAttachmentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartnerAttachmentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartnerAttachmentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,9 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
@@ -35,6 +38,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -53,6 +57,7 @@ type UserCreate struct {
 	config
 	mutation *UserMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -211,6 +216,20 @@ func (_c *UserCreate) SetDingtalkName(v string) *UserCreate {
 func (_c *UserCreate) SetNillableDingtalkName(v *string) *UserCreate {
 	if v != nil {
 		_c.SetDingtalkName(*v)
+	}
+	return _c
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (_c *UserCreate) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserCreate {
+	_c.mutation.SetDingtalkRequestedOrganizationID(v)
+	return _c
+}
+
+// SetNillableDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkRequestedOrganizationID(v *uuid.UUID) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkRequestedOrganizationID(*v)
 	}
 	return _c
 }
@@ -1006,6 +1025,41 @@ func (_c *UserCreate) AddConfirmedSeaSharedContainers(v ...*SeaSharedContainer) 
 	return _c.AddConfirmedSeaSharedContainerIDs(ids...)
 }
 
+// AddCreatedDingtalkInvitationIDs adds the "created_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_c *UserCreate) AddCreatedDingtalkInvitationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedDingtalkInvitationIDs(ids...)
+	return _c
+}
+
+// AddCreatedDingtalkInvitations adds the "created_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_c *UserCreate) AddCreatedDingtalkInvitations(v ...*DingTalkInvitation) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedDingtalkInvitationIDs(ids...)
+}
+
+// AddConsumedDingtalkInvitationIDs adds the "consumed_dingtalk_invitations" edge to the DingTalkInvitation entity by IDs.
+func (_c *UserCreate) AddConsumedDingtalkInvitationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConsumedDingtalkInvitationIDs(ids...)
+	return _c
+}
+
+// AddConsumedDingtalkInvitations adds the "consumed_dingtalk_invitations" edges to the DingTalkInvitation entity.
+func (_c *UserCreate) AddConsumedDingtalkInvitations(v ...*DingTalkInvitation) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConsumedDingtalkInvitationIDs(ids...)
+}
+
+// SetDingtalkRequestedOrganization sets the "dingtalk_requested_organization" edge to the Organization entity.
+func (_c *UserCreate) SetDingtalkRequestedOrganization(v *Organization) *UserCreate {
+	return _c.SetDingtalkRequestedOrganizationID(v.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
@@ -1175,6 +1229,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node = &User{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -2023,7 +2078,691 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.CreatedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedDingtalkInvitationsTable,
+			Columns: []string{user.CreatedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConsumedDingtalkInvitationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumedDingtalkInvitationsTable,
+			Columns: []string{user.ConsumedDingtalkInvitationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkinvitation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DingtalkRequestedOrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.DingtalkRequestedOrganizationTable,
+			Columns: []string{user.DingtalkRequestedOrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DingtalkRequestedOrganizationID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.User.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
+	_c.conflict = opts
+	return &UserUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *UserCreate) OnConflictColumns(columns ...string) *UserUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &UserUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// UserUpsertOne is the builder for "upsert"-ing
+	//  one User node.
+	UserUpsertOne struct {
+		create *UserCreate
+	}
+
+	// UserUpsert is the "OnConflict" setter.
+	UserUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUpdatedAt() *UserUpsert {
+	u.SetExcluded(user.FieldUpdatedAt)
+	return u
+}
+
+// SetUsername sets the "username" field.
+func (u *UserUpsert) SetUsername(v string) *UserUpsert {
+	u.Set(user.FieldUsername, v)
+	return u
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUsername() *UserUpsert {
+	u.SetExcluded(user.FieldUsername)
+	return u
+}
+
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsert) ClearUsername() *UserUpsert {
+	u.SetNull(user.FieldUsername)
+	return u
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *UserUpsert) SetDisplayName(v string) *UserUpsert {
+	u.Set(user.FieldDisplayName, v)
+	return u
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDisplayName() *UserUpsert {
+	u.SetExcluded(user.FieldDisplayName)
+	return u
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsert) SetEmail(v string) *UserUpsert {
+	u.Set(user.FieldEmail, v)
+	return u
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsert) UpdateEmail() *UserUpsert {
+	u.SetExcluded(user.FieldEmail)
+	return u
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsert) ClearEmail() *UserUpsert {
+	u.SetNull(user.FieldEmail)
+	return u
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsert) SetAvatarURL(v string) *UserUpsert {
+	u.Set(user.FieldAvatarURL, v)
+	return u
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAvatarURL() *UserUpsert {
+	u.SetExcluded(user.FieldAvatarURL)
+	return u
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsert) ClearAvatarURL() *UserUpsert {
+	u.SetNull(user.FieldAvatarURL)
+	return u
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserUpsert) SetPasswordHash(v string) *UserUpsert {
+	u.Set(user.FieldPasswordHash, v)
+	return u
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePasswordHash() *UserUpsert {
+	u.SetExcluded(user.FieldPasswordHash)
+	return u
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (u *UserUpsert) ClearPasswordHash() *UserUpsert {
+	u.SetNull(user.FieldPasswordHash)
+	return u
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (u *UserUpsert) SetWecomUserid(v string) *UserUpsert {
+	u.Set(user.FieldWecomUserid, v)
+	return u
+}
+
+// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
+func (u *UserUpsert) UpdateWecomUserid() *UserUpsert {
+	u.SetExcluded(user.FieldWecomUserid)
+	return u
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (u *UserUpsert) ClearWecomUserid() *UserUpsert {
+	u.SetNull(user.FieldWecomUserid)
+	return u
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (u *UserUpsert) SetWecomName(v string) *UserUpsert {
+	u.Set(user.FieldWecomName, v)
+	return u
+}
+
+// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
+func (u *UserUpsert) UpdateWecomName() *UserUpsert {
+	u.SetExcluded(user.FieldWecomName)
+	return u
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (u *UserUpsert) ClearWecomName() *UserUpsert {
+	u.SetNull(user.FieldWecomName)
+	return u
+}
+
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (u *UserUpsert) SetDingtalkUnionid(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkUnionid, v)
+	return u
+}
+
+// UpdateDingtalkUnionid sets the "dingtalk_unionid" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkUnionid() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkUnionid)
+	return u
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (u *UserUpsert) ClearDingtalkUnionid() *UserUpsert {
+	u.SetNull(user.FieldDingtalkUnionid)
+	return u
+}
+
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (u *UserUpsert) SetDingtalkUserid(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkUserid, v)
+	return u
+}
+
+// UpdateDingtalkUserid sets the "dingtalk_userid" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkUserid() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkUserid)
+	return u
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (u *UserUpsert) ClearDingtalkUserid() *UserUpsert {
+	u.SetNull(user.FieldDingtalkUserid)
+	return u
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (u *UserUpsert) SetDingtalkName(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkName, v)
+	return u
+}
+
+// UpdateDingtalkName sets the "dingtalk_name" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkName() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkName)
+	return u
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (u *UserUpsert) ClearDingtalkName() *UserUpsert {
+	u.SetNull(user.FieldDingtalkName)
+	return u
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (u *UserUpsert) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserUpsert {
+	u.Set(user.FieldDingtalkRequestedOrganizationID, v)
+	return u
+}
+
+// UpdateDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkRequestedOrganizationID() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkRequestedOrganizationID)
+	return u
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (u *UserUpsert) ClearDingtalkRequestedOrganizationID() *UserUpsert {
+	u.SetNull(user.FieldDingtalkRequestedOrganizationID)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *UserUpsert) SetEnabled(v bool) *UserUpsert {
+	u.Set(user.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *UserUpsert) UpdateEnabled() *UserUpsert {
+	u.SetExcluded(user.FieldEnabled)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *UserUpsert) SetSearchKeywords(v string) *UserUpsert {
+	u.Set(user.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *UserUpsert) UpdateSearchKeywords() *UserUpsert {
+	u.SetExcluded(user.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserUpsertOne) UpdateNewValues() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(user.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(user.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.IsBootstrapAdmin(); exists {
+			s.SetIgnore(user.FieldIsBootstrapAdmin)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UserUpsertOne) Ignore() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserUpsertOne) DoNothing() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCreate.OnConflict
+// documentation for more info.
+func (u *UserUpsertOne) Update(set func(*UserUpsert)) *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserUpsertOne) SetUpdatedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUpdatedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetUsername sets the "username" field.
+func (u *UserUpsertOne) SetUsername(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsername(v)
+	})
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUsername() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsername()
+	})
+}
+
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsertOne) ClearUsername() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsername()
+	})
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *UserUpsertOne) SetDisplayName(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDisplayName(v)
+	})
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDisplayName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDisplayName()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertOne) ClearEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsertOne) SetAvatarURL(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAvatarURL() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsertOne) ClearAvatarURL() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAvatarURL()
+	})
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserUpsertOne) SetPasswordHash(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPasswordHash(v)
+	})
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePasswordHash() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePasswordHash()
+	})
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (u *UserUpsertOne) ClearPasswordHash() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPasswordHash()
+	})
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (u *UserUpsertOne) SetWecomUserid(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetWecomUserid(v)
+	})
+}
+
+// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateWecomUserid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateWecomUserid()
+	})
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (u *UserUpsertOne) ClearWecomUserid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearWecomUserid()
+	})
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (u *UserUpsertOne) SetWecomName(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetWecomName(v)
+	})
+}
+
+// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateWecomName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateWecomName()
+	})
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (u *UserUpsertOne) ClearWecomName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearWecomName()
+	})
+}
+
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (u *UserUpsertOne) SetDingtalkUnionid(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkUnionid(v)
+	})
+}
+
+// UpdateDingtalkUnionid sets the "dingtalk_unionid" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkUnionid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkUnionid()
+	})
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (u *UserUpsertOne) ClearDingtalkUnionid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkUnionid()
+	})
+}
+
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (u *UserUpsertOne) SetDingtalkUserid(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkUserid(v)
+	})
+}
+
+// UpdateDingtalkUserid sets the "dingtalk_userid" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkUserid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkUserid()
+	})
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (u *UserUpsertOne) ClearDingtalkUserid() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkUserid()
+	})
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (u *UserUpsertOne) SetDingtalkName(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkName(v)
+	})
+}
+
+// UpdateDingtalkName sets the "dingtalk_name" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkName()
+	})
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (u *UserUpsertOne) ClearDingtalkName() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkName()
+	})
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (u *UserUpsertOne) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkRequestedOrganizationID(v)
+	})
+}
+
+// UpdateDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkRequestedOrganizationID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkRequestedOrganizationID()
+	})
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (u *UserUpsertOne) ClearDingtalkRequestedOrganizationID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkRequestedOrganizationID()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *UserUpsertOne) SetEnabled(v bool) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateEnabled() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *UserUpsertOne) SetSearchKeywords(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateSearchKeywords() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *UserUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UserUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UserUpsertOne.ID is not supported by MySQL driver. Use UserUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UserUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // UserCreateBulk is the builder for creating many User entities in bulk.
@@ -2031,6 +2770,7 @@ type UserCreateBulk struct {
 	config
 	err      error
 	builders []*UserCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the User entities in the database.
@@ -2060,6 +2800,7 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -2106,6 +2847,392 @@ func (_c *UserCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *UserCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.User.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
+	_c.conflict = opts
+	return &UserUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *UserCreateBulk) OnConflictColumns(columns ...string) *UserUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &UserUpsertBulk{
+		create: _c,
+	}
+}
+
+// UserUpsertBulk is the builder for "upsert"-ing
+// a bulk of User nodes.
+type UserUpsertBulk struct {
+	create *UserCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserUpsertBulk) UpdateNewValues() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(user.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(user.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.IsBootstrapAdmin(); exists {
+				s.SetIgnore(user.FieldIsBootstrapAdmin)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UserUpsertBulk) Ignore() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserUpsertBulk) DoNothing() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCreateBulk.OnConflict
+// documentation for more info.
+func (u *UserUpsertBulk) Update(set func(*UserUpsert)) *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserUpsertBulk) SetUpdatedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUpdatedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetUsername sets the "username" field.
+func (u *UserUpsertBulk) SetUsername(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsername(v)
+	})
+}
+
+// UpdateUsername sets the "username" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUsername() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsername()
+	})
+}
+
+// ClearUsername clears the value of the "username" field.
+func (u *UserUpsertBulk) ClearUsername() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsername()
+	})
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *UserUpsertBulk) SetDisplayName(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDisplayName(v)
+	})
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDisplayName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDisplayName()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// ClearEmail clears the value of the "email" field.
+func (u *UserUpsertBulk) ClearEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearEmail()
+	})
+}
+
+// SetAvatarURL sets the "avatar_url" field.
+func (u *UserUpsertBulk) SetAvatarURL(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarURL(v)
+	})
+}
+
+// UpdateAvatarURL sets the "avatar_url" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAvatarURL() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarURL()
+	})
+}
+
+// ClearAvatarURL clears the value of the "avatar_url" field.
+func (u *UserUpsertBulk) ClearAvatarURL() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAvatarURL()
+	})
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserUpsertBulk) SetPasswordHash(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPasswordHash(v)
+	})
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePasswordHash() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePasswordHash()
+	})
+}
+
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (u *UserUpsertBulk) ClearPasswordHash() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPasswordHash()
+	})
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (u *UserUpsertBulk) SetWecomUserid(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetWecomUserid(v)
+	})
+}
+
+// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateWecomUserid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateWecomUserid()
+	})
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (u *UserUpsertBulk) ClearWecomUserid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearWecomUserid()
+	})
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (u *UserUpsertBulk) SetWecomName(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetWecomName(v)
+	})
+}
+
+// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateWecomName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateWecomName()
+	})
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (u *UserUpsertBulk) ClearWecomName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearWecomName()
+	})
+}
+
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (u *UserUpsertBulk) SetDingtalkUnionid(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkUnionid(v)
+	})
+}
+
+// UpdateDingtalkUnionid sets the "dingtalk_unionid" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkUnionid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkUnionid()
+	})
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (u *UserUpsertBulk) ClearDingtalkUnionid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkUnionid()
+	})
+}
+
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (u *UserUpsertBulk) SetDingtalkUserid(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkUserid(v)
+	})
+}
+
+// UpdateDingtalkUserid sets the "dingtalk_userid" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkUserid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkUserid()
+	})
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (u *UserUpsertBulk) ClearDingtalkUserid() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkUserid()
+	})
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (u *UserUpsertBulk) SetDingtalkName(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkName(v)
+	})
+}
+
+// UpdateDingtalkName sets the "dingtalk_name" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkName()
+	})
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (u *UserUpsertBulk) ClearDingtalkName() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkName()
+	})
+}
+
+// SetDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field.
+func (u *UserUpsertBulk) SetDingtalkRequestedOrganizationID(v uuid.UUID) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkRequestedOrganizationID(v)
+	})
+}
+
+// UpdateDingtalkRequestedOrganizationID sets the "dingtalk_requested_organization_id" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkRequestedOrganizationID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkRequestedOrganizationID()
+	})
+}
+
+// ClearDingtalkRequestedOrganizationID clears the value of the "dingtalk_requested_organization_id" field.
+func (u *UserUpsertBulk) ClearDingtalkRequestedOrganizationID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkRequestedOrganizationID()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *UserUpsertBulk) SetEnabled(v bool) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateEnabled() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *UserUpsertBulk) SetSearchKeywords(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateSearchKeywords() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *UserUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

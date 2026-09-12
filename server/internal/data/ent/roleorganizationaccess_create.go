@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type RoleOrganizationAccessCreate struct {
 	config
 	mutation *RoleOrganizationAccessMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -208,6 +211,7 @@ func (_c *RoleOrganizationAccessCreate) createSpec() (*RoleOrganizationAccess, *
 		_node = &RoleOrganizationAccess{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(roleorganizationaccess.Table, sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -261,11 +265,254 @@ func (_c *RoleOrganizationAccessCreate) createSpec() (*RoleOrganizationAccess, *
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RoleOrganizationAccess.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RoleOrganizationAccessUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *RoleOrganizationAccessCreate) OnConflict(opts ...sql.ConflictOption) *RoleOrganizationAccessUpsertOne {
+	_c.conflict = opts
+	return &RoleOrganizationAccessUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *RoleOrganizationAccessCreate) OnConflictColumns(columns ...string) *RoleOrganizationAccessUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &RoleOrganizationAccessUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// RoleOrganizationAccessUpsertOne is the builder for "upsert"-ing
+	//  one RoleOrganizationAccess node.
+	RoleOrganizationAccessUpsertOne struct {
+		create *RoleOrganizationAccessCreate
+	}
+
+	// RoleOrganizationAccessUpsert is the "OnConflict" setter.
+	RoleOrganizationAccessUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoleOrganizationAccessUpsert) SetUpdatedAt(v time.Time) *RoleOrganizationAccessUpsert {
+	u.Set(roleorganizationaccess.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsert) UpdateUpdatedAt() *RoleOrganizationAccessUpsert {
+	u.SetExcluded(roleorganizationaccess.FieldUpdatedAt)
+	return u
+}
+
+// SetRoleID sets the "role_id" field.
+func (u *RoleOrganizationAccessUpsert) SetRoleID(v uuid.UUID) *RoleOrganizationAccessUpsert {
+	u.Set(roleorganizationaccess.FieldRoleID, v)
+	return u
+}
+
+// UpdateRoleID sets the "role_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsert) UpdateRoleID() *RoleOrganizationAccessUpsert {
+	u.SetExcluded(roleorganizationaccess.FieldRoleID)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *RoleOrganizationAccessUpsert) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessUpsert {
+	u.Set(roleorganizationaccess.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsert) UpdateOrganizationID() *RoleOrganizationAccessUpsert {
+	u.SetExcluded(roleorganizationaccess.FieldOrganizationID)
+	return u
+}
+
+// SetWritable sets the "writable" field.
+func (u *RoleOrganizationAccessUpsert) SetWritable(v bool) *RoleOrganizationAccessUpsert {
+	u.Set(roleorganizationaccess.FieldWritable, v)
+	return u
+}
+
+// UpdateWritable sets the "writable" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsert) UpdateWritable() *RoleOrganizationAccessUpsert {
+	u.SetExcluded(roleorganizationaccess.FieldWritable)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(roleorganizationaccess.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RoleOrganizationAccessUpsertOne) UpdateNewValues() *RoleOrganizationAccessUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(roleorganizationaccess.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(roleorganizationaccess.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *RoleOrganizationAccessUpsertOne) Ignore() *RoleOrganizationAccessUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RoleOrganizationAccessUpsertOne) DoNothing() *RoleOrganizationAccessUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RoleOrganizationAccessCreate.OnConflict
+// documentation for more info.
+func (u *RoleOrganizationAccessUpsertOne) Update(set func(*RoleOrganizationAccessUpsert)) *RoleOrganizationAccessUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RoleOrganizationAccessUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoleOrganizationAccessUpsertOne) SetUpdatedAt(v time.Time) *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertOne) UpdateUpdatedAt() *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetRoleID sets the "role_id" field.
+func (u *RoleOrganizationAccessUpsertOne) SetRoleID(v uuid.UUID) *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetRoleID(v)
+	})
+}
+
+// UpdateRoleID sets the "role_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertOne) UpdateRoleID() *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateRoleID()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *RoleOrganizationAccessUpsertOne) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertOne) UpdateOrganizationID() *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetWritable sets the "writable" field.
+func (u *RoleOrganizationAccessUpsertOne) SetWritable(v bool) *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetWritable(v)
+	})
+}
+
+// UpdateWritable sets the "writable" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertOne) UpdateWritable() *RoleOrganizationAccessUpsertOne {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateWritable()
+	})
+}
+
+// Exec executes the query.
+func (u *RoleOrganizationAccessUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RoleOrganizationAccessCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RoleOrganizationAccessUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RoleOrganizationAccessUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: RoleOrganizationAccessUpsertOne.ID is not supported by MySQL driver. Use RoleOrganizationAccessUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RoleOrganizationAccessUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RoleOrganizationAccessCreateBulk is the builder for creating many RoleOrganizationAccess entities in bulk.
 type RoleOrganizationAccessCreateBulk struct {
 	config
 	err      error
 	builders []*RoleOrganizationAccessCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the RoleOrganizationAccess entities in the database.
@@ -295,6 +542,7 @@ func (_c *RoleOrganizationAccessCreateBulk) Save(ctx context.Context) ([]*RoleOr
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -341,6 +589,179 @@ func (_c *RoleOrganizationAccessCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *RoleOrganizationAccessCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RoleOrganizationAccess.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RoleOrganizationAccessUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *RoleOrganizationAccessCreateBulk) OnConflict(opts ...sql.ConflictOption) *RoleOrganizationAccessUpsertBulk {
+	_c.conflict = opts
+	return &RoleOrganizationAccessUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *RoleOrganizationAccessCreateBulk) OnConflictColumns(columns ...string) *RoleOrganizationAccessUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &RoleOrganizationAccessUpsertBulk{
+		create: _c,
+	}
+}
+
+// RoleOrganizationAccessUpsertBulk is the builder for "upsert"-ing
+// a bulk of RoleOrganizationAccess nodes.
+type RoleOrganizationAccessUpsertBulk struct {
+	create *RoleOrganizationAccessCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(roleorganizationaccess.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RoleOrganizationAccessUpsertBulk) UpdateNewValues() *RoleOrganizationAccessUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(roleorganizationaccess.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(roleorganizationaccess.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RoleOrganizationAccess.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *RoleOrganizationAccessUpsertBulk) Ignore() *RoleOrganizationAccessUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RoleOrganizationAccessUpsertBulk) DoNothing() *RoleOrganizationAccessUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RoleOrganizationAccessCreateBulk.OnConflict
+// documentation for more info.
+func (u *RoleOrganizationAccessUpsertBulk) Update(set func(*RoleOrganizationAccessUpsert)) *RoleOrganizationAccessUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RoleOrganizationAccessUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RoleOrganizationAccessUpsertBulk) SetUpdatedAt(v time.Time) *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertBulk) UpdateUpdatedAt() *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetRoleID sets the "role_id" field.
+func (u *RoleOrganizationAccessUpsertBulk) SetRoleID(v uuid.UUID) *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetRoleID(v)
+	})
+}
+
+// UpdateRoleID sets the "role_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertBulk) UpdateRoleID() *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateRoleID()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *RoleOrganizationAccessUpsertBulk) SetOrganizationID(v uuid.UUID) *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertBulk) UpdateOrganizationID() *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetWritable sets the "writable" field.
+func (u *RoleOrganizationAccessUpsertBulk) SetWritable(v bool) *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.SetWritable(v)
+	})
+}
+
+// UpdateWritable sets the "writable" field to the value that was provided on create.
+func (u *RoleOrganizationAccessUpsertBulk) UpdateWritable() *RoleOrganizationAccessUpsertBulk {
+	return u.Update(func(s *RoleOrganizationAccessUpsert) {
+		s.UpdateWritable()
+	})
+}
+
+// Exec executes the query.
+func (u *RoleOrganizationAccessUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the RoleOrganizationAccessCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RoleOrganizationAccessCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RoleOrganizationAccessUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type PortCreate struct {
 	config
 	mutation *PortMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -378,6 +381,7 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 		_node = &Port{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(port.Table, sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -454,11 +458,517 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Port.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PortUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PortCreate) OnConflict(opts ...sql.ConflictOption) *PortUpsertOne {
+	_c.conflict = opts
+	return &PortUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PortCreate) OnConflictColumns(columns ...string) *PortUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PortUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PortUpsertOne is the builder for "upsert"-ing
+	//  one Port node.
+	PortUpsertOne struct {
+		create *PortCreate
+	}
+
+	// PortUpsert is the "OnConflict" setter.
+	PortUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PortUpsert) SetUpdatedAt(v time.Time) *PortUpsert {
+	u.Set(port.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PortUpsert) UpdateUpdatedAt() *PortUpsert {
+	u.SetExcluded(port.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PortUpsert) SetOrganizationID(v uuid.UUID) *PortUpsert {
+	u.Set(port.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PortUpsert) UpdateOrganizationID() *PortUpsert {
+	u.SetExcluded(port.FieldOrganizationID)
+	return u
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *PortUpsert) SetNameZh(v string) *PortUpsert {
+	u.Set(port.FieldNameZh, v)
+	return u
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *PortUpsert) UpdateNameZh() *PortUpsert {
+	u.SetExcluded(port.FieldNameZh)
+	return u
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *PortUpsert) ClearNameZh() *PortUpsert {
+	u.SetNull(port.FieldNameZh)
+	return u
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PortUpsert) SetNameEn(v string) *PortUpsert {
+	u.Set(port.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PortUpsert) UpdateNameEn() *PortUpsert {
+	u.SetExcluded(port.FieldNameEn)
+	return u
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PortUpsert) SetCountryCode(v string) *PortUpsert {
+	u.Set(port.FieldCountryCode, v)
+	return u
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PortUpsert) UpdateCountryCode() *PortUpsert {
+	u.SetExcluded(port.FieldCountryCode)
+	return u
+}
+
+// SetTransportModes sets the "transport_modes" field.
+func (u *PortUpsert) SetTransportModes(v []string) *PortUpsert {
+	u.Set(port.FieldTransportModes, v)
+	return u
+}
+
+// UpdateTransportModes sets the "transport_modes" field to the value that was provided on create.
+func (u *PortUpsert) UpdateTransportModes() *PortUpsert {
+	u.SetExcluded(port.FieldTransportModes)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *PortUpsert) SetSource(v string) *PortUpsert {
+	u.Set(port.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *PortUpsert) UpdateSource() *PortUpsert {
+	u.SetExcluded(port.FieldSource)
+	return u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *PortUpsert) SetSourceVersion(v string) *PortUpsert {
+	u.Set(port.FieldSourceVersion, v)
+	return u
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *PortUpsert) UpdateSourceVersion() *PortUpsert {
+	u.SetExcluded(port.FieldSourceVersion)
+	return u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *PortUpsert) ClearSourceVersion() *PortUpsert {
+	u.SetNull(port.FieldSourceVersion)
+	return u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *PortUpsert) SetSourceHash(v string) *PortUpsert {
+	u.Set(port.FieldSourceHash, v)
+	return u
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *PortUpsert) UpdateSourceHash() *PortUpsert {
+	u.SetExcluded(port.FieldSourceHash)
+	return u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *PortUpsert) ClearSourceHash() *PortUpsert {
+	u.SetNull(port.FieldSourceHash)
+	return u
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PortUpsert) SetSortOrder(v int) *PortUpsert {
+	u.Set(port.FieldSortOrder, v)
+	return u
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PortUpsert) UpdateSortOrder() *PortUpsert {
+	u.SetExcluded(port.FieldSortOrder)
+	return u
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PortUpsert) AddSortOrder(v int) *PortUpsert {
+	u.Add(port.FieldSortOrder, v)
+	return u
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PortUpsert) SetEnabled(v bool) *PortUpsert {
+	u.Set(port.FieldEnabled, v)
+	return u
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PortUpsert) UpdateEnabled() *PortUpsert {
+	u.SetExcluded(port.FieldEnabled)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PortUpsert) SetSearchKeywords(v string) *PortUpsert {
+	u.Set(port.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PortUpsert) UpdateSearchKeywords() *PortUpsert {
+	u.SetExcluded(port.FieldSearchKeywords)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(port.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PortUpsertOne) UpdateNewValues() *PortUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(port.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(port.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.UnLocode(); exists {
+			s.SetIgnore(port.FieldUnLocode)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PortUpsertOne) Ignore() *PortUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PortUpsertOne) DoNothing() *PortUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PortCreate.OnConflict
+// documentation for more info.
+func (u *PortUpsertOne) Update(set func(*PortUpsert)) *PortUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PortUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PortUpsertOne) SetUpdatedAt(v time.Time) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateUpdatedAt() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PortUpsertOne) SetOrganizationID(v uuid.UUID) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateOrganizationID() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *PortUpsertOne) SetNameZh(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateNameZh() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *PortUpsertOne) ClearNameZh() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PortUpsertOne) SetNameEn(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateNameEn() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PortUpsertOne) SetCountryCode(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateCountryCode() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetTransportModes sets the "transport_modes" field.
+func (u *PortUpsertOne) SetTransportModes(v []string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetTransportModes(v)
+	})
+}
+
+// UpdateTransportModes sets the "transport_modes" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateTransportModes() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateTransportModes()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *PortUpsertOne) SetSource(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateSource() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *PortUpsertOne) SetSourceVersion(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSourceVersion(v)
+	})
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateSourceVersion() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSourceVersion()
+	})
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *PortUpsertOne) ClearSourceVersion() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearSourceVersion()
+	})
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *PortUpsertOne) SetSourceHash(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSourceHash(v)
+	})
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateSourceHash() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSourceHash()
+	})
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *PortUpsertOne) ClearSourceHash() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearSourceHash()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PortUpsertOne) SetSortOrder(v int) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PortUpsertOne) AddSortOrder(v int) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateSortOrder() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PortUpsertOne) SetEnabled(v bool) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateEnabled() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PortUpsertOne) SetSearchKeywords(v string) *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PortUpsertOne) UpdateSearchKeywords() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PortUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PortCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PortUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PortUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PortUpsertOne.ID is not supported by MySQL driver. Use PortUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PortUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PortCreateBulk is the builder for creating many Port entities in bulk.
 type PortCreateBulk struct {
 	config
 	err      error
 	builders []*PortCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Port entities in the database.
@@ -488,6 +998,7 @@ func (_c *PortCreateBulk) Save(ctx context.Context) ([]*Port, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -534,6 +1045,322 @@ func (_c *PortCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PortCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Port.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PortUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PortCreateBulk) OnConflict(opts ...sql.ConflictOption) *PortUpsertBulk {
+	_c.conflict = opts
+	return &PortUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PortCreateBulk) OnConflictColumns(columns ...string) *PortUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PortUpsertBulk{
+		create: _c,
+	}
+}
+
+// PortUpsertBulk is the builder for "upsert"-ing
+// a bulk of Port nodes.
+type PortUpsertBulk struct {
+	create *PortCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(port.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PortUpsertBulk) UpdateNewValues() *PortUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(port.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(port.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.UnLocode(); exists {
+				s.SetIgnore(port.FieldUnLocode)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Port.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PortUpsertBulk) Ignore() *PortUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PortUpsertBulk) DoNothing() *PortUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PortCreateBulk.OnConflict
+// documentation for more info.
+func (u *PortUpsertBulk) Update(set func(*PortUpsert)) *PortUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PortUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PortUpsertBulk) SetUpdatedAt(v time.Time) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateUpdatedAt() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *PortUpsertBulk) SetOrganizationID(v uuid.UUID) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateOrganizationID() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetNameZh sets the "name_zh" field.
+func (u *PortUpsertBulk) SetNameZh(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetNameZh(v)
+	})
+}
+
+// UpdateNameZh sets the "name_zh" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateNameZh() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateNameZh()
+	})
+}
+
+// ClearNameZh clears the value of the "name_zh" field.
+func (u *PortUpsertBulk) ClearNameZh() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearNameZh()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *PortUpsertBulk) SetNameEn(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateNameEn() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// SetCountryCode sets the "country_code" field.
+func (u *PortUpsertBulk) SetCountryCode(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetCountryCode(v)
+	})
+}
+
+// UpdateCountryCode sets the "country_code" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateCountryCode() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateCountryCode()
+	})
+}
+
+// SetTransportModes sets the "transport_modes" field.
+func (u *PortUpsertBulk) SetTransportModes(v []string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetTransportModes(v)
+	})
+}
+
+// UpdateTransportModes sets the "transport_modes" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateTransportModes() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateTransportModes()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *PortUpsertBulk) SetSource(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateSource() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (u *PortUpsertBulk) SetSourceVersion(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSourceVersion(v)
+	})
+}
+
+// UpdateSourceVersion sets the "source_version" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateSourceVersion() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSourceVersion()
+	})
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (u *PortUpsertBulk) ClearSourceVersion() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearSourceVersion()
+	})
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (u *PortUpsertBulk) SetSourceHash(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSourceHash(v)
+	})
+}
+
+// UpdateSourceHash sets the "source_hash" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateSourceHash() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSourceHash()
+	})
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (u *PortUpsertBulk) ClearSourceHash() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearSourceHash()
+	})
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (u *PortUpsertBulk) SetSortOrder(v int) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSortOrder(v)
+	})
+}
+
+// AddSortOrder adds v to the "sort_order" field.
+func (u *PortUpsertBulk) AddSortOrder(v int) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.AddSortOrder(v)
+	})
+}
+
+// UpdateSortOrder sets the "sort_order" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateSortOrder() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSortOrder()
+	})
+}
+
+// SetEnabled sets the "enabled" field.
+func (u *PortUpsertBulk) SetEnabled(v bool) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetEnabled(v)
+	})
+}
+
+// UpdateEnabled sets the "enabled" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateEnabled() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateEnabled()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PortUpsertBulk) SetSearchKeywords(v string) *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PortUpsertBulk) UpdateSearchKeywords() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// Exec executes the query.
+func (u *PortUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PortCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PortCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PortUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

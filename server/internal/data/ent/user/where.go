@@ -116,6 +116,11 @@ func DingtalkName(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
 }
 
+// DingtalkRequestedOrganizationID applies equality check predicate on the "dingtalk_requested_organization_id" field. It's identical to DingtalkRequestedOrganizationIDEQ.
+func DingtalkRequestedOrganizationID(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkRequestedOrganizationID, v))
+}
+
 // IsBootstrapAdmin applies equality check predicate on the "is_bootstrap_admin" field. It's identical to IsBootstrapAdminEQ.
 func IsBootstrapAdmin(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldIsBootstrapAdmin, v))
@@ -949,6 +954,36 @@ func DingtalkNameEqualFold(v string) predicate.User {
 // DingtalkNameContainsFold applies the ContainsFold predicate on the "dingtalk_name" field.
 func DingtalkNameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldDingtalkName, v))
+}
+
+// DingtalkRequestedOrganizationIDEQ applies the EQ predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkRequestedOrganizationID, v))
+}
+
+// DingtalkRequestedOrganizationIDNEQ applies the NEQ predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDNEQ(v uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDingtalkRequestedOrganizationID, v))
+}
+
+// DingtalkRequestedOrganizationIDIn applies the In predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDingtalkRequestedOrganizationID, vs...))
+}
+
+// DingtalkRequestedOrganizationIDNotIn applies the NotIn predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDNotIn(vs ...uuid.UUID) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDingtalkRequestedOrganizationID, vs...))
+}
+
+// DingtalkRequestedOrganizationIDIsNil applies the IsNil predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDingtalkRequestedOrganizationID))
+}
+
+// DingtalkRequestedOrganizationIDNotNil applies the NotNil predicate on the "dingtalk_requested_organization_id" field.
+func DingtalkRequestedOrganizationIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDingtalkRequestedOrganizationID))
 }
 
 // IsBootstrapAdminEQ applies the EQ predicate on the "is_bootstrap_admin" field.
@@ -2155,6 +2190,75 @@ func HasConfirmedSeaSharedContainers() predicate.User {
 func HasConfirmedSeaSharedContainersWith(preds ...predicate.SeaSharedContainer) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newConfirmedSeaSharedContainersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedDingtalkInvitations applies the HasEdge predicate on the "created_dingtalk_invitations" edge.
+func HasCreatedDingtalkInvitations() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedDingtalkInvitationsTable, CreatedDingtalkInvitationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedDingtalkInvitationsWith applies the HasEdge predicate on the "created_dingtalk_invitations" edge with a given conditions (other predicates).
+func HasCreatedDingtalkInvitationsWith(preds ...predicate.DingTalkInvitation) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedDingtalkInvitationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConsumedDingtalkInvitations applies the HasEdge predicate on the "consumed_dingtalk_invitations" edge.
+func HasConsumedDingtalkInvitations() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConsumedDingtalkInvitationsTable, ConsumedDingtalkInvitationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConsumedDingtalkInvitationsWith applies the HasEdge predicate on the "consumed_dingtalk_invitations" edge with a given conditions (other predicates).
+func HasConsumedDingtalkInvitationsWith(preds ...predicate.DingTalkInvitation) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConsumedDingtalkInvitationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDingtalkRequestedOrganization applies the HasEdge predicate on the "dingtalk_requested_organization" edge.
+func HasDingtalkRequestedOrganization() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, DingtalkRequestedOrganizationTable, DingtalkRequestedOrganizationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkRequestedOrganizationWith applies the HasEdge predicate on the "dingtalk_requested_organization" edge with a given conditions (other predicates).
+func HasDingtalkRequestedOrganizationWith(preds ...predicate.Organization) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDingtalkRequestedOrganizationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

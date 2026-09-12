@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type NotificationDeliveryCreate struct {
 	config
 	mutation *NotificationDeliveryMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -295,6 +298,7 @@ func (_c *NotificationDeliveryCreate) createSpec() (*NotificationDelivery, *sqlg
 		_node = &NotificationDelivery{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(notificationdelivery.Table, sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -372,11 +376,239 @@ func (_c *NotificationDeliveryCreate) createSpec() (*NotificationDelivery, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NotificationDelivery.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NotificationDeliveryUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NotificationDeliveryCreate) OnConflict(opts ...sql.ConflictOption) *NotificationDeliveryUpsertOne {
+	_c.conflict = opts
+	return &NotificationDeliveryUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NotificationDeliveryCreate) OnConflictColumns(columns ...string) *NotificationDeliveryUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NotificationDeliveryUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// NotificationDeliveryUpsertOne is the builder for "upsert"-ing
+	//  one NotificationDelivery node.
+	NotificationDeliveryUpsertOne struct {
+		create *NotificationDeliveryCreate
+	}
+
+	// NotificationDeliveryUpsert is the "OnConflict" setter.
+	NotificationDeliveryUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NotificationDeliveryUpsert) SetUpdatedAt(v time.Time) *NotificationDeliveryUpsert {
+	u.Set(notificationdelivery.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsert) UpdateUpdatedAt() *NotificationDeliveryUpsert {
+	u.SetExcluded(notificationdelivery.FieldUpdatedAt)
+	return u
+}
+
+// SetExternalMessageID sets the "external_message_id" field.
+func (u *NotificationDeliveryUpsert) SetExternalMessageID(v string) *NotificationDeliveryUpsert {
+	u.Set(notificationdelivery.FieldExternalMessageID, v)
+	return u
+}
+
+// UpdateExternalMessageID sets the "external_message_id" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsert) UpdateExternalMessageID() *NotificationDeliveryUpsert {
+	u.SetExcluded(notificationdelivery.FieldExternalMessageID)
+	return u
+}
+
+// ClearExternalMessageID clears the value of the "external_message_id" field.
+func (u *NotificationDeliveryUpsert) ClearExternalMessageID() *NotificationDeliveryUpsert {
+	u.SetNull(notificationdelivery.FieldExternalMessageID)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(notificationdelivery.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NotificationDeliveryUpsertOne) UpdateNewValues() *NotificationDeliveryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(notificationdelivery.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(notificationdelivery.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.BackgroundTaskID(); exists {
+			s.SetIgnore(notificationdelivery.FieldBackgroundTaskID)
+		}
+		if _, exists := u.create.mutation.RecipientUserID(); exists {
+			s.SetIgnore(notificationdelivery.FieldRecipientUserID)
+		}
+		if _, exists := u.create.mutation.Channel(); exists {
+			s.SetIgnore(notificationdelivery.FieldChannel)
+		}
+		if _, exists := u.create.mutation.Template(); exists {
+			s.SetIgnore(notificationdelivery.FieldTemplate)
+		}
+		if _, exists := u.create.mutation.ResourceType(); exists {
+			s.SetIgnore(notificationdelivery.FieldResourceType)
+		}
+		if _, exists := u.create.mutation.ResourceID(); exists {
+			s.SetIgnore(notificationdelivery.FieldResourceID)
+		}
+		if _, exists := u.create.mutation.ReferenceCode(); exists {
+			s.SetIgnore(notificationdelivery.FieldReferenceCode)
+		}
+		if _, exists := u.create.mutation.Parameter(); exists {
+			s.SetIgnore(notificationdelivery.FieldParameter)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *NotificationDeliveryUpsertOne) Ignore() *NotificationDeliveryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NotificationDeliveryUpsertOne) DoNothing() *NotificationDeliveryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NotificationDeliveryCreate.OnConflict
+// documentation for more info.
+func (u *NotificationDeliveryUpsertOne) Update(set func(*NotificationDeliveryUpsert)) *NotificationDeliveryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NotificationDeliveryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NotificationDeliveryUpsertOne) SetUpdatedAt(v time.Time) *NotificationDeliveryUpsertOne {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsertOne) UpdateUpdatedAt() *NotificationDeliveryUpsertOne {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetExternalMessageID sets the "external_message_id" field.
+func (u *NotificationDeliveryUpsertOne) SetExternalMessageID(v string) *NotificationDeliveryUpsertOne {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.SetExternalMessageID(v)
+	})
+}
+
+// UpdateExternalMessageID sets the "external_message_id" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsertOne) UpdateExternalMessageID() *NotificationDeliveryUpsertOne {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.UpdateExternalMessageID()
+	})
+}
+
+// ClearExternalMessageID clears the value of the "external_message_id" field.
+func (u *NotificationDeliveryUpsertOne) ClearExternalMessageID() *NotificationDeliveryUpsertOne {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.ClearExternalMessageID()
+	})
+}
+
+// Exec executes the query.
+func (u *NotificationDeliveryUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NotificationDeliveryCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NotificationDeliveryUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *NotificationDeliveryUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: NotificationDeliveryUpsertOne.ID is not supported by MySQL driver. Use NotificationDeliveryUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *NotificationDeliveryUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // NotificationDeliveryCreateBulk is the builder for creating many NotificationDelivery entities in bulk.
 type NotificationDeliveryCreateBulk struct {
 	config
 	err      error
 	builders []*NotificationDeliveryCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the NotificationDelivery entities in the database.
@@ -406,6 +638,7 @@ func (_c *NotificationDeliveryCreateBulk) Save(ctx context.Context) ([]*Notifica
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -452,6 +685,182 @@ func (_c *NotificationDeliveryCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *NotificationDeliveryCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NotificationDelivery.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NotificationDeliveryUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NotificationDeliveryCreateBulk) OnConflict(opts ...sql.ConflictOption) *NotificationDeliveryUpsertBulk {
+	_c.conflict = opts
+	return &NotificationDeliveryUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NotificationDeliveryCreateBulk) OnConflictColumns(columns ...string) *NotificationDeliveryUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NotificationDeliveryUpsertBulk{
+		create: _c,
+	}
+}
+
+// NotificationDeliveryUpsertBulk is the builder for "upsert"-ing
+// a bulk of NotificationDelivery nodes.
+type NotificationDeliveryUpsertBulk struct {
+	create *NotificationDeliveryCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(notificationdelivery.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NotificationDeliveryUpsertBulk) UpdateNewValues() *NotificationDeliveryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(notificationdelivery.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(notificationdelivery.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.BackgroundTaskID(); exists {
+				s.SetIgnore(notificationdelivery.FieldBackgroundTaskID)
+			}
+			if _, exists := b.mutation.RecipientUserID(); exists {
+				s.SetIgnore(notificationdelivery.FieldRecipientUserID)
+			}
+			if _, exists := b.mutation.Channel(); exists {
+				s.SetIgnore(notificationdelivery.FieldChannel)
+			}
+			if _, exists := b.mutation.Template(); exists {
+				s.SetIgnore(notificationdelivery.FieldTemplate)
+			}
+			if _, exists := b.mutation.ResourceType(); exists {
+				s.SetIgnore(notificationdelivery.FieldResourceType)
+			}
+			if _, exists := b.mutation.ResourceID(); exists {
+				s.SetIgnore(notificationdelivery.FieldResourceID)
+			}
+			if _, exists := b.mutation.ReferenceCode(); exists {
+				s.SetIgnore(notificationdelivery.FieldReferenceCode)
+			}
+			if _, exists := b.mutation.Parameter(); exists {
+				s.SetIgnore(notificationdelivery.FieldParameter)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NotificationDelivery.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *NotificationDeliveryUpsertBulk) Ignore() *NotificationDeliveryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NotificationDeliveryUpsertBulk) DoNothing() *NotificationDeliveryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NotificationDeliveryCreateBulk.OnConflict
+// documentation for more info.
+func (u *NotificationDeliveryUpsertBulk) Update(set func(*NotificationDeliveryUpsert)) *NotificationDeliveryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NotificationDeliveryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *NotificationDeliveryUpsertBulk) SetUpdatedAt(v time.Time) *NotificationDeliveryUpsertBulk {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsertBulk) UpdateUpdatedAt() *NotificationDeliveryUpsertBulk {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetExternalMessageID sets the "external_message_id" field.
+func (u *NotificationDeliveryUpsertBulk) SetExternalMessageID(v string) *NotificationDeliveryUpsertBulk {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.SetExternalMessageID(v)
+	})
+}
+
+// UpdateExternalMessageID sets the "external_message_id" field to the value that was provided on create.
+func (u *NotificationDeliveryUpsertBulk) UpdateExternalMessageID() *NotificationDeliveryUpsertBulk {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.UpdateExternalMessageID()
+	})
+}
+
+// ClearExternalMessageID clears the value of the "external_message_id" field.
+func (u *NotificationDeliveryUpsertBulk) ClearExternalMessageID() *NotificationDeliveryUpsertBulk {
+	return u.Update(func(s *NotificationDeliveryUpsert) {
+		s.ClearExternalMessageID()
+	})
+}
+
+// Exec executes the query.
+func (u *NotificationDeliveryUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NotificationDeliveryCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NotificationDeliveryCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NotificationDeliveryUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

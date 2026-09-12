@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type FinanceCashflowCreate struct {
 	config
 	mutation *FinanceCashflowMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -616,6 +619,7 @@ func (_c *FinanceCashflowCreate) createSpec() (*FinanceCashflow, *sqlgraph.Creat
 		_node = &FinanceCashflow{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(financecashflow.Table, sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -807,11 +811,673 @@ func (_c *FinanceCashflowCreate) createSpec() (*FinanceCashflow, *sqlgraph.Creat
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCashflow.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCashflowUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCashflowCreate) OnConflict(opts ...sql.ConflictOption) *FinanceCashflowUpsertOne {
+	_c.conflict = opts
+	return &FinanceCashflowUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCashflowCreate) OnConflictColumns(columns ...string) *FinanceCashflowUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCashflowUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// FinanceCashflowUpsertOne is the builder for "upsert"-ing
+	//  one FinanceCashflow node.
+	FinanceCashflowUpsertOne struct {
+		create *FinanceCashflowCreate
+	}
+
+	// FinanceCashflowUpsert is the "OnConflict" setter.
+	FinanceCashflowUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCashflowUpsert) SetUpdatedAt(v time.Time) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateUpdatedAt() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldUpdatedAt)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCashflowUpsert) SetStatus(v financecashflow.Status) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateStatus() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldStatus)
+	return u
+}
+
+// SetTransactionDate sets the "transaction_date" field.
+func (u *FinanceCashflowUpsert) SetTransactionDate(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldTransactionDate, v)
+	return u
+}
+
+// UpdateTransactionDate sets the "transaction_date" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateTransactionDate() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldTransactionDate)
+	return u
+}
+
+// SetOurAccount sets the "our_account" field.
+func (u *FinanceCashflowUpsert) SetOurAccount(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldOurAccount, v)
+	return u
+}
+
+// UpdateOurAccount sets the "our_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateOurAccount() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldOurAccount)
+	return u
+}
+
+// SetCounterpartyAccount sets the "counterparty_account" field.
+func (u *FinanceCashflowUpsert) SetCounterpartyAccount(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldCounterpartyAccount, v)
+	return u
+}
+
+// UpdateCounterpartyAccount sets the "counterparty_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateCounterpartyAccount() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldCounterpartyAccount)
+	return u
+}
+
+// ClearCounterpartyAccount clears the value of the "counterparty_account" field.
+func (u *FinanceCashflowUpsert) ClearCounterpartyAccount() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldCounterpartyAccount)
+	return u
+}
+
+// SetPaymentMethod sets the "payment_method" field.
+func (u *FinanceCashflowUpsert) SetPaymentMethod(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldPaymentMethod, v)
+	return u
+}
+
+// UpdatePaymentMethod sets the "payment_method" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdatePaymentMethod() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldPaymentMethod)
+	return u
+}
+
+// SetBankReferenceNo sets the "bank_reference_no" field.
+func (u *FinanceCashflowUpsert) SetBankReferenceNo(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldBankReferenceNo, v)
+	return u
+}
+
+// UpdateBankReferenceNo sets the "bank_reference_no" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateBankReferenceNo() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldBankReferenceNo)
+	return u
+}
+
+// ClearBankReferenceNo clears the value of the "bank_reference_no" field.
+func (u *FinanceCashflowUpsert) ClearBankReferenceNo() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldBankReferenceNo)
+	return u
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCashflowUpsert) SetNote(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldNote, v)
+	return u
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateNote() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldNote)
+	return u
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCashflowUpsert) ClearNote() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldNote)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCashflowUpsert) SetVersion(v uint64) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateVersion() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCashflowUpsert) AddVersion(v uint64) *FinanceCashflowUpsert {
+	u.Add(financecashflow.FieldVersion, v)
+	return u
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCashflowUpsert) SetConfirmedAt(v time.Time) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldConfirmedAt, v)
+	return u
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateConfirmedAt() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldConfirmedAt)
+	return u
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCashflowUpsert) ClearConfirmedAt() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldConfirmedAt)
+	return u
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCashflowUpsert) SetConfirmedBy(v uuid.UUID) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldConfirmedBy, v)
+	return u
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateConfirmedBy() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldConfirmedBy)
+	return u
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCashflowUpsert) ClearConfirmedBy() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldConfirmedBy)
+	return u
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCashflowUpsert) SetCancelledAt(v time.Time) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldCancelledAt, v)
+	return u
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateCancelledAt() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldCancelledAt)
+	return u
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCashflowUpsert) ClearCancelledAt() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldCancelledAt)
+	return u
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCashflowUpsert) SetCancelledBy(v uuid.UUID) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldCancelledBy, v)
+	return u
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateCancelledBy() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldCancelledBy)
+	return u
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCashflowUpsert) ClearCancelledBy() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldCancelledBy)
+	return u
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCashflowUpsert) SetCancellationReason(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldCancellationReason, v)
+	return u
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateCancellationReason() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldCancellationReason)
+	return u
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCashflowUpsert) ClearCancellationReason() *FinanceCashflowUpsert {
+	u.SetNull(financecashflow.FieldCancellationReason)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecashflow.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCashflowUpsertOne) UpdateNewValues() *FinanceCashflowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(financecashflow.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(financecashflow.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(financecashflow.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.FlowNo(); exists {
+			s.SetIgnore(financecashflow.FieldFlowNo)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(financecashflow.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.Direction(); exists {
+			s.SetIgnore(financecashflow.FieldDirection)
+		}
+		if _, exists := u.create.mutation.SettlementPartyID(); exists {
+			s.SetIgnore(financecashflow.FieldSettlementPartyID)
+		}
+		if _, exists := u.create.mutation.SettlementPartyName(); exists {
+			s.SetIgnore(financecashflow.FieldSettlementPartyName)
+		}
+		if _, exists := u.create.mutation.Currency(); exists {
+			s.SetIgnore(financecashflow.FieldCurrency)
+		}
+		if _, exists := u.create.mutation.Amount(); exists {
+			s.SetIgnore(financecashflow.FieldAmount)
+		}
+		if _, exists := u.create.mutation.ExchangeRate(); exists {
+			s.SetIgnore(financecashflow.FieldExchangeRate)
+		}
+		if _, exists := u.create.mutation.ExchangeRateSource(); exists {
+			s.SetIgnore(financecashflow.FieldExchangeRateSource)
+		}
+		if _, exists := u.create.mutation.ExchangeRateDate(); exists {
+			s.SetIgnore(financecashflow.FieldExchangeRateDate)
+		}
+		if _, exists := u.create.mutation.ExchangeRateSettingID(); exists {
+			s.SetIgnore(financecashflow.FieldExchangeRateSettingID)
+		}
+		if _, exists := u.create.mutation.BaseCurrency(); exists {
+			s.SetIgnore(financecashflow.FieldBaseCurrency)
+		}
+		if _, exists := u.create.mutation.BaseAmount(); exists {
+			s.SetIgnore(financecashflow.FieldBaseAmount)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *FinanceCashflowUpsertOne) Ignore() *FinanceCashflowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCashflowUpsertOne) DoNothing() *FinanceCashflowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCashflowCreate.OnConflict
+// documentation for more info.
+func (u *FinanceCashflowUpsertOne) Update(set func(*FinanceCashflowUpsert)) *FinanceCashflowUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCashflowUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCashflowUpsertOne) SetUpdatedAt(v time.Time) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateUpdatedAt() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCashflowUpsertOne) SetStatus(v financecashflow.Status) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateStatus() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTransactionDate sets the "transaction_date" field.
+func (u *FinanceCashflowUpsertOne) SetTransactionDate(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetTransactionDate(v)
+	})
+}
+
+// UpdateTransactionDate sets the "transaction_date" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateTransactionDate() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateTransactionDate()
+	})
+}
+
+// SetOurAccount sets the "our_account" field.
+func (u *FinanceCashflowUpsertOne) SetOurAccount(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetOurAccount(v)
+	})
+}
+
+// UpdateOurAccount sets the "our_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateOurAccount() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateOurAccount()
+	})
+}
+
+// SetCounterpartyAccount sets the "counterparty_account" field.
+func (u *FinanceCashflowUpsertOne) SetCounterpartyAccount(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCounterpartyAccount(v)
+	})
+}
+
+// UpdateCounterpartyAccount sets the "counterparty_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateCounterpartyAccount() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCounterpartyAccount()
+	})
+}
+
+// ClearCounterpartyAccount clears the value of the "counterparty_account" field.
+func (u *FinanceCashflowUpsertOne) ClearCounterpartyAccount() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCounterpartyAccount()
+	})
+}
+
+// SetPaymentMethod sets the "payment_method" field.
+func (u *FinanceCashflowUpsertOne) SetPaymentMethod(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetPaymentMethod(v)
+	})
+}
+
+// UpdatePaymentMethod sets the "payment_method" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdatePaymentMethod() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdatePaymentMethod()
+	})
+}
+
+// SetBankReferenceNo sets the "bank_reference_no" field.
+func (u *FinanceCashflowUpsertOne) SetBankReferenceNo(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetBankReferenceNo(v)
+	})
+}
+
+// UpdateBankReferenceNo sets the "bank_reference_no" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateBankReferenceNo() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateBankReferenceNo()
+	})
+}
+
+// ClearBankReferenceNo clears the value of the "bank_reference_no" field.
+func (u *FinanceCashflowUpsertOne) ClearBankReferenceNo() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearBankReferenceNo()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCashflowUpsertOne) SetNote(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateNote() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCashflowUpsertOne) ClearNote() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCashflowUpsertOne) SetVersion(v uint64) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCashflowUpsertOne) AddVersion(v uint64) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateVersion() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCashflowUpsertOne) SetConfirmedAt(v time.Time) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateConfirmedAt() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCashflowUpsertOne) ClearConfirmedAt() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCashflowUpsertOne) SetConfirmedBy(v uuid.UUID) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateConfirmedBy() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCashflowUpsertOne) ClearConfirmedBy() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCashflowUpsertOne) SetCancelledAt(v time.Time) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateCancelledAt() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCashflowUpsertOne) ClearCancelledAt() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCashflowUpsertOne) SetCancelledBy(v uuid.UUID) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateCancelledBy() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCashflowUpsertOne) ClearCancelledBy() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCashflowUpsertOne) SetCancellationReason(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateCancellationReason() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCashflowUpsertOne) ClearCancellationReason() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCashflowUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCashflowCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCashflowUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *FinanceCashflowUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: FinanceCashflowUpsertOne.ID is not supported by MySQL driver. Use FinanceCashflowUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *FinanceCashflowUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // FinanceCashflowCreateBulk is the builder for creating many FinanceCashflow entities in bulk.
 type FinanceCashflowCreateBulk struct {
 	config
 	err      error
 	builders []*FinanceCashflowCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the FinanceCashflow entities in the database.
@@ -841,6 +1507,7 @@ func (_c *FinanceCashflowCreateBulk) Save(ctx context.Context) ([]*FinanceCashfl
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -887,6 +1554,424 @@ func (_c *FinanceCashflowCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *FinanceCashflowCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.FinanceCashflow.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.FinanceCashflowUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *FinanceCashflowCreateBulk) OnConflict(opts ...sql.ConflictOption) *FinanceCashflowUpsertBulk {
+	_c.conflict = opts
+	return &FinanceCashflowUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *FinanceCashflowCreateBulk) OnConflictColumns(columns ...string) *FinanceCashflowUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &FinanceCashflowUpsertBulk{
+		create: _c,
+	}
+}
+
+// FinanceCashflowUpsertBulk is the builder for "upsert"-ing
+// a bulk of FinanceCashflow nodes.
+type FinanceCashflowUpsertBulk struct {
+	create *FinanceCashflowCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(financecashflow.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *FinanceCashflowUpsertBulk) UpdateNewValues() *FinanceCashflowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(financecashflow.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(financecashflow.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(financecashflow.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.FlowNo(); exists {
+				s.SetIgnore(financecashflow.FieldFlowNo)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(financecashflow.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.Direction(); exists {
+				s.SetIgnore(financecashflow.FieldDirection)
+			}
+			if _, exists := b.mutation.SettlementPartyID(); exists {
+				s.SetIgnore(financecashflow.FieldSettlementPartyID)
+			}
+			if _, exists := b.mutation.SettlementPartyName(); exists {
+				s.SetIgnore(financecashflow.FieldSettlementPartyName)
+			}
+			if _, exists := b.mutation.Currency(); exists {
+				s.SetIgnore(financecashflow.FieldCurrency)
+			}
+			if _, exists := b.mutation.Amount(); exists {
+				s.SetIgnore(financecashflow.FieldAmount)
+			}
+			if _, exists := b.mutation.ExchangeRate(); exists {
+				s.SetIgnore(financecashflow.FieldExchangeRate)
+			}
+			if _, exists := b.mutation.ExchangeRateSource(); exists {
+				s.SetIgnore(financecashflow.FieldExchangeRateSource)
+			}
+			if _, exists := b.mutation.ExchangeRateDate(); exists {
+				s.SetIgnore(financecashflow.FieldExchangeRateDate)
+			}
+			if _, exists := b.mutation.ExchangeRateSettingID(); exists {
+				s.SetIgnore(financecashflow.FieldExchangeRateSettingID)
+			}
+			if _, exists := b.mutation.BaseCurrency(); exists {
+				s.SetIgnore(financecashflow.FieldBaseCurrency)
+			}
+			if _, exists := b.mutation.BaseAmount(); exists {
+				s.SetIgnore(financecashflow.FieldBaseAmount)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.FinanceCashflow.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *FinanceCashflowUpsertBulk) Ignore() *FinanceCashflowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *FinanceCashflowUpsertBulk) DoNothing() *FinanceCashflowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the FinanceCashflowCreateBulk.OnConflict
+// documentation for more info.
+func (u *FinanceCashflowUpsertBulk) Update(set func(*FinanceCashflowUpsert)) *FinanceCashflowUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&FinanceCashflowUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *FinanceCashflowUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateUpdatedAt() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *FinanceCashflowUpsertBulk) SetStatus(v financecashflow.Status) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateStatus() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetTransactionDate sets the "transaction_date" field.
+func (u *FinanceCashflowUpsertBulk) SetTransactionDate(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetTransactionDate(v)
+	})
+}
+
+// UpdateTransactionDate sets the "transaction_date" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateTransactionDate() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateTransactionDate()
+	})
+}
+
+// SetOurAccount sets the "our_account" field.
+func (u *FinanceCashflowUpsertBulk) SetOurAccount(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetOurAccount(v)
+	})
+}
+
+// UpdateOurAccount sets the "our_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateOurAccount() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateOurAccount()
+	})
+}
+
+// SetCounterpartyAccount sets the "counterparty_account" field.
+func (u *FinanceCashflowUpsertBulk) SetCounterpartyAccount(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCounterpartyAccount(v)
+	})
+}
+
+// UpdateCounterpartyAccount sets the "counterparty_account" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateCounterpartyAccount() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCounterpartyAccount()
+	})
+}
+
+// ClearCounterpartyAccount clears the value of the "counterparty_account" field.
+func (u *FinanceCashflowUpsertBulk) ClearCounterpartyAccount() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCounterpartyAccount()
+	})
+}
+
+// SetPaymentMethod sets the "payment_method" field.
+func (u *FinanceCashflowUpsertBulk) SetPaymentMethod(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetPaymentMethod(v)
+	})
+}
+
+// UpdatePaymentMethod sets the "payment_method" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdatePaymentMethod() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdatePaymentMethod()
+	})
+}
+
+// SetBankReferenceNo sets the "bank_reference_no" field.
+func (u *FinanceCashflowUpsertBulk) SetBankReferenceNo(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetBankReferenceNo(v)
+	})
+}
+
+// UpdateBankReferenceNo sets the "bank_reference_no" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateBankReferenceNo() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateBankReferenceNo()
+	})
+}
+
+// ClearBankReferenceNo clears the value of the "bank_reference_no" field.
+func (u *FinanceCashflowUpsertBulk) ClearBankReferenceNo() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearBankReferenceNo()
+	})
+}
+
+// SetNote sets the "note" field.
+func (u *FinanceCashflowUpsertBulk) SetNote(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetNote(v)
+	})
+}
+
+// UpdateNote sets the "note" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateNote() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateNote()
+	})
+}
+
+// ClearNote clears the value of the "note" field.
+func (u *FinanceCashflowUpsertBulk) ClearNote() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearNote()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *FinanceCashflowUpsertBulk) SetVersion(v uint64) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *FinanceCashflowUpsertBulk) AddVersion(v uint64) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateVersion() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (u *FinanceCashflowUpsertBulk) SetConfirmedAt(v time.Time) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetConfirmedAt(v)
+	})
+}
+
+// UpdateConfirmedAt sets the "confirmed_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateConfirmedAt() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateConfirmedAt()
+	})
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (u *FinanceCashflowUpsertBulk) ClearConfirmedAt() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearConfirmedAt()
+	})
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (u *FinanceCashflowUpsertBulk) SetConfirmedBy(v uuid.UUID) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetConfirmedBy(v)
+	})
+}
+
+// UpdateConfirmedBy sets the "confirmed_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateConfirmedBy() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateConfirmedBy()
+	})
+}
+
+// ClearConfirmedBy clears the value of the "confirmed_by" field.
+func (u *FinanceCashflowUpsertBulk) ClearConfirmedBy() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearConfirmedBy()
+	})
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (u *FinanceCashflowUpsertBulk) SetCancelledAt(v time.Time) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancelledAt(v)
+	})
+}
+
+// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateCancelledAt() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancelledAt()
+	})
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (u *FinanceCashflowUpsertBulk) ClearCancelledAt() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancelledAt()
+	})
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (u *FinanceCashflowUpsertBulk) SetCancelledBy(v uuid.UUID) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancelledBy(v)
+	})
+}
+
+// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateCancelledBy() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancelledBy()
+	})
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (u *FinanceCashflowUpsertBulk) ClearCancelledBy() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancelledBy()
+	})
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (u *FinanceCashflowUpsertBulk) SetCancellationReason(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetCancellationReason(v)
+	})
+}
+
+// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateCancellationReason() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateCancellationReason()
+	})
+}
+
+// ClearCancellationReason clears the value of the "cancellation_reason" field.
+func (u *FinanceCashflowUpsertBulk) ClearCancellationReason() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.ClearCancellationReason()
+	})
+}
+
+// Exec executes the query.
+func (u *FinanceCashflowUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FinanceCashflowCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for FinanceCashflowCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *FinanceCashflowUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

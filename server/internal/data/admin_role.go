@@ -44,7 +44,17 @@ func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (
 }
 
 func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	actorMembership, err := r.data.db.Membership.Query().
+	return actorRolesPrivilegeProfiles(ctx, r.data.db, organizationID, actorID)
+}
+
+func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
+	return rolesPrivilegeProfiles(ctx, r.data.db, organizationID, roleIDs)
+}
+
+// actorRolesPrivilegeProfiles 查询某组织成员资格下启用角色的权限画像，
+// 供用户管理与钉钉邀请/注册审批的提权校验共用同一口径。
+func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
+	actorMembership, err := client.Membership.Query().
 		Where(
 			membership.UserIDEQ(actorID),
 			membership.OrganizationIDEQ(organizationID),
@@ -73,11 +83,12 @@ func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organiza
 	return profiles, nil
 }
 
-func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
+// rolesPrivilegeProfiles 查询目标组织内指定角色的权限画像（角色必须全部命中且启用）。
+func rolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
 	if len(roleIDs) == 0 {
 		return nil, nil
 	}
-	items, err := r.data.db.Role.Query().
+	items, err := client.Role.Query().
 		Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
 		WithPermissions().
 		WithOrganizationAccesses().

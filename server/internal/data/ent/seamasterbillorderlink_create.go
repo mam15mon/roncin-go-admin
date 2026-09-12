@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -23,6 +25,7 @@ type SeaMasterBillOrderLinkCreate struct {
 	config
 	mutation *SeaMasterBillOrderLinkMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -338,6 +341,7 @@ func (_c *SeaMasterBillOrderLinkCreate) createSpec() (*SeaMasterBillOrderLink, *
 		_node = &SeaMasterBillOrderLink{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seamasterbillorderlink.Table, sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -445,11 +449,475 @@ func (_c *SeaMasterBillOrderLinkCreate) createSpec() (*SeaMasterBillOrderLink, *
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillOrderLinkUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillOrderLinkCreate) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillOrderLinkUpsertOne {
+	_c.conflict = opts
+	return &SeaMasterBillOrderLinkUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillOrderLinkCreate) OnConflictColumns(columns ...string) *SeaMasterBillOrderLinkUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillOrderLinkUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaMasterBillOrderLinkUpsertOne is the builder for "upsert"-ing
+	//  one SeaMasterBillOrderLink node.
+	SeaMasterBillOrderLinkUpsertOne struct {
+		create *SeaMasterBillOrderLinkCreate
+	}
+
+	// SeaMasterBillOrderLinkUpsert is the "OnConflict" setter.
+	SeaMasterBillOrderLinkUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetUpdatedAt(v time.Time) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateUpdatedAt() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldUpdatedAt)
+	return u
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetOrganizationID(v uuid.UUID) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldOrganizationID, v)
+	return u
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateOrganizationID() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldOrganizationID)
+	return u
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetMasterBillID(v uuid.UUID) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldMasterBillID, v)
+	return u
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateMasterBillID() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldMasterBillID)
+	return u
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldTransportExecutionID, v)
+	return u
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateTransportExecutionID() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldTransportExecutionID)
+	return u
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetOrderID(v uuid.UUID) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldOrderID, v)
+	return u
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateOrderID() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldOrderID)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetStatus(v seamasterbillorderlink.Status) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateStatus() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldStatus)
+	return u
+}
+
+// SetDocumentStructure sets the "document_structure" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldDocumentStructure, v)
+	return u
+}
+
+// UpdateDocumentStructure sets the "document_structure" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateDocumentStructure() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldDocumentStructure)
+	return u
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldStartedAt, v)
+	return u
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateStartedAt() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldStartedAt)
+	return u
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetEndedAt(v time.Time) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldEndedAt, v)
+	return u
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateEndedAt() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldEndedAt)
+	return u
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsert) ClearEndedAt() *SeaMasterBillOrderLinkUpsert {
+	u.SetNull(seamasterbillorderlink.FieldEndedAt)
+	return u
+}
+
+// SetEndedReason sets the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetEndedReason(v string) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldEndedReason, v)
+	return u
+}
+
+// UpdateEndedReason sets the "ended_reason" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateEndedReason() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldEndedReason)
+	return u
+}
+
+// ClearEndedReason clears the value of the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsert) ClearEndedReason() *SeaMasterBillOrderLinkUpsert {
+	u.SetNull(seamasterbillorderlink.FieldEndedReason)
+	return u
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillOrderLinkUpsert) SetVersion(v uint64) *SeaMasterBillOrderLinkUpsert {
+	u.Set(seamasterbillorderlink.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsert) UpdateVersion() *SeaMasterBillOrderLinkUpsert {
+	u.SetExcluded(seamasterbillorderlink.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillOrderLinkUpsert) AddVersion(v uint64) *SeaMasterBillOrderLinkUpsert {
+	u.Add(seamasterbillorderlink.FieldVersion, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbillorderlink.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateNewValues() *SeaMasterBillOrderLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seamasterbillorderlink.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seamasterbillorderlink.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaMasterBillOrderLinkUpsertOne) Ignore() *SeaMasterBillOrderLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillOrderLinkUpsertOne) DoNothing() *SeaMasterBillOrderLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillOrderLinkCreate.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillOrderLinkUpsertOne) Update(set func(*SeaMasterBillOrderLinkUpsert)) *SeaMasterBillOrderLinkUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillOrderLinkUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetUpdatedAt(v time.Time) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateUpdatedAt() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetOrganizationID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateOrganizationID() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetMasterBillID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetMasterBillID(v)
+	})
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateMasterBillID() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateMasterBillID()
+	})
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetTransportExecutionID(v)
+	})
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateTransportExecutionID() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateTransportExecutionID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetOrderID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateOrderID() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetStatus(v seamasterbillorderlink.Status) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateStatus() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetDocumentStructure sets the "document_structure" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetDocumentStructure(v)
+	})
+}
+
+// UpdateDocumentStructure sets the "document_structure" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateDocumentStructure() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateDocumentStructure()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateStartedAt() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetEndedAt(v time.Time) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateEndedAt() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) ClearEndedAt() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetEndedReason sets the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetEndedReason(v string) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetEndedReason(v)
+	})
+}
+
+// UpdateEndedReason sets the "ended_reason" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateEndedReason() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateEndedReason()
+	})
+}
+
+// ClearEndedReason clears the value of the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) ClearEndedReason() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.ClearEndedReason()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) SetVersion(v uint64) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillOrderLinkUpsertOne) AddVersion(v uint64) *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertOne) UpdateVersion() *SeaMasterBillOrderLinkUpsertOne {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillOrderLinkUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillOrderLinkCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillOrderLinkUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaMasterBillOrderLinkUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaMasterBillOrderLinkUpsertOne.ID is not supported by MySQL driver. Use SeaMasterBillOrderLinkUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaMasterBillOrderLinkUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaMasterBillOrderLinkCreateBulk is the builder for creating many SeaMasterBillOrderLink entities in bulk.
 type SeaMasterBillOrderLinkCreateBulk struct {
 	config
 	err      error
 	builders []*SeaMasterBillOrderLinkCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaMasterBillOrderLink entities in the database.
@@ -479,6 +947,7 @@ func (_c *SeaMasterBillOrderLinkCreateBulk) Save(ctx context.Context) ([]*SeaMas
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -525,6 +994,298 @@ func (_c *SeaMasterBillOrderLinkCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaMasterBillOrderLinkCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBillOrderLink.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillOrderLinkUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillOrderLinkCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillOrderLinkUpsertBulk {
+	_c.conflict = opts
+	return &SeaMasterBillOrderLinkUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillOrderLinkCreateBulk) OnConflictColumns(columns ...string) *SeaMasterBillOrderLinkUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillOrderLinkUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaMasterBillOrderLinkUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaMasterBillOrderLink nodes.
+type SeaMasterBillOrderLinkUpsertBulk struct {
+	create *SeaMasterBillOrderLinkCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbillorderlink.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateNewValues() *SeaMasterBillOrderLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seamasterbillorderlink.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seamasterbillorderlink.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillOrderLink.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaMasterBillOrderLinkUpsertBulk) Ignore() *SeaMasterBillOrderLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillOrderLinkUpsertBulk) DoNothing() *SeaMasterBillOrderLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillOrderLinkCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillOrderLinkUpsertBulk) Update(set func(*SeaMasterBillOrderLinkUpsert)) *SeaMasterBillOrderLinkUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillOrderLinkUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetUpdatedAt(v time.Time) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateUpdatedAt() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetOrganizationID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetOrganizationID(v)
+	})
+}
+
+// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateOrganizationID() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateOrganizationID()
+	})
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetMasterBillID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetMasterBillID(v)
+	})
+}
+
+// UpdateMasterBillID sets the "master_bill_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateMasterBillID() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateMasterBillID()
+	})
+}
+
+// SetTransportExecutionID sets the "transport_execution_id" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetTransportExecutionID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetTransportExecutionID(v)
+	})
+}
+
+// UpdateTransportExecutionID sets the "transport_execution_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateTransportExecutionID() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateTransportExecutionID()
+	})
+}
+
+// SetOrderID sets the "order_id" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetOrderID(v uuid.UUID) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetOrderID(v)
+	})
+}
+
+// UpdateOrderID sets the "order_id" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateOrderID() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateOrderID()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetStatus(v seamasterbillorderlink.Status) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateStatus() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetDocumentStructure sets the "document_structure" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetDocumentStructure(v)
+	})
+}
+
+// UpdateDocumentStructure sets the "document_structure" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateDocumentStructure() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateDocumentStructure()
+	})
+}
+
+// SetStartedAt sets the "started_at" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetStartedAt(v)
+	})
+}
+
+// UpdateStartedAt sets the "started_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateStartedAt() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateStartedAt()
+	})
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetEndedAt(v time.Time) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetEndedAt(v)
+	})
+}
+
+// UpdateEndedAt sets the "ended_at" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateEndedAt() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateEndedAt()
+	})
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) ClearEndedAt() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.ClearEndedAt()
+	})
+}
+
+// SetEndedReason sets the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetEndedReason(v string) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetEndedReason(v)
+	})
+}
+
+// UpdateEndedReason sets the "ended_reason" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateEndedReason() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateEndedReason()
+	})
+}
+
+// ClearEndedReason clears the value of the "ended_reason" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) ClearEndedReason() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.ClearEndedReason()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) SetVersion(v uint64) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *SeaMasterBillOrderLinkUpsertBulk) AddVersion(v uint64) *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *SeaMasterBillOrderLinkUpsertBulk) UpdateVersion() *SeaMasterBillOrderLinkUpsertBulk {
+	return u.Update(func(s *SeaMasterBillOrderLinkUpsert) {
+		s.UpdateVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillOrderLinkUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaMasterBillOrderLinkCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillOrderLinkCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillOrderLinkUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

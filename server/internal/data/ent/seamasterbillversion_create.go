@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -26,6 +28,7 @@ type SeaMasterBillVersionCreate struct {
 	config
 	mutation *SeaMasterBillVersionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -732,6 +735,7 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_node = &SeaMasterBillVersion{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(seamasterbillversion.Table, sqlgraph.NewFieldSpec(seamasterbillversion.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -988,11 +992,249 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBillVersion.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillVersionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillVersionCreate) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillVersionUpsertOne {
+	_c.conflict = opts
+	return &SeaMasterBillVersionUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillVersionCreate) OnConflictColumns(columns ...string) *SeaMasterBillVersionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillVersionUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// SeaMasterBillVersionUpsertOne is the builder for "upsert"-ing
+	//  one SeaMasterBillVersion node.
+	SeaMasterBillVersionUpsertOne struct {
+		create *SeaMasterBillVersionCreate
+	}
+
+	// SeaMasterBillVersionUpsert is the "OnConflict" setter.
+	SeaMasterBillVersionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbillversion.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillVersionUpsertOne) UpdateNewValues() *SeaMasterBillVersionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(seamasterbillversion.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(seamasterbillversion.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(seamasterbillversion.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.MasterBillID(); exists {
+			s.SetIgnore(seamasterbillversion.FieldMasterBillID)
+		}
+		if _, exists := u.create.mutation.VersionNo(); exists {
+			s.SetIgnore(seamasterbillversion.FieldVersionNo)
+		}
+		if _, exists := u.create.mutation.SourceEntityVersion(); exists {
+			s.SetIgnore(seamasterbillversion.FieldSourceEntityVersion)
+		}
+		if _, exists := u.create.mutation.ShippingLineID(); exists {
+			s.SetIgnore(seamasterbillversion.FieldShippingLineID)
+		}
+		if _, exists := u.create.mutation.MasterNo(); exists {
+			s.SetIgnore(seamasterbillversion.FieldMasterNo)
+		}
+		if _, exists := u.create.mutation.NormalizedMasterNo(); exists {
+			s.SetIgnore(seamasterbillversion.FieldNormalizedMasterNo)
+		}
+		if _, exists := u.create.mutation.Status(); exists {
+			s.SetIgnore(seamasterbillversion.FieldStatus)
+		}
+		if _, exists := u.create.mutation.ContentHash(); exists {
+			s.SetIgnore(seamasterbillversion.FieldContentHash)
+		}
+		if _, exists := u.create.mutation.Source(); exists {
+			s.SetIgnore(seamasterbillversion.FieldSource)
+		}
+		if _, exists := u.create.mutation.Reason(); exists {
+			s.SetIgnore(seamasterbillversion.FieldReason)
+		}
+		if _, exists := u.create.mutation.CreatedBy(); exists {
+			s.SetIgnore(seamasterbillversion.FieldCreatedBy)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(seamasterbillversion.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(seamasterbillversion.FieldRequestFingerprint)
+		}
+		if _, exists := u.create.mutation.ConfirmedByParty(); exists {
+			s.SetIgnore(seamasterbillversion.FieldConfirmedByParty)
+		}
+		if _, exists := u.create.mutation.ConfirmedAt(); exists {
+			s.SetIgnore(seamasterbillversion.FieldConfirmedAt)
+		}
+		if _, exists := u.create.mutation.ConfirmationNote(); exists {
+			s.SetIgnore(seamasterbillversion.FieldConfirmationNote)
+		}
+		if _, exists := u.create.mutation.ConfirmationAttachmentID(); exists {
+			s.SetIgnore(seamasterbillversion.FieldConfirmationAttachmentID)
+		}
+		if _, exists := u.create.mutation.ShipperText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldShipperText)
+		}
+		if _, exists := u.create.mutation.ConsigneeText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldConsigneeText)
+		}
+		if _, exists := u.create.mutation.NotifyPartyText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldNotifyPartyText)
+		}
+		if _, exists := u.create.mutation.SecondNotifyPartyText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldSecondNotifyPartyText)
+		}
+		if _, exists := u.create.mutation.MarksText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldMarksText)
+		}
+		if _, exists := u.create.mutation.GoodsDescriptionText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldGoodsDescriptionText)
+		}
+		if _, exists := u.create.mutation.PackageCount(); exists {
+			s.SetIgnore(seamasterbillversion.FieldPackageCount)
+		}
+		if _, exists := u.create.mutation.PackageUnit(); exists {
+			s.SetIgnore(seamasterbillversion.FieldPackageUnit)
+		}
+		if _, exists := u.create.mutation.GrossWeightKg(); exists {
+			s.SetIgnore(seamasterbillversion.FieldGrossWeightKg)
+		}
+		if _, exists := u.create.mutation.VolumeCbm(); exists {
+			s.SetIgnore(seamasterbillversion.FieldVolumeCbm)
+		}
+		if _, exists := u.create.mutation.FreightTerms(); exists {
+			s.SetIgnore(seamasterbillversion.FieldFreightTerms)
+		}
+		if _, exists := u.create.mutation.TransportTerms(); exists {
+			s.SetIgnore(seamasterbillversion.FieldTransportTerms)
+		}
+		if _, exists := u.create.mutation.BillForm(); exists {
+			s.SetIgnore(seamasterbillversion.FieldBillForm)
+		}
+		if _, exists := u.create.mutation.ReleaseType(); exists {
+			s.SetIgnore(seamasterbillversion.FieldReleaseType)
+		}
+		if _, exists := u.create.mutation.Clauses(); exists {
+			s.SetIgnore(seamasterbillversion.FieldClauses)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *SeaMasterBillVersionUpsertOne) Ignore() *SeaMasterBillVersionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillVersionUpsertOne) DoNothing() *SeaMasterBillVersionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillVersionCreate.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillVersionUpsertOne) Update(set func(*SeaMasterBillVersionUpsert)) *SeaMasterBillVersionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillVersionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillVersionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillVersionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillVersionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *SeaMasterBillVersionUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SeaMasterBillVersionUpsertOne.ID is not supported by MySQL driver. Use SeaMasterBillVersionUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *SeaMasterBillVersionUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // SeaMasterBillVersionCreateBulk is the builder for creating many SeaMasterBillVersion entities in bulk.
 type SeaMasterBillVersionCreateBulk struct {
 	config
 	err      error
 	builders []*SeaMasterBillVersionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the SeaMasterBillVersion entities in the database.
@@ -1022,6 +1264,7 @@ func (_c *SeaMasterBillVersionCreateBulk) Save(ctx context.Context) ([]*SeaMaste
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -1068,6 +1311,222 @@ func (_c *SeaMasterBillVersionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *SeaMasterBillVersionCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.SeaMasterBillVersion.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.SeaMasterBillVersionUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *SeaMasterBillVersionCreateBulk) OnConflict(opts ...sql.ConflictOption) *SeaMasterBillVersionUpsertBulk {
+	_c.conflict = opts
+	return &SeaMasterBillVersionUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *SeaMasterBillVersionCreateBulk) OnConflictColumns(columns ...string) *SeaMasterBillVersionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &SeaMasterBillVersionUpsertBulk{
+		create: _c,
+	}
+}
+
+// SeaMasterBillVersionUpsertBulk is the builder for "upsert"-ing
+// a bulk of SeaMasterBillVersion nodes.
+type SeaMasterBillVersionUpsertBulk struct {
+	create *SeaMasterBillVersionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(seamasterbillversion.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *SeaMasterBillVersionUpsertBulk) UpdateNewValues() *SeaMasterBillVersionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(seamasterbillversion.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(seamasterbillversion.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(seamasterbillversion.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.MasterBillID(); exists {
+				s.SetIgnore(seamasterbillversion.FieldMasterBillID)
+			}
+			if _, exists := b.mutation.VersionNo(); exists {
+				s.SetIgnore(seamasterbillversion.FieldVersionNo)
+			}
+			if _, exists := b.mutation.SourceEntityVersion(); exists {
+				s.SetIgnore(seamasterbillversion.FieldSourceEntityVersion)
+			}
+			if _, exists := b.mutation.ShippingLineID(); exists {
+				s.SetIgnore(seamasterbillversion.FieldShippingLineID)
+			}
+			if _, exists := b.mutation.MasterNo(); exists {
+				s.SetIgnore(seamasterbillversion.FieldMasterNo)
+			}
+			if _, exists := b.mutation.NormalizedMasterNo(); exists {
+				s.SetIgnore(seamasterbillversion.FieldNormalizedMasterNo)
+			}
+			if _, exists := b.mutation.Status(); exists {
+				s.SetIgnore(seamasterbillversion.FieldStatus)
+			}
+			if _, exists := b.mutation.ContentHash(); exists {
+				s.SetIgnore(seamasterbillversion.FieldContentHash)
+			}
+			if _, exists := b.mutation.Source(); exists {
+				s.SetIgnore(seamasterbillversion.FieldSource)
+			}
+			if _, exists := b.mutation.Reason(); exists {
+				s.SetIgnore(seamasterbillversion.FieldReason)
+			}
+			if _, exists := b.mutation.CreatedBy(); exists {
+				s.SetIgnore(seamasterbillversion.FieldCreatedBy)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(seamasterbillversion.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(seamasterbillversion.FieldRequestFingerprint)
+			}
+			if _, exists := b.mutation.ConfirmedByParty(); exists {
+				s.SetIgnore(seamasterbillversion.FieldConfirmedByParty)
+			}
+			if _, exists := b.mutation.ConfirmedAt(); exists {
+				s.SetIgnore(seamasterbillversion.FieldConfirmedAt)
+			}
+			if _, exists := b.mutation.ConfirmationNote(); exists {
+				s.SetIgnore(seamasterbillversion.FieldConfirmationNote)
+			}
+			if _, exists := b.mutation.ConfirmationAttachmentID(); exists {
+				s.SetIgnore(seamasterbillversion.FieldConfirmationAttachmentID)
+			}
+			if _, exists := b.mutation.ShipperText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldShipperText)
+			}
+			if _, exists := b.mutation.ConsigneeText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldConsigneeText)
+			}
+			if _, exists := b.mutation.NotifyPartyText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldNotifyPartyText)
+			}
+			if _, exists := b.mutation.SecondNotifyPartyText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldSecondNotifyPartyText)
+			}
+			if _, exists := b.mutation.MarksText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldMarksText)
+			}
+			if _, exists := b.mutation.GoodsDescriptionText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldGoodsDescriptionText)
+			}
+			if _, exists := b.mutation.PackageCount(); exists {
+				s.SetIgnore(seamasterbillversion.FieldPackageCount)
+			}
+			if _, exists := b.mutation.PackageUnit(); exists {
+				s.SetIgnore(seamasterbillversion.FieldPackageUnit)
+			}
+			if _, exists := b.mutation.GrossWeightKg(); exists {
+				s.SetIgnore(seamasterbillversion.FieldGrossWeightKg)
+			}
+			if _, exists := b.mutation.VolumeCbm(); exists {
+				s.SetIgnore(seamasterbillversion.FieldVolumeCbm)
+			}
+			if _, exists := b.mutation.FreightTerms(); exists {
+				s.SetIgnore(seamasterbillversion.FieldFreightTerms)
+			}
+			if _, exists := b.mutation.TransportTerms(); exists {
+				s.SetIgnore(seamasterbillversion.FieldTransportTerms)
+			}
+			if _, exists := b.mutation.BillForm(); exists {
+				s.SetIgnore(seamasterbillversion.FieldBillForm)
+			}
+			if _, exists := b.mutation.ReleaseType(); exists {
+				s.SetIgnore(seamasterbillversion.FieldReleaseType)
+			}
+			if _, exists := b.mutation.Clauses(); exists {
+				s.SetIgnore(seamasterbillversion.FieldClauses)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.SeaMasterBillVersion.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *SeaMasterBillVersionUpsertBulk) Ignore() *SeaMasterBillVersionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *SeaMasterBillVersionUpsertBulk) DoNothing() *SeaMasterBillVersionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the SeaMasterBillVersionCreateBulk.OnConflict
+// documentation for more info.
+func (u *SeaMasterBillVersionUpsertBulk) Update(set func(*SeaMasterBillVersionUpsert)) *SeaMasterBillVersionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&SeaMasterBillVersionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// Exec executes the query.
+func (u *SeaMasterBillVersionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the SeaMasterBillVersionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for SeaMasterBillVersionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *SeaMasterBillVersionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +27,7 @@ type OrderUnlockRequestCreate struct {
 	config
 	mutation *OrderUnlockRequestMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -590,6 +593,7 @@ func (_c *OrderUnlockRequestCreate) createSpec() (*OrderUnlockRequest, *sqlgraph
 		_node = &OrderUnlockRequest{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderunlockrequest.Table, sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -823,11 +827,654 @@ func (_c *OrderUnlockRequestCreate) createSpec() (*OrderUnlockRequest, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderUnlockRequest.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUnlockRequestUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderUnlockRequestCreate) OnConflict(opts ...sql.ConflictOption) *OrderUnlockRequestUpsertOne {
+	_c.conflict = opts
+	return &OrderUnlockRequestUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderUnlockRequestCreate) OnConflictColumns(columns ...string) *OrderUnlockRequestUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUnlockRequestUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrderUnlockRequestUpsertOne is the builder for "upsert"-ing
+	//  one OrderUnlockRequest node.
+	OrderUnlockRequestUpsertOne struct {
+		create *OrderUnlockRequestCreate
+	}
+
+	// OrderUnlockRequestUpsert is the "OnConflict" setter.
+	OrderUnlockRequestUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetReason sets the "reason" field.
+func (u *OrderUnlockRequestUpsert) SetReason(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldReason, v)
+	return u
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateReason() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldReason)
+	return u
+}
+
+// ClearReason clears the value of the "reason" field.
+func (u *OrderUnlockRequestUpsert) ClearReason() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldReason)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderUnlockRequestUpsert) SetStatus(v orderunlockrequest.Status) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateStatus() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldStatus)
+	return u
+}
+
+// SetDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsert) SetDingtalkProcessInstanceID(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldDingtalkProcessInstanceID, v)
+	return u
+}
+
+// UpdateDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateDingtalkProcessInstanceID() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldDingtalkProcessInstanceID)
+	return u
+}
+
+// ClearDingtalkProcessInstanceID clears the value of the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsert) ClearDingtalkProcessInstanceID() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldDingtalkProcessInstanceID)
+	return u
+}
+
+// SetDingtalkProcessCode sets the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsert) SetDingtalkProcessCode(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldDingtalkProcessCode, v)
+	return u
+}
+
+// UpdateDingtalkProcessCode sets the "dingtalk_process_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateDingtalkProcessCode() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldDingtalkProcessCode)
+	return u
+}
+
+// ClearDingtalkProcessCode clears the value of the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsert) ClearDingtalkProcessCode() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldDingtalkProcessCode)
+	return u
+}
+
+// SetDecidedBy sets the "decided_by" field.
+func (u *OrderUnlockRequestUpsert) SetDecidedBy(v uuid.UUID) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldDecidedBy, v)
+	return u
+}
+
+// UpdateDecidedBy sets the "decided_by" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateDecidedBy() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldDecidedBy)
+	return u
+}
+
+// ClearDecidedBy clears the value of the "decided_by" field.
+func (u *OrderUnlockRequestUpsert) ClearDecidedBy() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldDecidedBy)
+	return u
+}
+
+// SetDecidedAt sets the "decided_at" field.
+func (u *OrderUnlockRequestUpsert) SetDecidedAt(v time.Time) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldDecidedAt, v)
+	return u
+}
+
+// UpdateDecidedAt sets the "decided_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateDecidedAt() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldDecidedAt)
+	return u
+}
+
+// ClearDecidedAt clears the value of the "decided_at" field.
+func (u *OrderUnlockRequestUpsert) ClearDecidedAt() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldDecidedAt)
+	return u
+}
+
+// SetDecisionSource sets the "decision_source" field.
+func (u *OrderUnlockRequestUpsert) SetDecisionSource(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldDecisionSource, v)
+	return u
+}
+
+// UpdateDecisionSource sets the "decision_source" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateDecisionSource() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldDecisionSource)
+	return u
+}
+
+// ClearDecisionSource clears the value of the "decision_source" field.
+func (u *OrderUnlockRequestUpsert) ClearDecisionSource() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldDecisionSource)
+	return u
+}
+
+// SetFailureCode sets the "failure_code" field.
+func (u *OrderUnlockRequestUpsert) SetFailureCode(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldFailureCode, v)
+	return u
+}
+
+// UpdateFailureCode sets the "failure_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateFailureCode() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldFailureCode)
+	return u
+}
+
+// ClearFailureCode clears the value of the "failure_code" field.
+func (u *OrderUnlockRequestUpsert) ClearFailureCode() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldFailureCode)
+	return u
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (u *OrderUnlockRequestUpsert) SetFailureMessage(v string) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldFailureMessage, v)
+	return u
+}
+
+// UpdateFailureMessage sets the "failure_message" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateFailureMessage() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldFailureMessage)
+	return u
+}
+
+// ClearFailureMessage clears the value of the "failure_message" field.
+func (u *OrderUnlockRequestUpsert) ClearFailureMessage() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldFailureMessage)
+	return u
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsert) SetSupersededByRequestID(v uuid.UUID) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldSupersededByRequestID, v)
+	return u
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateSupersededByRequestID() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldSupersededByRequestID)
+	return u
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsert) ClearSupersededByRequestID() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldSupersededByRequestID)
+	return u
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsert) SetUnlockedAt(v time.Time) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldUnlockedAt, v)
+	return u
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateUnlockedAt() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldUnlockedAt)
+	return u
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsert) ClearUnlockedAt() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldUnlockedAt)
+	return u
+}
+
+// SetResultOrderVersion sets the "result_order_version" field.
+func (u *OrderUnlockRequestUpsert) SetResultOrderVersion(v uint64) *OrderUnlockRequestUpsert {
+	u.Set(orderunlockrequest.FieldResultOrderVersion, v)
+	return u
+}
+
+// UpdateResultOrderVersion sets the "result_order_version" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsert) UpdateResultOrderVersion() *OrderUnlockRequestUpsert {
+	u.SetExcluded(orderunlockrequest.FieldResultOrderVersion)
+	return u
+}
+
+// AddResultOrderVersion adds v to the "result_order_version" field.
+func (u *OrderUnlockRequestUpsert) AddResultOrderVersion(v uint64) *OrderUnlockRequestUpsert {
+	u.Add(orderunlockrequest.FieldResultOrderVersion, v)
+	return u
+}
+
+// ClearResultOrderVersion clears the value of the "result_order_version" field.
+func (u *OrderUnlockRequestUpsert) ClearResultOrderVersion() *OrderUnlockRequestUpsert {
+	u.SetNull(orderunlockrequest.FieldResultOrderVersion)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderunlockrequest.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUnlockRequestUpsertOne) UpdateNewValues() *OrderUnlockRequestUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(orderunlockrequest.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(orderunlockrequest.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.OrganizationID(); exists {
+			s.SetIgnore(orderunlockrequest.FieldOrganizationID)
+		}
+		if _, exists := u.create.mutation.OrderID(); exists {
+			s.SetIgnore(orderunlockrequest.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.OrderNo(); exists {
+			s.SetIgnore(orderunlockrequest.FieldOrderNo)
+		}
+		if _, exists := u.create.mutation.BusinessType(); exists {
+			s.SetIgnore(orderunlockrequest.FieldBusinessType)
+		}
+		if _, exists := u.create.mutation.LockRecordID(); exists {
+			s.SetIgnore(orderunlockrequest.FieldLockRecordID)
+		}
+		if _, exists := u.create.mutation.LockGeneration(); exists {
+			s.SetIgnore(orderunlockrequest.FieldLockGeneration)
+		}
+		if _, exists := u.create.mutation.RequestedBy(); exists {
+			s.SetIgnore(orderunlockrequest.FieldRequestedBy)
+		}
+		if _, exists := u.create.mutation.RequestedAt(); exists {
+			s.SetIgnore(orderunlockrequest.FieldRequestedAt)
+		}
+		if _, exists := u.create.mutation.ExpectedOrderVersion(); exists {
+			s.SetIgnore(orderunlockrequest.FieldExpectedOrderVersion)
+		}
+		if _, exists := u.create.mutation.IdempotencyKey(); exists {
+			s.SetIgnore(orderunlockrequest.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.RequestFingerprint(); exists {
+			s.SetIgnore(orderunlockrequest.FieldRequestFingerprint)
+		}
+		if _, exists := u.create.mutation.Route(); exists {
+			s.SetIgnore(orderunlockrequest.FieldRoute)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrderUnlockRequestUpsertOne) Ignore() *OrderUnlockRequestUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUnlockRequestUpsertOne) DoNothing() *OrderUnlockRequestUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderUnlockRequestCreate.OnConflict
+// documentation for more info.
+func (u *OrderUnlockRequestUpsertOne) Update(set func(*OrderUnlockRequestUpsert)) *OrderUnlockRequestUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUnlockRequestUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetReason sets the "reason" field.
+func (u *OrderUnlockRequestUpsertOne) SetReason(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetReason(v)
+	})
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateReason() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateReason()
+	})
+}
+
+// ClearReason clears the value of the "reason" field.
+func (u *OrderUnlockRequestUpsertOne) ClearReason() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearReason()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderUnlockRequestUpsertOne) SetStatus(v orderunlockrequest.Status) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateStatus() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsertOne) SetDingtalkProcessInstanceID(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDingtalkProcessInstanceID(v)
+	})
+}
+
+// UpdateDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateDingtalkProcessInstanceID() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDingtalkProcessInstanceID()
+	})
+}
+
+// ClearDingtalkProcessInstanceID clears the value of the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsertOne) ClearDingtalkProcessInstanceID() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDingtalkProcessInstanceID()
+	})
+}
+
+// SetDingtalkProcessCode sets the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsertOne) SetDingtalkProcessCode(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDingtalkProcessCode(v)
+	})
+}
+
+// UpdateDingtalkProcessCode sets the "dingtalk_process_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateDingtalkProcessCode() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDingtalkProcessCode()
+	})
+}
+
+// ClearDingtalkProcessCode clears the value of the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsertOne) ClearDingtalkProcessCode() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDingtalkProcessCode()
+	})
+}
+
+// SetDecidedBy sets the "decided_by" field.
+func (u *OrderUnlockRequestUpsertOne) SetDecidedBy(v uuid.UUID) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecidedBy(v)
+	})
+}
+
+// UpdateDecidedBy sets the "decided_by" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateDecidedBy() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecidedBy()
+	})
+}
+
+// ClearDecidedBy clears the value of the "decided_by" field.
+func (u *OrderUnlockRequestUpsertOne) ClearDecidedBy() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecidedBy()
+	})
+}
+
+// SetDecidedAt sets the "decided_at" field.
+func (u *OrderUnlockRequestUpsertOne) SetDecidedAt(v time.Time) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecidedAt(v)
+	})
+}
+
+// UpdateDecidedAt sets the "decided_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateDecidedAt() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecidedAt()
+	})
+}
+
+// ClearDecidedAt clears the value of the "decided_at" field.
+func (u *OrderUnlockRequestUpsertOne) ClearDecidedAt() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecidedAt()
+	})
+}
+
+// SetDecisionSource sets the "decision_source" field.
+func (u *OrderUnlockRequestUpsertOne) SetDecisionSource(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecisionSource(v)
+	})
+}
+
+// UpdateDecisionSource sets the "decision_source" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateDecisionSource() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecisionSource()
+	})
+}
+
+// ClearDecisionSource clears the value of the "decision_source" field.
+func (u *OrderUnlockRequestUpsertOne) ClearDecisionSource() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecisionSource()
+	})
+}
+
+// SetFailureCode sets the "failure_code" field.
+func (u *OrderUnlockRequestUpsertOne) SetFailureCode(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetFailureCode(v)
+	})
+}
+
+// UpdateFailureCode sets the "failure_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateFailureCode() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateFailureCode()
+	})
+}
+
+// ClearFailureCode clears the value of the "failure_code" field.
+func (u *OrderUnlockRequestUpsertOne) ClearFailureCode() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearFailureCode()
+	})
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (u *OrderUnlockRequestUpsertOne) SetFailureMessage(v string) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetFailureMessage(v)
+	})
+}
+
+// UpdateFailureMessage sets the "failure_message" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateFailureMessage() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateFailureMessage()
+	})
+}
+
+// ClearFailureMessage clears the value of the "failure_message" field.
+func (u *OrderUnlockRequestUpsertOne) ClearFailureMessage() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearFailureMessage()
+	})
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsertOne) SetSupersededByRequestID(v uuid.UUID) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetSupersededByRequestID(v)
+	})
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateSupersededByRequestID() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateSupersededByRequestID()
+	})
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsertOne) ClearSupersededByRequestID() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearSupersededByRequestID()
+	})
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsertOne) SetUnlockedAt(v time.Time) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetUnlockedAt(v)
+	})
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateUnlockedAt() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateUnlockedAt()
+	})
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsertOne) ClearUnlockedAt() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearUnlockedAt()
+	})
+}
+
+// SetResultOrderVersion sets the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertOne) SetResultOrderVersion(v uint64) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetResultOrderVersion(v)
+	})
+}
+
+// AddResultOrderVersion adds v to the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertOne) AddResultOrderVersion(v uint64) *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.AddResultOrderVersion(v)
+	})
+}
+
+// UpdateResultOrderVersion sets the "result_order_version" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertOne) UpdateResultOrderVersion() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateResultOrderVersion()
+	})
+}
+
+// ClearResultOrderVersion clears the value of the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertOne) ClearResultOrderVersion() *OrderUnlockRequestUpsertOne {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearResultOrderVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderUnlockRequestUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderUnlockRequestCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUnlockRequestUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrderUnlockRequestUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrderUnlockRequestUpsertOne.ID is not supported by MySQL driver. Use OrderUnlockRequestUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrderUnlockRequestUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrderUnlockRequestCreateBulk is the builder for creating many OrderUnlockRequest entities in bulk.
 type OrderUnlockRequestCreateBulk struct {
 	config
 	err      error
 	builders []*OrderUnlockRequestCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrderUnlockRequest entities in the database.
@@ -857,6 +1504,7 @@ func (_c *OrderUnlockRequestCreateBulk) Save(ctx context.Context) ([]*OrderUnloc
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -903,6 +1551,411 @@ func (_c *OrderUnlockRequestCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrderUnlockRequestCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrderUnlockRequest.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrderUnlockRequestUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrderUnlockRequestCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrderUnlockRequestUpsertBulk {
+	_c.conflict = opts
+	return &OrderUnlockRequestUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrderUnlockRequestCreateBulk) OnConflictColumns(columns ...string) *OrderUnlockRequestUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrderUnlockRequestUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrderUnlockRequestUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrderUnlockRequest nodes.
+type OrderUnlockRequestUpsertBulk struct {
+	create *OrderUnlockRequestCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(orderunlockrequest.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrderUnlockRequestUpsertBulk) UpdateNewValues() *OrderUnlockRequestUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(orderunlockrequest.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(orderunlockrequest.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.OrganizationID(); exists {
+				s.SetIgnore(orderunlockrequest.FieldOrganizationID)
+			}
+			if _, exists := b.mutation.OrderID(); exists {
+				s.SetIgnore(orderunlockrequest.FieldOrderID)
+			}
+			if _, exists := b.mutation.OrderNo(); exists {
+				s.SetIgnore(orderunlockrequest.FieldOrderNo)
+			}
+			if _, exists := b.mutation.BusinessType(); exists {
+				s.SetIgnore(orderunlockrequest.FieldBusinessType)
+			}
+			if _, exists := b.mutation.LockRecordID(); exists {
+				s.SetIgnore(orderunlockrequest.FieldLockRecordID)
+			}
+			if _, exists := b.mutation.LockGeneration(); exists {
+				s.SetIgnore(orderunlockrequest.FieldLockGeneration)
+			}
+			if _, exists := b.mutation.RequestedBy(); exists {
+				s.SetIgnore(orderunlockrequest.FieldRequestedBy)
+			}
+			if _, exists := b.mutation.RequestedAt(); exists {
+				s.SetIgnore(orderunlockrequest.FieldRequestedAt)
+			}
+			if _, exists := b.mutation.ExpectedOrderVersion(); exists {
+				s.SetIgnore(orderunlockrequest.FieldExpectedOrderVersion)
+			}
+			if _, exists := b.mutation.IdempotencyKey(); exists {
+				s.SetIgnore(orderunlockrequest.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.RequestFingerprint(); exists {
+				s.SetIgnore(orderunlockrequest.FieldRequestFingerprint)
+			}
+			if _, exists := b.mutation.Route(); exists {
+				s.SetIgnore(orderunlockrequest.FieldRoute)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrderUnlockRequest.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrderUnlockRequestUpsertBulk) Ignore() *OrderUnlockRequestUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrderUnlockRequestUpsertBulk) DoNothing() *OrderUnlockRequestUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrderUnlockRequestCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrderUnlockRequestUpsertBulk) Update(set func(*OrderUnlockRequestUpsert)) *OrderUnlockRequestUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrderUnlockRequestUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetReason sets the "reason" field.
+func (u *OrderUnlockRequestUpsertBulk) SetReason(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetReason(v)
+	})
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateReason() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateReason()
+	})
+}
+
+// ClearReason clears the value of the "reason" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearReason() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearReason()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *OrderUnlockRequestUpsertBulk) SetStatus(v orderunlockrequest.Status) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateStatus() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsertBulk) SetDingtalkProcessInstanceID(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDingtalkProcessInstanceID(v)
+	})
+}
+
+// UpdateDingtalkProcessInstanceID sets the "dingtalk_process_instance_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateDingtalkProcessInstanceID() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDingtalkProcessInstanceID()
+	})
+}
+
+// ClearDingtalkProcessInstanceID clears the value of the "dingtalk_process_instance_id" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearDingtalkProcessInstanceID() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDingtalkProcessInstanceID()
+	})
+}
+
+// SetDingtalkProcessCode sets the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsertBulk) SetDingtalkProcessCode(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDingtalkProcessCode(v)
+	})
+}
+
+// UpdateDingtalkProcessCode sets the "dingtalk_process_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateDingtalkProcessCode() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDingtalkProcessCode()
+	})
+}
+
+// ClearDingtalkProcessCode clears the value of the "dingtalk_process_code" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearDingtalkProcessCode() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDingtalkProcessCode()
+	})
+}
+
+// SetDecidedBy sets the "decided_by" field.
+func (u *OrderUnlockRequestUpsertBulk) SetDecidedBy(v uuid.UUID) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecidedBy(v)
+	})
+}
+
+// UpdateDecidedBy sets the "decided_by" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateDecidedBy() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecidedBy()
+	})
+}
+
+// ClearDecidedBy clears the value of the "decided_by" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearDecidedBy() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecidedBy()
+	})
+}
+
+// SetDecidedAt sets the "decided_at" field.
+func (u *OrderUnlockRequestUpsertBulk) SetDecidedAt(v time.Time) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecidedAt(v)
+	})
+}
+
+// UpdateDecidedAt sets the "decided_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateDecidedAt() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecidedAt()
+	})
+}
+
+// ClearDecidedAt clears the value of the "decided_at" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearDecidedAt() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecidedAt()
+	})
+}
+
+// SetDecisionSource sets the "decision_source" field.
+func (u *OrderUnlockRequestUpsertBulk) SetDecisionSource(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetDecisionSource(v)
+	})
+}
+
+// UpdateDecisionSource sets the "decision_source" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateDecisionSource() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateDecisionSource()
+	})
+}
+
+// ClearDecisionSource clears the value of the "decision_source" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearDecisionSource() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearDecisionSource()
+	})
+}
+
+// SetFailureCode sets the "failure_code" field.
+func (u *OrderUnlockRequestUpsertBulk) SetFailureCode(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetFailureCode(v)
+	})
+}
+
+// UpdateFailureCode sets the "failure_code" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateFailureCode() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateFailureCode()
+	})
+}
+
+// ClearFailureCode clears the value of the "failure_code" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearFailureCode() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearFailureCode()
+	})
+}
+
+// SetFailureMessage sets the "failure_message" field.
+func (u *OrderUnlockRequestUpsertBulk) SetFailureMessage(v string) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetFailureMessage(v)
+	})
+}
+
+// UpdateFailureMessage sets the "failure_message" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateFailureMessage() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateFailureMessage()
+	})
+}
+
+// ClearFailureMessage clears the value of the "failure_message" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearFailureMessage() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearFailureMessage()
+	})
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsertBulk) SetSupersededByRequestID(v uuid.UUID) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetSupersededByRequestID(v)
+	})
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateSupersededByRequestID() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateSupersededByRequestID()
+	})
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearSupersededByRequestID() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearSupersededByRequestID()
+	})
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsertBulk) SetUnlockedAt(v time.Time) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetUnlockedAt(v)
+	})
+}
+
+// UpdateUnlockedAt sets the "unlocked_at" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateUnlockedAt() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateUnlockedAt()
+	})
+}
+
+// ClearUnlockedAt clears the value of the "unlocked_at" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearUnlockedAt() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearUnlockedAt()
+	})
+}
+
+// SetResultOrderVersion sets the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertBulk) SetResultOrderVersion(v uint64) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.SetResultOrderVersion(v)
+	})
+}
+
+// AddResultOrderVersion adds v to the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertBulk) AddResultOrderVersion(v uint64) *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.AddResultOrderVersion(v)
+	})
+}
+
+// UpdateResultOrderVersion sets the "result_order_version" field to the value that was provided on create.
+func (u *OrderUnlockRequestUpsertBulk) UpdateResultOrderVersion() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.UpdateResultOrderVersion()
+	})
+}
+
+// ClearResultOrderVersion clears the value of the "result_order_version" field.
+func (u *OrderUnlockRequestUpsertBulk) ClearResultOrderVersion() *OrderUnlockRequestUpsertBulk {
+	return u.Update(func(s *OrderUnlockRequestUpsert) {
+		s.ClearResultOrderVersion()
+	})
+}
+
+// Exec executes the query.
+func (u *OrderUnlockRequestUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrderUnlockRequestCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrderUnlockRequestCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrderUnlockRequestUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -310,7 +310,7 @@ func TestAuthorizationUsesPartnerOrganizationForDetailSubresource(t *testing.T) 
 	authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{
 		session:   &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: tianjinID, ExpiresAt: time.Now().Add(time.Hour)},
 		principal: principal,
-	}, policy, nil, nil, nil)
+	}, policy, nil, nil, nil, nil, nil, nil)
 	partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
 	called := false
 	organizationID := uuid.Nil

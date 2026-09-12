@@ -40,6 +40,8 @@ const (
 	FieldDingtalkUserid = "dingtalk_userid"
 	// FieldDingtalkName holds the string denoting the dingtalk_name field in the database.
 	FieldDingtalkName = "dingtalk_name"
+	// FieldDingtalkRequestedOrganizationID holds the string denoting the dingtalk_requested_organization_id field in the database.
+	FieldDingtalkRequestedOrganizationID = "dingtalk_requested_organization_id"
 	// FieldIsBootstrapAdmin holds the string denoting the is_bootstrap_admin field in the database.
 	FieldIsBootstrapAdmin = "is_bootstrap_admin"
 	// FieldEnabled holds the string denoting the enabled field in the database.
@@ -144,6 +146,12 @@ const (
 	EdgeCreatedSeaDocumentModeChangeEvents = "created_sea_document_mode_change_events"
 	// EdgeConfirmedSeaSharedContainers holds the string denoting the confirmed_sea_shared_containers edge name in mutations.
 	EdgeConfirmedSeaSharedContainers = "confirmed_sea_shared_containers"
+	// EdgeCreatedDingtalkInvitations holds the string denoting the created_dingtalk_invitations edge name in mutations.
+	EdgeCreatedDingtalkInvitations = "created_dingtalk_invitations"
+	// EdgeConsumedDingtalkInvitations holds the string denoting the consumed_dingtalk_invitations edge name in mutations.
+	EdgeConsumedDingtalkInvitations = "consumed_dingtalk_invitations"
+	// EdgeDingtalkRequestedOrganization holds the string denoting the dingtalk_requested_organization edge name in mutations.
+	EdgeDingtalkRequestedOrganization = "dingtalk_requested_organization"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -489,6 +497,27 @@ const (
 	ConfirmedSeaSharedContainersInverseTable = "sea_shared_containers"
 	// ConfirmedSeaSharedContainersColumn is the table column denoting the confirmed_sea_shared_containers relation/edge.
 	ConfirmedSeaSharedContainersColumn = "confirmed_by"
+	// CreatedDingtalkInvitationsTable is the table that holds the created_dingtalk_invitations relation/edge.
+	CreatedDingtalkInvitationsTable = "ding_talk_invitations"
+	// CreatedDingtalkInvitationsInverseTable is the table name for the DingTalkInvitation entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkinvitation" package.
+	CreatedDingtalkInvitationsInverseTable = "ding_talk_invitations"
+	// CreatedDingtalkInvitationsColumn is the table column denoting the created_dingtalk_invitations relation/edge.
+	CreatedDingtalkInvitationsColumn = "invited_by"
+	// ConsumedDingtalkInvitationsTable is the table that holds the consumed_dingtalk_invitations relation/edge.
+	ConsumedDingtalkInvitationsTable = "ding_talk_invitations"
+	// ConsumedDingtalkInvitationsInverseTable is the table name for the DingTalkInvitation entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkinvitation" package.
+	ConsumedDingtalkInvitationsInverseTable = "ding_talk_invitations"
+	// ConsumedDingtalkInvitationsColumn is the table column denoting the consumed_dingtalk_invitations relation/edge.
+	ConsumedDingtalkInvitationsColumn = "consumed_by"
+	// DingtalkRequestedOrganizationTable is the table that holds the dingtalk_requested_organization relation/edge.
+	DingtalkRequestedOrganizationTable = "users"
+	// DingtalkRequestedOrganizationInverseTable is the table name for the Organization entity.
+	// It exists in this package in order to avoid circular dependency with the "organization" package.
+	DingtalkRequestedOrganizationInverseTable = "organizations"
+	// DingtalkRequestedOrganizationColumn is the table column denoting the dingtalk_requested_organization relation/edge.
+	DingtalkRequestedOrganizationColumn = "dingtalk_requested_organization_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -506,6 +535,7 @@ var Columns = []string{
 	FieldDingtalkUnionid,
 	FieldDingtalkUserid,
 	FieldDingtalkName,
+	FieldDingtalkRequestedOrganizationID,
 	FieldIsBootstrapAdmin,
 	FieldEnabled,
 	FieldSearchKeywords,
@@ -628,6 +658,11 @@ func ByDingtalkUserid(opts ...sql.OrderTermOption) OrderOption {
 // ByDingtalkName orders the results by the dingtalk_name field.
 func ByDingtalkName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDingtalkName, opts...).ToFunc()
+}
+
+// ByDingtalkRequestedOrganizationID orders the results by the dingtalk_requested_organization_id field.
+func ByDingtalkRequestedOrganizationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkRequestedOrganizationID, opts...).ToFunc()
 }
 
 // ByIsBootstrapAdmin orders the results by the is_bootstrap_admin field.
@@ -1330,6 +1365,41 @@ func ByConfirmedSeaSharedContainers(term sql.OrderTerm, terms ...sql.OrderTerm) 
 		sqlgraph.OrderByNeighborTerms(s, newConfirmedSeaSharedContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCreatedDingtalkInvitationsCount orders the results by created_dingtalk_invitations count.
+func ByCreatedDingtalkInvitationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedDingtalkInvitationsStep(), opts...)
+	}
+}
+
+// ByCreatedDingtalkInvitations orders the results by created_dingtalk_invitations terms.
+func ByCreatedDingtalkInvitations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedDingtalkInvitationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByConsumedDingtalkInvitationsCount orders the results by consumed_dingtalk_invitations count.
+func ByConsumedDingtalkInvitationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConsumedDingtalkInvitationsStep(), opts...)
+	}
+}
+
+// ByConsumedDingtalkInvitations orders the results by consumed_dingtalk_invitations terms.
+func ByConsumedDingtalkInvitations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConsumedDingtalkInvitationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDingtalkRequestedOrganizationField orders the results by dingtalk_requested_organization field.
+func ByDingtalkRequestedOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkRequestedOrganizationStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1671,5 +1741,26 @@ func newConfirmedSeaSharedContainersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ConfirmedSeaSharedContainersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedSeaSharedContainersTable, ConfirmedSeaSharedContainersColumn),
+	)
+}
+func newCreatedDingtalkInvitationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedDingtalkInvitationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedDingtalkInvitationsTable, CreatedDingtalkInvitationsColumn),
+	)
+}
+func newConsumedDingtalkInvitationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConsumedDingtalkInvitationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConsumedDingtalkInvitationsTable, ConsumedDingtalkInvitationsColumn),
+	)
+}
+func newDingtalkRequestedOrganizationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkRequestedOrganizationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, DingtalkRequestedOrganizationTable, DingtalkRequestedOrganizationColumn),
 	)
 }
