@@ -289,4 +289,17 @@ describe('Login', () => {
       ),
     ).not.toBeInTheDocument();
   });
+
+  it('直接访问普通登录页（无 ?invite=）时清空 sessionStorage 残留邀请 Token', () => {
+    sessionStorage.setItem('dingtalk_invitation_token', 'stale-token-xyz');
+    window.history.replaceState({}, '', '/user/login');
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+
+    expect(sessionStorage.getItem('dingtalk_invitation_token')).toBeNull();
+  });
 });

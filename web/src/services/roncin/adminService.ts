@@ -53,6 +53,23 @@ export async function adminServiceCreateDingTalkInvitation(
   );
 }
 
+/** GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。 GET /api/v1/admin/dingtalk/invitations/${param0} */
+export async function adminServiceGetDingTalkInvitation(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceGetDingTalkInvitationParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.GetDingTalkInvitationResponse>(
+    `/api/v1/admin/dingtalk/invitations/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 DELETE /api/v1/admin/dingtalk/invitations/${param0} */
 export async function adminServiceRevokeDingTalkInvitation(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -149,6 +166,19 @@ export async function adminServiceTransferDingTalkRegistration(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。 GET /api/v1/admin/dingtalk/registrations/organizations */
+export async function adminServiceListTransferOrganizations(options?: {
+  [key: string]: any;
+}) {
+  return request<API.ListTransferOrganizationsResponse>(
+    "/api/v1/admin/dingtalk/registrations/organizations",
+    {
+      method: "GET",
       ...(options || {}),
     }
   );

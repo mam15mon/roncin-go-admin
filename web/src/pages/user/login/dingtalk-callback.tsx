@@ -63,7 +63,6 @@ export default function DingTalkCallback() {
     const token =
       sessionStorage.getItem('dingtalk_invitation_token') ||
       new URL(window.location.href).searchParams.get('invite') ||
-      new URL(window.location.href).searchParams.get('invitation_token') ||
       '';
     if (token) {
       setInvitationToken(token);

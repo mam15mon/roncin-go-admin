@@ -13,6 +13,7 @@ const accessState = vi.hoisted(() => ({
 const serviceMocks = vi.hoisted(() => ({
   listRegistrations: vi.fn(),
   listOrganizations: vi.fn(),
+  listTransferOrganizations: vi.fn(),
 }));
 
 const proTableState = vi.hoisted(() => ({
@@ -72,6 +73,7 @@ vi.mock('antd', () => ({
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListDingTalkRegistrations: serviceMocks.listRegistrations,
   adminServiceListOrganizations: serviceMocks.listOrganizations,
+  adminServiceListTransferOrganizations: serviceMocks.listTransferOrganizations,
 }));
 
 vi.mock('./components/dingtalk/RegistrationApproveModal', () => ({
@@ -101,7 +103,9 @@ describe('DingTalkRegistrationsPanel', () => {
   beforeEach(() => {
     serviceMocks.listRegistrations.mockReset();
     serviceMocks.listOrganizations.mockReset();
+    serviceMocks.listTransferOrganizations.mockReset();
     serviceMocks.listRegistrations.mockResolvedValue({ data: [], total: 0 });
+    serviceMocks.listTransferOrganizations.mockResolvedValue({ data: [] });
     proTableState.props = undefined;
     modalState.approve = undefined;
     modalState.reject = undefined;

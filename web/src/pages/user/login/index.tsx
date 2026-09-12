@@ -76,8 +76,7 @@ export default function Login() {
       .catch(() => setDingtalkEnabled(false));
 
     const url = new URL(window.location.href);
-    const inviteToken =
-      url.searchParams.get('invite') || url.searchParams.get('token');
+    const inviteToken = url.searchParams.get('invite');
     if (inviteToken) {
       sessionStorage.setItem('dingtalk_invitation_token', inviteToken);
       authServiceGetDingTalkInvitationInfo(
@@ -95,6 +94,8 @@ export default function Login() {
           );
           sessionStorage.removeItem('dingtalk_invitation_token');
         });
+    } else {
+      sessionStorage.removeItem('dingtalk_invitation_token');
     }
   }, []);
 

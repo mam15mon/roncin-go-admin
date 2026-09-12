@@ -1,7 +1,7 @@
-import { CopyOutlined } from '@ant-design/icons';
+import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { App, Button, Input, Modal, QRCode, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React from 'react';
+import React, { useRef } from 'react';
 import { DingTalkInvitationKind } from '@/enums.generated';
 
 export interface InvitationQrModalProps {
@@ -18,6 +18,7 @@ export default function InvitationQrModal({
   invitationUrl,
 }: InvitationQrModalProps) {
   const { message } = App.useApp();
+  const qrContainerRef = useRef<HTMLDivElement>(null);
 
   const fullUrl = React.useMemo(() => {
     if (invitationUrl) {
@@ -57,12 +58,40 @@ export default function InvitationQrModal({
     }
   };
 
+  const handleDownload = () => {
+    const canvas =
+      qrContainerRef.current?.querySelector<HTMLCanvasElement>('canvas');
+    if (!canvas) {
+      message.error('未找到二维码图片，无法下载');
+      return;
+    }
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    const name = invitation?.organizationName
+      ? `${invitation.organizationName}-邀请二维码`
+      : '邀请二维码';
+    a.download = `${name}.png`;
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    message.success('二维码已下载');
+  };
+
   return (
     <Modal
       title="邀请二维码与链接"
       open={open}
       onCancel={() => onOpenChange(false)}
       footer={[
+        <Button
+          key="download"
+          icon={<DownloadOutlined />}
+          onClick={handleDownload}
+          disabled={!fullUrl}
+        >
+          下载二维码
+        </Button>,
         <Button key="close" type="primary" onClick={() => onOpenChange(false)}>
           完成
         </Button>,
@@ -102,7 +131,7 @@ export default function InvitationQrModal({
           }}
         >
           {fullUrl ? (
-            <div data-testid="invitation-qrcode-container">
+            <div ref={qrContainerRef} data-testid="invitation-qrcode-container">
               <QRCode value={fullUrl} size={190} bordered={false} />
             </div>
           ) : (

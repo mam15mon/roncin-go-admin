@@ -22,6 +22,7 @@ import {
   DingTalkInvitationStatus,
 } from '@/enums.generated';
 import {
+  adminServiceGetDingTalkInvitation,
   adminServiceListDingTalkInvitations,
   adminServiceListOrganizations,
   adminServiceRevokeDingTalkInvitation,
@@ -233,10 +234,20 @@ export default function DingTalkInvitationsPanel() {
               size="small"
               icon={<QrcodeOutlined />}
               style={{ padding: 0 }}
-              onClick={() => {
-                setActiveQrInvitation(record);
-                setActiveQrUrl(undefined);
-                setQrModalOpen(true);
+              onClick={async () => {
+                if (!record.id) return;
+                try {
+                  const res = await adminServiceGetDingTalkInvitation({
+                    id: record.id,
+                  });
+                  if (res.data) {
+                    setActiveQrInvitation(res.data);
+                    setActiveQrUrl(res.invitationUrl);
+                    setQrModalOpen(true);
+                  }
+                } catch {
+                  // 异常由全局错误处理器提示
+                }
               }}
             >
               二维码

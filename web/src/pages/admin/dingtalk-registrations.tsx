@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   adminServiceListDingTalkRegistrations,
   adminServiceListOrganizations,
+  adminServiceListTransferOrganizations,
 } from '@/services/roncin/adminService';
 import { toTableRequest, unwrapList } from '@/utils/api';
 import RegistrationApproveModal from './components/dingtalk/RegistrationApproveModal';
@@ -33,18 +34,25 @@ export default function DingTalkRegistrationsPanel() {
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
     [],
   );
+  const [transferOrganizations, setTransferOrganizations] = useState<
+    API.AdminOrganization[]
+  >([]);
   const [approving, setApproving] = useState<API.DingTalkRegistration>();
   const [rejecting, setRejecting] = useState<API.DingTalkRegistration>();
   const [transferring, setTransferring] = useState<API.DingTalkRegistration>();
 
   useEffect(() => {
     // 总部兜底注册（未自选目标组织）的路由组织是组织树根，需要全量组织列表
-    // 解析根组织以加载可授予角色；转派也需要全量可选目标分公司列表。
+    // 解析根组织以加载可授予角色。
     if (access.canReadOrganizations) {
       adminServiceListOrganizations().then((response) =>
         setOrganizations(unwrapList(response)),
       );
     }
+    // 转派候选组织列表（仅返回启用中的公司节点，受邀请管理权限保护，分公司管理员可读）
+    adminServiceListTransferOrganizations()
+      .then((response) => setTransferOrganizations(unwrapList(response)))
+      .catch(() => {});
   }, [access.canReadOrganizations]);
 
   const columns: ProColumns<API.DingTalkRegistration>[] = [
@@ -185,7 +193,7 @@ export default function DingTalkRegistrationsPanel() {
           if (!open) setTransferring(undefined);
         }}
         formRef={transferFormRef}
-        organizations={organizations}
+        organizations={transferOrganizations}
         onReload={() => actionRef.current?.reload()}
       />
 

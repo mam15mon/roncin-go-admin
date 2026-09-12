@@ -178,6 +178,10 @@ declare namespace API {
     id: string;
   };
 
+  type AdminServiceGetDingTalkInvitationParams = {
+    id: string;
+  };
+
   type AdminServiceListAuditLogsParams = {
     page?: number;
     pageSize?: number;
@@ -1209,7 +1213,7 @@ declare namespace API {
     roleId?: string;
     /** 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。 */
     displayName?: string;
-    /** 有效期（小时）；缺省 72，允许 1-720。 */
+    /** 有效期（小时）；缺省 168（7 天），允许 1-720。 */
     expiresInHours?: number;
   };
 
@@ -2880,6 +2884,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetDingTalkInvitationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkInvitation;
+    invitationUrl?: string;
+    traceId?: string;
+  };
+
   type GetDingTalkLoginConfigResponse = {
     success?: boolean;
     code?: number;
@@ -3823,6 +3836,14 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListTransferOrganizationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization[];
+    traceId?: string;
   };
 
   type ListUserMembershipsResponse = {

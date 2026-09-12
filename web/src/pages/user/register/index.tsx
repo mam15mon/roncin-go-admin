@@ -28,7 +28,6 @@ export default function Register() {
 
     const token =
       new URL(window.location.href).searchParams.get('invite') ||
-      new URL(window.location.href).searchParams.get('token') ||
       sessionStorage.getItem('dingtalk_invitation_token');
     if (token) {
       sessionStorage.setItem('dingtalk_invitation_token', token);
@@ -39,7 +38,9 @@ export default function Register() {
         .then((response) => {
           if (response.data) setInvitationInfo(response.data);
         })
-        .catch(() => {});
+        .catch(() => {
+          sessionStorage.removeItem('dingtalk_invitation_token');
+        });
     }
   }, []);
 

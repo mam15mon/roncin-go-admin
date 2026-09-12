@@ -5,9 +5,9 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { DingTalkInvitationStatus } from '@/enums.generated';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DingTalkInvitationStatus } from '@/enums.generated';
 
 const accessState = vi.hoisted(() => ({
   value: {
@@ -29,6 +29,7 @@ const initialStateState = vi.hoisted(() => ({
 }));
 
 const serviceMocks = vi.hoisted(() => ({
+  getInvitation: vi.fn(),
   listInvitations: vi.fn(),
   listOrganizations: vi.fn(),
   revokeInvitation: vi.fn(),
@@ -77,6 +78,7 @@ vi.mock('antd', () => ({
 }));
 
 vi.mock('@/services/roncin/adminService', () => ({
+  adminServiceGetDingTalkInvitation: serviceMocks.getInvitation,
   adminServiceListDingTalkInvitations: serviceMocks.listInvitations,
   adminServiceListOrganizations: serviceMocks.listOrganizations,
   adminServiceRevokeDingTalkInvitation: serviceMocks.revokeInvitation,

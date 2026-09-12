@@ -169,6 +169,35 @@
       }
     },
     "/api/v1/admin/dingtalk/invitations/{id}": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "description": "GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。",
+        "operationId": "AdminService_GetDingTalkInvitation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.GetDingTalkInvitationResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "AdminService"
@@ -230,6 +259,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/admin.v1.ListDingTalkRegistrationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/dingtalk/registrations/organizations": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "description": "ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。",
+        "operationId": "AdminService_ListTransferOrganizations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.ListTransferOrganizationsResponse"
                 }
               }
             }
@@ -12577,7 +12627,7 @@
           },
           "expiresInHours": {
             "type": "integer",
-            "description": "有效期（小时）；缺省 72，允许 1-720。",
+            "description": "有效期（小时）；缺省 168（7 天），允许 1-720。",
             "format": "int32"
           }
         }
@@ -12893,6 +12943,30 @@
         },
         "description": "待审批注册：钉钉姓名/头像来自扫码返回，供管理员人工认领。"
       },
+      "admin.v1.GetDingTalkInvitationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.DingTalkInvitation"
+          },
+          "invitationUrl": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.ListAuditLogsResponse": {
         "type": "object",
         "properties": {
@@ -13090,6 +13164,30 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/admin.v1.AdminRole"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListTransferOrganizationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminOrganization"
             }
           },
           "traceId": {

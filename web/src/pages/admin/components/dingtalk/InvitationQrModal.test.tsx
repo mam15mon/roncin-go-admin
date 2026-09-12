@@ -6,15 +6,21 @@ import { DingTalkInvitationKind } from '@/enums.generated';
 const messageSuccessMock = vi.fn();
 
 vi.mock('antd', () => ({
-  App: { useApp: () => ({ message: { success: messageSuccessMock } }) },
+  App: {
+    useApp: () => ({
+      message: { success: messageSuccessMock, error: vi.fn() },
+    }),
+  },
   Button: ({
     children,
     onClick,
+    disabled,
   }: {
     children?: React.ReactNode;
     onClick?: () => void;
+    disabled?: boolean;
   }) => (
-    <button type="button" onClick={onClick}>
+    <button type="button" onClick={onClick} disabled={disabled}>
       {children}
     </button>
   ),
@@ -46,7 +52,10 @@ vi.mock('antd', () => ({
       </div>
     ) : null,
   QRCode: ({ value }: { value: string }) => (
-    <div data-testid="qrcode">{value}</div>
+    <div data-testid="qrcode">
+      <canvas />
+      {value}
+    </div>
   ),
   Space: ({ children }: { children?: React.ReactNode }) => (
     <div>{children}</div>
@@ -118,5 +127,29 @@ describe('InvitationQrModal', () => {
     expect(screen.getByText('成都分公司')).toBeInTheDocument();
     expect(screen.getByText('定向邀请码（单人有效）')).toBeInTheDocument();
     expect(screen.getByText(/138\*\*\*\*8000/)).toBeInTheDocument();
+  });
+
+  it('支持点击下载二维码按钮', () => {
+    HTMLCanvasElement.prototype.toDataURL = vi
+      .fn()
+      .mockReturnValue('data:image/png;base64,mock');
+    render(
+      <InvitationQrModal
+        open
+        onOpenChange={() => {}}
+        invitation={{
+          organizationName: '青岛分公司',
+          kind: DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC,
+          token: 'token-generic-999',
+        }}
+        invitationUrl="/login?invite=token-generic-999"
+      />,
+    );
+
+    const downloadBtn = screen.getByText('下载二维码');
+    expect(downloadBtn).toBeInTheDocument();
+    expect(downloadBtn).not.toBeDisabled();
+    fireEvent.click(downloadBtn);
+    expect(messageSuccessMock).toHaveBeenCalledWith('二维码已下载');
   });
 });
