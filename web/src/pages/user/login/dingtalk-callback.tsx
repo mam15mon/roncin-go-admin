@@ -8,6 +8,11 @@ import {
   authServiceRegisterDingTalkUser,
 } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
+import {
+  type LoginOrganizationOption,
+  OrganizationPicker,
+  resolveLoginOrganizationOptions,
+} from './components/organization-picker';
 import styles from './index.module.less';
 
 interface LoginError extends Error {
@@ -41,6 +46,9 @@ export default function DingTalkCallback() {
   const [registrationName, setRegistrationName] = useState('');
   const [registeredName, setRegisteredName] = useState('');
   const [registrationLoading, setRegistrationLoading] = useState(false);
+  const [organizationOptions, setOrganizationOptions] =
+    useState<LoginOrganizationOption[]>();
+  const pendingRedirectRef = useRef('/');
   const handled = useRef(false);
 
   useEffect(() => {
@@ -77,6 +85,17 @@ export default function DingTalkCallback() {
             currentUser: response.data?.currentUser,
           }));
         });
+        // 钉钉登录响应不携带组织候选列表，回退到 principal organizations；
+        // 多组织用户先选择进入组织，单组织直接进入。
+        const options = resolveLoginOrganizationOptions(
+          undefined,
+          response.data.currentUser,
+        );
+        if (options.length > 1) {
+          pendingRedirectRef.current = storedRedirect();
+          setOrganizationOptions(options);
+          return;
+        }
         message.success('钉钉登录成功');
         window.location.replace(storedRedirect());
       })
@@ -153,6 +172,24 @@ export default function DingTalkCallback() {
             </>
           }
         />
+      ) : organizationOptions ? (
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 520,
+            padding: '0 16px',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <OrganizationPicker
+            options={organizationOptions}
+            onEnter={() => {
+              message.success('钉钉登录成功');
+              window.location.replace(pendingRedirectRef.current);
+            }}
+          />
+        </div>
       ) : failure ? (
         <Result
           status="error"

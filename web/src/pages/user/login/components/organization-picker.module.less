@@ -1,0 +1,100 @@
+.picker {
+  width: 100%;
+  max-width: 480px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.orgCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: #1677ff;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.12);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.orgCardDefault {
+  border-color: #1677ff;
+  background-color: #f0f7ff;
+  box-shadow: 0 0 0 1px rgba(22, 119, 255, 0.25) inset;
+}
+
+.orgCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.orgName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.defaultTag {
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.orgCode {
+  font-size: 12px;
+  color: #8c8c8c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.cardSpin {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
