@@ -78,7 +78,11 @@ func (s *wecomAuthRepoStub) FindSession(context.Context, string, time.Time) (*Se
 	return nil, ErrSessionExpired
 }
 
-func (s *wecomAuthRepoStub) SwitchSessionOrganization(_ context.Context, _ string, _, _ uuid.UUID, _ time.Time, audit *AuditEvent) error {
+func (s *wecomAuthRepoStub) ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error) {
+	return nil, nil
+}
+
+func (s *wecomAuthRepoStub) RotateSession(_ context.Context, _ string, _ *Session, _ time.Time, audit *AuditEvent) error {
 	s.auditActions = append(s.auditActions, audit.Action)
 	return nil
 }

@@ -322,6 +322,31 @@ func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) 
 	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, PrimaryOrganizationID: primaryID}, nil
 }
 
+// ListEnabledMembershipOrganizations 返回用户「启用中成员资格 × 组织启用中」的候选组织快照，
+// 供登录组织选择与应用内切换入口共用同一谓词；排序由 biz 统一处理。
+func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]biz.OrganizationChoice, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	memberships, err := client.Membership.Query().
+		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
+		WithOrganization().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	choices := make([]biz.OrganizationChoice, 0, len(memberships))
+	for _, member := range memberships {
+		org, edgeErr := member.Edges.OrganizationOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: member.Primary})
+	}
+	return choices, nil
+}
+
 func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID uuid.UUID) (*biz.Principal, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -466,21 +491,47 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
 }
 
-func (r *authRepo) SwitchSessionOrganization(ctx context.Context, tokenHash string, userID, organizationID uuid.UUID, now time.Time, audit *biz.AuditEvent) error {
+// RotateSession 在同一事务内完成会话令牌轮转：校验目标成员资格（ForShare）→ 锁定当前
+// 会话行（ForUpdate）→ 新建目标组织会话（沿用当前会话的 UA/IP）→ 失效旧令牌 → 写审计。
+// 只轮转当前令牌，同一用户其他设备的会话不受影响。
+func (r *authRepo) RotateSession(ctx context.Context, tokenHash string, next *biz.Session, now time.Time, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		exists, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Exist(ctx)
+		// 事务内复核成员资格，防止校验与轮转之间成员资格被停用（TOCTOU）。
+		exists, queryErr := tx.Membership.Query().Where(
+			membership.UserIDEQ(next.UserID),
+			membership.OrganizationIDEQ(next.OrganizationID),
+			membership.EnabledEQ(true),
+			membership.HasOrganizationWith(organization.EnabledEQ(true)),
+		).ForShare().Exist(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
 		if !exists {
-			return biz.ErrOrganizationForbidden
+			return biz.ErrAuthOrganizationForbidden
 		}
-		updated, updateErr := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now)).SetOrganizationID(organizationID).Save(ctx)
-		if updateErr != nil {
-			return updateErr
+		current, queryErr := tx.Session.Query().Where(
+			sessionent.TokenHashEQ(tokenHash),
+			sessionent.RevokedAtIsNil(),
+			sessionent.ExpiresAtGT(now),
+		).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrSessionExpired, nil)
 		}
-		if updated != 1 {
+		if current.UserID != next.UserID {
 			return biz.ErrSessionExpired
+		}
+		if _, createErr := tx.Session.Create().
+			SetTokenHash(next.TokenHash).
+			SetUserID(next.UserID).
+			SetOrganizationID(next.OrganizationID).
+			SetExpiresAt(next.ExpiresAt).
+			SetNillableUserAgent(&current.UserAgent).
+			SetNillableIPAddress(&current.IPAddress).
+			Save(ctx); createErr != nil {
+			return createErr
+		}
+		if _, updateErr := current.Update().SetRevokedAt(now).Save(ctx); updateErr != nil {
+			return updateErr
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

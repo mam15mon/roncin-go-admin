@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	nethttp "net/http"
+	"strings"
 	"time"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
@@ -28,12 +29,16 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 	if tr, ok := transport.FromServerContext(ctx); ok {
 		userAgent = tr.RequestHeader().Get("User-Agent")
 	}
-	token, principal, expiresAt, err := s.usecase.Login(ctx, request.GetUsername(), request.GetPassword(), userAgent, requestmeta.IPAddress(ctx))
+	organizationID, err := parseOptionalOrganizationID(request.GetOrganizationId())
 	if err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, token, expiresAt, 0)
-	return ok(ctx, &v1.LoginResponse{Data: principalToAPI(principal)}), nil
+	result, err := s.usecase.Login(ctx, request.GetUsername(), request.GetPassword(), organizationID, userAgent, requestmeta.IPAddress(ctx))
+	if err != nil {
+		return nil, err
+	}
+	s.setCookie(ctx, result.Token, result.ExpiresAt, 0)
+	return ok(ctx, &v1.LoginResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
 func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *v1.GetWeComLoginConfigRequest) (*v1.GetWeComLoginConfigResponse, error) {
@@ -149,13 +154,14 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 	}
 	organizationID, err := uuid.Parse(request.GetOrganizationId())
 	if err != nil {
-		return nil, biz.ErrOrganizationForbidden
+		return nil, biz.ErrAuthOrganizationForbidden
 	}
-	next, err := s.usecase.SwitchOrganization(ctx, principal, organizationID)
+	result, err := s.usecase.SwitchOrganization(ctx, principal, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.SwitchOrganizationResponse{Data: principalToAPI(next)}), nil
+	s.setCookie(ctx, result.Token, result.ExpiresAt, 0)
+	return ok(ctx, &v1.SwitchOrganizationResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
 func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {
@@ -193,6 +199,27 @@ func parseSameSite(value string) nethttp.SameSite {
 		return nethttp.SameSiteStrictMode
 	}
 	return nethttp.SameSiteLaxMode
+}
+
+func organizationChoicesToAPI(choices []biz.OrganizationChoice) []*v1.OrganizationChoice {
+	result := make([]*v1.OrganizationChoice, 0, len(choices))
+	for _, choice := range choices {
+		result = append(result, &v1.OrganizationChoice{OrganizationId: choice.OrganizationID.String(), OrganizationName: choice.OrganizationName, OrganizationCode: choice.OrganizationCode, IsDefault: choice.IsDefault})
+	}
+	return result
+}
+
+// parseOptionalOrganizationID 解析登录请求可选的所选组织；空串表示未选择（沿用默认组织）。
+func parseOptionalOrganizationID(raw string) (uuid.UUID, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return uuid.Nil, nil
+	}
+	organizationID, err := uuid.Parse(trimmed)
+	if err != nil {
+		return uuid.Nil, biz.ErrAuthOrganizationInvalid
+	}
+	return organizationID, nil
 }
 
 func principalToAPI(principal *biz.Principal) *v1.CurrentUser {

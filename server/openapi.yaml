@@ -7952,6 +7952,9 @@ components:
                     type: string
                 password:
                     type: string
+                organizationId:
+                    type: string
+                    description: 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
         auth.v1.LoginResponse:
             type: object
             properties:
@@ -7966,6 +7969,11 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 traceId:
                     type: string
+                organizationChoices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.OrganizationChoice'
+                    description: 本人启用中成员资格组织候选列表（默认组织置首并标记）。
         auth.v1.LogoutRequest:
             type: object
             properties: {}
@@ -8006,6 +8014,22 @@ components:
                     type: string
                 baseCurrency:
                     type: string
+        auth.v1.OrganizationChoice:
+            required:
+                - organizationId
+                - organizationName
+                - organizationCode
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                organizationCode:
+                    type: string
+                isDefault:
+                    type: boolean
+            description: OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。
         auth.v1.RegisterDingTalkUserRequest:
             type: object
             properties: {}
@@ -8051,6 +8075,11 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 traceId:
                     type: string
+                organizationChoices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.OrganizationChoice'
+                    description: 与登录响应同构：切换后的成员资格组织候选列表。
         auth.v1.WeComLoginConfig:
             type: object
             properties:
