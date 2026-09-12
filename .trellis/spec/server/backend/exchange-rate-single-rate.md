@@ -14,8 +14,14 @@
 ## 2. Signatures
 
 ```go
-// internal/biz/exchange_rate.go
-ResolveRate(ctx context.Context, orgID uuid.UUID, currency string, targetDate string) (decimal.Decimal, error)
+// internal/biz/exchange_rate.go —— 解析结果携带来源（SYSTEM 直连 / DERIVED 套算）
+ResolveRate(ctx context.Context, orgID uuid.UUID, currency string, targetDate string) (*ResolvedRate, error)
+ResolveBaseRate(ctx context.Context, orgID uuid.UUID, fromCurrency, toCurrency, targetDate string) (*ResolvedRate, error)
+
+// data 层交叉套算编排（直连优先 → pivot 两腿 → fail-closed）
+resolveWithCross: (from → to) 直接行命中返回 SYSTEM；
+  否则 (from→pivot) ÷ (to→pivot)，pivot = 树根总部本位币（ResolveContext.PivotCurrency），
+  RoundBank(8) 返回 DERIVED
 ```
 
 ```text
@@ -37,9 +43,12 @@ Get/UpdateCustomSetting）已从契约移除。
 - **归属与写入**：汇率行 `organization_id` 恒为组织树根（总部）。data 层写入前用
   `requireHeadquarters`（复用 `headquartersOrganizationID` 助手，同费用科目模式）校验调用组织
   即总部；**禁止**重新引入"分公司写入重定向到总部行"的逻辑——两者互斥，重定向即越权通道。
-- **解析**：`currency == 组织基准币种` 直接返回 `1`；否则按 `targetDate` 命中总部行
-  `effective_from <= t < effective_to`（to 为空即开区间）且 `is_active`；命中多行返回
-  `ErrExchangeRateConflict`，未命中返回 `ErrExchangeRateMissing`，不做任何日期回退。
+- **解析**：`currency == 组织基准币种` 直接返回 `1`；否则先查直连行（`from → to`，总部行，
+  `effective_from <= t < effective_to` 且 `is_active`），未命中且 from/to 都非基准币时
+  **交叉套算**：两腿 `(from→pivot)`、`(to→pivot)`（pivot=树根本位币，通常 CNY），
+  `cross = legFrom ÷ legTo`（`RoundBank(8)`，to 腿非正数按缺失处理）。命中多行返回
+  `ErrExchangeRateConflict`，任一腿未命中返回 `ErrExchangeRateMissing`，不做任何日期回退。
+  **直连行永远优先于套算值**；财务显式维护的直连行不被推导覆盖。
 - **各消费方的业务日期固定**（这是类型体系删除后"时间点"语义的唯一载体，不得混用）：
 
 | 消费方 | 日期 |
@@ -53,16 +62,19 @@ Get/UpdateCustomSetting）已从契约移除。
 - **导入**：模板版本 v2，列为「原币/本币/折本币汇率/生效开始/生效结束」；旧模板文件被版本
   校验拒绝；Preview/Confirm 均要求调用组织为总部。
 - 汇率快照字段（`exchange_rate/exchange_rate_source/exchange_rate_date`）保留在费用/账单/
-  流水/发票实体上，新写入只有 `SYSTEM` 与 `MANUAL`（手工覆盖）两种来源；系统解析不再回填
-  `exchange_rate_setting_id`。
+  流水/发票实体上，来源三态：`SYSTEM`（直连命中）/ `DERIVED`（交叉套算推导）/
+  `MANUAL`（手工覆盖），由解析结果透传，禁止硬编码；系统解析不回填
+  `exchange_rate_setting_id`。套算是纯推导：不落汇率表行、不缓存、不加录入界面。
 
 ## 4. Validation & Error Matrix
 
 | 条件 | 服务端行为 |
 | --- | --- |
 | 非总部组织调用 Create/Update/Disable 或导入 | 拒绝（总部写防御），不得静默重定向 |
-| 目标日期缺少有效启用汇率 | `ErrExchangeRateMissing`，禁止用 `1`、`0` 或其他日期回退 |
-| 同键多行命中（数据异常） | `ErrExchangeRateConflict` |
+| 直连行存在 | 用直连值，来源 SYSTEM（即使套算也可行） |
+| 直连缺失、两腿齐 | 套算 `RoundBank(8)`，来源 DERIVED |
+| from 腿或 to 腿缺失 / to 腿非正 | `ErrExchangeRateMissing`（fail-closed） |
+| 直连或任一腿命中多行 | `ErrExchangeRateConflict` |
 | 日期格式非法 | 400 参数错误 |
 | 消费方传入与自身业务日期不一致的日期 | 属契约违规，评审驳回（无运行时防护） |
 

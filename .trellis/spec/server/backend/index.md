@@ -13,7 +13,7 @@
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
 | [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
-| [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 单一折本币基准汇率：总部唯一维护、各单据按业务日期消费、无类型/双轨 | ✅ |
+| [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 单一折本币基准汇率：总部唯一维护、各单据按业务日期消费、直连缺失经基准币交叉套算 | ✅ |
 | [Finance Commission Lock](./finance-commission-lock.md) | 提成净额财务锁：Clawback 冲减、净额归零释放、双落点同口径 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 总部共享主数据读取模式：本组织+总部并查、同码本组织优先、SQL 下推去重 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
