@@ -99,6 +99,16 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
 	}
 
+	// 2.5 统一业务内容门禁：终止流程与业务锁定同样阻断拆票/改配按钮，原因文案
+	// 与写入侧门禁（ensureOrderBusinessContentEditable）同源。
+	if gateErr := ensureOrderBusinessContentEditable(ctx, client.User, order); gateErr != nil {
+		actions.CanSplit = false
+		actions.CanReassign = false
+		msg := "订单 " + order.OrderNo + " " + orderBusinessEditBlockReason(gateErr)
+		actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, msg)
+		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
+	}
+
 	// 3. 唯一步调关系门禁
 	activeLink, err := client.SeaMasterBillOrderLink.Query().
 		Where(
@@ -567,6 +577,21 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		IsValid:            true,
 		ConservationPassed: true,
 		ValidationErrors:   []*biz.SeaOrderSplitValidationError{},
+	}
+	// 订单业务内容门禁：锁定/终止流程/终止/结案订单在预览阶段即写入 ORDER_GATE
+	// 原因（与 Execute 的 409 门禁同源）；预览照常返回，不升级为错误。
+	sourceOrder, gateQueryErr := client.Order.Query().
+		Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(organizationID)).
+		Only(ctx)
+	if gateQueryErr != nil {
+		return nil, mapEntError(gateQueryErr, biz.ErrOrderNotFound, nil)
+	}
+	if gateErr := ensureOrderBusinessContentEditable(ctx, client.User, sourceOrder); gateErr != nil {
+		preview.IsValid = false
+		preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+			Reason:  "ORDER_GATE",
+			Message: "订单 " + sourceOrder.OrderNo + " " + orderBusinessEditBlockReason(gateErr),
+		})
 	}
 	actions, err := r.GetChangeActions(ctx, organizationID, input.OrderID)
 	if err != nil {
