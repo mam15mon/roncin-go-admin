@@ -128,7 +128,7 @@ func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.Regi
 	}
 	s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
 	return ok(ctx, &v1.RegisterDingTalkUserResponse{
-		Data: &v1.DingTalkRegistration{DisplayName: registration.DisplayName, Status: registration.Status},
+		Data: &v1.DingTalkRegistrationConfirmation{DisplayName: registration.DisplayName, Status: registration.Status},
 	}), nil
 }
 

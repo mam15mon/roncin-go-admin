@@ -170,11 +170,11 @@ message RegisterDingTalkUserResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  DingTalkRegistration data = 4;
+  DingTalkRegistrationConfirmation data = 4;
   string trace_id = 5;
 }
 
-message DingTalkRegistration {
+message DingTalkRegistrationConfirmation {
   string display_name = 1;
   string status = 2;
 }

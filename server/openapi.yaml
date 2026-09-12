@@ -8249,7 +8249,7 @@ components:
                     items:
                         $ref: '#/components/schemas/auth.v1.OrganizationChoice'
                     description: REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。
-        auth.v1.DingTalkRegistration:
+        auth.v1.DingTalkRegistrationConfirmation:
             type: object
             properties:
                 displayName:
@@ -8389,7 +8389,7 @@ components:
                 message:
                     type: string
                 data:
-                    $ref: '#/components/schemas/auth.v1.DingTalkRegistration'
+                    $ref: '#/components/schemas/auth.v1.DingTalkRegistrationConfirmation'
                 traceId:
                     type: string
         auth.v1.RoleScope:
