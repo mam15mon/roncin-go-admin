@@ -677,6 +677,24 @@ export async function settlementServiceExportCommissions(
   );
 }
 
+/** ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。 GET /api/v1/finance/commissions/netting-candidates */
+export async function settlementServiceListCommissionNettingCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCommissionNettingCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCommissionNettingCandidatesResponse>(
+    "/api/v1/finance/commissions/netting-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/finance/commissions/preview */
 export async function settlementServicePreviewCommission(
   body: API.PreviewCommissionRequest,

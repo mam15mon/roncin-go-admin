@@ -358,7 +358,7 @@ export default function CommissionRulesDrawer({
             },
             {
               value: 'REALIZED_REVENUE',
-              label: '已实现收入（按核销收入全额）',
+              label: '已实现收入（按来源单分摊收入全额）',
             },
           ]}
         />

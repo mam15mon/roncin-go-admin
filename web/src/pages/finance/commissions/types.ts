@@ -2,7 +2,9 @@ import type { Dayjs } from 'dayjs';
 import { FinanceCommissionStatus } from '@/enums.generated';
 
 export type CreateValues = {
-  verificationId: string;
+  // 来源二选一：核销与对冲恰好提供一个，与后端契约一致。
+  verificationId?: string;
+  nettingId?: string;
   employeeId: string;
   ruleId: string;
   note?: string;
@@ -78,7 +80,15 @@ export const decimalText = (value?: string) => {
 };
 
 export const calculationSignature = (values: Partial<CreateValues>) =>
-  [values.verificationId, values.ruleId, values.employeeId].join('|');
+  [values.verificationId, values.nettingId, values.ruleId, values.employeeId].join(
+    '|',
+  );
+
+/** 来源单号二选一展示：核销单号或对冲单号，两者都空显示占位符。 */
+export const commissionSourceNo = (
+  record: { verificationNo?: string; nettingNo?: string },
+  placeholder = '-',
+) => record.verificationNo || record.nettingNo || placeholder;
 
 export function getBusinessReason(error: any): string {
   return (
@@ -86,10 +96,18 @@ export function getBusinessReason(error: any): string {
   );
 }
 
+// isReversalAdjustment 判断调整单是否为系统生成的来源反转冲减
+// （核销撤销 NETTING 前的反核销 / 对冲撤销），此类调整不可手工取消或确认。
+export function isReversalAdjustment(sourceType?: string): boolean {
+  return (
+    sourceType === 'VERIFICATION_REVERSAL' || sourceType === 'NETTING_REVERSAL'
+  );
+}
+
 export function getAdjustmentStatusInfo(
   adjustment: API.FinanceCommissionAdjustment,
 ) {
-  const isReversal = adjustment.sourceType === 'VERIFICATION_REVERSAL';
+  const isReversal = isReversalAdjustment(adjustment.sourceType);
   const isDecrease = adjustment.direction === 'DECREASE';
 
   if (isReversal) {

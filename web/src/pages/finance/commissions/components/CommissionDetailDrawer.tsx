@@ -15,9 +15,11 @@ import { formatDate } from '@/utils/format';
 import {
   calculationBasisText,
   cnyExchangeRateSourceText,
+  commissionSourceNo,
   commissionStatusMeta,
   decimalText,
   getAdjustmentStatusInfo,
+  isReversalAdjustment,
   personnelRoleText,
 } from '../types';
 import { previewColumns, renderExpandedFees } from './CommissionLineTable';
@@ -63,6 +65,8 @@ export default function CommissionDetailDrawer({
       render: (value: string) =>
         value === 'VERIFICATION_REVERSAL' ? (
           <Tag color="volcano">核销撤销</Tag>
+        ) : value === 'NETTING_REVERSAL' ? (
+          <Tag color="orange">对冲撤销</Tag>
         ) : (
           <Tag>手工调整</Tag>
         ),
@@ -108,7 +112,7 @@ export default function CommissionDetailDrawer({
       key: 'action',
       width: 160,
       render: (_: unknown, record: API.FinanceCommissionAdjustment) => {
-        const isReversal = record.sourceType === 'VERIFICATION_REVERSAL';
+        const isReversal = isReversalAdjustment(record.sourceType);
         const isDecrease = record.direction === 'DECREASE';
 
         return (
@@ -224,9 +228,9 @@ export default function CommissionDetailDrawer({
                 ),
               },
               {
-                key: 'verification',
-                label: '核销编号',
-                children: detail.verificationNo,
+                key: 'source',
+                label: '来源单号',
+                children: commissionSourceNo(detail),
               },
               {
                 key: 'employee',

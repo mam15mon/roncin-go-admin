@@ -192,4 +192,27 @@ describe('提成导出按钮', () => {
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:commission-export');
     expect(document.querySelector('a[download]')).toBeNull();
   });
+
+  it('列表来源单号按核销或对冲二选一展示，两者都空显示占位符', () => {
+    render(
+      <App>
+        <FinanceCommissionsPage />
+      </App>,
+    );
+
+    const columns: Record<string, any>[] =
+      componentProps.proTable?.columns ?? [];
+    const sourceColumn = columns.find(
+      (column) => column.title === '来源单号',
+    );
+    expect(sourceColumn).toBeTruthy();
+    if (!sourceColumn) throw new Error('来源单号列不存在');
+    expect(
+      sourceColumn.render(undefined, { verificationNo: 'VR-2026-001' }),
+    ).toBe('VR-2026-001');
+    expect(sourceColumn.render(undefined, { nettingNo: 'NT-2026-001' })).toBe(
+      'NT-2026-001',
+    );
+    expect(sourceColumn.render(undefined, {})).toBe('-');
+  });
 });

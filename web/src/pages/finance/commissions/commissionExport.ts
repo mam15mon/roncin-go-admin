@@ -71,9 +71,9 @@ const csvColumns: CsvColumn[] = [
         : (commissionStatusMeta[item.status]?.text ?? ''),
   },
   {
-    header: '核销编号',
+    header: '来源单号',
     kind: 'text',
-    value: (item) => item.verificationNo ?? '',
+    value: (item) => item.verificationNo || item.nettingNo || '',
   },
   {
     header: '归属日期',

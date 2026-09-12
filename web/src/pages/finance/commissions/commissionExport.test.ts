@@ -88,7 +88,7 @@ describe('提成 CSV', () => {
 
     expect(content).not.toBeNull();
     expect(
-      content?.startsWith('\uFEFF所属公司,提成编号,状态,核销编号,归属日期'),
+      content?.startsWith('\uFEFF所属公司,提成编号,状态,来源单号,归属日期'),
     ).toBe(true);
     expect(content).toContain('\r\n');
     expect(content).toContain("'=危险编号");

@@ -46,9 +46,11 @@ import CommissionRulesDrawer from './components/CommissionRulesDrawer';
 import {
   calculationBasisMeta,
   calculationBasisText,
+  commissionSourceNo,
   commissionStatusMeta,
   decimalText,
   getBusinessReason,
+  isReversalAdjustment,
   personnelRoleMeta,
   personnelRoleText,
 } from './types';
@@ -154,7 +156,7 @@ export default function FinanceCommissionsPage() {
     if (!record.id || !record.version) return;
     const adjustmentID = record.id;
     const adjustmentVersion = record.version;
-    const isReversal = record.sourceType === 'VERIFICATION_REVERSAL';
+    const isReversal = isReversalAdjustment(record.sourceType);
     const isDecrease = record.direction === 'DECREASE';
 
     let action = '确认调整';
@@ -163,7 +165,7 @@ export default function FinanceCommissionsPage() {
     if (target === 'PAID') {
       if (isReversal) {
         action = '标记已追回';
-        content = '该操作表示反核销冲减款项已实际追回，完成后不可取消。';
+        content = '该操作表示来源反转（反核销或反对冲）冲减款项已实际追回，完成后不可取消。';
       } else if (isDecrease) {
         action = '标记已扣回';
         content = '该操作表示冲减金额已实际扣回，完成后不可取消。';
@@ -252,7 +254,7 @@ export default function FinanceCommissionsPage() {
       title: `${action} ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
       content:
         target === 'CONFIRMED'
-          ? '系统会重新核对核销、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
+          ? '系统会重新核对来源单（核销或对冲）、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
           : '该操作表示提成已实际发放，完成后不可取消。',
       onOk: async () => {
         try {
@@ -275,7 +277,7 @@ export default function FinanceCommissionsPage() {
             modal.warning({
               title: '提成来源已经变化',
               content:
-                '请取消当前草稿，然后根据最新核销、费用和人员归属重新生成。',
+                '请取消当前草稿，然后根据最新来源单、费用和人员归属重新生成。',
             });
             return;
           }
@@ -371,12 +373,12 @@ export default function FinanceCommissionsPage() {
       },
     },
     {
-      title: '核销编号',
+      title: '来源单号',
       dataIndex: 'verificationNo',
       width: 170,
       copyable: true,
       search: false,
-      render: (_, record) => record.verificationNo || '-',
+      render: (_, record) => commissionSourceNo(record),
     },
     {
       title: '归属日期',
