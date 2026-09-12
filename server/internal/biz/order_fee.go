@@ -157,7 +157,7 @@ type OrderFeeRepo interface {
 	BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*BilledFeeBillContext, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *decimal.Decimal, audit *AuditEvent) (*OrderFee, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *ResolvedRate, audit *AuditEvent) (*OrderFee, error)
 	Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to OrderFeeStatus, reason *string, audit *AuditEvent) (*OrderFee, error)
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 }
@@ -309,7 +309,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
 		return nil, err
 	}
-	var billExchangeRate *decimal.Decimal
+	var billExchangeRate *ResolvedRate
 	switch current.Status {
 	case OrderFeeDraft:
 		if requestedTaxRate != nil || input.FeeNameOverride != nil {
@@ -434,10 +434,10 @@ func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, o
 	return nil
 }
 
-// ResolveExchangeRate 按费用发生日解析折本币基准汇率，供前端录入费用时预览。
-func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (decimal.Decimal, error) {
+// ResolveExchangeRate 按费用发生日解析折本币基准汇率（携带来源），供前端录入费用时预览。
+func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (ResolvedRate, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
-		return decimal.Decimal{}, ErrOrderFeeInvalidArgument
+		return ResolvedRate{}, ErrOrderFeeInvalidArgument
 	}
 	return uc.exchangeRate.ResolveRate(ctx, organizationID, currency, expenseDate)
 }
@@ -448,17 +448,17 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 			return ErrOrderFeeExchangeRateOverrideForbidden
 		}
 		fee.ExchangeRate = *fee.ExchangeRateOverride
-		fee.ExchangeRateSource = "MANUAL"
+		fee.ExchangeRateSource = ExchangeRateSourceManual
 		fee.ExchangeRateDate = fee.ExpenseDate
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	rate, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Currency, fee.ExpenseDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Currency, fee.ExpenseDate)
 	if err != nil {
 		return err
 	}
-	fee.ExchangeRate = rate
-	fee.ExchangeRateSource = "SYSTEM"
+	fee.ExchangeRate = resolved.Rate
+	fee.ExchangeRateSource = resolved.Source
 	fee.ExchangeRateDate = fee.ExpenseDate
 	fee.ExchangeRateSettingID = nil
 	return nil

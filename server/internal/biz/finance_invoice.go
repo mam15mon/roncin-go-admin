@@ -329,7 +329,7 @@ func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, acto
 	if uc.exchangeRate == nil {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
-	resolvedRate, err := uc.exchangeRate.ResolveRate(ctx, organizationID, invoice.Currency, invoiceDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, invoice.Currency, invoiceDate)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +340,7 @@ func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, acto
 	if baseCurrency != invoice.BaseCurrency {
 		return nil, ErrFinanceInvoiceBillMismatch
 	}
-	issue := FinanceInvoiceIssueInput{TaxInvoiceNo: taxInvoiceNo, InvoiceDate: invoiceDate, ExchangeRate: resolvedRate, ExchangeRateSource: "SYSTEM", ExchangeRateDate: invoiceDate, BaseCurrencyAmount: invoice.TotalAmount.Mul(resolvedRate).RoundBank(8)}
+	issue := FinanceInvoiceIssueInput{TaxInvoiceNo: taxInvoiceNo, InvoiceDate: invoiceDate, ExchangeRate: resolved.Rate, ExchangeRateSource: resolved.Source, ExchangeRateDate: invoiceDate, BaseCurrencyAmount: invoice.TotalAmount.Mul(resolved.Rate).RoundBank(8)}
 	return uc.repo.Issue(ctx, organizationID, id, actorID, expectedVersion, issue, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.issue"))
 }
 

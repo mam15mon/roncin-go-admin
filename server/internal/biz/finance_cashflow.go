@@ -165,15 +165,15 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 	if err != nil {
 		return nil, err
 	}
-	resolvedRate, resolvedSource := systemRate, "SYSTEM"
-	if in.ExchangeRateOverride != nil && !in.ExchangeRateOverride.Equal(systemRate) {
+	resolvedRate, resolvedSource := systemRate.Rate, systemRate.Source
+	if in.ExchangeRateOverride != nil && !in.ExchangeRateOverride.Equal(systemRate.Rate) {
 		if !canOverrideExchangeRate {
 			return nil, ErrFinanceCashflowRateOverrideForbidden
 		}
 		if !validExchangeRate(*in.ExchangeRateOverride) {
 			return nil, ErrFinanceCashflowInvalidArgument
 		}
-		resolvedRate, resolvedSource = *in.ExchangeRateOverride, "MANUAL"
+		resolvedRate, resolvedSource = *in.ExchangeRateOverride, ExchangeRateSourceManual
 	}
 	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, org)
 	if err != nil {

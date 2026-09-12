@@ -19,10 +19,10 @@ func (r *orderFeeExchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID
 	return &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}, nil
 }
 
-func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _, _, rateDate string) (decimal.Decimal, error) {
+func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _, _, _, rateDate string) (ResolvedRate, error) {
 	r.resolveCalls++
 	r.resolveDates = append(r.resolveDates, rateDate)
-	return r.rate, nil
+	return ResolvedRate{Rate: r.rate, Source: ExchangeRateSourceSystem}, nil
 }
 
 type orderFeeRepoStub struct {

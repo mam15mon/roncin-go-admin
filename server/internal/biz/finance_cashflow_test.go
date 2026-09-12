@@ -89,7 +89,7 @@ func TestSameFinanceCashflowIntent(t *testing.T) {
 
 func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	repo := &financeCashflowRepoStub{}
@@ -117,7 +117,7 @@ func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 
 func TestCreateFinanceCashflowRejectsUnauthorizedRateOverride(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	usecase := NewFinanceCashflowUsecase(&financeCashflowRepoStub{}, NewExchangeRateUsecase(exchangeRepo))

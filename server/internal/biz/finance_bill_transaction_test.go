@@ -107,12 +107,12 @@ func (s *financeBillExchangeRateTransactionStub) ResolveContext(ctx context.Cont
 	return s.rateContext, nil
 }
 
-func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _, _, _ string) (decimal.Decimal, error) {
+func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _, _, _, _ string) (ResolvedRate, error) {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
-		return decimal.Decimal{}, err
+		return ResolvedRate{}, err
 	}
 	s.transactionCalls++
-	return s.resolvedRate, nil
+	return ResolvedRate{Rate: s.resolvedRate, Source: ExchangeRateSourceSystem}, nil
 }
 
 func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {

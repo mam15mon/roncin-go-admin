@@ -21,7 +21,6 @@ import (
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
-	"github.com/shopspring/decimal"
 )
 
 const financeBillIntegrationDate = "2026-08-30"
@@ -60,10 +59,10 @@ func (r *invalidAuditResultFinanceBillRepo) Create(ctx context.Context, bill *bi
 	return r.FinanceBillRepo.Create(ctx, bill, audit)
 }
 
-func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
-	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, fromCurrency, toCurrency, rateDate)
+func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
+	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, fromCurrency, toCurrency, pivotCurrency, rateDate)
 	if err != nil {
-		return decimal.Decimal{}, err
+		return biz.ResolvedRate{}, err
 	}
 	r.resolvedOne.Do(func() {
 		close(r.resolved)

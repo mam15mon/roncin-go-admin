@@ -428,7 +428,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	return input, nil
 }
 
-func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *decimal.Decimal, audit *biz.AuditEvent) (*biz.OrderFee, error) {
+func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -614,9 +614,9 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			}
 			billUpdate := tx.FinanceBill.UpdateOneID(activeBill.ID).SetTotalAmount(total.StringFixed(8)).SetNetAmount(net.StringFixed(8)).SetTaxAmount(tax.StringFixed(8)).SetVersion(activeBill.Version + 1)
 			if item.Currency != input.Currency {
-				billRate = *billExchangeRate
+				billRate = billExchangeRate.Rate
 				// 币种变更后按账单当前业务日期固化的总部基准汇率重建账单汇率快照。
-				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource("SYSTEM")).SetExchangeRateDate(activeBill.BillDate)
+				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(billExchangeRate.Source)).SetExchangeRateDate(activeBill.BillDate)
 				billUpdate.ClearExchangeRateSettingID()
 			}
 			billUpdate.SetBaseCurrencyAmount(total.Mul(billRate).RoundBank(8).StringFixed(8))

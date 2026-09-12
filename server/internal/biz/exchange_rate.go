@@ -42,10 +42,25 @@ type ExchangeRateSetting struct {
 	UpdatedAt      time.Time
 }
 
-// ExchangeRateContext 携带组织树根（总部）与基准币种；汇率统一归属总部维护。
+// ExchangeRateContext 携带组织树根（总部）、调用组织基准币种与总部本位币；
+// 汇率统一归属总部维护，PivotCurrency 是汇率行实际维护的基准币（to_currency）。
 type ExchangeRateContext struct {
 	OwnerOrganizationID uuid.UUID
 	BaseCurrency        string
+	PivotCurrency       string
+}
+
+// 汇率快照来源；费用/账单/流水/发票的 exchange_rate_source 如实记录。
+const (
+	ExchangeRateSourceSystem  = "SYSTEM"  // 直连命中总部基准汇率行
+	ExchangeRateSourceDerived = "DERIVED" // 直连缺失时经总部基准币交叉套算推导
+	ExchangeRateSourceManual  = "MANUAL"  // 手工覆盖
+)
+
+// ResolvedRate 是汇率解析结果：值携带来源，供消费方快照区分录入值与推导值。
+type ResolvedRate struct {
+	Rate   decimal.Decimal
+	Source string // ExchangeRateSourceSystem 或 ExchangeRateSourceDerived
 }
 
 type ExchangeRateRepo interface {
@@ -54,7 +69,7 @@ type ExchangeRateRepo interface {
 	Create(ctx context.Context, organizationID uuid.UUID, input *ExchangeRateSetting, audit *AuditEvent) (*ExchangeRateSetting, error)
 	Update(ctx context.Context, organizationID uuid.UUID, input *ExchangeRateSetting, audit *AuditEvent) (*ExchangeRateSetting, error)
 	Disable(ctx context.Context, organizationID, id uuid.UUID, audit *AuditEvent) error
-	ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error)
+	ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (ResolvedRate, error)
 	InspectImport(ctx context.Context, ownerOrganizationID uuid.UUID, rows []*ExchangeRateImportRow) (map[int][]string, error)
 	CreateImportPreview(ctx context.Context, batch *ExchangeRateImportBatch, audit *AuditEvent) (*ExchangeRateImportBatch, error)
 	GetImport(ctx context.Context, organizationID, id uuid.UUID) (*ExchangeRateImportBatch, error)
@@ -123,47 +138,48 @@ func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, acto
 }
 
 // ResolveRate 按目标日期解析 currency 折组织基准币种的总部基准汇率；
-// currency 即基准币种时恒为 1，未命中生效区间时返回 ErrExchangeRateMissing。
-func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID uuid.UUID, currency, targetDate string) (decimal.Decimal, error) {
+// currency 即基准币种时恒为 1（来源 SYSTEM），直连行缺失时经总部基准币交叉套算
+// （来源 DERIVED），未命中时返回 ErrExchangeRateMissing。
+func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID uuid.UUID, currency, targetDate string) (ResolvedRate, error) {
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if organizationID == uuid.Nil || !currencyPattern.MatchString(currency) {
-		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+		return ResolvedRate{}, ErrExchangeRateInvalidArgument
 	}
 	if _, valid := parseExchangeRateLookupTime(targetDate); !valid {
-		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+		return ResolvedRate{}, ErrExchangeRateInvalidArgument
 	}
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
-		return decimal.Decimal{}, err
+		return ResolvedRate{}, err
 	}
 	if currency == rateContext.BaseCurrency {
-		return decimal.NewFromInt(1), nil
+		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
 	}
-	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, currency, rateContext.BaseCurrency, targetDate)
+	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, currency, rateContext.BaseCurrency, rateContext.PivotCurrency, targetDate)
 }
 
 // ResolveBaseRate 按目标日期在总部基准汇率表解析 fromCurrency → toCurrency 的
 // 正向汇率；两币相同恒为 1，不要求目标币种等于组织基准币种。提成 CNY 折算用它
-// 解析「本位币 → CNY」，避免总部只维护 X→CNY 基准时反查 CNY→X 报缺失。
-// 与 ResolveRate 一致，先在事务内读取组织汇率上下文再短路，保证同事务内的
-// 组织上下文读取语义不变。
-func (uc *ExchangeRateUsecase) ResolveBaseRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, targetDate string) (decimal.Decimal, error) {
+// 解析「本位币 → CNY」，避免总部只维护 X→CNY 基准时反查 CNY→X 报缺失；直连行
+// 缺失时同样经总部基准币交叉套算。与 ResolveRate 一致，先在事务内读取组织汇率
+// 上下文再短路，保证同事务内的组织上下文读取语义不变。
+func (uc *ExchangeRateUsecase) ResolveBaseRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, targetDate string) (ResolvedRate, error) {
 	fromCurrency = strings.ToUpper(strings.TrimSpace(fromCurrency))
 	toCurrency = strings.ToUpper(strings.TrimSpace(toCurrency))
 	if organizationID == uuid.Nil || !currencyPattern.MatchString(fromCurrency) || !currencyPattern.MatchString(toCurrency) {
-		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+		return ResolvedRate{}, ErrExchangeRateInvalidArgument
 	}
 	if _, valid := parseExchangeRateLookupTime(targetDate); !valid {
-		return decimal.Decimal{}, ErrExchangeRateInvalidArgument
+		return ResolvedRate{}, ErrExchangeRateInvalidArgument
 	}
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
-		return decimal.Decimal{}, err
+		return ResolvedRate{}, err
 	}
 	if fromCurrency == toCurrency {
-		return decimal.NewFromInt(1), nil
+		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
 	}
-	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, fromCurrency, toCurrency, targetDate)
+	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, fromCurrency, toCurrency, rateContext.PivotCurrency, targetDate)
 }
 
 func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID uuid.UUID) (string, error) {

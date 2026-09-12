@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -62,7 +63,14 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 			if item.Kind != organizationent.KindHeadquarters || baseCurrency == "" {
 				return nil, biz.ErrExchangeRateOrganizationInvalid
 			}
-			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: baseCurrency}, nil
+			pivotCurrency := ""
+			if item.BaseCurrency != nil {
+				pivotCurrency = *item.BaseCurrency
+			}
+			if pivotCurrency == "" {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: baseCurrency, PivotCurrency: pivotCurrency}, nil
 		}
 		currentID = *item.ParentID
 	}
@@ -211,8 +219,44 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 	})
 }
 
-// ResolveRate 查询总部组织下有效区间覆盖 rateDate 的唯一启用地汇率。
-func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
+// ResolveRate 直连优先解析总部基准汇率：财务显式维护的直连行永远优先（来源 SYSTEM）；
+// 直连缺失时经总部基准币单跳交叉套算 from→to = (from→pivot) ÷ (to→pivot)，来源 DERIVED。
+// 任一腿缺失或 to 腿非正数均视为缺失（fail-closed，不做日期回退或静默 1）；
+// 直连或任一腿命中多行沿用 ErrExchangeRateConflict；from == to 防御性恒为 1。
+func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
+	if fromCurrency == toCurrency {
+		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem}, nil
+	}
+	direct, err := r.resolveDirectRate(ctx, ownerOrganizationID, fromCurrency, toCurrency, rateDate)
+	if err == nil {
+		return biz.ResolvedRate{Rate: direct, Source: biz.ExchangeRateSourceSystem}, nil
+	}
+	if !errors.Is(err, biz.ErrExchangeRateMissing) {
+		return biz.ResolvedRate{}, err
+	}
+	legFrom := decimal.NewFromInt(1)
+	if fromCurrency != pivotCurrency {
+		legFrom, err = r.resolveDirectRate(ctx, ownerOrganizationID, fromCurrency, pivotCurrency, rateDate)
+		if err != nil {
+			return biz.ResolvedRate{}, err
+		}
+	}
+	legTo := decimal.NewFromInt(1)
+	if toCurrency != pivotCurrency {
+		legTo, err = r.resolveDirectRate(ctx, ownerOrganizationID, toCurrency, pivotCurrency, rateDate)
+		if err != nil {
+			return biz.ResolvedRate{}, err
+		}
+	}
+	if !legTo.IsPositive() {
+		return biz.ResolvedRate{}, biz.ErrExchangeRateMissing
+	}
+	return biz.ResolvedRate{Rate: legFrom.Div(legTo).RoundBank(8), Source: biz.ExchangeRateSourceDerived}, nil
+}
+
+// resolveDirectRate 查询单条直连汇率行：有效区间覆盖 rateDate 的唯一启用行，
+// 未命中返回 ErrExchangeRateMissing，多行命中返回 ErrExchangeRateConflict。
+func (r *exchangeRateRepo) resolveDirectRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
 	lookupTime, err := parseExchangeRateStorageTime(rateDate)
 	if err != nil {
 		return decimal.Decimal{}, biz.ErrExchangeRateInvalidArgument
@@ -240,11 +284,7 @@ func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID 
 	if len(items) > 1 {
 		return decimal.Decimal{}, biz.ErrExchangeRateConflict
 	}
-	rate, err := decimalOf(items[0].Rate)
-	if err != nil {
-		return decimal.Decimal{}, err
-	}
-	return rate, nil
+	return decimalOf(items[0].Rate)
 }
 
 func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...string) error {

@@ -581,7 +581,7 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, ne
 	if err != nil {
 		return nil, err
 	}
-	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, resolvedRate)
+	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, resolvedRate.Rate)
 	if err != nil {
 		return nil, err
 	}
@@ -706,7 +706,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		if transactionErr != nil {
 			return transactionErr
 		}
-		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, resolvedRate)
+		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, resolvedRate.Rate)
 		if transactionErr != nil {
 			return transactionErr
 		}

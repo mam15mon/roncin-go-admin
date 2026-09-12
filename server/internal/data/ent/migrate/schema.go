@@ -3566,7 +3566,7 @@ var (
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
