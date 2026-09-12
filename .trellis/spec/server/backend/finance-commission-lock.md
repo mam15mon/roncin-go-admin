@@ -2,8 +2,9 @@
 
 ## 1. Scope / Trigger
 
-适用于订单费用的财务锁判定（`ORDER_FEE_FINANCE_LOCKED`）与费用台账 `finance_locked` 投影。
-修改提成/调整单状态机、反核销冲减链路或费用写入口锁判定时必须遵循。
+适用于订单费用的财务锁判定（`ORDER_FEE_FINANCE_LOCKED`）、费用台账 `finance_locked` 投影
+与提成来源模型。修改提成/调整单状态机、核销或对冲冲减链路、提成来源字段或费用写入口
+锁判定时必须遵循。
 
 ## 2. Signatures
 
@@ -17,14 +18,25 @@ financeCommissionLockNetAmount(lines, adjustments) // 同一公式的 Go 投影�
 net(order) = Σ 提成线金额(所属提成单 status ∈ {CONFIRMED, PAID})
            + Σ 符号化调整单金额(status ∈ {CONFIRMED, PAID}，DECREASE 记负)
 锁定条件: net(order) > 0
+
+提成来源（finance_commissions）：verification_id 与 netting_id 恰好一个非空
+（服务/用例层 XOR 校验）；活跃去重 = 两个部分唯一索引按来源各自生效
+（WHERE 来源非空 AND status <> 'CANCELLED'）
 ```
 
 ## 3. Contracts
 
-- PAID 是提成终态，永不改状态、不删除；已支付历史通过冲减调整（反核销生成的 CONFIRMED
-  DECREASE 调整）追回，即 Clawback 模型。
-- 净额 ≤ 0（全额冲减或超额冲减）自动释放该订单的费用编辑锁，打通"反核销 → 修正费用/账单 →
-  重新核销"的纠错通道；部分冲减（净额仍 > 0）保持锁定。
+- **来源二选一**：提成单来源为核销单或对冲单之一，不做多态来源抽象；同幂等键换来源必返
+  重复错误（幂等意图比对含两个来源字段）；计算指纹含 `src=` 来源段。对冲来源计算口径与
+  核销同构：CONFIRMED 对冲单的 RECEIVABLE 分摊按 `分摊金额/账单总额` 摊入账单行本位币。
+- **冲减联动对称**：核销 REVERSE 与对冲 REVERSE 共用冲减助手
+  （`reconcileCommissionsForSourceReversal`）：未支付取消、有支付敞口生成 CONFIRMED
+  DECREASE 调整（`source_type` 分别为 VERIFICATION_REVERSAL / NETTING_REVERSAL，
+  幂等键前缀 vr:/nt:）。前端对两种系统冲减同款 gating：不暴露取消/确认操作，
+  PAID 文案为「追回」族。
+- PAID 是提成终态，永不改状态、不删除；已支付历史通过冲减调整追回，即 Clawback 模型。
+- 净额 ≤ 0（全额冲减或超额冲减）自动释放该订单的费用编辑锁，打通"反核销/反对冲 → 修正
+  费用/账单 → 重新结算"的纠错通道；部分冲减（净额仍 > 0）保持锁定。
 - DRAFT/CANCELLED 的提成与调整不参与净额。
 - **双落点同一语义**：费用写入拦截（`internal/data/order_fee.go` 的
   `lockOrderForFeeMutation`）必须复用 `financeLockedOrderPredicate`；台账列表/详情的
