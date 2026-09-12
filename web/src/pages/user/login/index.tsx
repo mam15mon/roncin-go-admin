@@ -259,24 +259,37 @@ export default function Login() {
             </div>
 
             {invitationInfo && (
-              <Alert
-                type="info"
-                showIcon
-                message={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
-                description={
-                  <div style={{ fontSize: 13, marginTop: 4 }}>
-                    <div>
-                      邀请人：{invitationInfo.inviterName || '管理员'}
-                      {invitationInfo.expiresAt &&
-                        ` · 有效期至 ${dayjs(invitationInfo.expiresAt).format('YYYY-MM-DD HH:mm')}`}
+              <>
+                <Alert
+                  type="info"
+                  showIcon
+                  message={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
+                  description={
+                    <div style={{ fontSize: 13, marginTop: 4 }}>
+                      <div>
+                        邀请人：{invitationInfo.inviterName || '管理员'}
+                        {invitationInfo.expiresAt &&
+                          ` · 有效期至 ${dayjs(invitationInfo.expiresAt).format('YYYY-MM-DD HH:mm')}`}
+                      </div>
+                      <div style={{ marginTop: 4, color: '#475569' }}>
+                        请点击下方「钉钉登录」使用企业钉钉扫码加入。
+                      </div>
                     </div>
-                    <div style={{ marginTop: 4, color: '#475569' }}>
-                      请点击下方「钉钉登录」使用企业钉钉扫码加入。
+                  }
+                  style={{ marginBottom: 12 }}
+                />
+                <Alert
+                  type="warning"
+                  showIcon
+                  message="加入前请确认所属分公司"
+                  description={
+                    <div style={{ fontSize: 13 }}>
+                      若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码
                     </div>
-                  </div>
-                }
-                style={{ marginBottom: 20 }}
-              />
+                  }
+                  style={{ marginBottom: 20 }}
+                />
+              </>
             )}
 
             {invitationError && (

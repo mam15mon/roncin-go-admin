@@ -15,6 +15,7 @@ const {
   authServiceSwitchOrganizationMock,
   authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfigMock,
+  authServiceGetDingTalkInvitationInfoMock,
   messageSuccessMock,
   setInitialStateMock,
 } = vi.hoisted(() => ({
@@ -22,6 +23,7 @@ const {
   authServiceSwitchOrganizationMock: vi.fn(),
   authServiceGetWeComLoginConfigMock: vi.fn(),
   authServiceGetDingTalkLoginConfigMock: vi.fn(),
+  authServiceGetDingTalkInvitationInfoMock: vi.fn(),
   messageSuccessMock: vi.fn(),
   setInitialStateMock: vi.fn(),
 }));
@@ -47,6 +49,8 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceSwitchOrganization: authServiceSwitchOrganizationMock,
   authServiceGetWeComLoginConfig: authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfig: authServiceGetDingTalkLoginConfigMock,
+  authServiceGetDingTalkInvitationInfo:
+    authServiceGetDingTalkInvitationInfoMock,
 }));
 
 const singleOrgChoices: API.OrganizationChoice[] = [
@@ -122,6 +126,7 @@ describe('Login', () => {
       data: { enabled: false },
     });
     window.history.replaceState({}, '', '/user/login');
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -232,5 +237,56 @@ describe('Login', () => {
     expect(screen.queryByText('选择进入的组织')).not.toBeInTheDocument();
     expect(authServiceSwitchOrganizationMock).not.toHaveBeenCalled();
     expect(messageSuccessMock).toHaveBeenCalledWith('登录成功');
+  });
+
+  it('携带邀请 Token 的落地页展示专属欢迎与防呆警示', async () => {
+    authServiceGetDingTalkInvitationInfoMock.mockResolvedValue({
+      data: {
+        organizationName: '成都分公司',
+        inviterName: '李经理',
+        expiresAt: '2030-01-01T00:00:00Z',
+      },
+    });
+    window.history.replaceState({}, '', '/user/login?invite=valid-token');
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+
+    expect(
+      await screen.findByText('【成都分公司】专属邀请'),
+    ).toBeInTheDocument();
+    // PRD 3.2.3：防呆警示必须醒目呈现（warning 级 Alert）
+    expect(
+      screen.getByText(
+        '若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/邀请人：李经理/)).toBeInTheDocument();
+  });
+
+  it('邀请 Token 失效时仅呈现失效提示，不展示欢迎卡片', async () => {
+    authServiceGetDingTalkInvitationInfoMock.mockRejectedValue(
+      new Error('邀请链接已失效或已过期，请联系主管重新获取'),
+    );
+    window.history.replaceState({}, '', '/user/login?invite=bad-token');
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+
+    expect(await screen.findByText('邀请链接已失效')).toBeInTheDocument();
+    expect(
+      screen.queryByText('【成都分公司】专属邀请'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        '若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码',
+      ),
+    ).not.toBeInTheDocument();
   });
 });
