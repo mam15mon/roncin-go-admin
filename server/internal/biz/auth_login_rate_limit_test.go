@@ -72,12 +72,12 @@ func TestAuthUsecaseLoginRateLimitsSixthFailure(t *testing.T) {
 	usecase := newLoginRateLimitUsecase(repo)
 
 	for attempt := 1; attempt <= loginRateLimitMaxFailures; attempt++ {
-		_, _, _, err := usecase.Login(context.Background(), " Admin ", "wrong-password", "test", "127.0.0.1")
+		_, err := usecase.Login(context.Background(), " Admin ", "wrong-password", uuid.Nil, "test", "127.0.0.1")
 		if err != ErrInvalidCredentials {
 			t.Fatalf("第 %d 次失败返回 %v，期望 ErrInvalidCredentials", attempt, err)
 		}
 	}
-	_, _, _, err := usecase.Login(context.Background(), "admin", "wrong-password", "test", "127.0.0.1")
+	_, err := usecase.Login(context.Background(), "admin", "wrong-password", uuid.Nil, "test", "127.0.0.1")
 	if err != ErrLoginRateLimited {
 		t.Fatalf("第 6 次失败返回 %v，期望 ErrLoginRateLimited", err)
 	}
@@ -96,7 +96,7 @@ func TestAuthUsecaseLoginRateLimitsByAccountOrIP(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			repo := &loginRateLimitRepoStub{counts: test.counts}
-			_, _, _, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "wrong-password", "test", "127.0.0.1")
+			_, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "wrong-password", uuid.Nil, "test", "127.0.0.1")
 			if err != ErrLoginRateLimited {
 				t.Fatalf("Login() error = %v, want ErrLoginRateLimited", err)
 			}
@@ -118,7 +118,7 @@ func TestAuthUsecaseSuccessfulLoginClearsOnlyAccountBucket(t *testing.T) {
 		counts:          map[string]int{accountKey: 2, ipKey: 2},
 	}
 
-	_, _, _, err = newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "correct-password", "test", "127.0.0.1")
+	_, err = newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "correct-password", uuid.Nil, "test", "127.0.0.1")
 	if err != nil {
 		t.Fatalf("Login() error = %v", err)
 	}
@@ -134,7 +134,7 @@ func TestAuthUsecaseUnknownAccountRecordsFailure(t *testing.T) {
 	_, keys := loginRateLimitKeys("missing", "127.0.0.1")
 	repo := &loginRateLimitRepoStub{credentialErr: ErrInvalidCredentials, counts: make(map[string]int)}
 
-	_, _, _, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "missing", "wrong-password", "test", "127.0.0.1")
+	_, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "missing", "wrong-password", uuid.Nil, "test", "127.0.0.1")
 	if err != ErrInvalidCredentials {
 		t.Fatalf("Login() error = %v, want ErrInvalidCredentials", err)
 	}
@@ -152,7 +152,7 @@ func TestAuthUsecaseLoginRateLimitRepoErrorIsReturned(t *testing.T) {
 	wantErr := stderrors.New("rate limit storage failed")
 	repo := &loginRateLimitRepoStub{checkErr: wantErr, counts: make(map[string]int)}
 
-	_, _, _, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "wrong-password", "test", "127.0.0.1")
+	_, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "admin", "wrong-password", uuid.Nil, "test", "127.0.0.1")
 	if !stderrors.Is(err, wantErr) {
 		t.Fatalf("Login() error = %v, want %v", err, wantErr)
 	}

@@ -77,6 +77,8 @@ service AuthService {
 message LoginRequest {
   string username = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
+  // 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
+  optional string organization_id = 3;
 }
 
 message WeComLoginRequest {
@@ -127,6 +129,8 @@ message LoginResponse {
   string message = 3;
   CurrentUser data = 4;
   string trace_id = 5;
+  // 本人启用中成员资格组织候选列表（默认组织置首并标记）。
+  repeated OrganizationChoice organization_choices = 6;
 }
 
 message WeComLoginResponse {
@@ -184,6 +188,16 @@ message SwitchOrganizationResponse {
   string message = 3;
   CurrentUser data = 4;
   string trace_id = 5;
+  // 与登录响应同构：切换后的成员资格组织候选列表。
+  repeated OrganizationChoice organization_choices = 6;
+}
+
+// OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。
+message OrganizationChoice {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_name = 2 [(google.api.field_behavior) = REQUIRED];
+  string organization_code = 3 [(google.api.field_behavior) = REQUIRED];
+  bool is_default = 4;
 }
 
 message LogoutResponse {

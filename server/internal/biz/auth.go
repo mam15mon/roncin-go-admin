@@ -24,6 +24,8 @@ var (
 	ErrSessionExpired               = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
 	ErrPermissionDenied             = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
 	ErrOrganizationForbidden        = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
+	ErrAuthOrganizationInvalid      = errors.BadRequest("AUTH_ORGANIZATION_INVALID", "所选组织无效或不可用")
+	ErrAuthOrganizationForbidden    = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无该组织的成员资格或已停用")
 	ErrWeComDisabled                = errors.ServiceUnavailable("AUTH_WECOM_DISABLED", "企业微信登录未启用")
 	ErrWeComLoginFailed             = errors.Unauthorized("AUTH_WECOM_LOGIN_FAILED", "企业微信登录失败")
 	ErrWeComCodeInvalid             = errors.Unauthorized("AUTH_WECOM_CODE_INVALID", "企业微信登录凭证已失效，请重新扫码")
@@ -57,6 +59,15 @@ type Organization struct {
 	Code         string
 	Name         string
 	BaseCurrency string
+}
+
+// OrganizationChoice 是登录组织选择与应用内切换器共用的「本人启用中成员资格组织」候选视图。
+// IsDefault 对应成员资格的 primary 标志。
+type OrganizationChoice struct {
+	OrganizationID   uuid.UUID
+	OrganizationName string
+	OrganizationCode string
+	IsDefault        bool
 }
 
 type RoleScope struct {
@@ -381,6 +392,14 @@ type Session struct {
 	UserAgent      string
 }
 
+// AuthSessionResult 是登录与切换组织同构的会话建立结果：新令牌、随组织重算的主体与候选组织列表。
+type AuthSessionResult struct {
+	Token               string
+	Principal           *Principal
+	OrganizationChoices []OrganizationChoice
+	ExpiresAt           time.Time
+}
+
 type AuditEvent struct {
 	OrganizationID *uuid.UUID
 	UserID         *uuid.UUID
@@ -418,10 +437,11 @@ type AuthRepo interface {
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *AuditEvent) (*Credential, bool, error)
+	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
-	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time, *AuditEvent) error
+	RotateSession(context.Context, string, *Session, time.Time, *AuditEvent) error
 	RevokeSession(context.Context, string, time.Time, *AuditEvent) error
 }
 
@@ -475,35 +495,48 @@ const (
 	dingTalkRegistrationTokenLifetime = 5 * time.Minute
 )
 
-func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent, ipAddress string) (string, *Principal, time.Time, error) {
+// Login 校验账号口令后建立会话；requestedOrganizationID 非空时必须是本人启用中成员资格组织，
+// 否则返回参数错误（不静默回退默认组织）。未指定时沿用默认（primary）组织。
+func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string, requestedOrganizationID uuid.UUID, userAgent, ipAddress string) (*AuthSessionResult, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
 	now := time.Now().UTC()
 	accountKeyHash, keyHashes := loginRateLimitKeys(normalizedUsername, ipAddress)
 	exceeded, err := uc.repo.LoginRateLimitExceeded(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
 	if err != nil {
-		return "", nil, time.Time{}, err
+		return nil, err
 	}
 	if exceeded {
-		return "", nil, time.Time{}, ErrLoginRateLimited
+		return nil, ErrLoginRateLimited
 	}
 	credential, err := uc.repo.FindCredential(ctx, normalizedUsername)
 	if err != nil {
 		if stderrors.Is(err, ErrInvalidCredentials) {
-			return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+			return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 		}
-		return "", nil, time.Time{}, err
+		return nil, err
 	}
 	if credential.PasswordHash == nil {
-		return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
 	matched, err := password.Verify(plainPassword, *credential.PasswordHash)
 	if err != nil {
-		return "", nil, time.Time{}, fmt.Errorf("verify password hash: %w", err)
+		return nil, fmt.Errorf("verify password hash: %w", err)
 	}
 	if !matched {
-		return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
-	return uc.createSession(ctx, credential, userAgent, "auth.login", accountKeyHash)
+	organizationID := credential.PrimaryOrganizationID
+	choices, err := uc.listEnabledMembershipOrganizations(ctx, credential.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if requestedOrganizationID != uuid.Nil {
+		if !organizationChoicesContain(choices, requestedOrganizationID) {
+			return nil, ErrAuthOrganizationInvalid
+		}
+		organizationID = requestedOrganizationID
+	}
+	return uc.createSession(ctx, credential, organizationID, choices, userAgent, "auth.login", accountKeyHash)
 }
 
 func (uc *AuthUsecase) recordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, event *AuditEvent) error {
@@ -567,7 +600,11 @@ func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedStat
 	if !credential.Enabled {
 		return "", nil, time.Time{}, ErrWeComAuthorizationPending
 	}
-	return uc.createSession(ctx, credential, userAgent, "auth.wecom.login", "")
+	result, err := uc.createSession(ctx, credential, credential.PrimaryOrganizationID, nil, userAgent, "auth.wecom.login", "")
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	return result.Token, result.Principal, result.ExpiresAt, nil
 }
 
 func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, error) {
@@ -619,11 +656,11 @@ func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expec
 	if !credential.Enabled {
 		return nil, ErrDingTalkAuthorizationPending
 	}
-	token, principal, expiresAt, err := uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login", "")
+	result, err := uc.createSession(ctx, credential, credential.PrimaryOrganizationID, nil, userAgent, "auth.dingtalk.login", "")
 	if err != nil {
 		return nil, err
 	}
-	return &DingTalkLoginResult{Status: DingTalkLoginStatusAuthenticated, Principal: principal, SessionToken: token, SessionExpiresAt: expiresAt}, nil
+	return &DingTalkLoginResult{Status: DingTalkLoginStatusAuthenticated, Principal: result.Principal, SessionToken: result.Token, SessionExpiresAt: result.ExpiresAt}, nil
 }
 
 func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registrationToken string) (*DingTalkRegistration, error) {
@@ -644,21 +681,21 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 	return &DingTalkRegistration{DisplayName: credential.DisplayName, Status: "PENDING"}, nil
 }
 
-func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction, clearLoginFailureKey string) (string, *Principal, time.Time, error) {
-	principal, err := uc.repo.ResolvePrincipal(ctx, credential.UserID, credential.PrimaryOrganizationID)
+func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, organizationID uuid.UUID, choices []OrganizationChoice, userAgent, auditAction, clearLoginFailureKey string) (*AuthSessionResult, error) {
+	principal, err := uc.repo.ResolvePrincipal(ctx, credential.UserID, organizationID)
 	if err != nil {
-		return "", nil, time.Time{}, err
+		return nil, err
 	}
 	rawToken, tokenHash, err := newSessionToken()
 	if err != nil {
-		return "", nil, time.Time{}, err
+		return nil, err
 	}
 	expiresAt := time.Now().UTC().Add(uc.policy.TTL)
-	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, clearLoginFailureKey, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
-		return "", nil, time.Time{}, err
+	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: organizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, clearLoginFailureKey, &AuditEvent{OrganizationID: &organizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
+		return nil, err
 	}
 	principal.SessionTokenHash = tokenHash
-	return rawToken, principal, expiresAt, nil
+	return &AuthSessionResult{Token: rawToken, Principal: principal, OrganizationChoices: choices, ExpiresAt: expiresAt}, nil
 }
 
 func (uc *AuthUsecase) AuthenticateSession(ctx context.Context, rawToken string) (*Principal, error) {
@@ -683,17 +720,71 @@ func (uc *AuthUsecase) Logout(ctx context.Context, principal *Principal) error {
 	return uc.repo.RevokeSession(ctx, principal.SessionTokenHash, now, &AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Action: "auth.logout", Result: "success"})
 }
 
-func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*Principal, error) {
-	now := time.Now().UTC()
-	if err := uc.repo.SwitchSessionOrganization(ctx, principal.SessionTokenHash, principal.UserID, organizationID, now, &AuditEvent{OrganizationID: &organizationID, UserID: &principal.UserID, Action: "auth.organization.switch", Result: "success"}); err != nil {
+// SwitchOrganization 把当前会话轮转为目标组织的新会话：校验目标在本人启用中成员资格候选集内，
+// 权限主体随目标组织重算，事务内新建会话并仅失效当前令牌（同一用户其他设备的会话不受影响）。
+func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*AuthSessionResult, error) {
+	choices, err := uc.listEnabledMembershipOrganizations(ctx, principal.UserID)
+	if err != nil {
 		return nil, err
+	}
+	if !organizationChoicesContain(choices, organizationID) {
+		return nil, ErrAuthOrganizationForbidden
 	}
 	next, err := uc.repo.ResolvePrincipal(ctx, principal.UserID, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	next.SessionTokenHash = principal.SessionTokenHash
-	return next, nil
+	rawToken, tokenHash, err := newSessionToken()
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	expiresAt := now.Add(uc.policy.TTL)
+	next.SessionTokenHash = tokenHash
+	sourceOrganizationID := principal.Organization.ID
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &principal.UserID,
+		Action:         "auth.organization.switch",
+		Result:         "success",
+		Details:        map[string]string{"source_organization.id": sourceOrganizationID.String(), "target_organization.id": organizationID.String()},
+	}
+	if err := uc.repo.RotateSession(ctx, principal.SessionTokenHash, &Session{TokenHash: tokenHash, UserID: principal.UserID, OrganizationID: organizationID, ExpiresAt: expiresAt}, now, audit); err != nil {
+		return nil, err
+	}
+	return &AuthSessionResult{Token: rawToken, Principal: next, OrganizationChoices: choices, ExpiresAt: expiresAt}, nil
+}
+
+// listEnabledMembershipOrganizations 返回登录组织选择与切换入口共用的候选组织列表：
+// 本人启用中成员资格 × 组织启用中，默认组织置首并标记，其余按组织名称稳定排序。
+func (uc *AuthUsecase) listEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]OrganizationChoice, error) {
+	choices, err := uc.repo.ListEnabledMembershipOrganizations(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	sortOrganizationChoices(choices)
+	return choices, nil
+}
+
+func sortOrganizationChoices(choices []OrganizationChoice) {
+	sort.SliceStable(choices, func(i, j int) bool {
+		if choices[i].IsDefault != choices[j].IsDefault {
+			return choices[i].IsDefault
+		}
+		if choices[i].OrganizationName != choices[j].OrganizationName {
+			return choices[i].OrganizationName < choices[j].OrganizationName
+		}
+		return choices[i].OrganizationID.String() < choices[j].OrganizationID.String()
+	})
+}
+
+func organizationChoicesContain(choices []OrganizationChoice, organizationID uuid.UUID) bool {
+	for _, choice := range choices {
+		if choice.OrganizationID == organizationID {
+			return true
+		}
+	}
+	return false
 }
 
 func newSessionToken() (string, string, error) {

@@ -3741,6 +3741,8 @@ declare namespace API {
   type LoginRequest = {
     username: string;
     password: string;
+    /** 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。 */
+    organizationId?: string;
   };
 
   type LoginResponse = {
@@ -3749,6 +3751,8 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
+    /** 本人启用中成员资格组织候选列表（默认组织置首并标记）。 */
+    organizationChoices?: OrganizationChoice[];
   };
 
   type LogoutRequest = {};
@@ -4702,6 +4706,13 @@ declare namespace API {
   type OrganizationAccess = {
     organizationId: string;
     writable?: boolean;
+  };
+
+  type OrganizationChoice = {
+    organizationId: string;
+    organizationName: string;
+    organizationCode: string;
+    isDefault?: boolean;
   };
 
   type Partner = {
@@ -6927,6 +6938,8 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
+    /** 与登录响应同构：切换后的成员资格组织候选列表。 */
+    organizationChoices?: OrganizationChoice[];
   };
 
   type TaxableService = {

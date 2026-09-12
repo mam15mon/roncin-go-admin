@@ -18,6 +18,11 @@ import {
 } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
+import {
+  type LoginOrganizationOption,
+  OrganizationPicker,
+  resolveLoginOrganizationOptions,
+} from './components/organization-picker';
 import styles from './index.module.less';
 
 function safeRedirect(value: string | null): string {
@@ -43,6 +48,9 @@ export default function Login() {
   const [wecomModalOpen, setWecomModalOpen] = useState(false);
   const [wecomAuthUrl, setWecomAuthUrl] = useState('');
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [organizationOptions, setOrganizationOptions] =
+    useState<LoginOrganizationOption[]>();
+  const [pendingRedirect, setPendingRedirect] = useState('/');
 
   useEffect(() => {
     authServiceGetWeComLoginConfig({ skipErrorHandler: true })
@@ -53,6 +61,11 @@ export default function Login() {
       .catch(() => setDingtalkEnabled(false));
   }, []);
 
+  const finishLogin = (redirect: string) => {
+    message.success('登录成功');
+    window.location.assign(redirect);
+  };
+
   const handleSubmit = async (values: API.LoginRequest) => {
     setLoading(true);
     try {
@@ -60,14 +73,24 @@ export default function Login() {
         skipErrorHandler: true,
       });
       if (!response.data) return;
+      const options = resolveLoginOrganizationOptions(
+        response.organizationChoices,
+        response.data,
+      );
+      const redirect = safeRedirect(
+        new URL(window.location.href).searchParams.get('redirect'),
+      );
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: response.data }));
       });
-      message.success('登录成功');
-      const redirect = new URL(window.location.href).searchParams.get(
-        'redirect',
-      );
-      window.location.href = safeRedirect(redirect);
+      // 多组织用户先选择进入组织：会话已按默认组织建立，
+      // 选其他组织时由选择视图经 switch-organization 换发会话后进入。
+      if (options.length > 1) {
+        setPendingRedirect(redirect);
+        setOrganizationOptions(options);
+        return;
+      }
+      finishLogin(redirect);
     } catch (error) {
       message.error(
         error instanceof Error ? error.message : '登录失败，请稍后重试',
@@ -161,188 +184,205 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── 右侧：认证表单区 ── */}
+      {/* ── 右侧：认证表单区 / 登录后组织选择区 ── */}
       <div className={styles.formSection}>
-        <div className={styles.formCard}>
-          {/* 移动端 Logo 展示 */}
-          <div className={styles.mobileLogo}>
-            <img
-              src="/logo.svg"
-              alt="Roncin"
-              style={{ height: 32, width: 'auto' }}
-            />
+        {organizationOptions && organizationOptions.length > 1 ? (
+          <OrganizationPicker
+            options={organizationOptions}
+            onEnter={() => {
+              finishLogin(pendingRedirect);
+            }}
+          />
+        ) : (
+          <div className={styles.formCard}>
+            {/* 移动端 Logo 展示 */}
+            <div className={styles.mobileLogo}>
+              <img
+                src="/logo.svg"
+                alt="Roncin"
+                style={{ height: 32, width: 'auto' }}
+              />
+              <div>
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 18,
+                    letterSpacing: '0.08em',
+                    color: '#0f172a',
+                  }}
+                >
+                  RONCIN
+                </span>
+              </div>
+            </div>
+
+            {/* 表单头部 */}
             <div>
-              <span
+              <h1 className={styles.headerTitle}>登录</h1>
+            </div>
+
+            {/* 登录表单 */}
+            <Form<API.LoginRequest>
+              form={form}
+              layout="vertical"
+              requiredMark={false}
+              onFinish={handleSubmit}
+              initialValues={{ username: '', password: '' }}
+            >
+              {/* 用户名 */}
+              <Form.Item
+                name="username"
+                rules={[{ required: true, message: '请输入用户名' }]}
+                style={{ marginBottom: 20 }}
+              >
+                <div>
+                  <label className={styles.inputLabel} htmlFor="login_username">
+                    账号
+                  </label>
+                  <Input
+                    id="login_username"
+                    size="large"
+                    placeholder="用户名 / 邮箱"
+                    prefix={
+                      <UserOutlined
+                        style={{
+                          color: '#94a3b8',
+                          fontSize: 16,
+                          marginRight: 6,
+                        }}
+                      />
+                    }
+                    className={styles.pillInput}
+                    disabled={loading}
+                    onFocus={() => setIsTyping(true)}
+                    onBlur={() => setIsTyping(false)}
+                  />
+                </div>
+              </Form.Item>
+
+              {/* 密码 */}
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: '请输入密码' }]}
+                style={{ marginBottom: 20 }}
+              >
+                <div>
+                  <label className={styles.inputLabel} htmlFor="login_password">
+                    密码
+                  </label>
+                  <Input.Password
+                    id="login_password"
+                    size="large"
+                    placeholder="请输入密码"
+                    prefix={
+                      <LockOutlined
+                        style={{
+                          color: '#94a3b8',
+                          fontSize: 16,
+                          marginRight: 6,
+                        }}
+                      />
+                    }
+                    className={styles.pillInput}
+                    disabled={loading}
+                    iconRender={(visible) =>
+                      visible ? (
+                        <EyeOutlined style={{ color: '#64748b' }} />
+                      ) : (
+                        <EyeInvisibleOutlined style={{ color: '#94a3b8' }} />
+                      )
+                    }
+                    visibilityToggle={{
+                      visible: showPassword,
+                      onVisibleChange: (visible) => setShowPassword(visible),
+                    }}
+                    onChange={(e) => setPasswordValue(e.target.value)}
+                    onFocus={() => setIsTyping(true)}
+                    onBlur={() => setIsTyping(false)}
+                  />
+                </div>
+              </Form.Item>
+
+              {/* 辅助操作栏 */}
+              <div
                 style={{
-                  fontWeight: 800,
-                  fontSize: 18,
-                  letterSpacing: '0.08em',
-                  color: '#0f172a',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 24,
+                  paddingLeft: 6,
+                  paddingRight: 6,
                 }}
               >
-                RONCIN
-              </span>
-            </div>
-          </div>
-
-          {/* 表单头部 */}
-          <div>
-            <h1 className={styles.headerTitle}>登录</h1>
-          </div>
-
-          {/* 登录表单 */}
-          <Form<API.LoginRequest>
-            form={form}
-            layout="vertical"
-            requiredMark={false}
-            onFinish={handleSubmit}
-            initialValues={{ username: '', password: '' }}
-          >
-            {/* 用户名 */}
-            <Form.Item
-              name="username"
-              rules={[{ required: true, message: '请输入用户名' }]}
-              style={{ marginBottom: 20 }}
-            >
-              <div>
-                <label className={styles.inputLabel} htmlFor="login_username">
-                  账号
-                </label>
-                <Input
-                  id="login_username"
-                  size="large"
-                  placeholder="用户名 / 邮箱"
-                  prefix={
-                    <UserOutlined
-                      style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }}
-                    />
-                  }
-                  className={styles.pillInput}
+                <Checkbox
+                  defaultChecked
                   disabled={loading}
-                  onFocus={() => setIsTyping(true)}
-                  onBlur={() => setIsTyping(false)}
-                />
+                  style={{ fontSize: 13, color: '#64748b' }}
+                >
+                  保持登录
+                </Checkbox>
               </div>
-            </Form.Item>
 
-            {/* 密码 */}
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: '请输入密码' }]}
-              style={{ marginBottom: 20 }}
-            >
-              <div>
-                <label className={styles.inputLabel} htmlFor="login_password">
-                  密码
-                </label>
-                <Input.Password
-                  id="login_password"
-                  size="large"
-                  placeholder="请输入密码"
-                  prefix={
-                    <LockOutlined
-                      style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }}
-                    />
-                  }
-                  className={styles.pillInput}
+              {/* 登录操作按钮 */}
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading}
                   disabled={loading}
-                  iconRender={(visible) =>
-                    visible ? (
-                      <EyeOutlined style={{ color: '#64748b' }} />
-                    ) : (
-                      <EyeInvisibleOutlined style={{ color: '#94a3b8' }} />
-                    )
-                  }
-                  visibilityToggle={{
-                    visible: showPassword,
-                    onVisibleChange: (visible) => setShowPassword(visible),
-                  }}
-                  onChange={(e) => setPasswordValue(e.target.value)}
-                  onFocus={() => setIsTyping(true)}
-                  onBlur={() => setIsTyping(false)}
-                />
-              </div>
-            </Form.Item>
+                  className={styles.submitButton}
+                  icon={loading ? <LoadingOutlined /> : <ArrowRightOutlined />}
+                  iconPlacement="end"
+                >
+                  {loading ? '登录中...' : '登录'}
+                </Button>
+              </Form.Item>
+            </Form>
 
-            {/* 辅助操作栏 */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 24,
-                paddingLeft: 6,
-                paddingRight: 6,
-              }}
-            >
-              <Checkbox
-                defaultChecked
-                disabled={loading}
-                style={{ fontSize: 13, color: '#64748b' }}
-              >
-                保持登录
-              </Checkbox>
-            </div>
-
-            {/* 登录操作按钮 */}
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                disabled={loading}
-                className={styles.submitButton}
-                icon={loading ? <LoadingOutlined /> : <ArrowRightOutlined />}
-                iconPlacement="end"
-              >
-                {loading ? '登录中...' : '登录'}
-              </Button>
-            </Form.Item>
-          </Form>
-
-          {(wecomEnabled || dingtalkEnabled) && (
-            <>
-              <Divider plain className={styles.loginDivider}>
-                或
-              </Divider>
-              <div
-                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-              >
-                {wecomEnabled && (
-                  <Button
-                    block
-                    size="large"
-                    icon={<WechatWorkOutlined />}
-                    loading={wecomLoading}
-                    disabled={loading || wecomLoading || dingtalkLoading}
-                    className={styles.wecomButton}
-                    onClick={handleWeComLogin}
-                  >
-                    企业微信登录
-                  </Button>
-                )}
-                {dingtalkEnabled && (
-                  <>
+            {(wecomEnabled || dingtalkEnabled) && (
+              <>
+                <Divider plain className={styles.loginDivider}>
+                  或
+                </Divider>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+                >
+                  {wecomEnabled && (
                     <Button
                       block
                       size="large"
-                      icon={<DingdingOutlined />}
-                      loading={dingtalkLoading}
+                      icon={<WechatWorkOutlined />}
+                      loading={wecomLoading}
                       disabled={loading || wecomLoading || dingtalkLoading}
-                      onClick={handleDingTalkLogin}
+                      className={styles.wecomButton}
+                      onClick={handleWeComLogin}
                     >
-                      钉钉登录
+                      企业微信登录
                     </Button>
-                    <div style={{ textAlign: 'center', fontSize: 13 }}>
-                      首次使用？
-                      <Link to="/user/register">使用钉钉扫码注册</Link>
-                    </div>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+                  )}
+                  {dingtalkEnabled && (
+                    <>
+                      <Button
+                        block
+                        size="large"
+                        icon={<DingdingOutlined />}
+                        loading={dingtalkLoading}
+                        disabled={loading || wecomLoading || dingtalkLoading}
+                        onClick={handleDingTalkLogin}
+                      >
+                        钉钉登录
+                      </Button>
+                      <div style={{ textAlign: 'center', fontSize: 13 }}>
+                        首次使用？
+                        <Link to="/user/register">使用钉钉扫码注册</Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 企业微信扫码登录弹窗 */}
