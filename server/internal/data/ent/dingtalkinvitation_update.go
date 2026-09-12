@@ -38,6 +38,34 @@ func (_u *DingTalkInvitationUpdate) SetUpdatedAt(v time.Time) *DingTalkInvitatio
 	return _u
 }
 
+// SetToken sets the "token" field.
+func (_u *DingTalkInvitationUpdate) SetToken(v string) *DingTalkInvitationUpdate {
+	_u.mutation.SetToken(v)
+	return _u
+}
+
+// SetNillableToken sets the "token" field if the given value is not nil.
+func (_u *DingTalkInvitationUpdate) SetNillableToken(v *string) *DingTalkInvitationUpdate {
+	if v != nil {
+		_u.SetToken(*v)
+	}
+	return _u
+}
+
+// SetKind sets the "kind" field.
+func (_u *DingTalkInvitationUpdate) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationUpdate {
+	_u.mutation.SetKind(v)
+	return _u
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_u *DingTalkInvitationUpdate) SetNillableKind(v *dingtalkinvitation.Kind) *DingTalkInvitationUpdate {
+	if v != nil {
+		_u.SetKind(*v)
+	}
+	return _u
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_u *DingTalkInvitationUpdate) SetOrganizationID(v uuid.UUID) *DingTalkInvitationUpdate {
 	_u.mutation.SetOrganizationID(v)
@@ -66,6 +94,12 @@ func (_u *DingTalkInvitationUpdate) SetNillableRoleID(v *uuid.UUID) *DingTalkInv
 	return _u
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (_u *DingTalkInvitationUpdate) ClearRoleID() *DingTalkInvitationUpdate {
+	_u.mutation.ClearRoleID()
+	return _u
+}
+
 // SetMobile sets the "mobile" field.
 func (_u *DingTalkInvitationUpdate) SetMobile(v string) *DingTalkInvitationUpdate {
 	_u.mutation.SetMobile(v)
@@ -77,6 +111,12 @@ func (_u *DingTalkInvitationUpdate) SetNillableMobile(v *string) *DingTalkInvita
 	if v != nil {
 		_u.SetMobile(*v)
 	}
+	return _u
+}
+
+// ClearMobile clears the value of the "mobile" field.
+func (_u *DingTalkInvitationUpdate) ClearMobile() *DingTalkInvitationUpdate {
+	_u.mutation.ClearMobile()
 	return _u
 }
 
@@ -289,6 +329,16 @@ func (_u *DingTalkInvitationUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *DingTalkInvitationUpdate) check() error {
+	if v, ok := _u.mutation.Token(); ok {
+		if err := dingtalkinvitation.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.token": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Kind(); ok {
+		if err := dingtalkinvitation.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.kind": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Mobile(); ok {
 		if err := dingtalkinvitation.MobileValidator(v); err != nil {
 			return &ValidationError{Name: "mobile", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.mobile": %w`, err)}
@@ -306,9 +356,6 @@ func (_u *DingTalkInvitationUpdate) check() error {
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.organization"`)
-	}
-	if _u.mutation.RoleCleared() && len(_u.mutation.RoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.role"`)
 	}
 	if _u.mutation.InviterCleared() && len(_u.mutation.InviterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.inviter"`)
@@ -331,8 +378,17 @@ func (_u *DingTalkInvitationUpdate) sqlSave(ctx context.Context) (_node int, err
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(dingtalkinvitation.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Token(); ok {
+		_spec.SetField(dingtalkinvitation.FieldToken, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kind(); ok {
+		_spec.SetField(dingtalkinvitation.FieldKind, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.Mobile(); ok {
 		_spec.SetField(dingtalkinvitation.FieldMobile, field.TypeString, value)
+	}
+	if _u.mutation.MobileCleared() {
+		_spec.ClearField(dingtalkinvitation.FieldMobile, field.TypeString)
 	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(dingtalkinvitation.FieldDisplayName, field.TypeString, value)
@@ -494,6 +550,34 @@ func (_u *DingTalkInvitationUpdateOne) SetUpdatedAt(v time.Time) *DingTalkInvita
 	return _u
 }
 
+// SetToken sets the "token" field.
+func (_u *DingTalkInvitationUpdateOne) SetToken(v string) *DingTalkInvitationUpdateOne {
+	_u.mutation.SetToken(v)
+	return _u
+}
+
+// SetNillableToken sets the "token" field if the given value is not nil.
+func (_u *DingTalkInvitationUpdateOne) SetNillableToken(v *string) *DingTalkInvitationUpdateOne {
+	if v != nil {
+		_u.SetToken(*v)
+	}
+	return _u
+}
+
+// SetKind sets the "kind" field.
+func (_u *DingTalkInvitationUpdateOne) SetKind(v dingtalkinvitation.Kind) *DingTalkInvitationUpdateOne {
+	_u.mutation.SetKind(v)
+	return _u
+}
+
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (_u *DingTalkInvitationUpdateOne) SetNillableKind(v *dingtalkinvitation.Kind) *DingTalkInvitationUpdateOne {
+	if v != nil {
+		_u.SetKind(*v)
+	}
+	return _u
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_u *DingTalkInvitationUpdateOne) SetOrganizationID(v uuid.UUID) *DingTalkInvitationUpdateOne {
 	_u.mutation.SetOrganizationID(v)
@@ -522,6 +606,12 @@ func (_u *DingTalkInvitationUpdateOne) SetNillableRoleID(v *uuid.UUID) *DingTalk
 	return _u
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (_u *DingTalkInvitationUpdateOne) ClearRoleID() *DingTalkInvitationUpdateOne {
+	_u.mutation.ClearRoleID()
+	return _u
+}
+
 // SetMobile sets the "mobile" field.
 func (_u *DingTalkInvitationUpdateOne) SetMobile(v string) *DingTalkInvitationUpdateOne {
 	_u.mutation.SetMobile(v)
@@ -533,6 +623,12 @@ func (_u *DingTalkInvitationUpdateOne) SetNillableMobile(v *string) *DingTalkInv
 	if v != nil {
 		_u.SetMobile(*v)
 	}
+	return _u
+}
+
+// ClearMobile clears the value of the "mobile" field.
+func (_u *DingTalkInvitationUpdateOne) ClearMobile() *DingTalkInvitationUpdateOne {
+	_u.mutation.ClearMobile()
 	return _u
 }
 
@@ -758,6 +854,16 @@ func (_u *DingTalkInvitationUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *DingTalkInvitationUpdateOne) check() error {
+	if v, ok := _u.mutation.Token(); ok {
+		if err := dingtalkinvitation.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.token": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Kind(); ok {
+		if err := dingtalkinvitation.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.kind": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Mobile(); ok {
 		if err := dingtalkinvitation.MobileValidator(v); err != nil {
 			return &ValidationError{Name: "mobile", err: fmt.Errorf(`ent: validator failed for field "DingTalkInvitation.mobile": %w`, err)}
@@ -775,9 +881,6 @@ func (_u *DingTalkInvitationUpdateOne) check() error {
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.organization"`)
-	}
-	if _u.mutation.RoleCleared() && len(_u.mutation.RoleIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.role"`)
 	}
 	if _u.mutation.InviterCleared() && len(_u.mutation.InviterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DingTalkInvitation.inviter"`)
@@ -817,8 +920,17 @@ func (_u *DingTalkInvitationUpdateOne) sqlSave(ctx context.Context) (_node *Ding
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(dingtalkinvitation.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.Token(); ok {
+		_spec.SetField(dingtalkinvitation.FieldToken, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kind(); ok {
+		_spec.SetField(dingtalkinvitation.FieldKind, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.Mobile(); ok {
 		_spec.SetField(dingtalkinvitation.FieldMobile, field.TypeString, value)
+	}
+	if _u.mutation.MobileCleared() {
+		_spec.ClearField(dingtalkinvitation.FieldMobile, field.TypeString)
 	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(dingtalkinvitation.FieldDisplayName, field.TypeString, value)

@@ -187,6 +187,15 @@ service AdminService {
       body: "*"
     };
   }
+
+  // TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+  rpc TransferDingTalkRegistration(TransferDingTalkRegistrationRequest) returns (TransferDingTalkRegistrationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/admin/dingtalk/registrations/{user_id}/transfer"
+      body: "*"
+    };
+  }
 }
 
 enum DataScope {
@@ -601,17 +610,25 @@ enum DingTalkInvitationStatus {
   DING_TALK_INVITATION_STATUS_REVOKED = 4;
 }
 
+enum DingTalkInvitationKind {
+  DING_TALK_INVITATION_KIND_UNSPECIFIED = 0;
+  DING_TALK_INVITATION_KIND_TARGETED = 1;
+  DING_TALK_INVITATION_KIND_GENERIC = 2;
+}
+
 message CreateDingTalkInvitationRequest {
-  // 国内手机号；服务端归一化 +86/0086 前缀后按 11 位校验。
-  string mobile = 1 [(google.api.field_behavior) = REQUIRED];
   // 目标组织；必须是调用者可写范围内的组织。
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  // 激活后授予的初始角色（必须属于目标组织）。
-  string role_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  // 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。
+  DingTalkInvitationKind kind = 2;
+  // 国内手机号；TARGETED 必填，GENERIC 留空。
+  optional string mobile = 3;
+  // 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。
+  optional string role_id = 4;
   // 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
-  optional string display_name = 4;
+  optional string display_name = 5;
   // 有效期（小时）；缺省 72，允许 1-720。
-  optional int32 expires_in_hours = 5;
+  optional int32 expires_in_hours = 6;
 }
 
 message CreateDingTalkInvitationResponse {
@@ -619,7 +636,8 @@ message CreateDingTalkInvitationResponse {
   int32 code = 2;
   string message = 3;
   DingTalkInvitation data = 4;
-  string trace_id = 5;
+  string invitation_url = 5;
+  string trace_id = 6;
 }
 
 message ListDingTalkInvitationsRequest {
@@ -657,15 +675,30 @@ message DingTalkInvitation {
   string id = 1;
   string organization_id = 2;
   string organization_name = 3;
-  string role_id = 4;
-  string role_name = 5;
-  string mobile_masked = 6;
+  optional string role_id = 4;
+  optional string role_name = 5;
+  optional string mobile_masked = 6;
   optional string display_name = 7;
   DingTalkInvitationStatus status = 8;
   optional string consumed_name = 9;
   string created_at = 10;
   string expires_at = 11;
   string inviter_name = 12;
+  DingTalkInvitationKind kind = 13;
+  string token = 14;
+}
+
+message TransferDingTalkRegistrationRequest {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string target_organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TransferDingTalkRegistrationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
 }
 
 message ListDingTalkRegistrationsRequest {

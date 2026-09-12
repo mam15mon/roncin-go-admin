@@ -7,7 +7,10 @@ import {
 import { Helmet, Link } from '@umijs/max';
 import { Alert, App, Button, Steps } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
+import {
+  authServiceGetDingTalkInvitationInfo,
+  authServiceGetDingTalkLoginConfig,
+} from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import styles from '../login/index.module.less';
 
@@ -15,11 +18,29 @@ export default function Register() {
   const { message } = App.useApp();
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [invitationInfo, setInvitationInfo] =
+    useState<API.DingTalkInvitationPublicInfo>();
 
   useEffect(() => {
     authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
       .then((response) => setEnabled(response.data?.enabled ?? false))
       .catch(() => setEnabled(false));
+
+    const token =
+      new URL(window.location.href).searchParams.get('invite') ||
+      new URL(window.location.href).searchParams.get('token') ||
+      sessionStorage.getItem('dingtalk_invitation_token');
+    if (token) {
+      sessionStorage.setItem('dingtalk_invitation_token', token);
+      authServiceGetDingTalkInvitationInfo(
+        { token },
+        { skipErrorHandler: true },
+      )
+        .then((response) => {
+          if (response.data) setInvitationInfo(response.data);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const startRegistration = async () => {
@@ -113,6 +134,15 @@ export default function Register() {
             ]}
             style={{ marginBottom: 28 }}
           />
+          {invitationInfo && (
+            <Alert
+              showIcon
+              type="info"
+              title={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
+              description={`您正在通过企业专属邀请申请入职，钉钉身份验证通过后将直接提交该分公司管理员审批。`}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           <Alert
             showIcon
             type="info"

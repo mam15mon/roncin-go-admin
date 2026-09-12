@@ -10568,6 +10568,8 @@ type DingTalkInvitationMutation struct {
 	id                  *uuid.UUID
 	created_at          *time.Time
 	updated_at          *time.Time
+	token               *string
+	kind                *dingtalkinvitation.Kind
 	mobile              *string
 	display_name        *string
 	status              *dingtalkinvitation.Status
@@ -10763,6 +10765,78 @@ func (m *DingTalkInvitationMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetToken sets the "token" field.
+func (m *DingTalkInvitationMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *DingTalkInvitationMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *DingTalkInvitationMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *DingTalkInvitationMutation) SetKind(d dingtalkinvitation.Kind) {
+	m.kind = &d
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *DingTalkInvitationMutation) Kind() (r dingtalkinvitation.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the DingTalkInvitation entity.
+// If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkInvitationMutation) OldKind(ctx context.Context) (v dingtalkinvitation.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *DingTalkInvitationMutation) ResetKind() {
+	m.kind = nil
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (m *DingTalkInvitationMutation) SetOrganizationID(u uuid.UUID) {
 	m.organization = &u
@@ -10816,7 +10890,7 @@ func (m *DingTalkInvitationMutation) RoleID() (r uuid.UUID, exists bool) {
 // OldRoleID returns the old "role_id" field's value of the DingTalkInvitation entity.
 // If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DingTalkInvitationMutation) OldRoleID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *DingTalkInvitationMutation) OldRoleID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRoleID is only allowed on UpdateOne operations")
 	}
@@ -10830,9 +10904,22 @@ func (m *DingTalkInvitationMutation) OldRoleID(ctx context.Context) (v uuid.UUID
 	return oldValue.RoleID, nil
 }
 
+// ClearRoleID clears the value of the "role_id" field.
+func (m *DingTalkInvitationMutation) ClearRoleID() {
+	m.role = nil
+	m.clearedFields[dingtalkinvitation.FieldRoleID] = struct{}{}
+}
+
+// RoleIDCleared returns if the "role_id" field was cleared in this mutation.
+func (m *DingTalkInvitationMutation) RoleIDCleared() bool {
+	_, ok := m.clearedFields[dingtalkinvitation.FieldRoleID]
+	return ok
+}
+
 // ResetRoleID resets all changes to the "role_id" field.
 func (m *DingTalkInvitationMutation) ResetRoleID() {
 	m.role = nil
+	delete(m.clearedFields, dingtalkinvitation.FieldRoleID)
 }
 
 // SetMobile sets the "mobile" field.
@@ -10852,7 +10939,7 @@ func (m *DingTalkInvitationMutation) Mobile() (r string, exists bool) {
 // OldMobile returns the old "mobile" field's value of the DingTalkInvitation entity.
 // If the DingTalkInvitation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DingTalkInvitationMutation) OldMobile(ctx context.Context) (v string, err error) {
+func (m *DingTalkInvitationMutation) OldMobile(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMobile is only allowed on UpdateOne operations")
 	}
@@ -10866,9 +10953,22 @@ func (m *DingTalkInvitationMutation) OldMobile(ctx context.Context) (v string, e
 	return oldValue.Mobile, nil
 }
 
+// ClearMobile clears the value of the "mobile" field.
+func (m *DingTalkInvitationMutation) ClearMobile() {
+	m.mobile = nil
+	m.clearedFields[dingtalkinvitation.FieldMobile] = struct{}{}
+}
+
+// MobileCleared returns if the "mobile" field was cleared in this mutation.
+func (m *DingTalkInvitationMutation) MobileCleared() bool {
+	_, ok := m.clearedFields[dingtalkinvitation.FieldMobile]
+	return ok
+}
+
 // ResetMobile resets all changes to the "mobile" field.
 func (m *DingTalkInvitationMutation) ResetMobile() {
 	m.mobile = nil
+	delete(m.clearedFields, dingtalkinvitation.FieldMobile)
 }
 
 // SetDisplayName sets the "display_name" field.
@@ -11161,7 +11261,7 @@ func (m *DingTalkInvitationMutation) ClearRole() {
 
 // RoleCleared reports if the "role" edge to the Role entity was cleared.
 func (m *DingTalkInvitationMutation) RoleCleared() bool {
-	return m.clearedrole
+	return m.RoleIDCleared() || m.clearedrole
 }
 
 // RoleIDs returns the "role" edge IDs in the mutation.
@@ -11294,12 +11394,18 @@ func (m *DingTalkInvitationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DingTalkInvitationMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, dingtalkinvitation.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, dingtalkinvitation.FieldUpdatedAt)
+	}
+	if m.token != nil {
+		fields = append(fields, dingtalkinvitation.FieldToken)
+	}
+	if m.kind != nil {
+		fields = append(fields, dingtalkinvitation.FieldKind)
 	}
 	if m.organization != nil {
 		fields = append(fields, dingtalkinvitation.FieldOrganizationID)
@@ -11340,6 +11446,10 @@ func (m *DingTalkInvitationMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case dingtalkinvitation.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case dingtalkinvitation.FieldToken:
+		return m.Token()
+	case dingtalkinvitation.FieldKind:
+		return m.Kind()
 	case dingtalkinvitation.FieldOrganizationID:
 		return m.OrganizationID()
 	case dingtalkinvitation.FieldRoleID:
@@ -11371,6 +11481,10 @@ func (m *DingTalkInvitationMutation) OldField(ctx context.Context, name string) 
 		return m.OldCreatedAt(ctx)
 	case dingtalkinvitation.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case dingtalkinvitation.FieldToken:
+		return m.OldToken(ctx)
+	case dingtalkinvitation.FieldKind:
+		return m.OldKind(ctx)
 	case dingtalkinvitation.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case dingtalkinvitation.FieldRoleID:
@@ -11411,6 +11525,20 @@ func (m *DingTalkInvitationMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case dingtalkinvitation.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case dingtalkinvitation.FieldKind:
+		v, ok := value.(dingtalkinvitation.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
 		return nil
 	case dingtalkinvitation.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -11505,6 +11633,12 @@ func (m *DingTalkInvitationMutation) AddField(name string, value ent.Value) erro
 // mutation.
 func (m *DingTalkInvitationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(dingtalkinvitation.FieldRoleID) {
+		fields = append(fields, dingtalkinvitation.FieldRoleID)
+	}
+	if m.FieldCleared(dingtalkinvitation.FieldMobile) {
+		fields = append(fields, dingtalkinvitation.FieldMobile)
+	}
 	if m.FieldCleared(dingtalkinvitation.FieldDisplayName) {
 		fields = append(fields, dingtalkinvitation.FieldDisplayName)
 	}
@@ -11528,6 +11662,12 @@ func (m *DingTalkInvitationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *DingTalkInvitationMutation) ClearField(name string) error {
 	switch name {
+	case dingtalkinvitation.FieldRoleID:
+		m.ClearRoleID()
+		return nil
+	case dingtalkinvitation.FieldMobile:
+		m.ClearMobile()
+		return nil
 	case dingtalkinvitation.FieldDisplayName:
 		m.ClearDisplayName()
 		return nil
@@ -11550,6 +11690,12 @@ func (m *DingTalkInvitationMutation) ResetField(name string) error {
 		return nil
 	case dingtalkinvitation.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case dingtalkinvitation.FieldToken:
+		m.ResetToken()
+		return nil
+	case dingtalkinvitation.FieldKind:
+		m.ResetKind()
 		return nil
 	case dingtalkinvitation.FieldOrganizationID:
 		m.ResetOrganizationID()

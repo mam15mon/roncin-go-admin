@@ -1,4 +1,8 @@
-import { DingdingOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  DingdingOutlined,
+  PlusOutlined,
+  QrcodeOutlined,
+} from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -6,14 +10,17 @@ import type {
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess, useModel } from '@umijs/max';
-import { App, Button, Popconfirm, Space, Typography } from 'antd';
+import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   dingTalkInvitationStatusMeta,
   makeValueEnum,
   statusTag,
 } from '@/constants/statusMeta';
-import { DingTalkInvitationStatus } from '@/enums.generated';
+import {
+  DingTalkInvitationKind,
+  DingTalkInvitationStatus,
+} from '@/enums.generated';
 import {
   adminServiceListDingTalkInvitations,
   adminServiceListOrganizations,
@@ -22,6 +29,7 @@ import {
 import { toTableRequest, unwrapList } from '@/utils/api';
 import { organizationSelectOptions } from './components/dingtalk/constants';
 import InvitationFormModal from './components/dingtalk/InvitationFormModal';
+import InvitationQrModal from './components/dingtalk/InvitationQrModal';
 
 const { Text } = Typography;
 
@@ -36,8 +44,7 @@ export function normalizeInvitationStatusFilter(
 }
 
 /**
- * 钉钉扫码邀请面板（通道 A）：按手机号预建邀请，员工扫码匹配后自动激活，
- * 无需人工审批；手机号由服务端脱敏返回，前端不接触完整号码。
+ * 钉钉扫码邀请面板：支持「通用入职码（多人扫码·审批入职）」与「定向邀请码（单人扫码·免审激活）」。
  */
 export default function DingTalkInvitationsPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -46,6 +53,10 @@ export default function DingTalkInvitationsPanel() {
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
   const [createOpen, setCreateOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [activeQrInvitation, setActiveQrInvitation] =
+    useState<API.DingTalkInvitation>();
+  const [activeQrUrl, setActiveQrUrl] = useState<string>();
   const [allOrganizations, setAllOrganizations] = useState<
     API.AdminOrganization[]
   >([]);
@@ -79,7 +90,7 @@ export default function DingTalkInvitationsPanel() {
   const handleRevoke = async (record: API.DingTalkInvitation) => {
     if (!record.id) return;
     await adminServiceRevokeDingTalkInvitation({ id: record.id });
-    message.success('邀请已撤销，该手机号扫码不再自动激活');
+    message.success('邀请已撤销');
     actionRef.current?.reload();
   };
 
@@ -109,17 +120,34 @@ export default function DingTalkInvitationsPanel() {
       render: (_, record) =>
         statusTag(dingTalkInvitationStatusMeta, record.status ?? 0, '未知'),
     },
+    {
+      title: '类型',
+      dataIndex: 'kind',
+      width: 110,
+      search: false,
+      render: (_, record) =>
+        record.kind ===
+        DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC ? (
+          <Tag color="geekblue">通用入职码</Tag>
+        ) : (
+          <Tag color="cyan">定向邀请</Tag>
+        ),
+    },
     ...organizationFilterColumn,
     {
       title: '手机号',
       dataIndex: 'mobileMasked',
       width: 130,
       search: false,
-      render: (_, record) => (
-        <Text style={{ fontFamily: 'monospace' }}>
-          {record.mobileMasked || '-'}
-        </Text>
-      ),
+      render: (_, record) =>
+        record.kind ===
+        DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC ? (
+          <Text type="secondary">多人扫码</Text>
+        ) : (
+          <Text style={{ fontFamily: 'monospace' }}>
+            {record.mobileMasked || '-'}
+          </Text>
+        ),
     },
     {
       title: '备注姓名',
@@ -144,7 +172,15 @@ export default function DingTalkInvitationsPanel() {
       width: 140,
       ellipsis: true,
       search: false,
-      render: (_, record) => record.roleName || <Text type="secondary">-</Text>,
+      render: (_, record) =>
+        record.roleName || (
+          <Text type="secondary">
+            {record.kind ===
+            DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC
+              ? '审批时指定'
+              : '-'}
+          </Text>
+        ),
     },
     {
       title: '已激活',
@@ -153,7 +189,14 @@ export default function DingTalkInvitationsPanel() {
       ellipsis: true,
       search: false,
       render: (_, record) =>
-        record.consumedName || <Text type="secondary">-</Text>,
+        record.consumedName || (
+          <Text type="secondary">
+            {record.kind ===
+            DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC
+              ? '多人申请'
+              : '-'}
+          </Text>
+        ),
     },
     {
       title: '邀请人',
@@ -179,23 +222,43 @@ export default function DingTalkInvitationsPanel() {
     {
       title: '操作',
       valueType: 'option',
-      width: 80,
+      width: 130,
       fixed: 'right',
       render: (_, record) =>
         record.status ===
         DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING ? (
-          <Popconfirm
-            title="确定撤销该邀请？"
-            description="撤销后该手机号扫码不再自动激活；撤销操作不可恢复。"
-            okText="撤销"
-            cancelText="取消"
-            okButtonProps={{ danger: true }}
-            onConfirm={() => handleRevoke(record)}
-          >
-            <Button type="link" danger size="small" style={{ padding: 0 }}>
-              撤销
+          <Space size={8}>
+            <Button
+              type="link"
+              size="small"
+              icon={<QrcodeOutlined />}
+              style={{ padding: 0 }}
+              onClick={() => {
+                setActiveQrInvitation(record);
+                setActiveQrUrl(undefined);
+                setQrModalOpen(true);
+              }}
+            >
+              二维码
             </Button>
-          </Popconfirm>
+            <Popconfirm
+              title="确定撤销该邀请？"
+              description={
+                record.kind ===
+                DingTalkInvitationKind.DING_TALK_INVITATION_KIND_GENERIC
+                  ? '撤销后该二维码将立即失效，新员工无法再扫码提交申请；撤销操作不可恢复。'
+                  : '撤销后该手机号扫码不再自动激活；撤销操作不可恢复。'
+              }
+              okText="撤销"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => handleRevoke(record)}
+            >
+              <Button type="link" danger size="small" style={{ padding: 0 }}>
+                撤销
+              </Button>
+            </Popconfirm>
+          </Space>
         ) : null,
     },
   ];
@@ -207,7 +270,9 @@ export default function DingTalkInvitationsPanel() {
           <Space size={8}>
             <DingdingOutlined style={{ color: '#1677ff' }} />
             <span>扫码邀请</span>
-            <Text type="secondary">按手机号预建，员工扫码自动激活</Text>
+            <Text type="secondary">
+              通用入职码多人审批，定向免审码手机号匹配自动激活
+            </Text>
           </Space>
         }
         rowKey="id"
@@ -252,6 +317,18 @@ export default function DingTalkInvitationsPanel() {
         currentOrganizationId={currentOrganizationId}
         canReadRoles={access.canReadRoles}
         onReload={() => actionRef.current?.reload()}
+        onSuccess={(invitation, invitationUrl) => {
+          setActiveQrInvitation(invitation);
+          setActiveQrUrl(invitationUrl);
+          setQrModalOpen(true);
+        }}
+      />
+
+      <InvitationQrModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        invitation={activeQrInvitation}
+        invitationUrl={activeQrUrl}
       />
     </>
   );

@@ -232,6 +232,10 @@ declare namespace API {
     id: string;
   };
 
+  type AdminServiceTransferDingTalkRegistrationParams = {
+    userId: string;
+  };
+
   type AdminServiceUpdateOrganizationParams = {
     id: string;
   };
@@ -384,6 +388,11 @@ declare namespace API {
     message?: string;
     data?: AdminUser;
     traceId?: string;
+  };
+
+  type AuthServiceGetDingTalkInvitationInfoParams = {
+    /** 专属邀请 128-bit Token */
+    token?: string;
   };
 
   type BackgroundTask = {
@@ -1190,12 +1199,14 @@ declare namespace API {
   };
 
   type CreateDingTalkInvitationRequest = {
-    /** 国内手机号；服务端归一化 +86/0086 前缀后按 11 位校验。 */
-    mobile: string;
     /** 目标组织；必须是调用者可写范围内的组织。 */
     organizationId: string;
-    /** 激活后授予的初始角色（必须属于目标组织）。 */
-    roleId: string;
+    /** 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。 */
+    kind?: number;
+    /** 国内手机号；TARGETED 必填，GENERIC 留空。 */
+    mobile?: string;
+    /** 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。 */
+    roleId?: string;
     /** 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。 */
     displayName?: string;
     /** 有效期（小时）；缺省 72，允许 1-720。 */
@@ -1207,6 +1218,7 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkInvitation;
+    invitationUrl?: string;
     traceId?: string;
   };
 
@@ -1722,6 +1734,14 @@ declare namespace API {
     createdAt?: string;
     expiresAt?: string;
     inviterName?: string;
+    kind?: number;
+    token?: string;
+  };
+
+  type DingTalkInvitationPublicInfo = {
+    organizationName?: string;
+    inviterName?: string;
+    expiresAt?: string;
   };
 
   type DingTalkLoginConfig = {
@@ -2849,6 +2869,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommission;
+    traceId?: string;
+  };
+
+  type GetDingTalkInvitationInfoResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkInvitationPublicInfo;
     traceId?: string;
   };
 
@@ -5481,7 +5509,9 @@ declare namespace API {
   };
 
   type RegisterDingTalkUserRequest = {
-    /** 可选：自选要加入的目标公司；缺省走总部兜底（通知总部管理员审批）。 */
+    /** 可选：专属邀请 Token；若提供则由服务端解析目标组织，杜绝客户端伪造 */
+    invitationToken?: string;
+    /** 可选：自选要加入的目标公司（公开注册通道用；若有 invitation_token 则由服务端优先从 Token 兑现） */
     organizationId?: string;
   };
 
@@ -7091,6 +7121,19 @@ declare namespace API {
   };
 
   type TerminateUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type TransferDingTalkRegistrationRequest = {
+    userId: string;
+    targetOrganizationId: string;
+    reason: string;
+  };
+
+  type TransferDingTalkRegistrationResponse = {
     success?: boolean;
     code?: number;
     message?: string;

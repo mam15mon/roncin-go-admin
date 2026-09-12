@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// Token applies equality check predicate on the "token" field. It's identical to TokenEQ.
+func Token(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldEQ(FieldToken, v))
+}
+
 // OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
 func OrganizationID(v uuid.UUID) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldEQ(FieldOrganizationID, v))
@@ -186,6 +191,91 @@ func UpdatedAtLTE(v time.Time) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// TokenEQ applies the EQ predicate on the "token" field.
+func TokenEQ(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldEQ(FieldToken, v))
+}
+
+// TokenNEQ applies the NEQ predicate on the "token" field.
+func TokenNEQ(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNEQ(FieldToken, v))
+}
+
+// TokenIn applies the In predicate on the "token" field.
+func TokenIn(vs ...string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldIn(FieldToken, vs...))
+}
+
+// TokenNotIn applies the NotIn predicate on the "token" field.
+func TokenNotIn(vs ...string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNotIn(FieldToken, vs...))
+}
+
+// TokenGT applies the GT predicate on the "token" field.
+func TokenGT(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldGT(FieldToken, v))
+}
+
+// TokenGTE applies the GTE predicate on the "token" field.
+func TokenGTE(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldGTE(FieldToken, v))
+}
+
+// TokenLT applies the LT predicate on the "token" field.
+func TokenLT(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldLT(FieldToken, v))
+}
+
+// TokenLTE applies the LTE predicate on the "token" field.
+func TokenLTE(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldLTE(FieldToken, v))
+}
+
+// TokenContains applies the Contains predicate on the "token" field.
+func TokenContains(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldContains(FieldToken, v))
+}
+
+// TokenHasPrefix applies the HasPrefix predicate on the "token" field.
+func TokenHasPrefix(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldHasPrefix(FieldToken, v))
+}
+
+// TokenHasSuffix applies the HasSuffix predicate on the "token" field.
+func TokenHasSuffix(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldHasSuffix(FieldToken, v))
+}
+
+// TokenEqualFold applies the EqualFold predicate on the "token" field.
+func TokenEqualFold(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldEqualFold(FieldToken, v))
+}
+
+// TokenContainsFold applies the ContainsFold predicate on the "token" field.
+func TokenContainsFold(v string) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldContainsFold(FieldToken, v))
+}
+
+// KindEQ applies the EQ predicate on the "kind" field.
+func KindEQ(v Kind) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldEQ(FieldKind, v))
+}
+
+// KindNEQ applies the NEQ predicate on the "kind" field.
+func KindNEQ(v Kind) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNEQ(FieldKind, v))
+}
+
+// KindIn applies the In predicate on the "kind" field.
+func KindIn(vs ...Kind) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldIn(FieldKind, vs...))
+}
+
+// KindNotIn applies the NotIn predicate on the "kind" field.
+func KindNotIn(vs ...Kind) predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNotIn(FieldKind, vs...))
+}
+
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
 func OrganizationIDEQ(v uuid.UUID) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldEQ(FieldOrganizationID, v))
@@ -224,6 +314,16 @@ func RoleIDIn(vs ...uuid.UUID) predicate.DingTalkInvitation {
 // RoleIDNotIn applies the NotIn predicate on the "role_id" field.
 func RoleIDNotIn(vs ...uuid.UUID) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldNotIn(FieldRoleID, vs...))
+}
+
+// RoleIDIsNil applies the IsNil predicate on the "role_id" field.
+func RoleIDIsNil() predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldIsNull(FieldRoleID))
+}
+
+// RoleIDNotNil applies the NotNil predicate on the "role_id" field.
+func RoleIDNotNil() predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNotNull(FieldRoleID))
 }
 
 // MobileEQ applies the EQ predicate on the "mobile" field.
@@ -279,6 +379,16 @@ func MobileHasPrefix(v string) predicate.DingTalkInvitation {
 // MobileHasSuffix applies the HasSuffix predicate on the "mobile" field.
 func MobileHasSuffix(v string) predicate.DingTalkInvitation {
 	return predicate.DingTalkInvitation(sql.FieldHasSuffix(FieldMobile, v))
+}
+
+// MobileIsNil applies the IsNil predicate on the "mobile" field.
+func MobileIsNil() predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldIsNull(FieldMobile))
+}
+
+// MobileNotNil applies the NotNil predicate on the "mobile" field.
+func MobileNotNil() predicate.DingTalkInvitation {
+	return predicate.DingTalkInvitation(sql.FieldNotNull(FieldMobile))
 }
 
 // MobileEqualFold applies the EqualFold predicate on the "mobile" field.

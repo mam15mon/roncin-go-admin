@@ -15,17 +15,19 @@ import {
 import { toTableRequest, unwrapList } from '@/utils/api';
 import RegistrationApproveModal from './components/dingtalk/RegistrationApproveModal';
 import RegistrationRejectModal from './components/dingtalk/RegistrationRejectModal';
+import RegistrationTransferModal from './components/dingtalk/RegistrationTransferModal';
 
 const { Text } = Typography;
 
 /**
- * 钉钉注册审批队列（通道 B）：无邀请扫码的 PENDING 注册一站式审批；
+ * 钉钉注册审批队列：待审批人员一站式审批（同意、转派兄弟公司、拒绝）；
  * 钉钉姓名/头像来自扫码返回，供管理员人工认领。
  */
 export default function DingTalkRegistrationsPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const approveFormRef = useRef<ProFormInstance | undefined>(undefined);
   const rejectFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const transferFormRef = useRef<ProFormInstance | undefined>(undefined);
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
@@ -33,10 +35,11 @@ export default function DingTalkRegistrationsPanel() {
   );
   const [approving, setApproving] = useState<API.DingTalkRegistration>();
   const [rejecting, setRejecting] = useState<API.DingTalkRegistration>();
+  const [transferring, setTransferring] = useState<API.DingTalkRegistration>();
 
   useEffect(() => {
     // 总部兜底注册（未自选目标组织）的路由组织是组织树根，需要全量组织列表
-    // 解析根组织以加载可授予角色；普通组织管理员只处理自选本组织的注册。
+    // 解析根组织以加载可授予角色；转派也需要全量可选目标分公司列表。
     if (access.canReadOrganizations) {
       adminServiceListOrganizations().then((response) =>
         setOrganizations(unwrapList(response)),
@@ -94,7 +97,7 @@ export default function DingTalkRegistrationsPanel() {
     {
       title: '操作',
       valueType: 'option',
-      width: 130,
+      width: 170,
       fixed: 'right',
       render: (_, record) => (
         <Space size={4}>
@@ -105,6 +108,14 @@ export default function DingTalkRegistrationsPanel() {
             onClick={() => setApproving(record)}
           >
             同意
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={() => setTransferring(record)}
+          >
+            转派
           </Button>
           <Button
             type="link"
@@ -127,7 +138,9 @@ export default function DingTalkRegistrationsPanel() {
           <Space size={8}>
             <AuditOutlined style={{ color: '#1677ff' }} />
             <span>待审批注册</span>
-            <Text type="secondary">无邀请扫码的员工，按目标组织路由到这里</Text>
+            <Text type="secondary">
+              员工扫码提交的注册申请，按目标组织路由到这里
+            </Text>
           </Space>
         }
         rowKey="userId"
@@ -162,6 +175,17 @@ export default function DingTalkRegistrationsPanel() {
           initialState?.currentUser?.currentOrganization?.id
         }
         canReadRoles={access.canReadRoles}
+        onReload={() => actionRef.current?.reload()}
+      />
+
+      <RegistrationTransferModal
+        registration={transferring}
+        open={Boolean(transferring)}
+        onOpenChange={(open) => {
+          if (!open) setTransferring(undefined);
+        }}
+        formRef={transferFormRef}
+        organizations={organizations}
         onReload={() => actionRef.current?.reload()}
       />
 

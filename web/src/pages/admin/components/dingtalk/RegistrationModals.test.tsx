@@ -7,19 +7,24 @@ const serviceMocks = vi.hoisted(() => ({
   listOrganizationRoles: vi.fn(),
   listRoles: vi.fn(),
   rejectRegistration: vi.fn(),
+  transferRegistration: vi.fn(),
 }));
 
 const modalState = vi.hoisted(() => ({
   approve: undefined as Record<string, any> | undefined,
   reject: undefined as Record<string, any> | undefined,
+  transfer: undefined as Record<string, any> | undefined,
 }));
 
 const formItems = vi.hoisted(() => new Map<string, Record<string, any>>());
 
 vi.mock('@ant-design/pro-components', () => ({
   ModalForm: (props: Record<string, unknown>) => {
-    if (props.title?.toString().startsWith('同意注册')) {
+    const title = props.title?.toString() || '';
+    if (title.startsWith('同意注册')) {
       modalState.approve = props;
+    } else if (title.startsWith('转派待审批注册')) {
+      modalState.transfer = props;
     } else {
       modalState.reject = props;
     }
@@ -58,6 +63,7 @@ vi.mock('antd', () => ({
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceApproveDingTalkRegistration: serviceMocks.approveRegistration,
   adminServiceRejectDingTalkRegistration: serviceMocks.rejectRegistration,
+  adminServiceTransferDingTalkRegistration: serviceMocks.transferRegistration,
   adminServiceListOrganizationRoles: serviceMocks.listOrganizationRoles,
   adminServiceListRoles: serviceMocks.listRoles,
 }));
@@ -65,12 +71,14 @@ vi.mock('@/services/roncin/adminService', () => ({
 import { resolveRootOrganizationId } from './constants';
 import RegistrationApproveModal from './RegistrationApproveModal';
 import RegistrationRejectModal from './RegistrationRejectModal';
+import RegistrationTransferModal from './RegistrationTransferModal';
 
 const formRef = { current: undefined };
 
 const organizations: API.AdminOrganization[] = [
   { id: 'org-root', name: 'Roncin 总部', code: 'HQ' },
   { id: 'org-cd', name: '成都分公司', code: 'CD', parentId: 'org-root' },
+  { id: 'org-tj', name: '天津分公司', code: 'TJ', parentId: 'org-root' },
 ];
 
 describe('resolveRootOrganizationId', () => {
@@ -187,6 +195,89 @@ describe('RegistrationApproveModal', () => {
     expect(serviceMocks.approveRegistration).toHaveBeenCalledWith(
       { id: 'user-9' },
       { id: 'user-9', roleIds: ['role-1', 'role-2'] },
+    );
+  });
+});
+
+describe('RegistrationTransferModal', () => {
+  beforeEach(() => {
+    serviceMocks.transferRegistration.mockReset();
+    modalState.transfer = undefined;
+    formItems.clear();
+  });
+
+  it('候选组织过滤排除当前自选组织（禁止原地转派）', async () => {
+    await act(async () => {
+      render(
+        <RegistrationTransferModal
+          registration={{
+            userId: 'user-9',
+            displayName: '张三',
+            requestedOrganizationId: 'org-cd',
+            requestedOrganizationName: '成都分公司',
+          }}
+          open
+          onOpenChange={() => {}}
+          formRef={formRef}
+          organizations={organizations}
+          onReload={() => {}}
+        />,
+      );
+    });
+
+    const targetOrgItem = formItems.get('targetOrganizationId');
+    expect(targetOrgItem).toBeTruthy();
+    const options = targetOrgItem?.options as Array<{ value: string }>;
+    expect(options.some((opt) => opt.value === 'org-cd')).toBe(false);
+    expect(options.some((opt) => opt.value === 'org-tj')).toBe(true);
+    expect(options.some((opt) => opt.value === 'org-root')).toBe(true);
+  });
+
+  it('转派提交调用接口携带用户 ID、目标组织 ID 与原因', async () => {
+    serviceMocks.transferRegistration.mockResolvedValue({});
+    await act(async () => {
+      render(
+        <RegistrationTransferModal
+          registration={{
+            userId: 'user-9',
+            displayName: '张三',
+            requestedOrganizationId: 'org-cd',
+            requestedOrganizationName: '成都分公司',
+          }}
+          open
+          onOpenChange={() => {}}
+          formRef={formRef}
+          organizations={organizations}
+          onReload={() => {}}
+        />,
+      );
+    });
+
+    const reasonItem = formItems.get('reason');
+    expect(reasonItem).toBeTruthy();
+    expect(
+      (reasonItem?.rules as Array<Record<string, unknown>> | undefined)?.some(
+        (rule) => rule.required,
+      ),
+    ).toBe(true);
+
+    const modalProps = modalState.transfer;
+    expect(modalProps).toBeTruthy();
+    let finishResult: unknown;
+    await act(async () => {
+      finishResult = await modalProps?.onFinish?.({
+        targetOrganizationId: 'org-tj',
+        reason: '  属于天津港调度团队  ',
+      });
+    });
+    expect(finishResult).toBe(true);
+    expect(serviceMocks.transferRegistration).toHaveBeenCalledWith(
+      { userId: 'user-9' },
+      {
+        userId: 'user-9',
+        targetOrganizationId: 'org-tj',
+        reason: '属于天津港调度团队',
+      },
     );
   });
 });

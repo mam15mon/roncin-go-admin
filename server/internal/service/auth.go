@@ -113,6 +113,21 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
 }
 
+func (s *AuthService) GetDingTalkInvitationInfo(ctx context.Context, request *v1.GetDingTalkInvitationInfoRequest) (*v1.GetDingTalkInvitationInfoResponse, error) {
+	ipAddress := requestmeta.IPAddress(ctx)
+	info, err := s.usecase.GetDingTalkInvitationInfo(ctx, request.GetToken(), ipAddress)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.GetDingTalkInvitationInfoResponse{
+		Data: &v1.DingTalkInvitationPublicInfo{
+			OrganizationName: info.OrganizationName,
+			InviterName:      info.InviterDisplayName,
+			ExpiresAt:        info.ExpiresAt.Format(time.RFC3339),
+		},
+	}), nil
+}
+
 func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
 	registrationToken := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
@@ -122,7 +137,7 @@ func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.Regi
 	if err != nil {
 		return nil, biz.ErrDingTalkRegistrationOrgInvalid
 	}
-	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken, requestedOrganizationID)
+	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken, request.GetInvitationToken(), requestedOrganizationID)
 	if err != nil {
 		return nil, err
 	}

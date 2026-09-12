@@ -1028,26 +1028,30 @@ func init() {
 	dingtalkinvitation.DefaultUpdatedAt = dingtalkinvitationDescUpdatedAt.Default.(func() time.Time)
 	// dingtalkinvitation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	dingtalkinvitation.UpdateDefaultUpdatedAt = dingtalkinvitationDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// dingtalkinvitationDescMobile is the schema descriptor for mobile field.
-	dingtalkinvitationDescMobile := dingtalkinvitationFields[2].Descriptor()
-	// dingtalkinvitation.MobileValidator is a validator for the "mobile" field. It is called by the builders before save.
-	dingtalkinvitation.MobileValidator = func() func(string) error {
-		validators := dingtalkinvitationDescMobile.Validators
+	// dingtalkinvitationDescToken is the schema descriptor for token field.
+	dingtalkinvitationDescToken := dingtalkinvitationFields[0].Descriptor()
+	// dingtalkinvitation.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	dingtalkinvitation.TokenValidator = func() func(string) error {
+		validators := dingtalkinvitationDescToken.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(mobile string) error {
+		return func(token string) error {
 			for _, fn := range fns {
-				if err := fn(mobile); err != nil {
+				if err := fn(token); err != nil {
 					return err
 				}
 			}
 			return nil
 		}
 	}()
+	// dingtalkinvitationDescMobile is the schema descriptor for mobile field.
+	dingtalkinvitationDescMobile := dingtalkinvitationFields[4].Descriptor()
+	// dingtalkinvitation.MobileValidator is a validator for the "mobile" field. It is called by the builders before save.
+	dingtalkinvitation.MobileValidator = dingtalkinvitationDescMobile.Validators[0].(func(string) error)
 	// dingtalkinvitationDescDisplayName is the schema descriptor for display_name field.
-	dingtalkinvitationDescDisplayName := dingtalkinvitationFields[3].Descriptor()
+	dingtalkinvitationDescDisplayName := dingtalkinvitationFields[5].Descriptor()
 	// dingtalkinvitation.DefaultDisplayName holds the default value on creation for the display_name field.
 	dingtalkinvitation.DefaultDisplayName = dingtalkinvitationDescDisplayName.Default.(string)
 	// dingtalkinvitation.DisplayNameValidator is a validator for the "display_name" field. It is called by the builders before save.

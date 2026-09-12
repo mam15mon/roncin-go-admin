@@ -86,6 +86,10 @@ vi.mock('./components/dingtalk/InvitationFormModal', () => ({
   default: () => null,
 }));
 
+vi.mock('./components/dingtalk/InvitationQrModal', () => ({
+  default: () => null,
+}));
+
 import DingTalkInvitationsPanel, {
   normalizeInvitationStatusFilter,
 } from './dingtalk-invitations';
@@ -224,12 +228,38 @@ describe('DingTalkInvitationsPanel', () => {
         status: DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING,
       }),
     );
+    expect(screen.getByText('二维码')).toBeTruthy();
     fireEvent.click(screen.getByText('撤销'));
     await waitFor(() => {
       expect(serviceMocks.revokeInvitation).toHaveBeenCalledWith({
         id: 'inv-1',
       });
     });
+    unmount();
+  });
+
+  it('类型列区分通用入职码与定向邀请', async () => {
+    await act(async () => {
+      render(<DingTalkInvitationsPanel />);
+    });
+
+    const kindColumn = (proTableState.props?.columns ?? []).find(
+      (column: Record<string, unknown>) => column.dataIndex === 'kind',
+    );
+    expect(kindColumn).toBeTruthy();
+
+    const { container, unmount } = render(
+      <>
+        {kindColumn.render(null, {
+          kind: 2, // GENERIC
+        })}
+        {kindColumn.render(null, {
+          kind: 1, // TARGETED
+        })}
+      </>,
+    );
+    expect(container.textContent).toContain('通用入职码');
+    expect(container.textContent).toContain('定向邀请');
     unmount();
   });
 });

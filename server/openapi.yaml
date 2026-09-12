@@ -196,6 +196,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.RejectDingTalkRegistrationResponse'
+    /api/v1/admin/dingtalk/registrations/{userId}/transfer:
+        post:
+            tags:
+                - AdminService
+            description: TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
+            operationId: AdminService_TransferDingTalkRegistration
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.TransferDingTalkRegistrationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.TransferDingTalkRegistrationResponse'
     /api/v1/admin/organizations:
         get:
             tags:
@@ -589,6 +614,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.DeleteUserMembershipResponse'
+    /api/v1/auth/dingtalk/invitations/info:
+        get:
+            tags:
+                - AuthService
+            description: GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
+            operationId: AuthService_GetDingTalkInvitationInfo
+            parameters:
+                - name: token
+                  in: query
+                  description: 专属邀请 128-bit Token
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.GetDingTalkInvitationInfoResponse'
     /api/v1/auth/dingtalk/login:
         post:
             tags:
@@ -7556,20 +7600,22 @@ components:
                     type: string
         admin.v1.CreateDingTalkInvitationRequest:
             required:
-                - mobile
                 - organizationId
-                - roleId
             type: object
             properties:
-                mobile:
-                    type: string
-                    description: 国内手机号；服务端归一化 +86/0086 前缀后按 11 位校验。
                 organizationId:
                     type: string
                     description: 目标组织；必须是调用者可写范围内的组织。
+                kind:
+                    type: integer
+                    description: 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。
+                    format: enum
+                mobile:
+                    type: string
+                    description: 国内手机号；TARGETED 必填，GENERIC 留空。
                 roleId:
                     type: string
-                    description: 激活后授予的初始角色（必须属于目标组织）。
+                    description: 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。
                 displayName:
                     type: string
                     description: 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
@@ -7589,6 +7635,8 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/admin.v1.DingTalkInvitation'
+                invitationUrl:
+                    type: string
                 traceId:
                     type: string
         admin.v1.CreateOrganizationRequest:
@@ -7762,6 +7810,11 @@ components:
                 expiresAt:
                     type: string
                 inviterName:
+                    type: string
+                kind:
+                    type: integer
+                    format: enum
+                token:
                     type: string
             description: 手机号展示统一脱敏（138****1234），完整号码不离开服务端。
         admin.v1.DingTalkRegistration:
@@ -8046,6 +8099,31 @@ components:
                     type: string
                 traceId:
                     type: string
+        admin.v1.TransferDingTalkRegistrationRequest:
+            required:
+                - userId
+                - targetOrganizationId
+                - reason
+            type: object
+            properties:
+                userId:
+                    type: string
+                targetOrganizationId:
+                    type: string
+                reason:
+                    type: string
+        admin.v1.TransferDingTalkRegistrationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
         admin.v1.UpdateOrganizationRequest:
             required:
                 - id
@@ -8203,6 +8281,16 @@ components:
                         $ref: '#/components/schemas/auth.v1.RoleScope'
                 avatarUrl:
                     type: string
+        auth.v1.DingTalkInvitationPublicInfo:
+            type: object
+            properties:
+                organizationName:
+                    type: string
+                inviterName:
+                    type: string
+                expiresAt:
+                    type: string
+            description: 落地页公共展示信息（极简安全模型：不返回 token 本身、不返回角色或权限配置、不返回手机号）。
         auth.v1.DingTalkLoginConfig:
             type: object
             properties:
@@ -8255,6 +8343,20 @@ components:
                 displayName:
                     type: string
                 status:
+                    type: string
+        auth.v1.GetDingTalkInvitationInfoResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/auth.v1.DingTalkInvitationPublicInfo'
+                traceId:
                     type: string
         auth.v1.GetDingTalkLoginConfigResponse:
             type: object
@@ -8375,9 +8477,12 @@ components:
         auth.v1.RegisterDingTalkUserRequest:
             type: object
             properties:
+                invitationToken:
+                    type: string
+                    description: 可选：专属邀请 Token；若提供则由服务端解析目标组织，杜绝客户端伪造
                 organizationId:
                     type: string
-                    description: 可选：自选要加入的目标公司；缺省走总部兜底（通知总部管理员审批）。
+                    description: 可选：自选要加入的目标公司（公开注册通道用；若有 invitation_token 则由服务端优先从 Token 兑现）
         auth.v1.RegisterDingTalkUserResponse:
             type: object
             properties:

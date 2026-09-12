@@ -152,9 +152,11 @@ type DingTalkDirectoryLookup interface {
 // DingTalkLoginRegistrationRepo 是登录/注册流程所需的钉钉注册仓储子集：
 // 通道 A 邀请匹配消费、注册目标组织解析与审批通知收件人路由。
 type DingTalkLoginRegistrationRepo interface {
-	// FindActiveInvitationByMobile 返回该手机号最早创建的未过期活跃邀请
+	// FindActiveInvitationByMobile 返回该手机号最早创建的未过期活跃定向邀请
 	// （同一手机号可在多个组织各持一条活跃邀请，先建先得）。
 	FindActiveInvitationByMobile(ctx context.Context, mobile string) (*DingTalkInvitation, error)
+	// FindInvitationByToken 通过 128-bit Token 查找专属邀请（通用/定向）。
+	FindInvitationByToken(ctx context.Context, token string) (*DingTalkInvitation, error)
 	// ConsumeInvitationAndActivate 在单事务内消费邀请并完成激活原语：
 	// 创建启用账号 + 目标组织成员资格 + 初始角色 + 通知本人与邀请人 + 审计。
 	// 邀请已被并发消费或不再可用时返回业务错误，调用方降级通道 B。
@@ -168,6 +170,10 @@ type DingTalkLoginRegistrationRepo interface {
 	// ListApproverRecipients 返回目标组织内持有钉钉邀请管理权限的启用中用户
 	// （按最近活跃截断），作为注册审批通知的收件人。
 	ListApproverRecipients(ctx context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, error)
+	// ListApproverRecipientsWithEscalation 沿 parent_id 向上追溯首个有候选审批人的祖先（或总部）。
+	ListApproverRecipientsWithEscalation(ctx context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error)
+	// GetParentOrganizationID 查询组织的父级组织 ID。
+	GetParentOrganizationID(ctx context.Context, orgID uuid.UUID) (*uuid.UUID, bool, error)
 }
 
 type DingTalkLoginStatus string
@@ -468,9 +474,10 @@ type AuthRepo interface {
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用，收口总部成员资格）；
-	// requestedOrganizationID 为通道 B 自选目标组织（可空），approverUserIDs 为
-	// 注册审批通知收件人，仓储在注册同事务内入队（任务幂等键确定性去重）。
-	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, []uuid.UUID, *AuditEvent) (*Credential, bool, error)
+	// requestedOrganizationID 为通道 B 自选目标组织（可空），notice 为注册审批
+	// 通知的路由决策（收件人与展示组织名，含代管标注），仓储在注册同事务内
+	// 入队（任务幂等键确定性去重）。
+	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, *DingTalkApproverNotice, *AuditEvent) (*Credential, bool, error)
 	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
@@ -768,10 +775,58 @@ type DingTalkRegistrationResult struct {
 	Status      string
 }
 
+// GetDingTalkInvitationInfo 扫码落地页查询专属邀请公开信息（未登录极简接口）：
+// 1. IP 限流保护（复用登录限流口径）；
+// 2. 仅返回组织名、邀请人与有效期，绝不透出 Token、预设角色或手机号；
+// 3. 失效或不存在记录失败审计并返回对应错误。
+func (uc *AuthUsecase) GetDingTalkInvitationInfo(ctx context.Context, token, ipAddress string) (*DingTalkInvitationPublicInfo, error) {
+	now := time.Now().UTC()
+	var keyHashes []string
+	if normalizedIP := strings.TrimSpace(ipAddress); normalizedIP != "" {
+		keyHashes = append(keyHashes, hashLoginRateLimitKey("ip", normalizedIP))
+	}
+	if len(keyHashes) > 0 {
+		exceeded, err := uc.repo.LoginRateLimitExceeded(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
+		if err != nil {
+			return nil, err
+		}
+		if exceeded {
+			return nil, ErrLoginRateLimited
+		}
+	}
+
+	token = strings.TrimSpace(token)
+	if token == "" || uc.dingTalkRegistrations == nil {
+		if len(keyHashes) > 0 {
+			_ = uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.dingtalk.invitation.info", Result: "failure"})
+		}
+		return nil, ErrDingTalkInvitationNotFound
+	}
+	invitation, err := uc.dingTalkRegistrations.FindInvitationByToken(ctx, token)
+	if err != nil {
+		if len(keyHashes) > 0 {
+			_ = uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.dingtalk.invitation.info", Result: "failure"})
+		}
+		return nil, ErrDingTalkInvitationNotFound
+	}
+	if invitation.Status == DingTalkInvitationStatusRevoked {
+		return nil, ErrDingTalkInvitationRevoked
+	}
+	if invitation.EffectiveStatus(now) == DingTalkInvitationStatusExpired {
+		return nil, ErrDingTalkInvitationExpired
+	}
+	return &DingTalkInvitationPublicInfo{
+		OrganizationName:   invitation.OrganizationName,
+		InviterDisplayName: invitation.InviterName,
+		ExpiresAt:          invitation.ExpiresAt,
+	}, nil
+}
+
 // ConfirmDingTalkRegistration 落库注册（PENDING 禁用 + 总部收口成员资格），
-// 通道 B 可自选目标公司；注册同事务内向目标组织（空 = 总部收口）持邀请管理
-// 权限的启用中用户入队审批通知。
-func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registrationToken string, requestedOrganizationID uuid.UUID) (*DingTalkRegistrationResult, error) {
+// 支持携带专属邀请 Token（服务端绑定组织，杜绝伪造）或自选目标公司；
+// 注册同事务内向目标组织（空 = 总部收口）持邀请管理权限的启用中用户入队审批通知，
+// 若目标组织无持权管理员则沿组织树逐级向上追溯兜底。
+func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registrationToken, invitationToken string, requestedOrganizationID uuid.UUID) (*DingTalkRegistrationResult, error) {
 	if !uc.dingtalk.Enabled() {
 		return nil, ErrDingTalkDisabled
 	}
@@ -780,8 +835,32 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 		return nil, err
 	}
 	var requestedOrganization *uuid.UUID
-	var approverUserIDs []uuid.UUID
-	if requestedOrganizationID != uuid.Nil {
+	var notice *DingTalkApproverNotice
+	// notificationOrgName 是通知卡片展示的目标组织名：Token 路径取邀请锁定组织、
+	// 自选路径取所选组织；未自选（总部收口）时留空，由仓储按总部名展示。
+	notificationOrgName := ""
+
+	invitationToken = strings.TrimSpace(invitationToken)
+	if invitationToken != "" {
+		if uc.dingTalkRegistrations == nil {
+			return nil, ErrDingTalkRegistrationOrgInvalid
+		}
+		invitation, invErr := uc.dingTalkRegistrations.FindInvitationByToken(ctx, invitationToken)
+		if invErr != nil {
+			return nil, ErrDingTalkInvitationNotFound
+		}
+		if invitation.Status == DingTalkInvitationStatusRevoked {
+			return nil, ErrDingTalkInvitationRevoked
+		}
+		if invitation.EffectiveStatus(time.Now().UTC()) == DingTalkInvitationStatusExpired {
+			return nil, ErrDingTalkInvitationExpired
+		}
+		// 客户端零信任：专属码强绑定目标组织，忽略传入的 requestedOrganizationID，杜绝篡改伪造
+		targetOrgID := invitation.OrganizationID
+		requestedOrganization = &targetOrgID
+		requestedOrganizationID = targetOrgID
+		notificationOrgName = invitation.OrganizationName
+	} else if requestedOrganizationID != uuid.Nil {
 		if uc.dingTalkRegistrations == nil {
 			return nil, ErrDingTalkRegistrationOrgInvalid
 		}
@@ -790,25 +869,35 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 			return nil, ErrDingTalkRegistrationOrgInvalid
 		}
 		requestedOrganization = &organization.ID
+		notificationOrgName = organization.Name
 	}
+
 	if uc.dingTalkRegistrations != nil {
 		routingOrganizationID := requestedOrganizationID
 		if routingOrganizationID == uuid.Nil {
 			// 未自选目标组织：总部兜底，通知总部收口组织的管理员。
-			routingOrganizationID, err = uc.dingTalkRegistrations.FindHeadquartersOrganizationID(ctx)
-			if err != nil {
-				return nil, err
+			var hqErr error
+			routingOrganizationID, hqErr = uc.dingTalkRegistrations.FindHeadquartersOrganizationID(ctx)
+			if hqErr != nil {
+				return nil, hqErr
 			}
 		}
-		recipients, recipientErr := uc.dingTalkRegistrations.ListApproverRecipients(ctx, routingOrganizationID)
+		recipients, _, isEscalated, recipientErr := uc.dingTalkRegistrations.ListApproverRecipientsWithEscalation(ctx, routingOrganizationID)
 		if recipientErr != nil {
 			return nil, recipientErr
 		}
+		approverUserIDs := make([]uuid.UUID, 0, len(recipients))
 		for _, recipient := range recipients {
 			approverUserIDs = append(approverUserIDs, recipient.UserID)
 		}
+		// 代管标注口径与一键转派一致：目标组织无管理员向上追溯时，
+		// 通知卡片展示目标组织名并追加「（上级代管）」后缀。
+		if isEscalated && notificationOrgName != "" {
+			notificationOrgName += DingTalkEscalatedOrgSuffix
+		}
+		notice = &DingTalkApproverNotice{ApproverUserIDs: approverUserIDs, OrganizationName: notificationOrgName}
 	}
-	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity, requestedOrganization, approverUserIDs, &AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity, requestedOrganization, notice, &AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil {
 		return nil, err
 	}

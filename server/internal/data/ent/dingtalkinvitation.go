@@ -25,12 +25,16 @@ type DingTalkInvitation struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Token holds the value of the "token" field.
+	Token string `json:"token,omitempty"`
+	// Kind holds the value of the "kind" field.
+	Kind dingtalkinvitation.Kind `json:"kind,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// RoleID holds the value of the "role_id" field.
-	RoleID uuid.UUID `json:"role_id,omitempty"`
+	RoleID *uuid.UUID `json:"role_id,omitempty"`
 	// Mobile holds the value of the "mobile" field.
-	Mobile string `json:"mobile,omitempty"`
+	Mobile *string `json:"mobile,omitempty"`
 	// DisplayName holds the value of the "display_name" field.
 	DisplayName string `json:"display_name,omitempty"`
 	// InvitedBy holds the value of the "invited_by" field.
@@ -113,13 +117,13 @@ func (*DingTalkInvitation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case dingtalkinvitation.FieldConsumedBy:
+		case dingtalkinvitation.FieldRoleID, dingtalkinvitation.FieldConsumedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case dingtalkinvitation.FieldMobile, dingtalkinvitation.FieldDisplayName, dingtalkinvitation.FieldStatus:
+		case dingtalkinvitation.FieldToken, dingtalkinvitation.FieldKind, dingtalkinvitation.FieldMobile, dingtalkinvitation.FieldDisplayName, dingtalkinvitation.FieldStatus:
 			values[i] = new(sql.NullString)
 		case dingtalkinvitation.FieldCreatedAt, dingtalkinvitation.FieldUpdatedAt, dingtalkinvitation.FieldConsumedAt, dingtalkinvitation.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
-		case dingtalkinvitation.FieldID, dingtalkinvitation.FieldOrganizationID, dingtalkinvitation.FieldRoleID, dingtalkinvitation.FieldInvitedBy:
+		case dingtalkinvitation.FieldID, dingtalkinvitation.FieldOrganizationID, dingtalkinvitation.FieldInvitedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -154,6 +158,18 @@ func (_m *DingTalkInvitation) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
+		case dingtalkinvitation.FieldToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field token", values[i])
+			} else if value.Valid {
+				_m.Token = value.String
+			}
+		case dingtalkinvitation.FieldKind:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field kind", values[i])
+			} else if value.Valid {
+				_m.Kind = dingtalkinvitation.Kind(value.String)
+			}
 		case dingtalkinvitation.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
@@ -161,16 +177,18 @@ func (_m *DingTalkInvitation) assignValues(columns []string, values []any) error
 				_m.OrganizationID = *value
 			}
 		case dingtalkinvitation.FieldRoleID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field role_id", values[i])
-			} else if value != nil {
-				_m.RoleID = *value
+			} else if value.Valid {
+				_m.RoleID = new(uuid.UUID)
+				*_m.RoleID = *value.S.(*uuid.UUID)
 			}
 		case dingtalkinvitation.FieldMobile:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field mobile", values[i])
 			} else if value.Valid {
-				_m.Mobile = value.String
+				_m.Mobile = new(string)
+				*_m.Mobile = value.String
 			}
 		case dingtalkinvitation.FieldDisplayName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -272,14 +290,24 @@ func (_m *DingTalkInvitation) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("token=")
+	builder.WriteString(_m.Token)
+	builder.WriteString(", ")
+	builder.WriteString("kind=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Kind))
+	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
-	builder.WriteString("role_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.RoleID))
+	if v := _m.RoleID; v != nil {
+		builder.WriteString("role_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("mobile=")
-	builder.WriteString(_m.Mobile)
+	if v := _m.Mobile; v != nil {
+		builder.WriteString("mobile=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("display_name=")
 	builder.WriteString(_m.DisplayName)

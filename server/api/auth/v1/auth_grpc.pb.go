@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName                  = "/auth.v1.AuthService/Login"
-	AuthService_GetWeComLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetWeComLoginConfig"
-	AuthService_WeComLogin_FullMethodName             = "/auth.v1.AuthService/WeComLogin"
-	AuthService_GetDingTalkLoginConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-	AuthService_DingTalkLogin_FullMethodName          = "/auth.v1.AuthService/DingTalkLogin"
-	AuthService_RegisterDingTalkUser_FullMethodName   = "/auth.v1.AuthService/RegisterDingTalkUser"
-	AuthService_Logout_FullMethodName                 = "/auth.v1.AuthService/Logout"
-	AuthService_Me_FullMethodName                     = "/auth.v1.AuthService/Me"
-	AuthService_SwitchOrganization_FullMethodName     = "/auth.v1.AuthService/SwitchOrganization"
+	AuthService_Login_FullMethodName                     = "/auth.v1.AuthService/Login"
+	AuthService_GetWeComLoginConfig_FullMethodName       = "/auth.v1.AuthService/GetWeComLoginConfig"
+	AuthService_WeComLogin_FullMethodName                = "/auth.v1.AuthService/WeComLogin"
+	AuthService_GetDingTalkLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetDingTalkLoginConfig"
+	AuthService_DingTalkLogin_FullMethodName             = "/auth.v1.AuthService/DingTalkLogin"
+	AuthService_RegisterDingTalkUser_FullMethodName      = "/auth.v1.AuthService/RegisterDingTalkUser"
+	AuthService_GetDingTalkInvitationInfo_FullMethodName = "/auth.v1.AuthService/GetDingTalkInvitationInfo"
+	AuthService_Logout_FullMethodName                    = "/auth.v1.AuthService/Logout"
+	AuthService_Me_FullMethodName                        = "/auth.v1.AuthService/Me"
+	AuthService_SwitchOrganization_FullMethodName        = "/auth.v1.AuthService/SwitchOrganization"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -42,6 +43,8 @@ type AuthServiceClient interface {
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
 	RegisterDingTalkUser(ctx context.Context, in *RegisterDingTalkUserRequest, opts ...grpc.CallOption) (*RegisterDingTalkUserResponse, error)
+	// GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
+	GetDingTalkInvitationInfo(ctx context.Context, in *GetDingTalkInvitationInfoRequest, opts ...grpc.CallOption) (*GetDingTalkInvitationInfoResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error)
 	SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*SwitchOrganizationResponse, error)
@@ -115,6 +118,16 @@ func (c *authServiceClient) RegisterDingTalkUser(ctx context.Context, in *Regist
 	return out, nil
 }
 
+func (c *authServiceClient) GetDingTalkInvitationInfo(ctx context.Context, in *GetDingTalkInvitationInfoRequest, opts ...grpc.CallOption) (*GetDingTalkInvitationInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDingTalkInvitationInfoResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetDingTalkInvitationInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogoutResponse)
@@ -157,6 +170,8 @@ type AuthServiceServer interface {
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	RegisterDingTalkUser(context.Context, *RegisterDingTalkUserRequest) (*RegisterDingTalkUserResponse, error)
+	// GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
+	GetDingTalkInvitationInfo(context.Context, *GetDingTalkInvitationInfoRequest) (*GetDingTalkInvitationInfoResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
@@ -187,6 +202,9 @@ func (UnimplementedAuthServiceServer) DingTalkLogin(context.Context, *DingTalkLo
 }
 func (UnimplementedAuthServiceServer) RegisterDingTalkUser(context.Context, *RegisterDingTalkUserRequest) (*RegisterDingTalkUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterDingTalkUser not implemented")
+}
+func (UnimplementedAuthServiceServer) GetDingTalkInvitationInfo(context.Context, *GetDingTalkInvitationInfoRequest) (*GetDingTalkInvitationInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDingTalkInvitationInfo not implemented")
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
@@ -326,6 +344,24 @@ func _AuthService_RegisterDingTalkUser_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetDingTalkInvitationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDingTalkInvitationInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetDingTalkInvitationInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetDingTalkInvitationInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetDingTalkInvitationInfo(ctx, req.(*GetDingTalkInvitationInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LogoutRequest)
 	if err := dec(in); err != nil {
@@ -410,6 +446,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterDingTalkUser",
 			Handler:    _AuthService_RegisterDingTalkUser_Handler,
+		},
+		{
+			MethodName: "GetDingTalkInvitationInfo",
+			Handler:    _AuthService_GetDingTalkInvitationInfo_Handler,
 		},
 		{
 			MethodName: "Logout",

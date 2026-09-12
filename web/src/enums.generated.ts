@@ -61,6 +61,14 @@ export const DingTalkInvitationStatus = {
 
 export type DingTalkInvitationStatus = (typeof DingTalkInvitationStatus)[keyof typeof DingTalkInvitationStatus];
 
+export const DingTalkInvitationKind = {
+  DING_TALK_INVITATION_KIND_UNSPECIFIED: 0,
+  DING_TALK_INVITATION_KIND_TARGETED: 1,
+  DING_TALK_INVITATION_KIND_GENERIC: 2,
+} as const;
+
+export type DingTalkInvitationKind = (typeof DingTalkInvitationKind)[keyof typeof DingTalkInvitationKind];
+
 export const DingTalkLoginStatus = {
   DING_TALK_LOGIN_STATUS_UNSPECIFIED: 0,
   DING_TALK_LOGIN_STATUS_AUTHENTICATED: 1,

@@ -568,7 +568,10 @@ func (_q *DingTalkInvitationQuery) loadRole(ctx context.Context, query *RoleQuer
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*DingTalkInvitation)
 	for i := range nodes {
-		fk := nodes[i].RoleID
+		if nodes[i].RoleID == nil {
+			continue
+		}
+		fk := *nodes[i].RoleID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

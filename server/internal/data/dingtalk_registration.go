@@ -38,32 +38,43 @@ func (r *dingTalkRegistrationRepo) CreateInvitation(ctx context.Context, input *
 		if _, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Only(ctx); queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
-		// 初始角色必须属于目标组织且启用。
-		if _, queryErr := rolesForOrganization(ctx, tx.Role.Query(), input.OrganizationID, []uuid.UUID{input.RoleID}); queryErr != nil {
-			return queryErr
+		if input.RoleID != nil {
+			// 初始角色必须属于目标组织且启用。
+			if _, queryErr := rolesForOrganization(ctx, tx.Role.Query(), input.OrganizationID, []uuid.UUID{*input.RoleID}); queryErr != nil {
+				return queryErr
+			}
 		}
-		// 惰性收割同手机号的过期 PENDING 行：过期邀请按无邀请处理，
-		// 不应继续占用「活跃邀请唯一」索引位阻断重建。
-		if _, updateErr := tx.DingTalkInvitation.Update().
-			Where(
-				invitationent.OrganizationIDEQ(input.OrganizationID),
-				invitationent.MobileEQ(input.Mobile),
-				invitationent.StatusEQ(invitationent.StatusPENDING),
-				invitationent.ExpiresAtLTE(time.Now().UTC()),
-			).
-			SetStatus(invitationent.Status(biz.DingTalkInvitationStatusExpired)).
-			Save(ctx); updateErr != nil {
-			return updateErr
+		if input.Kind == biz.DingTalkInvitationKindTargeted && input.Mobile != nil {
+			// 惰性收割同手机号的过期 PENDING 行：过期邀请按无邀请处理，
+			// 不应继续占用「活跃邀请唯一」索引位阻断重建。
+			if _, updateErr := tx.DingTalkInvitation.Update().
+				Where(
+					invitationent.KindEQ(invitationent.KindTARGETED),
+					invitationent.OrganizationIDEQ(input.OrganizationID),
+					invitationent.MobileEQ(*input.Mobile),
+					invitationent.StatusEQ(invitationent.StatusPENDING),
+					invitationent.ExpiresAtLTE(time.Now().UTC()),
+				).
+				SetStatus(invitationent.Status(biz.DingTalkInvitationStatusExpired)).
+				Save(ctx); updateErr != nil {
+				return updateErr
+			}
 		}
-		created, createErr := tx.DingTalkInvitation.Create().
+		create := tx.DingTalkInvitation.Create().
+			SetToken(input.Token).
+			SetKind(invitationent.Kind(input.Kind)).
 			SetOrganizationID(input.OrganizationID).
-			SetRoleID(input.RoleID).
-			SetMobile(input.Mobile).
 			SetDisplayName(input.DisplayName).
 			SetInvitedBy(input.InvitedBy).
 			SetStatus(invitationent.Status(input.Status)).
-			SetExpiresAt(input.ExpiresAt).
-			Save(ctx)
+			SetExpiresAt(input.ExpiresAt)
+		if input.RoleID != nil {
+			create.SetRoleID(*input.RoleID)
+		}
+		if input.Mobile != nil {
+			create.SetMobile(*input.Mobile)
+		}
+		created, createErr := create.Save(ctx)
 		if createErr != nil {
 			// 活跃邀请唯一索引兜底同手机号重复创建。
 			return mapEntConstraint(createErr, "dingtalkinvitation_organization_id_mobile", biz.ErrDingTalkInvitationExists)
@@ -79,7 +90,11 @@ func (r *dingTalkRegistrationRepo) CreateInvitation(ctx context.Context, input *
 }
 
 func (r *dingTalkRegistrationRepo) findInvitation(ctx context.Context, id uuid.UUID) (*biz.DingTalkInvitation, error) {
-	item, err := r.data.db.DingTalkInvitation.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.DingTalkInvitation.Query().
 		Where(invitationent.IDEQ(id)).
 		WithOrganization().WithRole().WithInviter().WithConsumer().
 		Only(ctx)
@@ -91,7 +106,11 @@ func (r *dingTalkRegistrationRepo) findInvitation(ctx context.Context, id uuid.U
 
 func (r *dingTalkRegistrationRepo) ListInvitations(ctx context.Context, organizationIDs []uuid.UUID, options biz.DingTalkInvitationListOptions) (*biz.DingTalkInvitationList, error) {
 	now := time.Now().UTC()
-	query := r.data.db.DingTalkInvitation.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.DingTalkInvitation.Query().
 		Where(invitationent.OrganizationIDIn(organizationIDs...)).
 		WithOrganization().WithRole().WithInviter().WithConsumer()
 	if options.OrganizationID != uuid.Nil {
@@ -154,6 +173,8 @@ func (r *dingTalkRegistrationRepo) RevokeInvitation(ctx context.Context, actorID
 func invitationToBiz(item *ent.DingTalkInvitation, now time.Time) *biz.DingTalkInvitation {
 	result := &biz.DingTalkInvitation{
 		ID:             item.ID,
+		Token:          item.Token,
+		Kind:           biz.DingTalkInvitationKind(item.Kind),
 		OrganizationID: item.OrganizationID,
 		RoleID:         item.RoleID,
 		Mobile:         item.Mobile,
@@ -181,14 +202,36 @@ func invitationToBiz(item *ent.DingTalkInvitation, now time.Time) *biz.DingTalkI
 	return result
 }
 
+// FindInvitationByToken 通过 128-bit Token 查找专属邀请（通用/定向）。
+func (r *dingTalkRegistrationRepo) FindInvitationByToken(ctx context.Context, token string) (*biz.DingTalkInvitation, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.DingTalkInvitation.Query().
+		Where(invitationent.TokenEQ(token)).
+		WithOrganization().WithRole().WithInviter().WithConsumer().
+		Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrDingTalkInvitationNotFound, nil)
+	}
+	return invitationToBiz(item, time.Now().UTC()), nil
+}
+
 // ===== 通道 A：扫码匹配与自动激活 =====
 
-// FindActiveInvitationByMobile 返回该手机号最早创建的未过期活跃邀请；
+// FindActiveInvitationByMobile 返回该手机号最早创建的未过期活跃定向邀请；
+// 仅定向邀请（kind = TARGETED）参与手机号匹配，通用码不参与。
 // 同一手机号可在多个组织各持一条活跃邀请（唯一索引按组织隔离），按创建
 // 时间先建先得（First 语义），命中任一即返回，不再因多行命中报错。
 func (r *dingTalkRegistrationRepo) FindActiveInvitationByMobile(ctx context.Context, mobile string) (*biz.DingTalkInvitation, error) {
-	item, err := r.data.db.DingTalkInvitation.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.DingTalkInvitation.Query().
 		Where(
+			invitationent.KindEQ(invitationent.KindTARGETED),
 			invitationent.MobileEQ(mobile),
 			invitationent.StatusEQ(invitationent.StatusPENDING),
 			invitationent.ExpiresAtGT(time.Now().UTC()),
@@ -203,7 +246,7 @@ func (r *dingTalkRegistrationRepo) FindActiveInvitationByMobile(ctx context.Cont
 
 // ConsumeInvitationAndActivate 在单事务内完成通道 A：锁定并消费邀请 → 创建启用
 // 账号 → 目标组织成员资格（primary，新账号无其他成员资格）→ 初始角色 →
-// 通知本人与邀请人 → 审计。任何一步不可用（并发消费、角色被删、组织停用）都
+// 通知本人与邀请人 → 审计。仅 TARGETED 邀请可消费。任何一步不可用（并发消费、角色被删、组织停用）都
 // 整体回滚并返回错误，由登录链路降级通道 B。
 func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Context, identity *biz.DingTalkIdentity, invitationID uuid.UUID) (*biz.Credential, error) {
 	now := time.Now().UTC()
@@ -213,16 +256,20 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrDingTalkInvitationNotFound, nil)
 		}
-		if invitation.Status != invitationent.StatusPENDING || !invitation.ExpiresAt.After(now) {
+		if invitation.Kind != invitationent.KindTARGETED || invitation.Status != invitationent.StatusPENDING || !invitation.ExpiresAt.After(now) {
 			return biz.ErrDingTalkInvitationNotConsumable
 		}
 		targetOrganization, queryErr := tx.Organization.Query().Where(organization.IDEQ(invitation.OrganizationID), organization.EnabledEQ(true)).Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), invitation.OrganizationID, []uuid.UUID{invitation.RoleID})
-		if queryErr != nil {
-			return queryErr
+		var roles []*ent.Role
+		if invitation.RoleID != nil {
+			var roleErr error
+			roles, roleErr = rolesForOrganization(ctx, tx.Role.Query(), invitation.OrganizationID, []uuid.UUID{*invitation.RoleID})
+			if roleErr != nil {
+				return roleErr
+			}
 		}
 		// 钉钉扫码返回是身份唯一真相源：姓名/头像/unionId/userId 只取自 identity。
 		create := tx.User.Create().
@@ -271,6 +318,10 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 		if err := enqueueDingTalkInvitationActivatedNotification(ctx, tx, targetOrganization.ID, inviter, identity.Name, targetOrganization.Name, biz.NewDingTalkInvitationActivatedNotification(inviter.ID)); err != nil {
 			return err
 		}
+		maskedMobile := ""
+		if invitation.Mobile != nil {
+			maskedMobile = biz.MaskDingTalkMobile(*invitation.Mobile)
+		}
 		if err := writeAudit(ctx, tx.AuditLog, &biz.AuditEvent{
 			OrganizationID: &targetOrganization.ID,
 			UserID:         &account.ID,
@@ -278,7 +329,7 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 			Result:         "success",
 			Details: map[string]string{
 				// 手机号只记脱敏形式。
-				"mobile":                 biz.MaskDingTalkMobile(invitation.Mobile),
+				"mobile":                 maskedMobile,
 				"invitation.id":          invitation.ID.String(),
 				"invited_by":             invitation.InvitedBy.String(),
 				"target_organization.id": targetOrganization.ID.String(),
@@ -300,7 +351,11 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 // ListRegistrationOrganizations 返回注册确认页可选的启用中公司组织
 // （排序规则与登录候选一致：名称 + ID 确定性排序）。
 func (r *dingTalkRegistrationRepo) ListRegistrationOrganizations(ctx context.Context) ([]biz.OrganizationChoice, error) {
-	items, err := r.data.db.Organization.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Organization.Query().
 		Where(organization.KindEQ(organization.KindCompany), organization.EnabledEQ(true)).
 		All(ctx)
 	if err != nil {
@@ -320,7 +375,11 @@ func (r *dingTalkRegistrationRepo) ListRegistrationOrganizations(ctx context.Con
 }
 
 func (r *dingTalkRegistrationRepo) FindRegistrationOrganization(ctx context.Context, organizationID uuid.UUID) (*biz.Organization, error) {
-	item, err := r.data.db.Organization.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Organization.Query().
 		Where(organization.IDEQ(organizationID), organization.EnabledEQ(true), organization.KindEQ(organization.KindCompany)).
 		Only(ctx)
 	if err != nil {
@@ -334,7 +393,15 @@ func (r *dingTalkRegistrationRepo) FindRegistrationOrganization(ctx context.Cont
 }
 
 func (r *dingTalkRegistrationRepo) FindHeadquartersOrganizationID(ctx context.Context) (uuid.UUID, error) {
-	item, err := r.data.db.Organization.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return findHeadquartersOrganizationID(ctx, client)
+}
+
+func findHeadquartersOrganizationID(ctx context.Context, client *ent.Client) (uuid.UUID, error) {
+	item, err := client.Organization.Query().
 		Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).
 		Only(ctx)
 	if err != nil {
@@ -349,8 +416,23 @@ func (r *dingTalkRegistrationRepo) FindHeadquartersOrganizationID(ctx context.Co
 // 收件人过多时按最近会话活跃时间取前 10 人（无会话者排最后，ID 稳定排序），
 // 防止大组织一次性给几十位管理员群发提醒。
 func (r *dingTalkRegistrationRepo) ListApproverRecipients(ctx context.Context, organizationID uuid.UUID) ([]*biz.DingTalkApproverRecipient, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return listApproverRecipients(ctx, client, organizationID, inTransaction(ctx))
+}
+
+// inTransaction 报告当前上下文是否携带共享事务，用于决定事务内读取是否加
+// FOR SHARE（非事务读取不加锁，保持原有语义）。
+func inTransaction(ctx context.Context) bool {
+	_, ok := transactionFromContext(ctx)
+	return ok
+}
+
+func listApproverRecipients(ctx context.Context, client *ent.Client, organizationID uuid.UUID, lockReads bool) ([]*biz.DingTalkApproverRecipient, error) {
 	const maxRecipients = 10
-	candidates, err := r.data.db.User.Query().
+	candidateQuery := client.User.Query().
 		Where(
 			user.EnabledEQ(true),
 			user.IsBootstrapAdminEQ(false),
@@ -365,8 +447,11 @@ func (r *dingTalkRegistrationRepo) ListApproverRecipients(ctx context.Context, o
 					),
 				),
 			),
-		).
-		All(ctx)
+		)
+	if lockReads {
+		candidateQuery.ForShare()
+	}
+	candidates, err := candidateQuery.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +463,7 @@ func (r *dingTalkRegistrationRepo) ListApproverRecipients(ctx context.Context, o
 		candidateIDs = append(candidateIDs, candidate.ID)
 	}
 	// 候选集为组织管理员量级，一次查询取全部会话后在内存内确定最近活跃排序。
-	latestSessions, err := r.data.db.Session.Query().
+	latestSessions, err := client.Session.Query().
 		Where(session.UserIDIn(candidateIDs...)).
 		Order(session.ByCreatedAt(entsql.OrderDesc()), session.ByID(entsql.OrderDesc())).
 		All(ctx)
@@ -484,7 +569,11 @@ func registrationFromUser(account *ent.User) (*biz.DingTalkRegistration, error) 
 }
 
 func (r *dingTalkRegistrationRepo) GetPendingRegistration(ctx context.Context, userID uuid.UUID) (*biz.DingTalkRegistration, error) {
-	account, err := r.data.db.User.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.User.Query().
 		Where(append(pendingRegistrationBasePredicates(), user.IDEQ(userID))...).
 		WithMemberships(func(query *ent.MembershipQuery) {
 			query.Where(membership.EnabledEQ(true)).WithOrganization()
@@ -498,7 +587,11 @@ func (r *dingTalkRegistrationRepo) GetPendingRegistration(ctx context.Context, u
 }
 
 func (r *dingTalkRegistrationRepo) ListPendingRegistrations(ctx context.Context, organizationIDs []uuid.UUID, options biz.DingTalkRegistrationListOptions) (*biz.DingTalkRegistrationList, error) {
-	query := r.data.db.User.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.User.Query().
 		Where(append(pendingRegistrationBasePredicates(), pendingRegistrationRoutingPredicate(organizationIDs))...).
 		WithMemberships(func(query *ent.MembershipQuery) {
 			query.Where(membership.EnabledEQ(true)).WithOrganization()
@@ -667,11 +760,136 @@ func (r *dingTalkRegistrationRepo) RejectRegistration(ctx context.Context, decis
 // GetActorRolesPrivilegeProfiles / GetRolesPrivilegeProfiles 与用户管理提权校验
 // 共用同一口径（实现与 adminRepo 相同的查询语义）。
 func (r *dingTalkRegistrationRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	return actorRolesPrivilegeProfiles(ctx, r.data.db, organizationID, actorID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return actorRolesPrivilegeProfiles(ctx, client, organizationID, actorID)
 }
 
 func (r *dingTalkRegistrationRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	return rolesPrivilegeProfiles(ctx, r.data.db, organizationID, roleIDs)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return rolesPrivilegeProfiles(ctx, client, organizationID, roleIDs)
+}
+
+func (r *dingTalkRegistrationRepo) GetParentOrganizationID(ctx context.Context, orgID uuid.UUID) (*uuid.UUID, bool, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	return getParentOrganizationID(ctx, client, orgID, inTransaction(ctx))
+}
+
+func getParentOrganizationID(ctx context.Context, client *ent.Client, orgID uuid.UUID, lockReads bool) (*uuid.UUID, bool, error) {
+	query := client.Organization.Query().Where(organization.IDEQ(orgID))
+	if lockReads {
+		query.ForShare()
+	}
+	item, err := query.Only(ctx)
+	if err != nil {
+		return nil, false, mapEntError(err, biz.ErrAdminOrganizationNotFound, nil)
+	}
+	if item.ParentID != nil && *item.ParentID != uuid.Nil {
+		return item.ParentID, true, nil
+	}
+	return nil, false, nil
+}
+
+// ListApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的祖先节点（直至总部根节点）。
+// 属于通知兜底而非权限变更。
+func (r *dingTalkRegistrationRepo) ListApproverRecipientsWithEscalation(ctx context.Context, targetOrgID uuid.UUID) ([]*biz.DingTalkApproverRecipient, uuid.UUID, bool, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, uuid.Nil, false, err
+	}
+	return listApproverRecipientsWithEscalation(ctx, client, targetOrgID, inTransaction(ctx))
+}
+
+func listApproverRecipientsWithEscalation(ctx context.Context, client *ent.Client, targetOrgID uuid.UUID, lockReads bool) ([]*biz.DingTalkApproverRecipient, uuid.UUID, bool, error) {
+	currID := targetOrgID
+	isEscalated := false
+	visited := make(map[uuid.UUID]bool)
+	for depth := 0; depth < 20; depth++ {
+		if visited[currID] {
+			break
+		}
+		visited[currID] = true
+
+		recipients, err := listApproverRecipients(ctx, client, currID, lockReads)
+		if err != nil {
+			return nil, uuid.Nil, false, err
+		}
+		if len(recipients) > 0 {
+			return recipients, currID, isEscalated, nil
+		}
+		parentID, hasParent, err := getParentOrganizationID(ctx, client, currID, lockReads)
+		if err != nil {
+			return nil, uuid.Nil, false, err
+		}
+		if !hasParent || parentID == nil {
+			// 已达根组织，若当前不是总部且总部存在，尝试兜底总部
+			hqID, hqErr := findHeadquartersOrganizationID(ctx, client)
+			if hqErr == nil && hqID != currID {
+				hqRecipients, hqQueryErr := listApproverRecipients(ctx, client, hqID, lockReads)
+				if hqQueryErr != nil {
+					return nil, uuid.Nil, false, hqQueryErr
+				}
+				if len(hqRecipients) > 0 {
+					return hqRecipients, hqID, true, nil
+				}
+			}
+			return nil, currID, isEscalated, nil
+		}
+		currID = *parentID
+		isEscalated = true
+	}
+	return nil, currID, isEscalated, nil
+}
+
+// TransferRegistration 将待审批注册一键转派至目标分公司：
+// 在行级悲观锁事务中原子更新 users.dingtalk_requested_organization_id，并向新组织审批人重新入队通知。
+func (r *dingTalkRegistrationRepo) TransferRegistration(ctx context.Context, decision *biz.DingTalkRegistrationDecision, targetOrgID uuid.UUID) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		account, queryErr := lockPendingRegistration(ctx, tx, decision.UserID)
+		if queryErr != nil {
+			return queryErr
+		}
+		currentRoutingOrg, queryErr := resolveRegistrationRouting(ctx, tx, account, decision.OrganizationIDs)
+		if queryErr != nil {
+			return queryErr
+		}
+		if currentRoutingOrg.ID == targetOrgID {
+			return biz.ErrDingTalkRegistrationTransferSame
+		}
+		targetOrg, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrgID), organization.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrDingTalkRegistrationOrgInvalid, nil)
+		}
+		if _, updateErr := tx.User.UpdateOneID(account.ID).SetDingtalkRequestedOrganizationID(targetOrgID).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		// 向新组织审批人（支持向上追溯）重新入队审批通知。
+		// 追溯读取经由事务客户端（FOR SHARE）执行，确保落在转派事务内。
+		recipients, _, isEscalated, recipientErr := listApproverRecipientsWithEscalation(ctx, tx.Client(), targetOrgID, true)
+		if recipientErr == nil && len(recipients) > 0 {
+			recipientUserIDs := make([]uuid.UUID, 0, len(recipients))
+			for _, rec := range recipients {
+				recipientUserIDs = append(recipientUserIDs, rec.UserID)
+			}
+			// 代管标注口径与扫码注册路径一致：展示目标组织名并追加统一后缀。
+			targetOrgName := targetOrg.Name
+			if isEscalated {
+				targetOrgName += biz.DingTalkEscalatedOrgSuffix
+			}
+			if err := enqueueDingTalkRegistrationPendingNotifications(ctx, tx, targetOrg.ID, account.ID, account.DisplayName, targetOrgName, recipientUserIDs); err != nil {
+				return err
+			}
+		}
+		return writeAudit(ctx, tx.AuditLog, decision.Audit)
+	})
 }
 
 func uuidInValues(values []uuid.UUID, target uuid.UUID) bool {

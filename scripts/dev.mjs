@@ -52,8 +52,10 @@ function scanProcesses() {
         stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1],
         10,
       );
-      const command = (readFileSync(`/proc/${entry}/cmdline`, 'utf-8').split('\0')[0] ?? '').trim();
-      processes.set(processId, { executable, cwd, command, parentProcessId });
+      const rawCmdline = readFileSync(`/proc/${entry}/cmdline`, 'utf-8');
+      const command = (rawCmdline.split('\0')[0] ?? '').trim();
+      const cmdline = rawCmdline.replace(/\0/g, ' ').trim();
+      processes.set(processId, { executable, cwd, command, cmdline, parentProcessId });
     } catch {
       // 进程可能已在枚举期间退出，或属于内核线程等其他用户，忽略即可。
     }
@@ -104,10 +106,25 @@ function findExistingDevelopmentServerProcesses() {
   for (const [processId, process] of processes) {
     if (protectedProcessIds.has(processId)) continue;
     let rootProcessId = null;
-    if (process.executable === developmentServerExecutable) {
-      // 后端 roncin-server：向上定位 air 祖先，从 air 起整棵关闭。
-      rootProcessId = findAirAncestor(processes, processId) ?? processId;
-    } else if (process.executable.endsWith('/air') && isWithinRepository(process.cwd)) {
+    const cleanExecutable = process.executable.replace(/ \(deleted\)$/, '');
+    if (cleanExecutable === developmentServerExecutable) {
+      // 后端 roncin-server：优先定位 air 祖先；若 air 已退出但父进程为包裹它的 sh，则从该 sh 起整棵关闭。
+      const airAncestor = findAirAncestor(processes, processId);
+      if (airAncestor) {
+        rootProcessId = airAncestor;
+      } else {
+        const parent = processes.get(process.parentProcessId);
+        if (
+          parent &&
+          (parent.cmdline.includes(developmentServerExecutable) ||
+            parent.cmdline.includes('roncin-server'))
+        ) {
+          rootProcessId = process.parentProcessId;
+        } else {
+          rootProcessId = processId;
+        }
+      }
+    } else if (cleanExecutable.endsWith('/air') && isWithinRepository(process.cwd)) {
       // 孤儿 air：roncin-server 子进程可能已被热重载替换或退出，按 air 进程本身识别。
       rootProcessId = processId;
     } else if (
@@ -126,7 +143,9 @@ function findExistingDevelopmentServerProcesses() {
   const targetProcessIds = new Set();
   for (const rootProcessId of rootProcessIds) {
     for (const processId of collectDescendants(processes, rootProcessId)) {
-      targetProcessIds.add(processId);
+      if (!protectedProcessIds.has(processId)) {
+        targetProcessIds.add(processId);
+      }
     }
   }
   return [...targetProcessIds];
@@ -173,19 +192,42 @@ function pgIsReadyIsAvailable() {
   return spawnSync('pg_isready', ['--version'], { stdio: 'ignore' }).status === 0;
 }
 
-function stopExistingDevelopmentServers() {
-  const processIds = findExistingDevelopmentServerProcesses();
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function stopProcesses(processIds, label = '已有开发进程树') {
   if (processIds.length === 0) return;
-  console.log(`[dev] 关闭本仓库已有开发进程树: PID ${processIds.join(', ')}`);
+  console.log(`[dev] 关闭本仓库${label}: PID ${processIds.join(', ')}`);
   for (const processId of processIds) {
-    const result = spawnSync('kill', ['-TERM', String(processId)], {
+    spawnSync('kill', ['-TERM', String(processId)], {
       stdio: 'ignore',
     });
-    if (result.error) {
-      throw result.error;
-    }
-    // 单个 PID 退出码非零通常意味着枚举后进程已自行退出，继续处理其余 PID。
   }
+
+  const deadline = Date.now() + 1500;
+  while (Date.now() < deadline) {
+    if (!processIds.some(isProcessAlive)) return;
+    spawnSync('sleep', ['0.05'], { stdio: 'ignore' });
+  }
+
+  for (const processId of processIds) {
+    if (isProcessAlive(processId)) {
+      spawnSync('kill', ['-KILL', String(processId)], {
+        stdio: 'ignore',
+      });
+    }
+  }
+}
+
+function stopExistingDevelopmentServers() {
+  const processIds = findExistingDevelopmentServerProcesses();
+  stopProcesses(processIds, '已有开发进程树');
 }
 
 async function prepareDatabase() {
@@ -212,23 +254,31 @@ const children = new Map();
 let stopping = false;
 let exitCode = 0;
 
-function terminateProcessTree(child) {
-  if (!child.pid || child.exitCode !== null) return;
-  spawnSync('kill', ['-TERM', String(child.pid)], {
-    stdio: 'ignore',
-  });
-}
-
 function stopAll(code) {
   if (stopping) return;
   stopping = true;
   exitCode = code;
+
+  const processes = scanProcesses();
+  const protectedProcessIds = collectAncestors(processes, process.pid);
+  const targetProcessIds = new Set();
+
   for (const child of children.values()) {
-    terminateProcessTree(child);
+    if (!child.pid) continue;
+    for (const pid of collectDescendants(processes, child.pid)) {
+      if (!protectedProcessIds.has(pid)) {
+        targetProcessIds.add(pid);
+      }
+    }
   }
-  if (children.size === 0) {
-    process.exit(exitCode);
+
+  for (const pid of findExistingDevelopmentServerProcesses()) {
+    targetProcessIds.add(pid);
   }
+
+  stopProcesses([...targetProcessIds], '开发进程');
+
+  process.exit(exitCode);
 }
 
 function startService(name, script) {
@@ -253,10 +303,6 @@ function startService(name, script) {
           : `[dev] ${name} 退出，代码 ${code ?? 1}`,
       );
       stopAll(code ?? 1);
-      return;
-    }
-    if (children.size === 0) {
-      process.exit(exitCode);
     }
   });
 }

@@ -1208,3 +1208,30 @@
 ### Next Steps
 
 - 承接后续任务 09-11-partner-terms-credit（正式客户应收账期主档带出与信用额度双模管控）
+
+
+## Session 46: 钉钉入职专属码任务：全量评审、修复轮与合并收尾
+<!-- trellis-session: v=2 fp=8c55a47482b79a1d -->
+
+**Date**: 2026-09-12
+**Task**: 钉钉入职专属码任务：全量评审、修复轮与合并收尾
+**Branch**: `feat/dingtalk-invitation-transfer`
+
+### Summary
+
+对钉钉入职专属码、向上追溯与一键转派任务做前后端全量评审：发现后端 P1×2（集成测试夹具违反真实库约束被 SKIP 掩盖、扫码注册路径审批通知缺代管标注）、P2×5（迁移外键漂移、TARGETED 可无角色创建、事务回调内直连读取、gofmt、dev.mjs 混入）与前端 P2×1（落地页缺 PRD 3.2.3 防误扫警示）。派 implement 子代理完成 7 项修复，check 子代理逐项复检确认，真实库集成回归由 FAIL 转 PASS，完整门禁（web 626 测试 + server 全量 + govulncheck）全绿后拆三笔 fix 提交并合并 main。遗留 P3 清单见任务归档：列表返回完整 Token、二维码下载、?token= 泛化别名、CONSUMED Token 拦截、API 缺省 TTL 72h、代管文案措辞；另：开发库 role 外键仍为 NO ACTION，重建开发库后才生效（待用户授权）。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `758a83af` | feat(auth,admin): 支持分公司通用/定向邀请码、无管理员向上追溯兜底与待审批一键转派 |
+| `7c40399c` | feat(web): 支持通用入职码与定向邀请模式切换、二维码与链接展示、转派弹窗与扫码落地页通道绑定 |
+| `2379f75b` | docs(dingtalk): 归档钉钉入职专属码、向上追溯与一键转派任务 |
+| `13193016` | fix(auth,admin): 补齐钉钉注册代管标注、TARGETED 角色强制与转派事务内读取 |
+| `734a339a` | fix(web): 钉钉邀请落地页补充防误扫警示文案 |
+| `03e1bfc9` | fix(dev): 修复开发进程树清理在热重载后的残留 |
+
+### Status
+
+[OK] **Completed**

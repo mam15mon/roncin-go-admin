@@ -77,7 +77,7 @@ func TestAuthUsecaseDingTalkRegistrationWaitsForAuthorization(t *testing.T) {
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: provider.identity}
 	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec, nil, nil, nil)
-	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.Nil)
+	registration, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "", uuid.Nil)
 	if err != nil {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v", err)
 	}
@@ -113,7 +113,7 @@ func TestAuthUsecaseDingTalkRegistrationRejectsEnabledAccount(t *testing.T) {
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	codec := &dingTalkRegistrationTokenCodecStub{identity: provider.identity}
 	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, codec, nil, nil, nil)
-	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", uuid.Nil); err != ErrDingTalkAlreadyRegistered {
+	if _, err := usecase.ConfirmDingTalkRegistration(context.Background(), "registration-token", "", uuid.Nil); err != ErrDingTalkAlreadyRegistered {
 		t.Fatalf("ConfirmDingTalkRegistration() error = %v, want ErrDingTalkAlreadyRegistered", err)
 	}
 }

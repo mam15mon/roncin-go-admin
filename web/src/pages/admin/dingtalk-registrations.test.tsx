@@ -22,6 +22,7 @@ const proTableState = vi.hoisted(() => ({
 const modalState = vi.hoisted(() => ({
   approve: undefined as Record<string, any> | undefined,
   reject: undefined as Record<string, any> | undefined,
+  transfer: undefined as Record<string, any> | undefined,
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -87,6 +88,13 @@ vi.mock('./components/dingtalk/RegistrationRejectModal', () => ({
   },
 }));
 
+vi.mock('./components/dingtalk/RegistrationTransferModal', () => ({
+  default: (props: Record<string, unknown>) => {
+    modalState.transfer = props;
+    return null;
+  },
+}));
+
 import DingTalkRegistrationsPanel from './dingtalk-registrations';
 
 describe('DingTalkRegistrationsPanel', () => {
@@ -97,6 +105,7 @@ describe('DingTalkRegistrationsPanel', () => {
     proTableState.props = undefined;
     modalState.approve = undefined;
     modalState.reject = undefined;
+    modalState.transfer = undefined;
   });
 
   it('队列请求只带分页参数', async () => {
@@ -169,6 +178,12 @@ describe('DingTalkRegistrationsPanel', () => {
     });
     expect(modalState.approve?.open).toBe(true);
     expect(modalState.approve?.registration?.userId).toBe('user-9');
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('转派'));
+    });
+    expect(modalState.transfer?.open).toBe(true);
+    expect(modalState.transfer?.registration?.userId).toBe('user-9');
 
     await act(async () => {
       fireEvent.click(screen.getByText('拒绝'));
