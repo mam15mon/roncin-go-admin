@@ -50,6 +50,19 @@ type DingTalkApproverRecipient struct {
 	DisplayName string
 }
 
+// DingTalkEscalatedOrgSuffix 是目标组织无管理员、审批通知向上追溯代管时，
+// 通知卡片展示组织名追加的后缀；扫码注册与一键转派两条路径共用同一口径。
+const DingTalkEscalatedOrgSuffix = "（上级代管）"
+
+// DingTalkApproverNotice 是注册待审批通知的路由决策命令（biz 决策，仓储只做入队转换）：
+// ApproverUserIDs 为向上追溯后的实际收件人；OrganizationName 为通知卡片展示的
+// 目标组织名（代管时已含 DingTalkEscalatedOrgSuffix 后缀），空值表示未自选
+// 目标组织（总部收口，由仓储按总部名展示）。
+type DingTalkApproverNotice struct {
+	ApproverUserIDs  []uuid.UUID
+	OrganizationName string
+}
+
 // DingTalkRegistrationDecision 是审批用例提交给仓储的一站式决策命令；
 // OrganizationIDs 为审批人按权限解析的可写组织范围，仓储在事务内复核
 // 注册的路由组织确实属于该范围。
@@ -107,7 +120,7 @@ func writableOrganizationIDs(principal *Principal) ([]uuid.UUID, error) {
 }
 
 // CreateInvitation 校验手机号/类型、有效期与提权边界后创建邀请：
-// - TARGETED（定向）：手机号必填，扫码匹配后秒级激活；
+// - TARGETED（定向）：手机号与初始角色必填，扫码匹配后秒级激活；
 // - GENERIC（通用）：手机号为空，支持多人多次扫码，扫码生成待审批注册。
 // 目标组织必须在调用者的可写范围内，预设角色属于目标组织且不得超出调用者自身权限。
 func (uc *DingTalkRegistrationUsecase) CreateInvitation(ctx context.Context, principal *Principal, kind DingTalkInvitationKind, mobile, displayName string, organizationID uuid.UUID, roleID *uuid.UUID, expiresInHours int) (*DingTalkInvitation, error) {
@@ -149,6 +162,11 @@ func (uc *DingTalkRegistrationUsecase) CreateInvitation(ctx context.Context, pri
 		}
 	} else {
 		roleID = nil
+	}
+	if kind == DingTalkInvitationKindTargeted && roleID == nil {
+		// 定向邀请走扫码自动激活，没有审批环节补配角色；
+		// 缺少初始角色会激活零角色账号，必须在创建时绑定。
+		return nil, ErrAdminInvalidArgument
 	}
 
 	token, err := GenerateInvitationToken()

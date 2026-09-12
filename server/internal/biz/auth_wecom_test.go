@@ -24,12 +24,13 @@ func (s *wecomProviderStub) ResolveIdentity(context.Context, string) (*WeComIden
 }
 
 type wecomAuthRepoStub struct {
-	credential             *Credential
-	created                bool
-	createdSession         *Session
-	auditActions           []string
-	registeredRequestedOrg *uuid.UUID
-	registeredApproverIDs  []uuid.UUID
+	credential              *Credential
+	created                 bool
+	createdSession          *Session
+	auditActions            []string
+	registeredRequestedOrg  *uuid.UUID
+	registeredApproverIDs   []uuid.UUID
+	registeredNoticeOrgName string
 }
 
 func (s *wecomAuthRepoStub) FindCredential(context.Context, string) (*Credential, error) {
@@ -59,9 +60,15 @@ func (s *wecomAuthRepoStub) FindDingTalkCredential(context.Context, *DingTalkIde
 	return s.credential, nil
 }
 
-func (s *wecomAuthRepoStub) RegisterDingTalkCredential(_ context.Context, _ *DingTalkIdentity, requestedOrganizationID *uuid.UUID, approverUserIDs []uuid.UUID, audit *AuditEvent) (*Credential, bool, error) {
+func (s *wecomAuthRepoStub) RegisterDingTalkCredential(_ context.Context, _ *DingTalkIdentity, requestedOrganizationID *uuid.UUID, notice *DingTalkApproverNotice, audit *AuditEvent) (*Credential, bool, error) {
 	s.registeredRequestedOrg = requestedOrganizationID
-	s.registeredApproverIDs = approverUserIDs
+	if notice != nil {
+		s.registeredApproverIDs = notice.ApproverUserIDs
+		s.registeredNoticeOrgName = notice.OrganizationName
+	} else {
+		s.registeredApproverIDs = nil
+		s.registeredNoticeOrgName = ""
+	}
 	if s.created {
 		s.auditActions = append(s.auditActions, audit.Action)
 	}

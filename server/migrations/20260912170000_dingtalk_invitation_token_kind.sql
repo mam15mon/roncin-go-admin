@@ -2,7 +2,9 @@
 --   1. ding_talk_invitations 增加 token（128-bit 随机不可枚举凭证）与唯一索引；
 --   2. ding_talk_invitations 增加 kind（TARGETED 定向单人 vs GENERIC 扩招通用码）；
 --   3. mobile 与 role_id 设为可空（通用码无手机号，预设角色可选）；
---   4. 活跃部分唯一索引调整为仅针对 TARGETED 且手机号非空记录。
+--   4. role 外键行为同步为 ON DELETE SET NULL（role 边由 Required 改 Optional，
+--      与 Ent schema 的外键定义保持一致：角色删除时预设角色置空）；
+--   5. 活跃部分唯一索引调整为仅针对 TARGETED 且手机号非空记录。
 
 ALTER TABLE "ding_talk_invitations"
   ADD COLUMN "token" character varying(64);
@@ -29,6 +31,13 @@ ALTER TABLE "ding_talk_invitations"
 
 ALTER TABLE "ding_talk_invitations"
   ALTER COLUMN "role_id" DROP NOT NULL;
+
+ALTER TABLE "ding_talk_invitations"
+  DROP CONSTRAINT "ding_talk_invitations_roles_dingtalk_invitations";
+
+ALTER TABLE "ding_talk_invitations"
+  ADD CONSTRAINT "ding_talk_invitations_roles_dingtalk_invitations"
+    FOREIGN KEY ("role_id") REFERENCES "roles" ("id") ON DELETE SET NULL;
 
 DROP INDEX IF EXISTS "dingtalkinvitation_organization_id_mobile";
 

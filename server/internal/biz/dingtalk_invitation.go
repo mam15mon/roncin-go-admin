@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	ErrDingTalkInvitationNotFound        = errors.NotFound("DINGTALK_INVITATION_NOT_FOUND", "邀请不存在或已失效")
-	ErrDingTalkInvitationExpired         = errors.BadRequest("DINGTALK_INVITATION_EXPIRED", "邀请已过期")
-	ErrDingTalkInvitationRevoked         = errors.BadRequest("DINGTALK_INVITATION_REVOKED", "邀请已撤销")
-	ErrDingTalkInvitationExists          = errors.Conflict("DINGTALK_INVITATION_EXISTS", "该手机号在目标组织已存在有效定向邀请")
-	ErrDingTalkInvitationNotRevocable    = errors.Conflict("DINGTALK_INVITATION_NOT_REVOCABLE", "邀请已消费或已撤销，不能再撤销")
+	ErrDingTalkInvitationNotFound     = errors.NotFound("DINGTALK_INVITATION_NOT_FOUND", "邀请不存在或已失效")
+	ErrDingTalkInvitationExpired      = errors.BadRequest("DINGTALK_INVITATION_EXPIRED", "邀请已过期")
+	ErrDingTalkInvitationRevoked      = errors.BadRequest("DINGTALK_INVITATION_REVOKED", "邀请已撤销")
+	ErrDingTalkInvitationExists       = errors.Conflict("DINGTALK_INVITATION_EXISTS", "该手机号在目标组织已存在有效定向邀请")
+	ErrDingTalkInvitationNotRevocable = errors.Conflict("DINGTALK_INVITATION_NOT_REVOCABLE", "邀请已消费或已撤销，不能再撤销")
 	// ErrDingTalkInvitationNotConsumable 表示邀请在消费窗口外（并发消费、过期、
 	// 目标组织或角色失效）；仅内部使用，登录链路据此降级人工审批通道，不外抛。
 	ErrDingTalkInvitationNotConsumable   = errors.Conflict("DINGTALK_INVITATION_NOT_CONSUMABLE", "邀请不可消费")

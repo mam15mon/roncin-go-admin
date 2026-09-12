@@ -474,9 +474,10 @@ type AuthRepo interface {
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用，收口总部成员资格）；
-	// requestedOrganizationID 为通道 B 自选目标组织（可空），approverUserIDs 为
-	// 注册审批通知收件人，仓储在注册同事务内入队（任务幂等键确定性去重）。
-	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, []uuid.UUID, *AuditEvent) (*Credential, bool, error)
+	// requestedOrganizationID 为通道 B 自选目标组织（可空），notice 为注册审批
+	// 通知的路由决策（收件人与展示组织名，含代管标注），仓储在注册同事务内
+	// 入队（任务幂等键确定性去重）。
+	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, *DingTalkApproverNotice, *AuditEvent) (*Credential, bool, error)
 	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
@@ -834,7 +835,10 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 		return nil, err
 	}
 	var requestedOrganization *uuid.UUID
-	var approverUserIDs []uuid.UUID
+	var notice *DingTalkApproverNotice
+	// notificationOrgName 是通知卡片展示的目标组织名：Token 路径取邀请锁定组织、
+	// 自选路径取所选组织；未自选（总部收口）时留空，由仓储按总部名展示。
+	notificationOrgName := ""
 
 	invitationToken = strings.TrimSpace(invitationToken)
 	if invitationToken != "" {
@@ -855,6 +859,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 		targetOrgID := invitation.OrganizationID
 		requestedOrganization = &targetOrgID
 		requestedOrganizationID = targetOrgID
+		notificationOrgName = invitation.OrganizationName
 	} else if requestedOrganizationID != uuid.Nil {
 		if uc.dingTalkRegistrations == nil {
 			return nil, ErrDingTalkRegistrationOrgInvalid
@@ -864,6 +869,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 			return nil, ErrDingTalkRegistrationOrgInvalid
 		}
 		requestedOrganization = &organization.ID
+		notificationOrgName = organization.Name
 	}
 
 	if uc.dingTalkRegistrations != nil {
@@ -876,15 +882,22 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 				return nil, hqErr
 			}
 		}
-		recipients, _, _, recipientErr := uc.dingTalkRegistrations.ListApproverRecipientsWithEscalation(ctx, routingOrganizationID)
+		recipients, _, isEscalated, recipientErr := uc.dingTalkRegistrations.ListApproverRecipientsWithEscalation(ctx, routingOrganizationID)
 		if recipientErr != nil {
 			return nil, recipientErr
 		}
+		approverUserIDs := make([]uuid.UUID, 0, len(recipients))
 		for _, recipient := range recipients {
 			approverUserIDs = append(approverUserIDs, recipient.UserID)
 		}
+		// 代管标注口径与一键转派一致：目标组织无管理员向上追溯时，
+		// 通知卡片展示目标组织名并追加「（上级代管）」后缀。
+		if isEscalated && notificationOrgName != "" {
+			notificationOrgName += DingTalkEscalatedOrgSuffix
+		}
+		notice = &DingTalkApproverNotice{ApproverUserIDs: approverUserIDs, OrganizationName: notificationOrgName}
 	}
-	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity, requestedOrganization, approverUserIDs, &AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity, requestedOrganization, notice, &AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil {
 		return nil, err
 	}

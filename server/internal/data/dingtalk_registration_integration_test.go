@@ -412,7 +412,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	// 通道 B 注册：自选成都公司，通知两位审批人。
 	identity := &biz.DingTalkIdentity{UnionID: "dtr-union-b-" + fixture.suffix, UserID: "dtr-user-b-" + fixture.suffix, CorpID: "ding-corp", Name: "认领员工"}
 	requestedOrg := fixture.branch.ID
-	credential, created, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, identity, &requestedOrg, approverUserIDsOf(branchApprover.ID, branchApprover2.ID), &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+	credential, created, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, identity, &requestedOrg, &biz.DingTalkApproverNotice{ApproverUserIDs: approverUserIDsOf(branchApprover.ID, branchApprover2.ID), OrganizationName: fixture.branch.Name}, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil || !created || credential.Enabled {
 		t.Fatalf("注册落库结果 = (%#v, %v, %v)", credential, created, err)
 	}
@@ -424,6 +424,12 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 		All(fixture.ctx)
 	if err != nil || len(pendingDeliveries) != 2 {
 		t.Fatalf("两位审批人应各有通知明细 = %#v err=%v", pendingDeliveries, err)
+	}
+	// 通知卡片必须展示自选目标组织名，而不是固定总部名。
+	for _, delivery := range pendingDeliveries {
+		if delivery.Parameter != fixture.branch.Name {
+			t.Fatalf("通知应展示目标组织名 %q，实际 %q", fixture.branch.Name, delivery.Parameter)
+		}
 	}
 	taskIDs := make(map[uuid.UUID]struct{}, len(pendingDeliveries))
 	recipientSeen := make(map[uuid.UUID]struct{}, len(pendingDeliveries))
@@ -441,7 +447,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 		t.Fatalf("第二位审批人缺少通知: %#v", recipientSeen)
 	}
 	// 重复确认：按 (注册人, 组织, 收件人) 幂等键去重，不重复提醒。
-	if _, _, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, identity, &requestedOrg, approverUserIDsOf(branchApprover.ID, branchApprover2.ID), &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"}); err != nil {
+	if _, _, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, identity, &requestedOrg, &biz.DingTalkApproverNotice{ApproverUserIDs: approverUserIDsOf(branchApprover.ID, branchApprover2.ID), OrganizationName: fixture.branch.Name}, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"}); err != nil {
 		t.Fatalf("重复确认注册失败: %v", err)
 	}
 	pendingDeliveries, err = fixture.data.db.NotificationDelivery.Query().
@@ -671,6 +677,7 @@ func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
 		SetCode("SUB-" + fixture.suffix).
 		SetName("二级办事处-" + fixture.suffix).
 		SetKind(organizationent.KindCompany).
+		SetBaseCurrency("CNY").
 		SetParentID(fixture.headquarters.ID).
 		SetEnabled(true).
 		Save(fixture.ctx)

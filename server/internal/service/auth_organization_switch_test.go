@@ -45,7 +45,7 @@ func (*authServiceRepoStub) FindDingTalkCredential(context.Context, *biz.DingTal
 	return nil, biz.ErrDingTalkNotRegistered
 }
 
-func (*authServiceRepoStub) RegisterDingTalkCredential(context.Context, *biz.DingTalkIdentity, *uuid.UUID, []uuid.UUID, *biz.AuditEvent) (*biz.Credential, bool, error) {
+func (*authServiceRepoStub) RegisterDingTalkCredential(context.Context, *biz.DingTalkIdentity, *uuid.UUID, *biz.DingTalkApproverNotice, *biz.AuditEvent) (*biz.Credential, bool, error) {
 	return nil, false, biz.ErrDingTalkDisabled
 }
 
