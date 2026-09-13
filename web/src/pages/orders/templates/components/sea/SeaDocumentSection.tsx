@@ -15,6 +15,7 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
   Col,
   Form,
   Modal,
@@ -363,6 +364,74 @@ export function SeaBillContentFormFields({
       ...updates,
     });
     message.success('已从订单货物信息带入品名、件数、单位及毛重体积');
+  };
+
+  const CLAUSE_TEXT = 'SHIPPER LOAD,COUNT AND SEAL';
+  const goodsDescriptionValue = Form.useWatch(
+    [...namePathPrefix, 'goodsDescriptionText'],
+    form,
+  );
+  const hasClause = Boolean(
+    goodsDescriptionValue &&
+      String(goodsDescriptionValue).includes(CLAUSE_TEXT),
+  );
+
+  const handleToggleClause = (targetChecked?: boolean) => {
+    if (!form) return;
+    const current =
+      (form.getFieldValue([
+        ...namePathPrefix,
+        'goodsDescriptionText',
+      ]) as string) || '';
+    const isPresent = current.includes(CLAUSE_TEXT);
+    const shouldAdd = targetChecked !== undefined ? targetChecked : !isPresent;
+
+    if (shouldAdd && !isPresent) {
+      const trimmed = current.trim();
+      const next = trimmed ? `${trimmed}\n${CLAUSE_TEXT}` : CLAUSE_TEXT;
+      form.setFieldValue([...namePathPrefix, 'goodsDescriptionText'], next);
+    } else if (!shouldAdd && isPresent) {
+      const next = current
+        .replace(CLAUSE_TEXT, '')
+        .replace(/\n\s*\n/g, '\n')
+        .trim();
+      form.setFieldValue([...namePathPrefix, 'goodsDescriptionText'], next);
+    }
+  };
+
+  const handleImportMeasurementsFromCargo = () => {
+    if (!form) return;
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    if (
+      totalPackages === undefined &&
+      !totalPackageUnit &&
+      totalGrossWeightKg === undefined &&
+      totalVolumeCbm === undefined
+    ) {
+      message.warning('订单尚未录入委托件重尺数据');
+      return;
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (totalPackages !== undefined) updates.packageCount = totalPackages;
+    if (totalPackageUnit) updates.packageUnit = totalPackageUnit;
+    if (totalGrossWeightKg !== undefined)
+      updates.grossWeightKg = totalGrossWeightKg;
+    if (totalVolumeCbm !== undefined) updates.volumeCbm = totalVolumeCbm;
+
+    const currentContent = (form.getFieldValue(namePathPrefix) ?? {}) as Record<
+      string,
+      unknown
+    >;
+    form.setFieldValue(namePathPrefix, {
+      ...currentContent,
+      ...updates,
+    });
+    message.success('已将委托件重尺同步至提单实际数据');
   };
 
   return (
@@ -730,48 +799,212 @@ export function SeaBillContentFormFields({
           </div>
         </Col>
         <Col xs={24} lg={12}>
-          <ProFormTextArea
-            name={[...namePathPrefix, 'goodsDescriptionText']}
-            label="提单品名/货描 (Description of Goods)"
-            placeholder="请输入提单打印品名与货物描述"
-            disabled={disabled}
-            fieldProps={{ rows: 3 }}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Form.Item label="提单实际件数 / 包装单位" layout="vertical">
-            <PackageCountInput
-              countName={[...namePathPrefix, 'packageCount']}
-              unitName={[...namePathPrefix, 'packageUnit']}
-              countPlaceholder="件数"
-              unitPlaceholder="单位"
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                英文品名 / 提单货描
+              </span>
+              <Space size={6} align="center">
+                <Checkbox
+                  checked={hasClause}
+                  disabled={disabled}
+                  onChange={(e) => handleToggleClause(e.target.checked)}
+                  style={{ fontSize: 12, userSelect: 'none' }}
+                >
+                  免责条款
+                </Checkbox>
+                <Tag
+                  color={hasClause ? 'blue' : 'default'}
+                  style={{
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
+                    fontFamily: 'monospace',
+                  }}
+                  onClick={
+                    !disabled ? () => handleToggleClause(!hasClause) : undefined
+                  }
+                >
+                  SHIPPER LOAD,COUNT AND SEAL
+                </Tag>
+              </Space>
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'goodsDescriptionText']}
+              placeholder="请输入提单打印品名与货物描述"
               disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
             />
-          </Form.Item>
-        </Col>
-        <Col xs={12} sm={6} lg={8}>
-          <ProFormDigit
-            name={[...namePathPrefix, 'grossWeightKg']}
-            label="提单实际毛重 (KGS)"
-            placeholder="毛重"
-            disabled={disabled}
-            min={0}
-            fieldProps={{ precision: 3 }}
-            layout="vertical"
-          />
-        </Col>
-        <Col xs={12} sm={6} lg={8}>
-          <ProFormDigit
-            name={[...namePathPrefix, 'volumeCbm']}
-            label="提单实际体积 (CBM)"
-            placeholder="体积"
-            disabled={disabled}
-            min={0}
-            fieldProps={{ precision: 3 }}
-            layout="vertical"
-          />
+          </div>
         </Col>
       </Row>
+
+      {/* 件重尺对照区（参考竞品截图：委托行 vs 实际行紧凑两行上下对照） */}
+      <div
+        style={{
+          backgroundColor: '#fafbfc',
+          border: '1px solid #f0f0f0',
+          borderRadius: 6,
+          padding: '12px 16px 0 16px',
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 8,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: 'rgba(0, 0, 0, 0.45)',
+            }}
+          >
+            委托 vs 实际件重尺对照
+          </span>
+          {!disabled && (
+            <Button
+              type="link"
+              size="small"
+              icon={<SwapOutlined />}
+              onClick={handleImportMeasurementsFromCargo}
+              style={{
+                fontSize: 12,
+                padding: 0,
+                height: 'auto',
+                fontWeight: 'normal',
+              }}
+            >
+              带入委托件重尺 ↓
+            </Button>
+          )}
+        </div>
+
+        {/* 第 1 行：委托申报数据对照行 */}
+        <Row gutter={[16, 0]} align="middle">
+          <Col xs={24} sm={12} lg={8}>
+            <Form.Item
+              label={
+                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
+                  委托总件数 / 包装单位
+                </span>
+              }
+              layout="vertical"
+            >
+              <PackageCountInput
+                countName="totalPackages"
+                unitName="totalPackageUnit"
+                countPlaceholder="0"
+                unitPlaceholder="请选择单位"
+                disabled={disabled}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={12} sm={6} lg={8}>
+            <ProFormDigit
+              name="totalGrossWeightKg"
+              label={
+                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
+                  委托总毛重 (KGS)
+                </span>
+              }
+              placeholder="0"
+              disabled={disabled}
+              min={0}
+              fieldProps={{ precision: 3, addonAfter: 'KGS' }}
+              layout="vertical"
+            />
+          </Col>
+          <Col xs={12} sm={6} lg={8}>
+            <ProFormDigit
+              name="totalVolumeCbm"
+              label={
+                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
+                  委托总体积 (CBM)
+                </span>
+              }
+              placeholder="0"
+              disabled={disabled}
+              min={0}
+              fieldProps={{ precision: 3, addonAfter: 'CBM' }}
+              layout="vertical"
+            />
+          </Col>
+        </Row>
+
+        {/* 第 2 行：实际提单数据对照行 */}
+        <Row gutter={[16, 0]} align="middle">
+          <Col xs={24} sm={12} lg={8}>
+            <Form.Item
+              label={
+                <span style={{ fontWeight: 600, color: '#1677ff' }}>
+                  实际总件数 / 包装单位
+                </span>
+              }
+              layout="vertical"
+            >
+              <PackageCountInput
+                countName={[...namePathPrefix, 'packageCount']}
+                unitName={[...namePathPrefix, 'packageUnit']}
+                countPlaceholder="0"
+                unitPlaceholder="请选择单位"
+                disabled={disabled}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={12} sm={6} lg={8}>
+            <ProFormDigit
+              name={[...namePathPrefix, 'grossWeightKg']}
+              label={
+                <span style={{ fontWeight: 600, color: '#1677ff' }}>
+                  实际总毛重 (KGS)
+                </span>
+              }
+              placeholder="0"
+              disabled={disabled}
+              min={0}
+              fieldProps={{ precision: 3, addonAfter: 'KGS' }}
+              layout="vertical"
+            />
+          </Col>
+          <Col xs={12} sm={6} lg={8}>
+            <ProFormDigit
+              name={[...namePathPrefix, 'volumeCbm']}
+              label={
+                <span style={{ fontWeight: 600, color: '#1677ff' }}>
+                  实际总体积 (CBM)
+                </span>
+              }
+              placeholder="0"
+              disabled={disabled}
+              min={0}
+              fieldProps={{ precision: 3, addonAfter: 'CBM' }}
+              layout="vertical"
+            />
+          </Col>
+        </Row>
+      </div>
 
       {/* 条款与放单信息区块 */}
       <div
@@ -799,8 +1032,8 @@ export function SeaBillContentFormFields({
         <Col xs={12} sm={6}>
           <ProFormSelect
             name={[...namePathPrefix, 'freightTerms']}
-            label="运费条款"
-            placeholder="请选择运费条款"
+            label="付款方式"
+            placeholder="请选择付款方式"
             initialValue={DEFAULT_FREIGHT_TERMS}
             disabled={disabled}
             layout="vertical"
@@ -808,6 +1041,16 @@ export function SeaBillContentFormFields({
             fieldProps={{
               showSearch: true,
               allowClear: true,
+              onChange: (val) => {
+                if (form) {
+                  const str = String(val ?? '');
+                  if (str.includes('COLLECT') || str.includes('到付')) {
+                    form.setFieldValue('paymentTerm', 2);
+                  } else {
+                    form.setFieldValue('paymentTerm', 1);
+                  }
+                }
+              },
               filterOption: (input, option) => {
                 const normInput = input.trim().toLowerCase();
                 const normLabel = String(option?.label ?? '').toLowerCase();

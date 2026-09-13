@@ -557,4 +557,68 @@ describe('SeaDocumentSectionComponent', () => {
     expect(SEA_BILL_FORM_OPTIONS.map((o) => o.value)).toContain('ORIGINAL');
     expect(SEA_RELEASE_TYPE_OPTIONS.map((o) => o.value)).toContain('电放');
   });
+
+  it('支持英文品名免责条款快捷勾选与一键带入委托件重尺', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          totalPackages: 500,
+          totalPackageUnit: 'PLTS',
+          totalGrossWeightKg: 12000.5,
+          totalVolumeCbm: 32.4,
+          seaMasterBillContent: {
+            goodsDescriptionText: 'CAR PARTS',
+          },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 1. 勾选免责条款 SHIPPER LOAD,COUNT AND SEAL
+    const clauseCheckbox = screen.getByLabelText('免责条款');
+    expect(clauseCheckbox).toBeInTheDocument();
+    expect(clauseCheckbox).not.toBeChecked();
+
+    fireEvent.click(clauseCheckbox);
+    await waitFor(() => {
+      expect(clauseCheckbox).toBeChecked();
+    });
+    expect(
+      capturedForm?.getFieldValue([
+        'seaMasterBillContent',
+        'goodsDescriptionText',
+      ]),
+    ).toBe('CAR PARTS\nSHIPPER LOAD,COUNT AND SEAL');
+
+    // 2. 取消勾选免责条款
+    fireEvent.click(clauseCheckbox);
+    await waitFor(() => {
+      expect(clauseCheckbox).not.toBeChecked();
+    });
+    expect(
+      capturedForm?.getFieldValue([
+        'seaMasterBillContent',
+        'goodsDescriptionText',
+      ]),
+    ).toBe('CAR PARTS');
+
+    // 3. 点击「带入委托件重尺 ↓」按钮
+    const importMeasurementsBtn = screen.getByRole('button', {
+      name: /带入委托件重尺/,
+    });
+    fireEvent.click(importMeasurementsBtn);
+
+    await waitFor(() => {
+      const content = capturedForm?.getFieldValue('seaMasterBillContent');
+      expect(content?.packageCount).toBe(500);
+      expect(content?.packageUnit).toBe('PLTS');
+      expect(content?.grossWeightKg).toBe(12000.5);
+      expect(content?.volumeCbm).toBe(32.4);
+    });
+  });
 });

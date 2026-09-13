@@ -1,5 +1,4 @@
 import { ProFormTextArea } from '@ant-design/pro-components';
-import { Col, Tag } from 'antd';
 import React from 'react';
 import {
   buildSeaBaseInfoSection,
@@ -41,69 +40,7 @@ export function buildSeaCargoAndDocumentSection(
     title: '货物与提单信息',
     content: (
       <>
-        {/* 1. 委托货物申报 */}
-        <Col span={24}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <div
-              style={{
-                width: 3,
-                height: 14,
-                backgroundColor: '#1677ff',
-                borderRadius: 2,
-                marginRight: 8,
-              }}
-            />
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-              货物委托信息 (Entrusted Cargo)
-            </span>
-            <Tag color="blue" style={{ marginLeft: 8 }}>
-              委托申报数据
-            </Tag>
-          </div>
-        </Col>
-
         {cargoSection.content}
-
-        {/* 2. 分隔线与海运单证 */}
-        <Col span={24}>
-          <div
-            style={{
-              height: 1,
-              backgroundColor: '#f0f0f0',
-              margin: '12px 0 20px 0',
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <div
-              style={{
-                width: 3,
-                height: 14,
-                backgroundColor: '#1677ff',
-                borderRadius: 2,
-                marginRight: 8,
-              }}
-            />
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-              海运提单单证 (Ocean Documents)
-            </span>
-            <Tag color="cyan" style={{ marginLeft: 8 }}>
-              提单实际数据
-            </Tag>
-          </div>
-        </Col>
-
         <SeaDocumentSectionComponent
           disabled={props.readonly}
           isDetail={props.isDetail}
