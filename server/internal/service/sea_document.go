@@ -199,6 +199,7 @@ func seaBillContentToAPI(c *biz.SeaBillContent) *v1.SeaBillContent {
 		BillForm:              c.BillForm,
 		ReleaseType:           c.ReleaseType,
 		Clauses:               c.Clauses,
+		ForeignAgentText:      c.ForeignAgentText,
 	}
 }
 
@@ -222,6 +223,7 @@ func seaBillContentFromAPI(c *v1.SeaBillContent) *biz.SeaBillContent {
 		BillForm:              c.BillForm,
 		ReleaseType:           c.ReleaseType,
 		Clauses:               c.Clauses,
+		ForeignAgentText:      c.ForeignAgentText,
 	}
 }
 

@@ -81,6 +81,8 @@ type SeaHouseBill struct {
 	ReleaseType *string `json:"release_type,omitempty"`
 	// Clauses holds the value of the "clauses" field.
 	Clauses *string `json:"clauses,omitempty"`
+	// ForeignAgentText holds the value of the "foreign_agent_text" field.
+	ForeignAgentText *string `json:"foreign_agent_text,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaHouseBillQuery when eager-loading is set.
 	Edges        SeaHouseBillEdges `json:"edges"`
@@ -260,7 +262,7 @@ func (*SeaHouseBill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seahousebill.FieldVersion, seahousebill.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seahousebill.FieldHouseNo, seahousebill.FieldNormalizedHouseNo, seahousebill.FieldIssuerSource, seahousebill.FieldStatus, seahousebill.FieldNote, seahousebill.FieldShipperText, seahousebill.FieldConsigneeText, seahousebill.FieldNotifyPartyText, seahousebill.FieldSecondNotifyPartyText, seahousebill.FieldMarksText, seahousebill.FieldGoodsDescriptionText, seahousebill.FieldPackageUnit, seahousebill.FieldFreightTerms, seahousebill.FieldTransportTerms, seahousebill.FieldBillForm, seahousebill.FieldReleaseType, seahousebill.FieldClauses:
+		case seahousebill.FieldHouseNo, seahousebill.FieldNormalizedHouseNo, seahousebill.FieldIssuerSource, seahousebill.FieldStatus, seahousebill.FieldNote, seahousebill.FieldShipperText, seahousebill.FieldConsigneeText, seahousebill.FieldNotifyPartyText, seahousebill.FieldSecondNotifyPartyText, seahousebill.FieldMarksText, seahousebill.FieldGoodsDescriptionText, seahousebill.FieldPackageUnit, seahousebill.FieldFreightTerms, seahousebill.FieldTransportTerms, seahousebill.FieldBillForm, seahousebill.FieldReleaseType, seahousebill.FieldClauses, seahousebill.FieldForeignAgentText:
 			values[i] = new(sql.NullString)
 		case seahousebill.FieldCreatedAt, seahousebill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -479,6 +481,13 @@ func (_m *SeaHouseBill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Clauses = new(string)
 				*_m.Clauses = value.String
+			}
+		case seahousebill.FieldForeignAgentText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field foreign_agent_text", values[i])
+			} else if value.Valid {
+				_m.ForeignAgentText = new(string)
+				*_m.ForeignAgentText = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -703,6 +712,11 @@ func (_m *SeaHouseBill) String() string {
 	builder.WriteString(", ")
 	if v := _m.Clauses; v != nil {
 		builder.WriteString("clauses=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ForeignAgentText; v != nil {
+		builder.WriteString("foreign_agent_text=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

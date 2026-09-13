@@ -1,4 +1,8 @@
-import { SaveOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  DownloadOutlined,
+  SaveOutlined,
+  SwapOutlined,
+} from '@ant-design/icons';
 import {
   ProFormDigit,
   ProFormText,
@@ -15,6 +19,7 @@ import {
   Modal,
   Radio,
   Row,
+  Segmented,
   Space,
   Table,
   Tabs,
@@ -33,6 +38,7 @@ import {
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
@@ -68,6 +74,7 @@ export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'billForm',
   'releaseType',
   'clauses',
+  'foreignAgentText',
 ];
 
 export function SeaBillContentFormFields({
@@ -77,141 +84,391 @@ export function SeaBillContentFormFields({
   namePathPrefix: (string | number)[];
   disabled?: boolean;
 }) {
+  const form = Form.useFormInstance();
+  const { message } = App.useApp();
+  const [notifyTab, setNotifyTab] = useState<'notify' | 'secondNotify'>(
+    'notify',
+  );
+  const [importingAgent, setImportingAgent] = useState(false);
+
+  const secondNotifyValue = Form.useWatch(
+    [...namePathPrefix, 'secondNotifyPartyText'],
+    form,
+  );
+  const hasSecondNotify = Boolean(
+    secondNotifyValue && String(secondNotifyValue).trim(),
+  );
+
+  const handleImportForeignAgent = async () => {
+    if (!form) return;
+    const foreignAgentId = form.getFieldValue('foreignAgentId');
+    if (!foreignAgentId) {
+      message.warning(
+        '当前订单尚未选择国外代理，请先在「基础信息」中选择国外代理',
+      );
+      return;
+    }
+    try {
+      setImportingAgent(true);
+      const res = await partnerServiceGetPartner({ id: foreignAgentId });
+      const partner = res.data;
+      if (!partner) {
+        message.warning('未获取到该国外代理的档案信息');
+        return;
+      }
+      const lines: string[] = [];
+      const name = partner.profile?.nameEn || partner.legalName;
+      if (name) lines.push(name);
+      const address =
+        partner.profile?.addressEn ||
+        partner.registeredAddress ||
+        partner.profile?.addressDetail;
+      if (address) lines.push(address);
+      if (partner.contacts && partner.contacts.length > 0) {
+        const c = partner.contacts[0];
+        const contactParts = [c.name, c.phone, c.email].filter(Boolean);
+        if (contactParts.length > 0) {
+          lines.push(`TEL/CONTACT: ${contactParts.join(' ')}`);
+        }
+      }
+      const text = lines.join('\n');
+      if (!text) {
+        message.warning('该国外代理未维护英文名称或地址信息');
+        return;
+      }
+      form.setFieldValue([...namePathPrefix, 'foreignAgentText'], text);
+      message.success('已从订单国外代理带入抬头信息');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '获取国外代理信息失败';
+      message.error(msg);
+    } finally {
+      setImportingAgent(false);
+    }
+  };
+
   return (
-    <Row gutter={[16, 0]}>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'shipperText']}
-          label="发货人 (Shipper)"
-          placeholder="请输入发货人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
+    <div>
+      {/* 提单抬头与代理区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '4px 0 12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 14,
+            backgroundColor: '#1677ff',
+            borderRadius: 2,
+            marginRight: 8,
+          }}
         />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'consigneeText']}
-          label="收货人 (Consignee)"
-          placeholder="请输入收货人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+          提单抬头与代理 (Parties & Agents)
+        </span>
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'shipperText']}
+            label="发货人 (Shipper)"
+            placeholder="请输入发货人英文名称与详细地址"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'consigneeText']}
+            label="收货人 (Consignee)"
+            placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+            layout="vertical"
+          />
+        </Col>
+
+        {/* 通知人与第二通知人 Tab 切换 */}
+        <Col xs={24} lg={12}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+                minHeight: 24,
+              }}
+            >
+              <Segmented
+                size="small"
+                value={notifyTab}
+                onChange={(val) =>
+                  setNotifyTab(val as 'notify' | 'secondNotify')
+                }
+                options={[
+                  {
+                    value: 'notify',
+                    label: '通知人 (Notify Party)',
+                  },
+                  {
+                    value: 'secondNotify',
+                    label: (
+                      <Space size={4}>
+                        <span>第二通知人 (Second Notify Party)</span>
+                        {hasSecondNotify ? (
+                          <Tag
+                            color="blue"
+                            variant="filled"
+                            style={{
+                              margin: 0,
+                              fontSize: 10,
+                              lineHeight: '16px',
+                              padding: '0 4px',
+                            }}
+                          >
+                            已填写
+                          </Tag>
+                        ) : null}
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+            <div style={{ display: notifyTab === 'notify' ? 'block' : 'none' }}>
+              <ProFormTextArea
+                name={[...namePathPrefix, 'notifyPartyText']}
+                placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                layout="vertical"
+                noStyle
+              />
+            </div>
+            <div
+              style={{
+                display: notifyTab === 'secondNotify' ? 'block' : 'none',
+              }}
+            >
+              <ProFormTextArea
+                name={[...namePathPrefix, 'secondNotifyPartyText']}
+                placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                layout="vertical"
+                noStyle
+              />
+            </div>
+          </div>
+        </Col>
+
+        {/* 外国代理 (Foreign Agent) */}
+        <Col xs={24} lg={12}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+                minHeight: 24,
+              }}
+            >
+              <span style={{ fontSize: 14, color: 'rgba(0, 0, 0, 0.88)' }}>
+                外国代理 (Foreign Agent)
+              </span>
+              {!disabled && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  loading={importingAgent}
+                  onClick={handleImportForeignAgent}
+                  style={{
+                    padding: 0,
+                    height: 'auto',
+                    fontSize: 12,
+                    fontWeight: 'normal',
+                  }}
+                >
+                  从订单国外代理带入
+                </Button>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'foreignAgentText']}
+              placeholder="请输入目的港/国外代理名称、地址与联系方式"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              layout="vertical"
+              noStyle
+            />
+          </div>
+        </Col>
+      </Row>
+
+      {/* 唛头与货物信息区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '8px 0 12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 14,
+            backgroundColor: '#1677ff',
+            borderRadius: 2,
+            marginRight: 8,
+          }}
         />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'notifyPartyText']}
-          label="通知人 (Notify Party)"
-          placeholder="请输入通知人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+          唛头与货物描述 (Marks & Cargo)
+        </span>
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'marksText']}
+            label="唛头 (Marks & Numbers)"
+            placeholder="请输入唛头信息 (例如：N/M)"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'goodsDescriptionText']}
+            label="品名/货描 (Description of Goods)"
+            placeholder="请输入品名与货物描述"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormDigit
+            name={[...namePathPrefix, 'packageCount']}
+            label="件数"
+            placeholder="件数"
+            disabled={disabled}
+            min={0}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'packageUnit']}
+            label="包装单位"
+            placeholder="例如 CTNS / PKGS"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormDigit
+            name={[...namePathPrefix, 'grossWeightKg']}
+            label="毛重 (KGS)"
+            placeholder="毛重"
+            disabled={disabled}
+            min={0}
+            fieldProps={{ precision: 3 }}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormDigit
+            name={[...namePathPrefix, 'volumeCbm']}
+            label="体积 (CBM)"
+            placeholder="体积"
+            disabled={disabled}
+            min={0}
+            fieldProps={{ precision: 3 }}
+            layout="vertical"
+          />
+        </Col>
+      </Row>
+
+      {/* 条款与放单信息区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '8px 0 12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 14,
+            backgroundColor: '#1677ff',
+            borderRadius: 2,
+            marginRight: 8,
+          }}
         />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'secondNotifyPartyText']}
-          label="第二通知人 (Second Notify Party)"
-          placeholder="请输入第二通知人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'marksText']}
-          label="唛头 (Marks & Numbers)"
-          placeholder="请输入唛头信息"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'goodsDescriptionText']}
-          label="品名/货描 (Description of Goods)"
-          placeholder="请输入货物描述"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'packageCount']}
-          label="件数"
-          placeholder="件数"
-          disabled={disabled}
-          min={0}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'packageUnit']}
-          label="包装单位"
-          placeholder="例如 CTNS / PKGS"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'grossWeightKg']}
-          label="毛重 (KGS)"
-          placeholder="毛重"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'volumeCbm']}
-          label="体积 (CBM)"
-          placeholder="体积"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'freightTerms']}
-          label="运费条款"
-          placeholder="例如 FREIGHT PREPAID"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'transportTerms']}
-          label="运输条款"
-          placeholder="例如 CY-CY / FCL-FCL"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'billForm']}
-          label="提单形式"
-          placeholder="例如 ORIGINAL / COPY"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'releaseType']}
-          label="放单方式"
-          placeholder="例如 电放 / 正本"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={24}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'clauses']}
-          label="提单特别条款 (Clauses)"
-          placeholder="请输入特别条款"
-          disabled={disabled}
-          fieldProps={{ rows: 2 }}
-        />
-      </Col>
-    </Row>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+          条款与放单信息 (Terms & Release)
+        </span>
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'freightTerms']}
+            label="运费条款"
+            placeholder="例如 FREIGHT PREPAID"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'transportTerms']}
+            label="运输条款"
+            placeholder="例如 CY-CY / FCL-FCL"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'billForm']}
+            label="提单形式"
+            placeholder="例如 ORIGINAL / COPY"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'releaseType']}
+            label="放单方式"
+            placeholder="例如 电放 / 正本"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={24}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'clauses']}
+            label="提单特别条款 (Clauses)"
+            placeholder="请输入提单特别条款"
+            disabled={disabled}
+            fieldProps={{ rows: 2 }}
+            layout="vertical"
+          />
+        </Col>
+      </Row>
+    </div>
   );
 }
 
@@ -233,6 +490,7 @@ function HouseBillIdentityFields({
           label="分单号 (HBL No.)"
           placeholder="请输入分单号"
           disabled={disabled}
+          layout="vertical"
           rules={[
             { required: true, whitespace: true, message: '分单号不能为空' },
           ]}
@@ -240,7 +498,12 @@ function HouseBillIdentityFields({
         />
       </Col>
       <Col xs={24} md={16}>
-        <Form.Item label="签发主体" required style={{ marginBottom: 24 }}>
+        <Form.Item
+          label="签发主体"
+          required
+          style={{ marginBottom: 24 }}
+          layout="vertical"
+        >
           <Form.Item
             name={[fieldKey, 'issuerSource']}
             noStyle
@@ -338,6 +601,7 @@ function HouseBillIdentityFields({
           label="分单备注"
           placeholder="请输入分单备注"
           disabled={disabled}
+          layout="vertical"
           fieldProps={{ maxLength: 500 }}
         />
       </Col>
@@ -881,8 +1145,12 @@ export function SeaDocumentSectionComponent({
     children: (
       <Card
         size="small"
-        variant="borderless"
-        style={{ background: '#fafafa', borderRadius: 4 }}
+        variant="outlined"
+        style={{
+          background: '#ffffff',
+          borderRadius: 6,
+          borderColor: '#f0f0f0',
+        }}
       >
         {isDetail && mblDetail ? (
           <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
@@ -960,8 +1228,12 @@ export function SeaDocumentSectionComponent({
     children: (
       <Card
         size="small"
-        variant="borderless"
-        style={{ background: '#fafafa', borderRadius: 4 }}
+        variant="outlined"
+        style={{
+          background: '#ffffff',
+          borderRadius: 6,
+          borderColor: '#f0f0f0',
+        }}
       >
         {isDetail && houseBill ? (
           <Row

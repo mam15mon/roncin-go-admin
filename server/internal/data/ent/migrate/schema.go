@@ -5431,6 +5431,7 @@ var (
 		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "foreign_agent_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "issuer_organization_id", Type: field.TypeUUID, Nullable: true},
@@ -5446,37 +5447,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_house_bills_orders_sea_house_bills",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[24]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[25]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bills_organizations_sea_house_bills",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[25]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[26]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bills_organizations_issued_sea_house_bills",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[26]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[27]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bills_partners_issued_sea_house_bills",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[27]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[28]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bills_sea_house_bill_versions_current_version",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[28]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[29]},
 				RefColumns: []*schema.Column{SeaHouseBillVersionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bills_sea_master_bills_house_bills",
-				Columns:    []*schema.Column{SeaHouseBillsColumns[29]},
+				Columns:    []*schema.Column{SeaHouseBillsColumns[30]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5490,17 +5491,17 @@ var (
 			{
 				Name:    "seahousebill_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[24]},
+				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[25]},
 			},
 			{
 				Name:    "seahousebill_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[29]},
+				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[30]},
 			},
 			{
 				Name:    "idx_sea_house_bills_current_order_unique",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillsColumns[24]},
+				Columns: []*schema.Column{SeaHouseBillsColumns[25]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status IN ('DRAFT', 'CONFIRMED', 'RELEASED')",
 				},
@@ -5508,7 +5509,7 @@ var (
 			{
 				Name:    "idx_sea_house_bills_self_org_unique",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[26], SeaHouseBillsColumns[4]},
+				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[27], SeaHouseBillsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "issuer_source = 'SELF_ORGANIZATION'",
 				},
@@ -5516,7 +5517,7 @@ var (
 			{
 				Name:    "idx_sea_house_bills_partner_unique",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[27], SeaHouseBillsColumns[4]},
+				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[28], SeaHouseBillsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')",
 				},
@@ -5557,6 +5558,7 @@ var (
 		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "foreign_agent_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -5574,49 +5576,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_house_bill_versions_orders_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[32]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_order_attachments_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[33]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_organizations_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[34]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[35]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_organizations_issued_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[35]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[36]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_partners_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[36]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[37]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_house_bills_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[37]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[38]},
 				RefColumns: []*schema.Column{SeaHouseBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_sea_master_bills_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[38]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[39]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_house_bill_versions_users_created_sea_house_bill_versions",
-				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[39]},
+				Columns:    []*schema.Column{SeaHouseBillVersionsColumns[40]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5625,27 +5627,27 @@ var (
 			{
 				Name:    "sea_hbl_version_house_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[37], SeaHouseBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[38], SeaHouseBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_hbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[37], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[38], SeaHouseBillVersionsColumns[3], SeaHouseBillVersionsColumns[9]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_house_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[37]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[35], SeaHouseBillVersionsColumns[38]},
 			},
 			{
 				Name:    "seahousebillversion_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[32]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[35], SeaHouseBillVersionsColumns[33]},
 			},
 			{
 				Name:    "sea_hbl_version_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillVersionsColumns[34], SeaHouseBillVersionsColumns[12]},
+				Columns: []*schema.Column{SeaHouseBillVersionsColumns[35], SeaHouseBillVersionsColumns[12]},
 			},
 		},
 	}
@@ -5673,6 +5675,7 @@ var (
 		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "foreign_agent_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "current_version_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "shipping_line_id", Type: field.TypeUUID},
@@ -5685,19 +5688,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bills_organizations_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[22]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bills_sea_master_bill_versions_current_version",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[23]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_master_bills_shipping_lines_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[25]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5711,7 +5714,7 @@ var (
 			{
 				Name:    "seamasterbill_organization_id_shipping_line_id_normalized_master_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillsColumns[22], SeaMasterBillsColumns[24], SeaMasterBillsColumns[4]},
+				Columns: []*schema.Column{SeaMasterBillsColumns[23], SeaMasterBillsColumns[25], SeaMasterBillsColumns[4]},
 			},
 		},
 	}
@@ -5825,6 +5828,7 @@ var (
 		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "foreign_agent_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "confirmation_attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "master_bill_id", Type: field.TypeUUID},
@@ -5839,31 +5843,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_versions_order_attachments_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[30]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[31]},
 				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_organizations_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[31]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[32]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_sea_master_bills_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[32]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[33]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_shipping_lines_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[33]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_users_created_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[34]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5872,22 +5876,22 @@ var (
 			{
 				Name:    "sea_mbl_version_master_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[2]},
 			},
 			{
 				Name:    "sea_mbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[7]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[7]},
 			},
 			{
 				Name:    "seamasterbillversion_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[31], SeaMasterBillVersionsColumns[32]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[33]},
 			},
 			{
 				Name:    "sea_mbl_version_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[31], SeaMasterBillVersionsColumns[10]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[10]},
 			},
 		},
 	}

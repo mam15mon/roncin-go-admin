@@ -339,6 +339,20 @@ func (_c *SeaMasterBillCreate) SetNillableClauses(v *string) *SeaMasterBillCreat
 	return _c
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_c *SeaMasterBillCreate) SetForeignAgentText(v string) *SeaMasterBillCreate {
+	_c.mutation.SetForeignAgentText(v)
+	return _c
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_c *SeaMasterBillCreate) SetNillableForeignAgentText(v *string) *SeaMasterBillCreate {
+	if v != nil {
+		_c.SetForeignAgentText(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaMasterBillCreate) SetID(v uuid.UUID) *SeaMasterBillCreate {
 	_c.mutation.SetID(v)
@@ -796,6 +810,10 @@ func (_c *SeaMasterBillCreate) createSpec() (*SeaMasterBill, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.Clauses(); ok {
 		_spec.SetField(seamasterbill.FieldClauses, field.TypeString, value)
 		_node.Clauses = &value
+	}
+	if value, ok := _c.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seamasterbill.FieldForeignAgentText, field.TypeString, value)
+		_node.ForeignAgentText = &value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1472,6 +1490,24 @@ func (u *SeaMasterBillUpsert) ClearClauses() *SeaMasterBillUpsert {
 	return u
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsert) SetForeignAgentText(v string) *SeaMasterBillUpsert {
+	u.Set(seamasterbill.FieldForeignAgentText, v)
+	return u
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsert) UpdateForeignAgentText() *SeaMasterBillUpsert {
+	u.SetExcluded(seamasterbill.FieldForeignAgentText)
+	return u
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsert) ClearForeignAgentText() *SeaMasterBillUpsert {
+	u.SetNull(seamasterbill.FieldForeignAgentText)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1982,6 +2018,27 @@ func (u *SeaMasterBillUpsertOne) UpdateClauses() *SeaMasterBillUpsertOne {
 func (u *SeaMasterBillUpsertOne) ClearClauses() *SeaMasterBillUpsertOne {
 	return u.Update(func(s *SeaMasterBillUpsert) {
 		s.ClearClauses()
+	})
+}
+
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsertOne) SetForeignAgentText(v string) *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetForeignAgentText(v)
+	})
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertOne) UpdateForeignAgentText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateForeignAgentText()
+	})
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsertOne) ClearForeignAgentText() *SeaMasterBillUpsertOne {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearForeignAgentText()
 	})
 }
 
@@ -2662,6 +2719,27 @@ func (u *SeaMasterBillUpsertBulk) UpdateClauses() *SeaMasterBillUpsertBulk {
 func (u *SeaMasterBillUpsertBulk) ClearClauses() *SeaMasterBillUpsertBulk {
 	return u.Update(func(s *SeaMasterBillUpsert) {
 		s.ClearClauses()
+	})
+}
+
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsertBulk) SetForeignAgentText(v string) *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.SetForeignAgentText(v)
+	})
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaMasterBillUpsertBulk) UpdateForeignAgentText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.UpdateForeignAgentText()
+	})
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaMasterBillUpsertBulk) ClearForeignAgentText() *SeaMasterBillUpsertBulk {
+	return u.Update(func(s *SeaMasterBillUpsert) {
+		s.ClearForeignAgentText()
 	})
 }
 

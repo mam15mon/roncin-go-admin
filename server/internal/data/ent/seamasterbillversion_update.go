@@ -259,6 +259,9 @@ func (_u *SeaMasterBillVersionUpdate) sqlSave(ctx context.Context) (_node int, e
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seamasterbillversion.FieldClauses, field.TypeString)
 	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seamasterbillversion.FieldForeignAgentText, field.TypeString)
+	}
 	if _u.mutation.LockRecordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -672,6 +675,9 @@ func (_u *SeaMasterBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Se
 	}
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seamasterbillversion.FieldClauses, field.TypeString)
+	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seamasterbillversion.FieldForeignAgentText, field.TypeString)
 	}
 	if _u.mutation.LockRecordsCleared() {
 		edge := &sqlgraph.EdgeSpec{

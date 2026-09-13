@@ -74,6 +74,8 @@ const (
 	FieldReleaseType = "release_type"
 	// FieldClauses holds the string denoting the clauses field in the database.
 	FieldClauses = "clauses"
+	// FieldForeignAgentText holds the string denoting the foreign_agent_text field in the database.
+	FieldForeignAgentText = "foreign_agent_text"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
@@ -227,6 +229,7 @@ var Columns = []string{
 	FieldBillForm,
 	FieldReleaseType,
 	FieldClauses,
+	FieldForeignAgentText,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -477,6 +480,11 @@ func ByReleaseType(opts ...sql.OrderTermOption) OrderOption {
 // ByClauses orders the results by the clauses field.
 func ByClauses(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClauses, opts...).ToFunc()
+}
+
+// ByForeignAgentText orders the results by the foreign_agent_text field.
+func ByForeignAgentText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldForeignAgentText, opts...).ToFunc()
 }
 
 // ByOrganizationField orders the results by organization field.

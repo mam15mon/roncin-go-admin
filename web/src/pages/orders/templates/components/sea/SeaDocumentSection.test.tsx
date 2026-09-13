@@ -7,6 +7,7 @@ import {
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
@@ -41,6 +42,10 @@ vi.mock('@/services/roncin/orderAttachmentService', () => ({
 
 vi.mock('./SeaDocumentHistoryActions', () => ({
   default: () => <span data-testid="document-history-actions" />,
+}));
+
+vi.mock('@/services/roncin/partnerService', () => ({
+  partnerServiceGetPartner: vi.fn(),
 }));
 
 vi.mock('./SeaExternalConfirmationFields', async () => {
@@ -78,6 +83,7 @@ vi.mock('./SeaExternalConfirmationFields', async () => {
 const getDocuments = vi.mocked(seaDocumentServiceGetSeaOrderDocuments);
 const previewMode = vi.mocked(seaDocumentServicePreviewChangeSeaDocumentMode);
 const executeMode = vi.mocked(seaDocumentServiceExecuteChangeSeaDocumentMode);
+const getPartner = vi.mocked(partnerServiceGetPartner);
 
 function TestForm({
   initialValues,
@@ -298,4 +304,78 @@ describe('SeaDocumentSectionComponent', () => {
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '预览切换影响' })).toBeEnabled();
   }, 60000);
+
+  it('支持通知人与第二通知人切换，并支持从订单国外代理带入抬头与地址', async () => {
+    let capturedForm: FormInstance | undefined;
+    getPartner.mockResolvedValue({
+      data: {
+        id: 'agent-1',
+        legalName: 'Global Shipping Agent Ltd',
+        profile: {
+          nameEn: 'GLOBAL SHIPPING AGENT LTD',
+          addressEn: '123 Ocean Blvd, Hamburg, Germany',
+        },
+        contacts: [
+          { name: 'John Doe', phone: '+49 40 123456', email: 'john@agent.com' },
+        ],
+      },
+    });
+
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          foreignAgentId: 'agent-1',
+          seaMasterBillContent: {
+            notifyPartyText: 'SAME AS CONSIGNEE',
+          },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 默认在通知人标签
+    expect(
+      screen.getByPlaceholderText(
+        '请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)',
+      ),
+    ).toBeVisible();
+
+    // 点击切换到第二通知人
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party)'));
+    const secondNotifyInput = screen.getByPlaceholderText(
+      '请输入第二通知人名称与详细地址 (选填，多数提单无需填写)',
+    );
+    expect(secondNotifyInput).toBeVisible();
+
+    // 录入第二通知人并检查已填写标记
+    fireEvent.change(secondNotifyInput, {
+      target: { value: 'ALSO NOTIFY CO., LTD' },
+    });
+    await waitFor(() => {
+      expect(screen.getByText('已填写')).toBeInTheDocument();
+    });
+
+    // 点击从订单国外代理带入
+    const importBtn = screen.getByRole('button', {
+      name: /从订单国外代理带入/,
+    });
+    fireEvent.click(importBtn);
+
+    await waitFor(() => {
+      expect(getPartner).toHaveBeenCalledWith({ id: 'agent-1' });
+      const foreignAgentVal = capturedForm?.getFieldValue([
+        'seaMasterBillContent',
+        'foreignAgentText',
+      ]);
+      expect(foreignAgentVal).toContain('GLOBAL SHIPPING AGENT LTD');
+      expect(foreignAgentVal).toContain('123 Ocean Blvd, Hamburg, Germany');
+      expect(foreignAgentVal).toContain(
+        'TEL/CONTACT: John Doe +49 40 123456 john@agent.com',
+      );
+    });
+  });
 });

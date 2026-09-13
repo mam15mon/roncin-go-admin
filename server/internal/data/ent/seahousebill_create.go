@@ -392,6 +392,20 @@ func (_c *SeaHouseBillCreate) SetNillableClauses(v *string) *SeaHouseBillCreate 
 	return _c
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_c *SeaHouseBillCreate) SetForeignAgentText(v string) *SeaHouseBillCreate {
+	_c.mutation.SetForeignAgentText(v)
+	return _c
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_c *SeaHouseBillCreate) SetNillableForeignAgentText(v *string) *SeaHouseBillCreate {
+	if v != nil {
+		_c.SetForeignAgentText(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaHouseBillCreate) SetID(v uuid.UUID) *SeaHouseBillCreate {
 	_c.mutation.SetID(v)
@@ -831,6 +845,10 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Clauses(); ok {
 		_spec.SetField(seahousebill.FieldClauses, field.TypeString, value)
 		_node.Clauses = &value
+	}
+	if value, ok := _c.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seahousebill.FieldForeignAgentText, field.TypeString, value)
+		_node.ForeignAgentText = &value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1572,6 +1590,24 @@ func (u *SeaHouseBillUpsert) ClearClauses() *SeaHouseBillUpsert {
 	return u
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsert) SetForeignAgentText(v string) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldForeignAgentText, v)
+	return u
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdateForeignAgentText() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldForeignAgentText)
+	return u
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsert) ClearForeignAgentText() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldForeignAgentText)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -2173,6 +2209,27 @@ func (u *SeaHouseBillUpsertOne) UpdateClauses() *SeaHouseBillUpsertOne {
 func (u *SeaHouseBillUpsertOne) ClearClauses() *SeaHouseBillUpsertOne {
 	return u.Update(func(s *SeaHouseBillUpsert) {
 		s.ClearClauses()
+	})
+}
+
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsertOne) SetForeignAgentText(v string) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetForeignAgentText(v)
+	})
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdateForeignAgentText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateForeignAgentText()
+	})
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsertOne) ClearForeignAgentText() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearForeignAgentText()
 	})
 }
 
@@ -2944,6 +3001,27 @@ func (u *SeaHouseBillUpsertBulk) UpdateClauses() *SeaHouseBillUpsertBulk {
 func (u *SeaHouseBillUpsertBulk) ClearClauses() *SeaHouseBillUpsertBulk {
 	return u.Update(func(s *SeaHouseBillUpsert) {
 		s.ClearClauses()
+	})
+}
+
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsertBulk) SetForeignAgentText(v string) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetForeignAgentText(v)
+	})
+}
+
+// UpdateForeignAgentText sets the "foreign_agent_text" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdateForeignAgentText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdateForeignAgentText()
+	})
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (u *SeaHouseBillUpsertBulk) ClearForeignAgentText() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearForeignAgentText()
 	})
 }
 

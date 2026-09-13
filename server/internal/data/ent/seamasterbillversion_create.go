@@ -427,6 +427,20 @@ func (_c *SeaMasterBillVersionCreate) SetNillableClauses(v *string) *SeaMasterBi
 	return _c
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_c *SeaMasterBillVersionCreate) SetForeignAgentText(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetForeignAgentText(v)
+	return _c
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_c *SeaMasterBillVersionCreate) SetNillableForeignAgentText(v *string) *SeaMasterBillVersionCreate {
+	if v != nil {
+		_c.SetForeignAgentText(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaMasterBillVersionCreate) SetID(v uuid.UUID) *SeaMasterBillVersionCreate {
 	_c.mutation.SetID(v)
@@ -856,6 +870,10 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 		_spec.SetField(seamasterbillversion.FieldClauses, field.TypeString, value)
 		_node.Clauses = &value
 	}
+	if value, ok := _c.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seamasterbillversion.FieldForeignAgentText, field.TypeString, value)
+		_node.ForeignAgentText = &value
+	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1159,6 +1177,9 @@ func (u *SeaMasterBillVersionUpsertOne) UpdateNewValues() *SeaMasterBillVersionU
 		}
 		if _, exists := u.create.mutation.Clauses(); exists {
 			s.SetIgnore(seamasterbillversion.FieldClauses)
+		}
+		if _, exists := u.create.mutation.ForeignAgentText(); exists {
+			s.SetIgnore(seamasterbillversion.FieldForeignAgentText)
 		}
 	}))
 	return u
@@ -1475,6 +1496,9 @@ func (u *SeaMasterBillVersionUpsertBulk) UpdateNewValues() *SeaMasterBillVersion
 			}
 			if _, exists := b.mutation.Clauses(); exists {
 				s.SetIgnore(seamasterbillversion.FieldClauses)
+			}
+			if _, exists := b.mutation.ForeignAgentText(); exists {
+				s.SetIgnore(seamasterbillversion.FieldForeignAgentText)
 			}
 		}
 	}))

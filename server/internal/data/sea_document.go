@@ -677,6 +677,7 @@ func setSeaMasterBillContent(builder *ent.SeaMasterBillUpdateOne, content *biz.S
 	setOptionalString(builder.SetBillForm, builder.ClearBillForm, content.BillForm)
 	setOptionalString(builder.SetReleaseType, builder.ClearReleaseType, content.ReleaseType)
 	setOptionalText(builder.SetClauses, builder.ClearClauses, content.Clauses)
+	setOptionalText(builder.SetForeignAgentText, builder.ClearForeignAgentText, content.ForeignAgentText)
 }
 
 func setSeaHouseBillContentCreate(builder *ent.SeaHouseBillCreate, content *biz.SeaBillContent) {
@@ -728,6 +729,9 @@ func setSeaHouseBillContentCreate(builder *ent.SeaHouseBillCreate, content *biz.
 	if content.Clauses != nil {
 		builder.SetClauses(*content.Clauses)
 	}
+	if content.ForeignAgentText != nil {
+		builder.SetForeignAgentText(*content.ForeignAgentText)
+	}
 }
 
 func setSeaHouseBillContentUpdate(builder *ent.SeaHouseBillUpdateOne, content *biz.SeaBillContent) {
@@ -749,6 +753,7 @@ func setSeaHouseBillContentUpdate(builder *ent.SeaHouseBillUpdateOne, content *b
 	setOptionalString(builder.SetBillForm, builder.ClearBillForm, content.BillForm)
 	setOptionalString(builder.SetReleaseType, builder.ClearReleaseType, content.ReleaseType)
 	setOptionalText(builder.SetClauses, builder.ClearClauses, content.Clauses)
+	setOptionalText(builder.SetForeignAgentText, builder.ClearForeignAgentText, content.ForeignAgentText)
 }
 
 func setOptionalText[T any](set func(string) T, clear func() T, val *string) {
@@ -808,6 +813,7 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string, vers
 		BillForm:              item.BillForm,
 		ReleaseType:           item.ReleaseType,
 		Clauses:               item.Clauses,
+		ForeignAgentText:      item.ForeignAgentText,
 	}
 	immutableVersionCount := 0
 	if len(versionCount) > 0 {
@@ -861,6 +867,7 @@ func seaMasterBillToDetail(item *ent.SeaMasterBill, shippingLineName string, mem
 		BillForm:              item.BillForm,
 		ReleaseType:           item.ReleaseType,
 		Clauses:               item.Clauses,
+		ForeignAgentText:      item.ForeignAgentText,
 	}
 	immutableVersionCount := 0
 	if len(versionCount) > 0 {

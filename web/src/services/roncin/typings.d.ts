@@ -5827,6 +5827,7 @@ declare namespace API {
     billForm?: string;
     releaseType?: string;
     clauses?: string;
+    foreignAgentText?: string;
   };
 
   type SeaDocumentAmendmentInput = {

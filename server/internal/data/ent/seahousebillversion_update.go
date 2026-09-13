@@ -338,6 +338,9 @@ func (_u *SeaHouseBillVersionUpdate) sqlSave(ctx context.Context) (_node int, er
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seahousebillversion.FieldClauses, field.TypeString)
 	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seahousebillversion.FieldForeignAgentText, field.TypeString)
+	}
 	if _u.mutation.LockSnapshotsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -919,6 +922,9 @@ func (_u *SeaHouseBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Sea
 	}
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seahousebillversion.FieldClauses, field.TypeString)
+	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seahousebillversion.FieldForeignAgentText, field.TypeString)
 	}
 	if _u.mutation.LockSnapshotsCleared() {
 		edge := &sqlgraph.EdgeSpec{

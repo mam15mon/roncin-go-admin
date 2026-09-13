@@ -484,6 +484,20 @@ func (_c *SeaHouseBillVersionCreate) SetNillableClauses(v *string) *SeaHouseBill
 	return _c
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_c *SeaHouseBillVersionCreate) SetForeignAgentText(v string) *SeaHouseBillVersionCreate {
+	_c.mutation.SetForeignAgentText(v)
+	return _c
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_c *SeaHouseBillVersionCreate) SetNillableForeignAgentText(v *string) *SeaHouseBillVersionCreate {
+	if v != nil {
+		_c.SetForeignAgentText(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SeaHouseBillVersionCreate) SetID(v uuid.UUID) *SeaHouseBillVersionCreate {
 	_c.mutation.SetID(v)
@@ -985,6 +999,10 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 		_spec.SetField(seahousebillversion.FieldClauses, field.TypeString, value)
 		_node.Clauses = &value
 	}
+	if value, ok := _c.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seahousebillversion.FieldForeignAgentText, field.TypeString, value)
+		_node.ForeignAgentText = &value
+	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1387,6 +1405,9 @@ func (u *SeaHouseBillVersionUpsertOne) UpdateNewValues() *SeaHouseBillVersionUps
 		if _, exists := u.create.mutation.Clauses(); exists {
 			s.SetIgnore(seahousebillversion.FieldClauses)
 		}
+		if _, exists := u.create.mutation.ForeignAgentText(); exists {
+			s.SetIgnore(seahousebillversion.FieldForeignAgentText)
+		}
 	}))
 	return u
 }
@@ -1717,6 +1738,9 @@ func (u *SeaHouseBillVersionUpsertBulk) UpdateNewValues() *SeaHouseBillVersionUp
 			}
 			if _, exists := b.mutation.Clauses(); exists {
 				s.SetIgnore(seahousebillversion.FieldClauses)
+			}
+			if _, exists := b.mutation.ForeignAgentText(); exists {
+				s.SetIgnore(seahousebillversion.FieldForeignAgentText)
 			}
 		}
 	}))

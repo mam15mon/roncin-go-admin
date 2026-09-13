@@ -27298,6 +27298,9 @@
           },
           "clauses": {
             "type": "string"
+          },
+          "foreignAgentText": {
+            "type": "string"
           }
         },
         "description": "SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。"
