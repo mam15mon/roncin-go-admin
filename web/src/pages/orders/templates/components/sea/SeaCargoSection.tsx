@@ -1,5 +1,5 @@
 import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
-import { Alert, Col, Form } from 'antd';
+import { Alert, Col, Form, Tag } from 'antd';
 import React from 'react';
 import { PackageCountInput, ProFormSearchableSelect } from '@/components/ui';
 import { paymentTermOptions } from '../../../common';
@@ -15,7 +15,7 @@ export function SeaCargoMeasurementFields() {
   return (
     <>
       <Col xs={24} sm={12} lg={6}>
-        <Form.Item label="委托总件数 / 单位">
+        <Form.Item label="委托总件数 / 包装单位">
           <PackageCountInput
             countName="totalPackages"
             unitName="totalPackageUnit"
@@ -67,14 +67,15 @@ export function buildSeaCargoSection() {
   return {
     key: 'cargoInfo',
     title: '货物信息',
+    extra: <Tag color="blue">委托申报数据</Tag>,
     content: (
       <>
         {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}
         <ProFormTextArea
           colProps={{ xs: 24, lg: 12 }}
           name="goodsDescription"
-          label="品名 / 货物描述"
-          placeholder="请输入中英文品名或货物描述"
+          label="委托品名 / 货物描述"
+          placeholder="请输入客户委托申报的中英文品名或货物描述"
           fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
         />
         <ProFormTextArea
@@ -86,6 +87,20 @@ export function buildSeaCargoSection() {
         />
 
         <SeaCargoMeasurementFields />
+
+        <Col span={24}>
+          <div
+            style={{
+              fontSize: 12,
+              color: 'rgba(0, 0, 0, 0.45)',
+              marginTop: -4,
+              marginBottom: 8,
+            }}
+          >
+            💡
+            说明：此处为客户订舱申报的「委托件重尺」。装箱出单后，提单「实际件重尺」在下方「提单信息」中维护并打印。
+          </div>
+        </Col>
       </>
     ),
   };

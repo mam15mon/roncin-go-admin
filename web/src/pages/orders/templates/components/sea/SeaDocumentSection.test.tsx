@@ -14,9 +14,13 @@ import {
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
 import {
+  DEFAULT_BILL_FORM,
   DEFAULT_FREIGHT_TERMS,
+  DEFAULT_RELEASE_TYPE,
   DEFAULT_TRANSPORT_TERMS,
+  SEA_BILL_FORM_OPTIONS,
   SEA_FREIGHT_TERM_OPTIONS,
+  SEA_RELEASE_TYPE_OPTIONS,
   SEA_TRANSPORT_TERM_OPTIONS,
   SeaDocumentSectionComponent,
 } from './SeaDocumentSection';
@@ -472,5 +476,85 @@ describe('SeaDocumentSectionComponent', () => {
       expect(content?.grossWeightKg).toBe(15200.5);
       expect(content?.volumeCbm).toBe(45.8);
     });
+  });
+
+  it('支持一键从委托客户带入发货人，并支持 TO ORDER、SAME AS CONSIGNEE、N/M 等快捷点选', async () => {
+    getPartner.mockResolvedValueOnce({
+      data: {
+        id: 'cust-1',
+        legalName: '上海某某外贸进出口有限公司',
+        profile: {
+          nameEn: 'SHANGHAI TRADING CO., LTD',
+          addressEn: '100 EAST NANJING ROAD, SHANGHAI, CHINA',
+        },
+        contacts: [
+          {
+            name: 'Alice',
+            phone: '+86 21 66668888',
+            email: 'alice@shanghaitrading.com',
+          },
+        ],
+      },
+    });
+
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          customerId: 'cust-1',
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 1. 点击从委托客户带入发货人
+    const importShipperBtn = screen.getByRole('button', {
+      name: /从委托客户带入/,
+    });
+    fireEvent.click(importShipperBtn);
+
+    await waitFor(() => {
+      expect(getPartner).toHaveBeenCalledWith({ id: 'cust-1' });
+      const shipper = capturedForm?.getFieldValue([
+        'seaMasterBillContent',
+        'shipperText',
+      ]);
+      expect(shipper).toContain('SHANGHAI TRADING CO., LTD');
+      expect(shipper).toContain('100 EAST NANJING ROAD, SHANGHAI, CHINA');
+      expect(shipper).toContain(
+        'TEL/CONTACT: Alice +86 21 66668888 alice@shanghaitrading.com',
+      );
+    });
+
+    // 2. 点击快捷标签 + TO ORDER
+    const toOrderTag = screen.getByText('+ TO ORDER');
+    fireEvent.click(toOrderTag);
+    expect(
+      capturedForm?.getFieldValue(['seaMasterBillContent', 'consigneeText']),
+    ).toBe('TO ORDER');
+
+    // 3. 点击快捷标签 + SAME AS CONSIGNEE
+    const sameAsConsigneeTag = screen.getByText('+ SAME AS CONSIGNEE');
+    fireEvent.click(sameAsConsigneeTag);
+    expect(
+      capturedForm?.getFieldValue(['seaMasterBillContent', 'notifyPartyText']),
+    ).toBe('SAME AS CONSIGNEE');
+
+    // 4. 点击快捷标签 + N/M
+    const nmTag = screen.getByText('+ N/M');
+    fireEvent.click(nmTag);
+    expect(
+      capturedForm?.getFieldValue(['seaMasterBillContent', 'marksText']),
+    ).toBe('N/M');
+
+    // 5. 提单形式与放单方式默认值
+    expect(DEFAULT_BILL_FORM).toBe('ORIGINAL');
+    expect(DEFAULT_RELEASE_TYPE).toBe('电放');
+    expect(SEA_BILL_FORM_OPTIONS.map((o) => o.value)).toContain('ORIGINAL');
+    expect(SEA_RELEASE_TYPE_OPTIONS.map((o) => o.value)).toContain('电放');
   });
 });
