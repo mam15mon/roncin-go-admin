@@ -26,9 +26,62 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+
+const useVerticalFormStyles = createStyles(({ css }) => ({
+  verticalFields: css`
+    .ant-form-item {
+      width: 100% !important;
+    }
+    .ant-form-item-row {
+      flex-direction: column !important;
+    }
+    .ant-form-item-label,
+    .ant-form-item-label.ant-form-item-label-right,
+    .ant-form-item-label.ant-form-item-label-left {
+      display: flex !important;
+      text-align: left !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      flex: 0 0 auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-bottom: 4px !important;
+    }
+    .ant-form-item-label > label {
+      height: auto !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: rgba(0, 0, 0, 0.88) !important;
+      justify-content: flex-start !important;
+      text-align: left !important;
+      margin-left: 0 !important;
+    }
+    .ant-form-item-label > label::after {
+      display: none !important;
+    }
+    .ant-form-item-control {
+      flex: 1 1 100% !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .ant-form-item-control-input {
+      width: 100% !important;
+    }
+    .ant-form-item-control-input-content {
+      width: 100% !important;
+    }
+    .ant-input,
+    .ant-input-number,
+    .ant-picker {
+      width: 100% !important;
+    }
+  `,
+}));
+
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -84,6 +137,7 @@ export function SeaBillContentFormFields({
   namePathPrefix: (string | number)[];
   disabled?: boolean;
 }) {
+  const { styles } = useVerticalFormStyles();
   const form = Form.useFormInstance();
   const { message } = App.useApp();
   const [notifyTab, setNotifyTab] = useState<'notify' | 'secondNotify'>(
@@ -147,7 +201,7 @@ export function SeaBillContentFormFields({
   };
 
   return (
-    <div>
+    <div className={styles.verticalFields}>
       {/* 提单抬头与代理区块 */}
       <div
         style={{
@@ -178,7 +232,6 @@ export function SeaBillContentFormFields({
             placeholder="请输入发货人英文名称与详细地址"
             disabled={disabled}
             fieldProps={{ rows: 3 }}
-            layout="vertical"
           />
         </Col>
         <Col xs={24} lg={12}>
@@ -188,7 +241,6 @@ export function SeaBillContentFormFields({
             placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
             disabled={disabled}
             fieldProps={{ rows: 3 }}
-            layout="vertical"
           />
         </Col>
 
@@ -200,7 +252,7 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: 8,
+                marginBottom: 6,
                 minHeight: 24,
               }}
             >
@@ -240,30 +292,23 @@ export function SeaBillContentFormFields({
                 ]}
               />
             </div>
-            <div style={{ display: notifyTab === 'notify' ? 'block' : 'none' }}>
+            {notifyTab === 'notify' ? (
               <ProFormTextArea
                 name={[...namePathPrefix, 'notifyPartyText']}
                 placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
                 disabled={disabled}
                 fieldProps={{ rows: 3 }}
-                layout="vertical"
                 noStyle
               />
-            </div>
-            <div
-              style={{
-                display: notifyTab === 'secondNotify' ? 'block' : 'none',
-              }}
-            >
+            ) : (
               <ProFormTextArea
                 name={[...namePathPrefix, 'secondNotifyPartyText']}
                 placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
                 disabled={disabled}
                 fieldProps={{ rows: 3 }}
-                layout="vertical"
                 noStyle
               />
-            </div>
+            )}
           </div>
         </Col>
 
@@ -275,11 +320,17 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: 8,
+                marginBottom: 6,
                 minHeight: 24,
               }}
             >
-              <span style={{ fontSize: 14, color: 'rgba(0, 0, 0, 0.88)' }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
                 外国代理 (Foreign Agent)
               </span>
               {!disabled && (
@@ -305,7 +356,6 @@ export function SeaBillContentFormFields({
               placeholder="请输入目的港/国外代理名称、地址与联系方式"
               disabled={disabled}
               fieldProps={{ rows: 3 }}
-              layout="vertical"
               noStyle
             />
           </div>
@@ -342,7 +392,6 @@ export function SeaBillContentFormFields({
             placeholder="请输入唛头信息 (例如：N/M)"
             disabled={disabled}
             fieldProps={{ rows: 3 }}
-            layout="vertical"
           />
         </Col>
         <Col xs={24} lg={12}>
@@ -352,7 +401,6 @@ export function SeaBillContentFormFields({
             placeholder="请输入品名与货物描述"
             disabled={disabled}
             fieldProps={{ rows: 3 }}
-            layout="vertical"
           />
         </Col>
         <Col xs={12} sm={6}>
@@ -464,7 +512,6 @@ export function SeaBillContentFormFields({
             placeholder="请输入提单特别条款"
             disabled={disabled}
             fieldProps={{ rows: 2 }}
-            layout="vertical"
           />
         </Col>
       </Row>
