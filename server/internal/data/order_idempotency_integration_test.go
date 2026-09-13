@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
@@ -82,7 +83,7 @@ func TestOrderIdempotencyPostgres(t *testing.T) {
 		if _, err := usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, input); err != nil {
 			t.Fatalf("首次创建订单: %v", err)
 		}
-		// 全量请求哈希必须覆盖清单式比对遗漏的字段（如货物描述）。
+		// 全量请求哈希必须覆盖此前遗漏字段（货物描述、目的地、截关时间等）。
 		drifted := fixture.validInput()
 		drifted.GoodsDescription = "内容漂移-" + fixture.suffix
 		drifted.IdempotencyKey = input.IdempotencyKey
@@ -90,6 +91,24 @@ func TestOrderIdempotencyPostgres(t *testing.T) {
 		if err != biz.ErrOrderIdempotencyConflict {
 			t.Fatalf("同键仅改货物描述应返回幂等冲突, got %v", err)
 		}
+
+		driftedDest := fixture.validInput()
+		destID := uuid.Must(uuid.NewV7())
+		driftedDest.DestinationLocationID = &destID
+		driftedDest.IdempotencyKey = input.IdempotencyKey
+		_, err = usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, driftedDest)
+		if err != biz.ErrOrderIdempotencyConflict {
+			t.Fatalf("同键仅改目的地应返回幂等冲突, got %v", err)
+		}
+
+		driftedCutoff := fixture.validInput()
+		driftedCutoff.SICutoff = "2026-10-01T12:00:00Z"
+		driftedCutoff.IdempotencyKey = input.IdempotencyKey
+		_, err = usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, driftedCutoff)
+		if err != biz.ErrOrderIdempotencyConflict {
+			t.Fatalf("同键仅改截关时间应返回幂等冲突, got %v", err)
+		}
+
 		fixture.requireCommittedOrders(1, 1)
 	})
 

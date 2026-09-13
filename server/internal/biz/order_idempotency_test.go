@@ -127,7 +127,28 @@ func TestOrderCreateRejectsSameKeyWithDriftedContent(t *testing.T) {
 	driftedCutoff.SICutoff = "2026-10-01T12:00:00Z"
 	_, err = usecase.Create(context.Background(), organizationID, uuid.Must(uuid.NewV7()), &driftedCutoff)
 	if err != ErrOrderIdempotencyConflict {
+		t.Fatalf("同键仅改SI截关时间应返回幂等冲突, got %v", err)
+	}
+
+	driftedDocCutoff := *existing
+	driftedDocCutoff.DocCutoff = "2026-10-01T12:00:00Z"
+	_, err = usecase.Create(context.Background(), organizationID, uuid.Must(uuid.NewV7()), &driftedDocCutoff)
+	if err != ErrOrderIdempotencyConflict {
+		t.Fatalf("同键仅改截文件时间应返回幂等冲突, got %v", err)
+	}
+
+	driftedCustomsCutoff := *existing
+	driftedCustomsCutoff.CustomsCutoff = "2026-10-01T12:00:00Z"
+	_, err = usecase.Create(context.Background(), organizationID, uuid.Must(uuid.NewV7()), &driftedCustomsCutoff)
+	if err != ErrOrderIdempotencyConflict {
 		t.Fatalf("同键仅改截关时间应返回幂等冲突, got %v", err)
+	}
+
+	driftedVGMCutoff := *existing
+	driftedVGMCutoff.VGMCutoff = "2026-10-01T12:00:00Z"
+	_, err = usecase.Create(context.Background(), organizationID, uuid.Must(uuid.NewV7()), &driftedVGMCutoff)
+	if err != ErrOrderIdempotencyConflict {
+		t.Fatalf("同键仅改VGM截关时间应返回幂等冲突, got %v", err)
 	}
 	if repo.created != nil {
 		t.Fatalf("冲突请求不得创建订单: %#v", repo.created)

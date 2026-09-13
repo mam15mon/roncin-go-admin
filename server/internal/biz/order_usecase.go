@@ -520,10 +520,10 @@ func sameOrderCreateIntent(existing *Order, requested *Order) bool {
 //   - order_date：缺省时由服务端注入当前时间；
 //   - etd/eta/vessel_voyage/origin/discharge/transit_location：
 //     SE 订单读取时由主单航程（TransportExecution）回填，存储表示与请求原始
-//     输入可能不一致（日期格式、候选航程差异）；destination_location_id 与四类
-//     cutoff 为请求原值入库读回，纳入哈希；shipping_line_id 虽同为回填，
-//     但创建校验强制其与航程一致，纳入哈希不会误伤真实重放，且能拦截同键换
-//     船公司（方向安全：宁可误 409 不可误放行）；
+//     输入可能不一致（日期格式、候选航程差异）。注意：destination_location_id
+//     与四类 cutoff（si/doc/customs/vgm）为请求原值入库并原样读回，非回填字段，
+//     已纳入哈希；shipping_line_id 虽同为回填，但创建校验强制其与航程一致，
+//     纳入哈希不会误伤真实重放，且能拦截同键换船公司（方向安全：宁可误 409 不可误放行）；
 //   - sea_document 单证结构：缺省时由服务端按 HBL 存在性推导默认值，nil 与
 //     默认值表示同一意图；
 //   - 海运主单/分单内容与签发主体（MasterBillContent、HouseBill）：存储在
