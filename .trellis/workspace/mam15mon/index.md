@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 48
+- **Total Sessions**: 49
 - **Last Active**: 2026-09-13
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1287 | Active |
+| `journal-1.md` | ~1312 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 49 | 2026-09-13 | 移除角色可访问组织功能：立项、全链路删除与收尾 | `c5dc87b3`, `fcc705cd`, `e5e688c7`, `7c2cd735` | `feat/remove-role-org-access` |
 | 48 | 2026-09-13 | 应收账期与信用额度消费：设计定稿、实施、评审与收尾 | `f77c5dfb`, `45a28db3`, `86c0c5a7`, `b4959c72`, `57eb9a44` | `feat/partner-terms-credit` |
 | 47 | 2026-09-13 | 钉钉任务收尾：P3 清单修复轮与 biz 分层重构 | `68abd60d`, `291a6435`, `0a317642` | `main` |
 | 46 | 2026-09-12 | 钉钉入职专属码任务：全量评审、修复轮与合并收尾 | `758a83af`, `7c40399c`, `2379f75b`, `13193016`, `734a339a`, `03e1bfc9` | `feat/dingtalk-invitation-transfer` |

@@ -1285,3 +1285,28 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 49: 移除角色可访问组织功能：立项、全链路删除与收尾
+<!-- trellis-session: v=2 fp=a3a489a2563073ae -->
+
+**Date**: 2026-09-13
+**Task**: 移除角色可访问组织功能：立项、全链路删除与收尾
+**Branch**: `feat/remove-role-org-access`
+
+### Summary
+
+移除角色「可访问组织」（role_organization_accesses）功能全链路。依据：该机制（跨子树白名单/跨组织联合视图/读写分离）现网零使用（0 行数据，唯一角色 administrator 用 data_scope=all），跨组织访问口径已由多组织成员资格 + DataScope 承担，用户决策删除。实施：Ent schema 与边删除（迁移 20260913100000 DROP TABLE，已按迁移 README 约定不用 IF EXISTS 并重录校验和）、proto 字段与 OrganizationAccess 消息删除、Principal 解析白名单合并分支删除（DataScope 四种范围算法逐字未动，评审确认纯减法等价）、admin_role/auth 仓储与 service DTO 清理、角色表单选择器与列表列删除；测试等价改写（不借用其他角色范围/停用组织过滤/按权限独立解析覆盖不降）；spec quality-guidelines.md 同步定稿「跨组织=成员资格+DataScope，禁重新引入白名单」防回潮。评审仅 1 项 P2（迁移 IF EXISTS 违反 README 约定，已修）+2 项 P3（旧术语注释/测试名，已顺手修）。收尾全量门禁 web 647/647 + server 全量 + govulncheck 零漏洞，真实库集成 28 项 PASS。分支 feat/remove-role-org-access 尚未合并 main（分支上还含另一会话的组织架构图 2 笔 web 提交）。存量遗留：4 个历史文件 gofmt 不合规（notification_test.go、partner_profile.go、sync-airlines 两个），与本任务无关待清理。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c5dc87b3` | docs(task): 立项移除角色可访问组织功能 |
+| `fcc705cd` | refactor(auth,admin,web): 移除角色可访问组织功能 |
+| `e5e688c7` | docs(spec): 跨组织访问口径改为成员资格加 DataScope，禁重新引入角色白名单 |
+| `7c2cd735` | docs(task): 同步移除可访问组织任务状态 |
+
+### Status
+
+[OK] **Completed**
