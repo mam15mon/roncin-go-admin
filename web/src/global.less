@@ -1336,7 +1336,10 @@ ol {
     }
 
     > .ant-form-item-control {
-      flex: 1 1 auto;
+      /* 纵向主轴下必须按内容自然撑高：OrderFormTemplate 的 flex: 1 1 0 !important
+         在纵向会把控件列压塌（basis 0），240px 输入框溢出画到后续卡片背后 */
+      flex: 0 0 auto !important;
+      width: 100%;
       max-width: 100%;
     }
   }
