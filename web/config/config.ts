@@ -265,6 +265,10 @@ export default defineConfig({
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,
+    // UMI_ENV 供运行时代码推导 Sentry environment（dev/test/prod）。
+    'process.env.UMI_ENV': process.env.UMI_ENV ?? '',
+    // Sentry 轻量接入：DSN 由部署环境注入，未配置时前端完全跳过初始化。
+    'process.env.SENTRY_DSN': process.env.SENTRY_DSN ?? '',
     __APP_VERSION__: require('./../package.json').version,
     __UMI_VERSION__: require('@umijs/max/package.json').version,
   },
