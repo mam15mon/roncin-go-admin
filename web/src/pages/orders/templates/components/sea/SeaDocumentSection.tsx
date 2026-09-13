@@ -158,6 +158,20 @@ export const SEA_TRANSPORT_TERM_OPTIONS: { label: string; value: string }[] = [
   { label: 'DOOR - AIR PORT', value: 'DOOR - AIR PORT' },
 ];
 
+export const DEFAULT_FREIGHT_TERMS = 'FREIGHT PREPAID';
+
+export const SEA_FREIGHT_TERM_OPTIONS: { label: string; value: string }[] = [
+  { label: 'FREIGHT PREPAID', value: 'FREIGHT PREPAID' },
+  { label: 'FREIGHT COLLECT', value: 'FREIGHT COLLECT' },
+  {
+    label: 'FREIGHT PAYABLE AT DESTINATION',
+    value: 'FREIGHT PAYABLE AT DESTINATION',
+  },
+  { label: 'PAYABLE AT XXX', value: 'PAYABLE AT XXX' },
+  { label: '预付', value: '预付' },
+  { label: '到付', value: '到付' },
+];
+
 export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'shipperText',
   'consigneeText',
@@ -517,12 +531,26 @@ export function SeaBillContentFormFields({
 
       <Row gutter={[16, 0]}>
         <Col xs={12} sm={6}>
-          <ProFormText
+          <ProFormSelect
             name={[...namePathPrefix, 'freightTerms']}
             label="运费条款"
-            placeholder="例如 FREIGHT PREPAID"
+            placeholder="请选择运费条款"
+            initialValue={DEFAULT_FREIGHT_TERMS}
             disabled={disabled}
             layout="vertical"
+            options={SEA_FREIGHT_TERM_OPTIONS}
+            fieldProps={{
+              showSearch: true,
+              allowClear: true,
+              filterOption: (input, option) => {
+                const normInput = input.trim().toLowerCase();
+                const normLabel = String(option?.label ?? '').toLowerCase();
+                const normValue = String(option?.value ?? '').toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
+            }}
           />
         </Col>
         <Col xs={12} sm={6}>
@@ -956,15 +984,24 @@ export function SeaDocumentSectionComponent({
         mblContent.transportTerms && mblContent.transportTerms.trim() !== ''
           ? mblContent.transportTerms
           : DEFAULT_TRANSPORT_TERMS;
+      const mblFreightTerms =
+        mblContent.freightTerms && mblContent.freightTerms.trim() !== ''
+          ? mblContent.freightTerms
+          : DEFAULT_FREIGHT_TERMS;
       form.setFieldValue('seaMasterBillContent', {
         ...mblContent,
         transportTerms: mblTransportTerms,
+        freightTerms: mblFreightTerms,
       });
       const hblContent = currentHouseBill?.content ?? {};
       const hblTransportTerms =
         hblContent.transportTerms && hblContent.transportTerms.trim() !== ''
           ? hblContent.transportTerms
           : DEFAULT_TRANSPORT_TERMS;
+      const hblFreightTerms =
+        hblContent.freightTerms && hblContent.freightTerms.trim() !== ''
+          ? hblContent.freightTerms
+          : DEFAULT_FREIGHT_TERMS;
       form.setFieldValue(
         'seaHouseBill',
         currentHouseBill
@@ -981,6 +1018,7 @@ export function SeaDocumentSectionComponent({
               content: {
                 ...hblContent,
                 transportTerms: hblTransportTerms,
+                freightTerms: hblFreightTerms,
               },
               expectedVersion: currentHouseBill.version,
             }
@@ -1091,9 +1129,18 @@ export function SeaDocumentSectionComponent({
         DEFAULT_TRANSPORT_TERMS,
       );
     }
+    if (!form.getFieldValue(['seaMasterBillContent', 'freightTerms'])) {
+      form.setFieldValue(
+        ['seaMasterBillContent', 'freightTerms'],
+        DEFAULT_FREIGHT_TERMS,
+      );
+    }
     if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
       form.setFieldValue('seaHouseBill', {
-        content: { transportTerms: DEFAULT_TRANSPORT_TERMS },
+        content: {
+          transportTerms: DEFAULT_TRANSPORT_TERMS,
+          freightTerms: DEFAULT_FREIGHT_TERMS,
+        },
       });
       setActiveTabKey('hbl');
     } else {

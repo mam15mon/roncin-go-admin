@@ -14,7 +14,9 @@ import {
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
 import {
+  DEFAULT_FREIGHT_TERMS,
   DEFAULT_TRANSPORT_TERMS,
+  SEA_FREIGHT_TERM_OPTIONS,
   SEA_TRANSPORT_TERM_OPTIONS,
   SeaDocumentSectionComponent,
 } from './SeaDocumentSection';
@@ -383,7 +385,7 @@ describe('SeaDocumentSectionComponent', () => {
     });
   });
 
-  it('提单运输条款默认为 CY - CY，且提供完整海运运输条款选项', async () => {
+  it('提单运输条款与运费条款默认值及下拉选项符合海运标准', async () => {
     let capturedForm: FormInstance | undefined;
     render(
       <TestForm
@@ -397,14 +399,17 @@ describe('SeaDocumentSectionComponent', () => {
       />,
     );
 
-    // 运输条款默认值为 CY - CY
+    // 运输条款默认值为 CY - CY，运费条款默认值为 FREIGHT PREPAID
     await waitFor(() => {
       expect(
         capturedForm?.getFieldValue(['seaMasterBillContent', 'transportTerms']),
       ).toBe('CY - CY');
+      expect(
+        capturedForm?.getFieldValue(['seaMasterBillContent', 'freightTerms']),
+      ).toBe('FREIGHT PREPAID');
     });
 
-    // 选项包含核心海运条款
+    // 运输条款选项包含核心海运条款
     expect(DEFAULT_TRANSPORT_TERMS).toBe('CY - CY');
     expect(
       SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - CY'),
@@ -421,5 +426,16 @@ describe('SeaDocumentSectionComponent', () => {
     expect(
       SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS / DDU'),
     ).toBe(true);
+
+    // 运费条款选项与默认值
+    expect(DEFAULT_FREIGHT_TERMS).toBe('FREIGHT PREPAID');
+    expect(SEA_FREIGHT_TERM_OPTIONS.map((opt) => opt.value)).toEqual([
+      'FREIGHT PREPAID',
+      'FREIGHT COLLECT',
+      'FREIGHT PAYABLE AT DESTINATION',
+      'PAYABLE AT XXX',
+      '预付',
+      '到付',
+    ]);
   });
 });
