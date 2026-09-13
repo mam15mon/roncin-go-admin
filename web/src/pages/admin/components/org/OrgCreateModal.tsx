@@ -1,12 +1,17 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm, ProFormText } from '@ant-design/pro-components';
+import {
+  ModalForm,
+  ProFormSelect,
+  ProFormText,
+} from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
 import { adminServiceCreateOrganization } from '@/services/roncin/adminService';
+import { getCurrencyOptions } from '@/utils/options';
 import {
+  type CreateFormValues,
   getChildOrganizationKind,
   getOrganizationKindMeta,
-  type CreateFormValues,
 } from './types';
 
 type OrgCreateModalProps = {
@@ -89,15 +94,14 @@ export default function OrgCreateModal({
         rules={[{ required: true, message: '请输入组织名称' }]}
       />
       {childKind === 2 && (
-        <ProFormText
+        <ProFormSelect
           name="baseCurrency"
           label="本币"
-          placeholder="例如 CNY、USD"
-          fieldProps={{ maxLength: 3 }}
-          rules={[
-            { required: true, message: '请输入公司本币' },
-            { pattern: /^[A-Za-z]{3}$/, message: '请输入 3 位币种代码' },
-          ]}
+          placeholder="请选择公司本币"
+          initialValue="CNY"
+          showSearch
+          request={getCurrencyOptions}
+          rules={[{ required: true, message: '请选择公司本币' }]}
         />
       )}
     </ModalForm>

@@ -1,12 +1,14 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
+  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
 import { App, Typography } from 'antd';
 import React, { useRef } from 'react';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
+import { getCurrencyOptions } from '@/utils/options';
 import type { EditFormValues } from './types';
 
 const { Text } = Typography;
@@ -90,15 +92,13 @@ export default function OrgEditModal({
         extra="停用后该组织及其关联成员将无法进行业务操作"
       />
       {(editingOrg?.kind === 1 || editingOrg?.kind === 2) && (
-        <ProFormText
+        <ProFormSelect
           name="baseCurrency"
           label="本币"
-          placeholder="例如 CNY、USD"
-          fieldProps={{ maxLength: 3 }}
-          rules={[
-            { required: true, message: '请输入组织本币' },
-            { pattern: /^[A-Za-z]{3}$/, message: '请输入 3 位币种代码' },
-          ]}
+          placeholder="请选择组织本币"
+          showSearch
+          request={getCurrencyOptions}
+          rules={[{ required: true, message: '请选择组织本币' }]}
           extra="修改本币不会改变已保存费用的汇率快照"
         />
       )}
