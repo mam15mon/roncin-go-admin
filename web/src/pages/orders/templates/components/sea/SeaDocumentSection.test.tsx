@@ -438,4 +438,39 @@ describe('SeaDocumentSectionComponent', () => {
       '到付',
     ]);
   });
+
+  it('支持一键从订单货物信息带入品名、件数、单位及毛重体积', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          goodsDescription: 'AUTO PARTS / 汽车配件',
+          totalPackages: 800,
+          totalPackageUnit: 'CTNS',
+          totalGrossWeightKg: 15200.5,
+          totalVolumeCbm: 45.8,
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    const importCargoBtn = screen.getByRole('button', {
+      name: /从订单货物信息带入/,
+    });
+    expect(importCargoBtn).toBeInTheDocument();
+    fireEvent.click(importCargoBtn);
+
+    await waitFor(() => {
+      const content = capturedForm?.getFieldValue('seaMasterBillContent');
+      expect(content?.goodsDescriptionText).toBe('AUTO PARTS / 汽车配件');
+      expect(content?.packageCount).toBe(800);
+      expect(content?.packageUnit).toBe('CTNS');
+      expect(content?.grossWeightKg).toBe(15200.5);
+      expect(content?.volumeCbm).toBe(45.8);
+    });
+  });
 });

@@ -30,7 +30,7 @@ import {
 import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { PackageCountInput, ProFormSearchableSelect } from '@/components/ui';
 
 const useVerticalFormStyles = createStyles(({ css }) => ({
   verticalFields: css`
@@ -261,6 +261,44 @@ export function SeaBillContentFormFields({
     }
   };
 
+  const handleImportFromCargoInfo = () => {
+    if (!form) return;
+    const goodsDescription = form.getFieldValue('goodsDescription');
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    if (
+      !goodsDescription &&
+      totalPackages === undefined &&
+      !totalPackageUnit &&
+      totalGrossWeightKg === undefined &&
+      totalVolumeCbm === undefined
+    ) {
+      message.warning('订单货物信息尚未录入件重尺或品名');
+      return;
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (goodsDescription) updates.goodsDescriptionText = goodsDescription;
+    if (totalPackages !== undefined) updates.packageCount = totalPackages;
+    if (totalPackageUnit) updates.packageUnit = totalPackageUnit;
+    if (totalGrossWeightKg !== undefined)
+      updates.grossWeightKg = totalGrossWeightKg;
+    if (totalVolumeCbm !== undefined) updates.volumeCbm = totalVolumeCbm;
+
+    const currentContent = (form.getFieldValue(namePathPrefix) ?? {}) as Record<
+      string,
+      unknown
+    >;
+    form.setFieldValue(namePathPrefix, {
+      ...currentContent,
+      ...updates,
+    });
+    message.success('已从订单货物信息带入品名、件数、单位及毛重体积');
+  };
+
   return (
     <div className={styles.verticalFields}>
       {/* 提单抬头与代理区块 */}
@@ -424,25 +462,40 @@ export function SeaBillContentFormFields({
       </Row>
 
       {/* 唛头与货物信息区块 */}
+      {/* 唛头与货物信息区块 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           margin: '8px 0 12px 0',
         }}
       >
-        <div
-          style={{
-            width: 3,
-            height: 14,
-            backgroundColor: '#1677ff',
-            borderRadius: 2,
-            marginRight: 8,
-          }}
-        />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-          唛头与货物描述 (Marks & Cargo)
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              width: 3,
+              height: 14,
+              backgroundColor: '#1677ff',
+              borderRadius: 2,
+              marginRight: 8,
+            }}
+          />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+            唛头与货物描述 (Marks & Cargo)
+          </span>
+        </div>
+        {!disabled && (
+          <Button
+            type="link"
+            size="small"
+            icon={<DownloadOutlined />}
+            onClick={handleImportFromCargoInfo}
+            style={{ padding: 0 }}
+          >
+            从订单货物信息带入
+          </Button>
+        )}
       </div>
 
       <Row gutter={[16, 0]}>
@@ -464,26 +517,18 @@ export function SeaBillContentFormFields({
             fieldProps={{ rows: 3 }}
           />
         </Col>
-        <Col xs={12} sm={6}>
-          <ProFormDigit
-            name={[...namePathPrefix, 'packageCount']}
-            label="件数"
-            placeholder="件数"
-            disabled={disabled}
-            min={0}
-            layout="vertical"
-          />
+        <Col xs={24} sm={12} lg={8}>
+          <Form.Item label="件数 / 包装单位" layout="vertical">
+            <PackageCountInput
+              countName={[...namePathPrefix, 'packageCount']}
+              unitName={[...namePathPrefix, 'packageUnit']}
+              countPlaceholder="件数"
+              unitPlaceholder="单位"
+              disabled={disabled}
+            />
+          </Form.Item>
         </Col>
-        <Col xs={12} sm={6}>
-          <ProFormText
-            name={[...namePathPrefix, 'packageUnit']}
-            label="包装单位"
-            placeholder="例如 CTNS / PKGS"
-            disabled={disabled}
-            layout="vertical"
-          />
-        </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={6} lg={8}>
           <ProFormDigit
             name={[...namePathPrefix, 'grossWeightKg']}
             label="毛重 (KGS)"
@@ -494,7 +539,7 @@ export function SeaBillContentFormFields({
             layout="vertical"
           />
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={6} lg={8}>
           <ProFormDigit
             name={[...namePathPrefix, 'volumeCbm']}
             label="体积 (CBM)"
@@ -1123,23 +1168,38 @@ export function SeaDocumentSectionComponent({
   const changeCreateMode = (nextMode: SeaDocumentStructure) => {
     setLoadedStructure(nextMode);
     form.setFieldValue('seaDocumentStructure', nextMode);
-    if (!form.getFieldValue(['seaMasterBillContent', 'transportTerms'])) {
-      form.setFieldValue(
-        ['seaMasterBillContent', 'transportTerms'],
-        DEFAULT_TRANSPORT_TERMS,
-      );
-    }
-    if (!form.getFieldValue(['seaMasterBillContent', 'freightTerms'])) {
-      form.setFieldValue(
-        ['seaMasterBillContent', 'freightTerms'],
-        DEFAULT_FREIGHT_TERMS,
-      );
-    }
+
+    const goodsDescription = form.getFieldValue('goodsDescription');
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    const cargoDefaults = {
+      ...(goodsDescription ? { goodsDescriptionText: goodsDescription } : {}),
+      ...(totalPackages !== undefined ? { packageCount: totalPackages } : {}),
+      ...(totalPackageUnit ? { packageUnit: totalPackageUnit } : {}),
+      ...(totalGrossWeightKg !== undefined
+        ? { grossWeightKg: totalGrossWeightKg }
+        : {}),
+      ...(totalVolumeCbm !== undefined ? { volumeCbm: totalVolumeCbm } : {}),
+    };
+
+    const currentMbl = (form.getFieldValue('seaMasterBillContent') ??
+      {}) as Record<string, unknown>;
+    form.setFieldValue('seaMasterBillContent', {
+      transportTerms: DEFAULT_TRANSPORT_TERMS,
+      freightTerms: DEFAULT_FREIGHT_TERMS,
+      ...cargoDefaults,
+      ...currentMbl,
+    });
+
     if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
       form.setFieldValue('seaHouseBill', {
         content: {
           transportTerms: DEFAULT_TRANSPORT_TERMS,
           freightTerms: DEFAULT_FREIGHT_TERMS,
+          ...cargoDefaults,
         },
       });
       setActiveTabKey('hbl');

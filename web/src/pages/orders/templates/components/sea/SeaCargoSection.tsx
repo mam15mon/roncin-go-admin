@@ -1,11 +1,7 @@
-import {
-  ProFormDigit,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, Col, Form } from 'antd';
 import React from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { PackageCountInput, ProFormSearchableSelect } from '@/components/ui';
 import { paymentTermOptions } from '../../../common';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 
@@ -18,19 +14,16 @@ export function SeaCargoMeasurementFields() {
 
   return (
     <>
-      <ProFormDigit
-        colProps={{ xs: 24, sm: 12, lg: 6 }}
-        name="totalPackages"
-        label="委托总件数"
-        min={0}
-        placeholder="请输入总件数"
-      />
-      <ProFormText
-        colProps={{ xs: 24, sm: 12, lg: 6 }}
-        name="totalPackageUnit"
-        label="件数单位"
-        placeholder="例如: CTNS, PLTS"
-      />
+      <Col xs={24} sm={12} lg={6}>
+        <Form.Item label="委托总件数 / 单位">
+          <PackageCountInput
+            countName="totalPackages"
+            unitName="totalPackageUnit"
+            countPlaceholder="总件数"
+            unitPlaceholder="单位"
+          />
+        </Form.Item>
+      </Col>
       <ProFormDigit
         colProps={{ xs: 24, sm: 12, lg: 6 }}
         name="totalGrossWeightKg"
@@ -59,7 +52,7 @@ export function SeaCargoMeasurementFields() {
         </Col>
       )}
       <ProFormSearchableSelect
-        colProps={{ xs: 24, sm: 12, lg: 8 }}
+        colProps={{ xs: 24, sm: 12, lg: 6 }}
         name="paymentTerm"
         label="付款方式"
         rules={[{ required: true, message: '请选择付款方式' }]}
