@@ -172,6 +172,24 @@ export const SEA_FREIGHT_TERM_OPTIONS: { label: string; value: string }[] = [
   { label: '到付', value: '到付' },
 ];
 
+export const DEFAULT_BILL_FORM = 'ORIGINAL';
+
+export const SEA_BILL_FORM_OPTIONS: { label: string; value: string }[] = [
+  { label: 'ORIGINAL (正本)', value: 'ORIGINAL' },
+  { label: 'SEAWAY BILL (海运单)', value: 'SEAWAY BILL' },
+  { label: 'COPY (副本/电放件)', value: 'COPY' },
+  { label: 'MEMORANDUM (备忘)', value: 'MEMORANDUM' },
+];
+
+export const DEFAULT_RELEASE_TYPE = '电放';
+
+export const SEA_RELEASE_TYPE_OPTIONS: { label: string; value: string }[] = [
+  { label: '电放 (Telex Release)', value: '电放' },
+  { label: '正本 (Original)', value: '正本' },
+  { label: '海运单 (Sea Waybill)', value: '海运单' },
+  { label: '异地放单', value: '异地放单' },
+];
+
 export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'shipperText',
   'consigneeText',
@@ -204,6 +222,7 @@ export function SeaBillContentFormFields({
   const [notifyTab, setNotifyTab] = useState<'notify' | 'secondNotify'>(
     'notify',
   );
+  const [importingShipper, setImportingShipper] = useState(false);
   const [importingAgent, setImportingAgent] = useState(false);
 
   const secondNotifyValue = Form.useWatch(
@@ -213,6 +232,53 @@ export function SeaBillContentFormFields({
   const hasSecondNotify = Boolean(
     secondNotifyValue && String(secondNotifyValue).trim(),
   );
+
+  const handleImportShipperFromCustomer = async () => {
+    if (!form) return;
+    const customerId = form.getFieldValue('customerId');
+    if (!customerId) {
+      message.warning(
+        '当前订单尚未选择委托客户，请先在「业务信息」中选择委托客户',
+      );
+      return;
+    }
+    try {
+      setImportingShipper(true);
+      const res = await partnerServiceGetPartner({ id: customerId });
+      const partner = res.data;
+      if (!partner) {
+        message.warning('未获取到该委托客户的档案信息');
+        return;
+      }
+      const lines: string[] = [];
+      const name = partner.profile?.nameEn || partner.legalName;
+      if (name) lines.push(name);
+      const address =
+        partner.profile?.addressEn ||
+        partner.registeredAddress ||
+        partner.profile?.addressDetail;
+      if (address) lines.push(address);
+      if (partner.contacts && partner.contacts.length > 0) {
+        const c = partner.contacts[0];
+        const contactParts = [c.name, c.phone, c.email].filter(Boolean);
+        if (contactParts.length > 0) {
+          lines.push(`TEL/CONTACT: ${contactParts.join(' ')}`);
+        }
+      }
+      const text = lines.join('\n');
+      if (!text) {
+        message.warning('该委托客户未维护英文名称或地址信息');
+        return;
+      }
+      form.setFieldValue([...namePathPrefix, 'shipperText'], text);
+      message.success('已从委托客户带入发货人抬头信息');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '获取委托客户信息失败';
+      message.error(msg);
+    } finally {
+      setImportingShipper(false);
+    }
+  };
 
   const handleImportForeignAgent = async () => {
     if (!form) return;
@@ -325,22 +391,119 @@ export function SeaBillContentFormFields({
 
       <Row gutter={[16, 0]}>
         <Col xs={24} lg={12}>
-          <ProFormTextArea
-            name={[...namePathPrefix, 'shipperText']}
-            label="发货人 (Shipper)"
-            placeholder="请输入发货人英文名称与详细地址"
-            disabled={disabled}
-            fieldProps={{ rows: 3 }}
-          />
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                发货人 (Shipper)
+              </span>
+              {!disabled && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  loading={importingShipper}
+                  onClick={handleImportShipperFromCustomer}
+                  style={{
+                    padding: 0,
+                    height: 'auto',
+                    fontSize: 12,
+                    fontWeight: 'normal',
+                  }}
+                >
+                  从委托客户带入
+                </Button>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'shipperText']}
+              placeholder="请输入发货人英文名称与详细地址"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
         </Col>
         <Col xs={24} lg={12}>
-          <ProFormTextArea
-            name={[...namePathPrefix, 'consigneeText']}
-            label="收货人 (Consignee)"
-            placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
-            disabled={disabled}
-            fieldProps={{ rows: 3 }}
-          />
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                收货人 (Consignee)
+              </span>
+              {!disabled && (
+                <Space size={4}>
+                  <Tag
+                    style={{
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      margin: 0,
+                      fontSize: 11,
+                      padding: '0 4px',
+                    }}
+                    onClick={() =>
+                      form?.setFieldValue(
+                        [...namePathPrefix, 'consigneeText'],
+                        'TO ORDER',
+                      )
+                    }
+                  >
+                    + TO ORDER
+                  </Tag>
+                  <Tag
+                    style={{
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      margin: 0,
+                      fontSize: 11,
+                      padding: '0 4px',
+                    }}
+                    onClick={() =>
+                      form?.setFieldValue(
+                        [...namePathPrefix, 'consigneeText'],
+                        'TO ORDER OF SHIPPER',
+                      )
+                    }
+                  >
+                    + TO ORDER OF SHIPPER
+                  </Tag>
+                </Space>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'consigneeText']}
+              placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
         </Col>
 
         {/* 通知人与第二通知人 Tab 切换 */}
@@ -390,6 +553,25 @@ export function SeaBillContentFormFields({
                   },
                 ]}
               />
+              {!disabled && notifyTab === 'notify' && (
+                <Tag
+                  style={{
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
+                  }}
+                  onClick={() =>
+                    form?.setFieldValue(
+                      [...namePathPrefix, 'notifyPartyText'],
+                      'SAME AS CONSIGNEE',
+                    )
+                  }
+                >
+                  + SAME AS CONSIGNEE
+                </Tag>
+              )}
             </div>
             {notifyTab === 'notify' ? (
               <ProFormTextArea
@@ -462,7 +644,6 @@ export function SeaBillContentFormFields({
       </Row>
 
       {/* 唛头与货物信息区块 */}
-      {/* 唛头与货物信息区块 */}
       <div
         style={{
           display: 'flex',
@@ -482,8 +663,11 @@ export function SeaBillContentFormFields({
             }}
           />
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-            唛头与货物描述 (Marks & Cargo)
+            实际与提单货物描述 (Actual B/L Marks & Cargo)
           </span>
+          <Tag color="cyan" style={{ marginLeft: 8 }}>
+            提单实际数据
+          </Tag>
         </div>
         {!disabled && (
           <Button
@@ -493,32 +677,69 @@ export function SeaBillContentFormFields({
             onClick={handleImportFromCargoInfo}
             style={{ padding: 0 }}
           >
-            从订单货物信息带入
+            从订单货物信息带入 (复制委托数据)
           </Button>
         )}
       </div>
 
       <Row gutter={[16, 0]}>
         <Col xs={24} lg={12}>
-          <ProFormTextArea
-            name={[...namePathPrefix, 'marksText']}
-            label="唛头 (Marks & Numbers)"
-            placeholder="请输入唛头信息 (例如：N/M)"
-            disabled={disabled}
-            fieldProps={{ rows: 3 }}
-          />
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                唛头 (Marks & Numbers)
+              </span>
+              {!disabled && (
+                <Tag
+                  style={{
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
+                  }}
+                  onClick={() =>
+                    form?.setFieldValue([...namePathPrefix, 'marksText'], 'N/M')
+                  }
+                >
+                  + N/M
+                </Tag>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'marksText']}
+              placeholder="请输入唛头信息 (例如：N/M)"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
         </Col>
         <Col xs={24} lg={12}>
           <ProFormTextArea
             name={[...namePathPrefix, 'goodsDescriptionText']}
-            label="品名/货描 (Description of Goods)"
-            placeholder="请输入品名与货物描述"
+            label="提单品名/货描 (Description of Goods)"
+            placeholder="请输入提单打印品名与货物描述"
             disabled={disabled}
             fieldProps={{ rows: 3 }}
           />
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Form.Item label="件数 / 包装单位" layout="vertical">
+          <Form.Item label="提单实际件数 / 包装单位" layout="vertical">
             <PackageCountInput
               countName={[...namePathPrefix, 'packageCount']}
               unitName={[...namePathPrefix, 'packageUnit']}
@@ -531,7 +752,7 @@ export function SeaBillContentFormFields({
         <Col xs={12} sm={6} lg={8}>
           <ProFormDigit
             name={[...namePathPrefix, 'grossWeightKg']}
-            label="毛重 (KGS)"
+            label="提单实际毛重 (KGS)"
             placeholder="毛重"
             disabled={disabled}
             min={0}
@@ -542,7 +763,7 @@ export function SeaBillContentFormFields({
         <Col xs={12} sm={6} lg={8}>
           <ProFormDigit
             name={[...namePathPrefix, 'volumeCbm']}
-            label="体积 (CBM)"
+            label="提单实际体积 (CBM)"
             placeholder="体积"
             disabled={disabled}
             min={0}
@@ -626,21 +847,33 @@ export function SeaBillContentFormFields({
           />
         </Col>
         <Col xs={12} sm={6}>
-          <ProFormText
+          <ProFormSelect
             name={[...namePathPrefix, 'billForm']}
             label="提单形式"
-            placeholder="例如 ORIGINAL / COPY"
+            placeholder="请选择或输入提单形式"
+            initialValue={DEFAULT_BILL_FORM}
             disabled={disabled}
             layout="vertical"
+            options={SEA_BILL_FORM_OPTIONS}
+            fieldProps={{
+              allowClear: true,
+              showSearch: true,
+            }}
           />
         </Col>
         <Col xs={12} sm={6}>
-          <ProFormText
+          <ProFormSelect
             name={[...namePathPrefix, 'releaseType']}
             label="放单方式"
-            placeholder="例如 电放 / 正本"
+            placeholder="请选择或输入放单方式"
+            initialValue={DEFAULT_RELEASE_TYPE}
             disabled={disabled}
             layout="vertical"
+            options={SEA_RELEASE_TYPE_OPTIONS}
+            fieldProps={{
+              allowClear: true,
+              showSearch: true,
+            }}
           />
         </Col>
         <Col xs={24}>

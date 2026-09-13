@@ -126,7 +126,7 @@ describe('海运订单新增模板', () => {
     ).toBeDisabled();
   });
 
-  it('按配舱、提单、货物顺序生成海运业务区块', () => {
+  it('按配舱、货物、提单顺序生成海运业务区块', () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -148,8 +148,8 @@ describe('海运订单新增模板', () => {
     expect(sections.map(({ key, title }) => ({ key, title }))).toEqual([
       { key: 'basicInfo', title: '业务信息' },
       { key: 'transportInfo', title: '配舱信息' },
-      { key: 'sea-document', title: '提单信息' },
       { key: 'cargoInfo', title: '货物信息' },
+      { key: 'sea-document', title: '提单信息' },
       { key: 'remarks', title: '备注' },
       { key: 'internalInfo', title: '内部信息' },
     ]);

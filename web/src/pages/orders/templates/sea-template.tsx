@@ -19,9 +19,9 @@ import {
 import type { TemplateProps, TemplateSection } from './types';
 
 export {
+  SeaCargoMeasurementFields,
   SeaContainerPlanFields,
   SeaScheduleDateFields,
-  SeaCargoMeasurementFields,
   SeaServiceTypeFields,
   TooltipInput,
 };
@@ -32,8 +32,8 @@ export function getSeaTemplateSections(
   return [
     buildSeaBaseInfoSection(props),
     buildSeaTransportSection(props),
-    buildSeaDocumentSection(props),
     buildSeaCargoSection(),
+    buildSeaDocumentSection(props),
     {
       key: 'remarks',
       title: '备注',
