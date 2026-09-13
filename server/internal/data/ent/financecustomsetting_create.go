@@ -158,6 +158,20 @@ func (_c *FinanceCustomSettingCreate) SetNillableBilledFeeTaxRateEditable(v *boo
 	return _c
 }
 
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (_c *FinanceCustomSettingCreate) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingCreate {
+	_c.mutation.SetCreditLimitSelectionAllowed(v)
+	return _c
+}
+
+// SetNillableCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field if the given value is not nil.
+func (_c *FinanceCustomSettingCreate) SetNillableCreditLimitSelectionAllowed(v *bool) *FinanceCustomSettingCreate {
+	if v != nil {
+		_c.SetCreditLimitSelectionAllowed(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *FinanceCustomSettingCreate) SetVersion(v uint64) *FinanceCustomSettingCreate {
 	_c.mutation.SetVersion(v)
@@ -279,6 +293,10 @@ func (_c *FinanceCustomSettingCreate) defaults() {
 		v := financecustomsetting.DefaultBilledFeeTaxRateEditable
 		_c.mutation.SetBilledFeeTaxRateEditable(v)
 	}
+	if _, ok := _c.mutation.CreditLimitSelectionAllowed(); !ok {
+		v := financecustomsetting.DefaultCreditLimitSelectionAllowed
+		_c.mutation.SetCreditLimitSelectionAllowed(v)
+	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := financecustomsetting.DefaultVersion
 		_c.mutation.SetVersion(v)
@@ -320,6 +338,9 @@ func (_c *FinanceCustomSettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.BilledFeeTaxRateEditable(); !ok {
 		return &ValidationError{Name: "billed_fee_tax_rate_editable", err: errors.New(`ent: missing required field "FinanceCustomSetting.billed_fee_tax_rate_editable"`)}
+	}
+	if _, ok := _c.mutation.CreditLimitSelectionAllowed(); !ok {
+		return &ValidationError{Name: "credit_limit_selection_allowed", err: errors.New(`ent: missing required field "FinanceCustomSetting.credit_limit_selection_allowed"`)}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "FinanceCustomSetting.version"`)}
@@ -404,6 +425,10 @@ func (_c *FinanceCustomSettingCreate) createSpec() (*FinanceCustomSetting, *sqlg
 	if value, ok := _c.mutation.BilledFeeTaxRateEditable(); ok {
 		_spec.SetField(financecustomsetting.FieldBilledFeeTaxRateEditable, field.TypeBool, value)
 		_node.BilledFeeTaxRateEditable = value
+	}
+	if value, ok := _c.mutation.CreditLimitSelectionAllowed(); ok {
+		_spec.SetField(financecustomsetting.FieldCreditLimitSelectionAllowed, field.TypeBool, value)
+		_node.CreditLimitSelectionAllowed = value
 	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(financecustomsetting.FieldVersion, field.TypeUint64, value)
@@ -588,6 +613,18 @@ func (u *FinanceCustomSettingUpsert) SetBilledFeeTaxRateEditable(v bool) *Financ
 // UpdateBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field to the value that was provided on create.
 func (u *FinanceCustomSettingUpsert) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsert {
 	u.SetExcluded(financecustomsetting.FieldBilledFeeTaxRateEditable)
+	return u
+}
+
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (u *FinanceCustomSettingUpsert) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingUpsert {
+	u.Set(financecustomsetting.FieldCreditLimitSelectionAllowed, v)
+	return u
+}
+
+// UpdateCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsert) UpdateCreditLimitSelectionAllowed() *FinanceCustomSettingUpsert {
+	u.SetExcluded(financecustomsetting.FieldCreditLimitSelectionAllowed)
 	return u
 }
 
@@ -784,6 +821,20 @@ func (u *FinanceCustomSettingUpsertOne) SetBilledFeeTaxRateEditable(v bool) *Fin
 func (u *FinanceCustomSettingUpsertOne) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsertOne {
 	return u.Update(func(s *FinanceCustomSettingUpsert) {
 		s.UpdateBilledFeeTaxRateEditable()
+	})
+}
+
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (u *FinanceCustomSettingUpsertOne) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetCreditLimitSelectionAllowed(v)
+	})
+}
+
+// UpdateCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertOne) UpdateCreditLimitSelectionAllowed() *FinanceCustomSettingUpsertOne {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateCreditLimitSelectionAllowed()
 	})
 }
 
@@ -1152,6 +1203,20 @@ func (u *FinanceCustomSettingUpsertBulk) SetBilledFeeTaxRateEditable(v bool) *Fi
 func (u *FinanceCustomSettingUpsertBulk) UpdateBilledFeeTaxRateEditable() *FinanceCustomSettingUpsertBulk {
 	return u.Update(func(s *FinanceCustomSettingUpsert) {
 		s.UpdateBilledFeeTaxRateEditable()
+	})
+}
+
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (u *FinanceCustomSettingUpsertBulk) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.SetCreditLimitSelectionAllowed(v)
+	})
+}
+
+// UpdateCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field to the value that was provided on create.
+func (u *FinanceCustomSettingUpsertBulk) UpdateCreditLimitSelectionAllowed() *FinanceCustomSettingUpsertBulk {
+	return u.Update(func(s *FinanceCustomSettingUpsert) {
+		s.UpdateCreditLimitSelectionAllowed()
 	})
 }
 

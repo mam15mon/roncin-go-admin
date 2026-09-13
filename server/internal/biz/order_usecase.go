@@ -223,6 +223,11 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	if err != nil {
 		return nil, err
 	}
+	// 直接干预模式（组织显式关闭「超额后允许选择」）下，委托客户超额则拒绝入库；
+	// 校验为尽力而为的时点查询，默认的仅提醒模式不拦截。
+	if err := uc.creditControl.EnsurePartnerSelectionAllowed(ctx, organizationID, normalized.CustomerID); err != nil {
+		return nil, err
+	}
 	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
@@ -252,6 +257,10 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 	}
 	normalized, err := normalizeOrder(input, false)
 	if err != nil {
+		return nil, err
+	}
+	// 更新草稿更换/设定委托客户时同样执行直接干预拦截；口径与创建路径一致。
+	if err := uc.creditControl.EnsurePartnerSelectionAllowed(ctx, organizationID, normalized.CustomerID); err != nil {
 		return nil, err
 	}
 	if normalized.ShipmentType == nil || *normalized.ShipmentType != OrderShipmentFCL {

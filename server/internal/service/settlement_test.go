@@ -49,6 +49,11 @@ func (settlementServiceTransactorStub) WithinTransaction(ctx context.Context, op
 	return operation(ctx)
 }
 
+// GetPartnerCreditSummaries 为不关心信用信息的账单预览测试提供空摘要（无规则、零余额）。
+func (s *billCreationCandidateServiceRepoStub) GetPartnerCreditSummaries(context.Context, uuid.UUID, []uuid.UUID) (map[uuid.UUID]*biz.PartnerCreditSummary, error) {
+	return map[uuid.UUID]*biz.PartnerCreditSummary{}, nil
+}
+
 type billSettlementAccountRepoStub struct {
 	biz.PartnerAccountRepo
 	listItems     []*biz.PartnerAccount

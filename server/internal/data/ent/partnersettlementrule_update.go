@@ -213,6 +213,33 @@ func (_u *PartnerSettlementRuleUpdate) ClearCreditCurrency() *PartnerSettlementR
 	return _u
 }
 
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdate) SetPaymentTermsDays(v int) *PartnerSettlementRuleUpdate {
+	_u.mutation.ResetPaymentTermsDays()
+	_u.mutation.SetPaymentTermsDays(v)
+	return _u
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdate) SetNillablePaymentTermsDays(v *int) *PartnerSettlementRuleUpdate {
+	if v != nil {
+		_u.SetPaymentTermsDays(*v)
+	}
+	return _u
+}
+
+// AddPaymentTermsDays adds value to the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdate) AddPaymentTermsDays(v int) *PartnerSettlementRuleUpdate {
+	_u.mutation.AddPaymentTermsDays(v)
+	return _u
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdate) ClearPaymentTermsDays() *PartnerSettlementRuleUpdate {
+	_u.mutation.ClearPaymentTermsDays()
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *PartnerSettlementRuleUpdate) SetIsActive(v bool) *PartnerSettlementRuleUpdate {
 	_u.mutation.SetIsActive(v)
@@ -311,6 +338,11 @@ func (_u *PartnerSettlementRuleUpdate) check() error {
 			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PaymentTermsDays(); ok {
+		if err := partnersettlementrule.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.payment_terms_days": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerSettlementRule.partner_role"`)
 	}
@@ -379,6 +411,15 @@ func (_u *PartnerSettlementRuleUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if _u.mutation.CreditCurrencyCleared() {
 		_spec.ClearField(partnersettlementrule.FieldCreditCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentTermsDays(); ok {
+		_spec.AddField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentTermsDaysCleared() {
+		_spec.ClearField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)
@@ -615,6 +656,33 @@ func (_u *PartnerSettlementRuleUpdateOne) ClearCreditCurrency() *PartnerSettleme
 	return _u
 }
 
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdateOne) SetPaymentTermsDays(v int) *PartnerSettlementRuleUpdateOne {
+	_u.mutation.ResetPaymentTermsDays()
+	_u.mutation.SetPaymentTermsDays(v)
+	return _u
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdateOne) SetNillablePaymentTermsDays(v *int) *PartnerSettlementRuleUpdateOne {
+	if v != nil {
+		_u.SetPaymentTermsDays(*v)
+	}
+	return _u
+}
+
+// AddPaymentTermsDays adds value to the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdateOne) AddPaymentTermsDays(v int) *PartnerSettlementRuleUpdateOne {
+	_u.mutation.AddPaymentTermsDays(v)
+	return _u
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (_u *PartnerSettlementRuleUpdateOne) ClearPaymentTermsDays() *PartnerSettlementRuleUpdateOne {
+	_u.mutation.ClearPaymentTermsDays()
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *PartnerSettlementRuleUpdateOne) SetIsActive(v bool) *PartnerSettlementRuleUpdateOne {
 	_u.mutation.SetIsActive(v)
@@ -726,6 +794,11 @@ func (_u *PartnerSettlementRuleUpdateOne) check() error {
 			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PaymentTermsDays(); ok {
+		if err := partnersettlementrule.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.payment_terms_days": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerSettlementRule.partner_role"`)
 	}
@@ -811,6 +884,15 @@ func (_u *PartnerSettlementRuleUpdateOne) sqlSave(ctx context.Context) (_node *P
 	}
 	if _u.mutation.CreditCurrencyCleared() {
 		_spec.ClearField(partnersettlementrule.FieldCreditCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentTermsDays(); ok {
+		_spec.AddField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentTermsDaysCleared() {
+		_spec.ClearField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)

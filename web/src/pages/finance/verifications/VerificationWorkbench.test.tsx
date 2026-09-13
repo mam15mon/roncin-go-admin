@@ -14,6 +14,7 @@ const serviceMocks = vi.hoisted(() => ({
   listFinanceOrganizationOptions: vi.fn(),
   listFinanceSettlementPartyOptions: vi.fn(),
   listVerificationCreationCandidates: vi.fn(),
+  getCreditLimitControlPolicy: vi.fn(),
 }));
 
 vi.mock('@/services/roncin/settlementService', () => ({
@@ -24,6 +25,9 @@ vi.mock('@/services/roncin/settlementService', () => ({
     serviceMocks.listFinanceSettlementPartyOptions,
   settlementServiceListVerificationCreationCandidates:
     serviceMocks.listVerificationCreationCandidates,
+  // 默认仅提醒模式（超额后仍允许选择），不触发超额禁用；干预模式用例单独覆写。
+  settlementServiceGetCreditLimitControlPolicy:
+    serviceMocks.getCreditLimitControlPolicy,
 }));
 
 vi.mock('antd', async () => {
@@ -55,12 +59,17 @@ vi.mock('antd', async () => {
           onChange?.(event.target.value),
       },
       React.createElement('option', { value: '' }),
-      ...options.map((option: { label: string; value: string }) =>
-        React.createElement(
-          'option',
-          { key: option.value, value: option.value },
-          option.label,
-        ),
+      ...options.map(
+        (option: { label: string; value: string; disabled?: boolean }) =>
+          React.createElement(
+            'option',
+            {
+              key: option.value,
+              value: option.value,
+              disabled: option.disabled,
+            },
+            option.label,
+          ),
       ),
     );
   const Table = ({ dataSource = [], columns = [], rowSelection }: any) =>
@@ -140,11 +149,15 @@ vi.mock('antd', async () => {
   };
 });
 
-vi.mock('@/utils/options', () => ({
-  getCurrencyOptions: vi
-    .fn()
-    .mockResolvedValue([{ label: '美元', value: 'USD' }]),
-}));
+vi.mock('@/utils/options', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/options')>();
+  return {
+    ...actual,
+    getCurrencyOptions: vi
+      .fn()
+      .mockResolvedValue([{ label: '美元', value: 'USD' }]),
+  };
+});
 
 import VerificationWorkbench from './VerificationWorkbench';
 
@@ -154,6 +167,12 @@ describe('核销创建工作台组织候选', () => {
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceSettlementPartyOptions.mockReset();
     serviceMocks.listVerificationCreationCandidates.mockReset();
+    serviceMocks.getCreditLimitControlPolicy.mockReset();
+    // 默认「超额后允许选择」为 true：true 会正常序列化，仅提醒模式生效。
+    serviceMocks.getCreditLimitControlPolicy.mockResolvedValue({
+      success: true,
+      data: { allowSelectionWhenCreditExceeded: true },
+    });
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({
       data: [
         { id: 'organization-a', code: 'A', name: '公司 A' },
@@ -317,5 +336,48 @@ describe('核销创建工作台组织候选', () => {
         }),
       ),
     );
+  });
+
+  it('直接干预模式下超额客户置灰禁用，仅提醒模式可选', async () => {
+    // 服务端省略 false 布尔：直接以「缺省 = 干预模式」覆写策略响应。
+    serviceMocks.getCreditLimitControlPolicy.mockResolvedValue({
+      success: true,
+      data: {},
+    });
+    serviceMocks.listFinanceSettlementPartyOptions.mockImplementation(
+      ({ organizationId }) =>
+        Promise.resolve({
+          data: [
+            {
+              id: `party-${organizationId}`,
+              code: 'PARTY',
+              name: `结算单位 ${organizationId}`,
+            },
+            {
+              id: 'party-exceeded',
+              code: 'EXCEED',
+              name: '超额客户',
+              creditExceeded: true,
+            },
+          ],
+        }),
+    );
+
+    render(
+      <App>
+        <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+      </App>,
+    );
+    await selectOrganizationAndParty('公司 A');
+
+    const exceededOption = await screen.findByRole('option', {
+      name: '超额客户 (EXCEED)',
+    });
+    // 直接干预模式：超额候选置灰禁用，无法被选择；label 保持纯净文本。
+    expect(exceededOption).toBeDisabled();
+    const normalOption = screen.getByRole('option', {
+      name: '结算单位 organization-a (PARTY)',
+    });
+    expect(normalOption).toBeEnabled();
   });
 });

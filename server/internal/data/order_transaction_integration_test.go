@@ -672,7 +672,9 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 	organization, err := data.db.Organization.Create().
 		SetCode("ORDER-TX-" + suffix).
 		SetName("订单事务集成测试组织-" + suffix).
-		SetKind("company").
+		// 生产组织树的根节点必须是总部（kind=headquarters）；订单创建路径会读取
+		// 总部级财务自定义设置（信用额度管控策略），夹具与该不变量保持一致。
+		SetKind("headquarters").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -761,7 +763,7 @@ func newTestSCAC() string {
 }
 
 func (f *orderPostgresFixture) newUsecase() *biz.OrderUsecase {
-	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data), NewSeaDocumentRepo(f.data))
+	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data), NewSeaDocumentRepo(f.data), biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(f.data))))
 }
 
 func (f *orderPostgresFixture) validInput() *biz.Order {

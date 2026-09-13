@@ -120,4 +120,104 @@ describe('BillGroupCard', () => {
       screen.queryByText(/该客户为单次合作散客，建议现结/),
     ).not.toBeInTheDocument();
   });
+
+  it('超额客户叶子展示信用超额黄色预警且不阻断提交', () => {
+    const exceededGroup = {
+      groupKey: 'credit-1',
+      direction: 'RECEIVABLE',
+      settlementPartyId: 'party-credit',
+      settlementPartyName: '超额客户企业',
+      currency: 'CNY',
+      baseCurrency: 'CNY',
+      isCasual: false,
+      totalAmount: '300.00000000',
+      configurationComplete: true,
+      creditLimitAmount: '1000',
+      creditCurrency: 'CNY',
+      currentUnsettledAmount: '1200',
+      isCreditExceeded: true,
+    };
+
+    function TestWrapper() {
+      const [form] = Form.useForm();
+      return (
+        <Form
+          form={form}
+          initialValues={{
+            groups: {
+              'credit-1': {
+                paymentTermsDays: 0,
+              },
+            },
+          }}
+        >
+          <BillGroupCard
+            group={exceededGroup}
+            organizationId="org-1"
+            sessionIdentity="session-1"
+            feeColumns={[]}
+            directionText={(dir) => (dir === 'RECEIVABLE' ? '应收' : '应付')}
+            onConfigurationChange={vi.fn()}
+          />
+        </Form>
+      );
+    }
+
+    render(<TestWrapper />);
+
+    // 超额预警展示余额、本单金额与额度
+    expect(
+      screen.getByText(
+        '该客户应收未核销余额（本币）1200 已超出约定信用额度 1000 CNY；本单金额 300.00000000 CNY。录入后请注意资金回款风险。',
+      ),
+    ).toBeInTheDocument();
+
+    // 预警为软提示：账期与提交入口不被禁用
+    expect(screen.getByLabelText('账期（天）')).toBeEnabled();
+  });
+
+  it('未超额或未设额度的叶子不展示信用超额预警', () => {
+    const normalGroup = {
+      groupKey: 'credit-2',
+      direction: 'RECEIVABLE',
+      settlementPartyId: 'party-normal',
+      settlementPartyName: '正常客户企业',
+      currency: 'CNY',
+      isCasual: false,
+      totalAmount: '100.00000000',
+      configurationComplete: true,
+      creditLimitAmount: '1000',
+      currentUnsettledAmount: '400',
+      isCreditExceeded: false,
+    };
+
+    function TestWrapper() {
+      const [form] = Form.useForm();
+      return (
+        <Form
+          form={form}
+          initialValues={{
+            groups: {
+              'credit-2': { paymentTermsDays: 0 },
+            },
+          }}
+        >
+          <BillGroupCard
+            group={normalGroup}
+            organizationId="org-1"
+            sessionIdentity="session-1"
+            feeColumns={[]}
+            directionText={(dir) => (dir === 'RECEIVABLE' ? '应收' : '应付')}
+            onConfigurationChange={vi.fn()}
+          />
+        </Form>
+      );
+    }
+
+    render(<TestWrapper />);
+
+    expect(
+      screen.queryByText(/该客户应收未核销余额（本币）/),
+    ).not.toBeInTheDocument();
+  });
 });

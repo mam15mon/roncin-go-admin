@@ -134,6 +134,20 @@ func (_u *FinanceCustomSettingUpdate) SetNillableBilledFeeTaxRateEditable(v *boo
 	return _u
 }
 
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (_u *FinanceCustomSettingUpdate) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingUpdate {
+	_u.mutation.SetCreditLimitSelectionAllowed(v)
+	return _u
+}
+
+// SetNillableCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field if the given value is not nil.
+func (_u *FinanceCustomSettingUpdate) SetNillableCreditLimitSelectionAllowed(v *bool) *FinanceCustomSettingUpdate {
+	if v != nil {
+		_u.SetCreditLimitSelectionAllowed(*v)
+	}
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *FinanceCustomSettingUpdate) SetVersion(v uint64) *FinanceCustomSettingUpdate {
 	_u.mutation.ResetVersion()
@@ -273,6 +287,9 @@ func (_u *FinanceCustomSettingUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if value, ok := _u.mutation.BilledFeeTaxRateEditable(); ok {
 		_spec.SetField(financecustomsetting.FieldBilledFeeTaxRateEditable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.CreditLimitSelectionAllowed(); ok {
+		_spec.SetField(financecustomsetting.FieldCreditLimitSelectionAllowed, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(financecustomsetting.FieldVersion, field.TypeUint64, value)
@@ -429,6 +446,20 @@ func (_u *FinanceCustomSettingUpdateOne) SetBilledFeeTaxRateEditable(v bool) *Fi
 func (_u *FinanceCustomSettingUpdateOne) SetNillableBilledFeeTaxRateEditable(v *bool) *FinanceCustomSettingUpdateOne {
 	if v != nil {
 		_u.SetBilledFeeTaxRateEditable(*v)
+	}
+	return _u
+}
+
+// SetCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field.
+func (_u *FinanceCustomSettingUpdateOne) SetCreditLimitSelectionAllowed(v bool) *FinanceCustomSettingUpdateOne {
+	_u.mutation.SetCreditLimitSelectionAllowed(v)
+	return _u
+}
+
+// SetNillableCreditLimitSelectionAllowed sets the "credit_limit_selection_allowed" field if the given value is not nil.
+func (_u *FinanceCustomSettingUpdateOne) SetNillableCreditLimitSelectionAllowed(v *bool) *FinanceCustomSettingUpdateOne {
+	if v != nil {
+		_u.SetCreditLimitSelectionAllowed(*v)
 	}
 	return _u
 }
@@ -602,6 +633,9 @@ func (_u *FinanceCustomSettingUpdateOne) sqlSave(ctx context.Context) (_node *Fi
 	}
 	if value, ok := _u.mutation.BilledFeeTaxRateEditable(); ok {
 		_spec.SetField(financecustomsetting.FieldBilledFeeTaxRateEditable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.CreditLimitSelectionAllowed(); ok {
+		_spec.SetField(financecustomsetting.FieldCreditLimitSelectionAllowed, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(financecustomsetting.FieldVersion, field.TypeUint64, value)

@@ -16,16 +16,32 @@ import {
 // Mock API services
 const mockGetBilledFeeEditPolicy = vi.fn();
 const mockUpdateBilledFeeEditPolicy = vi.fn();
+const mockGetCreditLimitControlPolicy = vi.fn();
+const mockUpdateCreditLimitControlPolicy = vi.fn();
 
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceGetBilledFeeEditPolicy: () => mockGetBilledFeeEditPolicy(),
   settlementServiceUpdateBilledFeeEditPolicy: (body: any) =>
     mockUpdateBilledFeeEditPolicy(body),
+  settlementServiceGetCreditLimitControlPolicy: () =>
+    mockGetCreditLimitControlPolicy(),
+  settlementServiceUpdateCreditLimitControlPolicy: (body: any) =>
+    mockUpdateCreditLimitControlPolicy(body),
 }));
 
 describe('CustomSettingsPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 信用额度管控策略默认返回仅提醒模式，避免每个用例重复准备。
+    mockGetCreditLimitControlPolicy.mockResolvedValue({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        allowSelectionWhenCreditExceeded: true,
+        version: '1',
+      },
+    });
   });
 
   afterEach(() => {
@@ -109,7 +125,9 @@ describe('CustomSettingsPanel', () => {
       expect(screen.getByText('默认关闭')).toBeInTheDocument();
     });
 
-    const feePolicySwitch = screen.getByRole('switch');
+    const feePolicySwitch = screen.getByRole('switch', {
+      name: '账单费用修改开关',
+    });
 
     fireEvent.click(feePolicySwitch);
 
@@ -194,8 +212,112 @@ describe('CustomSettingsPanel', () => {
       </App>,
     );
 
-    await waitFor(() => expect(screen.getByRole('switch')).toBeDisabled());
+    await waitFor(() =>
+      expect(
+        screen.getByRole('switch', { name: '账单费用修改开关' }),
+      ).toBeDisabled(),
+    );
     expect(screen.getByLabelText('费用名称')).toBeDisabled();
     expect(mockUpdateBilledFeeEditPolicy).not.toHaveBeenCalled();
+  });
+
+  it('渲染信用额度管控策略卡片并默认展示仅提醒模式', async () => {
+    mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        enabled: false,
+        editableFields: [],
+        version: '1',
+      },
+    });
+    mockGetCreditLimitControlPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        allowSelectionWhenCreditExceeded: true,
+        version: '3',
+      },
+    });
+
+    render(
+      <App>
+        <CustomSettingsPanel />
+      </App>,
+    );
+
+    expect(screen.getByText('往来单位信用额度管控策略')).toBeInTheDocument();
+    expect(
+      screen.getByText('往来户超信用额度后是否可以选择'),
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('仅提醒模式')).toBeInTheDocument();
+    });
+
+    const creditSwitch = screen.getByRole('switch', {
+      name: '信用额度管控开关',
+    });
+    expect(creditSwitch).toBeEnabled();
+    expect(creditSwitch).toBeChecked();
+  });
+
+  it('关闭信用额度管控开关进入直接干预模式并提交 expectedVersion', async () => {
+    mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        enabled: false,
+        editableFields: [],
+        version: '1',
+      },
+    });
+    mockGetCreditLimitControlPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        allowSelectionWhenCreditExceeded: true,
+        version: '3',
+      },
+    });
+    mockUpdateCreditLimitControlPolicy.mockResolvedValueOnce({
+      success: true,
+      data: {
+        organizationId: 'org-headquarter',
+        allowSelectionWhenCreditExceeded: false,
+        version: '4',
+        updatedAt: '2026-09-12T10:00:00Z',
+        updatedBy: 'admin',
+      },
+    });
+
+    render(
+      <App>
+        <CustomSettingsPanel />
+      </App>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('switch', { name: '信用额度管控开关' }),
+      ).toBeChecked();
+    });
+
+    fireEvent.click(screen.getByRole('switch', { name: '信用额度管控开关' }));
+
+    await waitFor(() => {
+      expect(mockUpdateCreditLimitControlPolicy).toHaveBeenCalledWith({
+        allowSelectionWhenCreditExceeded: false,
+        expectedVersion: '3',
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('直接干预模式')).toBeInTheDocument();
+    });
   });
 });

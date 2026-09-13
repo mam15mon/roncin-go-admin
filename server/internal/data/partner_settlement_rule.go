@@ -133,6 +133,9 @@ func createPartnerSettlementRule(ctx context.Context, builder *ent.PartnerSettle
 	if input.CreditLimitMinor != nil {
 		builder.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
+	if input.PaymentTermsDays != nil {
+		builder.SetPaymentTermsDays(*input.PaymentTermsDays)
+	}
 	return builder.Save(ctx)
 }
 
@@ -161,6 +164,11 @@ func updatePartnerSettlementRule(ctx context.Context, update *ent.PartnerSettlem
 	} else {
 		update.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
+	if input.PaymentTermsDays == nil {
+		update.ClearPaymentTermsDays()
+	} else {
+		update.SetPaymentTermsDays(*input.PaymentTermsDays)
+	}
 	return update.Save(ctx)
 }
 
@@ -184,6 +192,7 @@ func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSet
 	}
 	result.CreditLimitMinor = item.CreditLimitMinor
 	result.CreditCurrency = item.CreditCurrency
+	result.PaymentTermsDays = item.PaymentTermsDays
 	return result
 }
 

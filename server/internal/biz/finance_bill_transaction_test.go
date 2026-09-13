@@ -51,6 +51,12 @@ func (s *financeBillTransactionRepoStub) LoadBillableFees(ctx context.Context, _
 	return []*FinanceBillableFee{s.fee}, nil
 }
 
+// GetPartnerCreditSummaries 供默认账期兜底注入读取：无激活规则返回空摘要（不注入）。
+// 该读取不参与事务调用计数断言，避免为注入查询调整既有锁序语义预期。
+func (s *financeBillTransactionRepoStub) GetPartnerCreditSummaries(context.Context, uuid.UUID, []uuid.UUID) (map[uuid.UUID]*PartnerCreditSummary, error) {
+	return map[uuid.UUID]*PartnerCreditSummary{}, nil
+}
+
 func (s *financeBillTransactionRepoStub) ValidateBillCurrencies(ctx context.Context, _ []string) error {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
 		return err

@@ -780,6 +780,42 @@ export async function settlementServiceUpdateBilledFeeEditPolicy(
   );
 }
 
+/** GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。 GET /api/v1/finance/custom-settings/credit-limit-control-policy */
+export async function settlementServiceGetCreditLimitControlPolicy(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceGetCreditLimitControlPolicyParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.GetCreditLimitControlPolicyResponse>(
+    "/api/v1/finance/custom-settings/credit-limit-control-policy",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。 PUT /api/v1/finance/custom-settings/credit-limit-control-policy */
+export async function settlementServiceUpdateCreditLimitControlPolicy(
+  body: API.UpdateCreditLimitControlPolicyRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.UpdateCreditLimitControlPolicyResponse>(
+    "/api/v1/finance/custom-settings/credit-limit-control-policy",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。 GET /api/v1/finance/fee-tag-assignment-options */
 export async function settlementServiceListFinanceFeeTagAssignmentOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

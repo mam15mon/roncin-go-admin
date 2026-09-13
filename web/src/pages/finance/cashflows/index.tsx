@@ -14,6 +14,7 @@ import { useAccess } from '@umijs/max';
 import { App, Card, Form, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -23,6 +24,7 @@ import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
 } from '@/enums.generated';
+import { useCreditLimitIntervention } from '@/hooks/useCreditLimitIntervention';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,
@@ -32,7 +34,10 @@ import {
   settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
-import { getCurrencyOptions } from '@/utils/options';
+import {
+  disableCreditExceededOptions,
+  getCurrencyOptions,
+} from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
@@ -86,6 +91,8 @@ export default function FinanceCashflowsPage() {
   const [partyCasualMap, setPartyCasualMap] = useState<Record<string, boolean>>(
     {},
   );
+  // 直接干预模式（组织显式关闭「超额后允许选择」）下，超额客户不可被选中。
+  const creditInterventionActive = useCreditLimitIntervention();
 
   const currentDirection = Form.useWatch('direction', form);
   const currentSettlementPartyId = Form.useWatch('settlementPartyId', form);
@@ -540,21 +547,27 @@ export default function FinanceCashflowsPage() {
                 }
                 return next;
               });
-              return items
-                .filter((item) => item.id)
-                .map((item) => ({
-                  value: item.id as string,
-                  label:
-                    item.name && item.code
-                      ? `${item.name} (${item.code})`
-                      : item.name || item.code || item.id || '',
-                  isCasual: item.isCasual,
-                }));
+              return disableCreditExceededOptions(
+                items
+                  .filter((item) => item.id)
+                  .map((item) => ({
+                    value: item.id as string,
+                    label:
+                      item.name && item.code
+                        ? `${item.name} (${item.code})`
+                        : item.name || item.code || item.id || '',
+                    isCasual: item.isCasual,
+                    creditExceeded: Boolean(item.creditExceeded),
+                  })),
+                creditInterventionActive,
+              );
             });
           }}
           fieldProps={{
             optionRender: (option) => {
-              const item = option.data as { isCasual?: boolean } | undefined;
+              const item = option.data as
+                | { isCasual?: boolean; creditExceeded?: boolean }
+                | undefined;
               return (
                 <div
                   style={{
@@ -565,11 +578,7 @@ export default function FinanceCashflowsPage() {
                   }}
                 >
                   <span>{option.label}</span>
-                  {item?.isCasual && (
-                    <Tag color="orange" style={{ marginInlineEnd: 0 }}>
-                      散客
-                    </Tag>
-                  )}
+                  <PartnerSelectOptionTags data={item} />
                 </div>
               );
             },

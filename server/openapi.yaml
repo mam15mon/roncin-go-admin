@@ -2579,6 +2579,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.UpdateBilledFeeEditPolicyResponse'
+    /api/v1/finance/custom-settings/credit-limit-control-policy:
+        get:
+            tags:
+                - SettlementService
+            description: GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+            operationId: SettlementService_GetCreditLimitControlPolicy
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.GetCreditLimitControlPolicyResponse'
+        put:
+            tags:
+                - SettlementService
+            description: UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+            operationId: SettlementService_UpdateCreditLimitControlPolicy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateCreditLimitControlPolicyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateCreditLimitControlPolicyResponse'
     /api/v1/finance/exchange-rate-import-template:
         get:
             tags:
@@ -9618,6 +9654,15 @@ components:
                 defaultPaymentTermsDays:
                     type: integer
                     format: int32
+                creditLimitAmount:
+                    type: string
+                    description: 信用额度比对信息（折本位币口径）：额度来自客户角色激活结算规则，余额来自已确认应收账单未核销总额。
+                creditCurrency:
+                    type: string
+                currentUnsettledAmount:
+                    type: string
+                isCreditExceeded:
+                    type: boolean
         finance.v1.BillBatchPreviewGroupConfigInput:
             required:
                 - groupKey
@@ -10743,6 +10788,24 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceVerification'
                 traceId:
                     type: string
+        finance.v1.CreditLimitControlPolicy:
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                allowSelectionWhenCreditExceeded:
+                    type: boolean
+                version:
+                    type: string
+                    description: 未保存过策略时为 0；首次保存需携带 expected_version=0。
+                updatedAt:
+                    type: string
+                updatedBy:
+                    type: string
+            description: |-
+                CreditLimitControlPolicy 是组织级信用额度管控策略：
+                 allow_selection_when_credit_exceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；
+                 false 为直接干预模式，超额客户在选择器中禁用且服务端在订单、应收费用写入时拦截。
         finance.v1.DisableExchangeRateSettingRequest:
             required:
                 - id
@@ -11986,6 +12049,8 @@ components:
                     type: string
                 isCasual:
                     type: boolean
+                creditExceeded:
+                    type: boolean
         finance.v1.FinanceVerification:
             type: object
             properties:
@@ -12111,6 +12176,23 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCommission'
                 traceId:
                     type: string
+        finance.v1.GetCreditLimitControlPolicyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.CreditLimitControlPolicy'
+                traceId:
+                    type: string
+                canUpdate:
+                    type: boolean
+                    description: can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
         finance.v1.GetExchangeRateImportResponse:
             type: object
             properties:
@@ -13248,6 +13330,31 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                traceId:
+                    type: string
+        finance.v1.UpdateCreditLimitControlPolicyRequest:
+            required:
+                - expectedVersion
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                allowSelectionWhenCreditExceeded:
+                    type: boolean
+                expectedVersion:
+                    type: string
+        finance.v1.UpdateCreditLimitControlPolicyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.CreditLimitControlPolicy'
                 traceId:
                     type: string
         finance.v1.UpdateExchangeRateSettingRequest:
@@ -20531,6 +20638,9 @@ components:
                     type: string
                 creditCurrency:
                     type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
         partner.v1.PartnerSettlementRuleInput:
             required:
                 - statementMode
@@ -20561,6 +20671,9 @@ components:
                     type: string
                 creditCurrency:
                     type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
         partner.v1.PartnerShippingPartyPayload:
             type: object
             properties:

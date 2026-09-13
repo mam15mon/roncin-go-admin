@@ -5329,6 +5329,7 @@ type PartnerSettlementRule struct {
 	UpdatedAt           string                  `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	CreditLimitMinor    *int64                  `protobuf:"varint,12,opt,name=credit_limit_minor,json=creditLimitMinor,proto3,oneof" json:"credit_limit_minor,omitempty"`
 	CreditCurrency      *string                 `protobuf:"bytes,13,opt,name=credit_currency,json=creditCurrency,proto3,oneof" json:"credit_currency,omitempty"`
+	PaymentTermsDays    *int32                  `protobuf:"varint,14,opt,name=payment_terms_days,json=paymentTermsDays,proto3,oneof" json:"payment_terms_days,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -5454,6 +5455,13 @@ func (x *PartnerSettlementRule) GetCreditCurrency() string {
 	return ""
 }
 
+func (x *PartnerSettlementRule) GetPaymentTermsDays() int32 {
+	if x != nil && x.PaymentTermsDays != nil {
+		return *x.PaymentTermsDays
+	}
+	return 0
+}
+
 type PartnerSettlementRuleInput struct {
 	state               protoimpl.MessageState  `protogen:"open.v1"`
 	StatementMode       PartnerStatementMode    `protobuf:"varint,1,opt,name=statement_mode,json=statementMode,proto3,enum=partner.v1.PartnerStatementMode" json:"statement_mode,omitempty"`
@@ -5465,6 +5473,7 @@ type PartnerSettlementRuleInput struct {
 	IsActive            bool                    `protobuf:"varint,7,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	CreditLimitMinor    *int64                  `protobuf:"varint,8,opt,name=credit_limit_minor,json=creditLimitMinor,proto3,oneof" json:"credit_limit_minor,omitempty"`
 	CreditCurrency      *string                 `protobuf:"bytes,9,opt,name=credit_currency,json=creditCurrency,proto3,oneof" json:"credit_currency,omitempty"`
+	PaymentTermsDays    *int32                  `protobuf:"varint,10,opt,name=payment_terms_days,json=paymentTermsDays,proto3,oneof" json:"payment_terms_days,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -5560,6 +5569,13 @@ func (x *PartnerSettlementRuleInput) GetCreditCurrency() string {
 		return *x.CreditCurrency
 	}
 	return ""
+}
+
+func (x *PartnerSettlementRuleInput) GetPaymentTermsDays() int32 {
+	if x != nil && x.PaymentTermsDays != nil {
+		return *x.PaymentTermsDays
+	}
+	return 0
 }
 
 type ListPartnerSettlementRulesRequest struct {
@@ -7928,7 +7944,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x03(\v2\x1b.partner.v1.PartnerContractR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf9\x05\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc3\x06\n" +
 	"\x15PartnerSettlementRule\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
 	"\x0fpartner_role_id\x18\x02 \x01(\tR\rpartnerRoleId\x12G\n" +
@@ -7945,12 +7961,14 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\v \x01(\tR\tupdatedAt\x121\n" +
 	"\x12credit_limit_minor\x18\f \x01(\x03H\x03R\x10creditLimitMinor\x88\x01\x01\x12,\n" +
-	"\x0fcredit_currency\x18\r \x01(\tH\x04R\x0ecreditCurrency\x88\x01\x01B\x11\n" +
+	"\x0fcredit_currency\x18\r \x01(\tH\x04R\x0ecreditCurrency\x88\x01\x01\x121\n" +
+	"\x12payment_terms_days\x18\x0e \x01(\x05H\x05R\x10paymentTermsDays\x88\x01\x01B\x11\n" +
 	"\x0f_settlement_dayB\x18\n" +
 	"\x16_settlement_cycle_daysB\x12\n" +
 	"\x10_settlement_baseB\x15\n" +
 	"\x13_credit_limit_minorB\x12\n" +
-	"\x10_credit_currency\"\x97\x05\n" +
+	"\x10_credit_currencyB\x15\n" +
+	"\x13_payment_terms_days\"\xe1\x05\n" +
 	"\x1aPartnerSettlementRuleInput\x12L\n" +
 	"\x0estatement_mode\x18\x01 \x01(\x0e2 .partner.v1.PartnerStatementModeB\x03\xe0A\x02R\rstatementMode\x12U\n" +
 	"\x11settlement_method\x18\x02 \x01(\x0e2#.partner.v1.PartnerSettlementMethodB\x03\xe0A\x02R\x10settlementMethod\x12*\n" +
@@ -7960,12 +7978,15 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x13settlement_currency\x18\x06 \x01(\tB\x03\xe0A\x02R\x12settlementCurrency\x12\x1b\n" +
 	"\tis_active\x18\a \x01(\bR\bisActive\x121\n" +
 	"\x12credit_limit_minor\x18\b \x01(\x03H\x03R\x10creditLimitMinor\x88\x01\x01\x12,\n" +
-	"\x0fcredit_currency\x18\t \x01(\tH\x04R\x0ecreditCurrency\x88\x01\x01B\x11\n" +
+	"\x0fcredit_currency\x18\t \x01(\tH\x04R\x0ecreditCurrency\x88\x01\x01\x121\n" +
+	"\x12payment_terms_days\x18\n" +
+	" \x01(\x05H\x05R\x10paymentTermsDays\x88\x01\x01B\x11\n" +
 	"\x0f_settlement_dayB\x18\n" +
 	"\x16_settlement_cycle_daysB\x12\n" +
 	"\x10_settlement_baseB\x15\n" +
 	"\x13_credit_limit_minorB\x12\n" +
-	"\x10_credit_currency\"\x86\x01\n" +
+	"\x10_credit_currencyB\x15\n" +
+	"\x13_payment_terms_days\"\x86\x01\n" +
 	"!ListPartnerSettlementRulesRequest\x12\"\n" +
 	"\n" +
 	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12=\n" +

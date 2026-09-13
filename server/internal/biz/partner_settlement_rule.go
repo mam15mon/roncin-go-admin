@@ -70,6 +70,7 @@ type PartnerSettlementRule struct {
 	SettlementCurrency  string
 	CreditLimitMinor    *int64
 	CreditCurrency      *string
+	PaymentTermsDays    *int
 	IsActive            bool
 }
 
@@ -152,6 +153,10 @@ func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettl
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
 	if output.CreditCurrency != nil && (len(*output.CreditCurrency) != 3 || output.CreditLimitMinor == nil) {
+		return nil, ErrPartnerSettlementRuleInvalidArgument
+	}
+	// 默认信用账期天数（账单日 + N 天），可空表示未配置；范围与 Ent Schema 校验保持一致。
+	if output.PaymentTermsDays != nil && (*output.PaymentTermsDays < 0 || *output.PaymentTermsDays > 3650) {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
 	return &output, nil

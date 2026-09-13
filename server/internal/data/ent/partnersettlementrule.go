@@ -41,6 +41,8 @@ type PartnerSettlementRule struct {
 	CreditLimitMinor *int64 `json:"credit_limit_minor,omitempty"`
 	// CreditCurrency holds the value of the "credit_currency" field.
 	CreditCurrency *string `json:"credit_currency,omitempty"`
+	// 默认信用账期天数
+	PaymentTermsDays *int `json:"payment_terms_days,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -76,7 +78,7 @@ func (*PartnerSettlementRule) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partnersettlementrule.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case partnersettlementrule.FieldSettlementDay, partnersettlementrule.FieldSettlementCycleDays, partnersettlementrule.FieldCreditLimitMinor:
+		case partnersettlementrule.FieldSettlementDay, partnersettlementrule.FieldSettlementCycleDays, partnersettlementrule.FieldCreditLimitMinor, partnersettlementrule.FieldPaymentTermsDays:
 			values[i] = new(sql.NullInt64)
 		case partnersettlementrule.FieldStatementMode, partnersettlementrule.FieldSettlementMethod, partnersettlementrule.FieldSettlementBase, partnersettlementrule.FieldSettlementCurrency, partnersettlementrule.FieldCreditCurrency:
 			values[i] = new(sql.NullString)
@@ -176,6 +178,13 @@ func (_m *PartnerSettlementRule) assignValues(columns []string, values []any) er
 				_m.CreditCurrency = new(string)
 				*_m.CreditCurrency = value.String
 			}
+		case partnersettlementrule.FieldPaymentTermsDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_terms_days", values[i])
+			} else if value.Valid {
+				_m.PaymentTermsDays = new(int)
+				*_m.PaymentTermsDays = int(value.Int64)
+			}
 		case partnersettlementrule.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
@@ -264,6 +273,11 @@ func (_m *PartnerSettlementRule) String() string {
 	if v := _m.CreditCurrency; v != nil {
 		builder.WriteString("credit_currency=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentTermsDays; v != nil {
+		builder.WriteString("payment_terms_days=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")

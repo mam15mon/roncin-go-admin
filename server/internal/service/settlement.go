@@ -85,7 +85,7 @@ func (s *SettlementService) ListFinanceSettlementPartyOptions(ctx context.Contex
 	}
 	data := make([]*v1.FinanceSettlementPartyOption, 0, len(items))
 	for _, item := range items {
-		data = append(data, &v1.FinanceSettlementPartyOption{Id: item.ID, Code: item.Code, Name: item.Name, IsCasual: item.IsCasual})
+		data = append(data, &v1.FinanceSettlementPartyOption{Id: item.ID, Code: item.Code, Name: item.Name, IsCasual: item.IsCasual, CreditExceeded: item.CreditExceeded})
 	}
 	return okList(ctx, &v1.ListFinanceSettlementPartyOptionsResponse{Data: data, Total: total}), nil
 }

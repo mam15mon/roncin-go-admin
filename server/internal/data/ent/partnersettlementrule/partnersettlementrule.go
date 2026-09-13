@@ -38,6 +38,8 @@ const (
 	FieldCreditLimitMinor = "credit_limit_minor"
 	// FieldCreditCurrency holds the string denoting the credit_currency field in the database.
 	FieldCreditCurrency = "credit_currency"
+	// FieldPaymentTermsDays holds the string denoting the payment_terms_days field in the database.
+	FieldPaymentTermsDays = "payment_terms_days"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// EdgePartnerRole holds the string denoting the partner_role edge name in mutations.
@@ -67,6 +69,7 @@ var Columns = []string{
 	FieldSettlementCurrency,
 	FieldCreditLimitMinor,
 	FieldCreditCurrency,
+	FieldPaymentTermsDays,
 	FieldIsActive,
 }
 
@@ -93,6 +96,8 @@ var (
 	CreditLimitMinorValidator func(int64) error
 	// CreditCurrencyValidator is a validator for the "credit_currency" field. It is called by the builders before save.
 	CreditCurrencyValidator func(string) error
+	// PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
+	PaymentTermsDaysValidator func(int) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -236,6 +241,11 @@ func ByCreditLimitMinor(opts ...sql.OrderTermOption) OrderOption {
 // ByCreditCurrency orders the results by the credit_currency field.
 func ByCreditCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreditCurrency, opts...).ToFunc()
+}
+
+// ByPaymentTermsDays orders the results by the payment_terms_days field.
+func ByPaymentTermsDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentTermsDays, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

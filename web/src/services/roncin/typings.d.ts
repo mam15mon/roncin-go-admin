@@ -629,6 +629,11 @@ declare namespace API {
     estimatedInvoiceAmount?: string;
     isCasual?: boolean;
     defaultPaymentTermsDays?: number;
+    /** 信用额度比对信息（折本位币口径）：额度来自客户角色激活结算规则，余额来自已确认应收账单未核销总额。 */
+    creditLimitAmount?: string;
+    creditCurrency?: string;
+    currentUnsettledAmount?: string;
+    isCreditExceeded?: boolean;
   };
 
   type BillBatchPreviewGroupConfigInput = {
@@ -1672,6 +1677,15 @@ declare namespace API {
     message?: string;
     data?: FinanceVerification;
     traceId?: string;
+  };
+
+  type CreditLimitControlPolicy = {
+    organizationId?: string;
+    allowSelectionWhenCreditExceeded?: boolean;
+    /** 未保存过策略时为 0；首次保存需携带 expected_version=0。 */
+    version?: string;
+    updatedAt?: string;
+    updatedBy?: string;
   };
 
   type Currency = {
@@ -2798,6 +2812,7 @@ declare namespace API {
     code?: string;
     name?: string;
     isCasual?: boolean;
+    creditExceeded?: boolean;
   };
 
   type FinanceVerification = {
@@ -2874,6 +2889,16 @@ declare namespace API {
     message?: string;
     data?: FinanceCommission;
     traceId?: string;
+  };
+
+  type GetCreditLimitControlPolicyResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CreditLimitControlPolicy;
+    traceId?: string;
+    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。 */
+    canUpdate?: boolean;
   };
 
   type GetDingTalkInvitationInfoResponse = {
@@ -5229,6 +5254,7 @@ declare namespace API {
     updatedAt?: string;
     creditLimitMinor?: string;
     creditCurrency?: string;
+    paymentTermsDays?: number;
   };
 
   type PartnerSettlementRuleInput = {
@@ -5241,6 +5267,7 @@ declare namespace API {
     isActive?: boolean;
     creditLimitMinor?: string;
     creditCurrency?: string;
+    paymentTermsDays?: number;
   };
 
   type PartnerShippingPartyPayload = {
@@ -6833,6 +6860,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceGetCreditLimitControlPolicyParams = {
+    organizationId?: string;
+  };
+
   type SettlementServiceGetFeeLedgerOrderDetailParams = {
     orderId: string;
   };
@@ -7382,6 +7413,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderContainer;
+    traceId?: string;
+  };
+
+  type UpdateCreditLimitControlPolicyRequest = {
+    organizationId?: string;
+    allowSelectionWhenCreditExceeded?: boolean;
+    expectedVersion: string;
+  };
+
+  type UpdateCreditLimitControlPolicyResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CreditLimitControlPolicy;
     traceId?: string;
   };
 

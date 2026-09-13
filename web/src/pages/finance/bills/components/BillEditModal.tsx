@@ -9,10 +9,17 @@ import {
   Select,
   Space,
 } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
-import { settlementServiceListBillSettlementAccountUpdateCandidates } from '@/services/roncin/settlementService';
+import Decimal from 'decimal.js';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
+import {
+  settlementServiceListBillSettlementAccountUpdateCandidates,
+  settlementServiceListBills,
+} from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencyOptions, type SelectOption } from '@/utils/options';
+import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 import type { BillFormValues } from './billConstants';
 
 interface BillEditModalProps {
@@ -38,6 +45,76 @@ export default function BillEditModal({
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
   const requestSequenceRef = useRef(0);
+  // 草稿编辑路径与创建工作台共用同一套预警组装：按对方档案与未核销余额重组散客/超额预警。
+  const [counterparty, setCounterparty] = useState<{
+    isCasual?: boolean;
+    creditLimitAmount?: string;
+    creditCurrency?: string;
+    unsettledBaseAmount?: string;
+  }>();
+  const requestIdentity = open ? editing?.id : undefined;
+  const paymentTermsDays = Form.useWatch('paymentTermsDays', form);
+
+  useEffect(() => {
+    const settlementPartyId = editing?.settlementPartyId;
+    const baseCurrency = editing?.baseCurrency;
+    if (!open || !requestIdentity || !settlementPartyId || !baseCurrency) {
+      setCounterparty(undefined);
+      return undefined;
+    }
+    let cancelled = false;
+    void Promise.all([
+      partnerServiceGetPartner({ id: settlementPartyId }),
+      settlementServiceListBills({
+        page: 1,
+        pageSize: 1,
+        settlementPartyId,
+        direction: 'RECEIVABLE',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
+        onlyUnsettled: true,
+      }),
+    ])
+      .then(([partnerResponse, billsResponse]) => {
+        if (cancelled) return;
+        const partner = partnerResponse.data;
+        const customerRule = (partner?.roles ?? []).find(
+          (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        )?.settlementRule;
+        const unsettledBase = (
+          billsResponse.summary?.amountsByBaseCurrency ?? []
+        ).find(
+          (item) => item.baseCurrency === baseCurrency,
+        )?.unverifiedBaseAmount;
+        setCounterparty({
+          isCasual: Boolean(partner?.isCasual),
+          creditLimitAmount: customerRule?.creditLimitMinor
+            ? new Decimal(customerRule.creditLimitMinor).div(100).toString()
+            : undefined,
+          creditCurrency: customerRule?.creditCurrency,
+          unsettledBaseAmount: unsettledBase,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setCounterparty(undefined);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    editing?.baseCurrency,
+    editing?.settlementPartyId,
+    open,
+    requestIdentity,
+  ]);
+
+  const isCreditExceeded = useMemo(() => {
+    if (!counterparty?.creditLimitAmount || !counterparty.unsettledBaseAmount) {
+      return false;
+    }
+    const limit = new Decimal(counterparty.creditLimitAmount);
+    if (!limit.isPositive()) return false;
+    return new Decimal(counterparty.unsettledBaseAmount).greaterThan(limit);
+  }, [counterparty?.creditLimitAmount, counterparty?.unsettledBaseAmount]);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +180,17 @@ export default function BillEditModal({
       onOk={() => void onOk()}
     >
       <Form form={form} layout="vertical">
+        <BillTermsCreditWarnings
+          direction={editing?.direction}
+          isCasual={counterparty?.isCasual}
+          paymentTermsDays={paymentTermsDays}
+          creditLimitAmount={counterparty?.creditLimitAmount}
+          creditCurrency={counterparty?.creditCurrency}
+          currentUnsettledAmount={counterparty?.unsettledBaseAmount}
+          isCreditExceeded={isCreditExceeded}
+          billAmount={editing?.totalAmount}
+          billCurrency={editing?.currency}
+        />
         <Space size={16} align="start" wrap style={{ width: '100%' }}>
           <Form.Item
             name="statementTitle"

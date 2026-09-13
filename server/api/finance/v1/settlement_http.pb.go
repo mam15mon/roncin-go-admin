@@ -46,6 +46,7 @@ const OperationSettlementServiceExportCommissions = "/finance.v1.SettlementServi
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetBilledFeeEditPolicy = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
 const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/GetCommission"
+const OperationSettlementServiceGetCreditLimitControlPolicy = "/finance.v1.SettlementService/GetCreditLimitControlPolicy"
 const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
 const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
@@ -88,6 +89,7 @@ const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementSer
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 const OperationSettlementServiceUpdateBilledFeeEditPolicy = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 const OperationSettlementServiceUpdateCommissionRule = "/finance.v1.SettlementService/UpdateCommissionRule"
+const OperationSettlementServiceUpdateCreditLimitControlPolicy = "/finance.v1.SettlementService/UpdateCreditLimitControlPolicy"
 const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
@@ -121,6 +123,8 @@ type SettlementServiceHTTPServer interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
+	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+	GetCreditLimitControlPolicy(context.Context, *GetCreditLimitControlPolicyRequest) (*GetCreditLimitControlPolicyResponse, error)
 	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
@@ -172,6 +176,8 @@ type SettlementServiceHTTPServer interface {
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
+	// UpdateCreditLimitControlPolicy UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+	UpdateCreditLimitControlPolicy(context.Context, *UpdateCreditLimitControlPolicyRequest) (*UpdateCreditLimitControlPolicyResponse, error)
 	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
 	UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error)
 }
@@ -185,6 +191,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("DELETE", "/api/v1/finance/fees/preference", _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_GetBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/custom-settings/credit-limit-control-policy", _SettlementService_GetCreditLimitControlPolicy0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/custom-settings/credit-limit-control-policy", _SettlementService_UpdateCreditLimitControlPolicy0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/creation-candidates", _SettlementService_ListBillCreationCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bill-settlement-account-candidates", _SettlementService_ListBillSettlementAccountCandidates0_HTTP_Handler(srv))
@@ -384,6 +392,44 @@ func _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv SettlementSe
 			return err
 		}
 		reply := out.(*UpdateBilledFeeEditPolicyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetCreditLimitControlPolicy0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetCreditLimitControlPolicyRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetCreditLimitControlPolicy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetCreditLimitControlPolicy(ctx, req.(*GetCreditLimitControlPolicyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetCreditLimitControlPolicyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_UpdateCreditLimitControlPolicy0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateCreditLimitControlPolicyRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceUpdateCreditLimitControlPolicy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateCreditLimitControlPolicy(ctx, req.(*UpdateCreditLimitControlPolicyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateCreditLimitControlPolicyResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1729,6 +1775,8 @@ type SettlementServiceHTTPClient interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(ctx context.Context, req *GetBilledFeeEditPolicyRequest, opts ...http.CallOption) (rsp *GetBilledFeeEditPolicyResponse, err error)
 	GetCommission(ctx context.Context, req *GetCommissionRequest, opts ...http.CallOption) (rsp *GetCommissionResponse, err error)
+	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+	GetCreditLimitControlPolicy(ctx context.Context, req *GetCreditLimitControlPolicyRequest, opts ...http.CallOption) (rsp *GetCreditLimitControlPolicyResponse, err error)
 	GetFeeLedgerOrderDetail(ctx context.Context, req *GetFeeLedgerOrderDetailRequest, opts ...http.CallOption) (rsp *GetFeeLedgerOrderDetailResponse, err error)
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
@@ -1780,6 +1828,8 @@ type SettlementServiceHTTPClient interface {
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(ctx context.Context, req *UpdateBilledFeeEditPolicyRequest, opts ...http.CallOption) (rsp *UpdateBilledFeeEditPolicyResponse, err error)
 	UpdateCommissionRule(ctx context.Context, req *UpdateCommissionRuleRequest, opts ...http.CallOption) (rsp *UpdateCommissionRuleResponse, err error)
+	// UpdateCreditLimitControlPolicy UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+	UpdateCreditLimitControlPolicy(ctx context.Context, req *UpdateCreditLimitControlPolicyRequest, opts ...http.CallOption) (rsp *UpdateCreditLimitControlPolicyResponse, err error)
 	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
 	UpdateFeeLedgerPreference(ctx context.Context, req *UpdateFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *UpdateFeeLedgerPreferenceResponse, err error)
 }
@@ -2273,6 +2323,23 @@ func (c *SettlementServiceHTTPClientImpl) GetCommission(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceGetCommission),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
+func (c *SettlementServiceHTTPClientImpl) GetCreditLimitControlPolicy(ctx context.Context, in *GetCreditLimitControlPolicyRequest, opts ...http.CallOption) (*GetCreditLimitControlPolicyResponse, error) {
+	var out GetCreditLimitControlPolicyResponse
+	pattern := "/api/v1/finance/custom-settings/credit-limit-control-policy"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetCreditLimitControlPolicy),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -2966,6 +3033,24 @@ func (c *SettlementServiceHTTPClientImpl) UpdateCommissionRule(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceUpdateCommissionRule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateCreditLimitControlPolicy UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
+func (c *SettlementServiceHTTPClientImpl) UpdateCreditLimitControlPolicy(ctx context.Context, in *UpdateCreditLimitControlPolicyRequest, opts ...http.CallOption) (*UpdateCreditLimitControlPolicyResponse, error) {
+	var out UpdateCreditLimitControlPolicyResponse
+	pattern := "/api/v1/finance/custom-settings/credit-limit-control-policy"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceUpdateCreditLimitControlPolicy),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

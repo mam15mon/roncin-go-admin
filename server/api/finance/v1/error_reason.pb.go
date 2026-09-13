@@ -38,6 +38,8 @@ const (
 	ErrorReason_ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT                  ErrorReason = 10
 	ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID           ErrorReason = 11
 	ErrorReason_ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED ErrorReason = 12
+	// 直接干预模式下，订单委托客户或应收费用结算单位超出信用额度时的刚性拦截。
+	ErrorReason_ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED ErrorReason = 13
 )
 
 // Enum value maps for ErrorReason.
@@ -56,6 +58,7 @@ var (
 		10: "ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT",
 		11: "ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID",
 		12: "ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED",
+		13: "ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_FINANCE_UNSPECIFIED":                               0,
@@ -71,6 +74,7 @@ var (
 		"ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT":                  10,
 		"ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID":           11,
 		"ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED": 12,
+		"ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED":                     13,
 	}
 )
 
@@ -106,7 +110,7 @@ var File_finance_v1_error_reason_proto protoreflect.FileDescriptor
 const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dfinance/v1/error_reason.proto\x12\n" +
-	"finance.v1*\xa8\x05\n" +
+	"finance.v1*\xd8\x05\n" +
 	"\vErrorReason\x12$\n" +
 	" ERROR_REASON_FINANCE_UNSPECIFIED\x10\x00\x12*\n" +
 	"&ERROR_REASON_FEE_EXCHANGE_RATE_MISSING\x10\x01\x12)\n" +
@@ -121,7 +125,8 @@ const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"-ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT\x10\n" +
 	"\x128\n" +
 	"4ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID\x10\v\x12B\n" +
-	">ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED\x10\fB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	">ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED\x10\f\x12.\n" +
+	"*ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED\x10\rB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_error_reason_proto_rawDescOnce sync.Once
