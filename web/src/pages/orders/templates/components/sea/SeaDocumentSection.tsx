@@ -843,7 +843,7 @@ export function SeaBillContentFormFields({
 
       {/* 紧凑对照与条款区：四列网格，三行共享列边界（件数 / 毛重 / 体积 / 条款与操作） */}
       <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
-        <Col span={7}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -868,7 +868,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -896,7 +896,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -924,8 +924,8 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={7} />
-        <Col span={7}>
+        <Col span={6} />
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -951,7 +951,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -980,7 +980,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1009,7 +1009,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={7}>
+        <Col span={6}>
           {!disabled && (
             <Button
               type="link"
@@ -1028,7 +1028,7 @@ export function SeaBillContentFormFields({
             </Button>
           )}
         </Col>
-        <Col span={7}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1076,7 +1076,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1120,7 +1120,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={5}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1149,7 +1149,7 @@ export function SeaBillContentFormFields({
             </div>
           </div>
         </Col>
-        <Col span={7}>
+        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1180,15 +1180,17 @@ export function SeaBillContentFormFields({
         </Col>
       </Row>
 
-      <div style={{ maxWidth: 746, marginTop: 4, marginBottom: 8 }}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'clauses']}
-          label="提单特别条款 (Clauses)"
-          placeholder="选填，请输入提单特别条款"
-          disabled={disabled}
-          fieldProps={{ rows: 2 }}
-        />
-      </div>
+      <Row gutter={[16, 12]}>
+        <Col span={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'clauses']}
+            label="提单特别条款 (Clauses)"
+            placeholder="选填，请输入提单特别条款"
+            disabled={disabled}
+            fieldProps={{ maxLength: 1000, showCount: true, rows: 2 }}
+          />
+        </Col>
+      </Row>
     </div>
   );
 }
