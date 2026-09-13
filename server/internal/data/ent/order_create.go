@@ -97,6 +97,12 @@ func (_c *OrderCreate) SetOrderNo(v string) *OrderCreate {
 	return _c
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_c *OrderCreate) SetIdempotencyKey(v string) *OrderCreate {
+	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
 // SetCustomerID sets the "customer_id" field.
 func (_c *OrderCreate) SetCustomerID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetCustomerID(v)
@@ -1558,6 +1564,14 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "order_no", err: fmt.Errorf(`ent: validator failed for field "Order.order_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.IdempotencyKey(); !ok {
+		return &ValidationError{Name: "idempotency_key", err: errors.New(`ent: missing required field "Order.idempotency_key"`)}
+	}
+	if v, ok := _c.mutation.IdempotencyKey(); ok {
+		if err := order.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "Order.idempotency_key": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.CustomerID(); !ok {
 		return &ValidationError{Name: "customer_id", err: errors.New(`ent: missing required field "Order.customer_id"`)}
 	}
@@ -1877,6 +1891,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OrderNo(); ok {
 		_spec.SetField(order.FieldOrderNo, field.TypeString, value)
 		_node.OrderNo = value
+	}
+	if value, ok := _c.mutation.IdempotencyKey(); ok {
+		_spec.SetField(order.FieldIdempotencyKey, field.TypeString, value)
+		_node.IdempotencyKey = value
 	}
 	if value, ok := _c.mutation.CustomerReferenceNo(); ok {
 		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)
@@ -2731,6 +2749,18 @@ func (u *OrderUpsert) SetOrganizationID(v uuid.UUID) *OrderUpsert {
 // UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
 func (u *OrderUpsert) UpdateOrganizationID() *OrderUpsert {
 	u.SetExcluded(order.FieldOrganizationID)
+	return u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *OrderUpsert) SetIdempotencyKey(v string) *OrderUpsert {
+	u.Set(order.FieldIdempotencyKey, v)
+	return u
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateIdempotencyKey() *OrderUpsert {
+	u.SetExcluded(order.FieldIdempotencyKey)
 	return u
 }
 
@@ -3941,6 +3971,20 @@ func (u *OrderUpsertOne) SetOrganizationID(v uuid.UUID) *OrderUpsertOne {
 func (u *OrderUpsertOne) UpdateOrganizationID() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *OrderUpsertOne) SetIdempotencyKey(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateIdempotencyKey() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateIdempotencyKey()
 	})
 }
 
@@ -5506,6 +5550,20 @@ func (u *OrderUpsertBulk) SetOrganizationID(v uuid.UUID) *OrderUpsertBulk {
 func (u *OrderUpsertBulk) UpdateOrganizationID() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (u *OrderUpsertBulk) SetIdempotencyKey(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetIdempotencyKey(v)
+	})
+}
+
+// UpdateIdempotencyKey sets the "idempotency_key" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateIdempotencyKey() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateIdempotencyKey()
 	})
 }
 

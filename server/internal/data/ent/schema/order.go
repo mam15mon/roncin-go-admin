@@ -17,6 +17,9 @@ func (Order) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
+		// idempotency_key 为可变最新键：创建时写入请求幂等键（缺省由服务端生成），
+		// 草稿更新成功后覆写为本次键；同键 + 同 expectedVersion 的重放返回当前草稿。
+		field.String("idempotency_key").NotEmpty().MaxLen(128),
 		field.UUID("customer_id", uuid.Nil),
 		field.String("customer_reference_no").Optional().MaxLen(100),
 		field.String("internal_reference_no").Optional().MaxLen(100),
@@ -126,6 +129,7 @@ func (Order) Edges() []ent.Edge {
 func (Order) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "order_no").Unique(),
+		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "flow_status"),
 		index.Fields("organization_id", "termination_status"),
 		index.Fields("organization_id", "closure_status"),

@@ -30,6 +30,8 @@ type Order struct {
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderNo holds the value of the "order_no" field.
 	OrderNo string `json:"order_no,omitempty"`
+	// IdempotencyKey holds the value of the "idempotency_key" field.
+	IdempotencyKey string `json:"idempotency_key,omitempty"`
 	// CustomerID holds the value of the "customer_id" field.
 	CustomerID uuid.UUID `json:"customer_id,omitempty"`
 	// CustomerReferenceNo holds the value of the "customer_reference_no" field.
@@ -557,7 +559,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -607,6 +609,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field order_no", values[i])
 			} else if value.Valid {
 				_m.OrderNo = value.String
+			}
+		case order.FieldIdempotencyKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
+			} else if value.Valid {
+				_m.IdempotencyKey = value.String
 			}
 		case order.FieldCustomerID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -1234,6 +1242,9 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_no=")
 	builder.WriteString(_m.OrderNo)
+	builder.WriteString(", ")
+	builder.WriteString("idempotency_key=")
+	builder.WriteString(_m.IdempotencyKey)
 	builder.WriteString(", ")
 	builder.WriteString("customer_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CustomerID))

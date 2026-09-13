@@ -128,6 +128,7 @@ func newSharedContainerFixture(t *testing.T) *sharedContainerFixture {
 	}
 	for i := 1; i <= 2; i++ {
 		order, err := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo("SHRD-ORD-" + uuid.New().String()[:8]).
 			SetCustomerID(partner.ID).

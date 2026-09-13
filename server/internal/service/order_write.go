@@ -19,6 +19,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	if err != nil {
 		return nil, err
 	}
+	input.IdempotencyKey = request.GetIdempotencyKey()
 	if !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderCreate, true) {
 		return nil, biz.ErrPermissionDenied
 	}
@@ -46,6 +47,8 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderR
 	if err != nil {
 		return nil, err
 	}
+	// 幂等键只来自本次请求（可选，传入即启用重放保护），不从既有订单继承。
+	input.IdempotencyKey = request.GetIdempotencyKey()
 	updated, err := s.usecase.UpdateDraft(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), input)
 	if err != nil {
 		return nil, err

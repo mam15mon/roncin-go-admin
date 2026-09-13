@@ -77,6 +77,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	for _, link := range item.Edges.ServiceTypes {
 		result.ServiceTypeIDs = append(result.ServiceTypeIDs, link.MasterDataItemID)
 	}
+	result.IdempotencyKey = item.IdempotencyKey
 	result.CargoCategoryIDs = make([]uuid.UUID, 0, len(item.Edges.CargoCategories))
 	for _, link := range item.Edges.CargoCategories {
 		result.CargoCategoryIDs = append(result.CargoCategoryIDs, link.MasterDataItemID)

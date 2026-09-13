@@ -213,6 +213,7 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 		t.Fatalf("创建往来单位: %v", err)
 	}
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(branchID).
 		SetOrderNo("SE" + suffix).
 		SetCustomerID(partner.ID).

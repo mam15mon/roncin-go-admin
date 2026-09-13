@@ -96,7 +96,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	financeCustomSettingRepo := data.NewFinanceCustomSettingRepo(dataData)
 	financeCustomSettingUsecase := biz.NewFinanceCustomSettingUsecase(financeCustomSettingRepo)
 	partnerCreditUsecase := biz.NewPartnerCreditUsecase(financeBillRepo, financeCustomSettingUsecase)
-	orderUsecase := biz.NewOrderUsecase(orderRepo, businessTagRepo, seaMasterBillRepo, seaDocumentRepo, partnerCreditUsecase)
+	orderUsecase := biz.NewOrderUsecase(orderRepo, businessTagRepo, seaMasterBillRepo, seaDocumentRepo, partnerCreditUsecase, dataData)
 	orderService := service.NewOrderService(orderUsecase)
 	orderLockRepo := data.NewOrderLockRepo(dataData, security)
 	orderLockUsecase := biz.NewOrderLockUsecase(orderLockRepo)

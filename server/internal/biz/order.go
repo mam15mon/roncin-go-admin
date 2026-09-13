@@ -19,6 +19,8 @@ var (
 	ErrOrderClosureInvalid            = errors.BadRequest("ORDER_CLOSURE_INVALID", "订单结案状态流转不合法")
 	ErrOrderClosureBlocked            = errors.Conflict("ORDER_CLOSURE_BLOCKED", "订单尚未满足结案条件")
 	ErrOrderConsolidationShipmentType = errors.BadRequest("ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID", "仅拼箱订单可查看自拼汇总")
+	// 文案口径对齐建账幂等冲突（ErrFinanceBillIdempotencyConflict）。
+	ErrOrderIdempotencyConflict = errors.Conflict("ORDER_IDEMPOTENCY_CONFLICT", "订单请求幂等键已被其他请求使用")
 	// 内容写门禁专用：订单业务资料可编辑要求 termination_status=ACTIVE、
 	// closure_status=OPEN 且未业务锁定；生命周期命令不得复用这些错误。
 	ErrOrderTerminationInProgress = errors.Conflict("ORDER_TERMINATION_IN_PROGRESS", "订单已进入终止流程，不允许修改业务数据")
@@ -38,6 +40,7 @@ type OrderRepo interface {
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
 	ListSameBatchOrders(context.Context, uuid.UUID, uuid.UUID) ([]*SameBatchOrderSummary, error)
+	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*Order, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *Order, *AuditEvent) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, uint64, *Order, *AuditEvent) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, uint64, OrderFlowStatus, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
@@ -59,8 +62,9 @@ type OrderUsecase struct {
 	seaMasterBillRepo SeaMasterBillRepo
 	seaDocumentRepo   SeaDocumentRepo
 	creditControl     *PartnerCreditUsecase
+	transactor        Transactor
 }
 
-func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo, seaMasterBillRepo SeaMasterBillRepo, seaDocumentRepo SeaDocumentRepo, creditControl *PartnerCreditUsecase) *OrderUsecase {
-	return &OrderUsecase{repo: repo, tagRepo: tagRepo, seaMasterBillRepo: seaMasterBillRepo, seaDocumentRepo: seaDocumentRepo, creditControl: creditControl}
+func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo, seaMasterBillRepo SeaMasterBillRepo, seaDocumentRepo SeaDocumentRepo, creditControl *PartnerCreditUsecase, transactor Transactor) *OrderUsecase {
+	return &OrderUsecase{repo: repo, tagRepo: tagRepo, seaMasterBillRepo: seaMasterBillRepo, seaDocumentRepo: seaDocumentRepo, creditControl: creditControl, transactor: transactor}
 }

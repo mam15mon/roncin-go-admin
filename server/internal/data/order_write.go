@@ -48,9 +48,16 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err := validateOrderReferences(ctx, tx, organizationID, input, nil); err != nil {
 			return err
 		}
+		// 幂等键列为 NOT NULL；请求未提供时由服务端生成随机键填充（此时
+		// 上层不会启用幂等查询，行为与无键创建一致）。
+		storedIdempotencyKey := input.IdempotencyKey
+		if storedIdempotencyKey == "" {
+			storedIdempotencyKey = uuid.Must(uuid.NewV7()).String()
+		}
 		create := tx.Order.Create().
 			SetOrganizationID(organizationID).
 			SetOrderNo(number).
+			SetIdempotencyKey(storedIdempotencyKey).
 			SetCustomerID(input.CustomerID).
 			SetCustomerReferenceNo(input.CustomerReferenceNo).
 			SetBookingNo(input.BookingNo).
@@ -107,7 +114,12 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
 		created, err := create.Save(ctx)
 		if err != nil {
-			return mapEntConstraint(err, "order_organization_id_order_no", biz.ErrOrderNumberExists)
+			// 并发同键创建由 (organization_id, idempotency_key) 唯一索引兜底，
+			// 映射为幂等冲突后由上层用例重查解析为重放或冲突。
+			return mapEntConstraints(err,
+				entConstraintMapping{name: "order_organization_id_order_no", domainErr: biz.ErrOrderNumberExists},
+				entConstraintMapping{name: "order_organization_id_idempotency_key", domainErr: biz.ErrOrderIdempotencyConflict},
+			)
 		}
 		createdID = created.ID
 		if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
@@ -354,6 +366,12 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if queryErr != nil {
 			return queryErr
 		}
+		// 幂等重放（可变最新键）：同键 + 同 expectedVersion 的请求若已成功写入
+		// 一轮（当前行版本 == expectedVersion + 1 且行上键为本次键），直接返回
+		// 当前草稿，不产生任何副作用；键不同或版本不匹配走下方既有乐观锁 409。
+		if input.IdempotencyKey != "" && existing.IdempotencyKey == input.IdempotencyKey && existing.Version == expectedVersion+1 {
+			return nil
+		}
 		if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
 			return err
 		}
@@ -414,6 +432,10 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			SetOperationNotes(input.OperationNotes)
 		setOrderOptionalReferences(update, input)
 		setOrderOptionalAmounts(update, input)
+		// 可变最新键：更新成功后以本次请求的幂等键覆写（可选；未提供时保留原键）。
+		if input.IdempotencyKey != "" {
+			update.SetIdempotencyKey(input.IdempotencyKey)
+		}
 		if input.TotalPackages == nil {
 			update.ClearTotalPackages()
 		} else {

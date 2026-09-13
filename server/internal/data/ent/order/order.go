@@ -24,6 +24,8 @@ const (
 	FieldOrganizationID = "organization_id"
 	// FieldOrderNo holds the string denoting the order_no field in the database.
 	FieldOrderNo = "order_no"
+	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
+	FieldIdempotencyKey = "idempotency_key"
 	// FieldCustomerID holds the string denoting the customer_id field in the database.
 	FieldCustomerID = "customer_id"
 	// FieldCustomerReferenceNo holds the string denoting the customer_reference_no field in the database.
@@ -462,6 +464,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrganizationID,
 	FieldOrderNo,
+	FieldIdempotencyKey,
 	FieldCustomerID,
 	FieldCustomerReferenceNo,
 	FieldInternalReferenceNo,
@@ -548,6 +551,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
 	OrderNoValidator func(string) error
+	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	IdempotencyKeyValidator func(string) error
 	// CustomerReferenceNoValidator is a validator for the "customer_reference_no" field. It is called by the builders before save.
 	CustomerReferenceNoValidator func(string) error
 	// InternalReferenceNoValidator is a validator for the "internal_reference_no" field. It is called by the builders before save.
@@ -944,6 +949,11 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 // ByOrderNo orders the results by the order_no field.
 func ByOrderNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderNo, opts...).ToFunc()
+}
+
+// ByIdempotencyKey orders the results by the idempotency_key field.
+func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
 }
 
 // ByCustomerID orders the results by the customer_id field.
