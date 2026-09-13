@@ -97,4 +97,3 @@ func TestKnownAirlinesIntegrity(t *testing.T) {
 		}
 	}
 }
-

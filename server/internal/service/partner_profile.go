@@ -116,7 +116,7 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 		Code: request.GetCode(), LegalName: request.GetLegalName(),
 		UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(), RegisteredAddress: request.GetRegisteredAddress(),
 		IsCasual: request.GetIsCasual(),
-		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
+		Roles:    partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})
 	if err != nil {
@@ -138,7 +138,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 		LegalName: request.GetLegalName(), UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(),
 		RegisteredAddress: request.GetRegisteredAddress(), Enabled: request.GetEnabled(),
 		IsCasual: request.GetIsCasual(),
-		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
+		Roles:    partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})
 	if err != nil {

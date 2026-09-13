@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	openFlightsSource      = "OPENFLIGHTS"
-	defaultOpenFlightsURL  = "https://raw.githubusercontent.com/jpatokal/openflights/master/data/airlines.dat"
-	httpTimeout            = 30 * time.Second
+	openFlightsSource     = "OPENFLIGHTS"
+	defaultOpenFlightsURL = "https://raw.githubusercontent.com/jpatokal/openflights/master/data/airlines.dat"
+	httpTimeout           = 30 * time.Second
 )
 
 var (

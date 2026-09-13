@@ -63,8 +63,8 @@ func TestClampNotificationBytes(t *testing.T) {
 		{
 			name:     "chinese truncated on rune boundary",
 			input:    "成都分公司", // 15 bytes
-			maxBytes: 14,     // 14 is inside the 5th character ("司", bytes 12..14)
-			want:     "成都分公", // 4 * 3 = 12 bytes
+			maxBytes: 14,      // 14 is inside the 5th character ("司", bytes 12..14)
+			want:     "成都分公",  // 4 * 3 = 12 bytes
 		},
 		{
 			name:     "chinese truncated on rune boundary 2",
