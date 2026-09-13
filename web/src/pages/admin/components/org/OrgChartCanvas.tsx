@@ -1,27 +1,919 @@
-import { OrganizationChart } from '@ant-design/graphs';
 import { ApartmentOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, Space, Spin, Tag, Tooltip } from 'antd';
-import React, { useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { buildOrgTree, type OrgTreeNode } from '../../organization-tree';
 import { getOrganizationKindMeta } from './types';
 
-type OrgChartCanvasProps = {
+export type OrgChartCanvasProps = {
   loading: boolean;
-  graphData: { nodes: any[]; edges: any[] };
+  graphData?: { nodes: any[]; edges: any[] };
+  treeData?: OrgTreeNode[];
   chartDirection: 'vertical' | 'horizontal';
   selectedId: string;
   onSelectNode: (id: string) => void;
   onOpenDrawer: () => void;
 };
 
+type BranchProps = {
+  node: OrgTreeNode;
+  selectedId: string;
+  hasParent: boolean;
+  direction: 'vertical' | 'horizontal';
+  collapsedKeys: Set<string>;
+  onToggleCollapse: (key: string) => void;
+  onSelectNode: (id: string) => void;
+  onOpenDrawer: () => void;
+  isDragMoved: () => boolean;
+};
+
+type CardProps = {
+  node: OrgTreeNode;
+  isSelected: boolean;
+  hasParent: boolean;
+  hasChildren: boolean;
+  direction: 'vertical' | 'horizontal';
+  isDragMoved: () => boolean;
+  onSelect: () => void;
+};
+
+function OrgCard({
+  node,
+  isSelected,
+  hasParent,
+  hasChildren,
+  direction,
+  isDragMoved,
+  onSelect,
+}: CardProps) {
+  const kindMeta = getOrganizationKindMeta(node.kind);
+  const childrenCount = node.children?.length ?? 0;
+  const isVertical = direction === 'vertical';
+
+  return (
+    <div
+      data-node-id={node.key}
+      onClick={() => {
+        if (!isDragMoved()) {
+          onSelect();
+        }
+      }}
+      style={{
+        width: 220,
+        height: 82,
+        backgroundColor: '#ffffff',
+        borderRadius: 8,
+        border: isSelected ? '2px solid #1677ff' : '1px solid #e2e8f0',
+        boxShadow: isSelected
+          ? '0 4px 14px rgba(22, 119, 255, 0.22)'
+          : '0 1px 3px rgba(0, 0, 0, 0.05)',
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        cursor: 'pointer',
+        boxSizing: 'border-box',
+        position: 'relative',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        userSelect: 'none',
+        flexShrink: 0,
+        zIndex: 2,
+      }}
+    >
+      {/* Anchor Port Dot - Incoming from Parent */}
+      {hasParent && (
+        <div
+          style={{
+            position: 'absolute',
+            ...(isVertical
+              ? {
+                  top: -4,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                }
+              : {
+                  left: -4,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }),
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            backgroundColor: '#1677ff',
+            border: '2px solid #ffffff',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.25)',
+            zIndex: 5,
+          }}
+        />
+      )}
+
+      {/* Anchor Port Dot - Outgoing to Children */}
+      {hasChildren && (
+        <div
+          style={{
+            position: 'absolute',
+            ...(isVertical
+              ? {
+                  bottom: -4,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                }
+              : {
+                  right: -4,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }),
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            backgroundColor: '#1677ff',
+            border: '2px solid #ffffff',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.25)',
+            zIndex: 5,
+          }}
+        />
+      )}
+
+      {/* Top Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          <ApartmentOutlined
+            style={{
+              color: isSelected ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
+              fontSize: 14,
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: 13,
+              color: isSelected ? '#1677ff' : 'rgba(0, 0, 0, 0.88)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+            title={node.title}
+          >
+            {node.title || '未命名组织'}
+          </span>
+        </div>
+        {node.enabled ? (
+          <Tag
+            color="success"
+            variant="filled"
+            style={{
+              margin: 0,
+              fontSize: 10,
+              lineHeight: '16px',
+              padding: '0 4px',
+              flexShrink: 0,
+            }}
+          >
+            启用
+          </Tag>
+        ) : (
+          <Tag
+            color="default"
+            variant="filled"
+            style={{
+              margin: 0,
+              fontSize: 10,
+              lineHeight: '16px',
+              padding: '0 4px',
+              flexShrink: 0,
+            }}
+          >
+            停用
+          </Tag>
+        )}
+      </div>
+
+      {/* Bottom Meta */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: 11,
+          color: 'rgba(0, 0, 0, 0.45)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            minWidth: 0,
+          }}
+        >
+          {kindMeta && (
+            <Tag
+              color={kindMeta.color}
+              variant="filled"
+              style={{
+                margin: 0,
+                fontSize: 10,
+                lineHeight: '16px',
+                padding: '0 4px',
+                flexShrink: 0,
+              }}
+            >
+              {kindMeta.label}
+            </Tag>
+          )}
+          <span
+            style={{
+              fontFamily: 'monospace',
+              color: 'rgba(0, 0, 0, 0.45)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: 76,
+            }}
+            title={node.code}
+          >
+            {node.code || '-'}
+          </span>
+        </div>
+
+        {childrenCount > 0 && (
+          <span
+            style={{
+              color: '#1677ff',
+              fontWeight: 500,
+              fontSize: 11,
+              flexShrink: 0,
+            }}
+          >
+            {childrenCount} 个下级
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VerticalBranch({
+  node,
+  selectedId,
+  hasParent,
+  direction,
+  collapsedKeys,
+  onToggleCollapse,
+  onSelectNode,
+  onOpenDrawer,
+  isDragMoved,
+}: BranchProps) {
+  const isSelected = node.key === selectedId;
+  const children = node.children ?? [];
+  const hasChildren = children.length > 0;
+  const isCollapsed = collapsedKeys.has(node.key);
+
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        verticalAlign: 'top',
+      }}
+    >
+      <OrgCard
+        node={node}
+        isSelected={isSelected}
+        hasParent={hasParent}
+        hasChildren={hasChildren}
+        direction={direction}
+        isDragMoved={isDragMoved}
+        onSelect={() => {
+          onSelectNode(node.key);
+          onOpenDrawer();
+        }}
+      />
+
+      {/* Subtree when expanded */}
+      {hasChildren && !isCollapsed && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          {/* Vertical stem down from parent */}
+          <div
+            style={{
+              width: 2,
+              height: 24,
+              backgroundColor: '#94a3b8',
+              position: 'relative',
+            }}
+          >
+            <button
+              type="button"
+              data-interactive="true"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCollapse(node.key);
+              }}
+              title="折叠下级"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                lineHeight: 1,
+                cursor: 'pointer',
+                padding: 0,
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+                zIndex: 4,
+              }}
+            >
+              -
+            </button>
+          </div>
+
+          {/* Children container */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {children.map((child, idx) => (
+              <div
+                key={child.key}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  position: 'relative',
+                  padding: '0 16px',
+                }}
+              >
+                {/* Horizontal branch line joining siblings */}
+                {children.length > 1 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      height: 2,
+                      backgroundColor: '#94a3b8',
+                      left: idx === 0 ? '50%' : 0,
+                      right: idx === children.length - 1 ? '50%' : 0,
+                    }}
+                  />
+                )}
+
+                {/* Vertical stem down into this child */}
+                <div
+                  style={{
+                    width: 2,
+                    height: 20,
+                    backgroundColor: '#94a3b8',
+                  }}
+                />
+
+                {/* Recursive branch */}
+                <VerticalBranch
+                  node={child}
+                  selectedId={selectedId}
+                  hasParent={true}
+                  direction={direction}
+                  collapsedKeys={collapsedKeys}
+                  onToggleCollapse={onToggleCollapse}
+                  onSelectNode={onSelectNode}
+                  onOpenDrawer={onOpenDrawer}
+                  isDragMoved={isDragMoved}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Collapsed Indicator Button */}
+      {hasChildren && isCollapsed && (
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: 2,
+              height: 14,
+              backgroundColor: '#94a3b8',
+            }}
+          />
+          <button
+            type="button"
+            data-interactive="true"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse(node.key);
+            }}
+            title={`展开 ${children.length} 个下级`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: '2px 8px',
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 12,
+              border: '1px solid #93c5fd',
+              backgroundColor: '#eff6ff',
+              color: '#1677ff',
+              cursor: 'pointer',
+              boxShadow: '0 1px 3px rgba(22, 119, 255, 0.15)',
+              zIndex: 4,
+            }}
+          >
+            +{children.length}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HorizontalBranch({
+  node,
+  selectedId,
+  hasParent,
+  direction,
+  collapsedKeys,
+  onToggleCollapse,
+  onSelectNode,
+  onOpenDrawer,
+  isDragMoved,
+}: BranchProps) {
+  const isSelected = node.key === selectedId;
+  const children = node.children ?? [];
+  const hasChildren = children.length > 0;
+  const isCollapsed = collapsedKeys.has(node.key);
+
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+      }}
+    >
+      <OrgCard
+        node={node}
+        isSelected={isSelected}
+        hasParent={hasParent}
+        hasChildren={hasChildren}
+        direction={direction}
+        isDragMoved={isDragMoved}
+        onSelect={() => {
+          onSelectNode(node.key);
+          onOpenDrawer();
+        }}
+      />
+
+      {/* Subtree when expanded */}
+      {hasChildren && !isCollapsed && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          {/* Horizontal stem right from parent */}
+          <div
+            style={{
+              width: 28,
+              height: 2,
+              backgroundColor: '#94a3b8',
+              position: 'relative',
+              flexShrink: 0,
+            }}
+          >
+            <button
+              type="button"
+              data-interactive="true"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCollapse(node.key);
+              }}
+              title="折叠下级"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                lineHeight: 1,
+                cursor: 'pointer',
+                padding: 0,
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+                zIndex: 4,
+              }}
+            >
+              -
+            </button>
+          </div>
+
+          {/* Children container */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            {children.map((child, idx) => (
+              <div
+                key={child.key}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  position: 'relative',
+                  padding: '12px 0',
+                }}
+              >
+                {/* Vertical bus bar joining siblings */}
+                {children.length > 1 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      width: 2,
+                      backgroundColor: '#94a3b8',
+                      top: idx === 0 ? '50%' : 0,
+                      bottom: idx === children.length - 1 ? '50%' : 0,
+                    }}
+                  />
+                )}
+
+                {/* Horizontal stem into this child */}
+                <div
+                  style={{
+                    width: 24,
+                    height: 2,
+                    backgroundColor: '#94a3b8',
+                    flexShrink: 0,
+                  }}
+                />
+
+                {/* Recursive branch */}
+                <HorizontalBranch
+                  node={child}
+                  selectedId={selectedId}
+                  hasParent={true}
+                  direction={direction}
+                  collapsedKeys={collapsedKeys}
+                  onToggleCollapse={onToggleCollapse}
+                  onSelectNode={onSelectNode}
+                  onOpenDrawer={onOpenDrawer}
+                  isDragMoved={isDragMoved}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Collapsed Indicator Button */}
+      {hasChildren && isCollapsed && (
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              width: 14,
+              height: 2,
+              backgroundColor: '#94a3b8',
+            }}
+          />
+          <button
+            type="button"
+            data-interactive="true"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse(node.key);
+            }}
+            title={`展开 ${children.length} 个下级`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: '2px 8px',
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 12,
+              border: '1px solid #93c5fd',
+              backgroundColor: '#eff6ff',
+              color: '#1677ff',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 3px rgba(22, 119, 255, 0.15)',
+              zIndex: 4,
+            }}
+          >
+            +{children.length}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OrgChartCanvas({
   loading,
   graphData,
+  treeData,
   chartDirection,
   selectedId,
   onSelectNode,
   onOpenDrawer,
 }: OrgChartCanvasProps) {
-  const graphRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
+  const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(new Set());
+
+  const offsetRef = useRef(offset);
+  useEffect(() => {
+    offsetRef.current = offset;
+  }, [offset]);
+
+  const isPanningRef = useRef(false);
+  const dragRef = useRef({
+    startX: 0,
+    startY: 0,
+    startOffsetX: 0,
+    startOffsetY: 0,
+    moved: false,
+  });
+
+  // Reconcile tree data: prefer treeData prop, fallback to reconstructing from graphData
+  const effectiveTreeData = useMemo(() => {
+    if (treeData && treeData.length > 0) return treeData;
+    if (!graphData?.nodes || graphData.nodes.length === 0) return [];
+
+    const orgs: API.AdminOrganization[] = graphData.nodes.map((n) => {
+      const d = (n.data || n) as API.AdminOrganization;
+      return {
+        id: d.id,
+        name: d.name,
+        code: d.code,
+        kind: d.kind,
+        enabled: d.enabled,
+        parentId: d.parentId,
+      };
+    });
+    return buildOrgTree(orgs).treeData;
+  }, [treeData, graphData]);
+
+  // Fit View logic
+  const fitView = useCallback(() => {
+    if (!containerRef.current || !contentRef.current) return;
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    const contentWidth =
+      contentRef.current.offsetWidth || contentRef.current.scrollWidth;
+    const contentHeight =
+      contentRef.current.offsetHeight || contentRef.current.scrollHeight;
+
+    if (!containerWidth || !containerHeight || !contentWidth || !contentHeight)
+      return;
+
+    const padding = 50;
+    const availableWidth = Math.max(containerWidth - padding * 2, 100);
+    const availableHeight = Math.max(containerHeight - padding * 2, 100);
+
+    const scaleX = availableWidth / contentWidth;
+    const scaleY = availableHeight / contentHeight;
+    const fitScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.35), 1.15);
+
+    const newOffsetX = (containerWidth - contentWidth * fitScale) / 2;
+    const newOffsetY =
+      chartDirection === 'vertical'
+        ? Math.max(24, (containerHeight - contentHeight * fitScale) / 3)
+        : (containerHeight - contentHeight * fitScale) / 2;
+
+    setZoom(fitScale);
+    setOffset({ x: Math.round(newOffsetX), y: Math.round(newOffsetY) });
+  }, [chartDirection]);
+
+  // Auto fit on data load or direction switch
+  useEffect(() => {
+    if (effectiveTreeData.length > 0 && !loading) {
+      const timer = setTimeout(() => {
+        fitView();
+      }, 50);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+    return undefined;
+  }, [effectiveTreeData, chartDirection, loading, fitView]);
+
+  // Mouse wheel zoom listener (passive: false to prevent document scroll)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      setZoom((prevZoom) => {
+        const nextZoom = Math.min(Math.max(prevZoom * zoomFactor, 0.3), 2.5);
+        if (nextZoom === prevZoom) return prevZoom;
+
+        setOffset((prevOffset) => {
+          const contentX = (mouseX - prevOffset.x) / prevZoom;
+          const contentY = (mouseY - prevOffset.y) / prevZoom;
+          return {
+            x: mouseX - contentX * nextZoom,
+            y: mouseY - contentY * nextZoom,
+          };
+        });
+        return nextZoom;
+      });
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  // Canvas Pan handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0 && e.button !== 1) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, [data-interactive="true"]')) {
+      return;
+    }
+    isPanningRef.current = true;
+    setIsPanning(true);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startOffsetX: offsetRef.current.x,
+      startOffsetY: offsetRef.current.y,
+      moved: false,
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPanningRef.current) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        dragRef.current.moved = true;
+      }
+      setOffset({
+        x: dragRef.current.startOffsetX + dx,
+        y: dragRef.current.startOffsetY + dy,
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (isPanningRef.current) {
+        isPanningRef.current = false;
+        setIsPanning(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  // Zoom helpers for floating controls
+  const handleZoomIn = () => {
+    if (!containerRef.current) return;
+    const nextZoom = Math.min(zoom * 1.2, 2.5);
+    const cx = containerRef.current.clientWidth / 2;
+    const cy = containerRef.current.clientHeight / 2;
+    setOffset({
+      x: cx - ((cx - offset.x) / zoom) * nextZoom,
+      y: cy - ((cy - offset.y) / zoom) * nextZoom,
+    });
+    setZoom(nextZoom);
+  };
+
+  const handleZoomOut = () => {
+    if (!containerRef.current) return;
+    const nextZoom = Math.max(zoom * 0.8, 0.3);
+    const cx = containerRef.current.clientWidth / 2;
+    const cy = containerRef.current.clientHeight / 2;
+    setOffset({
+      x: cx - ((cx - offset.x) / zoom) * nextZoom,
+      y: cy - ((cy - offset.y) / zoom) * nextZoom,
+    });
+    setZoom(nextZoom);
+  };
+
+  const handleResetZoom = () => {
+    if (!containerRef.current || !contentRef.current) return;
+    const cw = contentRef.current.offsetWidth || contentRef.current.scrollWidth;
+    const ch =
+      contentRef.current.offsetHeight || contentRef.current.scrollHeight;
+    const vw = containerRef.current.clientWidth;
+    const vh = containerRef.current.clientHeight;
+    setZoom(1);
+    setOffset({
+      x: Math.max(24, (vw - cw) / 2),
+      y: chartDirection === 'vertical' ? 36 : Math.max(24, (vh - ch) / 2),
+    });
+  };
+
+  // Branch collapse / expand
+  const handleToggleCollapse = (key: string) => {
+    setCollapsedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => {
+    setCollapsedKeys(new Set());
+  };
+
+  const handleCollapseAll = () => {
+    const keys = new Set<string>();
+    const traverse = (nodes: OrgTreeNode[]) => {
+      for (const node of nodes) {
+        if (node.children && node.children.length > 0) {
+          keys.add(node.key);
+          traverse(node.children);
+        }
+      }
+    };
+    traverse(effectiveTreeData);
+    setCollapsedKeys(keys);
+  };
 
   return (
     <Card
@@ -30,265 +922,73 @@ export default function OrgChartCanvas({
         minHeight: 640,
         overflow: 'hidden',
         position: 'relative',
+        backgroundColor: '#f8fafc',
       }}
     >
       <Spin spinning={loading}>
-        {graphData.nodes.length > 0 ? (
+        {effectiveTreeData.length > 0 ? (
           <div
-            style={{ height: 'calc(100vh - 270px)', minHeight: 600 }}
-            onMouseDown={(e) => {
-              if (e.button === 1) {
-                e.preventDefault();
-              }
+            ref={containerRef}
+            style={{
+              height: 'calc(100vh - 270px)',
+              minHeight: 600,
+              overflow: 'hidden',
+              position: 'relative',
+              cursor: isPanning ? 'grabbing' : 'grab',
+              backgroundColor: '#f8fafc',
+              backgroundImage:
+                'radial-gradient(#cbd5e1 1.2px, transparent 1.2px)',
+              backgroundSize: '20px 20px',
             }}
+            onMouseDown={handleMouseDown}
           >
-            <OrganizationChart
-              ref={graphRef}
-              data={graphData}
-              direction={chartDirection}
-              autoFit="center"
-              node={{
-                style: {
-                  size: [210, 80],
-                  ports:
-                    chartDirection === 'vertical'
-                      ? [
-                          { key: 'in', placement: 'top' },
-                          { key: 'out', placement: 'bottom' },
-                        ]
-                      : [
-                          { key: 'in', placement: 'left' },
-                          { key: 'out', placement: 'right' },
-                        ],
-                  component: (nodeData: Record<string, unknown>) => {
-                    const item = (nodeData.data || nodeData) as {
-                      id: string;
-                      name: string;
-                      code: string;
-                      kind: number;
-                      enabled: boolean;
-                      parentId?: string;
-                      childrenCount?: number;
-                    };
-                    const isCurrentSelected = item.id === selectedId;
-
-                    return (
-                      <div
-                        onClick={() => {
-                          if (item.id) {
-                            onSelectNode(item.id);
-                            onOpenDrawer();
-                          }
-                        }}
-                        style={{
-                          width: 210,
-                          height: 80,
-                          backgroundColor: '#ffffff',
-                          borderRadius: 8,
-                          border: isCurrentSelected
-                            ? '2px solid #1677ff'
-                            : '1px solid #e2e8f0',
-                          boxShadow: isCurrentSelected
-                            ? '0 4px 14px rgba(22, 119, 255, 0.25)'
-                            : '0 2px 6px rgba(0, 0, 0, 0.04)',
-                          padding: '9px 12px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          cursor: 'pointer',
-                          boxSizing: 'border-box',
-                          position: 'relative',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {item.parentId && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              ...(chartDirection === 'vertical'
-                                ? {
-                                    top: -4,
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                  }
-                                : {
-                                    left: -4,
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                  }),
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              backgroundColor: '#1677ff',
-                              border: '2px solid #ffffff',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
-                              zIndex: 5,
-                            }}
-                          />
-                        )}
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              minWidth: 0,
-                            }}
-                          >
-                            <ApartmentOutlined
-                              style={{
-                                color: isCurrentSelected
-                                  ? '#1677ff'
-                                  : 'rgba(0, 0, 0, 0.45)',
-                                fontSize: 14,
-                              }}
-                            />
-                            <span
-                              style={{
-                                fontWeight: 600,
-                                fontSize: 13,
-                                color: isCurrentSelected
-                                  ? '#1677ff'
-                                  : 'rgba(0, 0, 0, 0.88)',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                maxWidth: 120,
-                              }}
-                              title={item.name}
-                            >
-                              {item.name}
-                            </span>
-                          </div>
-                          {item.enabled ? (
-                            <Tag
-                              color="success"
-                              variant="filled"
-                              style={{
-                                margin: 0,
-                                fontSize: 10,
-                                lineHeight: '16px',
-                                padding: '0 4px',
-                              }}
-                            >
-                              启用
-                            </Tag>
-                          ) : (
-                            <Tag
-                              color="default"
-                              variant="filled"
-                              style={{
-                                margin: 0,
-                                fontSize: 10,
-                                lineHeight: '16px',
-                                padding: '0 4px',
-                              }}
-                            >
-                              停用
-                            </Tag>
-                          )}
-                        </div>
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            fontSize: 11,
-                            color: 'rgba(0, 0, 0, 0.45)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                            }}
-                          >
-                            <Tag
-                              color={getOrganizationKindMeta(item.kind)?.color}
-                              variant="filled"
-                              style={{
-                                margin: 0,
-                                fontSize: 10,
-                                lineHeight: '16px',
-                                padding: '0 4px',
-                              }}
-                            >
-                              {getOrganizationKindMeta(item.kind)?.label}
-                            </Tag>
-                            <span
-                              style={{
-                                fontFamily: 'monospace',
-                                color: 'rgba(0, 0, 0, 0.45)',
-                              }}
-                            >
-                              {item.code}
-                            </span>
-                          </div>
-
-                          {(item.childrenCount ?? 0) > 0 && (
-                            <span style={{ color: '#1677ff', fontWeight: 500 }}>
-                              {item.childrenCount} 个下级
-                            </span>
-                          )}
-                        </div>
-
-                        {(item.childrenCount ?? 0) > 0 && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              ...(chartDirection === 'vertical'
-                                ? {
-                                    bottom: -4,
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                  }
-                                : {
-                                    right: -4,
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                  }),
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              backgroundColor: '#1677ff',
-                              border: '2px solid #ffffff',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
-                              zIndex: 5,
-                            }}
-                          />
-                        )}
-                      </div>
-                    );
-                  },
-                },
+            <div
+              ref={contentRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+                transformOrigin: '0 0',
+                transition: isPanning
+                  ? 'none'
+                  : 'transform 0.12s cubic-bezier(0.2, 0, 0, 1)',
+                display: 'inline-flex',
+                flexDirection: chartDirection === 'vertical' ? 'row' : 'column',
+                gap: chartDirection === 'vertical' ? 48 : 36,
+                padding: 60,
               }}
-              edge={{
-                style: {
-                  stroke: '#94a3b8',
-                  lineWidth: 1.5,
-                  strokeOpacity: 0.85,
-                  endArrow: true,
-                  router: {
-                    type: 'orth',
-                  },
-                },
-              }}
-              behaviors={[
-                'drag-canvas',
-                'zoom-canvas',
-                'drag-element',
-                'collapse-expand',
-              ]}
-            />
+            >
+              {effectiveTreeData.map((rootNode) =>
+                chartDirection === 'vertical' ? (
+                  <VerticalBranch
+                    key={rootNode.key}
+                    node={rootNode}
+                    selectedId={selectedId}
+                    hasParent={false}
+                    direction={chartDirection}
+                    collapsedKeys={collapsedKeys}
+                    onToggleCollapse={handleToggleCollapse}
+                    onSelectNode={onSelectNode}
+                    onOpenDrawer={onOpenDrawer}
+                    isDragMoved={() => dragRef.current.moved}
+                  />
+                ) : (
+                  <HorizontalBranch
+                    key={rootNode.key}
+                    node={rootNode}
+                    selectedId={selectedId}
+                    hasParent={false}
+                    direction={chartDirection}
+                    collapsedKeys={collapsedKeys}
+                    onToggleCollapse={handleToggleCollapse}
+                    onSelectNode={onSelectNode}
+                    onOpenDrawer={onOpenDrawer}
+                    isDragMoved={() => dragRef.current.moved}
+                  />
+                ),
+              )}
+            </div>
           </div>
         ) : (
           <Empty
@@ -306,56 +1006,63 @@ export default function OrgChartCanvas({
           bottom: 16,
           right: 16,
           zIndex: 10,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(4px)',
           padding: '4px 8px',
-          borderRadius: 6,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+          borderRadius: 8,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
           border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
         <Space size={4}>
           <Tooltip title="自适应画布居中">
-            <Button
-              size="small"
-              type="text"
-              onClick={() => {
-                graphRef.current?.fitCenter?.();
-                graphRef.current?.fitView?.();
-              }}
-            >
+            <Button size="small" type="text" onClick={fitView}>
               居中适界
             </Button>
           </Tooltip>
-          <Tooltip title="放大">
-            <Button
-              size="small"
-              type="text"
-              onClick={() => {
-                const currentZoom = graphRef.current?.getZoom?.() || 1;
-                graphRef.current?.zoomTo?.(currentZoom * 1.2);
-              }}
-            >
-              +
+          <Tooltip title="全部展开">
+            <Button size="small" type="text" onClick={handleExpandAll}>
+              全部展开
             </Button>
           </Tooltip>
+          <Tooltip title="全部折叠">
+            <Button size="small" type="text" onClick={handleCollapseAll}>
+              全部折叠
+            </Button>
+          </Tooltip>
+          <div
+            style={{
+              width: 1,
+              height: 16,
+              backgroundColor: '#e2e8f0',
+              margin: '0 4px',
+            }}
+          />
           <Tooltip title="缩小">
-            <Button
-              size="small"
-              type="text"
-              onClick={() => {
-                const currentZoom = graphRef.current?.getZoom?.() || 1;
-                graphRef.current?.zoomTo?.(currentZoom * 0.8);
-              }}
-            >
+            <Button size="small" type="text" onClick={handleZoomOut}>
               -
             </Button>
           </Tooltip>
+          <span
+            style={{
+              fontSize: 12,
+              color: 'rgba(0, 0, 0, 0.65)',
+              minWidth: 42,
+              textAlign: 'center',
+              fontFamily: 'monospace',
+            }}
+          >
+            {Math.round(zoom * 100)}%
+          </span>
+          <Tooltip title="放大">
+            <Button size="small" type="text" onClick={handleZoomIn}>
+              +
+            </Button>
+          </Tooltip>
           <Tooltip title="重置缩放到 100%">
-            <Button
-              size="small"
-              type="text"
-              onClick={() => graphRef.current?.zoomTo?.(1)}
-            >
+            <Button size="small" type="text" onClick={handleResetZoom}>
               1:1
             </Button>
           </Tooltip>

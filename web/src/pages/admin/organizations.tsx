@@ -340,6 +340,7 @@ export default function OrganizationsPanel() {
       {viewMode === 'chart' && (
         <OrgChartCanvas
           loading={loading}
+          treeData={treeData}
           graphData={graphData}
           chartDirection={chartDirection}
           selectedId={selectedId}
