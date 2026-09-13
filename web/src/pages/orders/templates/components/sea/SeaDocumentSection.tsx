@@ -1180,7 +1180,7 @@ export function SeaBillContentFormFields({
         </Col>
       </Row>
 
-      <Row gutter={[16, 12]}>
+      <Row gutter={[0, 12]}>
         <Col span={12}>
           <ProFormTextArea
             name={[...namePathPrefix, 'clauses']}
