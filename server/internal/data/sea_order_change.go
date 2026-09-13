@@ -2362,9 +2362,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			} else {
 				// 新建子操作票
 				orderNo := createdOrderNumbers[res.ClientResultKey]
+				// 拆票幂等由拆票事件键承担；子单幂等键列为 NOT NULL，
+				// 由服务端生成随机键填充（每个子单独立生成，避免同批
+				// 子单撞 (organization_id, idempotency_key) 唯一索引）。
 				createOrder := tx.Order.Create().
 					SetOrganizationID(organizationID).
 					SetOrderNo(orderNo).
+					SetIdempotencyKey(uuid.NewString()).
 					SetBusinessType(sourceOrder.BusinessType).
 					SetTradeDirection(sourceOrder.TradeDirection).
 					SetNillableTradeTerm(sourceOrder.TradeTerm).

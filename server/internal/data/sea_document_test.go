@@ -88,6 +88,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// 4. 创建 DIRECT 订单与关联验证
 	directOrder, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-DIR-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
@@ -157,6 +158,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// 5. 创建 HOUSE 订单及唯一分单
 	houseOrder, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-HSE-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
@@ -391,6 +393,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	baseOrder, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-BASE-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
@@ -418,6 +421,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// Order 2: 命中 CUSTOMER_REFERENCE
 	orderCustRef, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-REF-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
@@ -434,6 +438,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// Order 3: 命中 BOOKING
 	orderBooking, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-BKG-" + uuid.New().String()[:8]).
 		SetCustomerID(otherCustomer.ID).
@@ -449,6 +454,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// Order 4: 命中 MASTER
 	orderMBL, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(deptOrg.ID).
 		SetOrderNo("SE-MBL-" + uuid.New().String()[:8]).
 		SetCustomerID(otherCustomer.ID).
@@ -484,6 +490,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建其他组织客户失败: %v", err)
 	}
 	_, err = data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(otherOrg.ID).
 		SetOrderNo("SE-OTHERORG-" + uuid.New().String()[:8]).
 		SetCustomerID(otherOrgCust.ID).
@@ -634,6 +641,7 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	}
 
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-CONC-" + uuid.New().String()[:8]).
 		SetCustomerID(cust.ID).
@@ -776,6 +784,7 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	}
 
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-UO-" + uuid.New().String()[:8]).
 		SetCustomerID(cust.ID).

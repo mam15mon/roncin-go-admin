@@ -420,6 +420,44 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(templateLifecycleState.internalDirty).toBe(false);
   });
 
+  it('草稿保存失败重试沿用同一幂等键，成功后重新生成', async () => {
+    mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
+    mockUpdateOrder.mockResolvedValueOnce({} as never);
+    mockUpdateOrder.mockResolvedValueOnce({} as never);
+
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+
+    const formRef = templateLifecycleState.activeInstanceProps.formRef;
+    const finish = templateLifecycleState.activeHandleFinish;
+    expect(finish).toBeTruthy();
+
+    await act(async () => {
+      await finish?.(formRef.current.getFieldsValue());
+    });
+    await act(async () => {
+      await finish?.(formRef.current.getFieldsValue());
+    });
+    await act(async () => {
+      await finish?.(formRef.current.getFieldsValue());
+    });
+
+    expect(mockUpdateOrder).toHaveBeenCalledTimes(3);
+    const sentKeys = mockUpdateOrder.mock.calls.map(
+      (call) => (call[1] as { idempotencyKey?: string }).idempotencyKey,
+    );
+    // 每次请求都必须携带幂等键。
+    expect(sentKeys[0]).toBeTruthy();
+    // 首次失败后的重试沿用同一键，由后端重放语义兜底超时场景。
+    expect(sentKeys[1]).toBe(sentKeys[0]);
+    // 保存成功后重新生成，下一次提交意图使用新键。
+    expect(sentKeys[2]).toBeTruthy();
+    expect(sentKeys[2]).not.toBe(sentKeys[1]);
+  });
+
   it('显式刷新按真实 loadData 契约失败时保留草稿', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-A');
     const draftKey = getFormDraftKey(

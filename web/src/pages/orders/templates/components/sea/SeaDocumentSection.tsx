@@ -1,6 +1,11 @@
-import { SaveOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  DownloadOutlined,
+  SaveOutlined,
+  SwapOutlined,
+} from '@ant-design/icons';
 import {
   ProFormDigit,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -15,15 +20,69 @@ import {
   Modal,
   Radio,
   Row,
+  Segmented,
   Space,
   Table,
   Tabs,
   Tag,
   Typography,
 } from 'antd';
+import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { PackageCountInput, ProFormSearchableSelect } from '@/components/ui';
+
+const useVerticalFormStyles = createStyles(({ css }) => ({
+  verticalFields: css`
+    .ant-form-item {
+      width: 100% !important;
+    }
+    .ant-form-item-row {
+      flex-direction: column !important;
+    }
+    .ant-form-item-label,
+    .ant-form-item-label.ant-form-item-label-right,
+    .ant-form-item-label.ant-form-item-label-left {
+      display: flex !important;
+      text-align: left !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      flex: 0 0 auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-bottom: 4px !important;
+    }
+    .ant-form-item-label > label {
+      height: auto !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: rgba(0, 0, 0, 0.88) !important;
+      justify-content: flex-start !important;
+      text-align: left !important;
+      margin-left: 0 !important;
+    }
+    .ant-form-item-label > label::after {
+      display: none !important;
+    }
+    .ant-form-item-control {
+      flex: 1 1 100% !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .ant-form-item-control-input {
+      width: 100% !important;
+    }
+    .ant-form-item-control-input-content {
+      width: 100% !important;
+    }
+    .ant-input,
+    .ant-input-number,
+    .ant-picker {
+      width: 100% !important;
+    }
+  `,
+}));
+
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -33,6 +92,7 @@ import {
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
@@ -52,6 +112,66 @@ import SeaExternalConfirmationFields, {
 
 const { Text } = Typography;
 
+export const DEFAULT_TRANSPORT_TERMS = 'CY - CY';
+
+export const SEA_TRANSPORT_TERM_OPTIONS: { label: string; value: string }[] = [
+  // 核心整箱 / 拼箱条款（按业务常用度优先排列）
+  { label: 'CY - CY', value: 'CY - CY' },
+  { label: 'CFS - CFS', value: 'CFS - CFS' },
+  { label: 'CY - CFS', value: 'CY - CFS' },
+  { label: 'CFS - CY', value: 'CFS - CY' },
+  { label: 'DOOR - DOOR', value: 'DOOR - DOOR' },
+  { label: 'DOOR - CY', value: 'DOOR - CY' },
+  { label: 'CY - DOOR', value: 'CY - DOOR' },
+  { label: 'DOOR - CFS', value: 'DOOR - CFS' },
+  { label: 'CFS - DOOR', value: 'CFS - DOOR' },
+
+  // 码头 / 船边 / 装卸管辖条款
+  { label: 'CY - FO', value: 'CY - FO' },
+  { label: 'CY - LO', value: 'CY - LO' },
+  { label: 'CY - HOOK', value: 'CY - HOOK' },
+  { label: 'CY - TACKLE', value: 'CY - TACKLE' },
+  { label: 'CY - RAMP', value: 'CY - RAMP' },
+  { label: 'CY - SHIPS HOOK', value: 'CY - SHIPS HOOK' },
+  { label: 'CY - LINER OUT', value: 'CY - LINER OUT' },
+  { label: 'CY - FREE OUT', value: 'CY - FREE OUT' },
+  { label: 'CFS - FO', value: 'CFS - FO' },
+  { label: 'CFS / DDU', value: 'CFS / DDU' },
+  { label: 'RAMP - RAMP', value: 'RAMP - RAMP' },
+  { label: 'RAMP - CY', value: 'RAMP - CY' },
+  { label: 'RAMP - CFS', value: 'RAMP - CFS' },
+  { label: 'DOOR - RAMP', value: 'DOOR - RAMP' },
+  { label: 'TACKLE - CY', value: 'TACKLE - CY' },
+  { label: 'TACKLE - CFS', value: 'TACKLE - CFS' },
+  { label: 'DR - LINER OUT', value: 'DR - LINER OUT' },
+  { label: 'DR - FREE OUT', value: 'DR - FREE OUT' },
+  { label: 'LINER IN - CY', value: 'LINER IN - CY' },
+  { label: 'LINER IN - DR', value: 'LINER IN - DR' },
+  { label: 'FREE IN - CY', value: 'FREE IN - CY' },
+  { label: 'FREE IN - D', value: 'FREE IN - D' },
+  { label: 'FEE IN - CY', value: 'FEE IN - CY' },
+  { label: 'PIER - PIER', value: 'PIER - PIER' },
+
+  // 空运 / 多式联运延伸条款
+  { label: 'AIRPORT - AIRPORT', value: 'AIRPORT - AIRPORT' },
+  { label: 'AIR PORT - DOOR', value: 'AIR PORT - DOOR' },
+  { label: 'DOOR - AIR PORT', value: 'DOOR - AIR PORT' },
+];
+
+export const DEFAULT_FREIGHT_TERMS = 'FREIGHT PREPAID';
+
+export const SEA_FREIGHT_TERM_OPTIONS: { label: string; value: string }[] = [
+  { label: 'FREIGHT PREPAID', value: 'FREIGHT PREPAID' },
+  { label: 'FREIGHT COLLECT', value: 'FREIGHT COLLECT' },
+  {
+    label: 'FREIGHT PAYABLE AT DESTINATION',
+    value: 'FREIGHT PAYABLE AT DESTINATION',
+  },
+  { label: 'PAYABLE AT XXX', value: 'PAYABLE AT XXX' },
+  { label: '预付', value: '预付' },
+  { label: '到付', value: '到付' },
+];
+
 export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'shipperText',
   'consigneeText',
@@ -68,6 +188,7 @@ export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'billForm',
   'releaseType',
   'clauses',
+  'foreignAgentText',
 ];
 
 export function SeaBillContentFormFields({
@@ -77,141 +198,462 @@ export function SeaBillContentFormFields({
   namePathPrefix: (string | number)[];
   disabled?: boolean;
 }) {
+  const { styles } = useVerticalFormStyles();
+  const form = Form.useFormInstance();
+  const { message } = App.useApp();
+  const [notifyTab, setNotifyTab] = useState<'notify' | 'secondNotify'>(
+    'notify',
+  );
+  const [importingAgent, setImportingAgent] = useState(false);
+
+  const secondNotifyValue = Form.useWatch(
+    [...namePathPrefix, 'secondNotifyPartyText'],
+    form,
+  );
+  const hasSecondNotify = Boolean(
+    secondNotifyValue && String(secondNotifyValue).trim(),
+  );
+
+  const handleImportForeignAgent = async () => {
+    if (!form) return;
+    const foreignAgentId = form.getFieldValue('foreignAgentId');
+    if (!foreignAgentId) {
+      message.warning(
+        '当前订单尚未选择国外代理，请先在「基础信息」中选择国外代理',
+      );
+      return;
+    }
+    try {
+      setImportingAgent(true);
+      const res = await partnerServiceGetPartner({ id: foreignAgentId });
+      const partner = res.data;
+      if (!partner) {
+        message.warning('未获取到该国外代理的档案信息');
+        return;
+      }
+      const lines: string[] = [];
+      const name = partner.profile?.nameEn || partner.legalName;
+      if (name) lines.push(name);
+      const address =
+        partner.profile?.addressEn ||
+        partner.registeredAddress ||
+        partner.profile?.addressDetail;
+      if (address) lines.push(address);
+      if (partner.contacts && partner.contacts.length > 0) {
+        const c = partner.contacts[0];
+        const contactParts = [c.name, c.phone, c.email].filter(Boolean);
+        if (contactParts.length > 0) {
+          lines.push(`TEL/CONTACT: ${contactParts.join(' ')}`);
+        }
+      }
+      const text = lines.join('\n');
+      if (!text) {
+        message.warning('该国外代理未维护英文名称或地址信息');
+        return;
+      }
+      form.setFieldValue([...namePathPrefix, 'foreignAgentText'], text);
+      message.success('已从订单国外代理带入抬头信息');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '获取国外代理信息失败';
+      message.error(msg);
+    } finally {
+      setImportingAgent(false);
+    }
+  };
+
+  const handleImportFromCargoInfo = () => {
+    if (!form) return;
+    const goodsDescription = form.getFieldValue('goodsDescription');
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    if (
+      !goodsDescription &&
+      totalPackages === undefined &&
+      !totalPackageUnit &&
+      totalGrossWeightKg === undefined &&
+      totalVolumeCbm === undefined
+    ) {
+      message.warning('订单货物信息尚未录入件重尺或品名');
+      return;
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (goodsDescription) updates.goodsDescriptionText = goodsDescription;
+    if (totalPackages !== undefined) updates.packageCount = totalPackages;
+    if (totalPackageUnit) updates.packageUnit = totalPackageUnit;
+    if (totalGrossWeightKg !== undefined)
+      updates.grossWeightKg = totalGrossWeightKg;
+    if (totalVolumeCbm !== undefined) updates.volumeCbm = totalVolumeCbm;
+
+    const currentContent = (form.getFieldValue(namePathPrefix) ?? {}) as Record<
+      string,
+      unknown
+    >;
+    form.setFieldValue(namePathPrefix, {
+      ...currentContent,
+      ...updates,
+    });
+    message.success('已从订单货物信息带入品名、件数、单位及毛重体积');
+  };
+
   return (
-    <Row gutter={[16, 0]}>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'shipperText']}
-          label="发货人 (Shipper)"
-          placeholder="请输入发货人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
+    <div className={styles.verticalFields}>
+      {/* 提单抬头与代理区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '4px 0 12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 14,
+            backgroundColor: '#1677ff',
+            borderRadius: 2,
+            marginRight: 8,
+          }}
         />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'consigneeText']}
-          label="收货人 (Consignee)"
-          placeholder="请输入收货人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+          提单抬头与代理 (Parties & Agents)
+        </span>
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'shipperText']}
+            label="发货人 (Shipper)"
+            placeholder="请输入发货人英文名称与详细地址"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+          />
+        </Col>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'consigneeText']}
+            label="收货人 (Consignee)"
+            placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+          />
+        </Col>
+
+        {/* 通知人与第二通知人 Tab 切换 */}
+        <Col xs={24} lg={12}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <Segmented
+                size="small"
+                value={notifyTab}
+                onChange={(val) =>
+                  setNotifyTab(val as 'notify' | 'secondNotify')
+                }
+                options={[
+                  {
+                    value: 'notify',
+                    label: '通知人 (Notify Party)',
+                  },
+                  {
+                    value: 'secondNotify',
+                    label: (
+                      <Space size={4}>
+                        <span>第二通知人 (Second Notify Party)</span>
+                        {hasSecondNotify ? (
+                          <Tag
+                            color="blue"
+                            variant="filled"
+                            style={{
+                              margin: 0,
+                              fontSize: 10,
+                              lineHeight: '16px',
+                              padding: '0 4px',
+                            }}
+                          >
+                            已填写
+                          </Tag>
+                        ) : null}
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+            {notifyTab === 'notify' ? (
+              <ProFormTextArea
+                name={[...namePathPrefix, 'notifyPartyText']}
+                placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            ) : (
+              <ProFormTextArea
+                name={[...namePathPrefix, 'secondNotifyPartyText']}
+                placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            )}
+          </div>
+        </Col>
+
+        {/* 外国代理 (Foreign Agent) */}
+        <Col xs={24} lg={12}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                外国代理 (Foreign Agent)
+              </span>
+              {!disabled && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  loading={importingAgent}
+                  onClick={handleImportForeignAgent}
+                  style={{
+                    padding: 0,
+                    height: 'auto',
+                    fontSize: 12,
+                    fontWeight: 'normal',
+                  }}
+                >
+                  从订单国外代理带入
+                </Button>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'foreignAgentText']}
+              placeholder="请输入目的港/国外代理名称、地址与联系方式"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
+        </Col>
+      </Row>
+
+      {/* 唛头与货物信息区块 */}
+      {/* 唛头与货物信息区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          margin: '8px 0 12px 0',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              width: 3,
+              height: 14,
+              backgroundColor: '#1677ff',
+              borderRadius: 2,
+              marginRight: 8,
+            }}
+          />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+            唛头与货物描述 (Marks & Cargo)
+          </span>
+        </div>
+        {!disabled && (
+          <Button
+            type="link"
+            size="small"
+            icon={<DownloadOutlined />}
+            onClick={handleImportFromCargoInfo}
+            style={{ padding: 0 }}
+          >
+            从订单货物信息带入
+          </Button>
+        )}
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'marksText']}
+            label="唛头 (Marks & Numbers)"
+            placeholder="请输入唛头信息 (例如：N/M)"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+          />
+        </Col>
+        <Col xs={24} lg={12}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'goodsDescriptionText']}
+            label="品名/货描 (Description of Goods)"
+            placeholder="请输入品名与货物描述"
+            disabled={disabled}
+            fieldProps={{ rows: 3 }}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Form.Item label="件数 / 包装单位" layout="vertical">
+            <PackageCountInput
+              countName={[...namePathPrefix, 'packageCount']}
+              unitName={[...namePathPrefix, 'packageUnit']}
+              countPlaceholder="件数"
+              unitPlaceholder="单位"
+              disabled={disabled}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={12} sm={6} lg={8}>
+          <ProFormDigit
+            name={[...namePathPrefix, 'grossWeightKg']}
+            label="毛重 (KGS)"
+            placeholder="毛重"
+            disabled={disabled}
+            min={0}
+            fieldProps={{ precision: 3 }}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6} lg={8}>
+          <ProFormDigit
+            name={[...namePathPrefix, 'volumeCbm']}
+            label="体积 (CBM)"
+            placeholder="体积"
+            disabled={disabled}
+            min={0}
+            fieldProps={{ precision: 3 }}
+            layout="vertical"
+          />
+        </Col>
+      </Row>
+
+      {/* 条款与放单信息区块 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '8px 0 12px 0',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 14,
+            backgroundColor: '#1677ff',
+            borderRadius: 2,
+            marginRight: 8,
+          }}
         />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'notifyPartyText']}
-          label="通知人 (Notify Party)"
-          placeholder="请输入通知人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'secondNotifyPartyText']}
-          label="第二通知人 (Second Notify Party)"
-          placeholder="请输入第二通知人名称与地址"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'marksText']}
-          label="唛头 (Marks & Numbers)"
-          placeholder="请输入唛头信息"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={24} lg={12}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'goodsDescriptionText']}
-          label="品名/货描 (Description of Goods)"
-          placeholder="请输入货物描述"
-          disabled={disabled}
-          fieldProps={{ rows: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'packageCount']}
-          label="件数"
-          placeholder="件数"
-          disabled={disabled}
-          min={0}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'packageUnit']}
-          label="包装单位"
-          placeholder="例如 CTNS / PKGS"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'grossWeightKg']}
-          label="毛重 (KGS)"
-          placeholder="毛重"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormDigit
-          name={[...namePathPrefix, 'volumeCbm']}
-          label="体积 (CBM)"
-          placeholder="体积"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3 }}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'freightTerms']}
-          label="运费条款"
-          placeholder="例如 FREIGHT PREPAID"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'transportTerms']}
-          label="运输条款"
-          placeholder="例如 CY-CY / FCL-FCL"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'billForm']}
-          label="提单形式"
-          placeholder="例如 ORIGINAL / COPY"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={12} lg={6}>
-        <ProFormText
-          name={[...namePathPrefix, 'releaseType']}
-          label="放单方式"
-          placeholder="例如 电放 / 正本"
-          disabled={disabled}
-        />
-      </Col>
-      <Col xs={24}>
-        <ProFormTextArea
-          name={[...namePathPrefix, 'clauses']}
-          label="提单特别条款 (Clauses)"
-          placeholder="请输入特别条款"
-          disabled={disabled}
-          fieldProps={{ rows: 2 }}
-        />
-      </Col>
-    </Row>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+          条款与放单信息 (Terms & Release)
+        </span>
+      </div>
+
+      <Row gutter={[16, 0]}>
+        <Col xs={12} sm={6}>
+          <ProFormSelect
+            name={[...namePathPrefix, 'freightTerms']}
+            label="运费条款"
+            placeholder="请选择运费条款"
+            initialValue={DEFAULT_FREIGHT_TERMS}
+            disabled={disabled}
+            layout="vertical"
+            options={SEA_FREIGHT_TERM_OPTIONS}
+            fieldProps={{
+              showSearch: true,
+              allowClear: true,
+              filterOption: (input, option) => {
+                const normInput = input.trim().toLowerCase();
+                const normLabel = String(option?.label ?? '').toLowerCase();
+                const normValue = String(option?.value ?? '').toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
+            }}
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormSelect
+            name={[...namePathPrefix, 'transportTerms']}
+            label="运输条款"
+            placeholder="请选择运输条款"
+            initialValue={DEFAULT_TRANSPORT_TERMS}
+            disabled={disabled}
+            layout="vertical"
+            options={SEA_TRANSPORT_TERM_OPTIONS}
+            fieldProps={{
+              showSearch: true,
+              allowClear: true,
+              filterOption: (input, option) => {
+                const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
+                const normLabel = String(option?.label ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                const normValue = String(option?.value ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
+            }}
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'billForm']}
+            label="提单形式"
+            placeholder="例如 ORIGINAL / COPY"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <ProFormText
+            name={[...namePathPrefix, 'releaseType']}
+            label="放单方式"
+            placeholder="例如 电放 / 正本"
+            disabled={disabled}
+            layout="vertical"
+          />
+        </Col>
+        <Col xs={24}>
+          <ProFormTextArea
+            name={[...namePathPrefix, 'clauses']}
+            label="提单特别条款 (Clauses)"
+            placeholder="请输入提单特别条款"
+            disabled={disabled}
+            fieldProps={{ rows: 2 }}
+          />
+        </Col>
+      </Row>
+    </div>
   );
 }
 
@@ -233,6 +675,7 @@ function HouseBillIdentityFields({
           label="分单号 (HBL No.)"
           placeholder="请输入分单号"
           disabled={disabled}
+          layout="vertical"
           rules={[
             { required: true, whitespace: true, message: '分单号不能为空' },
           ]}
@@ -240,7 +683,12 @@ function HouseBillIdentityFields({
         />
       </Col>
       <Col xs={24} md={16}>
-        <Form.Item label="签发主体" required style={{ marginBottom: 24 }}>
+        <Form.Item
+          label="签发主体"
+          required
+          style={{ marginBottom: 24 }}
+          layout="vertical"
+        >
           <Form.Item
             name={[fieldKey, 'issuerSource']}
             noStyle
@@ -338,6 +786,7 @@ function HouseBillIdentityFields({
           label="分单备注"
           placeholder="请输入分单备注"
           disabled={disabled}
+          layout="vertical"
           fieldProps={{ maxLength: 500 }}
         />
       </Col>
@@ -575,10 +1024,29 @@ export function SeaDocumentSectionComponent({
       setMblDetail(response.data.masterBill ?? null);
       setHouseBill(currentHouseBill);
       form.setFieldValue('seaDocumentStructure', structure);
-      form.setFieldValue(
-        'seaMasterBillContent',
-        response.data.masterBill?.content ?? {},
-      );
+      const mblContent = response.data.masterBill?.content ?? {};
+      const mblTransportTerms =
+        mblContent.transportTerms && mblContent.transportTerms.trim() !== ''
+          ? mblContent.transportTerms
+          : DEFAULT_TRANSPORT_TERMS;
+      const mblFreightTerms =
+        mblContent.freightTerms && mblContent.freightTerms.trim() !== ''
+          ? mblContent.freightTerms
+          : DEFAULT_FREIGHT_TERMS;
+      form.setFieldValue('seaMasterBillContent', {
+        ...mblContent,
+        transportTerms: mblTransportTerms,
+        freightTerms: mblFreightTerms,
+      });
+      const hblContent = currentHouseBill?.content ?? {};
+      const hblTransportTerms =
+        hblContent.transportTerms && hblContent.transportTerms.trim() !== ''
+          ? hblContent.transportTerms
+          : DEFAULT_TRANSPORT_TERMS;
+      const hblFreightTerms =
+        hblContent.freightTerms && hblContent.freightTerms.trim() !== ''
+          ? hblContent.freightTerms
+          : DEFAULT_FREIGHT_TERMS;
       form.setFieldValue(
         'seaHouseBill',
         currentHouseBill
@@ -592,7 +1060,11 @@ export function SeaDocumentSectionComponent({
                   ? currentHouseBill.issuerPartnerId
                   : undefined,
               note: currentHouseBill.note,
-              content: currentHouseBill.content ?? {},
+              content: {
+                ...hblContent,
+                transportTerms: hblTransportTerms,
+                freightTerms: hblFreightTerms,
+              },
               expectedVersion: currentHouseBill.version,
             }
           : undefined,
@@ -696,8 +1168,40 @@ export function SeaDocumentSectionComponent({
   const changeCreateMode = (nextMode: SeaDocumentStructure) => {
     setLoadedStructure(nextMode);
     form.setFieldValue('seaDocumentStructure', nextMode);
+
+    const goodsDescription = form.getFieldValue('goodsDescription');
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    const cargoDefaults = {
+      ...(goodsDescription ? { goodsDescriptionText: goodsDescription } : {}),
+      ...(totalPackages !== undefined ? { packageCount: totalPackages } : {}),
+      ...(totalPackageUnit ? { packageUnit: totalPackageUnit } : {}),
+      ...(totalGrossWeightKg !== undefined
+        ? { grossWeightKg: totalGrossWeightKg }
+        : {}),
+      ...(totalVolumeCbm !== undefined ? { volumeCbm: totalVolumeCbm } : {}),
+    };
+
+    const currentMbl = (form.getFieldValue('seaMasterBillContent') ??
+      {}) as Record<string, unknown>;
+    form.setFieldValue('seaMasterBillContent', {
+      transportTerms: DEFAULT_TRANSPORT_TERMS,
+      freightTerms: DEFAULT_FREIGHT_TERMS,
+      ...cargoDefaults,
+      ...currentMbl,
+    });
+
     if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      form.setFieldValue('seaHouseBill', { content: {} });
+      form.setFieldValue('seaHouseBill', {
+        content: {
+          transportTerms: DEFAULT_TRANSPORT_TERMS,
+          freightTerms: DEFAULT_FREIGHT_TERMS,
+          ...cargoDefaults,
+        },
+      });
       setActiveTabKey('hbl');
     } else {
       form.setFieldValue('seaHouseBill', undefined);
@@ -881,8 +1385,12 @@ export function SeaDocumentSectionComponent({
     children: (
       <Card
         size="small"
-        variant="borderless"
-        style={{ background: '#fafafa', borderRadius: 4 }}
+        variant="outlined"
+        style={{
+          background: '#ffffff',
+          borderRadius: 6,
+          borderColor: '#f0f0f0',
+        }}
       >
         {isDetail && mblDetail ? (
           <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
@@ -960,8 +1468,12 @@ export function SeaDocumentSectionComponent({
     children: (
       <Card
         size="small"
-        variant="borderless"
-        style={{ background: '#fafafa', borderRadius: 4 }}
+        variant="outlined"
+        style={{
+          background: '#ffffff',
+          borderRadius: 6,
+          borderColor: '#f0f0f0',
+        }}
       >
         {isDetail && houseBill ? (
           <Row

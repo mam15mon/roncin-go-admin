@@ -215,6 +215,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	createSIOrder := func() *ent.Order {
 		orderSeq++
 		o, orderErr := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(child.ID).
 			SetOrderNo("SI-GRANT-" + suffix + "-" + string(rune('A'+orderSeq))).
 			SetCustomerID(customer.ID).

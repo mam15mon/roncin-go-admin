@@ -2,7 +2,10 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -238,7 +241,45 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 			"business_type": string(normalized.BusinessType),
 		},
 	}
-	created, err := uc.repo.Create(ctx, organizationID, actorID, normalized, audit)
+	var created *Order
+	err = func() error {
+		// 幂等键可选：传入才启用，与建账口径一致；未提供时保持既有直建行为。
+		if normalized.IdempotencyKey == "" {
+			var createErr error
+			created, createErr = uc.repo.Create(ctx, organizationID, actorID, normalized, audit)
+			return createErr
+		}
+		if uc.transactor == nil {
+			return ErrOrderInvalidArgument
+		}
+		// 镜像建账幂等段：事务内按幂等键查既有订单，同意图重放返回原单，
+		// 意图不同返回冲突；并发同键由 (organization_id, idempotency_key)
+		// 唯一索引兜底，见下方事务后重查。
+		return uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+			existing, lookupErr := uc.repo.GetByIdempotencyKey(txCtx, organizationID, normalized.IdempotencyKey)
+			if lookupErr != nil {
+				return lookupErr
+			}
+			if existing != nil {
+				if !sameOrderCreateIntent(existing, normalized) {
+					return ErrOrderIdempotencyConflict
+				}
+				created = existing
+				return nil
+			}
+			var createErr error
+			created, createErr = uc.repo.Create(txCtx, organizationID, actorID, normalized, audit)
+			return createErr
+		})
+	}()
+	if err != nil && normalized.IdempotencyKey != "" {
+		// 并发同键兜底（对齐建账 Create 的事务后重查）：另一请求已写入时，
+		// 意图一致视为重放成功，否则保留原始错误。
+		if existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey); lookupErr == nil && existing != nil && sameOrderCreateIntent(existing, normalized) {
+			created = existing
+			err = nil
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +345,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, ErrOrderBusinessUnsupported
 	}
 	output := *input
+	output.IdempotencyKey = strings.TrimSpace(output.IdempotencyKey)
 	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)
 	output.InternalReferenceNo = strings.TrimSpace(output.InternalReferenceNo)
 	output.ShipperShortName = strings.TrimSpace(output.ShipperShortName)
@@ -338,7 +380,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.BookingNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.BookingNo) > 100 || utf8.RuneCountInString(output.IdempotencyKey) > 128 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
@@ -458,6 +500,142 @@ func stringPointerValue(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+// sameOrderCreateIntent 判定幂等键命中的既有订单与本次创建请求是否同一意图：
+// 采用全量请求哈希比对（对齐建账 RequestHash 口径），任何载体字段差异都判为
+// 不同意图返回冲突。不可纳入哈希的字段见 orderCreateIntentHash 注释中的排除
+// 清单。
+func sameOrderCreateIntent(existing *Order, requested *Order) bool {
+	if existing == nil || requested == nil {
+		return false
+	}
+	return orderCreateIntentHash(existing) == orderCreateIntentHash(requested)
+}
+
+// orderCreateIntentHash 计算订单创建意图指纹：哈希输入覆盖全部请求载体字段
+// （标量、可空枚举、可空引用、货物/保险/危品、备注家族、服务类型与货物类别
+// 集合、岗位人员、箱型箱量、海运主单号），集合类输入先排序再序列化，长度
+// 前缀拼接后取 SHA-256。排除清单（不可比或非请求意图字段）：
+//   - order_date：缺省时由服务端注入当前时间；
+//   - etd/eta/vessel_voyage/origin/discharge/transit_location：
+//     SE 订单读取时由主单航程（TransportExecution）回填，存储表示与请求原始
+//     输入可能不一致（日期格式、候选航程差异）。注意：destination_location_id
+//     与四类 cutoff（si/doc/customs/vgm）为请求原值入库并原样读回，非回填字段，
+//     已纳入哈希；shipping_line_id 虽同为回填，但创建校验强制其与航程一致，
+//     纳入哈希不会误伤真实重放，且能拦截同键换船公司（方向安全：宁可误 409 不可误放行）；
+//   - sea_document 单证结构：缺省时由服务端按 HBL 存在性推导默认值，nil 与
+//     默认值表示同一意图；
+//   - 海运主单/分单内容与签发主体（MasterBillContent、HouseBill）：存储在
+//     单证行而非订单行，需额外加载；主单号已单独覆盖；
+//   - 人员通知意图、各类 ID/版本/时间戳/状态：服务端生成或派生。
+func orderCreateIntentHash(order *Order) string {
+	builder := strings.Builder{}
+	part := func(values ...string) { writeFinanceHashParts(&builder, values...) }
+	uuidText := func(value *uuid.UUID) string {
+		if value == nil {
+			return ""
+		}
+		return value.String()
+	}
+	intText := func(value *int) string {
+		if value == nil {
+			return ""
+		}
+		return strconv.Itoa(*value)
+	}
+	floatText := func(value *float64) string {
+		if value == nil {
+			return ""
+		}
+		return strconv.FormatFloat(*value, 'g', -1, 64)
+	}
+
+	part("customer", order.CustomerID.String())
+	part("trade", string(order.BusinessType), string(order.TradeDirection), string(order.TradeTerm), string(order.PaymentTerm))
+	part("agents", uuidText(order.ShippingLineID), uuidText(order.BookingAgentID), uuidText(order.ForeignAgentID), uuidText(order.ShippingAgentID))
+	part("shipment", orderPointerText(order.ShipmentType), orderPointerText(order.ContainerOwnership), orderPointerText(order.ShipmentMode))
+	part("references", order.CustomerReferenceNo, order.InternalReferenceNo, order.BookingNo, order.ContractNo)
+	part("short-names", order.ShipperShortName, order.ConsigneeShortName)
+	part("cargo", order.CargoValue, order.CargoCurrency, order.InsurancePremium, order.InsuranceCurrency)
+	part("dangerous", order.UNNumber, order.HazardClass, order.FactoryName)
+	part("times", order.CargoReadyAt, order.DeclarationCutoffAt, order.ReceivedAt, order.SICutoff, order.DocCutoff, order.CustomsCutoff, order.VGMCutoff)
+	part("destination", uuidText(order.DestinationLocationID))
+	part("goods", order.GoodsDescription, intText(order.TotalPackages), order.TotalPackageUnit, floatText(order.TotalGrossWeightKg), floatText(order.TotalVolumeCbm))
+	part("notes", order.SpecialRequirements, order.Notes, order.BookingNotes, order.AllocationNotes, order.OperationNotes)
+	part(append([]string{"service-types"}, orderSortedUUIDTexts(order.ServiceTypeIDs)...)...)
+	part(append([]string{"cargo-categories"}, orderSortedUUIDTexts(order.CargoCategoryIDs)...)...)
+	part(append([]string{"personnel"}, orderSortedPersonnelTexts(order.PersonnelAssignments)...)...)
+	part(append([]string{"shipping-documents"}, orderSortedDocumentTexts(order.ShippingDocuments)...)...)
+	part(append([]string{"container-requests"}, orderSortedContainerTexts(order.ContainerRequests)...)...)
+	masterNo := ""
+	if order.SeaMasterBillInput != nil {
+		masterNo = order.SeaMasterBillInput.MasterNo
+	} else if order.SeaMasterBill != nil {
+		masterNo = order.SeaMasterBill.MasterNo
+	}
+	part("master-no", masterNo)
+	return financeSHA256(builder.String())
+}
+
+func orderPointerText[T ~string](value *T) string {
+	if value == nil {
+		return ""
+	}
+	return string(*value)
+}
+
+func orderSortedUUIDTexts(values []uuid.UUID) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, value.String())
+	}
+	sort.Strings(result)
+	return result
+}
+
+func orderSortedPersonnelTexts(values []*OrderPersonnel) []string {
+	result := make([]string, 0, len(values))
+	for _, item := range values {
+		if item == nil || item.Role == OrderPersonnelRoleCreator {
+			// 创建人由服务端注入，不属于请求意图。
+			continue
+		}
+		result = append(result, fmt.Sprintf("%s:%s:%s", item.Role, item.UserID, item.OrganizationID))
+	}
+	sort.Strings(result)
+	return result
+}
+
+func orderSortedDocumentTexts(values []*OrderShippingDocument) []string {
+	result := make([]string, 0, len(values))
+	for _, item := range values {
+		if item == nil {
+			continue
+		}
+		releaseType, note := "", ""
+		if item.ReleaseType != nil {
+			releaseType = *item.ReleaseType
+		}
+		if item.Note != nil {
+			note = *item.Note
+		}
+		result = append(result, fmt.Sprintf("%s:%s:%s", strings.ToLower(item.HouseNo), releaseType, note))
+	}
+	sort.Strings(result)
+	return result
+}
+
+func orderSortedContainerTexts(values []*OrderContainerRequest) []string {
+	result := make([]string, 0, len(values))
+	for _, item := range values {
+		if item == nil {
+			continue
+		}
+		result = append(result, fmt.Sprintf("%s:%d", item.ContainerSpecID, item.Quantity))
+	}
+	sort.Strings(result)
+	return result
 }
 
 var cargoValuePattern = regexp.MustCompile(`^(0|[1-9]\d{0,17})(\.\d{1,4})?$`)

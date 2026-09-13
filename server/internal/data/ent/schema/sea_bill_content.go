@@ -22,6 +22,7 @@ func seaBillContentFields() []ent.Field {
 		field.String("bill_form").Optional().Nillable().MaxLen(64),
 		field.String("release_type").Optional().Nillable().MaxLen(64),
 		field.Text("clauses").Optional().Nillable(),
+		field.Text("foreign_agent_text").Optional().Nillable(),
 	}
 }
 
@@ -44,5 +45,6 @@ func immutableSeaBillContentFields() []ent.Field {
 		field.String("bill_form").Optional().Nillable().MaxLen(64).Immutable(),
 		field.String("release_type").Optional().Nillable().MaxLen(64).Immutable(),
 		field.Text("clauses").Optional().Nillable().Immutable(),
+		field.Text("foreign_agent_text").Optional().Nillable().Immutable(),
 	}
 }

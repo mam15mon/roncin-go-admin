@@ -4542,36 +4542,54 @@ func init() {
 			return nil
 		}
 	}()
+	// orderDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	orderDescIdempotencyKey := orderFields[2].Descriptor()
+	// order.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	order.IdempotencyKeyValidator = func() func(string) error {
+		validators := orderDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// orderDescCustomerReferenceNo is the schema descriptor for customer_reference_no field.
-	orderDescCustomerReferenceNo := orderFields[3].Descriptor()
+	orderDescCustomerReferenceNo := orderFields[4].Descriptor()
 	// order.CustomerReferenceNoValidator is a validator for the "customer_reference_no" field. It is called by the builders before save.
 	order.CustomerReferenceNoValidator = orderDescCustomerReferenceNo.Validators[0].(func(string) error)
 	// orderDescInternalReferenceNo is the schema descriptor for internal_reference_no field.
-	orderDescInternalReferenceNo := orderFields[4].Descriptor()
+	orderDescInternalReferenceNo := orderFields[5].Descriptor()
 	// order.InternalReferenceNoValidator is a validator for the "internal_reference_no" field. It is called by the builders before save.
 	order.InternalReferenceNoValidator = orderDescInternalReferenceNo.Validators[0].(func(string) error)
 	// orderDescShipperShortName is the schema descriptor for shipper_short_name field.
-	orderDescShipperShortName := orderFields[5].Descriptor()
+	orderDescShipperShortName := orderFields[6].Descriptor()
 	// order.DefaultShipperShortName holds the default value on creation for the shipper_short_name field.
 	order.DefaultShipperShortName = orderDescShipperShortName.Default.(string)
 	// order.ShipperShortNameValidator is a validator for the "shipper_short_name" field. It is called by the builders before save.
 	order.ShipperShortNameValidator = orderDescShipperShortName.Validators[0].(func(string) error)
 	// orderDescConsigneeShortName is the schema descriptor for consignee_short_name field.
-	orderDescConsigneeShortName := orderFields[6].Descriptor()
+	orderDescConsigneeShortName := orderFields[7].Descriptor()
 	// order.DefaultConsigneeShortName holds the default value on creation for the consignee_short_name field.
 	order.DefaultConsigneeShortName = orderDescConsigneeShortName.Default.(string)
 	// order.ConsigneeShortNameValidator is a validator for the "consignee_short_name" field. It is called by the builders before save.
 	order.ConsigneeShortNameValidator = orderDescConsigneeShortName.Validators[0].(func(string) error)
 	// orderDescContractNo is the schema descriptor for contract_no field.
-	orderDescContractNo := orderFields[11].Descriptor()
+	orderDescContractNo := orderFields[12].Descriptor()
 	// order.ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.
 	order.ContractNoValidator = orderDescContractNo.Validators[0].(func(string) error)
 	// orderDescCargoValue is the schema descriptor for cargo_value field.
-	orderDescCargoValue := orderFields[12].Descriptor()
+	orderDescCargoValue := orderFields[13].Descriptor()
 	// order.CargoValueValidator is a validator for the "cargo_value" field. It is called by the builders before save.
 	order.CargoValueValidator = orderDescCargoValue.Validators[0].(func(string) error)
 	// orderDescCargoCurrency is the schema descriptor for cargo_currency field.
-	orderDescCargoCurrency := orderFields[13].Descriptor()
+	orderDescCargoCurrency := orderFields[14].Descriptor()
 	// order.CargoCurrencyValidator is a validator for the "cargo_currency" field. It is called by the builders before save.
 	order.CargoCurrencyValidator = func() func(string) error {
 		validators := orderDescCargoCurrency.Validators
@@ -4589,11 +4607,11 @@ func init() {
 		}
 	}()
 	// orderDescInsurancePremium is the schema descriptor for insurance_premium field.
-	orderDescInsurancePremium := orderFields[14].Descriptor()
+	orderDescInsurancePremium := orderFields[15].Descriptor()
 	// order.InsurancePremiumValidator is a validator for the "insurance_premium" field. It is called by the builders before save.
 	order.InsurancePremiumValidator = orderDescInsurancePremium.Validators[0].(func(string) error)
 	// orderDescInsuranceCurrency is the schema descriptor for insurance_currency field.
-	orderDescInsuranceCurrency := orderFields[15].Descriptor()
+	orderDescInsuranceCurrency := orderFields[16].Descriptor()
 	// order.InsuranceCurrencyValidator is a validator for the "insurance_currency" field. It is called by the builders before save.
 	order.InsuranceCurrencyValidator = func() func(string) error {
 		validators := orderDescInsuranceCurrency.Validators
@@ -4611,119 +4629,119 @@ func init() {
 		}
 	}()
 	// orderDescUnNumber is the schema descriptor for un_number field.
-	orderDescUnNumber := orderFields[16].Descriptor()
+	orderDescUnNumber := orderFields[17].Descriptor()
 	// order.UnNumberValidator is a validator for the "un_number" field. It is called by the builders before save.
 	order.UnNumberValidator = orderDescUnNumber.Validators[0].(func(string) error)
 	// orderDescHazardClass is the schema descriptor for hazard_class field.
-	orderDescHazardClass := orderFields[17].Descriptor()
+	orderDescHazardClass := orderFields[18].Descriptor()
 	// order.HazardClassValidator is a validator for the "hazard_class" field. It is called by the builders before save.
 	order.HazardClassValidator = orderDescHazardClass.Validators[0].(func(string) error)
 	// orderDescFactoryName is the schema descriptor for factory_name field.
-	orderDescFactoryName := orderFields[18].Descriptor()
+	orderDescFactoryName := orderFields[19].Descriptor()
 	// order.FactoryNameValidator is a validator for the "factory_name" field. It is called by the builders before save.
 	order.FactoryNameValidator = orderDescFactoryName.Validators[0].(func(string) error)
 	// orderDescCargoReadyAt is the schema descriptor for cargo_ready_at field.
-	orderDescCargoReadyAt := orderFields[19].Descriptor()
+	orderDescCargoReadyAt := orderFields[20].Descriptor()
 	// order.CargoReadyAtValidator is a validator for the "cargo_ready_at" field. It is called by the builders before save.
 	order.CargoReadyAtValidator = orderDescCargoReadyAt.Validators[0].(func(string) error)
 	// orderDescDeclarationCutoffAt is the schema descriptor for declaration_cutoff_at field.
-	orderDescDeclarationCutoffAt := orderFields[20].Descriptor()
+	orderDescDeclarationCutoffAt := orderFields[21].Descriptor()
 	// order.DeclarationCutoffAtValidator is a validator for the "declaration_cutoff_at" field. It is called by the builders before save.
 	order.DeclarationCutoffAtValidator = orderDescDeclarationCutoffAt.Validators[0].(func(string) error)
 	// orderDescReceivedAt is the schema descriptor for received_at field.
-	orderDescReceivedAt := orderFields[21].Descriptor()
+	orderDescReceivedAt := orderFields[22].Descriptor()
 	// order.ReceivedAtValidator is a validator for the "received_at" field. It is called by the builders before save.
 	order.ReceivedAtValidator = orderDescReceivedAt.Validators[0].(func(string) error)
 	// orderDescTerminationReason is the schema descriptor for termination_reason field.
-	orderDescTerminationReason := orderFields[32].Descriptor()
+	orderDescTerminationReason := orderFields[33].Descriptor()
 	// order.TerminationReasonValidator is a validator for the "termination_reason" field. It is called by the builders before save.
 	order.TerminationReasonValidator = orderDescTerminationReason.Validators[0].(func(string) error)
 	// orderDescClosureReason is the schema descriptor for closure_reason field.
-	orderDescClosureReason := orderFields[36].Descriptor()
+	orderDescClosureReason := orderFields[37].Descriptor()
 	// order.ClosureReasonValidator is a validator for the "closure_reason" field. It is called by the builders before save.
 	order.ClosureReasonValidator = orderDescClosureReason.Validators[0].(func(string) error)
 	// orderDescLockGeneration is the schema descriptor for lock_generation field.
-	orderDescLockGeneration := orderFields[41].Descriptor()
+	orderDescLockGeneration := orderFields[42].Descriptor()
 	// order.DefaultLockGeneration holds the default value on creation for the lock_generation field.
 	order.DefaultLockGeneration = orderDescLockGeneration.Default.(uint64)
 	// orderDescIsShared is the schema descriptor for is_shared field.
-	orderDescIsShared := orderFields[42].Descriptor()
+	orderDescIsShared := orderFields[43].Descriptor()
 	// order.DefaultIsShared holds the default value on creation for the is_shared field.
 	order.DefaultIsShared = orderDescIsShared.Default.(bool)
 	// orderDescVersion is the schema descriptor for version field.
-	orderDescVersion := orderFields[43].Descriptor()
+	orderDescVersion := orderFields[44].Descriptor()
 	// order.DefaultVersion holds the default value on creation for the version field.
 	order.DefaultVersion = orderDescVersion.Default.(uint64)
 	// orderDescVesselVoyage is the schema descriptor for vessel_voyage field.
-	orderDescVesselVoyage := orderFields[48].Descriptor()
+	orderDescVesselVoyage := orderFields[49].Descriptor()
 	// order.VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	order.VesselVoyageValidator = orderDescVesselVoyage.Validators[0].(func(string) error)
 	// orderDescEtd is the schema descriptor for etd field.
-	orderDescEtd := orderFields[49].Descriptor()
+	orderDescEtd := orderFields[50].Descriptor()
 	// order.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
 	order.EtdValidator = orderDescEtd.Validators[0].(func(string) error)
 	// orderDescEta is the schema descriptor for eta field.
-	orderDescEta := orderFields[50].Descriptor()
+	orderDescEta := orderFields[51].Descriptor()
 	// order.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
 	order.EtaValidator = orderDescEta.Validators[0].(func(string) error)
 	// orderDescSiCutoff is the schema descriptor for si_cutoff field.
-	orderDescSiCutoff := orderFields[51].Descriptor()
+	orderDescSiCutoff := orderFields[52].Descriptor()
 	// order.SiCutoffValidator is a validator for the "si_cutoff" field. It is called by the builders before save.
 	order.SiCutoffValidator = orderDescSiCutoff.Validators[0].(func(string) error)
 	// orderDescDocCutoff is the schema descriptor for doc_cutoff field.
-	orderDescDocCutoff := orderFields[52].Descriptor()
+	orderDescDocCutoff := orderFields[53].Descriptor()
 	// order.DocCutoffValidator is a validator for the "doc_cutoff" field. It is called by the builders before save.
 	order.DocCutoffValidator = orderDescDocCutoff.Validators[0].(func(string) error)
 	// orderDescCustomsCutoff is the schema descriptor for customs_cutoff field.
-	orderDescCustomsCutoff := orderFields[53].Descriptor()
+	orderDescCustomsCutoff := orderFields[54].Descriptor()
 	// order.CustomsCutoffValidator is a validator for the "customs_cutoff" field. It is called by the builders before save.
 	order.CustomsCutoffValidator = orderDescCustomsCutoff.Validators[0].(func(string) error)
 	// orderDescVgmCutoff is the schema descriptor for vgm_cutoff field.
-	orderDescVgmCutoff := orderFields[54].Descriptor()
+	orderDescVgmCutoff := orderFields[55].Descriptor()
 	// order.VgmCutoffValidator is a validator for the "vgm_cutoff" field. It is called by the builders before save.
 	order.VgmCutoffValidator = orderDescVgmCutoff.Validators[0].(func(string) error)
 	// orderDescGoodsDescription is the schema descriptor for goods_description field.
-	orderDescGoodsDescription := orderFields[55].Descriptor()
+	orderDescGoodsDescription := orderFields[56].Descriptor()
 	// order.GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
 	order.GoodsDescriptionValidator = orderDescGoodsDescription.Validators[0].(func(string) error)
 	// orderDescTotalGrossWeightKg is the schema descriptor for total_gross_weight_kg field.
-	orderDescTotalGrossWeightKg := orderFields[57].Descriptor()
+	orderDescTotalGrossWeightKg := orderFields[58].Descriptor()
 	// order.TotalGrossWeightKgValidator is a validator for the "total_gross_weight_kg" field. It is called by the builders before save.
 	order.TotalGrossWeightKgValidator = orderDescTotalGrossWeightKg.Validators[0].(func(float64) error)
 	// orderDescTotalVolumeCbm is the schema descriptor for total_volume_cbm field.
-	orderDescTotalVolumeCbm := orderFields[58].Descriptor()
+	orderDescTotalVolumeCbm := orderFields[59].Descriptor()
 	// order.TotalVolumeCbmValidator is a validator for the "total_volume_cbm" field. It is called by the builders before save.
 	order.TotalVolumeCbmValidator = orderDescTotalVolumeCbm.Validators[0].(func(float64) error)
 	// orderDescTotalPackageUnit is the schema descriptor for total_package_unit field.
-	orderDescTotalPackageUnit := orderFields[59].Descriptor()
+	orderDescTotalPackageUnit := orderFields[60].Descriptor()
 	// order.TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
 	order.TotalPackageUnitValidator = orderDescTotalPackageUnit.Validators[0].(func(string) error)
 	// orderDescSpecialRequirements is the schema descriptor for special_requirements field.
-	orderDescSpecialRequirements := orderFields[60].Descriptor()
+	orderDescSpecialRequirements := orderFields[61].Descriptor()
 	// order.SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
 	order.SpecialRequirementsValidator = orderDescSpecialRequirements.Validators[0].(func(string) error)
 	// orderDescOrderDate is the schema descriptor for order_date field.
-	orderDescOrderDate := orderFields[61].Descriptor()
+	orderDescOrderDate := orderFields[62].Descriptor()
 	// order.OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
 	order.OrderDateValidator = orderDescOrderDate.Validators[0].(func(string) error)
 	// orderDescBookingNo is the schema descriptor for booking_no field.
-	orderDescBookingNo := orderFields[62].Descriptor()
+	orderDescBookingNo := orderFields[63].Descriptor()
 	// order.BookingNoValidator is a validator for the "booking_no" field. It is called by the builders before save.
 	order.BookingNoValidator = orderDescBookingNo.Validators[0].(func(string) error)
 	// orderDescNotes is the schema descriptor for notes field.
-	orderDescNotes := orderFields[63].Descriptor()
+	orderDescNotes := orderFields[64].Descriptor()
 	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	order.NotesValidator = orderDescNotes.Validators[0].(func(string) error)
 	// orderDescBookingNotes is the schema descriptor for booking_notes field.
-	orderDescBookingNotes := orderFields[64].Descriptor()
+	orderDescBookingNotes := orderFields[65].Descriptor()
 	// order.BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
 	order.BookingNotesValidator = orderDescBookingNotes.Validators[0].(func(string) error)
 	// orderDescAllocationNotes is the schema descriptor for allocation_notes field.
-	orderDescAllocationNotes := orderFields[65].Descriptor()
+	orderDescAllocationNotes := orderFields[66].Descriptor()
 	// order.AllocationNotesValidator is a validator for the "allocation_notes" field. It is called by the builders before save.
 	order.AllocationNotesValidator = orderDescAllocationNotes.Validators[0].(func(string) error)
 	// orderDescOperationNotes is the schema descriptor for operation_notes field.
-	orderDescOperationNotes := orderFields[66].Descriptor()
+	orderDescOperationNotes := orderFields[67].Descriptor()
 	// order.OperationNotesValidator is a validator for the "operation_notes" field. It is called by the builders before save.
 	order.OperationNotesValidator = orderDescOperationNotes.Validators[0].(func(string) error)
 	// orderDescID is the schema descriptor for id field.

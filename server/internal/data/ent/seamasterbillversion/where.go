@@ -216,6 +216,11 @@ func Clauses(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldClauses, v))
 }
 
+// ForeignAgentText applies equality check predicate on the "foreign_agent_text" field. It's identical to ForeignAgentTextEQ.
+func ForeignAgentText(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldForeignAgentText, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldCreatedAt, v))
@@ -2164,6 +2169,81 @@ func ClausesEqualFold(v string) predicate.SeaMasterBillVersion {
 // ClausesContainsFold applies the ContainsFold predicate on the "clauses" field.
 func ClausesContainsFold(v string) predicate.SeaMasterBillVersion {
 	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldClauses, v))
+}
+
+// ForeignAgentTextEQ applies the EQ predicate on the "foreign_agent_text" field.
+func ForeignAgentTextEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEQ(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextNEQ applies the NEQ predicate on the "foreign_agent_text" field.
+func ForeignAgentTextNEQ(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNEQ(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextIn applies the In predicate on the "foreign_agent_text" field.
+func ForeignAgentTextIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIn(FieldForeignAgentText, vs...))
+}
+
+// ForeignAgentTextNotIn applies the NotIn predicate on the "foreign_agent_text" field.
+func ForeignAgentTextNotIn(vs ...string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotIn(FieldForeignAgentText, vs...))
+}
+
+// ForeignAgentTextGT applies the GT predicate on the "foreign_agent_text" field.
+func ForeignAgentTextGT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGT(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextGTE applies the GTE predicate on the "foreign_agent_text" field.
+func ForeignAgentTextGTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldGTE(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextLT applies the LT predicate on the "foreign_agent_text" field.
+func ForeignAgentTextLT(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLT(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextLTE applies the LTE predicate on the "foreign_agent_text" field.
+func ForeignAgentTextLTE(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldLTE(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextContains applies the Contains predicate on the "foreign_agent_text" field.
+func ForeignAgentTextContains(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContains(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextHasPrefix applies the HasPrefix predicate on the "foreign_agent_text" field.
+func ForeignAgentTextHasPrefix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasPrefix(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextHasSuffix applies the HasSuffix predicate on the "foreign_agent_text" field.
+func ForeignAgentTextHasSuffix(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldHasSuffix(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextIsNil applies the IsNil predicate on the "foreign_agent_text" field.
+func ForeignAgentTextIsNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldIsNull(FieldForeignAgentText))
+}
+
+// ForeignAgentTextNotNil applies the NotNil predicate on the "foreign_agent_text" field.
+func ForeignAgentTextNotNil() predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldNotNull(FieldForeignAgentText))
+}
+
+// ForeignAgentTextEqualFold applies the EqualFold predicate on the "foreign_agent_text" field.
+func ForeignAgentTextEqualFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldEqualFold(FieldForeignAgentText, v))
+}
+
+// ForeignAgentTextContainsFold applies the ContainsFold predicate on the "foreign_agent_text" field.
+func ForeignAgentTextContainsFold(v string) predicate.SeaMasterBillVersion {
+	return predicate.SeaMasterBillVersion(sql.FieldContainsFold(FieldForeignAgentText, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

@@ -7,12 +7,19 @@ import {
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
-import { SeaDocumentSectionComponent } from './SeaDocumentSection';
+import {
+  DEFAULT_FREIGHT_TERMS,
+  DEFAULT_TRANSPORT_TERMS,
+  SEA_FREIGHT_TERM_OPTIONS,
+  SEA_TRANSPORT_TERM_OPTIONS,
+  SeaDocumentSectionComponent,
+} from './SeaDocumentSection';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
@@ -41,6 +48,10 @@ vi.mock('@/services/roncin/orderAttachmentService', () => ({
 
 vi.mock('./SeaDocumentHistoryActions', () => ({
   default: () => <span data-testid="document-history-actions" />,
+}));
+
+vi.mock('@/services/roncin/partnerService', () => ({
+  partnerServiceGetPartner: vi.fn(),
 }));
 
 vi.mock('./SeaExternalConfirmationFields', async () => {
@@ -78,6 +89,7 @@ vi.mock('./SeaExternalConfirmationFields', async () => {
 const getDocuments = vi.mocked(seaDocumentServiceGetSeaOrderDocuments);
 const previewMode = vi.mocked(seaDocumentServicePreviewChangeSeaDocumentMode);
 const executeMode = vi.mocked(seaDocumentServiceExecuteChangeSeaDocumentMode);
+const getPartner = vi.mocked(partnerServiceGetPartner);
 
 function TestForm({
   initialValues,
@@ -298,4 +310,167 @@ describe('SeaDocumentSectionComponent', () => {
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '预览切换影响' })).toBeEnabled();
   }, 60000);
+
+  it('支持通知人与第二通知人切换，并支持从订单国外代理带入抬头与地址', async () => {
+    let capturedForm: FormInstance | undefined;
+    getPartner.mockResolvedValue({
+      data: {
+        id: 'agent-1',
+        legalName: 'Global Shipping Agent Ltd',
+        profile: {
+          nameEn: 'GLOBAL SHIPPING AGENT LTD',
+          addressEn: '123 Ocean Blvd, Hamburg, Germany',
+        },
+        contacts: [
+          { name: 'John Doe', phone: '+49 40 123456', email: 'john@agent.com' },
+        ],
+      },
+    });
+
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          foreignAgentId: 'agent-1',
+          seaMasterBillContent: {
+            notifyPartyText: 'SAME AS CONSIGNEE',
+          },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 默认在通知人标签
+    expect(
+      screen.getByPlaceholderText(
+        '请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)',
+      ),
+    ).toBeVisible();
+
+    // 点击切换到第二通知人
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party)'));
+    const secondNotifyInput = screen.getByPlaceholderText(
+      '请输入第二通知人名称与详细地址 (选填，多数提单无需填写)',
+    );
+    expect(secondNotifyInput).toBeVisible();
+
+    // 录入第二通知人并检查已填写标记
+    fireEvent.change(secondNotifyInput, {
+      target: { value: 'ALSO NOTIFY CO., LTD' },
+    });
+    await waitFor(() => {
+      expect(screen.getByText('已填写')).toBeInTheDocument();
+    });
+
+    // 点击从订单国外代理带入
+    const importBtn = screen.getByRole('button', {
+      name: /从订单国外代理带入/,
+    });
+    fireEvent.click(importBtn);
+
+    await waitFor(() => {
+      expect(getPartner).toHaveBeenCalledWith({ id: 'agent-1' });
+      const foreignAgentVal = capturedForm?.getFieldValue([
+        'seaMasterBillContent',
+        'foreignAgentText',
+      ]);
+      expect(foreignAgentVal).toContain('GLOBAL SHIPPING AGENT LTD');
+      expect(foreignAgentVal).toContain('123 Ocean Blvd, Hamburg, Germany');
+      expect(foreignAgentVal).toContain(
+        'TEL/CONTACT: John Doe +49 40 123456 john@agent.com',
+      );
+    });
+  });
+
+  it('提单运输条款与运费条款默认值及下拉选项符合海运标准', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 运输条款默认值为 CY - CY，运费条款默认值为 FREIGHT PREPAID
+    await waitFor(() => {
+      expect(
+        capturedForm?.getFieldValue(['seaMasterBillContent', 'transportTerms']),
+      ).toBe('CY - CY');
+      expect(
+        capturedForm?.getFieldValue(['seaMasterBillContent', 'freightTerms']),
+      ).toBe('FREIGHT PREPAID');
+    });
+
+    // 运输条款选项包含核心海运条款
+    expect(DEFAULT_TRANSPORT_TERMS).toBe('CY - CY');
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - CY'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS - CFS'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'DOOR - DOOR'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - FO'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS / DDU'),
+    ).toBe(true);
+
+    // 运费条款选项与默认值
+    expect(DEFAULT_FREIGHT_TERMS).toBe('FREIGHT PREPAID');
+    expect(SEA_FREIGHT_TERM_OPTIONS.map((opt) => opt.value)).toEqual([
+      'FREIGHT PREPAID',
+      'FREIGHT COLLECT',
+      'FREIGHT PAYABLE AT DESTINATION',
+      'PAYABLE AT XXX',
+      '预付',
+      '到付',
+    ]);
+  });
+
+  it('支持一键从订单货物信息带入品名、件数、单位及毛重体积', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          goodsDescription: 'AUTO PARTS / 汽车配件',
+          totalPackages: 800,
+          totalPackageUnit: 'CTNS',
+          totalGrossWeightKg: 15200.5,
+          totalVolumeCbm: 45.8,
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    const importCargoBtn = screen.getByRole('button', {
+      name: /从订单货物信息带入/,
+    });
+    expect(importCargoBtn).toBeInTheDocument();
+    fireEvent.click(importCargoBtn);
+
+    await waitFor(() => {
+      const content = capturedForm?.getFieldValue('seaMasterBillContent');
+      expect(content?.goodsDescriptionText).toBe('AUTO PARTS / 汽车配件');
+      expect(content?.packageCount).toBe(800);
+      expect(content?.packageUnit).toBe('CTNS');
+      expect(content?.grossWeightKg).toBe(15200.5);
+      expect(content?.volumeCbm).toBe(45.8);
+    });
+  });
 });

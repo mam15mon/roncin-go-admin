@@ -385,9 +385,9 @@ func computeMBLContentHash(mbl *ent.SeaMasterBill) string {
 	fmt.Fprintf(h, "shipper:%s|consignee:%s|notify:%s|notify2:%s|marks:%s|goods:%s|",
 		derefStr(mbl.ShipperText), derefStr(mbl.ConsigneeText), derefStr(mbl.NotifyPartyText),
 		derefStr(mbl.SecondNotifyPartyText), derefStr(mbl.MarksText), derefStr(mbl.GoodsDescriptionText))
-	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|",
+	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|foreignAgent:%s|",
 		derefInt(mbl.PackageCount), derefStr(mbl.PackageUnit), derefFloat(mbl.GrossWeightKg), derefFloat(mbl.VolumeCbm),
-		derefStr(mbl.FreightTerms), derefStr(mbl.TransportTerms), derefStr(mbl.BillForm), derefStr(mbl.ReleaseType), derefStr(mbl.Clauses))
+		derefStr(mbl.FreightTerms), derefStr(mbl.TransportTerms), derefStr(mbl.BillForm), derefStr(mbl.ReleaseType), derefStr(mbl.Clauses), derefStr(mbl.ForeignAgentText))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -414,9 +414,9 @@ func computeHBLContentHash(hbl *ent.SeaHouseBill) string {
 	fmt.Fprintf(h, "shipper:%s|consignee:%s|notify:%s|notify2:%s|marks:%s|goods:%s|",
 		derefStr(hbl.ShipperText), derefStr(hbl.ConsigneeText), derefStr(hbl.NotifyPartyText),
 		derefStr(hbl.SecondNotifyPartyText), derefStr(hbl.MarksText), derefStr(hbl.GoodsDescriptionText))
-	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|",
+	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|foreignAgent:%s|",
 		derefInt(hbl.PackageCount), derefStr(hbl.PackageUnit), derefFloat(hbl.GrossWeightKg), derefFloat(hbl.VolumeCbm),
-		derefStr(hbl.FreightTerms), derefStr(hbl.TransportTerms), derefStr(hbl.BillForm), derefStr(hbl.ReleaseType), derefStr(hbl.Clauses))
+		derefStr(hbl.FreightTerms), derefStr(hbl.TransportTerms), derefStr(hbl.BillForm), derefStr(hbl.ReleaseType), derefStr(hbl.Clauses), derefStr(hbl.ForeignAgentText))
 	return hex.EncodeToString(h.Sum(nil))
 }
 

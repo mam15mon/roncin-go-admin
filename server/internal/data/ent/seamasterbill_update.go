@@ -478,6 +478,26 @@ func (_u *SeaMasterBillUpdate) ClearClauses() *SeaMasterBillUpdate {
 	return _u
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_u *SeaMasterBillUpdate) SetForeignAgentText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetForeignAgentText(v)
+	return _u
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableForeignAgentText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetForeignAgentText(*v)
+	}
+	return _u
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (_u *SeaMasterBillUpdate) ClearForeignAgentText() *SeaMasterBillUpdate {
+	_u.mutation.ClearForeignAgentText()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillUpdate) SetOrganization(v *Organization) *SeaMasterBillUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -1142,6 +1162,12 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seamasterbill.FieldClauses, field.TypeString)
+	}
+	if value, ok := _u.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seamasterbill.FieldForeignAgentText, field.TypeString, value)
+	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seamasterbill.FieldForeignAgentText, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2183,6 +2209,26 @@ func (_u *SeaMasterBillUpdateOne) ClearClauses() *SeaMasterBillUpdateOne {
 	return _u
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (_u *SeaMasterBillUpdateOne) SetForeignAgentText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetForeignAgentText(v)
+	return _u
+}
+
+// SetNillableForeignAgentText sets the "foreign_agent_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableForeignAgentText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetForeignAgentText(*v)
+	}
+	return _u
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearForeignAgentText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearForeignAgentText()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillUpdateOne) SetOrganization(v *Organization) *SeaMasterBillUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -2877,6 +2923,12 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 	}
 	if _u.mutation.ClausesCleared() {
 		_spec.ClearField(seamasterbill.FieldClauses, field.TypeString)
+	}
+	if value, ok := _u.mutation.ForeignAgentText(); ok {
+		_spec.SetField(seamasterbill.FieldForeignAgentText, field.TypeString, value)
+	}
+	if _u.mutation.ForeignAgentTextCleared() {
+		_spec.ClearField(seamasterbill.FieldForeignAgentText, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

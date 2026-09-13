@@ -207,6 +207,7 @@ func createTestSplitFixture(t *testing.T, env *splitTestEnv, suffix string, opts
 	data := env.data
 
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(env.orgID).
 		SetOrderNo("SE20260907" + suffix).
 		SetCustomerID(env.customerID).
@@ -605,6 +606,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 	// D. DIRECT 拒绝拆票与整票改配
 	t.Run("DIRECT拆票阻断与整票改配成功", func(t *testing.T) {
 		directOrder, err := env.data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(env.orgID).
 			SetOrderNo("SE20260907088").
 			SetCustomerID(env.customerID).
@@ -1062,6 +1064,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 			t.Fatalf("创建候选MBL失败: %v", err)
 		}
 		carrierOrder, err := env.data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(env.orgID).
 			SetOrderNo("SE-CAND-" + uuid.NewString()[:8]).
 			SetCustomerID(env.customerID).

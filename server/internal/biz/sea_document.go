@@ -138,6 +138,9 @@ func ValidateSeaBillContent(content *SeaBillContent) (*SeaBillContent, error) {
 	if res.Clauses, err = normalizeAndValidateText("特别条款", content.Clauses, MaxSeaDescriptionLength); err != nil {
 		return nil, err
 	}
+	if res.ForeignAgentText, err = normalizeAndValidateText("外国代理", content.ForeignAgentText, MaxSeaPartyTextLength); err != nil {
+		return nil, err
+	}
 
 	if content.PackageCount != nil && *content.PackageCount < 0 {
 		return nil, errors.BadRequest("SEA_BILL_CONTENT_INVALID_ARGUMENT", "件数不能为负数")
@@ -336,6 +339,7 @@ type SeaBillContent struct {
 	BillForm              *string
 	ReleaseType           *string
 	Clauses               *string
+	ForeignAgentText      *string
 }
 
 // SeaHouseBill 海运分单（HBL）信息。

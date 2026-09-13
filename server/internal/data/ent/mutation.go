@@ -64882,6 +64882,7 @@ type OrderMutation struct {
 	created_at                              *time.Time
 	updated_at                              *time.Time
 	order_no                                *string
+	idempotency_key                         *string
 	customer_reference_no                   *string
 	internal_reference_no                   *string
 	shipper_short_name                      *string
@@ -65296,6 +65297,42 @@ func (m *OrderMutation) OldOrderNo(ctx context.Context) (v string, err error) {
 // ResetOrderNo resets all changes to the "order_no" field.
 func (m *OrderMutation) ResetOrderNo() {
 	m.order_no = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *OrderMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *OrderMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *OrderMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
 }
 
 // SetCustomerID sets the "customer_id" field.
@@ -70151,7 +70188,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 69)
+	fields := make([]string, 0, 70)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -70163,6 +70200,9 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.order_no != nil {
 		fields = append(fields, order.FieldOrderNo)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, order.FieldIdempotencyKey)
 	}
 	if m.customer != nil {
 		fields = append(fields, order.FieldCustomerID)
@@ -70375,6 +70415,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OrganizationID()
 	case order.FieldOrderNo:
 		return m.OrderNo()
+	case order.FieldIdempotencyKey:
+		return m.IdempotencyKey()
 	case order.FieldCustomerID:
 		return m.CustomerID()
 	case order.FieldCustomerReferenceNo:
@@ -70522,6 +70564,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOrganizationID(ctx)
 	case order.FieldOrderNo:
 		return m.OldOrderNo(ctx)
+	case order.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
 	case order.FieldCustomerID:
 		return m.OldCustomerID(ctx)
 	case order.FieldCustomerReferenceNo:
@@ -70688,6 +70732,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderNo(v)
+		return nil
+	case order.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
 		return nil
 	case order.FieldCustomerID:
 		v, ok := value.(uuid.UUID)
@@ -71588,6 +71639,9 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldOrderNo:
 		m.ResetOrderNo()
+		return nil
+	case order.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
 		return nil
 	case order.FieldCustomerID:
 		m.ResetCustomerID()
@@ -123073,6 +123127,7 @@ type SeaHouseBillMutation struct {
 	bill_form                           *string
 	release_type                        *string
 	clauses                             *string
+	foreign_agent_text                  *string
 	clearedFields                       map[string]struct{}
 	organization                        *uuid.UUID
 	clearedorganization                 bool
@@ -124590,6 +124645,55 @@ func (m *SeaHouseBillMutation) ResetClauses() {
 	delete(m.clearedFields, seahousebill.FieldClauses)
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (m *SeaHouseBillMutation) SetForeignAgentText(s string) {
+	m.foreign_agent_text = &s
+}
+
+// ForeignAgentText returns the value of the "foreign_agent_text" field in the mutation.
+func (m *SeaHouseBillMutation) ForeignAgentText() (r string, exists bool) {
+	v := m.foreign_agent_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForeignAgentText returns the old "foreign_agent_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldForeignAgentText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForeignAgentText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForeignAgentText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForeignAgentText: %w", err)
+	}
+	return oldValue.ForeignAgentText, nil
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (m *SeaHouseBillMutation) ClearForeignAgentText() {
+	m.foreign_agent_text = nil
+	m.clearedFields[seahousebill.FieldForeignAgentText] = struct{}{}
+}
+
+// ForeignAgentTextCleared returns if the "foreign_agent_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) ForeignAgentTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldForeignAgentText]
+	return ok
+}
+
+// ResetForeignAgentText resets all changes to the "foreign_agent_text" field.
+func (m *SeaHouseBillMutation) ResetForeignAgentText() {
+	m.foreign_agent_text = nil
+	delete(m.clearedFields, seahousebill.FieldForeignAgentText)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaHouseBillMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -125164,7 +125268,7 @@ func (m *SeaHouseBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaHouseBillMutation) Fields() []string {
-	fields := make([]string, 0, 29)
+	fields := make([]string, 0, 30)
 	if m.created_at != nil {
 		fields = append(fields, seahousebill.FieldCreatedAt)
 	}
@@ -125252,6 +125356,9 @@ func (m *SeaHouseBillMutation) Fields() []string {
 	if m.clauses != nil {
 		fields = append(fields, seahousebill.FieldClauses)
 	}
+	if m.foreign_agent_text != nil {
+		fields = append(fields, seahousebill.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -125318,6 +125425,8 @@ func (m *SeaHouseBillMutation) Field(name string) (ent.Value, bool) {
 		return m.ReleaseType()
 	case seahousebill.FieldClauses:
 		return m.Clauses()
+	case seahousebill.FieldForeignAgentText:
+		return m.ForeignAgentText()
 	}
 	return nil, false
 }
@@ -125385,6 +125494,8 @@ func (m *SeaHouseBillMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldReleaseType(ctx)
 	case seahousebill.FieldClauses:
 		return m.OldClauses(ctx)
+	case seahousebill.FieldForeignAgentText:
+		return m.OldForeignAgentText(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaHouseBill field %s", name)
 }
@@ -125597,6 +125708,13 @@ func (m *SeaHouseBillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetClauses(v)
 		return nil
+	case seahousebill.FieldForeignAgentText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForeignAgentText(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBill field %s", name)
 }
@@ -125735,6 +125853,9 @@ func (m *SeaHouseBillMutation) ClearedFields() []string {
 	if m.FieldCleared(seahousebill.FieldClauses) {
 		fields = append(fields, seahousebill.FieldClauses)
 	}
+	if m.FieldCleared(seahousebill.FieldForeignAgentText) {
+		fields = append(fields, seahousebill.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -125805,6 +125926,9 @@ func (m *SeaHouseBillMutation) ClearField(name string) error {
 		return nil
 	case seahousebill.FieldClauses:
 		m.ClearClauses()
+		return nil
+	case seahousebill.FieldForeignAgentText:
+		m.ClearForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBill nullable field %s", name)
@@ -125900,6 +126024,9 @@ func (m *SeaHouseBillMutation) ResetField(name string) error {
 		return nil
 	case seahousebill.FieldClauses:
 		m.ResetClauses()
+		return nil
+	case seahousebill.FieldForeignAgentText:
+		m.ResetForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBill field %s", name)
@@ -126295,6 +126422,7 @@ type SeaHouseBillVersionMutation struct {
 	bill_form                          *string
 	release_type                       *string
 	clauses                            *string
+	foreign_agent_text                 *string
 	clearedFields                      map[string]struct{}
 	organization                       *uuid.UUID
 	clearedorganization                bool
@@ -128281,6 +128409,55 @@ func (m *SeaHouseBillVersionMutation) ResetClauses() {
 	delete(m.clearedFields, seahousebillversion.FieldClauses)
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (m *SeaHouseBillVersionMutation) SetForeignAgentText(s string) {
+	m.foreign_agent_text = &s
+}
+
+// ForeignAgentText returns the value of the "foreign_agent_text" field in the mutation.
+func (m *SeaHouseBillVersionMutation) ForeignAgentText() (r string, exists bool) {
+	v := m.foreign_agent_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForeignAgentText returns the old "foreign_agent_text" field's value of the SeaHouseBillVersion entity.
+// If the SeaHouseBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillVersionMutation) OldForeignAgentText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForeignAgentText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForeignAgentText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForeignAgentText: %w", err)
+	}
+	return oldValue.ForeignAgentText, nil
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (m *SeaHouseBillVersionMutation) ClearForeignAgentText() {
+	m.foreign_agent_text = nil
+	m.clearedFields[seahousebillversion.FieldForeignAgentText] = struct{}{}
+}
+
+// ForeignAgentTextCleared returns if the "foreign_agent_text" field was cleared in this mutation.
+func (m *SeaHouseBillVersionMutation) ForeignAgentTextCleared() bool {
+	_, ok := m.clearedFields[seahousebillversion.FieldForeignAgentText]
+	return ok
+}
+
+// ResetForeignAgentText resets all changes to the "foreign_agent_text" field.
+func (m *SeaHouseBillVersionMutation) ResetForeignAgentText() {
+	m.foreign_agent_text = nil
+	delete(m.clearedFields, seahousebillversion.FieldForeignAgentText)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaHouseBillVersionMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -128814,7 +128991,7 @@ func (m *SeaHouseBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaHouseBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 39)
+	fields := make([]string, 0, 40)
 	if m.created_at != nil {
 		fields = append(fields, seahousebillversion.FieldCreatedAt)
 	}
@@ -128932,6 +129109,9 @@ func (m *SeaHouseBillVersionMutation) Fields() []string {
 	if m.clauses != nil {
 		fields = append(fields, seahousebillversion.FieldClauses)
 	}
+	if m.foreign_agent_text != nil {
+		fields = append(fields, seahousebillversion.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -129018,6 +129198,8 @@ func (m *SeaHouseBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.ReleaseType()
 	case seahousebillversion.FieldClauses:
 		return m.Clauses()
+	case seahousebillversion.FieldForeignAgentText:
+		return m.ForeignAgentText()
 	}
 	return nil, false
 }
@@ -129105,6 +129287,8 @@ func (m *SeaHouseBillVersionMutation) OldField(ctx context.Context, name string)
 		return m.OldReleaseType(ctx)
 	case seahousebillversion.FieldClauses:
 		return m.OldClauses(ctx)
+	case seahousebillversion.FieldForeignAgentText:
+		return m.OldForeignAgentText(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaHouseBillVersion field %s", name)
 }
@@ -129387,6 +129571,13 @@ func (m *SeaHouseBillVersionMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetClauses(v)
 		return nil
+	case seahousebillversion.FieldForeignAgentText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForeignAgentText(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBillVersion field %s", name)
 }
@@ -129558,6 +129749,9 @@ func (m *SeaHouseBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seahousebillversion.FieldClauses) {
 		fields = append(fields, seahousebillversion.FieldClauses)
 	}
+	if m.FieldCleared(seahousebillversion.FieldForeignAgentText) {
+		fields = append(fields, seahousebillversion.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -129649,6 +129843,9 @@ func (m *SeaHouseBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seahousebillversion.FieldClauses:
 		m.ClearClauses()
+		return nil
+	case seahousebillversion.FieldForeignAgentText:
+		m.ClearForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBillVersion nullable field %s", name)
@@ -129774,6 +129971,9 @@ func (m *SeaHouseBillVersionMutation) ResetField(name string) error {
 		return nil
 	case seahousebillversion.FieldClauses:
 		m.ResetClauses()
+		return nil
+	case seahousebillversion.FieldForeignAgentText:
+		m.ResetForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaHouseBillVersion field %s", name)
@@ -130142,6 +130342,7 @@ type SeaMasterBillMutation struct {
 	bill_form                               *string
 	release_type                            *string
 	clauses                                 *string
+	foreign_agent_text                      *string
 	clearedFields                           map[string]struct{}
 	organization                            *uuid.UUID
 	clearedorganization                     bool
@@ -131446,6 +131647,55 @@ func (m *SeaMasterBillMutation) ResetClauses() {
 	delete(m.clearedFields, seamasterbill.FieldClauses)
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (m *SeaMasterBillMutation) SetForeignAgentText(s string) {
+	m.foreign_agent_text = &s
+}
+
+// ForeignAgentText returns the value of the "foreign_agent_text" field in the mutation.
+func (m *SeaMasterBillMutation) ForeignAgentText() (r string, exists bool) {
+	v := m.foreign_agent_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForeignAgentText returns the old "foreign_agent_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldForeignAgentText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForeignAgentText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForeignAgentText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForeignAgentText: %w", err)
+	}
+	return oldValue.ForeignAgentText, nil
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (m *SeaMasterBillMutation) ClearForeignAgentText() {
+	m.foreign_agent_text = nil
+	m.clearedFields[seamasterbill.FieldForeignAgentText] = struct{}{}
+}
+
+// ForeignAgentTextCleared returns if the "foreign_agent_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) ForeignAgentTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldForeignAgentText]
+	return ok
+}
+
+// ResetForeignAgentText resets all changes to the "foreign_agent_text" field.
+func (m *SeaMasterBillMutation) ResetForeignAgentText() {
+	m.foreign_agent_text = nil
+	delete(m.clearedFields, seamasterbill.FieldForeignAgentText)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaMasterBillMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -132155,7 +132405,7 @@ func (m *SeaMasterBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbill.FieldCreatedAt)
 	}
@@ -132228,6 +132478,9 @@ func (m *SeaMasterBillMutation) Fields() []string {
 	if m.clauses != nil {
 		fields = append(fields, seamasterbill.FieldClauses)
 	}
+	if m.foreign_agent_text != nil {
+		fields = append(fields, seamasterbill.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -132284,6 +132537,8 @@ func (m *SeaMasterBillMutation) Field(name string) (ent.Value, bool) {
 		return m.ReleaseType()
 	case seamasterbill.FieldClauses:
 		return m.Clauses()
+	case seamasterbill.FieldForeignAgentText:
+		return m.ForeignAgentText()
 	}
 	return nil, false
 }
@@ -132341,6 +132596,8 @@ func (m *SeaMasterBillMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldReleaseType(ctx)
 	case seamasterbill.FieldClauses:
 		return m.OldClauses(ctx)
+	case seamasterbill.FieldForeignAgentText:
+		return m.OldForeignAgentText(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaMasterBill field %s", name)
 }
@@ -132518,6 +132775,13 @@ func (m *SeaMasterBillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetClauses(v)
 		return nil
+	case seamasterbill.FieldForeignAgentText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForeignAgentText(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill field %s", name)
 }
@@ -132647,6 +132911,9 @@ func (m *SeaMasterBillMutation) ClearedFields() []string {
 	if m.FieldCleared(seamasterbill.FieldClauses) {
 		fields = append(fields, seamasterbill.FieldClauses)
 	}
+	if m.FieldCleared(seamasterbill.FieldForeignAgentText) {
+		fields = append(fields, seamasterbill.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -132708,6 +132975,9 @@ func (m *SeaMasterBillMutation) ClearField(name string) error {
 		return nil
 	case seamasterbill.FieldClauses:
 		m.ClearClauses()
+		return nil
+	case seamasterbill.FieldForeignAgentText:
+		m.ClearForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill nullable field %s", name)
@@ -132788,6 +133058,9 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 		return nil
 	case seamasterbill.FieldClauses:
 		m.ResetClauses()
+		return nil
+	case seamasterbill.FieldForeignAgentText:
+		m.ResetForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill field %s", name)
@@ -134426,6 +134699,7 @@ type SeaMasterBillVersionMutation struct {
 	bill_form                      *string
 	release_type                   *string
 	clauses                        *string
+	foreign_agent_text             *string
 	clearedFields                  map[string]struct{}
 	organization                   *uuid.UUID
 	clearedorganization            bool
@@ -136181,6 +136455,55 @@ func (m *SeaMasterBillVersionMutation) ResetClauses() {
 	delete(m.clearedFields, seamasterbillversion.FieldClauses)
 }
 
+// SetForeignAgentText sets the "foreign_agent_text" field.
+func (m *SeaMasterBillVersionMutation) SetForeignAgentText(s string) {
+	m.foreign_agent_text = &s
+}
+
+// ForeignAgentText returns the value of the "foreign_agent_text" field in the mutation.
+func (m *SeaMasterBillVersionMutation) ForeignAgentText() (r string, exists bool) {
+	v := m.foreign_agent_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForeignAgentText returns the old "foreign_agent_text" field's value of the SeaMasterBillVersion entity.
+// If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillVersionMutation) OldForeignAgentText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForeignAgentText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForeignAgentText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForeignAgentText: %w", err)
+	}
+	return oldValue.ForeignAgentText, nil
+}
+
+// ClearForeignAgentText clears the value of the "foreign_agent_text" field.
+func (m *SeaMasterBillVersionMutation) ClearForeignAgentText() {
+	m.foreign_agent_text = nil
+	m.clearedFields[seamasterbillversion.FieldForeignAgentText] = struct{}{}
+}
+
+// ForeignAgentTextCleared returns if the "foreign_agent_text" field was cleared in this mutation.
+func (m *SeaMasterBillVersionMutation) ForeignAgentTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbillversion.FieldForeignAgentText]
+	return ok
+}
+
+// ResetForeignAgentText resets all changes to the "foreign_agent_text" field.
+func (m *SeaMasterBillVersionMutation) ResetForeignAgentText() {
+	m.foreign_agent_text = nil
+	delete(m.clearedFields, seamasterbillversion.FieldForeignAgentText)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaMasterBillVersionMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -136525,7 +136848,7 @@ func (m *SeaMasterBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 34)
+	fields := make([]string, 0, 35)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillversion.FieldCreatedAt)
 	}
@@ -136628,6 +136951,9 @@ func (m *SeaMasterBillVersionMutation) Fields() []string {
 	if m.clauses != nil {
 		fields = append(fields, seamasterbillversion.FieldClauses)
 	}
+	if m.foreign_agent_text != nil {
+		fields = append(fields, seamasterbillversion.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -136704,6 +137030,8 @@ func (m *SeaMasterBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.ReleaseType()
 	case seamasterbillversion.FieldClauses:
 		return m.Clauses()
+	case seamasterbillversion.FieldForeignAgentText:
+		return m.ForeignAgentText()
 	}
 	return nil, false
 }
@@ -136781,6 +137109,8 @@ func (m *SeaMasterBillVersionMutation) OldField(ctx context.Context, name string
 		return m.OldReleaseType(ctx)
 	case seamasterbillversion.FieldClauses:
 		return m.OldClauses(ctx)
+	case seamasterbillversion.FieldForeignAgentText:
+		return m.OldForeignAgentText(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaMasterBillVersion field %s", name)
 }
@@ -137028,6 +137358,13 @@ func (m *SeaMasterBillVersionMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetClauses(v)
 		return nil
+	case seamasterbillversion.FieldForeignAgentText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForeignAgentText(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillVersion field %s", name)
 }
@@ -137190,6 +137527,9 @@ func (m *SeaMasterBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seamasterbillversion.FieldClauses) {
 		fields = append(fields, seamasterbillversion.FieldClauses)
 	}
+	if m.FieldCleared(seamasterbillversion.FieldForeignAgentText) {
+		fields = append(fields, seamasterbillversion.FieldForeignAgentText)
+	}
 	return fields
 }
 
@@ -137272,6 +137612,9 @@ func (m *SeaMasterBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seamasterbillversion.FieldClauses:
 		m.ClearClauses()
+		return nil
+	case seamasterbillversion.FieldForeignAgentText:
+		m.ClearForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillVersion nullable field %s", name)
@@ -137382,6 +137725,9 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 		return nil
 	case seamasterbillversion.FieldClauses:
 		m.ResetClauses()
+		return nil
+	case seamasterbillversion.FieldForeignAgentText:
+		m.ResetForeignAgentText()
 		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBillVersion field %s", name)

@@ -528,6 +528,7 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 	fixture.usdAccountID = usdAccount.ID
 
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(organization.ID).
 		SetOrderNo("SE" + suffix).
 		SetCustomerID(partner.ID).

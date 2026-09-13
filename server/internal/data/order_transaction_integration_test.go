@@ -763,7 +763,7 @@ func newTestSCAC() string {
 }
 
 func (f *orderPostgresFixture) newUsecase() *biz.OrderUsecase {
-	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data), NewSeaDocumentRepo(f.data), biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(f.data))))
+	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data), NewSeaDocumentRepo(f.data), biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(f.data))), f.data)
 }
 
 func (f *orderPostgresFixture) validInput() *biz.Order {

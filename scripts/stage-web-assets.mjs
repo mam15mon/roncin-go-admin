@@ -25,8 +25,12 @@ for (const entry of await readdir(targetDirectory, { withFileTypes: true })) {
 }
 
 for (const entry of await readdir(sourceDirectory, { withFileTypes: true })) {
+  if (entry.name.endsWith('.map')) {
+    continue;
+  }
   await cp(join(sourceDirectory, entry.name), join(targetDirectory, entry.name), {
     recursive: true,
     force: true,
+    filter: (source) => !source.endsWith('.map'),
   });
 }

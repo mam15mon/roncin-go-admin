@@ -69,6 +69,8 @@ type SeaMasterBill struct {
 	ReleaseType *string `json:"release_type,omitempty"`
 	// Clauses holds the value of the "clauses" field.
 	Clauses *string `json:"clauses,omitempty"`
+	// ForeignAgentText holds the value of the "foreign_agent_text" field.
+	ForeignAgentText *string `json:"foreign_agent_text,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaMasterBillQuery when eager-loading is set.
 	Edges        SeaMasterBillEdges `json:"edges"`
@@ -253,7 +255,7 @@ func (*SeaMasterBill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seamasterbill.FieldVersion, seamasterbill.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus, seamasterbill.FieldShipperText, seamasterbill.FieldConsigneeText, seamasterbill.FieldNotifyPartyText, seamasterbill.FieldSecondNotifyPartyText, seamasterbill.FieldMarksText, seamasterbill.FieldGoodsDescriptionText, seamasterbill.FieldPackageUnit, seamasterbill.FieldFreightTerms, seamasterbill.FieldTransportTerms, seamasterbill.FieldBillForm, seamasterbill.FieldReleaseType, seamasterbill.FieldClauses:
+		case seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus, seamasterbill.FieldShipperText, seamasterbill.FieldConsigneeText, seamasterbill.FieldNotifyPartyText, seamasterbill.FieldSecondNotifyPartyText, seamasterbill.FieldMarksText, seamasterbill.FieldGoodsDescriptionText, seamasterbill.FieldPackageUnit, seamasterbill.FieldFreightTerms, seamasterbill.FieldTransportTerms, seamasterbill.FieldBillForm, seamasterbill.FieldReleaseType, seamasterbill.FieldClauses, seamasterbill.FieldForeignAgentText:
 			values[i] = new(sql.NullString)
 		case seamasterbill.FieldCreatedAt, seamasterbill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -439,6 +441,13 @@ func (_m *SeaMasterBill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Clauses = new(string)
 				*_m.Clauses = value.String
+			}
+		case seamasterbill.FieldForeignAgentText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field foreign_agent_text", values[i])
+			} else if value.Valid {
+				_m.ForeignAgentText = new(string)
+				*_m.ForeignAgentText = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -647,6 +656,11 @@ func (_m *SeaMasterBill) String() string {
 	builder.WriteString(", ")
 	if v := _m.Clauses; v != nil {
 		builder.WriteString("clauses=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ForeignAgentText; v != nil {
+		builder.WriteString("foreign_agent_text=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

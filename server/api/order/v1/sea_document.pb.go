@@ -412,6 +412,7 @@ type SeaBillContent struct {
 	BillForm              *string                `protobuf:"bytes,13,opt,name=bill_form,json=billForm,proto3,oneof" json:"bill_form,omitempty"`
 	ReleaseType           *string                `protobuf:"bytes,14,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
 	Clauses               *string                `protobuf:"bytes,15,opt,name=clauses,proto3,oneof" json:"clauses,omitempty"`
+	ForeignAgentText      *string                `protobuf:"bytes,16,opt,name=foreign_agent_text,json=foreignAgentText,proto3,oneof" json:"foreign_agent_text,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -547,6 +548,13 @@ func (x *SeaBillContent) GetReleaseType() string {
 func (x *SeaBillContent) GetClauses() string {
 	if x != nil && x.Clauses != nil {
 		return *x.Clauses
+	}
+	return ""
+}
+
+func (x *SeaBillContent) GetForeignAgentText() string {
+	if x != nil && x.ForeignAgentText != nil {
+		return *x.ForeignAgentText
 	}
 	return ""
 }
@@ -4175,7 +4183,7 @@ var File_order_v1_sea_document_proto protoreflect.FileDescriptor
 
 const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/sea_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xae\a\n" +
+	"\x1border/v1/sea_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xf8\a\n" +
 	"\x0eSeaBillContent\x12&\n" +
 	"\fshipper_text\x18\x01 \x01(\tH\x00R\vshipperText\x88\x01\x01\x12*\n" +
 	"\x0econsignee_text\x18\x02 \x01(\tH\x01R\rconsigneeText\x88\x01\x01\x12/\n" +
@@ -4195,7 +4203,8 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x0ftransport_terms\x18\f \x01(\tH\vR\x0etransportTerms\x88\x01\x01\x12 \n" +
 	"\tbill_form\x18\r \x01(\tH\fR\bbillForm\x88\x01\x01\x12&\n" +
 	"\frelease_type\x18\x0e \x01(\tH\rR\vreleaseType\x88\x01\x01\x12\x1d\n" +
-	"\aclauses\x18\x0f \x01(\tH\x0eR\aclauses\x88\x01\x01B\x0f\n" +
+	"\aclauses\x18\x0f \x01(\tH\x0eR\aclauses\x88\x01\x01\x121\n" +
+	"\x12foreign_agent_text\x18\x10 \x01(\tH\x0fR\x10foreignAgentText\x88\x01\x01B\x0f\n" +
 	"\r_shipper_textB\x11\n" +
 	"\x0f_consignee_textB\x14\n" +
 	"\x12_notify_party_textB\x1b\n" +
@@ -4212,7 +4221,8 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"_bill_formB\x0f\n" +
 	"\r_release_typeB\n" +
 	"\n" +
-	"\b_clauses\"\x98\a\n" +
+	"\b_clausesB\x15\n" +
+	"\x13_foreign_agent_text\"\x98\a\n" +
 	"\fSeaHouseBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +

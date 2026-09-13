@@ -82,6 +82,20 @@ func (_u *OrderUpdate) SetNillableOrganizationID(v *uuid.UUID) *OrderUpdate {
 	return _u
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_u *OrderUpdate) SetIdempotencyKey(v string) *OrderUpdate {
+	_u.mutation.SetIdempotencyKey(v)
+	return _u
+}
+
+// SetNillableIdempotencyKey sets the "idempotency_key" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableIdempotencyKey(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetIdempotencyKey(*v)
+	}
+	return _u
+}
+
 // SetCustomerID sets the "customer_id" field.
 func (_u *OrderUpdate) SetCustomerID(v uuid.UUID) *OrderUpdate {
 	_u.mutation.SetCustomerID(v)
@@ -2490,6 +2504,11 @@ func (_u *OrderUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderUpdate) check() error {
+	if v, ok := _u.mutation.IdempotencyKey(); ok {
+		if err := order.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "Order.idempotency_key": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CustomerReferenceNo(); ok {
 		if err := order.CustomerReferenceNoValidator(v); err != nil {
 			return &ValidationError{Name: "customer_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.customer_reference_no": %w`, err)}
@@ -2743,6 +2762,9 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.IdempotencyKey(); ok {
+		_spec.SetField(order.FieldIdempotencyKey, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CustomerReferenceNo(); ok {
 		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)
@@ -4555,6 +4577,20 @@ func (_u *OrderUpdateOne) SetOrganizationID(v uuid.UUID) *OrderUpdateOne {
 func (_u *OrderUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *OrderUpdateOne {
 	if v != nil {
 		_u.SetOrganizationID(*v)
+	}
+	return _u
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_u *OrderUpdateOne) SetIdempotencyKey(v string) *OrderUpdateOne {
+	_u.mutation.SetIdempotencyKey(v)
+	return _u
+}
+
+// SetNillableIdempotencyKey sets the "idempotency_key" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableIdempotencyKey(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetIdempotencyKey(*v)
 	}
 	return _u
 }
@@ -6980,6 +7016,11 @@ func (_u *OrderUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderUpdateOne) check() error {
+	if v, ok := _u.mutation.IdempotencyKey(); ok {
+		if err := order.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "Order.idempotency_key": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CustomerReferenceNo(); ok {
 		if err := order.CustomerReferenceNoValidator(v); err != nil {
 			return &ValidationError{Name: "customer_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.customer_reference_no": %w`, err)}
@@ -7250,6 +7291,9 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.IdempotencyKey(); ok {
+		_spec.SetField(order.FieldIdempotencyKey, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CustomerReferenceNo(); ok {
 		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)

@@ -61,6 +61,7 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 		t.Fatalf("创建测试往来单位: %v", err)
 	}
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(organization.ID).
 		SetOrderNo("SE" + suffix).
 		SetCustomerID(partner.ID).

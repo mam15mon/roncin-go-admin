@@ -105,6 +105,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 	for index, receivable := range commissionNettingBillAmounts {
 		orderNo := "NT-SE" + suffix + "-" + strconv.Itoa(index)
 		order, orderErr := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo(orderNo).
 			SetCustomerID(customer.ID).

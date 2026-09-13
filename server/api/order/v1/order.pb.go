@@ -3101,8 +3101,10 @@ type CreateOrderRequest struct {
 	SeaMasterBill         *SeaMasterBillInput              `protobuf:"bytes,57,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
 	SeaDocument           *SeaOrderDocumentInput           `protobuf:"bytes,58,opt,name=sea_document,json=seaDocument,proto3,oneof" json:"sea_document,omitempty"`
 	BookingNo             *string                          `protobuf:"bytes,59,opt,name=booking_no,json=bookingNo,proto3,oneof" json:"booking_no,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// idempotency_key 创建幂等键：可选，传入即启用幂等；同键同意图重放返回原单。
+	IdempotencyKey *string `protobuf:"bytes,60,opt,name=idempotency_key,json=idempotencyKey,proto3,oneof" json:"idempotency_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateOrderRequest) Reset() {
@@ -3534,6 +3536,13 @@ func (x *CreateOrderRequest) GetBookingNo() string {
 	return ""
 }
 
+func (x *CreateOrderRequest) GetIdempotencyKey() string {
+	if x != nil && x.IdempotencyKey != nil {
+		return *x.IdempotencyKey
+	}
+	return ""
+}
+
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState        `protogen:"open.v1"`
@@ -3595,8 +3604,11 @@ type UpdateOrderRequest struct {
 	SeaMasterBill         *SeaMasterBillInput           `protobuf:"bytes,57,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
 	SeaDocument           *SeaOrderDocumentInput        `protobuf:"bytes,58,opt,name=sea_document,json=seaDocument,proto3,oneof" json:"sea_document,omitempty"`
 	BookingNo             *string                       `protobuf:"bytes,59,opt,name=booking_no,json=bookingNo,proto3,oneof" json:"booking_no,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// idempotency_key 草稿更新幂等键：可选，传入即启用；同键 + 同 expected_version
+	// 的重放返回当前草稿，否则走既有乐观锁冲突。
+	IdempotencyKey *string `protobuf:"bytes,60,opt,name=idempotency_key,json=idempotencyKey,proto3,oneof" json:"idempotency_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UpdateOrderRequest) Reset() {
@@ -4031,6 +4043,13 @@ func (x *UpdateOrderRequest) GetSeaDocument() *SeaOrderDocumentInput {
 func (x *UpdateOrderRequest) GetBookingNo() string {
 	if x != nil && x.BookingNo != nil {
 		return *x.BookingNo
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetIdempotencyKey() string {
+	if x != nil && x.IdempotencyKey != nil {
+		return *x.IdempotencyKey
 	}
 	return ""
 }
@@ -6507,7 +6526,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xb9\x1e\n" +
+	"\t_order_no\"\xfb\x1e\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -6576,7 +6595,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01\x12G\n" +
 	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18; \x01(\tH/R\tbookingNo\x88\x01\x01B\r\n" +
+	"booking_no\x18; \x01(\tH/R\tbookingNo\x88\x01\x01\x12,\n" +
+	"\x0fidempotency_key\x18< \x01(\tH0R\x0eidempotencyKey\x88\x01\x01B\r\n" +
 	"\v_trade_termB\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
@@ -6626,7 +6646,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x15_consignee_short_nameB\x12\n" +
 	"\x10_sea_master_billB\x0f\n" +
 	"\r_sea_documentB\r\n" +
-	"\v_booking_noJ\x04\b\x06\x10\aJ\x04\b,\x10-R\x12status_template_idR\rloading_terms\"\xcd\x1e\n" +
+	"\v_booking_noB\x12\n" +
+	"\x10_idempotency_keyJ\x04\b\x06\x10\aJ\x04\b,\x10-R\x12status_template_idR\rloading_terms\"\x8f\x1f\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12$\n" +
@@ -6696,7 +6717,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH1R\rseaMasterBill\x88\x01\x01\x12G\n" +
 	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH2R\vseaDocument\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"booking_no\x18; \x01(\tH3R\tbookingNo\x88\x01\x01B\x0e\n" +
+	"booking_no\x18; \x01(\tH3R\tbookingNo\x88\x01\x01\x12,\n" +
+	"\x0fidempotency_key\x18< \x01(\tH4R\x0eidempotencyKey\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -6750,7 +6772,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x15_consignee_short_nameB\x12\n" +
 	"\x10_sea_master_billB\x0f\n" +
 	"\r_sea_documentB\r\n" +
-	"\v_booking_noJ\x04\b-\x10.R\rloading_terms\"\xd9\x01\n" +
+	"\v_booking_noB\x12\n" +
+	"\x10_idempotency_keyJ\x04\b-\x10.R\rloading_terms\"\xd9\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12L\n" +

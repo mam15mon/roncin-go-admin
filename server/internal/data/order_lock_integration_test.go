@@ -294,6 +294,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	// 8. 创建主订单 Order A
 	orderA, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-" + suffix + "-A").
 		SetCustomerID(customer.ID).
@@ -397,6 +398,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	createSEOrder := func(orderNo string) *ent.Order {
 		o, err := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo(orderNo).
 			SetCustomerID(customer.ID).
@@ -463,6 +465,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	createGenericOrder := func(businessType biz.OrderBusinessType) *ent.Order {
 		o, err := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo(string(businessType) + "-" + suffix + "-" + strings.ReplaceAll(uuid.NewString(), "-", "")[:6]).
 			SetCustomerID(customer.ID).
@@ -838,6 +841,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	t.Run("共享 MBL 存在成员订单被锁定时阻止修改 MBL", func(t *testing.T) {
 		// 创建第二个订单 Order B，并共享关联同一个 MBL
 		orderB, err := data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo("SE-" + suffix + "-B").
 			SetCustomerID(customer.ID).

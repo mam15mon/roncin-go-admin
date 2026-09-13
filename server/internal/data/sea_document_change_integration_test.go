@@ -67,6 +67,7 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetEnabled(true).
 		SaveX(ctx)
 	order := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE-DOC-" + suffix).
 		SetCustomerID(partner.ID).
@@ -503,7 +504,7 @@ func TestSeaMasterBillMemberSetRevalidatedAfterLock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("定位初始 MBL 成员失败: %v", err)
 	}
-	member := f.data.db.Order.Create().SetOrganizationID(f.orgID).SetOrderNo("SE-MEMBER-" + uuid.NewString()[:8]).SetCustomerID(f.partnerID).SetBusinessType("SE").SetTradeDirection("export").SetTradeTerm("FOB").SetPaymentTerm("PREPAID").SaveX(ctx)
+	member := f.data.db.Order.Create().SetOrganizationID(f.orgID).SetOrderNo("SE-MEMBER-" + uuid.NewString()[:8]).SetCustomerID(f.partnerID).SetBusinessType("SE").SetTradeDirection("export").SetTradeTerm("FOB").SetPaymentTerm("PREPAID").SetIdempotencyKey(uuid.NewString()).SaveX(ctx)
 	extraLink := f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.orgID).SetOrderID(member.ID).SetMasterBillID(f.mblID).SetTransportExecutionID(f.data.db.SeaMasterBillOrderLink.GetX(ctx, activeLinkID).TransportExecutionID).SetStatus(seamasterbillorderlinkent.StatusACTIVE).SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).SaveX(ctx)
 	t.Cleanup(func() { _ = f.data.db.SeaMasterBillOrderLink.DeleteOneID(extraLink.ID).Exec(ctx) })
 	err = f.data.WithTx(ctx, func(tx *ent.Tx) error {

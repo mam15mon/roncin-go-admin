@@ -40,6 +40,7 @@ import {
 } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { searchShippingLineOptions } from '@/utils/options';
+import { generateUUID } from '@/utils/uuid';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -48,17 +49,17 @@ import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTi
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import OrderPageHeader from './components/OrderPageHeader';
-import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
-import { getOrderKindDefinition } from './order-kinds/registry';
-import type {
-  OrderDetailFeaturesContext,
-  OrderDetailFeaturesProps,
-} from './order-kinds/types';
 import {
   confirmOrderClosure,
   confirmOrderTermination,
 } from './order-detail-transitions';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
+import { getOrderKindDefinition } from './order-kinds/registry';
+import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
+import type {
+  OrderDetailFeaturesContext,
+  OrderDetailFeaturesProps,
+} from './order-kinds/types';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { useOrderDetailData } from './use-order-detail-data';
 import {
@@ -76,6 +77,9 @@ const EmptyDetailFeatures: React.ComponentType<OrderDetailFeaturesProps> = ({
 export default function OrderDetailPage() {
   const params = useParams<{ kind: string; id: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  // 草稿更新幂等键：每次提交意图一个键；失败重试沿用同键，成功后重新生成。
+  // 后端以「同键 + 同 expectedVersion 重放返回当前草稿」保护超时重试场景。
+  const updateIdempotencyKeyRef = useRef(generateUUID());
   const templateActionsRef = useRef<
     OrderFormTemplateActions<OrderDetailFormValues> | undefined
   >(undefined);
@@ -166,8 +170,11 @@ export default function OrderDetailPage() {
   // 2. 构造表单初始值
   const initialValues = useMemo(
     () =>
-      definition?.form.buildDetailInitialValues(order, shippingDocs, personnel) ??
-      {},
+      definition?.form.buildDetailInitialValues(
+        order,
+        shippingDocs,
+        personnel,
+      ) ?? {},
     [definition, order, shippingDocs, personnel],
   );
 
@@ -302,7 +309,11 @@ export default function OrderDetailPage() {
         order?.version || '0',
         values,
       );
-      await orderServiceUpdateOrder({ id: orderId }, payload);
+      await orderServiceUpdateOrder(
+        { id: orderId },
+        { ...payload, idempotencyKey: updateIdempotencyKeyRef.current },
+      );
+      updateIdempotencyKeyRef.current = generateUUID();
       message.success('保存订单成功');
       // 详情与锁状态刷新是 best-effort 后台任务：不阻塞成功返回，
       // 也不把已落库的保存改判为失败；Hook 已呈现普通请求错误，
@@ -467,7 +478,8 @@ export default function OrderDetailPage() {
     orderFormIdentity: orderFormIdentity || '',
     businessWritesDisabled,
     businessWriteBlockedReason: lockWritePolicy.reason,
-    canOrder: (operation) => access.canOrder(definition.businessType, operation),
+    canOrder: (operation) =>
+      access.canOrder(definition.businessType, operation),
     searchShippingLines: templateProps.searchShippingLines,
     searchLocations: templateProps.searchLocations,
     containerSpecOptions,

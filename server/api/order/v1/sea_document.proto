@@ -196,6 +196,7 @@ message SeaBillContent {
   optional string bill_form = 13;
   optional string release_type = 14;
   optional string clauses = 15;
+  optional string foreign_agent_text = 16;
 }
 
 // SeaHouseBill 海运分单（HBL）信息。

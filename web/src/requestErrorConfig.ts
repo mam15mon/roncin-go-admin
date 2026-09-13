@@ -1,4 +1,5 @@
 import type { RequestOptions } from '@@/plugin-request/request';
+import * as Sentry from '@sentry/react';
 import type { RequestConfig } from '@umijs/max';
 import { history } from '@umijs/max';
 import { showErrorMessage, showErrorNotification } from '@/utils/appFeedback';
@@ -16,6 +17,11 @@ export interface RequestError extends Error {
   code?: string;
   response?: { status?: number; data?: ErrorEnvelope };
   data?: ErrorEnvelope;
+}
+
+// 防重守卫附加在 axios config 上的标记，用于请求完成后释放 in-flight 记录。
+interface InflightConfig extends RequestOptions {
+  inflightWriteKey?: string;
 }
 
 const loginPath = '/user/login';
@@ -44,6 +50,74 @@ export function isRequestTimeoutError(rawError: unknown): boolean {
   );
 }
 
+// 请求错误统一上报 Sentry（401 跳登录与防重守卫拦截除外）。
+// 未配置 SENTRY_DSN 时 Sentry 处于 no-op 客户端，该调用零开销。
+function captureRequestError(error: Error, status?: number) {
+  Sentry.captureException(error, {
+    tags: {
+      kind: 'request',
+      ...(status !== undefined ? { http_status: String(status) } : {}),
+    },
+  });
+}
+
+function isDuplicateSubmitError(rawError: unknown): boolean {
+  return (rawError as RequestError)?.name === 'DuplicateSubmitError';
+}
+
+// ---------------------------------------------------------------------------
+// 请求层防重守卫：对「同 method + URL + 序列化请求体」的写操作做 in-flight 去重。
+// 命中时第二个请求不再发往后端，直接抛业务错误；请求完成（成功或失败）即移除
+// 记录，不做完成后的时间窗缓存，合法重提不受阻。
+// ---------------------------------------------------------------------------
+const WRITE_METHODS = new Set(['POST', 'PUT', 'DELETE']);
+const inflightWriteKeys = new Set<string>();
+
+function serializeWriteBody(data: unknown): string {
+  if (data === null || data === undefined) return '';
+  if (typeof data === 'string') return data;
+  try {
+    return JSON.stringify(data) ?? '';
+  } catch {
+    return String(data);
+  }
+}
+
+function requestWriteKey(config: RequestOptions): string | null {
+  const method = (config.method ?? 'GET').toUpperCase();
+  if (!WRITE_METHODS.has(method)) return null;
+  return `${method} ${config.url ?? ''} ${serializeWriteBody(config.data)}`;
+}
+
+function duplicateSubmitError(): RequestError {
+  const envelope: ErrorEnvelope = {
+    success: false,
+    code: 409,
+    message: '操作正在提交中，请勿重复提交',
+    reason: 'DUPLICATE_SUBMIT',
+  };
+  const error = new Error(envelope.message) as RequestError;
+  error.name = 'DuplicateSubmitError';
+  error.data = envelope;
+  return error;
+}
+
+// 守卫拦截也覆盖 skipErrorHandler 调用方：防重是正确性底线而非提示策略。
+function guardInflightWrite(config: RequestOptions): RequestOptions {
+  const key = requestWriteKey(config);
+  if (key === null) return config;
+  if (inflightWriteKeys.has(key)) {
+    throw duplicateSubmitError();
+  }
+  inflightWriteKeys.add(key);
+  return { ...config, inflightWriteKey: key } as InflightConfig;
+}
+
+function releaseInflightWrite(config: unknown) {
+  const key = (config as InflightConfig | undefined)?.inflightWriteKey;
+  if (key) inflightWriteKeys.delete(key);
+}
+
 export const errorConfig: RequestConfig = {
   errorConfig: {
     errorThrower: (response) => {
@@ -62,6 +136,7 @@ export const errorConfig: RequestConfig = {
       const status = getRequestErrorStatus(error);
 
       if (isRequestTimeoutError(error)) {
+        captureRequestError(error, status);
         showErrorNotification({
           title: '请求超时',
           description: '请确认操作结果后再重试，避免重复提交。',
@@ -69,8 +144,13 @@ export const errorConfig: RequestConfig = {
         return;
       }
       if (status === 401) {
+        // 预期流：跳转登录页，不上报 Sentry。
         redirectToLogin();
         return;
+      }
+      if (!isDuplicateSubmitError(error)) {
+        // 防重拦截属于预期交互反馈，不作为异常上报。
+        captureRequestError(error, status);
       }
       if (status === 403) {
         showErrorMessage(envelope?.message ?? '无权执行此操作');
@@ -92,5 +172,18 @@ export const errorConfig: RequestConfig = {
         'X-Request-ID': generateUUID(),
       },
     }),
+    guardInflightWrite,
+  ],
+  responseInterceptors: [
+    [
+      (response) => {
+        releaseInflightWrite(response?.config);
+        return response;
+      },
+      (error) => {
+        releaseInflightWrite((error as { config?: unknown })?.config);
+        return Promise.reject(error);
+      },
+    ],
   ],
 };

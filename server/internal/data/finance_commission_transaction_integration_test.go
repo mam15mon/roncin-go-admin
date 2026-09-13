@@ -303,6 +303,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 	}
 
 	order, err := data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
 		SetOrderNo("SE" + suffix).
 		SetCustomerID(customer.ID).
