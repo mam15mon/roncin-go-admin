@@ -13,7 +13,11 @@ import {
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
-import { SeaDocumentSectionComponent } from './SeaDocumentSection';
+import {
+  DEFAULT_TRANSPORT_TERMS,
+  SEA_TRANSPORT_TERM_OPTIONS,
+  SeaDocumentSectionComponent,
+} from './SeaDocumentSection';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
@@ -377,5 +381,45 @@ describe('SeaDocumentSectionComponent', () => {
         'TEL/CONTACT: John Doe +49 40 123456 john@agent.com',
       );
     });
+  });
+
+  it('提单运输条款默认为 CY - CY，且提供完整海运运输条款选项', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 运输条款默认值为 CY - CY
+    await waitFor(() => {
+      expect(
+        capturedForm?.getFieldValue(['seaMasterBillContent', 'transportTerms']),
+      ).toBe('CY - CY');
+    });
+
+    // 选项包含核心海运条款
+    expect(DEFAULT_TRANSPORT_TERMS).toBe('CY - CY');
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - CY'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS - CFS'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'DOOR - DOOR'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - FO'),
+    ).toBe(true);
+    expect(
+      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS / DDU'),
+    ).toBe(true);
   });
 });

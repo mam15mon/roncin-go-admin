@@ -5,6 +5,7 @@ import {
 } from '@ant-design/icons';
 import {
   ProFormDigit,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -110,6 +111,52 @@ import SeaExternalConfirmationFields, {
 } from './SeaExternalConfirmationFields';
 
 const { Text } = Typography;
+
+export const DEFAULT_TRANSPORT_TERMS = 'CY - CY';
+
+export const SEA_TRANSPORT_TERM_OPTIONS: { label: string; value: string }[] = [
+  // 核心整箱 / 拼箱条款（按业务常用度优先排列）
+  { label: 'CY - CY', value: 'CY - CY' },
+  { label: 'CFS - CFS', value: 'CFS - CFS' },
+  { label: 'CY - CFS', value: 'CY - CFS' },
+  { label: 'CFS - CY', value: 'CFS - CY' },
+  { label: 'DOOR - DOOR', value: 'DOOR - DOOR' },
+  { label: 'DOOR - CY', value: 'DOOR - CY' },
+  { label: 'CY - DOOR', value: 'CY - DOOR' },
+  { label: 'DOOR - CFS', value: 'DOOR - CFS' },
+  { label: 'CFS - DOOR', value: 'CFS - DOOR' },
+
+  // 码头 / 船边 / 装卸管辖条款
+  { label: 'CY - FO', value: 'CY - FO' },
+  { label: 'CY - LO', value: 'CY - LO' },
+  { label: 'CY - HOOK', value: 'CY - HOOK' },
+  { label: 'CY - TACKLE', value: 'CY - TACKLE' },
+  { label: 'CY - RAMP', value: 'CY - RAMP' },
+  { label: 'CY - SHIPS HOOK', value: 'CY - SHIPS HOOK' },
+  { label: 'CY - LINER OUT', value: 'CY - LINER OUT' },
+  { label: 'CY - FREE OUT', value: 'CY - FREE OUT' },
+  { label: 'CFS - FO', value: 'CFS - FO' },
+  { label: 'CFS / DDU', value: 'CFS / DDU' },
+  { label: 'RAMP - RAMP', value: 'RAMP - RAMP' },
+  { label: 'RAMP - CY', value: 'RAMP - CY' },
+  { label: 'RAMP - CFS', value: 'RAMP - CFS' },
+  { label: 'DOOR - RAMP', value: 'DOOR - RAMP' },
+  { label: 'TACKLE - CY', value: 'TACKLE - CY' },
+  { label: 'TACKLE - CFS', value: 'TACKLE - CFS' },
+  { label: 'DR - LINER OUT', value: 'DR - LINER OUT' },
+  { label: 'DR - FREE OUT', value: 'DR - FREE OUT' },
+  { label: 'LINER IN - CY', value: 'LINER IN - CY' },
+  { label: 'LINER IN - DR', value: 'LINER IN - DR' },
+  { label: 'FREE IN - CY', value: 'FREE IN - CY' },
+  { label: 'FREE IN - D', value: 'FREE IN - D' },
+  { label: 'FEE IN - CY', value: 'FEE IN - CY' },
+  { label: 'PIER - PIER', value: 'PIER - PIER' },
+
+  // 空运 / 多式联运延伸条款
+  { label: 'AIRPORT - AIRPORT', value: 'AIRPORT - AIRPORT' },
+  { label: 'AIR PORT - DOOR', value: 'AIR PORT - DOOR' },
+  { label: 'DOOR - AIR PORT', value: 'DOOR - AIR PORT' },
+];
 
 export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
   'shipperText',
@@ -479,12 +526,30 @@ export function SeaBillContentFormFields({
           />
         </Col>
         <Col xs={12} sm={6}>
-          <ProFormText
+          <ProFormSelect
             name={[...namePathPrefix, 'transportTerms']}
             label="运输条款"
-            placeholder="例如 CY-CY / FCL-FCL"
+            placeholder="请选择运输条款"
+            initialValue={DEFAULT_TRANSPORT_TERMS}
             disabled={disabled}
             layout="vertical"
+            options={SEA_TRANSPORT_TERM_OPTIONS}
+            fieldProps={{
+              showSearch: true,
+              allowClear: true,
+              filterOption: (input, option) => {
+                const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
+                const normLabel = String(option?.label ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                const normValue = String(option?.value ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
+            }}
           />
         </Col>
         <Col xs={12} sm={6}>
@@ -886,10 +951,20 @@ export function SeaDocumentSectionComponent({
       setMblDetail(response.data.masterBill ?? null);
       setHouseBill(currentHouseBill);
       form.setFieldValue('seaDocumentStructure', structure);
-      form.setFieldValue(
-        'seaMasterBillContent',
-        response.data.masterBill?.content ?? {},
-      );
+      const mblContent = response.data.masterBill?.content ?? {};
+      const mblTransportTerms =
+        mblContent.transportTerms && mblContent.transportTerms.trim() !== ''
+          ? mblContent.transportTerms
+          : DEFAULT_TRANSPORT_TERMS;
+      form.setFieldValue('seaMasterBillContent', {
+        ...mblContent,
+        transportTerms: mblTransportTerms,
+      });
+      const hblContent = currentHouseBill?.content ?? {};
+      const hblTransportTerms =
+        hblContent.transportTerms && hblContent.transportTerms.trim() !== ''
+          ? hblContent.transportTerms
+          : DEFAULT_TRANSPORT_TERMS;
       form.setFieldValue(
         'seaHouseBill',
         currentHouseBill
@@ -903,7 +978,10 @@ export function SeaDocumentSectionComponent({
                   ? currentHouseBill.issuerPartnerId
                   : undefined,
               note: currentHouseBill.note,
-              content: currentHouseBill.content ?? {},
+              content: {
+                ...hblContent,
+                transportTerms: hblTransportTerms,
+              },
               expectedVersion: currentHouseBill.version,
             }
           : undefined,
@@ -1007,8 +1085,16 @@ export function SeaDocumentSectionComponent({
   const changeCreateMode = (nextMode: SeaDocumentStructure) => {
     setLoadedStructure(nextMode);
     form.setFieldValue('seaDocumentStructure', nextMode);
+    if (!form.getFieldValue(['seaMasterBillContent', 'transportTerms'])) {
+      form.setFieldValue(
+        ['seaMasterBillContent', 'transportTerms'],
+        DEFAULT_TRANSPORT_TERMS,
+      );
+    }
     if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      form.setFieldValue('seaHouseBill', { content: {} });
+      form.setFieldValue('seaHouseBill', {
+        content: { transportTerms: DEFAULT_TRANSPORT_TERMS },
+      });
       setActiveTabKey('hbl');
     } else {
       form.setFieldValue('seaHouseBill', undefined);
