@@ -12,15 +12,19 @@ import {
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
 import { searchShippingLineOptions } from '@/utils/options';
+import { generateUUID } from '@/utils/uuid';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
-import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
 import { getOrderKindDefinition } from './order-kinds/registry';
+import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  // 创建幂等键：每次提交意图一个键；失败重试沿用同键，成功后重新生成，
+  // 配合后端同键同意图重放返回原单，避免超时重试造成重复订单。
+  const createIdempotencyKeyRef = useRef(generateUUID());
   const { message } = App.useApp();
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
@@ -218,7 +222,11 @@ export default function NewOrderPage() {
 
   const handleFinish = async (values: CreateOrderFormValues) => {
     try {
-      await orderServiceCreateOrder(definition.form.buildCreatePayload(values));
+      await orderServiceCreateOrder({
+        ...definition.form.buildCreatePayload(values),
+        idempotencyKey: createIdempotencyKeyRef.current,
+      });
+      createIdempotencyKeyRef.current = generateUUID();
       message.success('创建订单成功');
       history.push(`/orders/${definition.kind}`);
       return true;
