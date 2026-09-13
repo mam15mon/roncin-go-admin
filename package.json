@@ -37,8 +37,12 @@
     "check:server:vuln": "go -C server tool govulncheck ./...",
     "check:server": "pnpm run lint:proto && go -C server test ./... && go -C server vet ./... && pnpm run check:server:vuln",
     "check": "pnpm run check:web && pnpm run check:server",
-    "build:web": "pnpm run check:permission-keys && pnpm run check:proto-constants && pnpm --dir web build && node scripts/stage-web-assets.mjs",
+    "sentry:sourcemaps": "node scripts/upload-sentry-sourcemaps.mjs",
+    "build:web": "pnpm run check:permission-keys && pnpm run check:proto-constants && pnpm --dir web build && node scripts/upload-sentry-sourcemaps.mjs && node scripts/stage-web-assets.mjs",
     "build:server": "go -C server build -o bin/roncin-server ./cmd/server",
     "build": "pnpm run build:web && pnpm run build:server"
+  },
+  "devDependencies": {
+    "@sentry/cli": "^3.7.0"
   }
 }
