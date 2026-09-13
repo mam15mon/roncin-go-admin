@@ -29,17 +29,17 @@ func TestRequirePrincipalRejectsMissingPrincipal(t *testing.T) {
 	}
 }
 
-func TestResolvePermissionOrganizationScopeKeepsRolePermissionAndAccessTogether(t *testing.T) {
+func TestResolvePermissionOrganizationScopeKeepsRolePermissionAndScopeTogether(t *testing.T) {
 	currentOrganizationID := uuid.New()
-	extraOrganizationID := uuid.New()
+	otherOrganizationID := uuid.New()
 	orderRead := "business.order.se.read"
 	financeRead := "finance.bill.read"
 	principal := &Principal{
 		Organization:      Organization{ID: currentOrganizationID},
-		OrganizationNodes: scopeNodes(currentOrganizationID, extraOrganizationID),
+		OrganizationNodes: scopeNodes(currentOrganizationID, otherOrganizationID),
 		RoleGrants: []RoleGrant{
-			roleGrant("order", DataScopeOrganization, []string{orderRead}, nil),
-			roleGrant("finance", DataScopeOrganization, []string{financeRead}, []OrganizationAccess{{OrganizationID: extraOrganizationID}}),
+			roleGrant("order", DataScopeOrganization, []string{orderRead}),
+			roleGrant("finance", DataScopeAll, []string{financeRead}),
 		},
 	}
 
@@ -54,7 +54,7 @@ func TestResolvePermissionOrganizationScopeKeepsRolePermissionAndAccessTogether(
 
 func TestPrincipalPermissionsAreDerivedOnlyFromRoleGrants(t *testing.T) {
 	permission := "business.order.se.read"
-	principal := &Principal{RoleGrants: []RoleGrant{roleGrant("reader", DataScopeOrganization, []string{permission}, nil)}}
+	principal := &Principal{RoleGrants: []RoleGrant{roleGrant("reader", DataScopeOrganization, []string{permission})}}
 
 	if !principal.HasPermission(permission) {
 		t.Fatal("RoleGrant 中的权限应通过授权检查")
@@ -98,7 +98,7 @@ func TestResolvePermissionOrganizationScopeDataScopes(t *testing.T) {
 			principal := &Principal{
 				Organization:      Organization{ID: currentID},
 				OrganizationNodes: nodes,
-				RoleGrants:        []RoleGrant{roleGrant("role", test.scope, []string{"permission"}, nil)},
+				RoleGrants:        []RoleGrant{roleGrant("role", test.scope, []string{"permission"})},
 			}
 			actual, err := principal.ResolvePermissionOrganizationScope("permission")
 			if err != nil {
@@ -122,7 +122,7 @@ func TestResolvePermissionOrganizationScopeTreeIncludesEnabledDescendantBelowDis
 			{ID: disabledParentID, ParentID: &currentID, Disabled: true},
 			{ID: enabledChildID, ParentID: &disabledParentID},
 		},
-		RoleGrants: []RoleGrant{roleGrant("tree-reader", DataScopeOrganizationTree, []string{"permission"}, nil)},
+		RoleGrants: []RoleGrant{roleGrant("tree-reader", DataScopeOrganizationTree, []string{"permission"})},
 	}
 
 	scope, err := principal.ResolvePermissionOrganizationScope("permission")
@@ -134,49 +134,42 @@ func TestResolvePermissionOrganizationScopeTreeIncludesEnabledDescendantBelowDis
 	}
 }
 
-func TestResolvePermissionOrganizationScopeFiltersDisabledAndAppliesWritableAccess(t *testing.T) {
+func TestResolvePermissionOrganizationScopeFiltersDisabledOrganizations(t *testing.T) {
 	currentID := uuid.New()
-	readOnlyID := uuid.New()
-	writableID := uuid.New()
 	disabledID := uuid.New()
 	principal := &Principal{
 		Organization:      Organization{ID: currentID},
-		OrganizationNodes: scopeNodes(currentID, readOnlyID, writableID),
-		RoleGrants: []RoleGrant{roleGrant("operator", DataScopeOrganization, []string{"permission"}, []OrganizationAccess{
-			{OrganizationID: readOnlyID},
-			{OrganizationID: writableID, Writable: true},
-			{OrganizationID: disabledID, Writable: true},
-			{OrganizationID: writableID, Writable: true},
-		})},
+		OrganizationNodes: []OrganizationScopeNode{{ID: currentID}, {ID: disabledID, Disabled: true}},
+		RoleGrants:        []RoleGrant{roleGrant("operator", DataScopeAll, []string{"permission"})},
 	}
 
 	actual, err := principal.ResolvePermissionOrganizationScope("permission")
 	if err != nil {
 		t.Fatalf("解析范围失败: %v", err)
 	}
-	if want := sortedIDs(currentID, readOnlyID, writableID); !slices.Equal(actual.ReadableOrganizationIDs, want) {
-		t.Fatalf("可读范围 = %v，期望 %v", actual.ReadableOrganizationIDs, want)
+	if want := []uuid.UUID{currentID}; !slices.Equal(actual.ReadableOrganizationIDs, want) || !slices.Equal(actual.WritableOrganizationIDs, want) {
+		t.Fatalf("范围 = %#v，期望 %v", actual, want)
 	}
-	if want := sortedIDs(currentID, writableID); !slices.Equal(actual.WritableOrganizationIDs, want) {
-		t.Fatalf("可写范围 = %v，期望 %v", actual.WritableOrganizationIDs, want)
-	}
-	if principal.CanAccessOrganizationForPermission("permission", readOnlyID, true) {
-		t.Fatal("只读追加组织不应允许写入")
+	if principal.CanAccessOrganizationForPermission("permission", disabledID, false) {
+		t.Fatal("停用组织不应进入任何范围")
 	}
 }
 
-func TestResolvePermissionOrganizationScopeSeparatesReadAndWritePermissions(t *testing.T) {
+func TestResolvePermissionOrganizationScopeResolvesPermissionsIndependently(t *testing.T) {
 	currentID := uuid.New()
-	readOnlyID := uuid.New()
-	writableID := uuid.New()
+	otherID := uuid.New()
+	otherParentID := currentID
 	readPermission := "business.order.se.read"
 	writePermission := "business.order.se.update"
 	principal := &Principal{
-		Organization:      Organization{ID: currentID},
-		OrganizationNodes: scopeNodes(currentID, readOnlyID, writableID),
+		Organization: Organization{ID: currentID},
+		OrganizationNodes: []OrganizationScopeNode{
+			{ID: currentID},
+			{ID: otherID, ParentID: &otherParentID},
+		},
 		RoleGrants: []RoleGrant{
-			roleGrant("reader", DataScopeOrganization, []string{readPermission}, []OrganizationAccess{{OrganizationID: readOnlyID}}),
-			roleGrant("writer", DataScopeOrganization, []string{writePermission}, []OrganizationAccess{{OrganizationID: writableID, Writable: true}}),
+			roleGrant("reader", DataScopeSelf, []string{readPermission}),
+			roleGrant("writer", DataScopeOrganizationTree, []string{writePermission}),
 		},
 	}
 
@@ -188,10 +181,10 @@ func TestResolvePermissionOrganizationScopeSeparatesReadAndWritePermissions(t *t
 	if err != nil {
 		t.Fatalf("解析写入范围失败: %v", err)
 	}
-	if !slices.Equal(readScope.ReadableOrganizationIDs, sortedIDs(currentID, readOnlyID)) || !slices.Equal(readScope.WritableOrganizationIDs, []uuid.UUID{currentID}) {
+	if !slices.Equal(readScope.ReadableOrganizationIDs, []uuid.UUID{currentID}) || !slices.Equal(readScope.WritableOrganizationIDs, []uuid.UUID{currentID}) {
 		t.Fatalf("读取权限范围错误: %#v", readScope)
 	}
-	if !slices.Equal(writeScope.ReadableOrganizationIDs, sortedIDs(currentID, writableID)) || !slices.Equal(writeScope.WritableOrganizationIDs, sortedIDs(currentID, writableID)) {
+	if !slices.Equal(writeScope.ReadableOrganizationIDs, sortedIDs(currentID, otherID)) || !slices.Equal(writeScope.WritableOrganizationIDs, sortedIDs(currentID, otherID)) {
 		t.Fatalf("写入权限范围错误: %#v", writeScope)
 	}
 	if _, err := principal.ResolvePermissionOrganizationScope("missing"); err != ErrPermissionDenied {
@@ -206,7 +199,7 @@ func TestResolvePermissionOrganizationScopeBootstrapAdminUsesAllEnabledOrganizat
 		IsBootstrapAdmin:  true,
 		Organization:      Organization{ID: currentID},
 		OrganizationNodes: scopeNodes(currentID, otherID),
-		RoleGrants:        []RoleGrant{roleGrant("administrator", DataScopeOrganization, []string{"system.user.manage"}, nil)},
+		RoleGrants:        []RoleGrant{roleGrant("administrator", DataScopeOrganization, []string{"system.user.manage"})},
 	}
 	actual, err := principal.ResolvePermissionOrganizationScope("system.user.manage")
 	if err != nil {
@@ -218,12 +211,12 @@ func TestResolvePermissionOrganizationScopeBootstrapAdminUsesAllEnabledOrganizat
 	}
 }
 
-func roleGrant(code string, scope DataScope, permissions []string, accesses []OrganizationAccess) RoleGrant {
+func roleGrant(code string, scope DataScope, permissions []string) RoleGrant {
 	permissionSet := make(map[string]struct{}, len(permissions))
 	for _, permission := range permissions {
 		permissionSet[permission] = struct{}{}
 	}
-	return RoleGrant{RoleID: uuid.New(), RoleCode: code, DataScope: scope, Permissions: permissionSet, OrganizationAccesses: accesses}
+	return RoleGrant{RoleID: uuid.New(), RoleCode: code, DataScope: scope, Permissions: permissionSet}
 }
 
 func scopeNodes(ids ...uuid.UUID) []OrganizationScopeNode {

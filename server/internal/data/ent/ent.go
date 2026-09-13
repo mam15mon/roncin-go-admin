@@ -99,7 +99,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -266,7 +265,6 @@ func checkColumn(t, c string) error {
 			port.Table:                           port.ValidColumn,
 			role.Table:                           role.ValidColumn,
 			roleassignment.Table:                 roleassignment.ValidColumn,
-			roleorganizationaccess.Table:         roleorganizationaccess.ValidColumn,
 			seadocumentmodechangeevent.Table:     seadocumentmodechangeevent.ValidColumn,
 			seadocumentvoidevent.Table:           seadocumentvoidevent.ValidColumn,
 			seahousebill.Table:                   seahousebill.ValidColumn,

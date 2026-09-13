@@ -463,7 +463,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
 			query.WithRole(func(roleQuery *ent.RoleQuery) {
-				roleQuery.Where(roleent.EnabledEQ(true)).WithPermissions().WithOrganizationAccesses()
+				roleQuery.Where(roleent.EnabledEQ(true)).WithPermissions()
 			})
 		}).
 		All(ctx)
@@ -547,21 +547,14 @@ func roleGrantFromEntRole(role *ent.Role) (biz.RoleGrant, bool) {
 		return biz.RoleGrant{}, false
 	}
 	grant := biz.RoleGrant{
-		RoleID:               role.ID,
-		RoleCode:             role.Code,
-		DataScope:            biz.DataScope(role.DataScope),
-		Permissions:          make(map[string]struct{}, len(role.Edges.Permissions)),
-		OrganizationAccesses: make([]biz.OrganizationAccess, 0, len(role.Edges.OrganizationAccesses)),
+		RoleID:      role.ID,
+		RoleCode:    role.Code,
+		DataScope:   biz.DataScope(role.DataScope),
+		Permissions: make(map[string]struct{}, len(role.Edges.Permissions)),
 	}
 	for _, permission := range role.Edges.Permissions {
 		grant.Permissions[permission.Key] = struct{}{}
 	}
-	for _, access := range role.Edges.OrganizationAccesses {
-		grant.OrganizationAccesses = append(grant.OrganizationAccesses, biz.OrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
-	}
-	sort.Slice(grant.OrganizationAccesses, func(i, j int) bool {
-		return grant.OrganizationAccesses[i].OrganizationID.String() < grant.OrganizationAccesses[j].OrganizationID.String()
-	})
 	return grant, true
 }
 

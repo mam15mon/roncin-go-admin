@@ -155,7 +155,7 @@ func TestAuthUsecaseSwitchOrganizationRotatesCurrentSessionToken(t *testing.T) {
 			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
 			{OrganizationID: targetID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
-		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, Organization: Organization{ID: targetID, Name: "成都公司"}, RoleGrants: []RoleGrant{roleGrant("branch-operator", DataScopeOrganization, []string{"business.order.se.read"}, nil)}}},
+		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, Organization: Organization{ID: targetID, Name: "成都公司"}, RoleGrants: []RoleGrant{roleGrant("branch-operator", DataScopeOrganization, []string{"business.order.se.read"})}}},
 	}
 	current := &Principal{UserID: userID, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 

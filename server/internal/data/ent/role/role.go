@@ -36,8 +36,6 @@ const (
 	EdgePermissions = "permissions"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
-	// EdgeOrganizationAccesses holds the string denoting the organization_accesses edge name in mutations.
-	EdgeOrganizationAccesses = "organization_accesses"
 	// EdgeOrderUnlockApproverCandidates holds the string denoting the order_unlock_approver_candidates edge name in mutations.
 	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
 	// EdgeDingtalkInvitations holds the string denoting the dingtalk_invitations edge name in mutations.
@@ -63,13 +61,6 @@ const (
 	AssignmentsInverseTable = "role_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "role_id"
-	// OrganizationAccessesTable is the table that holds the organization_accesses relation/edge.
-	OrganizationAccessesTable = "role_organization_accesses"
-	// OrganizationAccessesInverseTable is the table name for the RoleOrganizationAccess entity.
-	// It exists in this package in order to avoid circular dependency with the "roleorganizationaccess" package.
-	OrganizationAccessesInverseTable = "role_organization_accesses"
-	// OrganizationAccessesColumn is the table column denoting the organization_accesses relation/edge.
-	OrganizationAccessesColumn = "role_id"
 	// OrderUnlockApproverCandidatesTable is the table that holds the order_unlock_approver_candidates relation/edge.
 	OrderUnlockApproverCandidatesTable = "order_unlock_approver_candidates"
 	// OrderUnlockApproverCandidatesInverseTable is the table name for the OrderUnlockApproverCandidate entity.
@@ -237,20 +228,6 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByOrganizationAccessesCount orders the results by organization_accesses count.
-func ByOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrganizationAccessesStep(), opts...)
-	}
-}
-
-// ByOrganizationAccesses orders the results by organization_accesses terms.
-func ByOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByOrderUnlockApproverCandidatesCount orders the results by order_unlock_approver_candidates count.
 func ByOrderUnlockApproverCandidatesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -297,13 +274,6 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
-	)
-}
-func newOrganizationAccessesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrganizationAccessesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OrganizationAccessesTable, OrganizationAccessesColumn),
 	)
 }
 func newOrderUnlockApproverCandidatesStep() *sqlgraph.Step {

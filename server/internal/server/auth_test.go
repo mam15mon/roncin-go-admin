@@ -74,7 +74,7 @@ func TestPartnerPermissionWritesClassifiesEveryDeclaredPermission(t *testing.T) 
 	if writable, known := partnerPermissionWrites("business.partner.unknown"); known || writable || isPartnerPermission("business.partner.unknown") {
 		t.Fatalf("未知合作伙伴权限不得猜测读写或进入组织范围路径，actual writable=%t known=%t", writable, known)
 	}
-	principal := &biz.Principal{RoleGrants: []biz.RoleGrant{serverRoleGrant("unknown", biz.DataScopeAll, []string{"business.partner.unknown"}, nil)}}
+	principal := &biz.Principal{RoleGrants: []biz.RoleGrant{serverRoleGrant("unknown", biz.DataScopeAll, []string{"business.partner.unknown"})}}
 	if hasPermission(&partnerv1.ListPartnersRequest{}, principal, accessRule{permission: "business.partner.unknown", scope: biz.DataScopeOrganization}) {
 		t.Fatal("未知合作伙伴权限即使意外出现在角色中也必须拒绝")
 	}
@@ -87,22 +87,25 @@ func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
-			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
-			serverRoleGrant("unrelated-writer", biz.DataScopeOrganization, []string{access.FinanceBillUpdate}, []biz.OrganizationAccess{{OrganizationID: beijingID, Writable: true}}),
+			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}),
+			serverRoleGrant("bill-writer", biz.DataScopeAll, []string{access.FinanceBillUpdate}),
 		},
 	}
 	readRule := accessRule{permission: access.FinanceBillRead, scope: biz.DataScopeOrganization}
 	updateRule := accessRule{permission: access.FinanceBillUpdate, scope: biz.DataScopeOrganization}
 	if !hasPermission(&financev1.ListBillsRequest{}, principal, readRule) || !hasPermission(&financev1.GetBillRequest{}, principal, readRule) {
-		t.Fatal("账单 read 所在角色的北京只读范围应允许列表与详情粗门")
+		t.Fatal("账单 read 所在角色的组织范围应允许列表与详情粗门")
 	}
 	if !hasPermission(&financev1.UpdateBillRequest{}, principal, updateRule) {
-		t.Fatal("账单 update 所在角色的北京可写范围应允许详情写入粗门")
+		t.Fatal("账单 update 所在角色范围应允许详情写入粗门")
 	}
-	principal.RoleGrants[1].OrganizationAccesses[0].Writable = false
+	readIDs := organizationIDsForPermission(principal, access.FinanceBillRead, false)
+	if len(readIDs) != 1 || readIDs[0] != tianjinID {
+		t.Fatalf("账单 read 不得借用更新角色的更大范围，actual=%v", readIDs)
+	}
 	updateIDs := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
-	if len(updateIDs) != 1 || updateIDs[0] != tianjinID {
-		t.Fatalf("北京只读 access 不得进入账单更新的最终 allowed IDs，actual=%v", updateIDs)
+	if len(updateIDs) != 2 {
+		t.Fatalf("账单 update 应按自身角色范围解析目标组织，actual=%v", updateIDs)
 	}
 }
 
@@ -153,7 +156,7 @@ func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
 		Organization:      biz.Organization{ID: currentOrganizationID},
 		OrganizationNodes: serverOrganizationNodes(currentOrganizationID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("rate-reader", biz.DataScopeOrganization,
-			[]string{access.FinanceExchangeRateRead}, nil)},
+			[]string{access.FinanceExchangeRateRead})},
 	}
 	rule := accessRule{permission: access.FinanceExchangeRateRead, scope: biz.DataScopeOrganization}
 	if isScopedFinancePermission(access.FinanceExchangeRateRead) {
@@ -171,12 +174,16 @@ func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
 func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
+	beijingParentID := tianjinID
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
-		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
+		Organization: biz.Organization{ID: tianjinID},
+		OrganizationNodes: []biz.OrganizationScopeNode{
+			{ID: tianjinID},
+			{ID: beijingID, ParentID: &beijingParentID},
+		},
 		RoleGrants: []biz.RoleGrant{
-			serverRoleGrant("netting-reader", biz.DataScopeOrganization, []string{access.FinanceNettingRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
-			serverRoleGrant("netting-operator", biz.DataScopeOrganization, []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("netting-reader", biz.DataScopeOrganizationTree, []string{access.FinanceNettingRead}),
+			serverRoleGrant("netting-operator", biz.DataScopeOrganization, []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse}),
 		},
 	}
 	if !isScopedFinancePermission(access.FinanceNettingRead) {
@@ -184,30 +191,22 @@ func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T)
 	}
 	readRule := accessRule{permission: access.FinanceNettingRead, scope: biz.DataScopeOrganization}
 	if !hasPermission(&financev1.ListNettingsRequest{}, principal, readRule) {
-		t.Fatal("附加北京只读的 netting read 应通过网关并按目标组织解析")
+		t.Fatal("组织树范围的 netting read 应通过网关并按目标组织解析")
 	}
 	readIDs := organizationIDsForPermission(principal, access.FinanceNettingRead, false)
 	if len(readIDs) != 2 || !containsOrganizationID(readIDs, beijingID) {
-		t.Fatalf("netting read 应解析出包含北京附加只读组织的范围，actual=%v", readIDs)
+		t.Fatalf("netting read 应解析出包含北京的组织树范围，actual=%v", readIDs)
 	}
 
-	// 北京只读附加访问不得进入任一 netting 写命令的可写目标组织（Service 层按此范围执行写入）。
-	for _, permission := range []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse} {
-		writeIDs := organizationIDsForPermission(principal, permission, true)
-		if containsOrganizationID(writeIDs, beijingID) {
-			t.Fatalf("附加组织只读访问不得进入 %s 的可写目标组织，actual=%v", permission, writeIDs)
-		}
-	}
-	// 附加组织改为可写后，netting 写命令的解析范围包含北京；网关粗门继续放行。
-	principal.RoleGrants[1].OrganizationAccesses[0].Writable = true
+	// netting read 的读取范围不得进入任一 netting 写命令的可写目标组织（Service 层按此范围执行写入）。
 	for _, permission := range []string{access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse} {
 		writeRule := accessRule{permission: permission, scope: biz.DataScopeOrganization}
 		if !hasPermission(&financev1.CreateNettingRequest{}, principal, writeRule) {
-			t.Fatalf("可写附加组织应通过 %s 的网关粗门", permission)
+			t.Fatalf("netting 写命令应通过 %s 的网关粗门", permission)
 		}
 		writeIDs := organizationIDsForPermission(principal, permission, true)
-		if !containsOrganizationID(writeIDs, beijingID) {
-			t.Fatalf("可写附加组织应进入 %s 的目标组织解析，actual=%v", permission, writeIDs)
+		if containsOrganizationID(writeIDs, beijingID) {
+			t.Fatalf("读取角色的组织树范围不得进入 %s 的可写目标组织，actual=%v", permission, writeIDs)
 		}
 	}
 
@@ -228,27 +227,31 @@ func TestFinanceBillPermissionDoesNotBorrowOtherDomainScope(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
-			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}, nil),
-			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}),
+			serverRoleGrant("partner-reader", biz.DataScopeAll, []string{access.PartnerRead}),
 		},
 	}
 	ids := organizationIDsForPermission(principal, access.FinanceBillRead, false)
 	if len(ids) != 1 || ids[0] != tianjinID {
-		t.Fatalf("账单权限不得借用往来单位角色的北京范围，actual=%v", ids)
+		t.Fatalf("账单权限不得借用往来单位角色的更大范围，actual=%v", ids)
 	}
 }
 
 func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	tianjinID := uuid.New()
+	beijingParentID := tianjinID
 	beijingID := uuid.New()
 	partnerID := uuid.New()
 	repo := &authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: beijingID}}
 	usecase := biz.NewPartnerUsecase(repo)
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
-		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
-		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-reader", biz.DataScopeOrganization,
-			[]string{access.PartnerRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+		Organization: biz.Organization{ID: tianjinID},
+		OrganizationNodes: []biz.OrganizationScopeNode{
+			{ID: tianjinID},
+			{ID: beijingID, ParentID: &beijingParentID},
+		},
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-reader", biz.DataScopeOrganizationTree,
+			[]string{access.PartnerRead})},
 	}
 
 	partner, direct := requestPartner(t.Context(), &partnerv1.GetPartnerRequest{Id: partnerID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerRead, false))
@@ -260,7 +263,7 @@ func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	}
 }
 
-func TestRequestPartnerRejectsReadOnlyCrossOrganizationWrite(t *testing.T) {
+func TestRequestPartnerRejectsCrossOrganizationWriteOutsideScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
@@ -269,15 +272,15 @@ func TestRequestPartnerRejectsReadOnlyCrossOrganizationWrite(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-editor", biz.DataScopeOrganization,
-			[]string{access.PartnerUpdate}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+			[]string{access.PartnerUpdate})},
 	}
 	resolved, direct := requestPartner(t.Context(), &partnerv1.UpdatePartnerRequest{Id: partner.ID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerUpdate, true))
 	if !direct || resolved != nil {
-		t.Fatal("北京只读组织范围不得通过往来单位更新的授权查询")
+		t.Fatal("范围外北京往来单位不得通过往来单位更新的授权查询")
 	}
 }
 
-func TestRequestPartnerDoesNotBorrowOtherRoleOrganizationAccess(t *testing.T) {
+func TestRequestPartnerDoesNotBorrowOtherRoleScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
@@ -286,13 +289,13 @@ func TestRequestPartnerDoesNotBorrowOtherRoleOrganizationAccess(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
-			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}, nil),
-			serverRoleGrant("finance-reader", biz.DataScopeOrganization, []string{"finance.bill.read"}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}),
+			serverRoleGrant("finance-reader", biz.DataScopeAll, []string{"finance.bill.read"}),
 		},
 	}
 	resolved, direct := requestPartner(t.Context(), &partnerv1.GetPartnerRequest{Id: partner.ID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerRead, false))
 	if !direct || resolved != nil {
-		t.Fatal("财务角色的北京访问项不得被往来单位 read 权限借用")
+		t.Fatal("财务角色的更大范围不得被往来单位 read 权限借用")
 	}
 }
 
@@ -303,8 +306,8 @@ func TestAuthorizationUsesPartnerOrganizationForDetailSubresource(t *testing.T) 
 	principal := &biz.Principal{
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
-		RoleGrants: []biz.RoleGrant{serverRoleGrant("account-reader", biz.DataScopeOrganization,
-			[]string{access.PartnerAccountRead}, []biz.OrganizationAccess{{OrganizationID: beijingID}})},
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("account-reader", biz.DataScopeAll,
+			[]string{access.PartnerAccountRead})},
 	}
 	policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
 	authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{
@@ -436,13 +439,12 @@ func TestCheckOrderReferenceRequiresCreateScopeInCurrentOrganization(t *testing.
 	principal := &biz.Principal{
 		Organization:      biz.Organization{ID: currentOrganizationID},
 		OrganizationNodes: serverOrganizationNodes(currentOrganizationID, otherOrganizationID),
-		RoleGrants: []biz.RoleGrant{serverRoleGrant("reader", biz.DataScopeOrganization,
-			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)},
-			[]biz.OrganizationAccess{{OrganizationID: otherOrganizationID, Writable: true}})},
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("reader", biz.DataScopeAll,
+			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)})},
 	}
 	rule := accessRule{orderOperation: access.OrderCreate, scope: biz.DataScopeOrganization}
 	if hasPermission(&orderv1.CheckOrderReferenceRequest{}, principal, rule) {
-		t.Fatal("仅在其他组织拥有读权限不得检查当前组织的订单编号")
+		t.Fatal("仅拥有更大读取范围不得检查当前组织的订单编号")
 	}
 
 	principal.RoleGrants[0].Permissions[access.OrderPermission(access.OrderBusinessSE, access.OrderCreate)] = struct{}{}
@@ -540,16 +542,16 @@ func principalWithOrderPermission(businessType access.OrderBusinessType, operati
 	return &biz.Principal{
 		Organization:      biz.Organization{ID: organizationID},
 		OrganizationNodes: serverOrganizationNodes(organizationID),
-		RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission}, nil)},
+		RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission})},
 	}
 }
 
-func serverRoleGrant(code string, scope biz.DataScope, permissions []string, accesses []biz.OrganizationAccess) biz.RoleGrant {
+func serverRoleGrant(code string, scope biz.DataScope, permissions []string) biz.RoleGrant {
 	permissionSet := make(map[string]struct{}, len(permissions))
 	for _, permission := range permissions {
 		permissionSet[permission] = struct{}{}
 	}
-	return biz.RoleGrant{RoleID: uuid.New(), RoleCode: code, DataScope: scope, Permissions: permissionSet, OrganizationAccesses: accesses}
+	return biz.RoleGrant{RoleID: uuid.New(), RoleCode: code, DataScope: scope, Permissions: permissionSet}
 }
 
 func serverOrganizationNodes(ids ...uuid.UUID) []biz.OrganizationScopeNode {
@@ -685,9 +687,8 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	principal := &biz.Principal{
 		Organization:      biz.Organization{ID: principalOrg},
 		OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg),
-		RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization,
-			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)},
-			[]biz.OrganizationAccess{{OrganizationID: anchorOrg, Writable: true}})},
+		RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll,
+			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)})},
 	}
 
 	request := &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrder.ID.String(), TransportExecutionId: uuid.New().String()}
@@ -699,15 +700,15 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 		t.Fatal("授权查询应返回跨组织锚点订单")
 	}
 
-	// 无锚点组织访问权限时拒绝
+	// 无任何权限授权时拒绝
 	noAccess := &biz.Principal{Organization: biz.Organization{ID: principalOrg}, OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg)}
 	denied, direct := requestOrder(t.Context(), request, orderUsecase, orderOrganizationScopes(noAccess, access.OrderContainerRead, false))
 	if !direct || denied != nil {
-		t.Fatal("无锚点组织访问权限时应拒绝")
+		t.Fatal("无任何权限授权时应拒绝")
 	}
 }
 
-func TestRequestOrderRejectsReadOnlyCrossOrganizationUpdate(t *testing.T) {
+func TestRequestOrderRejectsCrossOrganizationUpdateOutsideScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
@@ -716,17 +717,16 @@ func TestRequestOrderRejectsReadOnlyCrossOrganizationUpdate(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("order-editor", biz.DataScopeOrganization,
-			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)},
-			[]biz.OrganizationAccess{{OrganizationID: beijingID}})},
+			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)})},
 	}
 
 	resolved, direct := requestOrder(t.Context(), &orderv1.UpdateOrderRequest{Id: order.ID.String()}, usecase, orderOrganizationScopes(principal, access.OrderUpdate, true))
 	if !direct || resolved != nil {
-		t.Fatal("北京只读组织范围不得通过订单更新的授权查询")
+		t.Fatal("范围外北京订单不得通过订单更新的授权查询")
 	}
 }
 
-func TestRequestOrderDoesNotBorrowFinanceRoleOrganizationAccess(t *testing.T) {
+func TestRequestOrderDoesNotBorrowFinanceRoleScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
@@ -735,13 +735,13 @@ func TestRequestOrderDoesNotBorrowFinanceRoleOrganizationAccess(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
-			serverRoleGrant("order-reader", biz.DataScopeOrganization, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)}, nil),
-			serverRoleGrant("finance-reader", biz.DataScopeOrganization, []string{"finance.bill.read"}, []biz.OrganizationAccess{{OrganizationID: beijingID}}),
+			serverRoleGrant("order-reader", biz.DataScopeOrganization, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)}),
+			serverRoleGrant("finance-reader", biz.DataScopeAll, []string{"finance.bill.read"}),
 		},
 	}
 
 	resolved, direct := requestOrder(t.Context(), &orderv1.GetOrderRequest{Id: order.ID.String()}, usecase, orderOrganizationScopes(principal, access.OrderRead, false))
 	if !direct || resolved != nil {
-		t.Fatal("财务角色的北京访问项不得被订单 read 权限借用")
+		t.Fatal("财务角色的更大范围不得被订单 read 权限借用")
 	}
 }

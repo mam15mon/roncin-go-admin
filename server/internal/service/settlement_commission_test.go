@@ -352,10 +352,9 @@ func TestListCommissionNettingCandidatesUsesManageWritableOrganization(t *testin
 		Total: 1, Page: 1, PageSize: 20,
 	}
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
-			Permissions:          map[string]struct{}{access.FinanceCommissionManage: {}},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowed, Writable: true}}}},
+			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 	keyword := "NT2026"
@@ -388,10 +387,9 @@ func TestListCommissionVerificationCandidatesUsesManageWritableOrganization(t *t
 	}}}}
 	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil), nil, nil, nil, nil, nil, nil)
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
-			Permissions:          map[string]struct{}{access.FinanceCommissionManage: {}},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowed, Writable: true}}}},
+			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
@@ -429,10 +427,9 @@ func TestListCommissionRuleCandidatesUsesManageWritableOrganization(t *testing.T
 		CalculationBasis: biz.CommissionBasisRealizedProfit, RatePercent: decimal.RequireFromString("2.5"), Enabled: true,
 	}}}
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
-			Permissions:          map[string]struct{}{access.FinanceCommissionManage: {}},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowed, Writable: true}}}},
+			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 

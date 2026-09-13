@@ -415,29 +415,6 @@ func HasAssignmentsWith(preds ...predicate.RoleAssignment) predicate.Role {
 	})
 }
 
-// HasOrganizationAccesses applies the HasEdge predicate on the "organization_accesses" edge.
-func HasOrganizationAccesses() predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, OrganizationAccessesTable, OrganizationAccessesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOrganizationAccessesWith applies the HasEdge predicate on the "organization_accesses" edge with a given conditions (other predicates).
-func HasOrganizationAccessesWith(preds ...predicate.RoleOrganizationAccess) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		step := newOrganizationAccessesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasOrderUnlockApproverCandidates applies the HasEdge predicate on the "order_unlock_approver_candidates" edge.
 func HasOrderUnlockApproverCandidates() predicate.Role {
 	return predicate.Role(func(s *sql.Selector) {

@@ -140,16 +140,20 @@ func TestFeeLedgerRequestedOrganizationOnlyNarrowsMatchingPermissionScope(t *tes
 	currentOrganizationID := uuid.New()
 	allowedOrganizationID := uuid.New()
 	deniedOrganizationID := uuid.New()
+	allowedParentID := currentOrganizationID
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: currentOrganizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}, {ID: allowedOrganizationID}, {ID: deniedOrganizationID}},
+		Organization: biz.Organization{ID: currentOrganizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{
+			{ID: currentOrganizationID},
+			{ID: allowedOrganizationID, ParentID: &allowedParentID},
+			{ID: deniedOrganizationID},
+		},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "fee-reader",
-			DataScope: biz.DataScopeOrganization,
+			DataScope: biz.DataScopeOrganizationTree,
 			Permissions: map[string]struct{}{
 				access.FinanceFeeRead: {},
 			},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowedOrganizationID}},
 		}},
 	}
 
@@ -273,7 +277,7 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 	deniedOrganizationID := uuid.New()
 	billID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: uuid.New()},
+		Organization:      biz.Organization{ID: organizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "invoice-creator",
@@ -281,7 +285,6 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 			Permissions: map[string]struct{}{
 				access.FinanceInvoiceCreate: {},
 			},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: organizationID, Writable: true}},
 		}},
 	}
 	repo := &invoiceCreationCandidateRepoStub{
@@ -330,7 +333,7 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 
 func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	allowed, denied := uuid.New(), uuid.New()
-	p := &biz.Principal{Organization: biz.Organization{ID: uuid.New()}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: allowed, Writable: true}}}}}
+	p := &biz.Principal{Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}}}
 	repo := &billCreationCandidateServiceRepoStub{}
 	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), p)
@@ -356,12 +359,11 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 func TestBillSettlementAccountCandidatesUseBillCreateScopeAndDirection(t *testing.T) {
 	organizationID, partyID := uuid.New(), uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: uuid.New()},
+		Organization:      biz.Organization{ID: organizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization,
-			Permissions:          map[string]struct{}{access.FinanceBillCreate: {}},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: organizationID, Writable: true}},
+			Permissions: map[string]struct{}{access.FinanceBillCreate: {}},
 		}},
 	}
 	repo := &billSettlementAccountRepoStub{listItems: []*biz.PartnerAccount{
@@ -486,7 +488,7 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 	organizationID := uuid.New()
 	partyID := uuid.New()
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: uuid.New()},
+		Organization: biz.Organization{ID: organizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
 			{ID: organizationID},
 		},
@@ -496,7 +498,6 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 			Permissions: map[string]struct{}{
 				access.FinanceVerificationCreate: {},
 			},
-			OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: organizationID, Writable: true}},
 		}},
 	}
 	repo := &verificationCreationCandidateRepoStub{result: &biz.VerificationCreationCandidates{}}

@@ -93,7 +93,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -7004,31 +7003,6 @@ func init() {
 	roleassignmentDescID := roleassignmentMixinFields0[0].Descriptor()
 	// roleassignment.DefaultID holds the default value on creation for the id field.
 	roleassignment.DefaultID = roleassignmentDescID.Default.(func() uuid.UUID)
-	roleorganizationaccessMixin := schema.RoleOrganizationAccess{}.Mixin()
-	roleorganizationaccessMixinFields0 := roleorganizationaccessMixin[0].Fields()
-	_ = roleorganizationaccessMixinFields0
-	roleorganizationaccessMixinFields1 := roleorganizationaccessMixin[1].Fields()
-	_ = roleorganizationaccessMixinFields1
-	roleorganizationaccessFields := schema.RoleOrganizationAccess{}.Fields()
-	_ = roleorganizationaccessFields
-	// roleorganizationaccessDescCreatedAt is the schema descriptor for created_at field.
-	roleorganizationaccessDescCreatedAt := roleorganizationaccessMixinFields1[0].Descriptor()
-	// roleorganizationaccess.DefaultCreatedAt holds the default value on creation for the created_at field.
-	roleorganizationaccess.DefaultCreatedAt = roleorganizationaccessDescCreatedAt.Default.(func() time.Time)
-	// roleorganizationaccessDescUpdatedAt is the schema descriptor for updated_at field.
-	roleorganizationaccessDescUpdatedAt := roleorganizationaccessMixinFields1[1].Descriptor()
-	// roleorganizationaccess.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	roleorganizationaccess.DefaultUpdatedAt = roleorganizationaccessDescUpdatedAt.Default.(func() time.Time)
-	// roleorganizationaccess.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	roleorganizationaccess.UpdateDefaultUpdatedAt = roleorganizationaccessDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// roleorganizationaccessDescWritable is the schema descriptor for writable field.
-	roleorganizationaccessDescWritable := roleorganizationaccessFields[2].Descriptor()
-	// roleorganizationaccess.DefaultWritable holds the default value on creation for the writable field.
-	roleorganizationaccess.DefaultWritable = roleorganizationaccessDescWritable.Default.(bool)
-	// roleorganizationaccessDescID is the schema descriptor for id field.
-	roleorganizationaccessDescID := roleorganizationaccessMixinFields0[0].Descriptor()
-	// roleorganizationaccess.DefaultID holds the default value on creation for the id field.
-	roleorganizationaccess.DefaultID = roleorganizationaccessDescID.Default.(func() uuid.UUID)
 	seadocumentmodechangeeventMixin := schema.SeaDocumentModeChangeEvent{}.Mixin()
 	seadocumentmodechangeeventMixinFields0 := seadocumentmodechangeeventMixin[0].Fields()
 	_ = seadocumentmodechangeeventMixinFields0

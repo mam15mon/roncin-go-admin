@@ -49,8 +49,7 @@ func TestGetBilledFeeEditPolicyReturnsCurrentOrganizationUpdateCapability(t *tes
 		return biz.WithPrincipal(context.Background(), &biz.Principal{
 			UserID: uuid.New(), Organization: biz.Organization{ID: organizationID},
 			OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
-			RoleGrants: []biz.RoleGrant{{RoleCode: "settings", DataScope: biz.DataScopeOrganization, Permissions: permissions,
-				OrganizationAccesses: []biz.OrganizationAccess{}}},
+			RoleGrants:        []biz.RoleGrant{{RoleCode: "settings", DataScope: biz.DataScopeOrganization, Permissions: permissions}},
 		})
 	}
 

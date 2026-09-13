@@ -12387,12 +12387,6 @@
           },
           "updatedAt": {
             "type": "string"
-          },
-          "organizationAccesses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
-            }
           }
         }
       },
@@ -12785,12 +12779,6 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
-          },
-          "organizationAccesses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
             }
           }
         }
@@ -13314,20 +13302,6 @@
           }
         }
       },
-      "admin.v1.OrganizationAccess": {
-        "required": [
-          "organizationId"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationId": {
-            "type": "string"
-          },
-          "writable": {
-            "type": "boolean"
-          }
-        }
-      },
       "admin.v1.RejectDingTalkRegistrationRequest": {
         "required": [
           "id",
@@ -13548,12 +13522,6 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
-          },
-          "organizationAccesses": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.OrganizationAccess"
             }
           }
         }

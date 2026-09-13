@@ -19,7 +19,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -132,21 +131,6 @@ func (_u *RoleUpdate) AddAssignments(v ...*RoleAssignment) *RoleUpdate {
 	return _u.AddAssignmentIDs(ids...)
 }
 
-// AddOrganizationAccessIDs adds the "organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
-func (_u *RoleUpdate) AddOrganizationAccessIDs(ids ...uuid.UUID) *RoleUpdate {
-	_u.mutation.AddOrganizationAccessIDs(ids...)
-	return _u
-}
-
-// AddOrganizationAccesses adds the "organization_accesses" edges to the RoleOrganizationAccess entity.
-func (_u *RoleUpdate) AddOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrganizationAccessIDs(ids...)
-}
-
 // AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
 func (_u *RoleUpdate) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdate {
 	_u.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
@@ -228,27 +212,6 @@ func (_u *RoleUpdate) RemoveAssignments(v ...*RoleAssignment) *RoleUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
-}
-
-// ClearOrganizationAccesses clears all "organization_accesses" edges to the RoleOrganizationAccess entity.
-func (_u *RoleUpdate) ClearOrganizationAccesses() *RoleUpdate {
-	_u.mutation.ClearOrganizationAccesses()
-	return _u
-}
-
-// RemoveOrganizationAccessIDs removes the "organization_accesses" edge to RoleOrganizationAccess entities by IDs.
-func (_u *RoleUpdate) RemoveOrganizationAccessIDs(ids ...uuid.UUID) *RoleUpdate {
-	_u.mutation.RemoveOrganizationAccessIDs(ids...)
-	return _u
-}
-
-// RemoveOrganizationAccesses removes "organization_accesses" edges to RoleOrganizationAccess entities.
-func (_u *RoleUpdate) RemoveOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrganizationAccessIDs(ids...)
 }
 
 // ClearOrderUnlockApproverCandidates clears all "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
@@ -490,51 +453,6 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.OrganizationAccessesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrganizationAccessesIDs(); len(nodes) > 0 && !_u.mutation.OrganizationAccessesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationAccessesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.OrderUnlockApproverCandidatesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -742,21 +660,6 @@ func (_u *RoleUpdateOne) AddAssignments(v ...*RoleAssignment) *RoleUpdateOne {
 	return _u.AddAssignmentIDs(ids...)
 }
 
-// AddOrganizationAccessIDs adds the "organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
-func (_u *RoleUpdateOne) AddOrganizationAccessIDs(ids ...uuid.UUID) *RoleUpdateOne {
-	_u.mutation.AddOrganizationAccessIDs(ids...)
-	return _u
-}
-
-// AddOrganizationAccesses adds the "organization_accesses" edges to the RoleOrganizationAccess entity.
-func (_u *RoleUpdateOne) AddOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrganizationAccessIDs(ids...)
-}
-
 // AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
 func (_u *RoleUpdateOne) AddOrderUnlockApproverCandidateIDs(ids ...uuid.UUID) *RoleUpdateOne {
 	_u.mutation.AddOrderUnlockApproverCandidateIDs(ids...)
@@ -838,27 +741,6 @@ func (_u *RoleUpdateOne) RemoveAssignments(v ...*RoleAssignment) *RoleUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
-}
-
-// ClearOrganizationAccesses clears all "organization_accesses" edges to the RoleOrganizationAccess entity.
-func (_u *RoleUpdateOne) ClearOrganizationAccesses() *RoleUpdateOne {
-	_u.mutation.ClearOrganizationAccesses()
-	return _u
-}
-
-// RemoveOrganizationAccessIDs removes the "organization_accesses" edge to RoleOrganizationAccess entities by IDs.
-func (_u *RoleUpdateOne) RemoveOrganizationAccessIDs(ids ...uuid.UUID) *RoleUpdateOne {
-	_u.mutation.RemoveOrganizationAccessIDs(ids...)
-	return _u
-}
-
-// RemoveOrganizationAccesses removes "organization_accesses" edges to RoleOrganizationAccess entities.
-func (_u *RoleUpdateOne) RemoveOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrganizationAccessIDs(ids...)
 }
 
 // ClearOrderUnlockApproverCandidates clears all "order_unlock_approver_candidates" edges to the OrderUnlockApproverCandidate entity.
@@ -1123,51 +1005,6 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(roleassignment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.OrganizationAccessesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrganizationAccessesIDs(); len(nodes) > 0 && !_u.mutation.OrganizationAccessesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationAccessesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
