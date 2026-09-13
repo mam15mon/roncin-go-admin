@@ -437,76 +437,171 @@ export function SeaBillContentFormFields({
   return (
     <div>
       <div className={styles.verticalFields}>
-      <Row gutter={[16, 0]}>
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
-              }}
-            >
-              <span
+        <Row gutter={[16, 0]}>
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
                 style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.88)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
                 }}
               >
-                发货人 (Shipper)
-              </span>
-              {!disabled && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  loading={importingShipper}
-                  onClick={handleImportShipperFromCustomer}
+                <span
                   style={{
-                    padding: 0,
-                    height: 'auto',
-                    fontSize: 12,
-                    fontWeight: 'normal',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'rgba(0, 0, 0, 0.88)',
                   }}
                 >
-                  从委托客户带入
-                </Button>
-              )}
+                  发货人 (Shipper)
+                </span>
+                {!disabled && (
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<DownloadOutlined />}
+                    loading={importingShipper}
+                    onClick={handleImportShipperFromCustomer}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      fontSize: 12,
+                      fontWeight: 'normal',
+                    }}
+                  >
+                    从委托客户带入
+                  </Button>
+                )}
+              </div>
+              <ProFormTextArea
+                name={[...namePathPrefix, 'shipperText']}
+                placeholder="请输入发货人英文名称与详细地址"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
             </div>
-            <ProFormTextArea
-              name={[...namePathPrefix, 'shipperText']}
-              placeholder="请输入发货人英文名称与详细地址"
-              disabled={disabled}
-              fieldProps={{ rows: 3 }}
-              noStyle
-            />
-          </div>
-        </Col>
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
-              }}
-            >
-              <span
+          </Col>
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
                 style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.88)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
                 }}
               >
-                收货人 (Consignee)
-              </span>
-              {!disabled && (
-                <Space size={4}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'rgba(0, 0, 0, 0.88)',
+                  }}
+                >
+                  收货人 (Consignee)
+                </span>
+                {!disabled && (
+                  <Space size={4}>
+                    <Tag
+                      style={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        margin: 0,
+                        fontSize: 11,
+                        padding: '0 4px',
+                      }}
+                      onClick={() =>
+                        form?.setFieldValue(
+                          [...namePathPrefix, 'consigneeText'],
+                          'TO ORDER',
+                        )
+                      }
+                    >
+                      + TO ORDER
+                    </Tag>
+                    <Tag
+                      style={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        margin: 0,
+                        fontSize: 11,
+                        padding: '0 4px',
+                      }}
+                      onClick={() =>
+                        form?.setFieldValue(
+                          [...namePathPrefix, 'consigneeText'],
+                          'TO ORDER OF SHIPPER',
+                        )
+                      }
+                    >
+                      + TO ORDER OF SHIPPER
+                    </Tag>
+                  </Space>
+                )}
+              </div>
+              <ProFormTextArea
+                name={[...namePathPrefix, 'consigneeText']}
+                placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            </div>
+          </Col>
+
+          {/* 通知人与第二通知人 Tab 切换 */}
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
+                }}
+              >
+                <Segmented
+                  size="small"
+                  value={notifyTab}
+                  onChange={(val) =>
+                    setNotifyTab(val as 'notify' | 'secondNotify')
+                  }
+                  options={[
+                    {
+                      value: 'notify',
+                      label: '通知人 (Notify Party)',
+                    },
+                    {
+                      value: 'secondNotify',
+                      label: (
+                        <Space size={4}>
+                          <span>第二通知人 (Second Notify Party)</span>
+                          {hasSecondNotify ? (
+                            <Tag
+                              color="blue"
+                              variant="filled"
+                              style={{
+                                margin: 0,
+                                fontSize: 10,
+                                lineHeight: '16px',
+                                padding: '0 4px',
+                              }}
+                            >
+                              已填写
+                            </Tag>
+                          ) : null}
+                        </Space>
+                      ),
+                    },
+                  ]}
+                />
+                {!disabled && notifyTab === 'notify' && (
                   <Tag
                     style={{
                       cursor: 'pointer',
@@ -517,13 +612,146 @@ export function SeaBillContentFormFields({
                     }}
                     onClick={() =>
                       form?.setFieldValue(
-                        [...namePathPrefix, 'consigneeText'],
-                        'TO ORDER',
+                        [...namePathPrefix, 'notifyPartyText'],
+                        'SAME AS CONSIGNEE',
                       )
                     }
                   >
-                    + TO ORDER
+                    + SAME AS CONSIGNEE
                   </Tag>
+                )}
+              </div>
+              {notifyTab === 'notify' ? (
+                <ProFormTextArea
+                  name={[...namePathPrefix, 'notifyPartyText']}
+                  placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
+                  disabled={disabled}
+                  fieldProps={{ rows: 3 }}
+                  noStyle
+                />
+              ) : (
+                <ProFormTextArea
+                  name={[...namePathPrefix, 'secondNotifyPartyText']}
+                  placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
+                  disabled={disabled}
+                  fieldProps={{ rows: 3 }}
+                  noStyle
+                />
+              )}
+            </div>
+          </Col>
+
+          {/* 外国代理 (Foreign Agent) */}
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'rgba(0, 0, 0, 0.88)',
+                  }}
+                >
+                  外国代理 (Foreign Agent)
+                </span>
+                {!disabled && (
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<DownloadOutlined />}
+                    loading={importingAgent}
+                    onClick={handleImportForeignAgent}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      fontSize: 12,
+                      fontWeight: 'normal',
+                    }}
+                  >
+                    从订单国外代理带入
+                  </Button>
+                )}
+              </div>
+              <ProFormTextArea
+                name={[...namePathPrefix, 'foreignAgentText']}
+                placeholder="请输入目的港/国外代理名称、地址与联系方式"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            </div>
+          </Col>
+        </Row>
+
+        {/* 唛头与货物信息区块 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            margin: '8px 0 12px 0',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              style={{
+                width: 3,
+                height: 14,
+                backgroundColor: '#1677ff',
+                borderRadius: 2,
+                marginRight: 8,
+              }}
+            />
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+              实际与提单货物描述 (Actual B/L Marks & Cargo)
+            </span>
+            <Tag color="cyan" style={{ marginLeft: 8 }}>
+              提单实际数据
+            </Tag>
+          </div>
+          {!disabled && (
+            <Button
+              type="link"
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={handleImportFromCargoInfo}
+              style={{ padding: 0 }}
+            >
+              从订单货物信息带入 (复制委托数据)
+            </Button>
+          )}
+        </div>
+
+        <Row gutter={[16, 0]}>
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'rgba(0, 0, 0, 0.88)',
+                  }}
+                >
+                  唛头 (Marks & Numbers)
+                </span>
+                {!disabled && (
                   <Tag
                     style={{
                       cursor: 'pointer',
@@ -534,522 +762,254 @@ export function SeaBillContentFormFields({
                     }}
                     onClick={() =>
                       form?.setFieldValue(
-                        [...namePathPrefix, 'consigneeText'],
-                        'TO ORDER OF SHIPPER',
+                        [...namePathPrefix, 'marksText'],
+                        'N/M',
                       )
                     }
                   >
-                    + TO ORDER OF SHIPPER
+                    + N/M
+                  </Tag>
+                )}
+              </div>
+              <ProFormTextArea
+                name={[...namePathPrefix, 'marksText']}
+                placeholder="请输入唛头信息 (例如：N/M)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            </div>
+          </Col>
+          <Col xs={24} lg={12}>
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  minHeight: 24,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'rgba(0, 0, 0, 0.88)',
+                  }}
+                >
+                  英文品名 / 提单货描
+                </span>
+                <Space size={6} align="center">
+                  <Checkbox
+                    checked={hasClause}
+                    disabled={disabled}
+                    onChange={(e) => handleToggleClause(e.target.checked)}
+                    style={{ fontSize: 12, userSelect: 'none' }}
+                  >
+                    免责条款
+                  </Checkbox>
+                  <Tag
+                    color={hasClause ? 'blue' : 'default'}
+                    style={{
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      userSelect: 'none',
+                      margin: 0,
+                      fontSize: 11,
+                      padding: '0 4px',
+                      fontFamily: 'monospace',
+                    }}
+                    onClick={
+                      !disabled
+                        ? () => handleToggleClause(!hasClause)
+                        : undefined
+                    }
+                  >
+                    SHIPPER LOAD,COUNT AND SEAL
                   </Tag>
                 </Space>
-              )}
-            </div>
-            <ProFormTextArea
-              name={[...namePathPrefix, 'consigneeText']}
-              placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
-              disabled={disabled}
-              fieldProps={{ rows: 3 }}
-              noStyle
-            />
-          </div>
-        </Col>
-
-        {/* 通知人与第二通知人 Tab 切换 */}
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
-              }}
-            >
-              <Segmented
-                size="small"
-                value={notifyTab}
-                onChange={(val) =>
-                  setNotifyTab(val as 'notify' | 'secondNotify')
-                }
-                options={[
-                  {
-                    value: 'notify',
-                    label: '通知人 (Notify Party)',
-                  },
-                  {
-                    value: 'secondNotify',
-                    label: (
-                      <Space size={4}>
-                        <span>第二通知人 (Second Notify Party)</span>
-                        {hasSecondNotify ? (
-                          <Tag
-                            color="blue"
-                            variant="filled"
-                            style={{
-                              margin: 0,
-                              fontSize: 10,
-                              lineHeight: '16px',
-                              padding: '0 4px',
-                            }}
-                          >
-                            已填写
-                          </Tag>
-                        ) : null}
-                      </Space>
-                    ),
-                  },
-                ]}
-              />
-              {!disabled && notifyTab === 'notify' && (
-                <Tag
-                  style={{
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    margin: 0,
-                    fontSize: 11,
-                    padding: '0 4px',
-                  }}
-                  onClick={() =>
-                    form?.setFieldValue(
-                      [...namePathPrefix, 'notifyPartyText'],
-                      'SAME AS CONSIGNEE',
-                    )
-                  }
-                >
-                  + SAME AS CONSIGNEE
-                </Tag>
-              )}
-            </div>
-            {notifyTab === 'notify' ? (
+              </div>
               <ProFormTextArea
-                name={[...namePathPrefix, 'notifyPartyText']}
-                placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
+                name={[...namePathPrefix, 'goodsDescriptionText']}
+                placeholder="请输入提单打印品名与货物描述"
                 disabled={disabled}
                 fieldProps={{ rows: 3 }}
                 noStyle
               />
-            ) : (
-              <ProFormTextArea
-                name={[...namePathPrefix, 'secondNotifyPartyText']}
-                placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      {/* 紧凑对照与条款区：四列网格，三行共享列边界（件数 / 毛重 / 体积 / 条款与操作） */}
+      <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
+        <Col span={7}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
+              }}
+            >
+              委托总件数
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <PackageCountInput
+                countName="totalPackages"
+                unitName="totalPackageUnit"
+                countPlaceholder="0"
+                unitPlaceholder="请选择单位"
+                unitWidth={104}
+                style={{ width: '100%' }}
                 disabled={disabled}
-                fieldProps={{ rows: 3 }}
-                noStyle
               />
-            )}
+            </div>
           </div>
         </Col>
-
-        {/* 外国代理 (Foreign Agent) */}
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
               }}
             >
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.88)',
+              委托总毛重
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormDigit
+                name="totalGrossWeightKg"
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                noStyle
+                fieldProps={{
+                  precision: 3,
+                  addonAfter: 'KGS',
+                  style: { width: '100%' },
                 }}
-              >
-                外国代理 (Foreign Agent)
-              </span>
-              {!disabled && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  loading={importingAgent}
-                  onClick={handleImportForeignAgent}
-                  style={{
-                    padding: 0,
-                    height: 'auto',
-                    fontSize: 12,
-                    fontWeight: 'normal',
-                  }}
-                >
-                  从订单国外代理带入
-                </Button>
-              )}
+              />
             </div>
-            <ProFormTextArea
-              name={[...namePathPrefix, 'foreignAgentText']}
-              placeholder="请输入目的港/国外代理名称、地址与联系方式"
-              disabled={disabled}
-              fieldProps={{ rows: 3 }}
-              noStyle
-            />
           </div>
         </Col>
-      </Row>
-
-      {/* 唛头与货物信息区块 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          margin: '8px 0 12px 0',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              width: 3,
-              height: 14,
-              backgroundColor: '#1677ff',
-              borderRadius: 2,
-              marginRight: 8,
-            }}
-          />
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-            实际与提单货物描述 (Actual B/L Marks & Cargo)
-          </span>
-          <Tag color="cyan" style={{ marginLeft: 8 }}>
-            提单实际数据
-          </Tag>
-        </div>
-        {!disabled && (
-          <Button
-            type="link"
-            size="small"
-            icon={<DownloadOutlined />}
-            onClick={handleImportFromCargoInfo}
-            style={{ padding: 0 }}
-          >
-            从订单货物信息带入 (复制委托数据)
-          </Button>
-        )}
-      </div>
-
-      <Row gutter={[16, 0]}>
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
               }}
             >
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.88)',
+              委托总体积
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormDigit
+                name="totalVolumeCbm"
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                noStyle
+                fieldProps={{
+                  precision: 3,
+                  addonAfter: 'CBM',
+                  style: { width: '100%' },
                 }}
-              >
-                唛头 (Marks & Numbers)
-              </span>
-              {!disabled && (
-                <Tag
-                  style={{
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    margin: 0,
-                    fontSize: 11,
-                    padding: '0 4px',
-                  }}
-                  onClick={() =>
-                    form?.setFieldValue([...namePathPrefix, 'marksText'], 'N/M')
-                  }
-                >
-                  + N/M
-                </Tag>
-              )}
+              />
             </div>
-            <ProFormTextArea
-              name={[...namePathPrefix, 'marksText']}
-              placeholder="请输入唛头信息 (例如：N/M)"
-              disabled={disabled}
-              fieldProps={{ rows: 3 }}
-              noStyle
-            />
           </div>
         </Col>
-        <Col xs={24} lg={12}>
-          <div style={{ marginBottom: 24 }}>
-            <div
+        <Col span={7} />
+        <Col span={7}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 6,
-                minHeight: 24,
+                width: 68,
+                fontSize: 13,
+                color: '#1677ff',
+                fontWeight: 500,
+                flexShrink: 0,
               }}
             >
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.88)',
-                }}
-              >
-                英文品名 / 提单货描
-              </span>
-              <Space size={6} align="center">
-                <Checkbox
-                  checked={hasClause}
-                  disabled={disabled}
-                  onChange={(e) => handleToggleClause(e.target.checked)}
-                  style={{ fontSize: 12, userSelect: 'none' }}
-                >
-                  免责条款
-                </Checkbox>
-                <Tag
-                  color={hasClause ? 'blue' : 'default'}
-                  style={{
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    userSelect: 'none',
-                    margin: 0,
-                    fontSize: 11,
-                    padding: '0 4px',
-                    fontFamily: 'monospace',
-                  }}
-                  onClick={
-                    !disabled ? () => handleToggleClause(!hasClause) : undefined
-                  }
-                >
-                  SHIPPER LOAD,COUNT AND SEAL
-                </Tag>
-              </Space>
+              实际总件数
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <PackageCountInput
+                countName={[...namePathPrefix, 'packageCount']}
+                unitName={[...namePathPrefix, 'packageUnit']}
+                countPlaceholder="0"
+                unitPlaceholder="请选择单位"
+                unitWidth={104}
+                style={{ width: '100%' }}
+                disabled={disabled}
+              />
             </div>
-            <ProFormTextArea
-              name={[...namePathPrefix, 'goodsDescriptionText']}
-              placeholder="请输入提单打印品名与货物描述"
-              disabled={disabled}
-              fieldProps={{ rows: 3 }}
-              noStyle
-            />
           </div>
         </Col>
-      </Row>
-    </div>
-
-    {/* 紧凑对照与条款区（参考竞品基准：不铺满全屏，行内紧凑且多行垂直列对齐） */}
-    <div style={{ overflowX: 'auto', paddingBottom: 4, marginTop: 8 }}>
-      {/* 第 1 行：委托申报数据对照行 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: 12,
-          flexWrap: 'nowrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            委托总件数
-          </span>
-          <PackageCountInput
-            countName="totalPackages"
-            unitName="totalPackageUnit"
-            countPlaceholder="0"
-            unitPlaceholder="请选择单位"
-            unitWidth={105}
-            style={{ width: 210 }}
-            disabled={disabled}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            委托总毛重
-          </span>
-          <ProFormDigit
-            name="totalGrossWeightKg"
-            placeholder="0"
-            disabled={disabled}
-            min={0}
-            noStyle
-            fieldProps={{
-              precision: 3,
-              addonAfter: 'KGS',
-              style: { width: 140 },
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            委托总体积
-          </span>
-          <ProFormDigit
-            name="totalVolumeCbm"
-            placeholder="0"
-            disabled={disabled}
-            min={0}
-            noStyle
-            fieldProps={{
-              precision: 3,
-              addonAfter: 'CBM',
-              style: { width: 140 },
-            }}
-          />
-        </div>
-        <div style={{ width: 196, flexShrink: 0 }} />
-      </div>
-
-      {/* 第 2 行：实际提单数据对照行 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: 12,
-          flexWrap: 'nowrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: '#1677ff',
-              fontWeight: 500,
-              flexShrink: 0,
-            }}
-          >
-            实际总件数
-          </span>
-          <PackageCountInput
-            countName={[...namePathPrefix, 'packageCount']}
-            unitName={[...namePathPrefix, 'packageUnit']}
-            countPlaceholder="0"
-            unitPlaceholder="请选择单位"
-            unitWidth={105}
-            style={{ width: 210 }}
-            disabled={disabled}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: '#1677ff',
-              fontWeight: 500,
-              flexShrink: 0,
-            }}
-          >
-            实际总毛重
-          </span>
-          <ProFormDigit
-            name={[...namePathPrefix, 'grossWeightKg']}
-            placeholder="0"
-            disabled={disabled}
-            min={0}
-            noStyle
-            fieldProps={{
-              precision: 3,
-              addonAfter: 'KGS',
-              style: { width: 140 },
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: '#1677ff',
-              fontWeight: 500,
-              flexShrink: 0,
-            }}
-          >
-            实际总体积
-          </span>
-          <ProFormDigit
-            name={[...namePathPrefix, 'volumeCbm']}
-            placeholder="0"
-            disabled={disabled}
-            min={0}
-            noStyle
-            fieldProps={{
-              precision: 3,
-              addonAfter: 'CBM',
-              style: { width: 140 },
-            }}
-          />
-        </div>
-        <div
-          style={{
-            width: 196,
-            flexShrink: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
-        >
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: '#1677ff',
+                fontWeight: 500,
+                flexShrink: 0,
+              }}
+            >
+              实际总毛重
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormDigit
+                name={[...namePathPrefix, 'grossWeightKg']}
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                noStyle
+                fieldProps={{
+                  precision: 3,
+                  addonAfter: 'KGS',
+                  style: { width: '100%' },
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: '#1677ff',
+                fontWeight: 500,
+                flexShrink: 0,
+              }}
+            >
+              实际总体积
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormDigit
+                name={[...namePathPrefix, 'volumeCbm']}
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                noStyle
+                fieldProps={{
+                  precision: 3,
+                  addonAfter: 'CBM',
+                  style: { width: '100%' },
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+        <Col span={7}>
           {!disabled && (
             <Button
               type="link"
@@ -1067,188 +1027,168 @@ export function SeaBillContentFormFields({
               带入委托件重尺 ↓
             </Button>
           )}
-        </div>
-      </div>
+        </Col>
+        <Col span={7}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
+              }}
+            >
+              付款方式
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormSelect
+                name={[...namePathPrefix, 'freightTerms']}
+                placeholder="请选择付款方式"
+                initialValue={DEFAULT_FREIGHT_TERMS}
+                disabled={disabled}
+                options={SEA_FREIGHT_TERM_OPTIONS}
+                noStyle
+                fieldProps={{
+                  style: { width: '100%' },
+                  showSearch: true,
+                  allowClear: true,
+                  onChange: (val) => {
+                    if (form) {
+                      const str = String(val ?? '');
+                      if (str.includes('COLLECT') || str.includes('到付')) {
+                        form.setFieldValue('paymentTerm', 2);
+                      } else {
+                        form.setFieldValue('paymentTerm', 1);
+                      }
+                    }
+                  },
+                  filterOption: (input, option) => {
+                    const normInput = input.trim().toLowerCase();
+                    const normLabel = String(option?.label ?? '').toLowerCase();
+                    const normValue = String(option?.value ?? '').toLowerCase();
+                    return (
+                      normLabel.includes(normInput) ||
+                      normValue.includes(normInput)
+                    );
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
+              }}
+            >
+              运输条款
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormSelect
+                name={[...namePathPrefix, 'transportTerms']}
+                placeholder="请选择运输条款"
+                initialValue={DEFAULT_TRANSPORT_TERMS}
+                disabled={disabled}
+                options={SEA_TRANSPORT_TERM_OPTIONS}
+                noStyle
+                fieldProps={{
+                  style: { width: '100%' },
+                  showSearch: true,
+                  allowClear: true,
+                  filterOption: (input, option) => {
+                    const normInput = input
+                      .replace(/[\s\-_/]/g, '')
+                      .toLowerCase();
+                    const normLabel = String(option?.label ?? '')
+                      .replace(/[\s\-_/]/g, '')
+                      .toLowerCase();
+                    const normValue = String(option?.value ?? '')
+                      .replace(/[\s\-_/]/g, '')
+                      .toLowerCase();
+                    return (
+                      normLabel.includes(normInput) ||
+                      normValue.includes(normInput)
+                    );
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+        <Col span={5}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
+              }}
+            >
+              提单形式
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormSelect
+                name={[...namePathPrefix, 'billForm']}
+                placeholder="请选择提单形式"
+                initialValue={DEFAULT_BILL_FORM}
+                disabled={disabled}
+                options={SEA_BILL_FORM_OPTIONS}
+                noStyle
+                fieldProps={{
+                  style: { width: '100%' },
+                  allowClear: true,
+                  showSearch: true,
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+        <Col span={7}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span
+              style={{
+                width: 68,
+                fontSize: 13,
+                color: 'rgba(0, 0, 0, 0.85)',
+                flexShrink: 0,
+              }}
+            >
+              放单方式
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProFormSelect
+                name={[...namePathPrefix, 'releaseType']}
+                placeholder="请选择放单方式"
+                initialValue={DEFAULT_RELEASE_TYPE}
+                disabled={disabled}
+                options={SEA_RELEASE_TYPE_OPTIONS}
+                noStyle
+                fieldProps={{
+                  style: { width: '100%' },
+                  allowClear: true,
+                  showSearch: true,
+                }}
+              />
+            </div>
+          </div>
+        </Col>
+      </Row>
 
-      {/* 第 3 行：条款与放单行 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: 12,
-          flexWrap: 'nowrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            付款方式
-          </span>
-          <ProFormSelect
-            name={[...namePathPrefix, 'freightTerms']}
-            placeholder="请选择付款方式"
-            initialValue={DEFAULT_FREIGHT_TERMS}
-            disabled={disabled}
-            options={SEA_FREIGHT_TERM_OPTIONS}
-            noStyle
-            fieldProps={{
-              style: { width: 210 },
-              showSearch: true,
-              allowClear: true,
-              onChange: (val) => {
-                if (form) {
-                  const str = String(val ?? '');
-                  if (str.includes('COLLECT') || str.includes('到付')) {
-                    form.setFieldValue('paymentTerm', 2);
-                  } else {
-                    form.setFieldValue('paymentTerm', 1);
-                  }
-                }
-              },
-              filterOption: (input, option) => {
-                const normInput = input.trim().toLowerCase();
-                const normLabel = String(option?.label ?? '').toLowerCase();
-                const normValue = String(option?.value ?? '').toLowerCase();
-                return (
-                  normLabel.includes(normInput) || normValue.includes(normInput)
-                );
-              },
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            运输条款
-          </span>
-          <ProFormSelect
-            name={[...namePathPrefix, 'transportTerms']}
-            placeholder="请选择运输条款"
-            initialValue={DEFAULT_TRANSPORT_TERMS}
-            disabled={disabled}
-            options={SEA_TRANSPORT_TERM_OPTIONS}
-            noStyle
-            fieldProps={{
-              style: { width: 140 },
-              showSearch: true,
-              allowClear: true,
-              filterOption: (input, option) => {
-                const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
-                const normLabel = String(option?.label ?? '')
-                  .replace(/[\s\-_/]/g, '')
-                  .toLowerCase();
-                const normValue = String(option?.value ?? '')
-                  .replace(/[\s\-_/]/g, '')
-                  .toLowerCase();
-                return (
-                  normLabel.includes(normInput) || normValue.includes(normInput)
-                );
-              },
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            marginRight: 28,
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 68,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            提单形式
-          </span>
-          <ProFormSelect
-            name={[...namePathPrefix, 'billForm']}
-            placeholder="请选择提单形式"
-            initialValue={DEFAULT_BILL_FORM}
-            disabled={disabled}
-            options={SEA_BILL_FORM_OPTIONS}
-            noStyle
-            fieldProps={{
-              style: { width: 140 },
-              allowClear: true,
-              showSearch: true,
-            }}
-          />
-        </div>
-        <div
-          style={{
-            width: 196,
-            flexShrink: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
-        >
-          <span
-            style={{
-              width: 56,
-              fontSize: 13,
-              color: 'rgba(0, 0, 0, 0.85)',
-              flexShrink: 0,
-            }}
-          >
-            放单方式
-          </span>
-          <ProFormSelect
-            name={[...namePathPrefix, 'releaseType']}
-            placeholder="请选择放单方式"
-            initialValue={DEFAULT_RELEASE_TYPE}
-            disabled={disabled}
-            options={SEA_RELEASE_TYPE_OPTIONS}
-            noStyle
-            fieldProps={{
-              style: { width: 140 },
-              allowClear: true,
-              showSearch: true,
-            }}
-          />
-        </div>
+      <div style={{ maxWidth: 746, marginTop: 4, marginBottom: 8 }}>
+        <ProFormTextArea
+          name={[...namePathPrefix, 'clauses']}
+          label="提单特别条款 (Clauses)"
+          placeholder="选填，请输入提单特别条款"
+          disabled={disabled}
+          fieldProps={{ rows: 2 }}
+        />
       </div>
-    </div>
-
-    <div style={{ maxWidth: 746, marginTop: 4, marginBottom: 8 }}>
-      <ProFormTextArea
-        name={[...namePathPrefix, 'clauses']}
-        label="提单特别条款 (Clauses)"
-        placeholder="选填，请输入提单特别条款"
-        disabled={disabled}
-        fieldProps={{ rows: 2 }}
-      />
-    </div>
     </div>
   );
 }
