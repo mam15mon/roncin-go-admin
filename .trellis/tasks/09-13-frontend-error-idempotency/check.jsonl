@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量与验证纪律"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "自定义 Hook 规范（提交守卫如需 Hook 形态）"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "请求与状态管理约定，守卫挂载点"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端验证纪律（禁 Skip 充当通过、幂等测试要求）"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "迁移编写规范（不加 IF EXISTS、校验和）"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层一致性检查思路（前端键生成↔后端比对）"}
