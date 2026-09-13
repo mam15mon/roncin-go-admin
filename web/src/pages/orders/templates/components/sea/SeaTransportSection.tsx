@@ -16,8 +16,8 @@ import {
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import React, { useEffect, useState } from 'react';
-import { SeaDocumentStructure } from '@/enums.generated';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { SeaDocumentStructure } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import { containerOwnershipOptions } from '../../../common';
 import {
@@ -63,9 +63,7 @@ export function SeaMasterBillFields({
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
     preserve: true,
-  }) as
-    | API.SeaMasterBillSummary
-    | undefined;
+  }) as API.SeaMasterBillSummary | undefined;
 
   const originLocationId = Form.useWatch('originLocationId', form);
   const dischargeLocationId = Form.useWatch('dischargeLocationId', form);
@@ -97,7 +95,11 @@ export function SeaMasterBillFields({
     const rawMasterNo = masterNo || '';
     const selectedShippingLineId = shippingLineId;
 
-    if (!rawMasterNo || !selectedShippingLineId || !/^[A-Za-z0-9]+$/.test(rawMasterNo)) {
+    if (
+      !rawMasterNo ||
+      !selectedShippingLineId ||
+      !/^[A-Za-z0-9]+$/.test(rawMasterNo)
+    ) {
       setCandidate(null);
       setConflicts([]);
       setCandidateMatched(false);
@@ -388,13 +390,10 @@ export function SeaMasterBillFields({
                     {selectedCandidateTe.voyageNo || '-'} |{' '}
                   </span>
                   <span>
-                    起运港:{' '}
-                    {selectedCandidateTe.originLocationName || '-'} |{' '}
+                    起运港: {selectedCandidateTe.originLocationName || '-'} |{' '}
                   </span>
                   <span>
-                    卸货港:{' '}
-                    {selectedCandidateTe.dischargeLocationName || '-'}{' '}
-                    |{' '}
+                    卸货港: {selectedCandidateTe.dischargeLocationName || '-'} |{' '}
                   </span>
                   <span>ETD: {selectedCandidateTe.etd || '-'} | </span>
                   <span>ETA: {selectedCandidateTe.eta || '-'}</span>
@@ -447,13 +446,9 @@ export function SeaMasterBillFields({
 export function SeaAssociatedHouseBillsField() {
   const form = Form.useFormInstance();
   const watchedHouseBill = (Form.useWatch('seaHouseBill', form) ??
-    form?.getFieldValue('seaHouseBill')) as
-    | { houseNo?: string }
-    | undefined;
+    form?.getFieldValue('seaHouseBill')) as { houseNo?: string } | undefined;
   const watchedStructure = (Form.useWatch('seaDocumentStructure', form) ??
-    form?.getFieldValue('seaDocumentStructure')) as
-    | number
-    | undefined;
+    form?.getFieldValue('seaDocumentStructure')) as number | undefined;
   const watchedDocSummary = (Form.useWatch('seaDocumentSummary', form) ??
     form?.getFieldValue('seaDocumentSummary')) as
     | API.SeaOrderDocumentSummary
@@ -558,7 +553,7 @@ export function SeaScheduleDateFields() {
       <Col className="col-5">
         <ProFormDateTimePicker
           name="etd"
-          label="ETD (预计开航)"
+          label="ETD"
           fieldProps={{
             style: { width: '100%' },
             onChange: (date) => {
@@ -585,7 +580,7 @@ export function SeaScheduleDateFields() {
       <Col className="col-5">
         <ProFormDateTimePicker
           name="eta"
-          label="ETA (预计到达)"
+          label="ETA"
           dependencies={['etd']}
           rules={[
             ({ getFieldValue }) => ({
@@ -611,12 +606,8 @@ export function SeaScheduleDateFields() {
 }
 
 export function buildSeaTransportSection(props: TemplateProps) {
-  const {
-    locationOptions,
-    searchLocations,
-    containerSpecOptions,
-    isDetail,
-  } = props;
+  const { locationOptions, searchLocations, containerSpecOptions, isDetail } =
+    props;
 
   return {
     key: 'transportInfo',
