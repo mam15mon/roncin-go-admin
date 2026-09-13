@@ -1310,3 +1310,29 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 50: 前端 Sentry 报错捕获与关键操作防重/订单幂等
+<!-- trellis-session: v=2 fp=862319e65289ce33 -->
+
+**Date**: 2026-09-13
+**Task**: 前端 Sentry 报错捕获与关键操作防重/订单幂等
+**Branch**: `feat/frontend-error-idempotency`
+
+### Summary
+
+完成前端报错捕获与防重防护任务。Sentry 轻量接入：@sentry/react 唯一新增依赖，SENTRY_DSN 环境变量门控（未配置编译期消除、零行为），release 复用 COMMIT_HASH，捕获全局异常/unhandledrejection/请求错误（401 与防重拦截反馈不上报），beforeSend 剔除 Authorization/Cookie；UMI_ENV 经 define 注入修复 environment 恒为 development 的问题（生产环境需部署侧导出 UMI_ENV=prod 才得 production 标签）。请求层防重守卫：POST/PUT/DELETE 同 method+URL+体 inflight 去重，无时间窗缓存，单点挂载在 requestErrorConfig。订单幂等：镜像建账模式，Create 用全量请求哈希意图比对（SHA-256，排除服务端默认值与 TE 回填字段；目的地与四类 cutoff 为请求原值纳入；shipping_line_id 有意纳入防换船公司），UpdateDraft 可变最新键同键同版本重放返回当前草稿；真实库集成 7 子测试覆盖重放/冲突/并发/草稿重放。评审两轮修复：意图比对从 18 字段清单式改为全量哈希（原方案同键改货物描述等 30 字段会静默重放）、UMI_ENV 注入；顺带补修海运拆票子单 ent 直建漏设必填键。收尾全量门禁 web 661/661 + server 全量 + govulncheck 零漏洞。已知取舍：SDK 静态导入未配 DSN 仍占体积（行为为零）、守卫键不含 axios params（现网写接口无此形态）、不做 sourcemap 上传（堆栈压缩名呈报）。分支 feat/frontend-error-idempotency 未合并 main、未推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `200f797c` | docs(task): 立项前端报错捕获与关键操作防重防护 |
+| `30898140` | feat(web): 接入 Sentry 报错捕获与请求层防重复提交守卫 |
+| `c1e6b018` | feat(order): 订单创建与草稿更新支持幂等键 |
+| `605d02bf` | feat(web): 订单提交点接入幂等键 |
+| `7808fa2a` | docs(task): 同步前端防重任务状态 |
+
+### Status
+
+[OK] **Completed**
