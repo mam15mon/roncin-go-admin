@@ -263,7 +263,6 @@ export default defineConfig({
     },
   },
   requestRecord: {},
-  exportStatic: {},
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,
