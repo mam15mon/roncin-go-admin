@@ -1326,7 +1326,10 @@ ol {
     row-gap: 8px;
 
     > .ant-form-item-label {
-      flex: 0 0 auto;
+      /* 反制 OrderFormTemplate.less 的 flex: 0 0 96px / max-width: 96px !important：
+         纵向布局下那会变成 96px 高的空带并截断长标签 */
+      flex: 0 0 auto !important;
+      max-width: 100% !important;
       text-align: left;
 
       > label {
