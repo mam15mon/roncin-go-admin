@@ -862,7 +862,7 @@ export function SeaBillContentFormFields({
                 countPlaceholder="0"
                 unitPlaceholder="请选择单位"
                 unitWidth={104}
-                style={{ width: '100%' }}
+                style={{ width: 210 }}
                 disabled={disabled}
               />
             </div>
@@ -945,7 +945,7 @@ export function SeaBillContentFormFields({
                 countPlaceholder="0"
                 unitPlaceholder="请选择单位"
                 unitWidth={104}
-                style={{ width: '100%' }}
+                style={{ width: 210 }}
                 disabled={disabled}
               />
             </div>
