@@ -1,4 +1,5 @@
 import {
+  AimOutlined,
   ApartmentOutlined,
   CloseOutlined,
   EditOutlined,
@@ -32,6 +33,7 @@ export type OrgInspectorPanelProps = {
   onOpenCreateChild: (org: API.AdminOrganization) => void;
   onOpenEdit: (org: API.AdminOrganization) => void;
   onSelectNode: (id: string) => void;
+  onLocateNode?: (id: string) => void;
 };
 
 export default function OrgInspectorPanel({
@@ -46,8 +48,14 @@ export default function OrgInspectorPanel({
   onOpenCreateChild,
   onOpenEdit,
   onSelectNode,
+  onLocateNode,
 }: OrgInspectorPanelProps) {
   if (!open) return null;
+
+  const handleJumpToNode = (id: string) => {
+    onSelectNode(id);
+    onLocateNode?.(id);
+  };
 
   return (
     <div
@@ -110,6 +118,17 @@ export default function OrgInspectorPanel({
         </Space>
 
         <Space size={4}>
+          {selectedOrg && onLocateNode && (
+            <Tooltip title="在画布中居中对焦">
+              <Button
+                size="small"
+                type="text"
+                aria-label="在画布中居中对焦"
+                icon={<AimOutlined />}
+                onClick={() => onLocateNode(selectedOrg.id ?? '')}
+              />
+            </Tooltip>
+          )}
           {selectedOrg &&
             canCreate &&
             getChildOrganizationKind(selectedOrg.kind) && (
@@ -144,7 +163,7 @@ export default function OrgInspectorPanel({
               />
             </Tooltip>
           )}
-          <Tooltip title="收起面板">
+          <Tooltip title="收起面板 (Esc)">
             <Button
               size="small"
               type="text"
@@ -209,7 +228,7 @@ export default function OrgInspectorPanel({
                     type="link"
                     size="small"
                     style={{ padding: 0, height: 'auto', fontSize: 12 }}
-                    onClick={() => onSelectNode(parentOrg.id ?? '')}
+                    onClick={() => handleJumpToNode(parentOrg.id ?? '')}
                   >
                     {parentOrg.name} ({parentOrg.code})
                   </Button>
@@ -256,7 +275,7 @@ export default function OrgInspectorPanel({
                         type="link"
                         size="small"
                         style={{ padding: 0, height: 'auto', fontSize: 12 }}
-                        onClick={() => onSelectNode(record.id ?? '')}
+                        onClick={() => handleJumpToNode(record.id ?? '')}
                       >
                         {name}
                       </Button>

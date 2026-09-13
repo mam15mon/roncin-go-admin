@@ -801,6 +801,100 @@ export default function OrgChartCanvas({
     [onSelectNode, onOpenDrawer],
   );
 
+  // Focus on a specific node and smoothly center it in the safe visible area
+  const focusNode = useCallback(
+    (id: string) => {
+      if (!containerRef.current || !contentRef.current) return;
+
+      // Expand any collapsed ancestors of target node
+      const findAncestors = (
+        nodes: OrgTreeNode[],
+        targetId: string,
+        path: string[] = [],
+      ): string[] | null => {
+        for (const n of nodes) {
+          if (n.key === targetId) return path;
+          if (n.children && n.children.length > 0) {
+            const res = findAncestors(n.children, targetId, [...path, n.key]);
+            if (res) return res;
+          }
+        }
+        return null;
+      };
+
+      const ancestors = findAncestors(effectiveTreeData, id);
+      if (ancestors && ancestors.length > 0) {
+        setCollapsedKeys((prev) => {
+          let changed = false;
+          const next = new Set(prev);
+          for (const a of ancestors) {
+            if (next.has(a)) {
+              next.delete(a);
+              changed = true;
+            }
+          }
+          return changed ? next : prev;
+        });
+      }
+
+      const panToElement = () => {
+        if (!containerRef.current) return;
+        const targetEl = containerRef.current.querySelector(
+          `[data-node-id="${id}"]`,
+        ) as HTMLElement | null;
+        if (!targetEl) return;
+
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const nodeRect = targetEl.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const containerHeight = containerRect.height;
+
+        // Reserve space for inspector panel on the right (390px) if open
+        const rightReserve = inspectorOpen ? 390 : 0;
+        const safeCenterX = (containerWidth - rightReserve) / 2;
+        const safeCenterY = containerHeight / 2;
+
+        const nodeCenterX =
+          nodeRect.left + nodeRect.width / 2 - containerRect.left;
+        const nodeCenterY =
+          nodeRect.top + nodeRect.height / 2 - containerRect.top;
+
+        const deltaX = safeCenterX - nodeCenterX;
+        const deltaY = safeCenterY - nodeCenterY;
+
+        setOffset((prev) => ({
+          x: Math.round(prev.x + deltaX),
+          y: Math.round(prev.y + deltaY),
+        }));
+      };
+
+      requestAnimationFrame(() => {
+        setTimeout(panToElement, 30);
+      });
+    },
+    [effectiveTreeData, inspectorOpen],
+  );
+
+  // Keyboard shortcut: Esc to collapse inspector panel when open
+  useEffect(() => {
+    if (!inspectorOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        // Only close inspector if no modal is currently visible
+        const hasOpenModal = document.querySelector(
+          '.ant-modal-wrap:not([style*="display: none"])',
+        );
+        if (!hasOpenModal) {
+          setInspectorOpen(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [inspectorOpen]);
+
   // Fit View logic with inspector safe area compensation
   const fitView = useCallback(() => {
     if (!containerRef.current || !contentRef.current) return;
@@ -1036,7 +1130,7 @@ export default function OrgChartCanvas({
                 transformOrigin: '0 0',
                 transition: isPanning
                   ? 'none'
-                  : 'transform 0.12s cubic-bezier(0.2, 0, 0, 1)',
+                  : 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
                 display: 'inline-flex',
                 flexDirection: chartDirection === 'vertical' ? 'row' : 'column',
                 gap: chartDirection === 'vertical' ? 48 : 36,
@@ -1188,6 +1282,7 @@ export default function OrgChartCanvas({
           onOpenCreateChild={onOpenCreateChild ?? (() => {})}
           onOpenEdit={onOpenEdit ?? (() => {})}
           onSelectNode={handleSelectNode}
+          onLocateNode={focusNode}
         />
       )}
     </Card>

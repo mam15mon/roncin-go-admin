@@ -271,4 +271,60 @@ describe('OrgChartCanvas', () => {
     fireEvent.click(expandToggleBtn);
     expect(screen.getByTestId('org-inspector-panel')).toBeInTheDocument();
   });
+
+  it('支持按 Esc 快捷键收起浮动检查器面板', () => {
+    render(
+      <App>
+        <OrgChartCanvas
+          loading={false}
+          treeData={mockTreeData}
+          chartDirection="vertical"
+          selectedId="org-root"
+          onSelectNode={vi.fn()}
+        />
+      </App>,
+    );
+
+    expect(screen.getByTestId('org-inspector-panel')).toBeInTheDocument();
+
+    // 触发 Esc 按键
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    // 面板应收起
+    expect(screen.queryByTestId('org-inspector-panel')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /组织详情/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('浮动面板提供居中对焦按钮，并在点击下级组织链接时触发对焦跳转', () => {
+    const handleSelect = vi.fn();
+    render(
+      <App>
+        <OrgChartCanvas
+          loading={false}
+          treeData={mockTreeData}
+          chartDirection="vertical"
+          selectedId="org-root"
+          onSelectNode={handleSelect}
+        />
+      </App>,
+    );
+
+    expect(screen.getByTestId('org-inspector-panel')).toBeInTheDocument();
+
+    // 存在居中对焦按钮
+    const locateBtn = screen.getByRole('button', {
+      name: /在画布中居中对焦/,
+    });
+    expect(locateBtn).toBeInTheDocument();
+    fireEvent.click(locateBtn);
+
+    // 点击直属下级组织中的链接跳转
+    const childLink = screen.getByRole('button', { name: '上海分公司' });
+    expect(childLink).toBeInTheDocument();
+    fireEvent.click(childLink);
+
+    expect(handleSelect).toHaveBeenCalledWith('org-comp-1');
+  });
 });
