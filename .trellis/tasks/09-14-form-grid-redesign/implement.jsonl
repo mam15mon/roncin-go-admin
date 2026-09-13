@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "新建 FormRow 组件需遵循组件规范"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端验证纪律"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "样式与组件封装约定"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "FormRow 复用设计思路"}
