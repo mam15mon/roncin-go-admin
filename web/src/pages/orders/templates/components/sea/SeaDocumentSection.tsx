@@ -435,29 +435,8 @@ export function SeaBillContentFormFields({
   };
 
   return (
-    <div className={styles.verticalFields}>
-      {/* 提单抬头与代理区块 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          margin: '4px 0 12px 0',
-        }}
-      >
-        <div
-          style={{
-            width: 3,
-            height: 14,
-            backgroundColor: '#1677ff',
-            borderRadius: 2,
-            marginRight: 8,
-          }}
-        />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-          提单抬头与代理 (Parties & Agents)
-        </span>
-      </div>
-
+    <div>
+      <div className={styles.verticalFields}>
       <Row gutter={[16, 0]}>
         <Col xs={24} lg={12}>
           <div style={{ marginBottom: 24 }}>
@@ -855,34 +834,222 @@ export function SeaBillContentFormFields({
           </div>
         </Col>
       </Row>
+    </div>
 
-      {/* 件重尺对照区（参考竞品截图：委托行 vs 实际行紧凑两行上下对照） */}
+    {/* 紧凑对照与条款区（参考竞品基准：不铺满全屏，行内紧凑且多行垂直列对齐） */}
+    <div style={{ overflowX: 'auto', paddingBottom: 4, marginTop: 8 }}>
+      {/* 第 1 行：委托申报数据对照行 */}
       <div
         style={{
-          backgroundColor: '#fafbfc',
-          border: '1px solid #f0f0f0',
-          borderRadius: 6,
-          padding: '12px 16px 0 16px',
-          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 12,
+          flexWrap: 'nowrap',
         }}
       >
         <div
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 8,
+            marginRight: 28,
+            flexShrink: 0,
           }}
         >
           <span
             style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: 'rgba(0, 0, 0, 0.45)',
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
             }}
           >
-            委托 vs 实际件重尺对照
+            委托总件数
           </span>
+          <PackageCountInput
+            countName="totalPackages"
+            unitName="totalPackageUnit"
+            countPlaceholder="0"
+            unitPlaceholder="请选择单位"
+            unitWidth={105}
+            style={{ width: 210 }}
+            disabled={disabled}
+          />
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            委托总毛重
+          </span>
+          <ProFormDigit
+            name="totalGrossWeightKg"
+            placeholder="0"
+            disabled={disabled}
+            min={0}
+            noStyle
+            fieldProps={{
+              precision: 3,
+              addonAfter: 'KGS',
+              style: { width: 140 },
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            委托总体积
+          </span>
+          <ProFormDigit
+            name="totalVolumeCbm"
+            placeholder="0"
+            disabled={disabled}
+            min={0}
+            noStyle
+            fieldProps={{
+              precision: 3,
+              addonAfter: 'CBM',
+              style: { width: 140 },
+            }}
+          />
+        </div>
+        <div style={{ width: 196, flexShrink: 0 }} />
+      </div>
+
+      {/* 第 2 行：实际提单数据对照行 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 12,
+          flexWrap: 'nowrap',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: '#1677ff',
+              fontWeight: 500,
+              flexShrink: 0,
+            }}
+          >
+            实际总件数
+          </span>
+          <PackageCountInput
+            countName={[...namePathPrefix, 'packageCount']}
+            unitName={[...namePathPrefix, 'packageUnit']}
+            countPlaceholder="0"
+            unitPlaceholder="请选择单位"
+            unitWidth={105}
+            style={{ width: 210 }}
+            disabled={disabled}
+          />
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: '#1677ff',
+              fontWeight: 500,
+              flexShrink: 0,
+            }}
+          >
+            实际总毛重
+          </span>
+          <ProFormDigit
+            name={[...namePathPrefix, 'grossWeightKg']}
+            placeholder="0"
+            disabled={disabled}
+            min={0}
+            noStyle
+            fieldProps={{
+              precision: 3,
+              addonAfter: 'KGS',
+              style: { width: 140 },
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: '#1677ff',
+              fontWeight: 500,
+              flexShrink: 0,
+            }}
+          >
+            实际总体积
+          </span>
+          <ProFormDigit
+            name={[...namePathPrefix, 'volumeCbm']}
+            placeholder="0"
+            disabled={disabled}
+            min={0}
+            noStyle
+            fieldProps={{
+              precision: 3,
+              addonAfter: 'CBM',
+              style: { width: 140 },
+            }}
+          />
+        </div>
+        <div
+          style={{
+            width: 196,
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}
+        >
           {!disabled && (
             <Button
               type="link"
@@ -891,154 +1058,54 @@ export function SeaBillContentFormFields({
               onClick={handleImportMeasurementsFromCargo}
               style={{
                 fontSize: 12,
-                padding: 0,
+                padding: '0 4px',
                 height: 'auto',
                 fontWeight: 'normal',
+                color: '#1677ff',
               }}
             >
               带入委托件重尺 ↓
             </Button>
           )}
         </div>
-
-        {/* 第 1 行：委托申报数据对照行 */}
-        <Row gutter={[16, 0]} align="middle">
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item
-              label={
-                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
-                  委托总件数 / 包装单位
-                </span>
-              }
-              layout="vertical"
-            >
-              <PackageCountInput
-                countName="totalPackages"
-                unitName="totalPackageUnit"
-                countPlaceholder="0"
-                unitPlaceholder="请选择单位"
-                disabled={disabled}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={12} sm={6} lg={8}>
-            <ProFormDigit
-              name="totalGrossWeightKg"
-              label={
-                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
-                  委托总毛重 (KGS)
-                </span>
-              }
-              placeholder="0"
-              disabled={disabled}
-              min={0}
-              fieldProps={{ precision: 3, addonAfter: 'KGS' }}
-              layout="vertical"
-            />
-          </Col>
-          <Col xs={12} sm={6} lg={8}>
-            <ProFormDigit
-              name="totalVolumeCbm"
-              label={
-                <span style={{ color: 'rgba(0, 0, 0, 0.65)' }}>
-                  委托总体积 (CBM)
-                </span>
-              }
-              placeholder="0"
-              disabled={disabled}
-              min={0}
-              fieldProps={{ precision: 3, addonAfter: 'CBM' }}
-              layout="vertical"
-            />
-          </Col>
-        </Row>
-
-        {/* 第 2 行：实际提单数据对照行 */}
-        <Row gutter={[16, 0]} align="middle">
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item
-              label={
-                <span style={{ fontWeight: 600, color: '#1677ff' }}>
-                  实际总件数 / 包装单位
-                </span>
-              }
-              layout="vertical"
-            >
-              <PackageCountInput
-                countName={[...namePathPrefix, 'packageCount']}
-                unitName={[...namePathPrefix, 'packageUnit']}
-                countPlaceholder="0"
-                unitPlaceholder="请选择单位"
-                disabled={disabled}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={12} sm={6} lg={8}>
-            <ProFormDigit
-              name={[...namePathPrefix, 'grossWeightKg']}
-              label={
-                <span style={{ fontWeight: 600, color: '#1677ff' }}>
-                  实际总毛重 (KGS)
-                </span>
-              }
-              placeholder="0"
-              disabled={disabled}
-              min={0}
-              fieldProps={{ precision: 3, addonAfter: 'KGS' }}
-              layout="vertical"
-            />
-          </Col>
-          <Col xs={12} sm={6} lg={8}>
-            <ProFormDigit
-              name={[...namePathPrefix, 'volumeCbm']}
-              label={
-                <span style={{ fontWeight: 600, color: '#1677ff' }}>
-                  实际总体积 (CBM)
-                </span>
-              }
-              placeholder="0"
-              disabled={disabled}
-              min={0}
-              fieldProps={{ precision: 3, addonAfter: 'CBM' }}
-              layout="vertical"
-            />
-          </Col>
-        </Row>
       </div>
 
-      {/* 条款与放单信息区块 */}
+      {/* 第 3 行：条款与放单行 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          margin: '8px 0 12px 0',
+          marginBottom: 12,
+          flexWrap: 'nowrap',
         }}
       >
         <div
           style={{
-            width: 3,
-            height: 14,
-            backgroundColor: '#1677ff',
-            borderRadius: 2,
-            marginRight: 8,
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
           }}
-        />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-          条款与放单信息 (Terms & Release)
-        </span>
-      </div>
-
-      <Row gutter={[16, 0]}>
-        <Col xs={12} sm={6}>
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            付款方式
+          </span>
           <ProFormSelect
             name={[...namePathPrefix, 'freightTerms']}
-            label="付款方式"
             placeholder="请选择付款方式"
             initialValue={DEFAULT_FREIGHT_TERMS}
             disabled={disabled}
-            layout="vertical"
             options={SEA_FREIGHT_TERM_OPTIONS}
+            noStyle
             fieldProps={{
+              style: { width: 210 },
               showSearch: true,
               allowClear: true,
               onChange: (val) => {
@@ -1061,17 +1128,34 @@ export function SeaBillContentFormFields({
               },
             }}
           />
-        </Col>
-        <Col xs={12} sm={6}>
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            运输条款
+          </span>
           <ProFormSelect
             name={[...namePathPrefix, 'transportTerms']}
-            label="运输条款"
             placeholder="请选择运输条款"
             initialValue={DEFAULT_TRANSPORT_TERMS}
             disabled={disabled}
-            layout="vertical"
             options={SEA_TRANSPORT_TERM_OPTIONS}
+            noStyle
             fieldProps={{
+              style: { width: 140 },
               showSearch: true,
               allowClear: true,
               filterOption: (input, option) => {
@@ -1088,47 +1172,83 @@ export function SeaBillContentFormFields({
               },
             }}
           />
-        </Col>
-        <Col xs={12} sm={6}>
+        </div>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            marginRight: 28,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 68,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            提单形式
+          </span>
           <ProFormSelect
             name={[...namePathPrefix, 'billForm']}
-            label="提单形式"
-            placeholder="请选择或输入提单形式"
+            placeholder="请选择提单形式"
             initialValue={DEFAULT_BILL_FORM}
             disabled={disabled}
-            layout="vertical"
             options={SEA_BILL_FORM_OPTIONS}
+            noStyle
             fieldProps={{
+              style: { width: 140 },
               allowClear: true,
               showSearch: true,
             }}
           />
-        </Col>
-        <Col xs={12} sm={6}>
+        </div>
+        <div
+          style={{
+            width: 196,
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}
+        >
+          <span
+            style={{
+              width: 56,
+              fontSize: 13,
+              color: 'rgba(0, 0, 0, 0.85)',
+              flexShrink: 0,
+            }}
+          >
+            放单方式
+          </span>
           <ProFormSelect
             name={[...namePathPrefix, 'releaseType']}
-            label="放单方式"
-            placeholder="请选择或输入放单方式"
+            placeholder="请选择放单方式"
             initialValue={DEFAULT_RELEASE_TYPE}
             disabled={disabled}
-            layout="vertical"
             options={SEA_RELEASE_TYPE_OPTIONS}
+            noStyle
             fieldProps={{
+              style: { width: 140 },
               allowClear: true,
               showSearch: true,
             }}
           />
-        </Col>
-        <Col xs={24}>
-          <ProFormTextArea
-            name={[...namePathPrefix, 'clauses']}
-            label="提单特别条款 (Clauses)"
-            placeholder="请输入提单特别条款"
-            disabled={disabled}
-            fieldProps={{ rows: 2 }}
-          />
-        </Col>
-      </Row>
+        </div>
+      </div>
+    </div>
+
+    <div style={{ maxWidth: 746, marginTop: 4, marginBottom: 8 }}>
+      <ProFormTextArea
+        name={[...namePathPrefix, 'clauses']}
+        label="提单特别条款 (Clauses)"
+        placeholder="选填，请输入提单特别条款"
+        disabled={disabled}
+        fieldProps={{ rows: 2 }}
+      />
+    </div>
     </div>
   );
 }
