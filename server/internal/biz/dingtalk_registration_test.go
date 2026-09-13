@@ -522,7 +522,7 @@ func dingTalkInvitationManagePrincipal(organizationID uuid.UUID) *Principal {
 		UserID:            uuid.New(),
 		Organization:      Organization{ID: organizationID},
 		OrganizationNodes: scopeNodes(organizationID),
-		RoleGrants:        []RoleGrant{roleGrant("inviter", DataScopeOrganization, []string{access.UserDingTalkInvitationManage}, nil)},
+		RoleGrants:        []RoleGrant{roleGrant("inviter", DataScopeOrganization, []string{access.UserDingTalkInvitationManage})},
 	}
 }
 

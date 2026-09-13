@@ -5189,52 +5189,6 @@ var (
 			},
 		},
 	}
-	// RoleOrganizationAccessesColumns holds the columns for the "role_organization_accesses" table.
-	RoleOrganizationAccessesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "writable", Type: field.TypeBool, Default: false},
-		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "role_id", Type: field.TypeUUID},
-	}
-	// RoleOrganizationAccessesTable holds the schema information for the "role_organization_accesses" table.
-	RoleOrganizationAccessesTable = &schema.Table{
-		Name:       "role_organization_accesses",
-		Columns:    RoleOrganizationAccessesColumns,
-		PrimaryKey: []*schema.Column{RoleOrganizationAccessesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "role_organization_accesses_organizations_role_organization_accesses",
-				Columns:    []*schema.Column{RoleOrganizationAccessesColumns[4]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "role_organization_accesses_roles_organization_accesses",
-				Columns:    []*schema.Column{RoleOrganizationAccessesColumns[5]},
-				RefColumns: []*schema.Column{RolesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "roleorganizationaccess_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{RoleOrganizationAccessesColumns[2]},
-			},
-			{
-				Name:    "roleorganizationaccess_role_id_organization_id",
-				Unique:  true,
-				Columns: []*schema.Column{RoleOrganizationAccessesColumns[5], RoleOrganizationAccessesColumns[4]},
-			},
-			{
-				Name:    "roleorganizationaccess_organization_id",
-				Unique:  false,
-				Columns: []*schema.Column{RoleOrganizationAccessesColumns[4]},
-			},
-		},
-	}
 	// SeaDocumentModeChangeEventsColumns holds the columns for the "sea_document_mode_change_events" table.
 	SeaDocumentModeChangeEventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -6837,7 +6791,6 @@ var (
 		PortsTable,
 		RolesTable,
 		RoleAssignmentsTable,
-		RoleOrganizationAccessesTable,
 		SeaDocumentModeChangeEventsTable,
 		SeaDocumentVoidEventsTable,
 		SeaHouseBillsTable,
@@ -7104,8 +7057,6 @@ func init() {
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
-	RoleOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
-	RoleOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
 	SeaDocumentModeChangeEventsTable.ForeignKeys[2].RefTable = OrganizationsTable

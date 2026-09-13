@@ -334,11 +334,7 @@ func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	accesses, err := organizationAccessesFromAPI(request.GetOrganizationAccesses())
-	if err != nil {
-		return nil, err
-	}
-	created, err := s.usecase.CreateRole(ctx, principal.Organization.ID, principal.UserID, &biz.AdminRole{Code: request.GetCode(), Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: true, OrganizationAccesses: accesses}, request.GetPermissionKeys())
+	created, err := s.usecase.CreateRole(ctx, principal.Organization.ID, principal.UserID, &biz.AdminRole{Code: request.GetCode(), Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: true}, request.GetPermissionKeys())
 	if err != nil {
 		return nil, err
 	}
@@ -354,11 +350,7 @@ func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleReq
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	accesses, err := organizationAccessesFromAPI(request.GetOrganizationAccesses())
-	if err != nil {
-		return nil, err
-	}
-	updated, err := s.usecase.UpdateRole(ctx, principal.Organization.ID, principal.UserID, roleID, &biz.AdminRole{ID: roleID, Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: request.GetEnabled(), OrganizationAccesses: accesses}, request.GetPermissionKeys())
+	updated, err := s.usecase.UpdateRole(ctx, principal.Organization.ID, principal.UserID, roleID, &biz.AdminRole{ID: roleID, Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: request.GetEnabled()}, request.GetPermissionKeys())
 	if err != nil {
 		return nil, err
 	}
@@ -544,27 +536,7 @@ func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership
 }
 
 func roleToAPI(value *biz.AdminRole) *v1.AdminRole {
-	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, OrganizationAccesses: organizationAccessesToAPI(value.OrganizationAccesses), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
-}
-
-func organizationAccessesFromAPI(values []*v1.OrganizationAccess) ([]biz.OrganizationAccess, error) {
-	result := make([]biz.OrganizationAccess, 0, len(values))
-	for _, value := range values {
-		organizationID, err := uuid.Parse(value.GetOrganizationId())
-		if err != nil {
-			return nil, biz.ErrAdminInvalidArgument
-		}
-		result = append(result, biz.OrganizationAccess{OrganizationID: organizationID, Writable: value.GetWritable()})
-	}
-	return result, nil
-}
-
-func organizationAccessesToAPI(values []biz.OrganizationAccess) []*v1.OrganizationAccess {
-	result := make([]*v1.OrganizationAccess, 0, len(values))
-	for _, value := range values {
-		result = append(result, &v1.OrganizationAccess{OrganizationId: value.OrganizationID.String(), Writable: value.Writable})
-	}
-	return result
+	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func auditLogToAPI(value *biz.AuditLog) *v1.AdminAuditLog {

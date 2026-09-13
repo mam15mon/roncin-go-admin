@@ -7485,10 +7485,6 @@ components:
                     type: string
                 updatedAt:
                     type: string
-                organizationAccesses:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.OrganizationAccess'
         admin.v1.AdminUser:
             type: object
             properties:
@@ -7757,10 +7753,6 @@ components:
                     type: array
                     items:
                         type: string
-                organizationAccesses:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.OrganizationAccess'
         admin.v1.CreateRoleResponse:
             type: object
             properties:
@@ -8112,15 +8104,6 @@ components:
                     format: int32
                 traceId:
                     type: string
-        admin.v1.OrganizationAccess:
-            required:
-                - organizationId
-            type: object
-            properties:
-                organizationId:
-                    type: string
-                writable:
-                    type: boolean
         admin.v1.RejectDingTalkRegistrationRequest:
             required:
                 - id
@@ -8271,10 +8254,6 @@ components:
                     type: array
                     items:
                         type: string
-                organizationAccesses:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.OrganizationAccess'
         admin.v1.UpdateRoleResponse:
             type: object
             properties:

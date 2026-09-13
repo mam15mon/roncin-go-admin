@@ -16,7 +16,6 @@ import { App, Button, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import {
-  adminServiceListOrganizations,
   adminServiceListPermissions,
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
@@ -29,7 +28,6 @@ import RoleFormModal from './components/roles/RoleFormModal';
 import {
   dataScopeMap,
   dataScopeOptions,
-  type OrganizationAccess,
 } from './components/roles/roleConstants';
 
 export default function RolesPanel() {
@@ -40,12 +38,6 @@ export default function RolesPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminRole>();
   const [permissions, setPermissions] = useState<API.AdminPermission[]>([]);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
-  );
-  const [organizationAccesses, setOrganizationAccesses] = useState<
-    OrganizationAccess[]
-  >([]);
 
   // Permission tree state inside modal
   const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<
@@ -69,40 +61,6 @@ export default function RolesPanel() {
       .catch(() => message.error('加载权限字典失败'));
   }, [access.canReadPermissions, message]);
 
-  useEffect(() => {
-    if (!access.canReadOrganizations) return;
-    adminServiceListOrganizations()
-      .then((response) => setOrganizations(unwrapList(response)))
-      .catch(() => message.error('加载组织列表失败'));
-  }, [access.canReadOrganizations, message]);
-
-  const companyOptions = useMemo(
-    () =>
-      organizations
-        .filter(
-          (organization) =>
-            organization.enabled !== false && organization.kind === 2,
-        )
-        .map((organization) => ({
-          label: organization.code
-            ? `${organization.name} (${organization.code})`
-            : (organization.name ?? ''),
-          value: organization.id ?? '',
-        })),
-    [organizations],
-  );
-
-  const organizationNames = useMemo(
-    () =>
-      new Map(
-        organizations.map((item) => [
-          item.id,
-          item.name ?? item.code ?? item.id ?? '',
-        ]),
-      ),
-    [organizations],
-  );
-
   const permissionTree = useMemo(
     () => buildPermissionTree(permissions),
     [permissions],
@@ -116,7 +74,6 @@ export default function RolesPanel() {
   const openCreate = () => {
     setEditing(undefined);
     setSelectedPermissionKeys([]);
-    setOrganizationAccesses([]);
     setPermissionKeyword('');
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
@@ -126,12 +83,6 @@ export default function RolesPanel() {
   const openEdit = (role: API.AdminRole) => {
     setEditing(role);
     setSelectedPermissionKeys(role.permissionKeys ?? []);
-    setOrganizationAccesses(
-      (role.organizationAccesses ?? []).map((access) => ({
-        organizationId: access.organizationId as string,
-        writable: access.writable ?? false,
-      })),
-    );
     setPermissionKeyword('');
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
@@ -189,38 +140,6 @@ export default function RolesPanel() {
               {item?.label || `范围 ${r.dataScope}`}
             </Tag>
           </Tooltip>
-        );
-      },
-    },
-    {
-      title: '可访问组织',
-      dataIndex: 'organizationAccesses',
-      width: 260,
-      render: (_, r) => {
-        const accesses = r.organizationAccesses ?? [];
-        if (accesses.length === 0) {
-          return (
-            <span style={{ color: '#94a3b8', fontSize: 12 }}>仅当前组织</span>
-          );
-        }
-        return (
-          <Space size={4} wrap>
-            {accesses.map((access) => {
-              const label =
-                organizationNames.get(access.organizationId ?? '') ||
-                access.organizationId;
-              return (
-                <Tag
-                  key={access.organizationId}
-                  color={access.writable ? 'blue' : 'default'}
-                  variant="filled"
-                  style={{ fontSize: 11, margin: 0 }}
-                >
-                  {label} {access.writable ? '（可改）' : '（仅看）'}
-                </Tag>
-              );
-            })}
-          </Space>
         );
       },
     },
@@ -400,7 +319,6 @@ export default function RolesPanel() {
         onOpenChange={setModalOpen}
         editing={editing}
         formRef={formRef}
-        companyOptions={companyOptions}
         allLeafKeys={permissionTree.allLeafKeys}
         allGroupKeys={permissionTree.allBranchKeys}
         filteredTreeData={filteredTreeData}
@@ -408,8 +326,6 @@ export default function RolesPanel() {
         permissionNameByKey={permissionTree.permissionNameByKey}
         selectedPermissionKeys={selectedPermissionKeys}
         setSelectedPermissionKeys={setSelectedPermissionKeys}
-        organizationAccesses={organizationAccesses}
-        setOrganizationAccesses={setOrganizationAccesses}
         expandedKeys={expandedKeys}
         setExpandedKeys={setExpandedKeys}
         autoExpandParent={autoExpandParent}

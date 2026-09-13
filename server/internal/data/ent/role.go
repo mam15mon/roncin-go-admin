@@ -47,15 +47,13 @@ type RoleEdges struct {
 	Permissions []*Permission `json:"permissions,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*RoleAssignment `json:"assignments,omitempty"`
-	// OrganizationAccesses holds the value of the organization_accesses edge.
-	OrganizationAccesses []*RoleOrganizationAccess `json:"organization_accesses,omitempty"`
 	// OrderUnlockApproverCandidates holds the value of the order_unlock_approver_candidates edge.
 	OrderUnlockApproverCandidates []*OrderUnlockApproverCandidate `json:"order_unlock_approver_candidates,omitempty"`
 	// DingtalkInvitations holds the value of the dingtalk_invitations edge.
 	DingtalkInvitations []*DingTalkInvitation `json:"dingtalk_invitations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -87,19 +85,10 @@ func (e RoleEdges) AssignmentsOrErr() ([]*RoleAssignment, error) {
 	return nil, &NotLoadedError{edge: "assignments"}
 }
 
-// OrganizationAccessesOrErr returns the OrganizationAccesses value or an error if the edge
-// was not loaded in eager-loading.
-func (e RoleEdges) OrganizationAccessesOrErr() ([]*RoleOrganizationAccess, error) {
-	if e.loadedTypes[3] {
-		return e.OrganizationAccesses, nil
-	}
-	return nil, &NotLoadedError{edge: "organization_accesses"}
-}
-
 // OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoleEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.OrderUnlockApproverCandidates, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
@@ -108,7 +97,7 @@ func (e RoleEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverC
 // DingtalkInvitationsOrErr returns the DingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoleEdges) DingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.DingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_invitations"}
@@ -216,11 +205,6 @@ func (_m *Role) QueryPermissions() *PermissionQuery {
 // QueryAssignments queries the "assignments" edge of the Role entity.
 func (_m *Role) QueryAssignments() *RoleAssignmentQuery {
 	return NewRoleClient(_m.config).QueryAssignments(_m)
-}
-
-// QueryOrganizationAccesses queries the "organization_accesses" edge of the Role entity.
-func (_m *Role) QueryOrganizationAccesses() *RoleOrganizationAccessQuery {
-	return NewRoleClient(_m.config).QueryOrganizationAccesses(_m)
 }
 
 // QueryOrderUnlockApproverCandidates queries the "order_unlock_approver_candidates" edge of the Role entity.

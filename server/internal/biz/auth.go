@@ -76,14 +76,13 @@ type RoleScope struct {
 	DataScope DataScope
 }
 
-// RoleGrant 保留角色、权限、数据范围和追加组织访问项之间的来源关系。
+// RoleGrant 保留角色、权限和数据范围之间的来源关系。
 // 组织范围必须按该角色授权的具体权限解析，不能先分别合并再交叉匹配。
 type RoleGrant struct {
-	RoleID               uuid.UUID
-	RoleCode             string
-	Permissions          map[string]struct{}
-	DataScope            DataScope
-	OrganizationAccesses []OrganizationAccess
+	RoleID      uuid.UUID
+	RoleCode    string
+	Permissions map[string]struct{}
+	DataScope   DataScope
 }
 
 // OrganizationScopeNode 是权限组织范围解析所需的组织树最小投影。
@@ -335,16 +334,6 @@ func (p *Principal) ResolvePermissionOrganizationScope(permission string) (Permi
 		for _, organizationID := range p.baseOrganizationIDs(grant.DataScope, nodes) {
 			readable[organizationID] = struct{}{}
 			writable[organizationID] = struct{}{}
-		}
-		for _, access := range grant.OrganizationAccesses {
-			node, exists := nodes[access.OrganizationID]
-			if !exists || node.Disabled {
-				continue
-			}
-			readable[access.OrganizationID] = struct{}{}
-			if access.Writable {
-				writable[access.OrganizationID] = struct{}{}
-			}
 		}
 	}
 	return permissionOrganizationScopeFromSets(readable, writable), nil

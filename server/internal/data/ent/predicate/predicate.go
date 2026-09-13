@@ -267,9 +267,6 @@ type Role func(*sql.Selector)
 // RoleAssignment is the predicate function for roleassignment builders.
 type RoleAssignment func(*sql.Selector)
 
-// RoleOrganizationAccess is the predicate function for roleorganizationaccess builders.
-type RoleOrganizationAccess func(*sql.Selector)
-
 // SeaDocumentModeChangeEvent is the predicate function for seadocumentmodechangeevent builders.
 type SeaDocumentModeChangeEvent func(*sql.Selector)
 

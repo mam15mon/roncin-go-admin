@@ -1,4 +1,4 @@
-import { ApartmentOutlined } from '@ant-design/icons';
+import { ApartmentOutlined, ProfileOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, Space, Spin, Tag, Tooltip } from 'antd';
 import React, {
   useCallback,
@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { buildOrgTree, type OrgTreeNode } from '../../organization-tree';
+import OrgInspectorPanel from './OrgInspectorPanel';
 import { getOrganizationKindMeta } from './types';
 
 export type OrgChartCanvasProps = {
@@ -17,7 +18,15 @@ export type OrgChartCanvasProps = {
   chartDirection: 'vertical' | 'horizontal';
   selectedId: string;
   onSelectNode: (id: string) => void;
-  onOpenDrawer: () => void;
+  selectedOrg?: API.AdminOrganization | null;
+  parentOrg?: API.AdminOrganization | null;
+  directChildren?: API.AdminOrganization[];
+  totalDescendantCount?: number;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  onOpenCreateChild?: (org: API.AdminOrganization) => void;
+  onOpenEdit?: (org: API.AdminOrganization) => void;
+  onOpenDrawer?: () => void;
 };
 
 type BranchProps = {
@@ -676,6 +685,14 @@ export default function OrgChartCanvas({
   chartDirection,
   selectedId,
   onSelectNode,
+  selectedOrg,
+  parentOrg,
+  directChildren,
+  totalDescendantCount,
+  canCreate = false,
+  canUpdate = false,
+  onOpenCreateChild,
+  onOpenEdit,
   onOpenDrawer,
 }: OrgChartCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -685,6 +702,7 @@ export default function OrgChartCanvas({
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(new Set());
+  const [inspectorOpen, setInspectorOpen] = useState(true);
 
   const offsetRef = useRef(offset);
   useEffect(() => {
@@ -719,7 +737,165 @@ export default function OrgChartCanvas({
     return buildOrgTree(orgs).treeData;
   }, [treeData, graphData]);
 
-  // Fit View logic
+  // Derive selected organization when not explicitly provided
+  const currentSelectedOrg = useMemo(() => {
+    if (selectedOrg !== undefined) return selectedOrg;
+    if (!selectedId) return null;
+    const findNode = (nodes: OrgTreeNode[]): API.AdminOrganization | null => {
+      for (const node of nodes) {
+        if (node.key === selectedId) return node.raw;
+        if (node.children) {
+          const res = findNode(node.children);
+          if (res) return res;
+        }
+      }
+      return null;
+    };
+    return findNode(effectiveTreeData);
+  }, [selectedOrg, selectedId, effectiveTreeData]);
+
+  // Derive direct children when not explicitly provided
+  const currentDirectChildren = useMemo(() => {
+    if (directChildren !== undefined) return directChildren;
+    if (!selectedId) return [];
+    const findChildren = (nodes: OrgTreeNode[]): API.AdminOrganization[] => {
+      for (const node of nodes) {
+        if (node.key === selectedId) {
+          return node.children?.map((c) => c.raw) ?? [];
+        }
+        if (node.children) {
+          const res = findChildren(node.children);
+          if (res.length > 0) return res;
+        }
+      }
+      return [];
+    };
+    return findChildren(effectiveTreeData);
+  }, [directChildren, selectedId, effectiveTreeData]);
+
+  // Derive parent organization when not explicitly provided
+  const currentParentOrg = useMemo(() => {
+    if (parentOrg !== undefined) return parentOrg;
+    if (!currentSelectedOrg?.parentId) return null;
+    const findParent = (nodes: OrgTreeNode[]): API.AdminOrganization | null => {
+      for (const node of nodes) {
+        if (node.key === currentSelectedOrg.parentId) return node.raw;
+        if (node.children) {
+          const res = findParent(node.children);
+          if (res) return res;
+        }
+      }
+      return null;
+    };
+    return findParent(effectiveTreeData);
+  }, [parentOrg, currentSelectedOrg, effectiveTreeData]);
+
+  const handleSelectNode = useCallback(
+    (id: string) => {
+      onSelectNode(id);
+      setInspectorOpen(true);
+      if (onOpenDrawer) {
+        onOpenDrawer();
+      }
+    },
+    [onSelectNode, onOpenDrawer],
+  );
+
+  // Focus on a specific node and smoothly center it in the safe visible area
+  const focusNode = useCallback(
+    (id: string) => {
+      if (!containerRef.current || !contentRef.current) return;
+
+      // Expand any collapsed ancestors of target node
+      const findAncestors = (
+        nodes: OrgTreeNode[],
+        targetId: string,
+        path: string[] = [],
+      ): string[] | null => {
+        for (const n of nodes) {
+          if (n.key === targetId) return path;
+          if (n.children && n.children.length > 0) {
+            const res = findAncestors(n.children, targetId, [...path, n.key]);
+            if (res) return res;
+          }
+        }
+        return null;
+      };
+
+      const ancestors = findAncestors(effectiveTreeData, id);
+      if (ancestors && ancestors.length > 0) {
+        setCollapsedKeys((prev) => {
+          let changed = false;
+          const next = new Set(prev);
+          for (const a of ancestors) {
+            if (next.has(a)) {
+              next.delete(a);
+              changed = true;
+            }
+          }
+          return changed ? next : prev;
+        });
+      }
+
+      const panToElement = () => {
+        if (!containerRef.current) return;
+        const targetEl = containerRef.current.querySelector(
+          `[data-node-id="${id}"]`,
+        ) as HTMLElement | null;
+        if (!targetEl) return;
+
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const nodeRect = targetEl.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const containerHeight = containerRect.height;
+
+        // Reserve space for inspector panel on the right (390px) if open
+        const rightReserve = inspectorOpen ? 390 : 0;
+        const safeCenterX = (containerWidth - rightReserve) / 2;
+        const safeCenterY = containerHeight / 2;
+
+        const nodeCenterX =
+          nodeRect.left + nodeRect.width / 2 - containerRect.left;
+        const nodeCenterY =
+          nodeRect.top + nodeRect.height / 2 - containerRect.top;
+
+        const deltaX = safeCenterX - nodeCenterX;
+        const deltaY = safeCenterY - nodeCenterY;
+
+        setOffset((prev) => ({
+          x: Math.round(prev.x + deltaX),
+          y: Math.round(prev.y + deltaY),
+        }));
+      };
+
+      requestAnimationFrame(() => {
+        setTimeout(panToElement, 30);
+      });
+    },
+    [effectiveTreeData, inspectorOpen],
+  );
+
+  // Keyboard shortcut: Esc to collapse inspector panel when open
+  useEffect(() => {
+    if (!inspectorOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        // Only close inspector if no modal is currently visible
+        const hasOpenModal = document.querySelector(
+          '.ant-modal-wrap:not([style*="display: none"])',
+        );
+        if (!hasOpenModal) {
+          setInspectorOpen(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [inspectorOpen]);
+
+  // Fit View logic with inspector safe area compensation
   const fitView = useCallback(() => {
     if (!containerRef.current || !contentRef.current) return;
     const containerWidth = containerRef.current.clientWidth;
@@ -732,15 +908,20 @@ export default function OrgChartCanvas({
     if (!containerWidth || !containerHeight || !contentWidth || !contentHeight)
       return;
 
-    const padding = 50;
-    const availableWidth = Math.max(containerWidth - padding * 2, 100);
+    const rightReserve = inspectorOpen && currentSelectedOrg ? 390 : 0;
+    const padding = 40;
+    const availableWidth = Math.max(
+      containerWidth - rightReserve - padding * 2,
+      100,
+    );
     const availableHeight = Math.max(containerHeight - padding * 2, 100);
 
     const scaleX = availableWidth / contentWidth;
     const scaleY = availableHeight / contentHeight;
     const fitScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.35), 1.15);
 
-    const newOffsetX = (containerWidth - contentWidth * fitScale) / 2;
+    const newOffsetX =
+      (containerWidth - rightReserve - contentWidth * fitScale) / 2;
     const newOffsetY =
       chartDirection === 'vertical'
         ? Math.max(24, (containerHeight - contentHeight * fitScale) / 3)
@@ -748,7 +929,7 @@ export default function OrgChartCanvas({
 
     setZoom(fitScale);
     setOffset({ x: Math.round(newOffsetX), y: Math.round(newOffsetY) });
-  }, [chartDirection]);
+  }, [chartDirection, inspectorOpen, currentSelectedOrg]);
 
   // Auto fit on data load or direction switch
   useEffect(() => {
@@ -936,9 +1117,6 @@ export default function OrgChartCanvas({
               position: 'relative',
               cursor: isPanning ? 'grabbing' : 'grab',
               backgroundColor: '#f8fafc',
-              backgroundImage:
-                'radial-gradient(#cbd5e1 1.2px, transparent 1.2px)',
-              backgroundSize: '20px 20px',
             }}
             onMouseDown={handleMouseDown}
           >
@@ -952,7 +1130,7 @@ export default function OrgChartCanvas({
                 transformOrigin: '0 0',
                 transition: isPanning
                   ? 'none'
-                  : 'transform 0.12s cubic-bezier(0.2, 0, 0, 1)',
+                  : 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)',
                 display: 'inline-flex',
                 flexDirection: chartDirection === 'vertical' ? 'row' : 'column',
                 gap: chartDirection === 'vertical' ? 48 : 36,
@@ -969,8 +1147,8 @@ export default function OrgChartCanvas({
                     direction={chartDirection}
                     collapsedKeys={collapsedKeys}
                     onToggleCollapse={handleToggleCollapse}
-                    onSelectNode={onSelectNode}
-                    onOpenDrawer={onOpenDrawer}
+                    onSelectNode={handleSelectNode}
+                    onOpenDrawer={onOpenDrawer ?? (() => {})}
                     isDragMoved={() => dragRef.current.moved}
                   />
                 ) : (
@@ -982,8 +1160,8 @@ export default function OrgChartCanvas({
                     direction={chartDirection}
                     collapsedKeys={collapsedKeys}
                     onToggleCollapse={handleToggleCollapse}
-                    onSelectNode={onSelectNode}
-                    onOpenDrawer={onOpenDrawer}
+                    onSelectNode={handleSelectNode}
+                    onOpenDrawer={onOpenDrawer ?? (() => {})}
                     isDragMoved={() => dragRef.current.moved}
                   />
                 ),
@@ -999,12 +1177,12 @@ export default function OrgChartCanvas({
         )}
       </Spin>
 
-      {/* Floating Canvas Controls */}
+      {/* Floating Canvas Controls (Bottom Left) */}
       <div
         style={{
           position: 'absolute',
           bottom: 16,
-          right: 16,
+          left: 16,
           zIndex: 10,
           backgroundColor: 'rgba(255, 255, 255, 0.96)',
           backdropFilter: 'blur(4px)',
@@ -1068,6 +1246,45 @@ export default function OrgChartCanvas({
           </Tooltip>
         </Space>
       </div>
+
+      {/* Re-expand Inspector Toggle Button when Collapsed */}
+      {!inspectorOpen && currentSelectedOrg && (
+        <Button
+          type="default"
+          icon={<ProfileOutlined style={{ color: '#1677ff' }} />}
+          onClick={() => setInspectorOpen(true)}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e2e8f0',
+            borderRadius: 6,
+          }}
+        >
+          组织详情
+        </Button>
+      )}
+
+      {/* Embedded Floating Inspector Panel */}
+      {currentSelectedOrg && (
+        <OrgInspectorPanel
+          open={inspectorOpen}
+          onClose={() => setInspectorOpen(false)}
+          selectedOrg={currentSelectedOrg}
+          parentOrg={currentParentOrg}
+          directChildren={currentDirectChildren}
+          totalDescendantCount={totalDescendantCount ?? 0}
+          canCreate={canCreate}
+          canUpdate={canUpdate}
+          onOpenCreateChild={onOpenCreateChild ?? (() => {})}
+          onOpenEdit={onOpenEdit ?? (() => {})}
+          onSelectNode={handleSelectNode}
+          onLocateNode={focusNode}
+        />
+      )}
     </Card>
   );
 }

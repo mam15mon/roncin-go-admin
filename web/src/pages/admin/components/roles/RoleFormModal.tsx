@@ -19,7 +19,6 @@ import {
   Empty,
   Input,
   Row,
-  Select,
   Space,
   Tag,
   Tooltip,
@@ -43,7 +42,6 @@ import {
 } from './permissionTree';
 import {
   dataScopeOptions,
-  type OrganizationAccess,
   type PermissionLeafNode,
   type PermissionTreeNode,
   type RoleFormValues,
@@ -56,7 +54,6 @@ interface RoleFormModalProps {
   onOpenChange: (open: boolean) => void;
   editing?: API.AdminRole;
   formRef: React.RefObject<ProFormInstance | undefined>;
-  companyOptions: { label: string; value: string }[];
   allLeafKeys: string[];
   allGroupKeys: string[];
   filteredTreeData: PermissionTreeNode[];
@@ -64,10 +61,6 @@ interface RoleFormModalProps {
   permissionNameByKey: Record<string, string>;
   selectedPermissionKeys: string[];
   setSelectedPermissionKeys: (keys: string[]) => void;
-  organizationAccesses: OrganizationAccess[];
-  setOrganizationAccesses: React.Dispatch<
-    React.SetStateAction<OrganizationAccess[]>
-  >;
   expandedKeys: React.Key[];
   setExpandedKeys: (keys: React.Key[]) => void;
   autoExpandParent: boolean;
@@ -82,7 +75,6 @@ export default function RoleFormModal({
   onOpenChange,
   editing,
   formRef,
-  companyOptions,
   allLeafKeys,
   allGroupKeys,
   filteredTreeData,
@@ -90,8 +82,6 @@ export default function RoleFormModal({
   permissionNameByKey,
   selectedPermissionKeys,
   setSelectedPermissionKeys,
-  organizationAccesses,
-  setOrganizationAccesses,
   expandedKeys,
   setExpandedKeys,
   autoExpandParent,
@@ -172,7 +162,6 @@ export default function RoleFormModal({
                 dataScope: values.dataScope ?? 2,
                 enabled: values.enabled ?? true,
                 permissionKeys: selectedPermissionKeys,
-                organizationAccesses,
               },
             );
             message.success('角色已成功更新');
@@ -183,7 +172,6 @@ export default function RoleFormModal({
               name: values.name?.trim() ?? '',
               dataScope: values.dataScope ?? 2,
               permissionKeys: selectedPermissionKeys,
-              organizationAccesses,
             });
             message.success('角色已成功创建');
           }
@@ -229,71 +217,6 @@ export default function RoleFormModal({
           )}
         </Col>
       </Row>
-
-      <div
-        style={{
-          marginTop: 8,
-          marginBottom: 16,
-          border: '1px solid #d9d9d9',
-          borderRadius: 6,
-          padding: 12,
-        }}
-      >
-        <Text strong>可访问组织</Text>
-        <div style={{ marginTop: 8 }}>
-          <Text type="secondary">
-            指定组织默认仅查看；勾选可修改后，仍需同时拥有对应的业务操作权限。
-          </Text>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Text>可查看的组织</Text>
-          <Select
-            allowClear
-            mode="multiple"
-            options={companyOptions}
-            placeholder="不选择时仅可访问当前组织"
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={organizationAccesses.map((access) => access.organizationId)}
-            onChange={(organizationIds: string[]) => {
-              setOrganizationAccesses((previous) =>
-                organizationIds.map((organizationId) => ({
-                  organizationId,
-                  writable:
-                    previous.find(
-                      (access) => access.organizationId === organizationId,
-                    )?.writable ?? false,
-                })),
-              );
-            }}
-          />
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Text>其中允许修改的组织</Text>
-          <Select
-            allowClear
-            mode="multiple"
-            options={companyOptions.filter((option) =>
-              organizationAccesses.some(
-                (access) => access.organizationId === option.value,
-              ),
-            )}
-            placeholder="不选择时跨组织均为仅查看"
-            style={{ display: 'block', width: '100%', marginTop: 4 }}
-            value={organizationAccesses
-              .filter((access) => access.writable)
-              .map((access) => access.organizationId)}
-            onChange={(organizationIds: string[]) => {
-              const writableOrganizationIDs = new Set(organizationIds);
-              setOrganizationAccesses((previous) =>
-                previous.map((access) => ({
-                  ...access,
-                  writable: writableOrganizationIDs.has(access.organizationId),
-                })),
-              );
-            }}
-          />
-        </div>
-      </div>
 
       {/* Permission Configuration Tree Panel */}
       <div style={{ marginTop: 8 }}>

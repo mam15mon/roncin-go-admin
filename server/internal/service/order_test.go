@@ -48,13 +48,17 @@ func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
 func TestOrderOrganizationScopesKeepBusinessTypeAndOrganizationPaired(t *testing.T) {
 	currentOrganizationID := uuid.New()
 	beijingOrganizationID := uuid.New()
+	beijingParentID := currentOrganizationID
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: currentOrganizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}, {ID: beijingOrganizationID}},
+		Organization: biz.Organization{ID: currentOrganizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{
+			{ID: currentOrganizationID},
+			{ID: beijingOrganizationID, ParentID: &beijingParentID},
+		},
 		RoleGrants: []biz.RoleGrant{
-			{RoleID: uuid.New(), RoleCode: "se-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{seRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingOrganizationID}}},
+			{RoleID: uuid.New(), RoleCode: "se-operator", DataScope: biz.DataScopeOrganizationTree, Permissions: map[string]struct{}{seRead: {}}},
 			{RoleID: uuid.New(), RoleCode: "ai-operator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{aiRead: {}}},
 		},
 	}
@@ -77,9 +81,9 @@ func TestCanModifyOrderUsesBusinessTypeSpecificUpdateScope(t *testing.T) {
 		Organization:      biz.Organization{ID: tianjinID},
 		OrganizationNodes: []biz.OrganizationScopeNode{{ID: tianjinID}, {ID: beijingID}},
 		RoleGrants: []biz.RoleGrant{
-			{RoleID: uuid.New(), RoleCode: "order-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderRead: {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID}}},
+			{RoleID: uuid.New(), RoleCode: "order-reader", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{orderRead: {}}},
 			{RoleID: uuid.New(), RoleCode: "order-editor", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderUpdate: {}}},
-			{RoleID: uuid.New(), RoleCode: "finance-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{"finance.bill.read": {}}, OrganizationAccesses: []biz.OrganizationAccess{{OrganizationID: beijingID, Writable: true}}},
+			{RoleID: uuid.New(), RoleCode: "finance-reader", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{"finance.bill.read": {}}},
 		},
 	}
 

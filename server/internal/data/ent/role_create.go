@@ -19,7 +19,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -151,21 +150,6 @@ func (_c *RoleCreate) AddAssignments(v ...*RoleAssignment) *RoleCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddAssignmentIDs(ids...)
-}
-
-// AddOrganizationAccessIDs adds the "organization_accesses" edge to the RoleOrganizationAccess entity by IDs.
-func (_c *RoleCreate) AddOrganizationAccessIDs(ids ...uuid.UUID) *RoleCreate {
-	_c.mutation.AddOrganizationAccessIDs(ids...)
-	return _c
-}
-
-// AddOrganizationAccesses adds the "organization_accesses" edges to the RoleOrganizationAccess entity.
-func (_c *RoleCreate) AddOrganizationAccesses(v ...*RoleOrganizationAccess) *RoleCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddOrganizationAccessIDs(ids...)
 }
 
 // AddOrderUnlockApproverCandidateIDs adds the "order_unlock_approver_candidates" edge to the OrderUnlockApproverCandidate entity by IDs.
@@ -398,22 +382,6 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(roleassignment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.OrganizationAccessesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   role.OrganizationAccessesTable,
-			Columns: []string{role.OrganizationAccessesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(roleorganizationaccess.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

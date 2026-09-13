@@ -27,7 +27,6 @@ import { unwrapList } from '@/utils/api';
 import OrgChartCanvas from './components/org/OrgChartCanvas';
 import OrgCreateModal from './components/org/OrgCreateModal';
 import OrgDetailCard from './components/org/OrgDetailCard';
-import OrgDetailDrawer from './components/org/OrgDetailDrawer';
 import OrgEditModal from './components/org/OrgEditModal';
 import {
   getChildOrganizationKind,
@@ -58,7 +57,6 @@ export default function OrganizationsPanel() {
   const [chartDirection, setChartDirection] = useState<
     'vertical' | 'horizontal'
   >('vertical');
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Modal states
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -345,7 +343,14 @@ export default function OrganizationsPanel() {
           chartDirection={chartDirection}
           selectedId={selectedId}
           onSelectNode={setSelectedId}
-          onOpenDrawer={() => setDrawerOpen(true)}
+          selectedOrg={selectedOrg}
+          parentOrg={parentOrgOfSelected}
+          directChildren={directChildren}
+          totalDescendantCount={totalDescendantCount}
+          canCreate={Boolean(access.canCreateOrganizations)}
+          canUpdate={Boolean(access.canUpdateOrganizations)}
+          onOpenCreateChild={openCreateChild}
+          onOpenEdit={openEdit}
         />
       )}
 
@@ -450,21 +455,6 @@ export default function OrganizationsPanel() {
           />
         </ProCard>
       )}
-
-      {/* Drawer: Detailed view when a node is clicked in Chart mode */}
-      <OrgDetailDrawer
-        open={drawerOpen && viewMode === 'chart'}
-        onClose={() => setDrawerOpen(false)}
-        selectedOrg={selectedOrg}
-        parentOrg={parentOrgOfSelected}
-        directChildren={directChildren}
-        totalDescendantCount={totalDescendantCount}
-        canCreate={access.canCreateOrganizations}
-        canUpdate={access.canUpdateOrganizations}
-        onOpenCreateChild={openCreateChild}
-        onOpenEdit={openEdit}
-        onSelectNode={setSelectedId}
-      />
 
       {/* Modal: Create Organization */}
       <OrgCreateModal

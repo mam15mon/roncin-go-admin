@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "Principal 组织范围解析与会话/组织切换契约，删除 OrganizationAccesses 分支不得破坏"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "验证纪律：禁 Skip 充当通过、针对性验证要求"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "迁移编写与校验和规范"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层删除的一致性检查思路"}

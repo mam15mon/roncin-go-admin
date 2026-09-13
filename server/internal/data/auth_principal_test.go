@@ -1,7 +1,6 @@
 package data
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,8 +11,6 @@ import (
 
 func TestResolvePrincipalBuildsRoleGrantOnlyForEnabledRoles(t *testing.T) {
 	roleID := uuid.New()
-	readOnlyOrganizationID := uuid.New()
-	writableOrganizationID := uuid.New()
 	role := &ent.Role{
 		ID:        roleID,
 		Code:      "operator",
@@ -21,10 +18,6 @@ func TestResolvePrincipalBuildsRoleGrantOnlyForEnabledRoles(t *testing.T) {
 		Enabled:   true,
 		Edges: ent.RoleEdges{
 			Permissions: []*ent.Permission{{Key: "business.order.se.read"}},
-			OrganizationAccesses: []*ent.RoleOrganizationAccess{
-				{OrganizationID: writableOrganizationID, Writable: true},
-				{OrganizationID: readOnlyOrganizationID},
-			},
 		},
 	}
 
@@ -37,24 +30,6 @@ func TestResolvePrincipalBuildsRoleGrantOnlyForEnabledRoles(t *testing.T) {
 	}
 	if _, ok := grant.Permissions["business.order.se.read"]; !ok {
 		t.Fatalf("角色权限未保留: %#v", grant.Permissions)
-	}
-	wantAccesses := []biz.OrganizationAccess{
-		{OrganizationID: readOnlyOrganizationID},
-		{OrganizationID: writableOrganizationID, Writable: true},
-	}
-	slices.SortFunc(wantAccesses, func(left, right biz.OrganizationAccess) int {
-		if left.OrganizationID.String() < right.OrganizationID.String() {
-			return -1
-		}
-		if left.OrganizationID.String() > right.OrganizationID.String() {
-			return 1
-		}
-		return 0
-	})
-	if !slices.EqualFunc(grant.OrganizationAccesses, wantAccesses, func(left, right biz.OrganizationAccess) bool {
-		return left.OrganizationID == right.OrganizationID && left.Writable == right.Writable
-	}) {
-		t.Fatalf("角色组织访问未保留或未排序: %#v", grant.OrganizationAccesses)
 	}
 
 	role.Enabled = false

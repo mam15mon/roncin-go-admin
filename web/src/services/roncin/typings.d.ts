@@ -153,7 +153,6 @@ declare namespace API {
     permissionKeys?: string[];
     createdAt?: string;
     updatedAt?: string;
-    organizationAccesses?: OrganizationAccess[];
   };
 
   type AdminServiceApproveDingTalkRegistrationParams = {
@@ -1573,7 +1572,6 @@ declare namespace API {
     name: string;
     dataScope: number;
     permissionKeys?: string[];
-    organizationAccesses?: OrganizationAccess[];
   };
 
   type CreateRoleResponse = {
@@ -4887,11 +4885,6 @@ declare namespace API {
     baseCurrency?: string;
   };
 
-  type OrganizationAccess = {
-    organizationId: string;
-    writable?: boolean;
-  };
-
   type OrganizationChoice = {
     organizationId: string;
     organizationName: string;
@@ -7821,7 +7814,6 @@ declare namespace API {
     dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
-    organizationAccesses?: OrganizationAccess[];
   };
 
   type UpdateRoleResponse = {

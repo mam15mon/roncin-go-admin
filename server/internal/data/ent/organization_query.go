@@ -57,7 +57,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -89,7 +88,6 @@ type OrganizationQuery struct {
 	withChildren                      *OrganizationQuery
 	withMemberships                   *MembershipQuery
 	withRoles                         *RoleQuery
-	withRoleOrganizationAccesses      *RoleOrganizationAccessQuery
 	withSessions                      *SessionQuery
 	withPartners                      *PartnerQuery
 	withPartnerAssignments            *PartnerAssignmentQuery
@@ -267,28 +265,6 @@ func (_q *OrganizationQuery) QueryRoles() *RoleQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.RolesTable, organization.RolesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryRoleOrganizationAccesses chains the current query on the "role_organization_accesses" edge.
-func (_q *OrganizationQuery) QueryRoleOrganizationAccesses() *RoleOrganizationAccessQuery {
-	query := (&RoleOrganizationAccessClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(roleorganizationaccess.Table, roleorganizationaccess.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrganizationAccessesTable, organization.RoleOrganizationAccessesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1790,7 +1766,6 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withChildren:                      _q.withChildren.Clone(),
 		withMemberships:                   _q.withMemberships.Clone(),
 		withRoles:                         _q.withRoles.Clone(),
-		withRoleOrganizationAccesses:      _q.withRoleOrganizationAccesses.Clone(),
 		withSessions:                      _q.withSessions.Clone(),
 		withPartners:                      _q.withPartners.Clone(),
 		withPartnerAssignments:            _q.withPartnerAssignments.Clone(),
@@ -1897,17 +1872,6 @@ func (_q *OrganizationQuery) WithRoles(opts ...func(*RoleQuery)) *OrganizationQu
 		opt(query)
 	}
 	_q.withRoles = query
-	return _q
-}
-
-// WithRoleOrganizationAccesses tells the query-builder to eager-load the nodes that are connected to
-// the "role_organization_accesses" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithRoleOrganizationAccesses(opts ...func(*RoleOrganizationAccessQuery)) *OrganizationQuery {
-	query := (&RoleOrganizationAccessClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withRoleOrganizationAccesses = query
 	return _q
 }
 
@@ -2638,12 +2602,11 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [64]bool{
+		loadedTypes = [63]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
 			_q.withRoles != nil,
-			_q.withRoleOrganizationAccesses != nil,
 			_q.withSessions != nil,
 			_q.withPartners != nil,
 			_q.withPartnerAssignments != nil,
@@ -2750,15 +2713,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadRoles(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Roles = []*Role{} },
 			func(n *Organization, e *Role) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withRoleOrganizationAccesses; query != nil {
-		if err := _q.loadRoleOrganizationAccesses(ctx, query, nodes,
-			func(n *Organization) { n.Edges.RoleOrganizationAccesses = []*RoleOrganizationAccess{} },
-			func(n *Organization, e *RoleOrganizationAccess) {
-				n.Edges.RoleOrganizationAccesses = append(n.Edges.RoleOrganizationAccesses, e)
-			}); err != nil {
 			return nil, err
 		}
 	}
@@ -3364,36 +3318,6 @@ func (_q *OrganizationQuery) loadRoles(ctx context.Context, query *RoleQuery, no
 	}
 	query.Where(predicate.Role(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.RolesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrganizationID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrganizationQuery) loadRoleOrganizationAccesses(ctx context.Context, query *RoleOrganizationAccessQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RoleOrganizationAccess)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Organization)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(roleorganizationaccess.FieldOrganizationID)
-	}
-	query.Where(predicate.RoleOrganizationAccess(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.RoleOrganizationAccessesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

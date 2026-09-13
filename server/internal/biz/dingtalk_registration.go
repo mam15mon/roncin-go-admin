@@ -384,7 +384,7 @@ func (uc *DingTalkRegistrationUsecase) validateRolePrivilege(ctx context.Context
 		return err
 	}
 	for _, roleProfile := range roleProfiles {
-		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.OrganizationAccesses, roleProfile.Code == "administrator"); err != nil {
+		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.Code == "administrator"); err != nil {
 			return err
 		}
 	}

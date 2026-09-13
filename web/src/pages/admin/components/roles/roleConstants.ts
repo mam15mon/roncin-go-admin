@@ -56,8 +56,3 @@ export type PermissionGroupNode = {
 };
 
 export type PermissionTreeNode = PermissionGroupNode | PermissionLeafNode;
-
-export type OrganizationAccess = {
-  organizationId: string;
-  writable: boolean;
-};
