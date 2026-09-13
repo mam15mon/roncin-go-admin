@@ -148,8 +148,7 @@ describe('海运订单新增模板', () => {
     expect(sections.map(({ key, title }) => ({ key, title }))).toEqual([
       { key: 'basicInfo', title: '业务信息' },
       { key: 'transportInfo', title: '配舱信息' },
-      { key: 'cargoInfo', title: '货物信息' },
-      { key: 'sea-document', title: '提单信息' },
+      { key: 'cargoAndDocumentInfo', title: '货物与提单信息' },
       { key: 'remarks', title: '备注' },
       { key: 'internalInfo', title: '内部信息' },
     ]);
@@ -182,9 +181,9 @@ describe('海运订单新增模板', () => {
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),
     ).toBeTruthy();
 
-    const cargoSection = screen.getByTestId('section-cargoInfo');
-    expect(cargoSection).not.toHaveTextContent('主单号');
-    expect(cargoSection).not.toHaveTextContent('分单号');
+    const cargoDocSection = screen.getByTestId('section-cargoAndDocumentInfo');
+    expect(cargoDocSection).toHaveTextContent('委托品名 / 货物描述');
+    expect(cargoDocSection).toHaveTextContent('实际与提单货物描述');
 
     const carrierLabel = screen.getByText('船公司').closest('label');
     expect(carrierLabel).toHaveClass('ant-form-item-required');
