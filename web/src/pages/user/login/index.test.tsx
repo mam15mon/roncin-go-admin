@@ -240,6 +240,9 @@ describe('Login', () => {
   });
 
   it('携带邀请 Token 的落地页展示专属欢迎与防呆警示', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
+      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
+    });
     authServiceGetDingTalkInvitationInfoMock.mockResolvedValue({
       data: {
         organizationName: '成都分公司',
@@ -265,6 +268,32 @@ describe('Login', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/邀请人：李经理/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /使用钉钉加入【成都分公司】/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
+  });
+
+  it('钉钉启用时，普通登录页展示快捷入职按钮与提示文案，不展示注册链接', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
+      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
+    });
+    window.history.replaceState({}, '', '/user/login');
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+
+    expect(
+      await screen.findByRole('button', { name: /钉钉登录/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/快捷入职/)).toBeInTheDocument();
+    expect(
+      screen.getByText('首次使用钉钉扫码将自动提交入职审批申请'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
   });
 
   it('邀请 Token 失效时仅呈现失效提示，不展示欢迎卡片', async () => {

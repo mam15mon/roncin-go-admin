@@ -8,7 +8,7 @@ import {
   UserOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
-import { Helmet, Link, useModel } from '@umijs/max';
+import { Helmet, useModel } from '@umijs/max';
 import {
   Alert,
   App,
@@ -453,20 +453,17 @@ export default function Login() {
                         onClick={handleDingTalkLogin}
                       >
                         {invitationInfo
-                          ? `使用钉钉扫码进入【${invitationInfo.organizationName || '专属通道'}】`
-                          : '钉钉登录'}
+                          ? `使用钉钉加入【${invitationInfo.organizationName || '专属通道'}】`
+                          : '钉钉登录 / 快捷入职'}
                       </Button>
-                      <div style={{ textAlign: 'center', fontSize: 13 }}>
-                        首次使用？
-                        <Link
-                          to={
-                            invitationInfo
-                              ? `/user/register?invite=${sessionStorage.getItem('dingtalk_invitation_token') || ''}`
-                              : '/user/register'
-                          }
-                        >
-                          使用钉钉扫码注册
-                        </Link>
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          fontSize: 12,
+                          color: '#8c8c8c',
+                        }}
+                      >
+                        首次使用钉钉扫码将自动提交入职审批申请
                       </div>
                     </>
                   )}
