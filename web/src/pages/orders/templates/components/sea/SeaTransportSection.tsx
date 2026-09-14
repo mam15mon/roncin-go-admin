@@ -463,7 +463,9 @@ export function SeaAssociatedHouseBillsField() {
 
   return (
     <Col className="col-5">
-      <Form.Item label="关联分单号" style={{ marginInline: 0 }}>
+      {/* 相邻 ProForm 字段在 grid 模式下被自动内层 Col 的双重 gutter 右推 8px，
+          此处临时内缩对齐当前分节列缘；P3 配舱信息栅格迁移时移除。 */}
+      <Form.Item label="关联分单号" style={{ marginInline: 8 }}>
         <div
           data-testid="associated-hbl-display"
           style={{
@@ -568,7 +570,9 @@ export function SeaScheduleDateFields() {
         />
       </Col>
       <Col className="col-5">
-        <Form.Item label="WEEK" style={{ marginInline: 0 }}>
+        {/* 相邻 ProForm 字段在 grid 模式下被自动内层 Col 的双重 gutter 右推 8px，
+            此处临时内缩对齐当前分节列缘；P3 配舱信息栅格迁移时移除。 */}
+        <Form.Item label="WEEK" style={{ marginInline: 8 }}>
           <Input
             value={weekValue}
             placeholder="依据 ETD 自动生成"
