@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 )
 
@@ -19,6 +20,18 @@ func TestRequiredFieldsValidatorRejectsMissingProtoField(t *testing.T) {
 	}
 	if called {
 		t.Fatal("校验失败后不应继续调用业务处理器")
+	}
+}
+
+func TestRequiredFieldsValidatorAllowsEmptyOptionalRoleCode(t *testing.T) {
+	// 角色编码已改为可选：留空由业务层自动生成，中间件不得再拦截。
+	handler := RequiredFieldsValidator()(func(_ context.Context, _ any) (any, error) {
+		return nil, nil
+	})
+
+	request := &adminv1.CreateRoleRequest{Name: "财务", DataScope: adminv1.DataScope_DATA_SCOPE_ORGANIZATION}
+	if _, err := handler(t.Context(), request); err != nil {
+		t.Fatalf("空编码的创建角色请求被必填校验拦截: %v", err)
 	}
 }
 

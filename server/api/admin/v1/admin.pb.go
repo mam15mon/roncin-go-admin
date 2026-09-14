@@ -2809,11 +2809,12 @@ func (*ListRolesRequest) Descriptor() ([]byte, []int) {
 }
 
 type CreateRoleRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Code           string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope      DataScope              `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
-	PermissionKeys []string               `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。
+	Code           string    `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name           string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	DataScope      DataScope `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
+	PermissionKeys []string  `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -5586,9 +5587,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminUserR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x12\n" +
-	"\x10ListRolesRequest\"\xa7\x01\n" +
-	"\x11CreateRoleRequest\x12\x17\n" +
-	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
+	"\x10ListRolesRequest\"\xa2\x01\n" +
+	"\x11CreateRoleRequest\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x127\n" +
 	"\n" +
 	"data_scope\x18\x03 \x01(\x0e2\x13.admin.v1.DataScopeB\x03\xe0A\x02R\tdataScope\x12'\n" +

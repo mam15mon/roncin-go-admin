@@ -498,7 +498,8 @@ message AuthorizeDingTalkUserResponse {
 message ListRolesRequest {}
 
 message CreateRoleRequest {
-  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  // 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。
+  string code = 1;
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   DataScope data_scope = 3 [(google.api.field_behavior) = REQUIRED];
   repeated string permission_keys = 4;

@@ -167,7 +167,7 @@ export default function RoleFormModal({
             message.success('角色已成功更新');
           } else {
             await adminServiceCreateRole({
-              // 编码由后端自动生成；契约中该字段必填，传空串即可。
+              // 角色编码已下放为可选契约；留空由服务端自动生成。
               code: '',
               name: values.name?.trim() ?? '',
               dataScope: values.dataScope ?? 2,

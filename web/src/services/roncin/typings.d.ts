@@ -1577,7 +1577,8 @@ declare namespace API {
   };
 
   type CreateRoleRequest = {
-    code: string;
+    /** 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。 */
+    code?: string;
     name: string;
     dataScope: number;
     permissionKeys?: string[];
