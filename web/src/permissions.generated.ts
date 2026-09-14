@@ -16,6 +16,7 @@ export const manifestPermissionKeys = [
   'system.role.read',
   'system.role.create',
   'system.role.update',
+  'system.role.delete',
   'system.permission.read',
   'system.audit.read',
   'system.task.read',

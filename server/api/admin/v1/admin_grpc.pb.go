@@ -37,6 +37,7 @@ const (
 	AdminService_ListOrganizationRoles_FullMethodName        = "/admin.v1.AdminService/ListOrganizationRoles"
 	AdminService_CreateRole_FullMethodName                   = "/admin.v1.AdminService/CreateRole"
 	AdminService_UpdateRole_FullMethodName                   = "/admin.v1.AdminService/UpdateRole"
+	AdminService_DeleteRole_FullMethodName                   = "/admin.v1.AdminService/DeleteRole"
 	AdminService_ListPermissions_FullMethodName              = "/admin.v1.AdminService/ListPermissions"
 	AdminService_ListAuditLogs_FullMethodName                = "/admin.v1.AdminService/ListAuditLogs"
 	AdminService_CreateDingTalkInvitation_FullMethodName     = "/admin.v1.AdminService/CreateDingTalkInvitation"
@@ -73,6 +74,7 @@ type AdminServiceClient interface {
 	ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
+	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error)
 	// CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
@@ -280,6 +282,16 @@ func (c *adminServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleReque
 	return out, nil
 }
 
+func (c *adminServiceClient) DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRoleResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPermissionsResponse)
@@ -413,6 +425,7 @@ type AdminServiceServer interface {
 	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
+	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	// CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
@@ -493,6 +506,9 @@ func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRe
 }
 func (UnimplementedAdminServiceServer) UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateRole not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRole not implemented")
 }
 func (UnimplementedAdminServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
@@ -872,6 +888,24 @@ func _AdminService_UpdateRole_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_DeleteRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteRole(ctx, req.(*DeleteRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListPermissionsRequest)
 	if err := dec(in); err != nil {
@@ -1148,6 +1182,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateRole",
 			Handler:    _AdminService_UpdateRole_Handler,
+		},
+		{
+			MethodName: "DeleteRole",
+			Handler:    _AdminService_DeleteRole_Handler,
 		},
 		{
 			MethodName: "ListPermissions",

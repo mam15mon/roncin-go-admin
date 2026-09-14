@@ -111,3 +111,17 @@ describe('钉钉邀请与注册审批权限', () => {
     ).toBe(false);
   });
 });
+
+describe('角色删除权限', () => {
+  it('组织范围且拥有删除权限时允许删除角色，并计入角色管理聚合', () => {
+    const result = access(currentUser(['system.role.delete']));
+    expect(result.canDeleteRoles).toBe(true);
+    expect(result.canManageRoles).toBe(true);
+  });
+
+  it('只有删除权限但超出组织范围时不可删除角色', () => {
+    expect(
+      access(currentUserWithSelfScope(['system.role.delete'])).canDeleteRoles,
+    ).toBe(false);
+  });
+});

@@ -375,6 +375,11 @@ func (uc *DingTalkRegistrationUsecase) validateRolePrivilege(ctx context.Context
 	if len(roleIDs) == 0 {
 		return nil
 	}
+	// bootstrap 管理员按全组织穿透方案按超管放行（与 AdminUsecase 口径一致），
+	// 其在目标组织可能没有成员关系，角色画像查询不可作为依据。
+	if principal.IsBootstrapAdmin {
+		return nil
+	}
 	profile, err := uc.actorPrivilegeProfile(ctx, principal.Organization.ID, principal.UserID)
 	if err != nil {
 		return err

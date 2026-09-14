@@ -30,6 +30,7 @@ type adminRepoStub struct {
 	actorRoleProfiles []*AdminRoleProfile
 	roleProfiles      []*AdminRoleProfile
 	currentRole       *AdminRole
+	deletedRoleID     uuid.UUID
 	notification      *NotificationIntent
 	auditEvent        *AuditEvent
 }
@@ -155,6 +156,12 @@ func (s *adminRepoStub) UpdateRole(_ context.Context, _ uuid.UUID, _ uuid.UUID, 
 	s.updatedRoleKeys = keys
 	s.auditEvent = audit
 	return input, nil
+}
+
+func (s *adminRepoStub) DeleteRole(_ context.Context, _ uuid.UUID, id uuid.UUID, audit *AuditEvent) error {
+	s.deletedRoleID = id
+	s.auditEvent = audit
+	return nil
 }
 
 func (s *adminRepoStub) ListPermissions(context.Context) ([]*AdminPermission, error) {
@@ -744,3 +751,48 @@ func TestPrincipalOrganizationScopeAccess(t *testing.T) {
 func stringPtr(value string) *string { return &value }
 
 var _ AdminRepo = (*adminRepoStub)(nil)
+
+func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	roleID := uuid.New()
+
+	// 系统内置 administrator 角色不允许删除，且不得触达仓储。
+	repo := &adminRepoStub{
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
+	}
+	usecase := NewAdminUsecase(repo)
+	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleProtected {
+		t.Fatalf("DeleteRole() administrator error = %v, want ErrAdminRoleProtected", err)
+	}
+	if repo.deletedRoleID != uuid.Nil {
+		t.Fatal("administrator deletion was sent to repository")
+	}
+
+	// 已分配成员的角色必须先移除分配，不得触达仓储。
+	repo = &adminRepoStub{
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization, AssignmentsCount: 2},
+	}
+	usecase = NewAdminUsecase(repo)
+	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleAssigned {
+		t.Fatalf("DeleteRole() assigned error = %v, want ErrAdminRoleAssigned", err)
+	}
+	if repo.deletedRoleID != uuid.Nil {
+		t.Fatal("assigned role deletion was sent to repository")
+	}
+
+	// 未分配成员的普通角色删除成功并携带审计事件。
+	repo = &adminRepoStub{
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization},
+	}
+	usecase = NewAdminUsecase(repo)
+	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != nil {
+		t.Fatalf("DeleteRole() error = %v", err)
+	}
+	if repo.deletedRoleID != roleID {
+		t.Fatalf("deleted role id = %v, want %v", repo.deletedRoleID, roleID)
+	}
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.role.delete" || repo.auditEvent.UserID == nil || *repo.auditEvent.UserID != actorID {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
+	}
+}

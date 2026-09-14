@@ -153,6 +153,8 @@ declare namespace API {
     permissionKeys?: string[];
     createdAt?: string;
     updatedAt?: string;
+    /** 该角色被分配到的成员关系数量；前端据此禁用删除入口。 */
+    assignmentsCount?: number;
   };
 
   type AdminServiceApproveDingTalkRegistrationParams = {
@@ -170,6 +172,10 @@ declare namespace API {
 
   type AdminServiceCreateUserMembershipParams = {
     userId: string;
+  };
+
+  type AdminServiceDeleteRoleParams = {
+    id: string;
   };
 
   type AdminServiceDeleteUserMembershipParams = {
@@ -1727,6 +1733,13 @@ declare namespace API {
   };
 
   type DeleteEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type DeleteRoleResponse = {
     success?: boolean;
     code?: number;
     message?: string;

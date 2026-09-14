@@ -33,6 +33,7 @@ type AdminRepo interface {
 	GetRole(context.Context, uuid.UUID, uuid.UUID) (*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string, *AuditEvent) (*AdminRole, error)
 	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string, *AuditEvent) (*AdminRole, error)
+	DeleteRole(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
 	ListPermissions(context.Context) ([]*AdminPermission, error)
 	ListAuditLogs(context.Context, uuid.UUID, AdminAuditLogListOptions) (*AdminAuditLogList, error)
 	GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error)

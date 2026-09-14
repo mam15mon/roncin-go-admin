@@ -62,8 +62,9 @@ type Organization struct {
 	BaseCurrency string
 }
 
-// OrganizationChoice 是登录组织选择与应用内切换器共用的「本人启用中成员资格组织」候选视图。
-// IsDefault 对应成员资格的 primary 标志。
+// OrganizationChoice 是登录组织选择与应用内切换器共用的「工作台」候选视图。
+// 工作台 = 组织树中 kind ∈ {headquarters, company} 的启用节点；部门/团队任何情况下
+// 不是工作台，不进入候选。IsDefault 对应用户 primary 成员关系映射出的工作台。
 type OrganizationChoice struct {
 	OrganizationID   uuid.UUID
 	OrganizationName string
@@ -100,12 +101,15 @@ type PermissionOrganizationScope struct {
 }
 
 type Credential struct {
-	UserID                uuid.UUID
-	Username              string
-	DisplayName           string
-	Email                 *string
-	PasswordHash          *string
-	Enabled               bool
+	UserID       uuid.UUID
+	Username     string
+	DisplayName  string
+	Email        *string
+	PasswordHash *string
+	Enabled      bool
+	// IsBootstrapAdmin 标记 bootstrap 管理员：登录候选组织与切换准入按全组织
+	// 穿透方案放宽（详见 listOrganizationChoices），普通用户路径不受影响。
+	IsBootstrapAdmin      bool
 	PrimaryOrganizationID uuid.UUID
 }
 
@@ -512,7 +516,15 @@ type AuthRepo interface {
 	// 通知的路由决策（收件人与展示组织名，含代管标注），仓储在注册同事务内
 	// 入队（任务幂等键确定性去重）。
 	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, *DingTalkApproverNotice, *AuditEvent) (*Credential, bool, error)
+	// ListEnabledMembershipOrganizations 返回普通用户的工作台候选：总部节点要求本人
+	// 总部节点本身的启用成员关系；公司节点要求本人在该公司节点或其子树内任一启用节点
+	// 有启用成员关系（部门成员关系让所属公司成为候选）。IsDefault 按 primary 成员
+	// 关系映射出的工作台标记。
 	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
+	// ListEnabledOrganizations 返回全部启用中工作台节点（总部+公司）的候选快照
+	//（IsDefault 按用户 primary 成员资格映射出的工作台标记），仅供 bootstrap 管理员的
+	// 工作台穿透候选使用；部门/团队不是工作台，任何情况下不进入候选。
+	ListEnabledOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
@@ -568,8 +580,10 @@ const (
 	dingTalkRegistrationTokenLifetime = 5 * time.Minute
 )
 
-// Login 校验账号口令后建立会话；requestedOrganizationID 非空时必须是本人启用中成员资格组织，
-// 否则返回参数错误（不静默回退默认组织）。未指定时沿用默认（primary）组织。
+// Login 校验账号口令后建立会话；requestedOrganizationID 非空时必须属于当前账号的
+// 工作台候选（普通用户 = 成员关系向上取整出的启用总部/公司节点，bootstrap 管理员 =
+// 全部启用总部/公司节点），否则返回参数错误（不静默回退默认组织）。未指定时沿用
+// 默认工作台（primary 成员关系所在组织向上取整到所属总部/公司）。
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string, requestedOrganizationID uuid.UUID, userAgent, ipAddress string) (*AuthSessionResult, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
 	now := time.Now().UTC()
@@ -599,7 +613,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
 	organizationID := credential.PrimaryOrganizationID
-	choices, err := uc.listEnabledMembershipOrganizations(ctx, credential.UserID)
+	choices, err := uc.listOrganizationChoices(ctx, credential.UserID, credential.IsBootstrapAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -989,10 +1003,13 @@ func (uc *AuthUsecase) Logout(ctx context.Context, principal *Principal) error {
 	return uc.repo.RevokeSession(ctx, principal.SessionTokenHash, now, &AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Action: "auth.logout", Result: "success"})
 }
 
-// SwitchOrganization 把当前会话轮转为目标组织的新会话：校验目标在本人启用中成员资格候选集内，
-// 权限主体随目标组织重算，事务内新建会话并仅失效当前令牌（同一用户其他设备的会话不受影响）。
+// SwitchOrganization 把当前会话轮转为目标工作台的新会话：普通用户校验目标在本人
+// 成员关系映射出的工作台候选集内（总部要求总部本身成员关系，公司要求公司子树内
+// 任一启用成员关系），bootstrap 管理员按工作台穿透方案校验目标在全部启用总部/公司
+// 候选集内；权限主体随目标工作台重算，事务内新建会话并仅失效当前令牌（同一用户
+// 其他设备的会话不受影响）。
 func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*AuthSessionResult, error) {
-	choices, err := uc.listEnabledMembershipOrganizations(ctx, principal.UserID)
+	choices, err := uc.listOrganizationChoices(ctx, principal.UserID, principal.IsBootstrapAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -1024,8 +1041,26 @@ func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Princi
 	return &AuthSessionResult{Token: rawToken, Principal: next, OrganizationChoices: choices, ExpiresAt: expiresAt}, nil
 }
 
-// listEnabledMembershipOrganizations 返回登录组织选择与切换入口共用的候选组织列表：
-// 本人启用中成员资格 × 组织启用中，默认组织置首并标记，其余按组织名称稳定排序。
+// listOrganizationChoices 返回登录组织选择与切换入口共用的工作台候选列表：
+// 普通用户 = 成员关系向上取整出的启用总部/公司节点（部门成员关系让所属公司成为
+// 候选，总部节点要求本人总部成员关系）；bootstrap 管理员按已批准的工作台穿透方案
+// 放宽为全部启用总部/公司节点（默认标记仍取其 primary 成员关系映射出的工作台）。
+// 候选默认组织置首并按组织名称稳定排序。
+func (uc *AuthUsecase) listOrganizationChoices(ctx context.Context, userID uuid.UUID, isBootstrapAdmin bool) ([]OrganizationChoice, error) {
+	if isBootstrapAdmin {
+		choices, err := uc.repo.ListEnabledOrganizations(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		sortOrganizationChoices(choices)
+		return choices, nil
+	}
+	return uc.listEnabledMembershipOrganizations(ctx, userID)
+}
+
+// listEnabledMembershipOrganizations 返回登录组织选择与切换入口共用的普通用户工作台
+// 候选列表（谓词实现见仓储 ListEnabledMembershipOrganizations），
+// 默认工作台置首并标记，其余按组织名称稳定排序。
 func (uc *AuthUsecase) listEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]OrganizationChoice, error) {
 	choices, err := uc.repo.ListEnabledMembershipOrganizations(ctx, userID)
 	if err != nil {

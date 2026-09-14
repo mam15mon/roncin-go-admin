@@ -18,6 +18,9 @@ var (
 	ErrAdminRoleCodeExists      = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
 	ErrAdminPermissionInvalid   = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
 	ErrAdminPrivilegeEscalation = errors.Forbidden("ADMIN_PRIVILEGE_ESCALATION_DENIED", "不能分配超出自身权限范围的角色")
+	ErrAdminRoleProtected       = errors.Forbidden("ADMIN_ROLE_PROTECTED", "系统管理员角色不允许删除")
+	ErrAdminRoleAssigned        = errors.Conflict("ADMIN_ROLE_ASSIGNED", "该角色已分配成员，请先移除后重试")
+	ErrAdminRoleInUse           = errors.Conflict("ADMIN_ROLE_IN_USE", "该角色仍被其他数据引用，无法删除")
 )
 
 type AdminRole struct {
@@ -28,8 +31,11 @@ type AdminRole struct {
 	DataScope      DataScope
 	Enabled        bool
 	PermissionKeys []string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	// AssignmentsCount 是角色当前被分配到的成员关系数量，仅作展示与删除前置判断；
+	// 删除时仓储在事务内重新复核，防止校验与删除之间新增分配。
+	AssignmentsCount int
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type AdminPermission struct {
@@ -78,6 +84,11 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 }
 
 func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizationID, actorID uuid.UUID) (*AdminPrivilegeProfile, error) {
+	// bootstrap 管理员按已批准的全组织穿透方案在任意组织上下文拥有完整管理能力，
+	// 提权校验按超管放行；其在目标组织可能没有成员关系，角色画像查询不可作为依据。
+	if principal, ok := PrincipalFromContext(ctx); ok && principal.IsBootstrapAdmin && principal.UserID == actorID {
+		return &AdminPrivilegeProfile{IsSuperAdmin: true, RoleProfiles: make([]AdminRoleProfile, 0)}, nil
+	}
 	roles, err := uc.repo.GetActorRolesPrivilegeProfiles(ctx, organizationID, actorID)
 	if err != nil {
 		return nil, err
@@ -196,6 +207,26 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 		return nil, err
 	}
 	return uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted, adminAuditEvent(ctx, actorID, &id, "admin.role.update", currentRole.Code))
+}
+
+// DeleteRole 删除当前组织内未被任何成员关系引用的角色：系统内置 administrator 角色
+// 拒绝删除；已分配成员的角色必须先移除分配。成员关系复核在仓储事务内重新执行，
+// 防止业务校验与删除之间出现并发分配。
+func (uc *AdminUsecase) DeleteRole(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
+		return ErrAdminInvalidArgument
+	}
+	currentRole, err := uc.repo.GetRole(ctx, organizationID, id)
+	if err != nil {
+		return err
+	}
+	if currentRole.Code == "administrator" {
+		return ErrAdminRoleProtected
+	}
+	if currentRole.AssignmentsCount > 0 {
+		return ErrAdminRoleAssigned
+	}
+	return uc.repo.DeleteRole(ctx, organizationID, id, adminAuditEvent(ctx, actorID, &id, "admin.role.delete", currentRole.Code))
 }
 
 func (uc *AdminUsecase) ListPermissions(ctx context.Context) ([]*AdminPermission, error) {

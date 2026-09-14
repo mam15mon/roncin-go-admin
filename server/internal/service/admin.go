@@ -361,6 +361,21 @@ func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleReq
 	return ok(ctx, &v1.UpdateRoleResponse{Data: roleToAPI(updated)}), nil
 }
 
+func (s *AdminService) DeleteRole(ctx context.Context, request *v1.DeleteRoleRequest) (*v1.DeleteRoleResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roleID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	if err := s.usecase.DeleteRole(ctx, principal.Organization.ID, principal.UserID, roleID); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.DeleteRoleResponse{}), nil
+}
+
 func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermissionsRequest) (*v1.ListPermissionsResponse, error) {
 	items, err := s.usecase.ListPermissions(ctx)
 	if err != nil {
@@ -548,7 +563,7 @@ func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership
 }
 
 func roleToAPI(value *biz.AdminRole) *v1.AdminRole {
-	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, AssignmentsCount: int32(value.AssignmentsCount), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func auditLogToAPI(value *biz.AuditLog) *v1.AdminAuditLog {

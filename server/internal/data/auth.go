@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -370,8 +372,192 @@ func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User,
 	return credentialFromAccount(account, headquarters.ID), nil
 }
 
+// authOrgNode 是工作台判定的组织最小投影（kind 用字符串承载，纯函数不依赖 Ent 类型）。
+type authOrgNode struct {
+	ID       uuid.UUID
+	ParentID *uuid.UUID
+	Kind     string
+	Enabled  bool
+}
+
+// authOrganizationNodes 把组织实体列表投影为按 ID 索引的工作台判定节点表。
+func authOrganizationNodes(nodes []*ent.Organization) map[uuid.UUID]authOrgNode {
+	result := make(map[uuid.UUID]authOrgNode, len(nodes))
+	for _, node := range nodes {
+		result[node.ID] = authOrgNode{ID: node.ID, ParentID: node.ParentID, Kind: string(node.Kind), Enabled: node.Enabled}
+	}
+	return result
+}
+
+// isWorkspaceKind 判定组织 kind 是否为工作台：工作台 = 总部 + 公司节点；
+// 部门/团队任何情况下不是登录/切换的工作台。
+func isWorkspaceKind(kind string) bool {
+	return kind == string(organization.KindHeadquarters) || kind == string(organization.KindCompany)
+}
+
+// workspaceAncestorID 返回组织节点自身或其最近的工作台 kind 祖先（不关注启用态，
+// 由调用方过滤）；组织不在树内或无工作台祖先时返回 uuid.Nil。循环与断链安全。
+func workspaceAncestorID(nodes map[uuid.UUID]authOrgNode, organizationID uuid.UUID) uuid.UUID {
+	seen := make(map[uuid.UUID]struct{})
+	for currentID := organizationID; currentID != uuid.Nil; {
+		if _, visited := seen[currentID]; visited {
+			return uuid.Nil
+		}
+		seen[currentID] = struct{}{}
+		node, ok := nodes[currentID]
+		if !ok {
+			return uuid.Nil
+		}
+		if isWorkspaceKind(node.Kind) {
+			return currentID
+		}
+		if node.ParentID == nil {
+			return uuid.Nil
+		}
+		currentID = *node.ParentID
+	}
+	return uuid.Nil
+}
+
+// organizationSubtreeIDs 返回组织节点及其全部后代（含停用后代；启用过滤由查询谓词
+// 或调用方负责）。组织总量小，一次全量构建子邻接表后 BFS，避免逐层查询。
+func organizationSubtreeIDs(nodes map[uuid.UUID]authOrgNode, rootID uuid.UUID) []uuid.UUID {
+	children := make(map[uuid.UUID][]uuid.UUID, len(nodes))
+	for _, node := range nodes {
+		if node.ParentID == nil {
+			continue
+		}
+		children[*node.ParentID] = append(children[*node.ParentID], node.ID)
+	}
+	result := []uuid.UUID{rootID}
+	visited := map[uuid.UUID]struct{}{rootID: {}}
+	for index := 0; index < len(result); index++ {
+		for _, childID := range children[result[index]] {
+			if _, ok := visited[childID]; ok {
+				continue
+			}
+			visited[childID] = struct{}{}
+			result = append(result, childID)
+		}
+	}
+	return result
+}
+
+// workspaceMembershipScopeIDs 返回工作台的角色收集与成员资格复核节点范围：
+// 总部工作台只含总部节点本身（不跨公司聚合，保持公司间隔离），
+// 公司工作台含公司节点及其整个子树（部门角色在公司工作区生效）。
+func workspaceMembershipScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) []uuid.UUID {
+	node, ok := nodes[workspaceID]
+	if !ok || !isWorkspaceKind(node.Kind) {
+		return nil
+	}
+	if node.Kind == string(organization.KindHeadquarters) {
+		return []uuid.UUID{workspaceID}
+	}
+	return organizationSubtreeIDs(nodes, workspaceID)
+}
+
+// membershipRef 是工作台映射所需的成员关系最小投影。
+type membershipRef struct {
+	OrganizationID uuid.UUID
+	Primary        bool
+}
+
+func membershipRefsFromEnt(memberships []*ent.Membership) []membershipRef {
+	refs := make([]membershipRef, 0, len(memberships))
+	for _, member := range memberships {
+		refs = append(refs, membershipRef{OrganizationID: member.OrganizationID, Primary: member.Primary})
+	}
+	return refs
+}
+
+// resolveMembershipWorkspaces 把启用成员关系向上取整到所属工作台：成员关系节点沿父链
+// 归入最近的工作台 kind 祖先（部门/小组成员关系归属所属公司，总部成员关系归属总部
+// 本身）；最近工作台祖先停用时不向上越级回退，直接丢弃。返回去重后的启用工作台集合
+// 与 primary 工作台（primary 成员关系映射出的工作台，primary 缺失或不可用时回退
+// 第一个可用工作台）。
+func resolveMembershipWorkspaces(memberships []membershipRef, nodes map[uuid.UUID]authOrgNode) (workspaceIDs []uuid.UUID, primaryWorkspaceID uuid.UUID) {
+	seen := make(map[uuid.UUID]struct{}, len(memberships))
+	fallback := uuid.Nil
+	for _, member := range memberships {
+		workspaceID := workspaceAncestorID(nodes, member.OrganizationID)
+		if workspaceID == uuid.Nil {
+			continue
+		}
+		if workspace := nodes[workspaceID]; !workspace.Enabled {
+			continue
+		}
+		if _, duplicated := seen[workspaceID]; !duplicated {
+			seen[workspaceID] = struct{}{}
+			workspaceIDs = append(workspaceIDs, workspaceID)
+		}
+		if fallback == uuid.Nil {
+			fallback = workspaceID
+		}
+		if primaryWorkspaceID == uuid.Nil && member.Primary {
+			primaryWorkspaceID = workspaceID
+		}
+	}
+	if primaryWorkspaceID == uuid.Nil {
+		primaryWorkspaceID = fallback
+	}
+	return workspaceIDs, primaryWorkspaceID
+}
+
+// collectWorkspaceRoleGrants 收集工作台范围内启用成员关系上的启用角色并集（按角色
+// 去重）：范围由 workspaceMembershipScopeIDs 决定——总部工作台只取总部节点本身的
+// 成员关系角色，公司工作台聚合公司子树内全部成员关系角色。
+func collectWorkspaceRoleGrants(memberships []*ent.Membership, nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) []biz.RoleGrant {
+	scope := make(map[uuid.UUID]struct{})
+	for _, scopeID := range workspaceMembershipScopeIDs(nodes, workspaceID) {
+		scope[scopeID] = struct{}{}
+	}
+	roleGrants := make([]biz.RoleGrant, 0)
+	seenRoles := make(map[uuid.UUID]struct{})
+	for _, member := range memberships {
+		if _, inScope := scope[member.OrganizationID]; !inScope {
+			continue
+		}
+		for _, assignment := range member.Edges.RoleAssignments {
+			role, roleErr := assignment.Edges.RoleOrErr()
+			if roleErr != nil {
+				continue
+			}
+			grant, enabled := roleGrantFromEntRole(role)
+			if !enabled {
+				continue
+			}
+			if _, duplicated := seenRoles[grant.RoleID]; duplicated {
+				continue
+			}
+			seenRoles[grant.RoleID] = struct{}{}
+			roleGrants = append(roleGrants, grant)
+		}
+	}
+	return roleGrants
+}
+
+// loadEnabledMembershipRefs 查询用户「启用成员关系 × 启用组织」的最小投影。
+func (r *authRepo) loadEnabledMembershipRefs(ctx context.Context, client *ent.Client, userID uuid.UUID) ([]membershipRef, error) {
+	memberships, err := client.Membership.Query().
+		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return membershipRefsFromEnt(memberships), nil
+}
+
+// loadOrganizationTree 一次取全量组织（组织总量小）并返回实体列表，供工作台判定
+// 构建父子映射，避免逐层/N+1 查询。
+func (r *authRepo) loadOrganizationTree(ctx context.Context, client *ent.Client) ([]*ent.Organization, error) {
+	return client.Organization.Query().
+		Select(organization.FieldID, organization.FieldParentID, organization.FieldKind, organization.FieldCode, organization.FieldName, organization.FieldBaseCurrency, organization.FieldEnabled).
+		All(ctx)
+}
+
 func credentialFromAccount(account *ent.User, organizationID uuid.UUID) *biz.Credential {
-	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, PrimaryOrganizationID: organizationID}
+	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: organizationID}
 }
 
 func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz.DingTalkIdentity) (*ent.User, error) {
@@ -400,45 +586,83 @@ func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz
 	return update.Save(ctx)
 }
 
+// credentialForAccount 计算登录默认工作台：primary 成员关系所在组织向上取整到所属
+// 工作台节点（部门/小组 → 所属公司，总部 → 总部）；primary 缺失或其工作台不可用时
+// 回退第一个可用工作台。primary 标记语义不变，只影响默认落点。
 func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) (*biz.Credential, error) {
-	memberships, err := r.data.db.Membership.Query().Where(membership.UserIDEQ(account.ID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).WithOrganization().All(ctx)
+	refs, err := r.loadEnabledMembershipRefs(ctx, r.data.db, account.ID)
 	if err != nil {
 		return nil, err
 	}
-	if len(memberships) == 0 {
+	nodes, err := r.loadOrganizationTree(ctx, r.data.db)
+	if err != nil {
+		return nil, err
+	}
+	_, primaryWorkspaceID := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
+	if primaryWorkspaceID == uuid.Nil {
 		return nil, biz.ErrOrganizationForbidden
 	}
-	primaryID := memberships[0].OrganizationID
-	for _, member := range memberships {
-		if member.Primary {
-			primaryID = member.OrganizationID
-			break
-		}
-	}
-	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, PrimaryOrganizationID: primaryID}, nil
+	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: primaryWorkspaceID}, nil
 }
 
-// ListEnabledMembershipOrganizations 返回用户「启用中成员资格 × 组织启用中」的候选组织快照，
-// 供登录组织选择与应用内切换入口共用同一谓词；排序由 biz 统一处理。
+// ListEnabledMembershipOrganizations 返回普通用户的工作台候选快照，供登录组织选择与
+// 应用内切换入口共用同一谓词：总部节点要求本人在总部节点本身有启用成员关系；公司节点
+// 要求本人在该公司节点或其子树内任一启用节点有启用成员关系（部门/小组成员关系让所属
+// 公司成为候选）。候选均为启用中工作台节点，部门/团队任何情况下不进入候选。
+// IsDefault 按 primary 成员关系映射出的工作台标记，排序由 biz 统一处理。
 func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]biz.OrganizationChoice, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	memberships, err := client.Membership.Query().
-		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
-		WithOrganization().
-		All(ctx)
+	refs, err := r.loadEnabledMembershipRefs(ctx, client, userID)
 	if err != nil {
 		return nil, err
 	}
-	choices := make([]biz.OrganizationChoice, 0, len(memberships))
-	for _, member := range memberships {
-		org, edgeErr := member.Edges.OrganizationOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
+	nodes, err := r.loadOrganizationTree(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	organizationsByID := make(map[uuid.UUID]*ent.Organization, len(nodes))
+	for _, node := range nodes {
+		organizationsByID[node.ID] = node
+	}
+	workspaceIDs, primaryWorkspaceID := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
+	choices := make([]biz.OrganizationChoice, 0, len(workspaceIDs))
+	for _, workspaceID := range workspaceIDs {
+		org, ok := organizationsByID[workspaceID]
+		if !ok {
+			return nil, biz.ErrOrganizationForbidden
 		}
-		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: member.Primary})
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: workspaceID == primaryWorkspaceID})
+	}
+	return choices, nil
+}
+
+// ListEnabledOrganizations 返回全部启用中工作台节点（总部+公司）的候选快照，仅供
+// bootstrap 管理员的工作台穿透候选使用；部门/团队不是工作台，任何情况下不进入候选；
+// 普通用户候选仍由 ListEnabledMembershipOrganizations 的子树成员资格谓词提供。
+// IsDefault 按用户 primary 启用成员资格映射出的工作台标记，排序由 biz 统一处理。
+func (r *authRepo) ListEnabledOrganizations(ctx context.Context, userID uuid.UUID) ([]biz.OrganizationChoice, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	nodes, err := r.loadOrganizationTree(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	refs, err := r.loadEnabledMembershipRefs(ctx, client, userID)
+	if err != nil {
+		return nil, err
+	}
+	_, primaryWorkspaceID := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
+	choices := make([]biz.OrganizationChoice, 0, len(nodes))
+	for _, org := range nodes {
+		if !org.Enabled || !isWorkspaceKind(string(org.Kind)) {
+			continue
+		}
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: org.ID == primaryWorkspaceID})
 	}
 	return choices, nil
 }
@@ -452,15 +676,16 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
-	nodes, err := client.Organization.Query().
-		Select(organization.FieldID, organization.FieldParentID, organization.FieldBaseCurrency, organization.FieldEnabled).
-		All(ctx)
+	nodes, err := r.loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
 	}
+	organizationsByID := make(map[uuid.UUID]*ent.Organization, len(nodes))
+	for _, node := range nodes {
+		organizationsByID[node.ID] = node
+	}
 	memberships, err := client.Membership.Query().
 		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
-		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
 			query.WithRole(func(roleQuery *ent.RoleQuery) {
 				roleQuery.Where(roleent.EnabledEQ(true)).WithPermissions()
@@ -470,39 +695,44 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	if err != nil {
 		return nil, err
 	}
-	organizations := make([]biz.Organization, 0, len(memberships))
+	var organizations []biz.Organization
 	roleGrants := make([]biz.RoleGrant, 0)
-	organizationsByID := make(map[uuid.UUID]*ent.Organization, len(nodes))
-	for _, node := range nodes {
-		organizationsByID[node.ID] = node
-	}
 	var current *biz.Organization
-	for _, member := range memberships {
-		org, edgeErr := member.Edges.OrganizationOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
+	if account.IsBootstrapAdmin {
+		// bootstrap 管理员按已批准的全组织穿透方案解析任意启用中工作台：候选组织为
+		// 全部启用中总部+公司节点；无成员关系时授权合成为等价 administrator 的全量授权投影。
+		organizations, current, roleGrants, err = resolveBootstrapAdminPrincipalView(ctx, client, nodes, organizationsByID, organizationID)
+		if err != nil {
+			return nil, err
 		}
-		baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(org, organizationsByID)
+	} else {
+		// 普通用户按工作台口径解析：候选 = 成员关系向上取整出的启用工作台集合；
+		// 会话工作区必须落在候选内，角色按工作台范围收集（总部只取总部节点本身，
+		// 公司聚合公司子树），公司之间互不泄漏。
+		nodeMap := authOrganizationNodes(nodes)
+		workspaceIDs, _ := resolveMembershipWorkspaces(membershipRefsFromEnt(memberships), nodeMap)
+		organizations = make([]biz.Organization, 0, len(workspaceIDs))
+		for _, workspaceID := range workspaceIDs {
+			org, ok := organizationsByID[workspaceID]
+			if !ok {
+				return nil, biz.ErrOrganizationForbidden
+			}
+			baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(org, organizationsByID)
+			if currencyErr != nil {
+				return nil, currencyErr
+			}
+			organizations = append(organizations, biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name, BaseCurrency: baseCurrency})
+		}
+		if !slices.Contains(workspaceIDs, organizationID) {
+			return nil, biz.ErrOrganizationForbidden
+		}
+		target := organizationsByID[organizationID]
+		baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(target, organizationsByID)
 		if currencyErr != nil {
 			return nil, currencyErr
 		}
-		organizationView := biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name, BaseCurrency: baseCurrency}
-		organizations = append(organizations, organizationView)
-		if org.ID != organizationID {
-			continue
-		}
-		current = &organizationView
-		for _, assignment := range member.Edges.RoleAssignments {
-			role, roleErr := assignment.Edges.RoleOrErr()
-			if roleErr != nil {
-				continue
-			}
-			grant, enabled := roleGrantFromEntRole(role)
-			if !enabled {
-				continue
-			}
-			roleGrants = append(roleGrants, grant)
-		}
+		current = &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency}
+		roleGrants = collectWorkspaceRoleGrants(memberships, nodeMap, organizationID)
 	}
 	if current == nil {
 		return nil, biz.ErrOrganizationForbidden
@@ -522,6 +752,52 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		return organizationNodes[i].ID.String() < organizationNodes[j].ID.String()
 	})
 	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, RoleGrants: roleGrants, OrganizationNodes: organizationNodes}, nil
+}
+
+// resolveBootstrapAdminPrincipalView 构建 bootstrap 管理员的主体投影：候选组织为全部
+// 启用中工作台节点（总部+公司）；目标组织仅要求是启用中的工作台节点（不要求成员关系，
+// 部门/团队不是工作台）。授权合成为等价 administrator 的全量授权，只存在于本次内存
+// 投影，不写库、不改角色与权限数据。
+func resolveBootstrapAdminPrincipalView(ctx context.Context, client *ent.Client, nodes []*ent.Organization, organizationsByID map[uuid.UUID]*ent.Organization, organizationID uuid.UUID) ([]biz.Organization, *biz.Organization, []biz.RoleGrant, error) {
+	target, ok := organizationsByID[organizationID]
+	if !ok || !target.Enabled || !isWorkspaceKind(string(target.Kind)) {
+		return nil, nil, nil, biz.ErrOrganizationForbidden
+	}
+	organizations := make([]biz.Organization, 0, len(nodes))
+	for _, node := range nodes {
+		if !node.Enabled || !isWorkspaceKind(string(node.Kind)) {
+			continue
+		}
+		baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(node, organizationsByID)
+		if currencyErr != nil {
+			return nil, nil, nil, currencyErr
+		}
+		organizations = append(organizations, biz.Organization{ID: node.ID, Code: node.Code, Name: node.Name, BaseCurrency: baseCurrency})
+	}
+	baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(target, organizationsByID)
+	if currencyErr != nil {
+		return nil, nil, nil, currencyErr
+	}
+	current := &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency}
+	roleGrants, err := bootstrapAdminRoleGrants(ctx, client)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return organizations, current, roleGrants, nil
+}
+
+// bootstrapAdminRoleGrants 为 bootstrap 管理员合成等价 administrator 的授权投影：
+// 最宽数据范围 + permissions 表全量权限键。仅在内存 Principal 中生效，不落库。
+func bootstrapAdminRoleGrants(ctx context.Context, client *ent.Client) ([]biz.RoleGrant, error) {
+	keys, err := client.Permission.Query().Select(permission.FieldKey).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	permissions := make(map[string]struct{}, len(keys))
+	for _, item := range keys {
+		permissions[item.Key] = struct{}{}
+	}
+	return []biz.RoleGrant{{RoleCode: "administrator", DataScope: biz.DataScopeAll, Permissions: permissions}}, nil
 }
 
 func resolvePrincipalOrganizationBaseCurrency(item *ent.Organization, organizationsByID map[uuid.UUID]*ent.Organization) (string, error) {
@@ -580,23 +856,63 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
 }
 
-// RotateSession 在同一事务内完成会话令牌轮转：校验目标成员资格（ForShare）→ 锁定当前
+// RotateSession 在同一事务内完成会话令牌轮转：校验目标准入（ForShare）→ 锁定当前
 // 会话行（ForUpdate）→ 新建目标组织会话（沿用当前会话的 UA/IP）→ 失效旧令牌 → 写审计。
-// 只轮转当前令牌，同一用户其他设备的会话不受影响。
+// 普通用户准入 = 目标为启用中工作台节点，且总部要求本人总部启用成员关系、公司要求本人
+// 于公司子树内任一启用节点有启用成员关系（子树口径）；bootstrap 管理员按工作台穿透方案
+// 只复核目标为启用中总部/公司节点。只轮转当前令牌，同一用户其他设备的会话不受影响。
 func (r *authRepo) RotateSession(ctx context.Context, tokenHash string, next *biz.Session, now time.Time, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		// 事务内复核成员资格，防止校验与轮转之间成员资格被停用（TOCTOU）。
-		exists, queryErr := tx.Membership.Query().Where(
-			membership.UserIDEQ(next.UserID),
-			membership.OrganizationIDEQ(next.OrganizationID),
-			membership.EnabledEQ(true),
-			membership.HasOrganizationWith(organization.EnabledEQ(true)),
-		).ForShare().Exist(ctx)
+		// 事务内复核准入，防止校验与轮转之间资格被停用（TOCTOU）。
+		isBootstrap, queryErr := tx.User.Query().
+			Where(user.IDEQ(next.UserID), user.EnabledEQ(true), user.IsBootstrapAdminEQ(true)).
+			Exist(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
-		if !exists {
-			return biz.ErrAuthOrganizationForbidden
+		if isBootstrap {
+			enabled, orgErr := tx.Organization.Query().
+				Where(organization.IDEQ(next.OrganizationID), organization.EnabledEQ(true), organization.KindIn(organization.KindHeadquarters, organization.KindCompany)).
+				ForShare().Exist(ctx)
+			if orgErr != nil {
+				return orgErr
+			}
+			if !enabled {
+				return biz.ErrAuthOrganizationForbidden
+			}
+		} else {
+			// 普通用户复核目标工作台：部门/团队不是工作台；总部与公司按各自口径复核。
+			target, orgErr := tx.Organization.Query().
+				Where(organization.IDEQ(next.OrganizationID), organization.EnabledEQ(true), organization.KindIn(organization.KindHeadquarters, organization.KindCompany)).
+				ForShare().Only(ctx)
+			if ent.IsNotFound(orgErr) {
+				return biz.ErrAuthOrganizationForbidden
+			}
+			if orgErr != nil {
+				return orgErr
+			}
+			treeNodes, treeErr := tx.Organization.Query().
+				Select(organization.FieldID, organization.FieldParentID, organization.FieldKind).
+				All(ctx)
+			if treeErr != nil {
+				return treeErr
+			}
+			scopeIDs := workspaceMembershipScopeIDs(authOrganizationNodes(treeNodes), target.ID)
+			if len(scopeIDs) == 0 {
+				return biz.ErrAuthOrganizationForbidden
+			}
+			exists, memberErr := tx.Membership.Query().Where(
+				membership.UserIDEQ(next.UserID),
+				membership.EnabledEQ(true),
+				membership.OrganizationIDIn(scopeIDs...),
+				membership.HasOrganizationWith(organization.EnabledEQ(true)),
+			).ForShare().Exist(ctx)
+			if memberErr != nil {
+				return memberErr
+			}
+			if !exists {
+				return biz.ErrAuthOrganizationForbidden
+			}
 		}
 		current, queryErr := tx.Session.Query().Where(
 			sessionent.TokenHashEQ(tokenHash),

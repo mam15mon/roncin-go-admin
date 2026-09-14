@@ -23,9 +23,15 @@ func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]
 		return nil, err
 	}
 	sort.Slice(items, func(i, j int) bool { return items[i].Code < items[j].Code })
+	counts, err := roleAssignmentCounts(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]*biz.AdminRole, 0, len(items))
 	for _, item := range items {
-		result = append(result, roleToBiz(item))
+		roleItem := roleToBiz(item)
+		roleItem.AssignmentsCount = counts[item.ID]
+		result = append(result, roleItem)
 	}
 	return result, nil
 }
@@ -38,7 +44,64 @@ func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminRoleNotFound, nil)
 	}
-	return roleToBiz(item), nil
+	roleItem := roleToBiz(item)
+	counts, err := roleAssignmentCounts(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	roleItem.AssignmentsCount = counts[item.ID]
+	return roleItem, nil
+}
+
+// roleAssignmentCounts 一次性统计组织内各角色被分配到的成员关系数量，
+// 供列表展示与删除前置判断使用，避免逐角色 N+1 查询。
+func roleAssignmentCounts(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (map[uuid.UUID]int, error) {
+	rows := make([]struct {
+		RoleID uuid.UUID `json:"role_id"`
+		Count  int       `json:"count"`
+	}, 0)
+	if err := client.RoleAssignment.Query().
+		Where(roleassignment.HasRoleWith(role.OrganizationIDEQ(organizationID))).
+		GroupBy(roleassignment.FieldRoleID).
+		Aggregate(ent.As(ent.Count(), "count")).
+		Scan(ctx, &rows); err != nil {
+		return nil, err
+	}
+	counts := make(map[uuid.UUID]int, len(rows))
+	for _, row := range rows {
+		counts[row.RoleID] = row.Count
+	}
+	return counts, nil
+}
+
+// DeleteRole 在同一事务内删除角色：锁定角色行（ForUpdate，与并发分配的成员关系外键
+// 校验互斥）→ 复核成员关系分配数（防止业务校验与删除之间新增分配）→ 清除角色权限
+// 关联 → 删除角色 → 写审计。仍被其他数据引用时统一映射为业务错误。
+func (r *adminRepo) DeleteRole(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.Role.Query().
+			Where(role.IDEQ(id), role.OrganizationIDEQ(organizationID)).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrAdminRoleNotFound, nil)
+		}
+		assignments, countErr := tx.RoleAssignment.Query().Where(roleassignment.RoleIDEQ(current.ID)).Count(ctx)
+		if countErr != nil {
+			return countErr
+		}
+		if assignments > 0 {
+			return biz.ErrAdminRoleAssigned
+		}
+		if _, clearErr := tx.Role.UpdateOneID(current.ID).ClearPermissions().Save(ctx); clearErr != nil {
+			return clearErr
+		}
+		if _, deleteErr := tx.Role.Delete().Where(role.IDEQ(current.ID)).Exec(ctx); deleteErr != nil {
+			return mapEntError(deleteErr, nil, biz.ErrAdminRoleInUse)
+		}
+		audit.Details["resource_id"] = current.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {

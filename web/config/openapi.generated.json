@@ -634,6 +634,34 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_DeleteRole",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.DeleteRoleResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/admin/users": {
@@ -12387,6 +12415,11 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "assignmentsCount": {
+            "type": "integer",
+            "description": "该角色被分配到的成员关系数量；前端据此禁用删除入口。",
+            "format": "int32"
           }
         }
       },
@@ -12913,6 +12946,24 @@
           },
           "data": {
             "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.DeleteRoleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"

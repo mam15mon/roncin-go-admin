@@ -1,4 +1,5 @@
 import {
+  DeleteOutlined,
   EditOutlined,
   KeyOutlined,
   PlusOutlined,
@@ -12,10 +13,11 @@ import type {
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Space, Tag, Tooltip } from 'antd';
+import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import {
+  adminServiceDeleteRole,
   adminServiceListPermissions,
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
@@ -87,6 +89,15 @@ export default function RolesPanel() {
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
     setModalOpen(true);
+  };
+
+  // 删除失败时由全局错误处理器展示后端中文原因（如角色已分配成员），
+  // 这里只处理成功分支并刷新列表。
+  const handleDeleteRole = async (role: API.AdminRole) => {
+    if (!role.id) return;
+    await adminServiceDeleteRole({ id: role.id });
+    message.success(`角色「${role.name || role.code}」已删除`);
+    actionRef.current?.reload();
   };
 
   const columns: ProColumns<API.AdminRole>[] = [
@@ -217,20 +228,63 @@ export default function RolesPanel() {
     {
       title: '操作',
       valueType: 'option',
-      width: 120,
-      render: (_, role) => [
-        access.canUpdateRoles && canConfigureRoles ? (
-          <Button
-            key="edit"
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openEdit(role)}
-          >
-            编辑
-          </Button>
-        ) : null,
-      ],
+      width: 170,
+      render: (_, role) => {
+        const assignedCount = role.assignmentsCount ?? 0;
+        const canDelete =
+          access.canDeleteRoles &&
+          canConfigureRoles &&
+          role.code !== 'administrator';
+        return [
+          access.canUpdateRoles && canConfigureRoles ? (
+            <Button
+              key="edit"
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => openEdit(role)}
+            >
+              编辑
+            </Button>
+          ) : null,
+          canDelete ? (
+            <Popconfirm
+              key="delete"
+              title="删除角色"
+              description={`确认删除角色「${role.name || role.code}」？删除后不可恢复。`}
+              okText="确认删除"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => handleDeleteRole(role)}
+            >
+              {assignedCount > 0 ? (
+                <Tooltip title="该角色已分配成员，请先移除后重试">
+                  <span>
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      disabled
+                      icon={<DeleteOutlined />}
+                    >
+                      删除
+                    </Button>
+                  </span>
+                </Tooltip>
+              ) : (
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                >
+                  删除
+                </Button>
+              )}
+            </Popconfirm>
+          ) : null,
+        ];
+      },
     },
   ];
 

@@ -21,6 +21,7 @@ const permissions = {
   roleRead: 'system.role.read',
   roleCreate: 'system.role.create',
   roleUpdate: 'system.role.update',
+  roleDelete: 'system.role.delete',
   permissionRead: 'system.permission.read',
   auditRead: 'system.audit.read',
   financeExchangeRateRead: 'system.finance.exchange_rate.read',
@@ -175,6 +176,7 @@ export default function access(
     canReadRoles: has(permissions.roleRead) && inOrganization,
     canCreateRoles: has(permissions.roleCreate) && inOrganization,
     canUpdateRoles: has(permissions.roleUpdate) && inOrganization,
+    canDeleteRoles: has(permissions.roleDelete) && inOrganization,
     canReadPermissions: has(permissions.permissionRead) && inOrganization,
     canReadAudit: has(permissions.auditRead) && inOrganization,
     canReadExchangeRates:
@@ -345,7 +347,8 @@ export default function access(
       result.canAuthorizeDingTalkUsers ||
       result.canManageDingTalkInvitations ||
       result.canResetUserPasswords,
-    canManageRoles: result.canCreateRoles || result.canUpdateRoles,
+    canManageRoles:
+      result.canCreateRoles || result.canUpdateRoles || result.canDeleteRoles,
     canManagePartners:
       result.canCreatePartners ||
       result.canUpdatePartners ||

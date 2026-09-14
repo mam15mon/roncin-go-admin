@@ -136,6 +136,11 @@ service AdminService {
     };
   }
 
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.delete" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {delete: "/api/v1/admin/roles/{id}"};
+  }
+
   rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.permission.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/permissions"};
@@ -523,6 +528,8 @@ message AdminRole {
   repeated string permission_keys = 7;
   string created_at = 8;
   string updated_at = 9;
+  // 该角色被分配到的成员关系数量；前端据此禁用删除入口。
+  int32 assignments_count = 10;
 }
 
 message ListRolesResponse {
@@ -555,6 +562,17 @@ message UpdateRoleResponse {
   string message = 3;
   AdminRole data = 4;
   string trace_id = 5;
+}
+
+message DeleteRoleRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteRoleResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
 }
 
 message ListPermissionsRequest {}

@@ -53,6 +53,10 @@ func (s *authServiceRepoStub) ListEnabledMembershipOrganizations(context.Context
 	return s.choices, nil
 }
 
+func (s *authServiceRepoStub) ListEnabledOrganizations(context.Context, uuid.UUID) ([]biz.OrganizationChoice, error) {
+	return s.choices, nil
+}
+
 func (s *authServiceRepoStub) ResolvePrincipal(_ context.Context, userID, organizationID uuid.UUID) (*biz.Principal, error) {
 	if principal, ok := s.principalsByOrg[organizationID]; ok {
 		return principal, nil

@@ -25,6 +25,7 @@ const OperationAdminServiceCreateOrganization = "/admin.v1.AdminService/CreateOr
 const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
 const OperationAdminServiceCreateUser = "/admin.v1.AdminService/CreateUser"
 const OperationAdminServiceCreateUserMembership = "/admin.v1.AdminService/CreateUserMembership"
+const OperationAdminServiceDeleteRole = "/admin.v1.AdminService/DeleteRole"
 const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/DeleteUserMembership"
 const OperationAdminServiceGetDingTalkInvitation = "/admin.v1.AdminService/GetDingTalkInvitation"
 const OperationAdminServiceListAuditLogs = "/admin.v1.AdminService/ListAuditLogs"
@@ -58,6 +59,7 @@ type AdminServiceHTTPServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
+	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	// GetDingTalkInvitation GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
 	GetDingTalkInvitation(context.Context, *GetDingTalkInvitationRequest) (*GetDingTalkInvitationResponse, error)
@@ -106,6 +108,7 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/admin/organizations/{organization_id}/roles", _AdminService_ListOrganizationRoles0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/roles", _AdminService_CreateRole0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/roles/{id}", _AdminService_UpdateRole0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/api/v1/admin/roles/{id}", _AdminService_DeleteRole0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/permissions", _AdminService_ListPermissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/audit-logs", _AdminService_ListAuditLogs0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/dingtalk/invitations", _AdminService_CreateDingTalkInvitation0_HTTP_Handler(srv))
@@ -497,6 +500,28 @@ func _AdminService_UpdateRole0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 	}
 }
 
+func _AdminService_DeleteRole0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteRoleRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceDeleteRole)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteRole(ctx, req.(*DeleteRoleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteRoleResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AdminService_ListPermissions0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListPermissionsRequest
@@ -732,6 +757,7 @@ type AdminServiceHTTPClient interface {
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserResponse, err error)
 	CreateUserMembership(ctx context.Context, req *CreateUserMembershipRequest, opts ...http.CallOption) (rsp *CreateUserMembershipResponse, err error)
+	DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ...http.CallOption) (rsp *DeleteRoleResponse, err error)
 	DeleteUserMembership(ctx context.Context, req *DeleteUserMembershipRequest, opts ...http.CallOption) (rsp *DeleteUserMembershipResponse, err error)
 	// GetDingTalkInvitation GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
 	GetDingTalkInvitation(ctx context.Context, req *GetDingTalkInvitationRequest, opts ...http.CallOption) (rsp *GetDingTalkInvitationResponse, err error)
@@ -900,6 +926,22 @@ func (c *AdminServiceHTTPClientImpl) CreateUserMembership(ctx context.Context, i
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AdminServiceHTTPClientImpl) DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...http.CallOption) (*DeleteRoleResponse, error) {
+	var out DeleteRoleResponse
+	pattern := "/api/v1/admin/roles/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceDeleteRole),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

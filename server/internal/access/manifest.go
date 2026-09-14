@@ -31,6 +31,7 @@ const (
 	RoleRead                     = "system.role.read"
 	RoleCreate                   = "system.role.create"
 	RoleUpdate                   = "system.role.update"
+	RoleDelete                   = "system.role.delete"
 	PermissionRead               = "system.permission.read"
 	AuditRead                    = "system.audit.read"
 	FinanceExchangeRateRead      = "system.finance.exchange_rate.read"
@@ -198,6 +199,7 @@ var manifest = append([]Permission{
 	{Key: RoleRead, Name: "查看角色", Group: "系统管理 · 角色与权限", Description: "查看角色、权限和数据范围", Requires: []string{PermissionRead, OrganizationRead}},
 	{Key: RoleCreate, Name: "新建角色", Group: "系统管理 · 角色与权限", Description: "新建角色并配置权限和数据范围", Requires: []string{RoleRead}},
 	{Key: RoleUpdate, Name: "编辑角色", Group: "系统管理 · 角色与权限", Description: "修改角色、权限和数据范围", Requires: []string{RoleRead}},
+	{Key: RoleDelete, Name: "删除角色", Group: "系统管理 · 角色与权限", Description: "删除未被成员关系引用的角色", Requires: []string{RoleRead}},
 	{Key: PermissionRead, Name: "查看权限字典", Group: "系统管理 · 角色与权限", Description: "查看系统功能权限字典"},
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理 · 审计", Description: "查看安全与业务操作审计"},
 	{Key: TaskRead, Name: "查看后台任务", Group: "系统管理 · 后台任务", Description: "查看后台任务执行状态"},
