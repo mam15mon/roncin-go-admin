@@ -26,7 +26,8 @@ func (r *exchangeRateRepo) InspectImport(ctx context.Context, ownerOrganizationI
 	if err != nil {
 		return nil, err
 	}
-	existing, err := client.ExchangeRateSetting.Query().Where(exchangerateent.OrganizationIDEQ(ownerOrganizationID), exchangerateent.IsActiveEQ(true)).All(ctx)
+	// 阶段一导入只落基线行，重叠比对也限定在基线域。
+	existing, err := client.ExchangeRateSetting.Query().Where(exchangerateent.OrganizationIDIsNil(), exchangerateent.IsActiveEQ(true)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +113,8 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 	if err != nil {
 		return nil, err
 	}
-	lockKeys := exchangeRateImportLockKeys(ownerOrganizationID, rows)
+	// 导入只写基线行，advisory 锁与 save 路径保持同域。
+	lockKeys := exchangeRateImportLockKeys(rows)
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -161,7 +163,7 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 		if len(rows) != current.TotalCount || current.ValidCount != current.TotalCount {
 			return biz.ErrExchangeRateImportStale
 		}
-		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, ownerOrganizationID, rows); validateErr != nil {
+		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, rows); validateErr != nil {
 			return validateErr
 		}
 		builders := make([]*ent.ExchangeRateSettingCreate, 0, len(rows))
@@ -170,7 +172,8 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 			if parseErr != nil {
 				return biz.ErrExchangeRateImportStale
 			}
-			builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).SetOrganizationID(ownerOrganizationID).
+			// 阶段一导入只落基线行（organization_id IS NULL）；组织行导入随阶段二开放。
+			builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).
 				SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
 				SetEffectiveFrom(effectiveFrom).SetRate(row.Rate).SetIsActive(true)
 			if row.EffectiveTo != nil {
@@ -230,7 +233,7 @@ func (r *exchangeRateRepo) enabledExchangeRateCurrencies(ctx context.Context, ro
 	return result, nil
 }
 
-func validateExchangeRateImportRowsInTx(ctx context.Context, tx *ent.Tx, ownerOrganizationID uuid.UUID, rows []*biz.ExchangeRateImportRow) error {
+func validateExchangeRateImportRowsInTx(ctx context.Context, tx *ent.Tx, rows []*biz.ExchangeRateImportRow) error {
 	codes := make(map[string]struct{})
 	for _, row := range rows {
 		if row == nil || row.Status != biz.ExchangeRateImportRowValid || row.SettingID == uuid.Nil {
@@ -252,7 +255,7 @@ func validateExchangeRateImportRowsInTx(ctx context.Context, tx *ent.Tx, ownerOr
 	for _, row := range rows {
 		effectiveFrom, _ := parseExchangeRateStorageTime(row.EffectiveFrom)
 		query := tx.ExchangeRateSetting.Query().Where(
-			exchangerateent.OrganizationIDEQ(ownerOrganizationID),
+			exchangerateent.OrganizationIDIsNil(),
 			exchangerateent.FromCurrencyEQ(row.FromCurrency), exchangerateent.ToCurrencyEQ(row.ToCurrency), exchangerateent.IsActiveEQ(true),
 			exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
 		)
@@ -297,11 +300,11 @@ func exchangeRateImportOverlapsExisting(row *biz.ExchangeRateImportRow, existing
 	return false
 }
 
-func exchangeRateImportLockKeys(ownerOrganizationID uuid.UUID, rows []*biz.ExchangeRateImportRow) []string {
+func exchangeRateImportLockKeys(rows []*biz.ExchangeRateImportRow) []string {
 	set := make(map[string]struct{})
 	for _, row := range rows {
 		if row != nil {
-			key := fmt.Sprintf("exchange-rate:%s:%s:%s", ownerOrganizationID, row.FromCurrency, row.ToCurrency)
+			key := fmt.Sprintf("exchange-rate:%s:%s:%s", "baseline", row.FromCurrency, row.ToCurrency)
 			set[key] = struct{}{}
 		}
 	}

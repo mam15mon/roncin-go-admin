@@ -27,7 +27,7 @@ type FeeSetting struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
+	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
 	// FeeCode holds the value of the "fee_code" field.
 	FeeCode string `json:"fee_code,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
@@ -36,8 +36,8 @@ type FeeSetting struct {
 	NameEn *string `json:"name_en,omitempty"`
 	// AliasName holds the value of the "alias_name" field.
 	AliasName *string `json:"alias_name,omitempty"`
-	// ServiceTypeID holds the value of the "service_type_id" field.
-	ServiceTypeID *uuid.UUID `json:"service_type_id,omitempty"`
+	// ChargeCategoryID holds the value of the "charge_category_id" field.
+	ChargeCategoryID uuid.UUID `json:"charge_category_id,omitempty"`
 	// DefaultCurrency holds the value of the "default_currency" field.
 	DefaultCurrency string `json:"default_currency,omitempty"`
 	// BillingUnitID holds the value of the "billing_unit_id" field.
@@ -64,8 +64,8 @@ type FeeSetting struct {
 type FeeSettingEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
-	// ServiceType holds the value of the service_type edge.
-	ServiceType *MasterDataItem `json:"service_type,omitempty"`
+	// ChargeCategory holds the value of the charge_category edge.
+	ChargeCategory *MasterDataItem `json:"charge_category,omitempty"`
 	// BillingUnit holds the value of the billing_unit edge.
 	BillingUnit *BillingUnit `json:"billing_unit,omitempty"`
 	// AbnormalCase holds the value of the abnormal_case edge.
@@ -90,15 +90,15 @@ func (e FeeSettingEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
-// ServiceTypeOrErr returns the ServiceType value or an error if the edge
+// ChargeCategoryOrErr returns the ChargeCategory value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FeeSettingEdges) ServiceTypeOrErr() (*MasterDataItem, error) {
-	if e.ServiceType != nil {
-		return e.ServiceType, nil
+func (e FeeSettingEdges) ChargeCategoryOrErr() (*MasterDataItem, error) {
+	if e.ChargeCategory != nil {
+		return e.ChargeCategory, nil
 	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: masterdataitem.Label}
 	}
-	return nil, &NotLoadedError{edge: "service_type"}
+	return nil, &NotLoadedError{edge: "charge_category"}
 }
 
 // BillingUnitOrErr returns the BillingUnit value or an error if the edge
@@ -148,7 +148,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case feesetting.FieldServiceTypeID, feesetting.FieldAbnormalCaseID:
+		case feesetting.FieldOrganizationID, feesetting.FieldAbnormalCaseID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case feesetting.FieldEnabled:
 			values[i] = new(sql.NullBool)
@@ -158,7 +158,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case feesetting.FieldCreatedAt, feesetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case feesetting.FieldID, feesetting.FieldOrganizationID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
+		case feesetting.FieldID, feesetting.FieldChargeCategoryID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -194,10 +194,11 @@ func (_m *FeeSetting) assignValues(columns []string, values []any) error {
 				_m.UpdatedAt = value.Time
 			}
 		case feesetting.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
+			} else if value.Valid {
+				_m.OrganizationID = new(uuid.UUID)
+				*_m.OrganizationID = *value.S.(*uuid.UUID)
 			}
 		case feesetting.FieldFeeCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -225,12 +226,11 @@ func (_m *FeeSetting) assignValues(columns []string, values []any) error {
 				_m.AliasName = new(string)
 				*_m.AliasName = value.String
 			}
-		case feesetting.FieldServiceTypeID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field service_type_id", values[i])
-			} else if value.Valid {
-				_m.ServiceTypeID = new(uuid.UUID)
-				*_m.ServiceTypeID = *value.S.(*uuid.UUID)
+		case feesetting.FieldChargeCategoryID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field charge_category_id", values[i])
+			} else if value != nil {
+				_m.ChargeCategoryID = *value
 			}
 		case feesetting.FieldDefaultCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -299,9 +299,9 @@ func (_m *FeeSetting) QueryOrganization() *OrganizationQuery {
 	return NewFeeSettingClient(_m.config).QueryOrganization(_m)
 }
 
-// QueryServiceType queries the "service_type" edge of the FeeSetting entity.
-func (_m *FeeSetting) QueryServiceType() *MasterDataItemQuery {
-	return NewFeeSettingClient(_m.config).QueryServiceType(_m)
+// QueryChargeCategory queries the "charge_category" edge of the FeeSetting entity.
+func (_m *FeeSetting) QueryChargeCategory() *MasterDataItemQuery {
+	return NewFeeSettingClient(_m.config).QueryChargeCategory(_m)
 }
 
 // QueryBillingUnit queries the "billing_unit" edge of the FeeSetting entity.
@@ -353,8 +353,10 @@ func (_m *FeeSetting) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	if v := _m.OrganizationID; v != nil {
+		builder.WriteString("organization_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("fee_code=")
 	builder.WriteString(_m.FeeCode)
@@ -372,10 +374,8 @@ func (_m *FeeSetting) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	if v := _m.ServiceTypeID; v != nil {
-		builder.WriteString("service_type_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("charge_category_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ChargeCategoryID))
 	builder.WriteString(", ")
 	builder.WriteString("default_currency=")
 	builder.WriteString(_m.DefaultCurrency)

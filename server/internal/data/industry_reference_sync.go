@@ -9,7 +9,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -74,68 +73,50 @@ type IndustryReferenceSyncResult struct {
 	Disabled int
 }
 
+// IndustryReferenceSyncStore 行业参考大数据同步存储。A 型实体（航司/船司）直写全局行，
+// B 型实体（港口/机场）直写基线行（organization_id IS NULL），不再解析目标组织。
 type IndustryReferenceSyncStore struct{ data *Data }
 
 func NewIndustryReferenceSyncStore(data *Data) *IndustryReferenceSyncStore {
 	return &IndustryReferenceSyncStore{data: data}
 }
 
-func (s *IndustryReferenceSyncStore) CheckAirlines(ctx context.Context, organizationCode, source string, rows []AirlineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return nil, err
-	}
-	items, err := s.data.db.Airline.Query().Where(airline.OrganizationIDEQ(organizationID)).All(ctx)
+func (s *IndustryReferenceSyncStore) CheckAirlines(ctx context.Context, source string, rows []AirlineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
+	items, err := s.data.db.Airline.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有航司失败: %w", err)
 	}
 	return airlineSyncConflicts(items, source, rows), nil
 }
 
-func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, organizationCode, source string, rows []AirportSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return nil, err
-	}
-	items, err := s.data.db.Airport.Query().Where(airport.OrganizationIDEQ(organizationID)).All(ctx)
+func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, source string, rows []AirportSyncRecord) ([]IndustryReferenceSyncConflict, error) {
+	items, err := s.data.db.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有机场失败: %w", err)
 	}
 	return airportSyncConflicts(items, source, rows), nil
 }
 
-func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, organizationCode, source string, rows []PortSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return nil, err
-	}
-	items, err := s.data.db.Port.Query().Where(port.OrganizationIDEQ(organizationID)).All(ctx)
+func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, source string, rows []PortSyncRecord) ([]IndustryReferenceSyncConflict, error) {
+	items, err := s.data.db.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有港口失败: %w", err)
 	}
 	return portSyncConflicts(items, source, rows), nil
 }
 
-func (s *IndustryReferenceSyncStore) CheckShippingLines(ctx context.Context, organizationCode, source string, rows []ShippingLineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return nil, err
-	}
-	items, err := s.data.db.ShippingLine.Query().Where(shippingline.OrganizationIDEQ(organizationID)).All(ctx)
+func (s *IndustryReferenceSyncStore) CheckShippingLines(ctx context.Context, source string, rows []ShippingLineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
+	items, err := s.data.db.ShippingLine.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有船公司失败: %w", err)
 	}
 	return shippingLineSyncConflicts(items, source, rows), nil
 }
 
-func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organizationCode, source, sourceVersion, sourceHash string, rows []AirportSyncRecord) (IndustryReferenceSyncResult, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return IndustryReferenceSyncResult{}, err
-	}
+func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, sourceVersion, sourceHash string, rows []AirportSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
-	err = s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.Airport.Query().Where(airport.OrganizationIDEQ(organizationID)).All(ctx)
+	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
+		items, queryErr := tx.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有机场失败: %w", queryErr)
 		}
@@ -143,7 +124,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organiza
 		if len(conflicts) > 0 {
 			return fmt.Errorf("机场同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.Airport.Update().Where(airport.OrganizationIDEQ(organizationID), airport.SourceEQ(source)).SetEnabled(false).ClearIcaoCode().Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Airport.Update().Where(airport.OrganizationIDIsNil(), airport.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧机场数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.Airport, len(items))
@@ -170,8 +151,8 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organiza
 				result.Updated++
 				continue
 			}
+			// 行业参考大数据是客观事实，同步直写基线行（NULL）。
 			create := tx.Airport.Create().
-				SetOrganizationID(organizationID).
 				SetIataCode(row.IATACode).
 				SetNillableIcaoCode(row.ICAOCode).
 				SetNameEn(row.NameEN).
@@ -187,7 +168,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organiza
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.Airport.Query().Where(airport.OrganizationIDEQ(organizationID), airport.SourceEQ(source), airport.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.Airport.Query().Where(airport.OrganizationIDIsNil(), airport.SourceEQ(source), airport.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用机场失败: %w", countErr)
 		}
@@ -199,14 +180,10 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organiza
 	return result, nil
 }
 
-func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, organizationCode, source, sourceVersion, sourceHash string, rows []AirlineSyncRecord) (IndustryReferenceSyncResult, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return IndustryReferenceSyncResult{}, err
-	}
+func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, source, sourceVersion, sourceHash string, rows []AirlineSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
-	err = s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.Airline.Query().Where(airline.OrganizationIDEQ(organizationID)).All(ctx)
+	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
+		items, queryErr := tx.Airline.Query().All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有航司失败: %w", queryErr)
 		}
@@ -214,7 +191,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, organiza
 		if len(conflicts) > 0 {
 			return fmt.Errorf("航司同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.Airline.Update().Where(airline.OrganizationIDEQ(organizationID), airline.SourceEQ(source)).SetEnabled(false).ClearIcaoCode().ClearAwbPrefix().Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Airline.Update().Where(airline.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧航司数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.Airline, len(items))
@@ -254,7 +231,6 @@ func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, organiza
 				continue
 			}
 			create := tx.Airline.Create().
-				SetOrganizationID(organizationID).
 				SetIataCode(row.IATACode).
 				SetNameEn(row.NameEN).
 				SetCountryCode(row.CountryCode).
@@ -279,7 +255,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, organiza
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.Airline.Query().Where(airline.OrganizationIDEQ(organizationID), airline.SourceEQ(source), airline.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.Airline.Query().Where(airline.SourceEQ(source), airline.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用航司失败: %w", countErr)
 		}
@@ -291,14 +267,10 @@ func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, organiza
 	return result, nil
 }
 
-func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizationCode, source, sourceVersion, sourceHash string, rows []PortSyncRecord) (IndustryReferenceSyncResult, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return IndustryReferenceSyncResult{}, err
-	}
+func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sourceVersion, sourceHash string, rows []PortSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
-	err = s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.Port.Query().Where(port.OrganizationIDEQ(organizationID)).All(ctx)
+	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
+		items, queryErr := tx.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有港口失败: %w", queryErr)
 		}
@@ -306,7 +278,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizatio
 		if len(conflicts) > 0 {
 			return fmt.Errorf("港口同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.Port.Update().Where(port.OrganizationIDEQ(organizationID), port.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Port.Update().Where(port.OrganizationIDIsNil(), port.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧港口数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.Port, len(items))
@@ -328,8 +300,8 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizatio
 				result.Updated++
 				continue
 			}
+			// 行业参考大数据是客观事实，同步直写基线行（NULL）。
 			if _, createErr := tx.Port.Create().
-				SetOrganizationID(organizationID).
 				SetUnLocode(row.UNLocode).
 				SetNameEn(row.NameEN).
 				SetCountryCode(row.CountryCode).
@@ -344,7 +316,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizatio
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.Port.Query().Where(port.OrganizationIDEQ(organizationID), port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.Port.Query().Where(port.OrganizationIDIsNil(), port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用港口失败: %w", countErr)
 		}
@@ -356,14 +328,10 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizatio
 	return result, nil
 }
 
-func (s *IndustryReferenceSyncStore) ApplyShippingLines(ctx context.Context, organizationCode, source string, rows []ShippingLineSyncRecord) (IndustryReferenceSyncResult, error) {
-	organizationID, err := s.organizationID(ctx, organizationCode)
-	if err != nil {
-		return IndustryReferenceSyncResult{}, err
-	}
+func (s *IndustryReferenceSyncStore) ApplyShippingLines(ctx context.Context, source string, rows []ShippingLineSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
-	err = s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.ShippingLine.Query().Where(shippingline.OrganizationIDEQ(organizationID)).All(ctx)
+	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
+		items, queryErr := tx.ShippingLine.Query().All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有船公司失败: %w", queryErr)
 		}
@@ -371,7 +339,7 @@ func (s *IndustryReferenceSyncStore) ApplyShippingLines(ctx context.Context, org
 		if len(conflicts) > 0 {
 			return fmt.Errorf("船公司同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.ShippingLine.Update().Where(shippingline.OrganizationIDEQ(organizationID), shippingline.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
+		if _, updateErr := tx.ShippingLine.Update().Where(shippingline.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧船公司数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.ShippingLine, len(items))
@@ -401,14 +369,13 @@ func (s *IndustryReferenceSyncStore) ApplyShippingLines(ctx context.Context, org
 				if _, delErr := tx.ShippingLineContainerPrefix.Delete().Where(shippinglinecontainerprefix.ShippingLineIDEQ(existing.ID)).Exec(ctx); delErr != nil {
 					return fmt.Errorf("清理船公司 %s 前缀失败: %w", row.SCACCode, delErr)
 				}
-				if err := replaceShippingLinePrefixes(ctx, tx, organizationID, existing.ID, row.ContainerPrefixes); err != nil {
+				if err := replaceShippingLinePrefixes(ctx, tx, existing.ID, row.ContainerPrefixes); err != nil {
 					return fmt.Errorf("更新船公司 %s 前缀失败: %w", row.SCACCode, err)
 				}
 				result.Updated++
 				continue
 			}
 			create := tx.ShippingLine.Create().
-				SetOrganizationID(organizationID).
 				SetScacCode(row.SCACCode).
 				SetNameZh(row.NameZH).
 				SetNameEn(row.NameEN).
@@ -426,13 +393,13 @@ func (s *IndustryReferenceSyncStore) ApplyShippingLines(ctx context.Context, org
 			if createErr != nil {
 				return fmt.Errorf("新增船公司 %s 失败: %w", row.SCACCode, createErr)
 			}
-			if err := replaceShippingLinePrefixes(ctx, tx, organizationID, created.ID, row.ContainerPrefixes); err != nil {
+			if err := replaceShippingLinePrefixes(ctx, tx, created.ID, row.ContainerPrefixes); err != nil {
 				return fmt.Errorf("新增船公司 %s 前缀失败: %w", row.SCACCode, err)
 			}
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.ShippingLine.Query().Where(shippingline.OrganizationIDEQ(organizationID), shippingline.SourceEQ(source), shippingline.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.ShippingLine.Query().Where(shippingline.SourceEQ(source), shippingline.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用船公司失败: %w", countErr)
 		}
@@ -507,17 +474,6 @@ func (s *IndustryReferenceSyncStore) ApplyAdministrativeRegions(ctx context.Cont
 		return IndustryReferenceSyncResult{}, err
 	}
 	return result, nil
-}
-
-func (s *IndustryReferenceSyncStore) organizationID(ctx context.Context, code string) ([16]byte, error) {
-	item, err := s.data.db.Organization.Query().Where(organization.CodeEQ(code), organization.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return [16]byte{}, fmt.Errorf("未找到启用的目标组织 %q", code)
-		}
-		return [16]byte{}, fmt.Errorf("查询目标组织失败: %w", err)
-	}
-	return item.ID, nil
 }
 
 func airlineSyncConflicts(items []*ent.Airline, source string, rows []AirlineSyncRecord) []IndustryReferenceSyncConflict {

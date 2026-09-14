@@ -95,6 +95,16 @@ func Rate(v string) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldRate, v))
 }
 
+// ArRate applies equality check predicate on the "ar_rate" field. It's identical to ArRateEQ.
+func ArRate(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldArRate, v))
+}
+
+// ApRate applies equality check predicate on the "ap_rate" field. It's identical to ApRateEQ.
+func ApRate(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldApRate, v))
+}
+
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldIsActive, v))
@@ -218,6 +228,16 @@ func OrganizationIDLT(v uuid.UUID) predicate.ExchangeRateSetting {
 // OrganizationIDLTE applies the LTE predicate on the "organization_id" field.
 func OrganizationIDLTE(v uuid.UUID) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldOrganizationID, v))
+}
+
+// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
+func OrganizationIDIsNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIsNull(FieldOrganizationID))
+}
+
+// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
+func OrganizationIDNotNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotNull(FieldOrganizationID))
 }
 
 // FromCurrencyEQ applies the EQ predicate on the "from_currency" field.
@@ -503,6 +523,156 @@ func RateEqualFold(v string) predicate.ExchangeRateSetting {
 // RateContainsFold applies the ContainsFold predicate on the "rate" field.
 func RateContainsFold(v string) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldRate, v))
+}
+
+// ArRateEQ applies the EQ predicate on the "ar_rate" field.
+func ArRateEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldArRate, v))
+}
+
+// ArRateNEQ applies the NEQ predicate on the "ar_rate" field.
+func ArRateNEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldArRate, v))
+}
+
+// ArRateIn applies the In predicate on the "ar_rate" field.
+func ArRateIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIn(FieldArRate, vs...))
+}
+
+// ArRateNotIn applies the NotIn predicate on the "ar_rate" field.
+func ArRateNotIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldArRate, vs...))
+}
+
+// ArRateGT applies the GT predicate on the "ar_rate" field.
+func ArRateGT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGT(FieldArRate, v))
+}
+
+// ArRateGTE applies the GTE predicate on the "ar_rate" field.
+func ArRateGTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldArRate, v))
+}
+
+// ArRateLT applies the LT predicate on the "ar_rate" field.
+func ArRateLT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLT(FieldArRate, v))
+}
+
+// ArRateLTE applies the LTE predicate on the "ar_rate" field.
+func ArRateLTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldArRate, v))
+}
+
+// ArRateContains applies the Contains predicate on the "ar_rate" field.
+func ArRateContains(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContains(FieldArRate, v))
+}
+
+// ArRateHasPrefix applies the HasPrefix predicate on the "ar_rate" field.
+func ArRateHasPrefix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldArRate, v))
+}
+
+// ArRateHasSuffix applies the HasSuffix predicate on the "ar_rate" field.
+func ArRateHasSuffix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldArRate, v))
+}
+
+// ArRateIsNil applies the IsNil predicate on the "ar_rate" field.
+func ArRateIsNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIsNull(FieldArRate))
+}
+
+// ArRateNotNil applies the NotNil predicate on the "ar_rate" field.
+func ArRateNotNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotNull(FieldArRate))
+}
+
+// ArRateEqualFold applies the EqualFold predicate on the "ar_rate" field.
+func ArRateEqualFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldArRate, v))
+}
+
+// ArRateContainsFold applies the ContainsFold predicate on the "ar_rate" field.
+func ArRateContainsFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldArRate, v))
+}
+
+// ApRateEQ applies the EQ predicate on the "ap_rate" field.
+func ApRateEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldApRate, v))
+}
+
+// ApRateNEQ applies the NEQ predicate on the "ap_rate" field.
+func ApRateNEQ(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldApRate, v))
+}
+
+// ApRateIn applies the In predicate on the "ap_rate" field.
+func ApRateIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIn(FieldApRate, vs...))
+}
+
+// ApRateNotIn applies the NotIn predicate on the "ap_rate" field.
+func ApRateNotIn(vs ...string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldApRate, vs...))
+}
+
+// ApRateGT applies the GT predicate on the "ap_rate" field.
+func ApRateGT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGT(FieldApRate, v))
+}
+
+// ApRateGTE applies the GTE predicate on the "ap_rate" field.
+func ApRateGTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldApRate, v))
+}
+
+// ApRateLT applies the LT predicate on the "ap_rate" field.
+func ApRateLT(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLT(FieldApRate, v))
+}
+
+// ApRateLTE applies the LTE predicate on the "ap_rate" field.
+func ApRateLTE(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldApRate, v))
+}
+
+// ApRateContains applies the Contains predicate on the "ap_rate" field.
+func ApRateContains(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContains(FieldApRate, v))
+}
+
+// ApRateHasPrefix applies the HasPrefix predicate on the "ap_rate" field.
+func ApRateHasPrefix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldApRate, v))
+}
+
+// ApRateHasSuffix applies the HasSuffix predicate on the "ap_rate" field.
+func ApRateHasSuffix(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldApRate, v))
+}
+
+// ApRateIsNil applies the IsNil predicate on the "ap_rate" field.
+func ApRateIsNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIsNull(FieldApRate))
+}
+
+// ApRateNotNil applies the NotNil predicate on the "ap_rate" field.
+func ApRateNotNil() predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotNull(FieldApRate))
+}
+
+// ApRateEqualFold applies the EqualFold predicate on the "ap_rate" field.
+func ApRateEqualFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldApRate, v))
+}
+
+// ApRateContainsFold applies the ContainsFold predicate on the "ap_rate" field.
+func ApRateContainsFold(v string) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldApRate, v))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

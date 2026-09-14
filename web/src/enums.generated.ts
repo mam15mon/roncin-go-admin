@@ -30,7 +30,7 @@ export const AdminDataScope = {
 
 export type AdminDataScope = (typeof AdminDataScope)[keyof typeof AdminDataScope];
 
-export const OrganizationKind = {
+export const AdminOrganizationKind = {
   ORGANIZATION_KIND_UNSPECIFIED: 0,
   ORGANIZATION_KIND_HEADQUARTERS: 1,
   ORGANIZATION_KIND_COMPANY: 2,
@@ -38,7 +38,7 @@ export const OrganizationKind = {
   ORGANIZATION_KIND_TEAM: 4,
 } as const;
 
-export type OrganizationKind = (typeof OrganizationKind)[keyof typeof OrganizationKind];
+export type AdminOrganizationKind = (typeof AdminOrganizationKind)[keyof typeof AdminOrganizationKind];
 
 export const AdminUserStatus = {
   ADMIN_USER_STATUS_UNSPECIFIED: 0,
@@ -76,6 +76,16 @@ export const DingTalkLoginStatus = {
 } as const;
 
 export type DingTalkLoginStatus = (typeof DingTalkLoginStatus)[keyof typeof DingTalkLoginStatus];
+
+export const AuthOrganizationKind = {
+  ORGANIZATION_KIND_UNSPECIFIED: 0,
+  ORGANIZATION_KIND_HEADQUARTERS: 1,
+  ORGANIZATION_KIND_COMPANY: 2,
+  ORGANIZATION_KIND_DEPARTMENT: 3,
+  ORGANIZATION_KIND_TEAM: 4,
+} as const;
+
+export type AuthOrganizationKind = (typeof AuthOrganizationKind)[keyof typeof AuthOrganizationKind];
 
 export const EnterpriseResourceType = {
   ENTERPRISE_RESOURCE_TYPE_UNSPECIFIED: 0,
@@ -243,7 +253,7 @@ export const MasterDataKind = {
   MASTER_DATA_KIND_COUNTRY: 2,
   MASTER_DATA_KIND_REGION: 3,
   MASTER_DATA_KIND_CONTAINER_SPEC: 7,
-  MASTER_DATA_KIND_SERVICE_TYPE: 8,
+  MASTER_DATA_KIND_CHARGE_CATEGORY: 8,
   MASTER_DATA_KIND_CARGO_CATEGORY: 9,
   MASTER_DATA_KIND_ABNORMAL_CASE: 10,
 } as const;

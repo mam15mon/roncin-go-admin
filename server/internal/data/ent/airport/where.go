@@ -236,6 +236,16 @@ func OrganizationIDNotIn(vs ...uuid.UUID) predicate.Airport {
 	return predicate.Airport(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
+// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
+func OrganizationIDIsNil() predicate.Airport {
+	return predicate.Airport(sql.FieldIsNull(FieldOrganizationID))
+}
+
+// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
+func OrganizationIDNotNil() predicate.Airport {
+	return predicate.Airport(sql.FieldNotNull(FieldOrganizationID))
+}
+
 // IataCodeEQ applies the EQ predicate on the "iata_code" field.
 func IataCodeEQ(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldEQ(FieldIataCode, v))

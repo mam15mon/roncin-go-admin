@@ -51,6 +51,12 @@ func (_u *PortUpdate) SetNillableOrganizationID(v *uuid.UUID) *PortUpdate {
 	return _u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *PortUpdate) ClearOrganizationID() *PortUpdate {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetNameZh sets the "name_zh" field.
 func (_u *PortUpdate) SetNameZh(v string) *PortUpdate {
 	_u.mutation.SetNameZh(v)
@@ -304,9 +310,6 @@ func (_u *PortUpdate) check() error {
 			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Port.source_hash": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Port.organization"`)
-	}
 	return nil
 }
 
@@ -438,6 +441,12 @@ func (_u *PortUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *PortUpdateOne 
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
+	return _u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *PortUpdateOne) ClearOrganizationID() *PortUpdateOne {
+	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -706,9 +715,6 @@ func (_u *PortUpdateOne) check() error {
 		if err := port.SourceHashValidator(v); err != nil {
 			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Port.source_hash": %w`, err)}
 		}
-	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Port.organization"`)
 	}
 	return nil
 }

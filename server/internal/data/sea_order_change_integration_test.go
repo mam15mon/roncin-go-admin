@@ -125,7 +125,6 @@ func newSplitTestEnv(t *testing.T) *splitTestEnv {
 		t.Fatalf("创建客户失败: %v", err)
 	}
 	carrier, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("TSTL").
 		SetNameZh("测试船公司").
 		SetNameEn("Test Shipping Line").
@@ -136,7 +135,6 @@ func newSplitTestEnv(t *testing.T) *splitTestEnv {
 		t.Fatalf("创建船公司失败: %v", err)
 	}
 	carrier2, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("TSNL").
 		SetNameZh("测试船公司二号").
 		SetNameEn("Test Shipping Line Two").
@@ -147,7 +145,6 @@ func newSplitTestEnv(t *testing.T) *splitTestEnv {
 		t.Fatalf("创建第二船公司失败: %v", err)
 	}
 	spec, err := data.db.MasterDataItem.Create().
-		SetOrganizationID(org.ID).
 		SetKind(masterdataitement.KindContainerSpec).
 		SetCode("40HQ").
 		SetName("40HQ超高箱").

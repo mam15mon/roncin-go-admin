@@ -59,6 +59,14 @@ func (_c *PortCreate) SetOrganizationID(v uuid.UUID) *PortCreate {
 	return _c
 }
 
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_c *PortCreate) SetNillableOrganizationID(v *uuid.UUID) *PortCreate {
+	if v != nil {
+		_c.SetOrganizationID(*v)
+	}
+	return _c
+}
+
 // SetUnLocode sets the "un_locode" field.
 func (_c *PortCreate) SetUnLocode(v string) *PortCreate {
 	_c.mutation.SetUnLocode(v)
@@ -285,9 +293,6 @@ func (_c *PortCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Port.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Port.organization_id"`)}
-	}
 	if _, ok := _c.mutation.UnLocode(); !ok {
 		return &ValidationError{Name: "un_locode", err: errors.New(`ent: missing required field "Port.un_locode"`)}
 	}
@@ -346,9 +351,6 @@ func (_c *PortCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Port.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Port.organization"`)}
 	}
 	return nil
 }
@@ -452,7 +454,7 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.OrganizationID = nodes[0]
+		_node.OrganizationID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -528,6 +530,12 @@ func (u *PortUpsert) SetOrganizationID(v uuid.UUID) *PortUpsert {
 // UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
 func (u *PortUpsert) UpdateOrganizationID() *PortUpsert {
 	u.SetExcluded(port.FieldOrganizationID)
+	return u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *PortUpsert) ClearOrganizationID() *PortUpsert {
+	u.SetNull(port.FieldOrganizationID)
 	return u
 }
 
@@ -754,6 +762,13 @@ func (u *PortUpsertOne) SetOrganizationID(v uuid.UUID) *PortUpsertOne {
 func (u *PortUpsertOne) UpdateOrganizationID() *PortUpsertOne {
 	return u.Update(func(s *PortUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *PortUpsertOne) ClearOrganizationID() *PortUpsertOne {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearOrganizationID()
 	})
 }
 
@@ -1171,6 +1186,13 @@ func (u *PortUpsertBulk) SetOrganizationID(v uuid.UUID) *PortUpsertBulk {
 func (u *PortUpsertBulk) UpdateOrganizationID() *PortUpsertBulk {
 	return u.Update(func(s *PortUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *PortUpsertBulk) ClearOrganizationID() *PortUpsertBulk {
+	return u.Update(func(s *PortUpsert) {
+		s.ClearOrganizationID()
 	})
 }
 

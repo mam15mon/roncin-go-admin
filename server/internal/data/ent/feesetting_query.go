@@ -31,7 +31,7 @@ type FeeSettingQuery struct {
 	inters             []Interceptor
 	predicates         []predicate.FeeSetting
 	withOrganization   *OrganizationQuery
-	withServiceType    *MasterDataItemQuery
+	withChargeCategory *MasterDataItemQuery
 	withBillingUnit    *BillingUnitQuery
 	withAbnormalCase   *MasterDataItemQuery
 	withTaxableService *TaxableServiceQuery
@@ -95,8 +95,8 @@ func (_q *FeeSettingQuery) QueryOrganization() *OrganizationQuery {
 	return query
 }
 
-// QueryServiceType chains the current query on the "service_type" edge.
-func (_q *FeeSettingQuery) QueryServiceType() *MasterDataItemQuery {
+// QueryChargeCategory chains the current query on the "charge_category" edge.
+func (_q *FeeSettingQuery) QueryChargeCategory() *MasterDataItemQuery {
 	query := (&MasterDataItemClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -109,7 +109,7 @@ func (_q *FeeSettingQuery) QueryServiceType() *MasterDataItemQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(feesetting.Table, feesetting.FieldID, selector),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.ServiceTypeTable, feesetting.ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.ChargeCategoryTable, feesetting.ChargeCategoryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -398,7 +398,7 @@ func (_q *FeeSettingQuery) Clone() *FeeSettingQuery {
 		inters:             append([]Interceptor{}, _q.inters...),
 		predicates:         append([]predicate.FeeSetting{}, _q.predicates...),
 		withOrganization:   _q.withOrganization.Clone(),
-		withServiceType:    _q.withServiceType.Clone(),
+		withChargeCategory: _q.withChargeCategory.Clone(),
 		withBillingUnit:    _q.withBillingUnit.Clone(),
 		withAbnormalCase:   _q.withAbnormalCase.Clone(),
 		withTaxableService: _q.withTaxableService.Clone(),
@@ -420,14 +420,14 @@ func (_q *FeeSettingQuery) WithOrganization(opts ...func(*OrganizationQuery)) *F
 	return _q
 }
 
-// WithServiceType tells the query-builder to eager-load the nodes that are connected to
-// the "service_type" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *FeeSettingQuery) WithServiceType(opts ...func(*MasterDataItemQuery)) *FeeSettingQuery {
+// WithChargeCategory tells the query-builder to eager-load the nodes that are connected to
+// the "charge_category" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FeeSettingQuery) WithChargeCategory(opts ...func(*MasterDataItemQuery)) *FeeSettingQuery {
 	query := (&MasterDataItemClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withServiceType = query
+	_q.withChargeCategory = query
 	return _q
 }
 
@@ -555,7 +555,7 @@ func (_q *FeeSettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*F
 		_spec       = _q.querySpec()
 		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
-			_q.withServiceType != nil,
+			_q.withChargeCategory != nil,
 			_q.withBillingUnit != nil,
 			_q.withAbnormalCase != nil,
 			_q.withTaxableService != nil,
@@ -589,9 +589,9 @@ func (_q *FeeSettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*F
 			return nil, err
 		}
 	}
-	if query := _q.withServiceType; query != nil {
-		if err := _q.loadServiceType(ctx, query, nodes, nil,
-			func(n *FeeSetting, e *MasterDataItem) { n.Edges.ServiceType = e }); err != nil {
+	if query := _q.withChargeCategory; query != nil {
+		if err := _q.loadChargeCategory(ctx, query, nodes, nil,
+			func(n *FeeSetting, e *MasterDataItem) { n.Edges.ChargeCategory = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -627,7 +627,10 @@ func (_q *FeeSettingQuery) loadOrganization(ctx context.Context, query *Organiza
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FeeSetting)
 	for i := range nodes {
-		fk := nodes[i].OrganizationID
+		if nodes[i].OrganizationID == nil {
+			continue
+		}
+		fk := *nodes[i].OrganizationID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -652,14 +655,11 @@ func (_q *FeeSettingQuery) loadOrganization(ctx context.Context, query *Organiza
 	}
 	return nil
 }
-func (_q *FeeSettingQuery) loadServiceType(ctx context.Context, query *MasterDataItemQuery, nodes []*FeeSetting, init func(*FeeSetting), assign func(*FeeSetting, *MasterDataItem)) error {
+func (_q *FeeSettingQuery) loadChargeCategory(ctx context.Context, query *MasterDataItemQuery, nodes []*FeeSetting, init func(*FeeSetting), assign func(*FeeSetting, *MasterDataItem)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FeeSetting)
 	for i := range nodes {
-		if nodes[i].ServiceTypeID == nil {
-			continue
-		}
-		fk := *nodes[i].ServiceTypeID
+		fk := nodes[i].ChargeCategoryID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -676,7 +676,7 @@ func (_q *FeeSettingQuery) loadServiceType(ctx context.Context, query *MasterDat
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "charge_category_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -839,8 +839,8 @@ func (_q *FeeSettingQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withOrganization != nil {
 			_spec.Node.AddColumnOnce(feesetting.FieldOrganizationID)
 		}
-		if _q.withServiceType != nil {
-			_spec.Node.AddColumnOnce(feesetting.FieldServiceTypeID)
+		if _q.withChargeCategory != nil {
+			_spec.Node.AddColumnOnce(feesetting.FieldChargeCategoryID)
 		}
 		if _q.withBillingUnit != nil {
 			_spec.Node.AddColumnOnce(feesetting.FieldBillingUnitID)

@@ -567,7 +567,6 @@ func (r *seaDocumentRepo) getPartnerName(ctx context.Context, client *ent.Client
 func (r *seaDocumentRepo) getShippingLineName(ctx context.Context, client *ent.Client, organizationID, shippingLineID uuid.UUID) (string, error) {
 	line, err := client.ShippingLine.Query().Where(
 		shippinglineent.IDEQ(shippingLineID),
-		shippinglineent.OrganizationIDEQ(organizationID),
 	).Only(ctx)
 	if err != nil {
 		return "", mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)

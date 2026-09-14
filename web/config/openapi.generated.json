@@ -14026,6 +14026,11 @@
           },
           "baseCurrency": {
             "type": "string"
+          },
+          "kind": {
+            "type": "integer",
+            "description": "组织节点类型，供前端推导主数据维护视角（总部/公司）。",
+            "format": "enum"
           }
         }
       },
@@ -14048,6 +14053,11 @@
           },
           "isDefault": {
             "type": "boolean"
+          },
+          "kind": {
+            "type": "integer",
+            "description": "组织节点类型，供前端推导主数据维护视角（总部/公司）。",
+            "format": "enum"
           }
         },
         "description": "OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。"
@@ -15761,9 +15771,6 @@
           "id": {
             "type": "string"
           },
-          "organizationId": {
-            "type": "string"
-          },
           "code": {
             "type": "string"
           },
@@ -17083,6 +17090,7 @@
         "required": [
           "feeCode",
           "nameZh",
+          "chargeCategoryId",
           "defaultCurrency",
           "billingUnitId",
           "taxRate",
@@ -17102,8 +17110,9 @@
           "aliasName": {
             "type": "string"
           },
-          "serviceTypeId": {
-            "type": "string"
+          "chargeCategoryId": {
+            "type": "string",
+            "description": "费用大类必挂（原 service_type 就地更名）。"
           },
           "defaultCurrency": {
             "type": "string"
@@ -17825,13 +17834,17 @@
         }
       },
       "finance.v1.FeeSetting": {
+        "required": [
+          "chargeCategoryId"
+        ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
           "organizationId": {
-            "type": "string"
+            "type": "string",
+            "description": "为空表示总部公共科目基线行，非空表示分公司本地明细行。"
           },
           "feeCode": {
             "type": "string"
@@ -17845,10 +17858,11 @@
           "aliasName": {
             "type": "string"
           },
-          "serviceTypeId": {
-            "type": "string"
+          "chargeCategoryId": {
+            "type": "string",
+            "description": "费用大类必挂（原 service_type 就地更名）：合并报表底座。"
           },
-          "serviceTypeName": {
+          "chargeCategoryName": {
             "type": "string"
           },
           "defaultCurrency": {
@@ -21267,6 +21281,7 @@
           "id",
           "feeCode",
           "nameZh",
+          "chargeCategoryId",
           "defaultCurrency",
           "billingUnitId",
           "taxRate",
@@ -21289,8 +21304,9 @@
           "aliasName": {
             "type": "string"
           },
-          "serviceTypeId": {
-            "type": "string"
+          "chargeCategoryId": {
+            "type": "string",
+            "description": "费用大类必挂（原 service_type 就地更名）。"
           },
           "defaultCurrency": {
             "type": "string"
@@ -21467,9 +21483,6 @@
           "id": {
             "type": "string"
           },
-          "organizationId": {
-            "type": "string"
-          },
           "iataCode": {
             "type": "string"
           },
@@ -21522,7 +21535,8 @@
             "type": "string"
           },
           "organizationId": {
-            "type": "string"
+            "type": "string",
+            "description": "为空表示集团基线行（总部维护、全网可见），非空表示本组织行。"
           },
           "iataCode": {
             "type": "string"
@@ -22360,9 +22374,6 @@
           "id": {
             "type": "string"
           },
-          "organizationId": {
-            "type": "string"
-          },
           "kind": {
             "type": "integer",
             "format": "enum"
@@ -22449,7 +22460,8 @@
             "type": "string"
           },
           "organizationId": {
-            "type": "string"
+            "type": "string",
+            "description": "为空表示集团基线行（总部维护、全网可见），非空表示本组织行。"
           },
           "unLocode": {
             "type": "string"
@@ -22533,9 +22545,6 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "organizationId": {
             "type": "string"
           },
           "scacCode": {

@@ -59,6 +59,14 @@ func (_c *AirportCreate) SetOrganizationID(v uuid.UUID) *AirportCreate {
 	return _c
 }
 
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableOrganizationID(v *uuid.UUID) *AirportCreate {
+	if v != nil {
+		_c.SetOrganizationID(*v)
+	}
+	return _c
+}
+
 // SetIataCode sets the "iata_code" field.
 func (_c *AirportCreate) SetIataCode(v string) *AirportCreate {
 	_c.mutation.SetIataCode(v)
@@ -321,9 +329,6 @@ func (_c *AirportCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Airport.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Airport.organization_id"`)}
-	}
 	if _, ok := _c.mutation.IataCode(); !ok {
 		return &ValidationError{Name: "iata_code", err: errors.New(`ent: missing required field "Airport.iata_code"`)}
 	}
@@ -394,9 +399,6 @@ func (_c *AirportCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Airport.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Airport.organization"`)}
 	}
 	return nil
 }
@@ -508,7 +510,7 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.OrganizationID = nodes[0]
+		_node.OrganizationID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -584,6 +586,12 @@ func (u *AirportUpsert) SetOrganizationID(v uuid.UUID) *AirportUpsert {
 // UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
 func (u *AirportUpsert) UpdateOrganizationID() *AirportUpsert {
 	u.SetExcluded(airport.FieldOrganizationID)
+	return u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *AirportUpsert) ClearOrganizationID() *AirportUpsert {
+	u.SetNull(airport.FieldOrganizationID)
 	return u
 }
 
@@ -852,6 +860,13 @@ func (u *AirportUpsertOne) SetOrganizationID(v uuid.UUID) *AirportUpsertOne {
 func (u *AirportUpsertOne) UpdateOrganizationID() *AirportUpsertOne {
 	return u.Update(func(s *AirportUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *AirportUpsertOne) ClearOrganizationID() *AirportUpsertOne {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearOrganizationID()
 	})
 }
 
@@ -1318,6 +1333,13 @@ func (u *AirportUpsertBulk) SetOrganizationID(v uuid.UUID) *AirportUpsertBulk {
 func (u *AirportUpsertBulk) UpdateOrganizationID() *AirportUpsertBulk {
 	return u.Update(func(s *AirportUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *AirportUpsertBulk) ClearOrganizationID() *AirportUpsertBulk {
+	return u.Update(func(s *AirportUpsert) {
+		s.ClearOrganizationID()
 	})
 }
 

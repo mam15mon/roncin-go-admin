@@ -3722,7 +3722,6 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			targetSummary.ShippingLineID = *input.Target.ShippingLineID
 			line, err := client.ShippingLine.Query().Where(
 				shippinglineent.IDEQ(*input.Target.ShippingLineID),
-				shippinglineent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err
@@ -4749,7 +4748,6 @@ func enabledShippingLineExists(ctx context.Context, client *ent.Client, organiza
 	}
 	query := client.ShippingLine.Query().Where(
 		shippinglineent.IDEQ(shippingLineID),
-		shippinglineent.OrganizationIDEQ(organizationID),
 		shippinglineent.EnabledEQ(true),
 	)
 	if forShare {
@@ -4768,7 +4766,6 @@ func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.U
 	}
 	line, err := client.ShippingLine.Query().Where(
 		shippinglineent.IDEQ(mbl.ShippingLineID),
-		shippinglineent.OrganizationIDEQ(organizationID),
 	).Only(ctx)
 	if err != nil {
 		return nil, err

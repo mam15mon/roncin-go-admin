@@ -22,8 +22,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldOrganizationID holds the string denoting the organization_id field in the database.
-	FieldOrganizationID = "organization_id"
 	// FieldKind holds the string denoting the kind field in the database.
 	FieldKind = "kind"
 	// FieldCode holds the string denoting the code field in the database.
@@ -46,28 +44,19 @@ const (
 	FieldAttributes = "attributes"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
-	// EdgeOrganization holds the string denoting the organization edge name in mutations.
-	EdgeOrganization = "organization"
-	// EdgeServiceTypeFeeSettings holds the string denoting the service_type_fee_settings edge name in mutations.
-	EdgeServiceTypeFeeSettings = "service_type_fee_settings"
+	// EdgeChargeCategoryFeeSettings holds the string denoting the charge_category_fee_settings edge name in mutations.
+	EdgeChargeCategoryFeeSettings = "charge_category_fee_settings"
 	// EdgeAbnormalCaseFeeSettings holds the string denoting the abnormal_case_fee_settings edge name in mutations.
 	EdgeAbnormalCaseFeeSettings = "abnormal_case_fee_settings"
 	// Table holds the table name of the masterdataitem in the database.
 	Table = "master_data_items"
-	// OrganizationTable is the table that holds the organization relation/edge.
-	OrganizationTable = "master_data_items"
-	// OrganizationInverseTable is the table name for the Organization entity.
-	// It exists in this package in order to avoid circular dependency with the "organization" package.
-	OrganizationInverseTable = "organizations"
-	// OrganizationColumn is the table column denoting the organization relation/edge.
-	OrganizationColumn = "organization_id"
-	// ServiceTypeFeeSettingsTable is the table that holds the service_type_fee_settings relation/edge.
-	ServiceTypeFeeSettingsTable = "fee_settings"
-	// ServiceTypeFeeSettingsInverseTable is the table name for the FeeSetting entity.
+	// ChargeCategoryFeeSettingsTable is the table that holds the charge_category_fee_settings relation/edge.
+	ChargeCategoryFeeSettingsTable = "fee_settings"
+	// ChargeCategoryFeeSettingsInverseTable is the table name for the FeeSetting entity.
 	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
-	ServiceTypeFeeSettingsInverseTable = "fee_settings"
-	// ServiceTypeFeeSettingsColumn is the table column denoting the service_type_fee_settings relation/edge.
-	ServiceTypeFeeSettingsColumn = "service_type_id"
+	ChargeCategoryFeeSettingsInverseTable = "fee_settings"
+	// ChargeCategoryFeeSettingsColumn is the table column denoting the charge_category_fee_settings relation/edge.
+	ChargeCategoryFeeSettingsColumn = "charge_category_id"
 	// AbnormalCaseFeeSettingsTable is the table that holds the abnormal_case_fee_settings relation/edge.
 	AbnormalCaseFeeSettingsTable = "fee_settings"
 	// AbnormalCaseFeeSettingsInverseTable is the table name for the FeeSetting entity.
@@ -82,7 +71,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldOrganizationID,
 	FieldKind,
 	FieldCode,
 	FieldName,
@@ -150,13 +138,13 @@ type Kind string
 
 // Kind values.
 const (
-	KindCurrency      Kind = "currency"
-	KindCountry       Kind = "country"
-	KindRegion        Kind = "region"
-	KindContainerSpec Kind = "container_spec"
-	KindServiceType   Kind = "service_type"
-	KindCargoCategory Kind = "cargo_category"
-	KindAbnormalCase  Kind = "abnormal_case"
+	KindCurrency       Kind = "currency"
+	KindCountry        Kind = "country"
+	KindRegion         Kind = "region"
+	KindContainerSpec  Kind = "container_spec"
+	KindChargeCategory Kind = "charge_category"
+	KindCargoCategory  Kind = "cargo_category"
+	KindAbnormalCase   Kind = "abnormal_case"
 )
 
 func (k Kind) String() string {
@@ -166,7 +154,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindServiceType, KindCargoCategory, KindAbnormalCase:
+	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindChargeCategory, KindCargoCategory, KindAbnormalCase:
 		return nil
 	default:
 		return fmt.Errorf("masterdataitem: invalid enum value for kind field: %q", k)
@@ -189,11 +177,6 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
-}
-
-// ByOrganizationID orders the results by the organization_id field.
-func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
 }
 
 // ByKind orders the results by the kind field.
@@ -246,24 +229,17 @@ func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
-// ByOrganizationField orders the results by organization field.
-func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByChargeCategoryFeeSettingsCount orders the results by charge_category_fee_settings count.
+func ByChargeCategoryFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newChargeCategoryFeeSettingsStep(), opts...)
 	}
 }
 
-// ByServiceTypeFeeSettingsCount orders the results by service_type_fee_settings count.
-func ByServiceTypeFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByChargeCategoryFeeSettings orders the results by charge_category_fee_settings terms.
+func ByChargeCategoryFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newServiceTypeFeeSettingsStep(), opts...)
-	}
-}
-
-// ByServiceTypeFeeSettings orders the results by service_type_fee_settings terms.
-func ByServiceTypeFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceTypeFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newChargeCategoryFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -280,18 +256,11 @@ func ByAbnormalCaseFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) Order
 		sqlgraph.OrderByNeighborTerms(s, newAbnormalCaseFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newOrganizationStep() *sqlgraph.Step {
+func newChargeCategoryFeeSettingsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrganizationInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-	)
-}
-func newServiceTypeFeeSettingsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceTypeFeeSettingsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypeFeeSettingsTable, ServiceTypeFeeSettingsColumn),
+		sqlgraph.To(ChargeCategoryFeeSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ChargeCategoryFeeSettingsTable, ChargeCategoryFeeSettingsColumn),
 	)
 }
 func newAbnormalCaseFeeSettingsStep() *sqlgraph.Step {

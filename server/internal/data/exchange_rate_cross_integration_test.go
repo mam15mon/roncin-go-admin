@@ -57,18 +57,33 @@ func newCrossCalcOrgTree(t *testing.T, data *Data) (hqID, branchID uuid.UUID) {
 	return hq.ID, branch.ID
 }
 
-// createCrossCalcRate 在总部插入一条启用汇率行（from → CNY，上海时区生效起点）。
-func createCrossCalcRate(t *testing.T, data *Data, hqID uuid.UUID, fromCurrency, rate string, effectiveFrom time.Time) {
+// createCrossCalcRate 插入一条启用汇率基线行（organization_id IS NULL，总部维护、
+// 全网可见；from → CNY，上海时区生效起点）。
+func createCrossCalcRate(t *testing.T, data *Data, fromCurrency, rate string, effectiveFrom time.Time) {
 	t.Helper()
 	if _, err := data.db.ExchangeRateSetting.Create().
-		SetOrganizationID(hqID).
 		SetFromCurrency(fromCurrency).
 		SetToCurrency("CNY").
 		SetEffectiveFrom(effectiveFrom).
 		SetRate(rate).
 		SetIsActive(true).
 		Save(context.Background()); err != nil {
-		t.Fatalf("创建汇率行 %s→CNY %s: %v", fromCurrency, rate, err)
+		t.Fatalf("创建汇率基线行 %s→CNY %s: %v", fromCurrency, rate, err)
+	}
+}
+
+// createCrossCalcOrgRate 插入一条本组织汇率行（organization_id 非空，本组织覆盖基线）。
+func createCrossCalcOrgRate(t *testing.T, data *Data, organizationID uuid.UUID, fromCurrency, rate string, effectiveFrom time.Time) {
+	t.Helper()
+	if _, err := data.db.ExchangeRateSetting.Create().
+		SetOrganizationID(organizationID).
+		SetFromCurrency(fromCurrency).
+		SetToCurrency("CNY").
+		SetEffectiveFrom(effectiveFrom).
+		SetRate(rate).
+		SetIsActive(true).
+		Save(context.Background()); err != nil {
+		t.Fatalf("创建组织汇率行 %s→CNY %s: %v", fromCurrency, rate, err)
 	}
 }
 
@@ -84,10 +99,10 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	ctx := context.Background()
 	hqID, branchID := newCrossCalcOrgTree(t, data)
 	// USD 腿自 1 月生效；CAD 腿自 6 月生效；GBP/AUD 用于精度断言。
-	createCrossCalcRate(t, data, hqID, "USD", "7.20000000", crossCalcEffectiveDate(time.January))
-	createCrossCalcRate(t, data, hqID, "CAD", "5.20000000", crossCalcEffectiveDate(time.June))
-	createCrossCalcRate(t, data, hqID, "GBP", "7.12345678", crossCalcEffectiveDate(time.January))
-	createCrossCalcRate(t, data, hqID, "AUD", "5.12345678", crossCalcEffectiveDate(time.January))
+	createCrossCalcRate(t, data, "USD", "7.20000000", crossCalcEffectiveDate(time.January))
+	createCrossCalcRate(t, data, "CAD", "5.20000000", crossCalcEffectiveDate(time.June))
+	createCrossCalcRate(t, data, "GBP", "7.12345678", crossCalcEffectiveDate(time.January))
+	createCrossCalcRate(t, data, "AUD", "5.12345678", crossCalcEffectiveDate(time.January))
 	repo := NewExchangeRateRepo(data)
 
 	t.Run("解析上下文携带总部基准币", func(t *testing.T) {
@@ -134,14 +149,14 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 
 	t.Run("to腿非正数视为缺失", func(t *testing.T) {
 		// rate 列无数据库正数约束，直接落零行模拟脏数据，验证除零守卫。
-		createCrossCalcRate(t, data, hqID, "KRW", "0.00000000", crossCalcEffectiveDate(time.January))
+		createCrossCalcRate(t, data, "KRW", "0.00000000", crossCalcEffectiveDate(time.January))
 		if _, err := repo.ResolveRate(ctx, hqID, "USD", "KRW", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateMissing) {
 			t.Fatalf("to 腿为零应视为缺失，实际 %v", err)
 		}
 	})
 
 	t.Run("任一腿命中多行沿用冲突错误", func(t *testing.T) {
-		createCrossCalcRate(t, data, hqID, "USD", "7.30000000", crossCalcEffectiveDate(time.August))
+		createCrossCalcRate(t, data, "USD", "7.30000000", crossCalcEffectiveDate(time.August))
 		if _, err := repo.ResolveRate(ctx, hqID, "USD", "CAD", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateConflict) {
 			t.Fatalf("USD 腿命中多行应报冲突，实际 %v", err)
 		}
@@ -200,8 +215,8 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	defer cleanup()
 	ctx := context.Background()
 	hqID, branchID := newCrossCalcOrgTree(t, data)
-	createCrossCalcRate(t, data, hqID, "USD", "7.20000000", crossCalcEffectiveDate(time.January))
-	createCrossCalcRate(t, data, hqID, "CAD", "5.20000000", crossCalcEffectiveDate(time.January))
+	createCrossCalcRate(t, data, "USD", "7.20000000", crossCalcEffectiveDate(time.January))
+	createCrossCalcRate(t, data, "CAD", "5.20000000", crossCalcEffectiveDate(time.January))
 	suffix := uuid.NewString()[:8]
 	partner, err := data.db.Partner.Create().
 		SetOrganizationID(branchID).
@@ -226,7 +241,6 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 		t.Fatalf("创建订单: %v", err)
 	}
 	billingUnit, err := data.db.BillingUnit.Create().
-		SetOrganizationID(hqID).
 		SetCode("XR-UNIT-" + suffix).
 		SetName("票").
 		SetEnabled(true).
@@ -243,10 +257,27 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建应税服务: %v", err)
 	}
+	// A 型费用大类（charge_category）为费用科目必挂外键。
+	chargeCategory, err := data.db.MasterDataItem.Create().
+		SetKind("charge_category").
+		SetCode("XR-CATEGORY-" + suffix).
+		SetName("汇率套算测试费用大类").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建费用大类: %v", err)
+	}
+	// 订单挂载该费用大类为服务类型，费用科目适用性校验（feeSettingApplies）才能命中。
+	if _, err := data.db.OrderServiceType.Create().
+		SetOrderID(order.ID).
+		SetMasterDataItemID(chargeCategory.ID).
+		Save(ctx); err != nil {
+		t.Fatalf("创建订单服务类型: %v", err)
+	}
+	// 总部维护的费用科目为 NULL 基线行：订单组织（分公司）经基线共享可见。
 	feeSetting, err := data.db.FeeSetting.Create().
-		SetOrganizationID(hqID).
 		SetFeeCode("XR-FREIGHT-" + suffix).
 		SetNameZh("汇率套算测试海运费").
+		SetChargeCategoryID(chargeCategory.ID).
 		SetDefaultCurrency("USD").
 		SetBillingUnitID(billingUnit.ID).
 		SetTaxableServiceID(taxableService.ID).
@@ -291,9 +322,9 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 		t.Fatalf("落库快照应为 %s/DERIVED，实际 %s/%s", crossRate, persisted.ExchangeRate, persisted.ExchangeRateSource)
 	}
 
-	// 财务补维护直连 USD→CAD 行后，新费用改用直连值且来源 SYSTEM。
+	// 财务补维护直连 USD→CAD 基线行后，新费用改用直连值且来源 SYSTEM
+	//（NULL 基线行对分公司费用解析链路可见）。
 	if _, err = data.db.ExchangeRateSetting.Create().
-		SetOrganizationID(hqID).
 		SetFromCurrency("USD").SetToCurrency("CAD").
 		SetEffectiveFrom(crossCalcEffectiveDate(time.January)).
 		SetRate("1.50000000").SetIsActive(true).
@@ -307,4 +338,66 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	if direct.ExchangeRate.StringFixed(8) != "1.50000000" || direct.ExchangeRateSource != "SYSTEM" || !direct.BaseCurrencyAmount.Equal(decimal.RequireFromString("300.00000000")) {
 		t.Fatalf("直连费用应为 1.50000000/SYSTEM/300，实际 %s/%s/%s", direct.ExchangeRate, direct.ExchangeRateSource, direct.BaseCurrencyAmount)
 	}
+}
+
+// TestExchangeRateBaselineShadowingPostgres 验证汇率点查形态谓词（B 型基线+本地）：
+// 无本组织行的组织命中 NULL 基线行；同货币对本组织行覆盖基线行（本组织行优先）；
+// uuid.Nil 仅解析基线行（跨组织资金流结算域）。
+func TestExchangeRateBaselineShadowingPostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	defer cleanup()
+	ctx := context.Background()
+	hqID, branchID := newCrossCalcOrgTree(t, data)
+	// NULL 基线行（总部维护兜底基线，不挂组织）。
+	if _, err := data.db.ExchangeRateSetting.Create().
+		SetFromCurrency("USD").SetToCurrency("CNY").
+		SetEffectiveFrom(crossCalcEffectiveDate(time.January)).
+		SetRate("7.20000000").SetIsActive(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建 NULL 基线行: %v", err)
+	}
+	// 加拿大分公司本组织行：同货币对本地差异化汇率。
+	createCrossCalcOrgRate(t, data, branchID, "USD", "7.50000000", crossCalcEffectiveDate(time.January))
+	// 无任何本组织行的观察组织。
+	observer, err := data.db.Organization.Create().
+		SetCode("XR-SG-" + uuid.NewString()[:8]).
+		SetName("汇率基线观察组织").
+		SetKind(organizationent.KindCompany).
+		SetParentID(hqID).
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建观察组织: %v", err)
+	}
+	repo := NewExchangeRateRepo(data)
+
+	t.Run("无本组织行命中 NULL 基线行", func(t *testing.T) {
+		resolved, err := repo.ResolveRate(ctx, observer.ID, "USD", "CNY", "CNY", crossCalcIntegrationDate)
+		if err != nil {
+			t.Fatalf("观察组织解析失败: %v", err)
+		}
+		if resolved.Rate.StringFixed(8) != "7.20000000" || resolved.Source != biz.ExchangeRateSourceSystem {
+			t.Fatalf("无本组织行应命中基线 7.20000000/SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
+		}
+	})
+
+	t.Run("本组织行覆盖基线行", func(t *testing.T) {
+		resolved, err := repo.ResolveRate(ctx, branchID, "USD", "CNY", "CNY", crossCalcIntegrationDate)
+		if err != nil {
+			t.Fatalf("分公司解析失败: %v", err)
+		}
+		if resolved.Rate.StringFixed(8) != "7.50000000" || resolved.Source != biz.ExchangeRateSourceSystem {
+			t.Fatalf("本组织行应覆盖基线得 7.50000000/SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
+		}
+	})
+
+	t.Run("uuidNil仅解析基线行", func(t *testing.T) {
+		resolved, err := repo.ResolveRate(ctx, uuid.Nil, "USD", "CNY", "CNY", crossCalcIntegrationDate)
+		if err != nil {
+			t.Fatalf("基线域解析失败: %v", err)
+		}
+		if resolved.Rate.StringFixed(8) != "7.20000000" {
+			t.Fatalf("uuid.Nil 应仅命中基线 7.20000000，实际 %s", resolved.Rate)
+		}
+	})
 }

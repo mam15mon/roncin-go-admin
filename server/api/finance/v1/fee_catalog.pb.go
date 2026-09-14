@@ -26,7 +26,6 @@ const (
 type BillingUnit struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId  string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Code            string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Name            string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	SortOrder       int32                  `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
@@ -71,13 +70,6 @@ func (*BillingUnit) Descriptor() ([]byte, []int) {
 func (x *BillingUnit) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *BillingUnit) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
 	}
 	return ""
 }
@@ -240,27 +232,29 @@ func (x *TaxableService) GetUpdatedAt() string {
 }
 
 type FeeSetting struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId     string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	FeeCode            string                 `protobuf:"bytes,3,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	NameZh             string                 `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
-	NameEn             *string                `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
-	AliasName          *string                `protobuf:"bytes,6,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
-	ServiceTypeId      *string                `protobuf:"bytes,7,opt,name=service_type_id,json=serviceTypeId,proto3,oneof" json:"service_type_id,omitempty"`
-	ServiceTypeName    *string                `protobuf:"bytes,8,opt,name=service_type_name,json=serviceTypeName,proto3,oneof" json:"service_type_name,omitempty"`
-	DefaultCurrency    string                 `protobuf:"bytes,9,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
-	BillingUnitId      string                 `protobuf:"bytes,10,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
-	BillingUnitName    string                 `protobuf:"bytes,11,opt,name=billing_unit_name,json=billingUnitName,proto3" json:"billing_unit_name,omitempty"`
-	AbnormalCaseId     *string                `protobuf:"bytes,12,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
-	AbnormalCaseName   *string                `protobuf:"bytes,13,opt,name=abnormal_case_name,json=abnormalCaseName,proto3,oneof" json:"abnormal_case_name,omitempty"`
-	TaxRate            string                 `protobuf:"bytes,14,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
-	TaxableServiceId   string                 `protobuf:"bytes,15,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
-	TaxableServiceName string                 `protobuf:"bytes,16,opt,name=taxable_service_name,json=taxableServiceName,proto3" json:"taxable_service_name,omitempty"`
-	Enabled            bool                   `protobuf:"varint,17,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	SortOrder          int32                  `protobuf:"varint,18,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	CreatedAt          string                 `protobuf:"bytes,19,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          string                 `protobuf:"bytes,20,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 为空表示总部公共科目基线行，非空表示分公司本地明细行。
+	OrganizationId *string `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	FeeCode        string  `protobuf:"bytes,3,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	NameZh         string  `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameEn         *string `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
+	AliasName      *string `protobuf:"bytes,6,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
+	// 费用大类必挂（原 service_type 就地更名）：合并报表底座。
+	ChargeCategoryId   string  `protobuf:"bytes,7,opt,name=charge_category_id,json=chargeCategoryId,proto3" json:"charge_category_id,omitempty"`
+	ChargeCategoryName string  `protobuf:"bytes,8,opt,name=charge_category_name,json=chargeCategoryName,proto3" json:"charge_category_name,omitempty"`
+	DefaultCurrency    string  `protobuf:"bytes,9,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
+	BillingUnitId      string  `protobuf:"bytes,10,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	BillingUnitName    string  `protobuf:"bytes,11,opt,name=billing_unit_name,json=billingUnitName,proto3" json:"billing_unit_name,omitempty"`
+	AbnormalCaseId     *string `protobuf:"bytes,12,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
+	AbnormalCaseName   *string `protobuf:"bytes,13,opt,name=abnormal_case_name,json=abnormalCaseName,proto3,oneof" json:"abnormal_case_name,omitempty"`
+	TaxRate            string  `protobuf:"bytes,14,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
+	TaxableServiceId   string  `protobuf:"bytes,15,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
+	TaxableServiceName string  `protobuf:"bytes,16,opt,name=taxable_service_name,json=taxableServiceName,proto3" json:"taxable_service_name,omitempty"`
+	Enabled            bool    `protobuf:"varint,17,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	SortOrder          int32   `protobuf:"varint,18,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	CreatedAt          string  `protobuf:"bytes,19,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          string  `protobuf:"bytes,20,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -303,8 +297,8 @@ func (x *FeeSetting) GetId() string {
 }
 
 func (x *FeeSetting) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
+	if x != nil && x.OrganizationId != nil {
+		return *x.OrganizationId
 	}
 	return ""
 }
@@ -337,16 +331,16 @@ func (x *FeeSetting) GetAliasName() string {
 	return ""
 }
 
-func (x *FeeSetting) GetServiceTypeId() string {
-	if x != nil && x.ServiceTypeId != nil {
-		return *x.ServiceTypeId
+func (x *FeeSetting) GetChargeCategoryId() string {
+	if x != nil {
+		return x.ChargeCategoryId
 	}
 	return ""
 }
 
-func (x *FeeSetting) GetServiceTypeName() string {
-	if x != nil && x.ServiceTypeName != nil {
-		return *x.ServiceTypeName
+func (x *FeeSetting) GetChargeCategoryName() string {
+	if x != nil {
+		return x.ChargeCategoryName
 	}
 	return ""
 }
@@ -724,18 +718,19 @@ func (x *SearchTaxableServicesRequest) GetPageSize() int32 {
 }
 
 type CreateFeeSettingRequest struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	FeeCode          string                 `protobuf:"bytes,1,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	NameZh           string                 `protobuf:"bytes,2,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
-	NameEn           *string                `protobuf:"bytes,3,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
-	AliasName        *string                `protobuf:"bytes,4,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
-	ServiceTypeId    *string                `protobuf:"bytes,5,opt,name=service_type_id,json=serviceTypeId,proto3,oneof" json:"service_type_id,omitempty"`
-	DefaultCurrency  string                 `protobuf:"bytes,6,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
-	BillingUnitId    string                 `protobuf:"bytes,7,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
-	AbnormalCaseId   *string                `protobuf:"bytes,8,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
-	TaxRate          string                 `protobuf:"bytes,9,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
-	TaxableServiceId string                 `protobuf:"bytes,10,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
-	SortOrder        int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	FeeCode   string                 `protobuf:"bytes,1,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	NameZh    string                 `protobuf:"bytes,2,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameEn    *string                `protobuf:"bytes,3,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
+	AliasName *string                `protobuf:"bytes,4,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
+	// 费用大类必挂（原 service_type 就地更名）。
+	ChargeCategoryId string  `protobuf:"bytes,5,opt,name=charge_category_id,json=chargeCategoryId,proto3" json:"charge_category_id,omitempty"`
+	DefaultCurrency  string  `protobuf:"bytes,6,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
+	BillingUnitId    string  `protobuf:"bytes,7,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	AbnormalCaseId   *string `protobuf:"bytes,8,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
+	TaxRate          string  `protobuf:"bytes,9,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
+	TaxableServiceId string  `protobuf:"bytes,10,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
+	SortOrder        int32   `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -798,9 +793,9 @@ func (x *CreateFeeSettingRequest) GetAliasName() string {
 	return ""
 }
 
-func (x *CreateFeeSettingRequest) GetServiceTypeId() string {
-	if x != nil && x.ServiceTypeId != nil {
-		return *x.ServiceTypeId
+func (x *CreateFeeSettingRequest) GetChargeCategoryId() string {
+	if x != nil {
+		return x.ChargeCategoryId
 	}
 	return ""
 }
@@ -848,20 +843,21 @@ func (x *CreateFeeSettingRequest) GetSortOrder() int32 {
 }
 
 type UpdateFeeSettingRequest struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FeeCode          string                 `protobuf:"bytes,2,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	NameZh           string                 `protobuf:"bytes,3,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
-	NameEn           *string                `protobuf:"bytes,4,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
-	AliasName        *string                `protobuf:"bytes,5,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
-	ServiceTypeId    *string                `protobuf:"bytes,6,opt,name=service_type_id,json=serviceTypeId,proto3,oneof" json:"service_type_id,omitempty"`
-	DefaultCurrency  string                 `protobuf:"bytes,7,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
-	BillingUnitId    string                 `protobuf:"bytes,8,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
-	AbnormalCaseId   *string                `protobuf:"bytes,9,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
-	TaxRate          string                 `protobuf:"bytes,10,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
-	TaxableServiceId string                 `protobuf:"bytes,11,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
-	Enabled          bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	SortOrder        int32                  `protobuf:"varint,13,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FeeCode   string                 `protobuf:"bytes,2,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	NameZh    string                 `protobuf:"bytes,3,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameEn    *string                `protobuf:"bytes,4,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
+	AliasName *string                `protobuf:"bytes,5,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
+	// 费用大类必挂（原 service_type 就地更名）。
+	ChargeCategoryId string  `protobuf:"bytes,6,opt,name=charge_category_id,json=chargeCategoryId,proto3" json:"charge_category_id,omitempty"`
+	DefaultCurrency  string  `protobuf:"bytes,7,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
+	BillingUnitId    string  `protobuf:"bytes,8,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	AbnormalCaseId   *string `protobuf:"bytes,9,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
+	TaxRate          string  `protobuf:"bytes,10,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
+	TaxableServiceId string  `protobuf:"bytes,11,opt,name=taxable_service_id,json=taxableServiceId,proto3" json:"taxable_service_id,omitempty"`
+	Enabled          bool    `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	SortOrder        int32   `protobuf:"varint,13,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -931,9 +927,9 @@ func (x *UpdateFeeSettingRequest) GetAliasName() string {
 	return ""
 }
 
-func (x *UpdateFeeSettingRequest) GetServiceTypeId() string {
-	if x != nil && x.ServiceTypeId != nil {
-		return *x.ServiceTypeId
+func (x *UpdateFeeSettingRequest) GetChargeCategoryId() string {
+	if x != nil {
+		return x.ChargeCategoryId
 	}
 	return ""
 }
@@ -2352,10 +2348,9 @@ var File_finance_v1_fee_catalog_proto protoreflect.FileDescriptor
 const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"\x1cfinance/v1/fee_catalog.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x91\x02\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xff\x01\n" +
 	"\vBillingUnit\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
@@ -2365,7 +2360,7 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\b \x01(\tR\tupdatedAt\x12*\n" +
-	"\x11is_container_unit\x18\t \x01(\bR\x0fisContainerUnit\"\xc5\x02\n" +
+	"\x11is_container_unit\x18\t \x01(\bR\x0fisContainerUnitJ\x04\b\x02\x10\x03R\x0forganization_id\"\xc5\x02\n" +
 	"\x0eTaxableService\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
@@ -2381,24 +2376,24 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\t \x01(\tR\tupdatedAtB\r\n" +
 	"\v_short_nameB\r\n" +
-	"\v_goods_code\"\xdd\x06\n" +
+	"\v_goods_code\"\xd3\x06\n" +
 	"\n" +
 	"FeeSetting\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
+	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x19\n" +
 	"\bfee_code\x18\x03 \x01(\tR\afeeCode\x12\x17\n" +
 	"\aname_zh\x18\x04 \x01(\tR\x06nameZh\x12\x1c\n" +
-	"\aname_en\x18\x05 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12\"\n" +
+	"\aname_en\x18\x05 \x01(\tH\x01R\x06nameEn\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"alias_name\x18\x06 \x01(\tH\x01R\taliasName\x88\x01\x01\x12+\n" +
-	"\x0fservice_type_id\x18\a \x01(\tH\x02R\rserviceTypeId\x88\x01\x01\x12/\n" +
-	"\x11service_type_name\x18\b \x01(\tH\x03R\x0fserviceTypeName\x88\x01\x01\x12)\n" +
+	"alias_name\x18\x06 \x01(\tH\x02R\taliasName\x88\x01\x01\x121\n" +
+	"\x12charge_category_id\x18\a \x01(\tB\x03\xe0A\x02R\x10chargeCategoryId\x120\n" +
+	"\x14charge_category_name\x18\b \x01(\tR\x12chargeCategoryName\x12)\n" +
 	"\x10default_currency\x18\t \x01(\tR\x0fdefaultCurrency\x12&\n" +
 	"\x0fbilling_unit_id\x18\n" +
 	" \x01(\tR\rbillingUnitId\x12*\n" +
 	"\x11billing_unit_name\x18\v \x01(\tR\x0fbillingUnitName\x12-\n" +
-	"\x10abnormal_case_id\x18\f \x01(\tH\x04R\x0eabnormalCaseId\x88\x01\x01\x121\n" +
-	"\x12abnormal_case_name\x18\r \x01(\tH\x05R\x10abnormalCaseName\x88\x01\x01\x12\x19\n" +
+	"\x10abnormal_case_id\x18\f \x01(\tH\x03R\x0eabnormalCaseId\x88\x01\x01\x121\n" +
+	"\x12abnormal_case_name\x18\r \x01(\tH\x04R\x10abnormalCaseName\x88\x01\x01\x12\x19\n" +
 	"\btax_rate\x18\x0e \x01(\tR\ataxRate\x12,\n" +
 	"\x12taxable_service_id\x18\x0f \x01(\tR\x10taxableServiceId\x120\n" +
 	"\x14taxable_service_name\x18\x10 \x01(\tR\x12taxableServiceName\x12\x18\n" +
@@ -2408,12 +2403,11 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x13 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x14 \x01(\tR\tupdatedAtB\n" +
+	"updated_at\x18\x14 \x01(\tR\tupdatedAtB\x12\n" +
+	"\x10_organization_idB\n" +
 	"\n" +
 	"\b_name_enB\r\n" +
-	"\v_alias_nameB\x12\n" +
-	"\x10_service_type_idB\x14\n" +
-	"\x12_service_type_nameB\x13\n" +
+	"\v_alias_nameB\x13\n" +
 	"\x11_abnormal_case_idB\x15\n" +
 	"\x13_abnormal_case_name\"\x18\n" +
 	"\x16ListFeeSettingsRequest\"\x19\n" +
@@ -2430,17 +2424,17 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x1cSearchTaxableServicesRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x88\x04\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xfa\x03\n" +
 	"\x17CreateFeeSettingRequest\x12\x1e\n" +
 	"\bfee_code\x18\x01 \x01(\tB\x03\xe0A\x02R\afeeCode\x12\x1c\n" +
 	"\aname_zh\x18\x02 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
 	"\aname_en\x18\x03 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"alias_name\x18\x04 \x01(\tH\x01R\taliasName\x88\x01\x01\x12+\n" +
-	"\x0fservice_type_id\x18\x05 \x01(\tH\x02R\rserviceTypeId\x88\x01\x01\x12.\n" +
+	"alias_name\x18\x04 \x01(\tH\x01R\taliasName\x88\x01\x01\x121\n" +
+	"\x12charge_category_id\x18\x05 \x01(\tB\x03\xe0A\x02R\x10chargeCategoryId\x12.\n" +
 	"\x10default_currency\x18\x06 \x01(\tB\x03\xe0A\x02R\x0fdefaultCurrency\x12+\n" +
 	"\x0fbilling_unit_id\x18\a \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12-\n" +
-	"\x10abnormal_case_id\x18\b \x01(\tH\x03R\x0eabnormalCaseId\x88\x01\x01\x12\x1e\n" +
+	"\x10abnormal_case_id\x18\b \x01(\tH\x02R\x0eabnormalCaseId\x88\x01\x01\x12\x1e\n" +
 	"\btax_rate\x18\t \x01(\tB\x03\xe0A\x02R\ataxRate\x121\n" +
 	"\x12taxable_service_id\x18\n" +
 	" \x01(\tB\x03\xe0A\x02R\x10taxableServiceId\x12\x1d\n" +
@@ -2448,20 +2442,19 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"sort_order\x18\v \x01(\x05R\tsortOrderB\n" +
 	"\n" +
 	"\b_name_enB\r\n" +
-	"\v_alias_nameB\x12\n" +
-	"\x10_service_type_idB\x13\n" +
-	"\x11_abnormal_case_id\"\xb7\x04\n" +
+	"\v_alias_nameB\x13\n" +
+	"\x11_abnormal_case_id\"\xa9\x04\n" +
 	"\x17UpdateFeeSettingRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1e\n" +
 	"\bfee_code\x18\x02 \x01(\tB\x03\xe0A\x02R\afeeCode\x12\x1c\n" +
 	"\aname_zh\x18\x03 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
 	"\aname_en\x18\x04 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"alias_name\x18\x05 \x01(\tH\x01R\taliasName\x88\x01\x01\x12+\n" +
-	"\x0fservice_type_id\x18\x06 \x01(\tH\x02R\rserviceTypeId\x88\x01\x01\x12.\n" +
+	"alias_name\x18\x05 \x01(\tH\x01R\taliasName\x88\x01\x01\x121\n" +
+	"\x12charge_category_id\x18\x06 \x01(\tB\x03\xe0A\x02R\x10chargeCategoryId\x12.\n" +
 	"\x10default_currency\x18\a \x01(\tB\x03\xe0A\x02R\x0fdefaultCurrency\x12+\n" +
 	"\x0fbilling_unit_id\x18\b \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12-\n" +
-	"\x10abnormal_case_id\x18\t \x01(\tH\x03R\x0eabnormalCaseId\x88\x01\x01\x12\x1e\n" +
+	"\x10abnormal_case_id\x18\t \x01(\tH\x02R\x0eabnormalCaseId\x88\x01\x01\x12\x1e\n" +
 	"\btax_rate\x18\n" +
 	" \x01(\tB\x03\xe0A\x02R\ataxRate\x121\n" +
 	"\x12taxable_service_id\x18\v \x01(\tB\x03\xe0A\x02R\x10taxableServiceId\x12\x18\n" +
@@ -2470,8 +2463,7 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"sort_order\x18\r \x01(\x05R\tsortOrderB\n" +
 	"\n" +
 	"\b_name_enB\r\n" +
-	"\v_alias_nameB\x12\n" +
-	"\x10_service_type_idB\x13\n" +
+	"\v_alias_nameB\x13\n" +
 	"\x11_abnormal_case_id\"\x97\x01\n" +
 	"\x18CreateBillingUnitRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +

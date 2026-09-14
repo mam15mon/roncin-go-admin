@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 )
 
 var (
@@ -25,8 +26,9 @@ type IndustryReferenceListOptions struct {
 }
 
 type Port struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
+	ID uuid.UUID
+	// OrganizationID 为空表示集团基线行（NULL），非空表示本组织行。
+	OrganizationID *uuid.UUID
 	UNLocode       string
 	NameZH         string
 	NameEN         string
@@ -44,8 +46,9 @@ type Port struct {
 type PortList = PagedList[*Port]
 
 type Airport struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
+	ID uuid.UUID
+	// OrganizationID 为空表示集团基线行（NULL），非空表示本组织行。
+	OrganizationID *uuid.UUID
 	IATACode       string
 	ICAOCode       *string
 	NameZH         string
@@ -65,29 +68,27 @@ type Airport struct {
 type AirportList = PagedList[*Airport]
 
 type Airline struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
-	IATACode       string
-	ICAOCode       *string
-	AWBPrefix      string
-	NameZH         string
-	NameEN         string
-	CountryCode    string
-	CargoOnly      bool
-	Source         string
-	SourceVersion  *string
-	SourceHash     *string
-	SortOrder      int
-	Enabled        bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID            uuid.UUID
+	IATACode      string
+	ICAOCode      *string
+	AWBPrefix     string
+	NameZH        string
+	NameEN        string
+	CountryCode   string
+	CargoOnly     bool
+	Source        string
+	SourceVersion *string
+	SourceHash    *string
+	SortOrder     int
+	Enabled       bool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type AirlineList = PagedList[*Airline]
 
 type ShippingLine struct {
 	ID                uuid.UUID
-	OrganizationID    uuid.UUID
 	SCACCode          string
 	NameZH            string
 	NameEN            string
@@ -139,6 +140,9 @@ func (uc *IndustryReferenceUsecase) CreatePort(ctx context.Context, organization
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := assignBaselineOwnership(ctx, organizationID, access.MasterDataPortCreate, &normalized.OrganizationID); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.CreatePort(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "port.create", uuid.Nil, normalized.UNLocode))
 	if err != nil {
 		return nil, err
@@ -150,6 +154,9 @@ func (uc *IndustryReferenceUsecase) UpdatePort(ctx context.Context, organization
 	normalized, err := normalizePort(input, false)
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
+	}
+	if err := assignBaselineOwnership(ctx, organizationID, access.MasterDataPortUpdate, &normalized.OrganizationID); err != nil {
+		return nil, err
 	}
 	updated, err := uc.repo.UpdatePort(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "port.update", id, normalized.UNLocode))
 	if err != nil {
@@ -170,6 +177,9 @@ func (uc *IndustryReferenceUsecase) CreateAirport(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := assignBaselineOwnership(ctx, organizationID, access.MasterDataAirportCreate, &normalized.OrganizationID); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.CreateAirport(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "airport.create", uuid.Nil, normalized.IATACode))
 	if err != nil {
 		return nil, err
@@ -181,6 +191,9 @@ func (uc *IndustryReferenceUsecase) UpdateAirport(ctx context.Context, organizat
 	normalized, err := normalizeAirport(input, false)
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
+	}
+	if err := assignBaselineOwnership(ctx, organizationID, access.MasterDataAirportUpdate, &normalized.OrganizationID); err != nil {
+		return nil, err
 	}
 	updated, err := uc.repo.UpdateAirport(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "airport.update", id, normalized.IATACode))
 	if err != nil {
@@ -201,6 +214,9 @@ func (uc *IndustryReferenceUsecase) CreateAirline(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataAirlineCreate); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.CreateAirline(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "airline.create", uuid.Nil, normalized.IATACode))
 	if err != nil {
 		return nil, err
@@ -212,6 +228,9 @@ func (uc *IndustryReferenceUsecase) UpdateAirline(ctx context.Context, organizat
 	normalized, err := normalizeAirline(input, false)
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
+	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataAirlineUpdate); err != nil {
+		return nil, err
 	}
 	updated, err := uc.repo.UpdateAirline(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "airline.update", id, normalized.IATACode))
 	if err != nil {
@@ -232,6 +251,9 @@ func (uc *IndustryReferenceUsecase) CreateShippingLine(ctx context.Context, orga
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataShippingLineCreate); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.CreateShippingLine(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "shipping_line.create", uuid.Nil, normalized.SCACCode))
 	if err != nil {
 		return nil, err
@@ -244,11 +266,29 @@ func (uc *IndustryReferenceUsecase) UpdateShippingLine(ctx context.Context, orga
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataShippingLineUpdate); err != nil {
+		return nil, err
+	}
 	updated, err := uc.repo.UpdateShippingLine(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "shipping_line.update", id, normalized.SCACCode))
 	if err != nil {
 		return nil, err
 	}
 	return updated, nil
+}
+
+// assignBaselineOwnership 决定 B 型写入的行归属：当前主体为总部时写基线行
+// （OrganizationID 置空，要求基线维护权），非总部写本组织行（无基线写权）。
+func assignBaselineOwnership(ctx context.Context, organizationID uuid.UUID, permissionKey string, target **uuid.UUID) error {
+	if IsHeadquartersOrganization(ctx) {
+		if err := RequireBaselineWrite(ctx, permissionKey); err != nil {
+			return err
+		}
+		*target = nil
+		return nil
+	}
+	orgID := organizationID
+	*target = &orgID
+	return nil
 }
 
 func newIndustryReferenceAudit(organizationID, actorID uuid.UUID, action string, id uuid.UUID, standardCode string) *AuditEvent {

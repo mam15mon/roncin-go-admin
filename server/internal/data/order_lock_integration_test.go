@@ -218,7 +218,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 
 	carrier, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("MSKZ").
 		SetNameZh("马士基航运-" + suffix).
 		SetNameEn("Maersk-" + suffix).

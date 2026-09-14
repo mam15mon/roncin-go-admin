@@ -80,9 +80,11 @@ const (
 	MasterDataKind_MASTER_DATA_KIND_COUNTRY        MasterDataKind = 2
 	MasterDataKind_MASTER_DATA_KIND_REGION         MasterDataKind = 3
 	MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC MasterDataKind = 7
-	MasterDataKind_MASTER_DATA_KIND_SERVICE_TYPE   MasterDataKind = 8
-	MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY MasterDataKind = 9
-	MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE  MasterDataKind = 10
+	// 费用大类（原 SERVICE_TYPE 就地更名，编号不变）：货代语境 Service Type 已绑定
+	// 业务模式（FCL/LCL/AIR），本枚举值实际承载费用大类语义。
+	MasterDataKind_MASTER_DATA_KIND_CHARGE_CATEGORY MasterDataKind = 8
+	MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY  MasterDataKind = 9
+	MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE   MasterDataKind = 10
 )
 
 // Enum value maps for MasterDataKind.
@@ -93,19 +95,19 @@ var (
 		2:  "MASTER_DATA_KIND_COUNTRY",
 		3:  "MASTER_DATA_KIND_REGION",
 		7:  "MASTER_DATA_KIND_CONTAINER_SPEC",
-		8:  "MASTER_DATA_KIND_SERVICE_TYPE",
+		8:  "MASTER_DATA_KIND_CHARGE_CATEGORY",
 		9:  "MASTER_DATA_KIND_CARGO_CATEGORY",
 		10: "MASTER_DATA_KIND_ABNORMAL_CASE",
 	}
 	MasterDataKind_value = map[string]int32{
-		"MASTER_DATA_KIND_UNSPECIFIED":    0,
-		"MASTER_DATA_KIND_CURRENCY":       1,
-		"MASTER_DATA_KIND_COUNTRY":        2,
-		"MASTER_DATA_KIND_REGION":         3,
-		"MASTER_DATA_KIND_CONTAINER_SPEC": 7,
-		"MASTER_DATA_KIND_SERVICE_TYPE":   8,
-		"MASTER_DATA_KIND_CARGO_CATEGORY": 9,
-		"MASTER_DATA_KIND_ABNORMAL_CASE":  10,
+		"MASTER_DATA_KIND_UNSPECIFIED":     0,
+		"MASTER_DATA_KIND_CURRENCY":        1,
+		"MASTER_DATA_KIND_COUNTRY":         2,
+		"MASTER_DATA_KIND_REGION":          3,
+		"MASTER_DATA_KIND_CONTAINER_SPEC":  7,
+		"MASTER_DATA_KIND_CHARGE_CATEGORY": 8,
+		"MASTER_DATA_KIND_CARGO_CATEGORY":  9,
+		"MASTER_DATA_KIND_ABNORMAL_CASE":   10,
 	}
 )
 
@@ -1050,23 +1052,22 @@ func (*ListOptionsRequest) Descriptor() ([]byte, []int) {
 }
 
 type MasterDataItem struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Kind           MasterDataKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=masterdata.v1.MasterDataKind" json:"kind,omitempty"`
-	Code           string                 `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`
-	Name           string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
-	NameEn         *string                `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
-	ParentCode     *string                `protobuf:"bytes,7,opt,name=parent_code,json=parentCode,proto3,oneof" json:"parent_code,omitempty"`
-	TeuFactor      *string                `protobuf:"bytes,9,opt,name=teu_factor,json=teuFactor,proto3,oneof" json:"teu_factor,omitempty"`
-	Source         string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
-	SortOrder      int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled        bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Attributes     *MasterDataAttributes  `protobuf:"bytes,15,opt,name=attributes,proto3" json:"attributes,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind          MasterDataKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=masterdata.v1.MasterDataKind" json:"kind,omitempty"`
+	Code          string                 `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	NameEn        *string                `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
+	ParentCode    *string                `protobuf:"bytes,7,opt,name=parent_code,json=parentCode,proto3,oneof" json:"parent_code,omitempty"`
+	TeuFactor     *string                `protobuf:"bytes,9,opt,name=teu_factor,json=teuFactor,proto3,oneof" json:"teu_factor,omitempty"`
+	Source        string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Attributes    *MasterDataAttributes  `protobuf:"bytes,15,opt,name=attributes,proto3" json:"attributes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MasterDataItem) Reset() {
@@ -1102,13 +1103,6 @@ func (*MasterDataItem) Descriptor() ([]byte, []int) {
 func (x *MasterDataItem) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *MasterDataItem) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
 	}
 	return ""
 }
@@ -1798,21 +1792,22 @@ func (x *ListShippingLinesRequest) GetEnabled() bool {
 }
 
 type Port struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	UnLocode       string                 `protobuf:"bytes,3,opt,name=un_locode,json=unLocode,proto3" json:"un_locode,omitempty"`
-	NameZh         *string                `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
-	NameEn         string                 `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
-	CountryCode    string                 `protobuf:"bytes,6,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
-	TransportModes []string               `protobuf:"bytes,7,rep,name=transport_modes,json=transportModes,proto3" json:"transport_modes,omitempty"`
-	Source         string                 `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
-	SortOrder      int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled        bool                   `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SourceVersion  *string                `protobuf:"bytes,13,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
-	SourceHash     *string                `protobuf:"bytes,14,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
+	OrganizationId *string  `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	UnLocode       string   `protobuf:"bytes,3,opt,name=un_locode,json=unLocode,proto3" json:"un_locode,omitempty"`
+	NameZh         *string  `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
+	NameEn         string   `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
+	CountryCode    string   `protobuf:"bytes,6,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
+	TransportModes []string `protobuf:"bytes,7,rep,name=transport_modes,json=transportModes,proto3" json:"transport_modes,omitempty"`
+	Source         string   `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
+	SortOrder      int32    `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled        bool     `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt      string   `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string   `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion  *string  `protobuf:"bytes,13,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash     *string  `protobuf:"bytes,14,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1855,8 +1850,8 @@ func (x *Port) GetId() string {
 }
 
 func (x *Port) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
+	if x != nil && x.OrganizationId != nil {
+		return *x.OrganizationId
 	}
 	return ""
 }
@@ -2374,23 +2369,24 @@ func (x *UpdatePortResponse) GetTraceId() string {
 }
 
 type Airport struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	IataCode       string                 `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
-	IcaoCode       *string                `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	NameZh         *string                `protobuf:"bytes,5,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
-	NameEn         string                 `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
-	CityNameZh     *string                `protobuf:"bytes,7,opt,name=city_name_zh,json=cityNameZh,proto3,oneof" json:"city_name_zh,omitempty"`
-	CityNameEn     *string                `protobuf:"bytes,8,opt,name=city_name_en,json=cityNameEn,proto3,oneof" json:"city_name_en,omitempty"`
-	CountryCode    string                 `protobuf:"bytes,9,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
-	Source         string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
-	SortOrder      int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled        bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SourceVersion  *string                `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
-	SourceHash     *string                `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
+	OrganizationId *string `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	IataCode       string  `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
+	IcaoCode       *string `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
+	NameZh         *string `protobuf:"bytes,5,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
+	NameEn         string  `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
+	CityNameZh     *string `protobuf:"bytes,7,opt,name=city_name_zh,json=cityNameZh,proto3,oneof" json:"city_name_zh,omitempty"`
+	CityNameEn     *string `protobuf:"bytes,8,opt,name=city_name_en,json=cityNameEn,proto3,oneof" json:"city_name_en,omitempty"`
+	CountryCode    string  `protobuf:"bytes,9,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
+	Source         string  `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
+	SortOrder      int32   `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled        bool    `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt      string  `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string  `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion  *string `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash     *string `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2433,8 +2429,8 @@ func (x *Airport) GetId() string {
 }
 
 func (x *Airport) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
+	if x != nil && x.OrganizationId != nil {
+		return *x.OrganizationId
 	}
 	return ""
 }
@@ -2998,25 +2994,24 @@ func (x *UpdateAirportResponse) GetTraceId() string {
 }
 
 type Airline struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	IataCode       string                 `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
-	IcaoCode       *string                `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	AwbPrefix      *string                `protobuf:"bytes,5,opt,name=awb_prefix,json=awbPrefix,proto3,oneof" json:"awb_prefix,omitempty"`
-	NameZh         *string                `protobuf:"bytes,6,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
-	NameEn         string                 `protobuf:"bytes,7,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
-	CountryCode    string                 `protobuf:"bytes,8,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
-	CargoOnly      bool                   `protobuf:"varint,9,opt,name=cargo_only,json=cargoOnly,proto3" json:"cargo_only,omitempty"`
-	Source         string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
-	SortOrder      int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled        bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SourceVersion  *string                `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
-	SourceHash     *string                `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	IataCode      string                 `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
+	IcaoCode      *string                `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
+	AwbPrefix     *string                `protobuf:"bytes,5,opt,name=awb_prefix,json=awbPrefix,proto3,oneof" json:"awb_prefix,omitempty"`
+	NameZh        *string                `protobuf:"bytes,6,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
+	NameEn        string                 `protobuf:"bytes,7,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
+	CountryCode   string                 `protobuf:"bytes,8,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
+	CargoOnly     bool                   `protobuf:"varint,9,opt,name=cargo_only,json=cargoOnly,proto3" json:"cargo_only,omitempty"`
+	Source        string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion *string                `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash    *string                `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Airline) Reset() {
@@ -3052,13 +3047,6 @@ func (*Airline) Descriptor() ([]byte, []int) {
 func (x *Airline) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *Airline) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
 	}
 	return ""
 }
@@ -3640,7 +3628,6 @@ func (x *UpdateAirlineResponse) GetTraceId() string {
 type ShippingLine struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId    string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	ScacCode          string                 `protobuf:"bytes,3,opt,name=scac_code,json=scacCode,proto3" json:"scac_code,omitempty"`
 	NameZh            string                 `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
 	NameEn            string                 `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
@@ -3690,13 +3677,6 @@ func (*ShippingLine) Descriptor() ([]byte, []int) {
 func (x *ShippingLine) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *ShippingLine) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
 	}
 	return ""
 }
@@ -5592,10 +5572,9 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\rcreated_count\x18\x05 \x01(\x05R\fcreatedCount\x12#\n" +
 	"\rupdated_count\x18\x06 \x01(\x05R\fupdatedCount\x12\x19\n" +
 	"\btrace_id\x18\a \x01(\tR\atraceId\"\x14\n" +
-	"\x12ListOptionsRequest\"\x8b\x04\n" +
+	"\x12ListOptionsRequest\"\xf9\x03\n" +
 	"\x0eMasterDataItem\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x121\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x121\n" +
 	"\x04kind\x18\x03 \x01(\x0e2\x1d.masterdata.v1.MasterDataKindR\x04kind\x12\x12\n" +
 	"\x04code\x18\x04 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x1c\n" +
@@ -5619,7 +5598,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"\b_name_enB\x0e\n" +
 	"\f_parent_codeB\r\n" +
-	"\v_teu_factor\"\xf0\x01\n" +
+	"\v_teu_factorJ\x04\b\x02\x10\x03R\x0forganization_id\"\xf0\x01\n" +
 	"\x11ListItemsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -5674,12 +5653,12 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
 	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xef\x03\n" +
+	"\b_enabled\"\x88\x04\n" +
 	"\x04Port\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
+	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x1b\n" +
 	"\tun_locode\x18\x03 \x01(\tR\bunLocode\x12\x1c\n" +
-	"\aname_zh\x18\x04 \x01(\tH\x00R\x06nameZh\x88\x01\x01\x12\x17\n" +
+	"\aname_zh\x18\x04 \x01(\tH\x01R\x06nameZh\x88\x01\x01\x12\x17\n" +
 	"\aname_en\x18\x05 \x01(\tR\x06nameEn\x12!\n" +
 	"\fcountry_code\x18\x06 \x01(\tR\vcountryCode\x12'\n" +
 	"\x0ftransport_modes\x18\a \x03(\tR\x0etransportModes\x12\x16\n" +
@@ -5692,9 +5671,10 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\f \x01(\tR\tupdatedAt\x12*\n" +
-	"\x0esource_version\x18\r \x01(\tH\x01R\rsourceVersion\x88\x01\x01\x12$\n" +
-	"\vsource_hash\x18\x0e \x01(\tH\x02R\n" +
-	"sourceHash\x88\x01\x01B\n" +
+	"\x0esource_version\x18\r \x01(\tH\x02R\rsourceVersion\x88\x01\x01\x12$\n" +
+	"\vsource_hash\x18\x0e \x01(\tH\x03R\n" +
+	"sourceHash\x88\x01\x01B\x12\n" +
+	"\x10_organization_idB\n" +
 	"\n" +
 	"\b_name_zhB\x11\n" +
 	"\x0f_source_versionB\x0e\n" +
@@ -5736,17 +5716,17 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.masterdata.v1.PortR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe9\x04\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x82\x05\n" +
 	"\aAirport\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
+	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x1b\n" +
 	"\tiata_code\x18\x03 \x01(\tR\biataCode\x12 \n" +
-	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x1c\n" +
-	"\aname_zh\x18\x05 \x01(\tH\x01R\x06nameZh\x88\x01\x01\x12\x17\n" +
+	"\ticao_code\x18\x04 \x01(\tH\x01R\bicaoCode\x88\x01\x01\x12\x1c\n" +
+	"\aname_zh\x18\x05 \x01(\tH\x02R\x06nameZh\x88\x01\x01\x12\x17\n" +
 	"\aname_en\x18\x06 \x01(\tR\x06nameEn\x12%\n" +
-	"\fcity_name_zh\x18\a \x01(\tH\x02R\n" +
+	"\fcity_name_zh\x18\a \x01(\tH\x03R\n" +
 	"cityNameZh\x88\x01\x01\x12%\n" +
-	"\fcity_name_en\x18\b \x01(\tH\x03R\n" +
+	"\fcity_name_en\x18\b \x01(\tH\x04R\n" +
 	"cityNameEn\x88\x01\x01\x12!\n" +
 	"\fcountry_code\x18\t \x01(\tR\vcountryCode\x12\x16\n" +
 	"\x06source\x18\n" +
@@ -5758,9 +5738,10 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\tR\tupdatedAt\x12*\n" +
-	"\x0esource_version\x18\x0f \x01(\tH\x04R\rsourceVersion\x88\x01\x01\x12$\n" +
-	"\vsource_hash\x18\x10 \x01(\tH\x05R\n" +
-	"sourceHash\x88\x01\x01B\f\n" +
+	"\x0esource_version\x18\x0f \x01(\tH\x05R\rsourceVersion\x88\x01\x01\x12$\n" +
+	"\vsource_hash\x18\x10 \x01(\tH\x06R\n" +
+	"sourceHash\x88\x01\x01B\x12\n" +
+	"\x10_organization_idB\f\n" +
 	"\n" +
 	"_icao_codeB\n" +
 	"\n" +
@@ -5821,10 +5802,9 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
 	"\x04data\x18\x04 \x01(\v2\x16.masterdata.v1.AirportR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcb\x04\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb9\x04\n" +
 	"\aAirline\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tiata_code\x18\x03 \x01(\tR\biataCode\x12 \n" +
 	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\"\n" +
 	"\n" +
@@ -5852,7 +5832,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"\b_name_zhB\x11\n" +
 	"\x0f_source_versionB\x0e\n" +
-	"\f_source_hash\"\xe1\x02\n" +
+	"\f_source_hashJ\x04\b\x02\x10\x03R\x0forganization_id\"\xe1\x02\n" +
 	"\x14CreateAirlineRequest\x12 \n" +
 	"\tiata_code\x18\x01 \x01(\tB\x03\xe0A\x02R\biataCode\x12 \n" +
 	"\ticao_code\x18\x02 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\"\n" +
@@ -5911,10 +5891,9 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
 	"\x04data\x18\x04 \x01(\v2\x16.masterdata.v1.AirlineR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xde\x03\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcc\x03\n" +
 	"\fShippingLine\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tscac_code\x18\x03 \x01(\tR\bscacCode\x12\x17\n" +
 	"\aname_zh\x18\x04 \x01(\tR\x06nameZh\x12\x17\n" +
 	"\aname_en\x18\x05 \x01(\tR\x06nameEn\x12!\n" +
@@ -5932,7 +5911,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\tR\tupdatedAtB\x0f\n" +
 	"\r_tracking_urlB\v\n" +
-	"\t_alliance\"\xee\x02\n" +
+	"\t_allianceJ\x04\b\x02\x10\x03R\x0forganization_id\"\xee\x02\n" +
 	"\x19CreateShippingLineRequest\x12 \n" +
 	"\tscac_code\x18\x01 \x01(\tB\x03\xe0A\x02R\bscacCode\x12\x1c\n" +
 	"\aname_zh\x18\x02 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
@@ -6108,14 +6087,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x14MasterDataImportMode\x12'\n" +
 	"#MASTER_DATA_IMPORT_MODE_UNSPECIFIED\x10\x00\x12'\n" +
 	"#MASTER_DATA_IMPORT_MODE_CREATE_ONLY\x10\x01\x12\"\n" +
-	"\x1eMASTER_DATA_IMPORT_MODE_UPSERT\x10\x02*\x9d\x02\n" +
+	"\x1eMASTER_DATA_IMPORT_MODE_UPSERT\x10\x02*\xa0\x02\n" +
 	"\x0eMasterDataKind\x12 \n" +
 	"\x1cMASTER_DATA_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19MASTER_DATA_KIND_CURRENCY\x10\x01\x12\x1c\n" +
 	"\x18MASTER_DATA_KIND_COUNTRY\x10\x02\x12\x1b\n" +
 	"\x17MASTER_DATA_KIND_REGION\x10\x03\x12#\n" +
-	"\x1fMASTER_DATA_KIND_CONTAINER_SPEC\x10\a\x12!\n" +
-	"\x1dMASTER_DATA_KIND_SERVICE_TYPE\x10\b\x12#\n" +
+	"\x1fMASTER_DATA_KIND_CONTAINER_SPEC\x10\a\x12$\n" +
+	" MASTER_DATA_KIND_CHARGE_CATEGORY\x10\b\x12#\n" +
 	"\x1fMASTER_DATA_KIND_CARGO_CATEGORY\x10\t\x12\"\n" +
 	"\x1eMASTER_DATA_KIND_ABNORMAL_CASE\x10\n" +
 	"*\xfa\x03\n" +

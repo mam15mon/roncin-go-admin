@@ -23,8 +23,6 @@ type ShippingLineContainerPrefix struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// ShippingLineID holds the value of the "shipping_line_id" field.
 	ShippingLineID uuid.UUID `json:"shipping_line_id,omitempty"`
 	// Prefix holds the value of the "prefix" field.
@@ -64,7 +62,7 @@ func (*ShippingLineContainerPrefix) scanValues(columns []string) ([]any, error) 
 			values[i] = new(sql.NullString)
 		case shippinglinecontainerprefix.FieldCreatedAt, shippinglinecontainerprefix.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case shippinglinecontainerprefix.FieldID, shippinglinecontainerprefix.FieldOrganizationID, shippinglinecontainerprefix.FieldShippingLineID:
+		case shippinglinecontainerprefix.FieldID, shippinglinecontainerprefix.FieldShippingLineID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -98,12 +96,6 @@ func (_m *ShippingLineContainerPrefix) assignValues(columns []string, values []a
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case shippinglinecontainerprefix.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
 			}
 		case shippinglinecontainerprefix.FieldShippingLineID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -163,9 +155,6 @@ func (_m *ShippingLineContainerPrefix) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("shipping_line_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ShippingLineID))

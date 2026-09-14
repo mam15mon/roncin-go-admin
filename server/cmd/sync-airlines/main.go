@@ -70,7 +70,7 @@ func run(ctx context.Context) error {
 	}
 	defer cleanup()
 
-	conflicts, err := store.CheckAirlines(ctx, options.OrganizationCode, openFlightsSource, rows)
+	conflicts, err := store.CheckAirlines(ctx, openFlightsSource, rows)
 	if err != nil {
 		return fmt.Errorf("检查航司同步冲突失败: %w", err)
 	}
@@ -85,7 +85,7 @@ func run(ctx context.Context) error {
 		return nil
 	}
 
-	result, err := store.ApplyAirlines(ctx, options.OrganizationCode, openFlightsSource, options.Release, summary.SourceHash, rows)
+	result, err := store.ApplyAirlines(ctx, openFlightsSource, options.Release, summary.SourceHash, rows)
 	if err != nil {
 		return fmt.Errorf("写入航司数据失败: %w", err)
 	}
@@ -97,7 +97,6 @@ func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将航司数据写入数据库")
 	source := flag.String("source", "", "OpenFlights airlines.dat 路径或下载 URL")
 	release := flag.String("release", "", "数据版本；默认 OpenFlights")
-	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
 
 	path := resolveSourcePath(strings.TrimSpace(*source))
@@ -115,11 +114,7 @@ func parseOptions() syncrunner.Options {
 			}
 		}
 	}
-	code := strings.TrimSpace(*organizationCode)
-	if code == "" {
-		code = "HQ"
-	}
-	return syncrunner.Options{Apply: *apply, Source: path, Release: strings.TrimSpace(*release), OrganizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: path, Release: strings.TrimSpace(*release)}
 }
 
 func resolveSourcePath(source string) string {
@@ -344,7 +339,7 @@ func parseAirlines(raw []byte, sourceHash string) ([]data.AirlineSyncRecord, air
 
 func printSummary(sourceLabel string, options syncrunner.Options, summary airlineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("航司数据源：%s\n", sourceLabel)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
+	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效活跃航司 %d（中文对照 %d，运单前缀 %d，全货机 %d），非活跃跳过 %d，无效跳过 %d\n",
 		summary.RawRows, summary.ValidAirlines, summary.EnrichedChinese, summary.EnrichedAWB, summary.CargoOnly, summary.SkippedInactive, summary.SkippedInvalid)
 	if len(conflicts) > 0 {

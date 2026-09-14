@@ -224,7 +224,7 @@ func parseSameSite(value string) nethttp.SameSite {
 func organizationChoicesToAPI(choices []biz.OrganizationChoice) []*v1.OrganizationChoice {
 	result := make([]*v1.OrganizationChoice, 0, len(choices))
 	for _, choice := range choices {
-		result = append(result, &v1.OrganizationChoice{OrganizationId: choice.OrganizationID.String(), OrganizationName: choice.OrganizationName, OrganizationCode: choice.OrganizationCode, IsDefault: choice.IsDefault})
+		result = append(result, &v1.OrganizationChoice{OrganizationId: choice.OrganizationID.String(), OrganizationName: choice.OrganizationName, OrganizationCode: choice.OrganizationCode, IsDefault: choice.IsDefault, Kind: authOrganizationKindToAPI(choice.Kind)})
 	}
 	return result
 }
@@ -245,11 +245,32 @@ func parseOptionalOrganizationID(raw string) (uuid.UUID, error) {
 func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	organizations := make([]*v1.Organization, 0, len(principal.Organizations))
 	for _, organization := range principal.Organizations {
-		organizations = append(organizations, &v1.Organization{Id: organization.ID.String(), Code: organization.Code, Name: organization.Name, BaseCurrency: organization.BaseCurrency})
+		organizations = append(organizations, authOrganizationToAPI(organization))
 	}
 	roleScopes := make([]*v1.RoleScope, 0, len(principal.RoleGrants))
 	for _, roleScope := range principal.RoleScopes() {
 		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope)})
 	}
-	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: &v1.Organization{Id: principal.Organization.ID.String(), Code: principal.Organization.Code, Name: principal.Organization.Name, BaseCurrency: principal.Organization.BaseCurrency}, Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes}
+	currentOrganization := principal.Organization
+	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: authOrganizationToAPI(currentOrganization), Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes}
+}
+
+// authOrganizationToAPI 投影登录视图组织：kind 供前端推导主数据维护视角（总部/公司）。
+func authOrganizationToAPI(organization biz.Organization) *v1.Organization {
+	return &v1.Organization{Id: organization.ID.String(), Code: organization.Code, Name: organization.Name, BaseCurrency: organization.BaseCurrency, Kind: authOrganizationKindToAPI(organization.Kind)}
+}
+
+func authOrganizationKindToAPI(kind biz.OrganizationKind) v1.OrganizationKind {
+	switch kind {
+	case biz.OrganizationKindHeadquarters:
+		return v1.OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS
+	case biz.OrganizationKindCompany:
+		return v1.OrganizationKind_ORGANIZATION_KIND_COMPANY
+	case biz.OrganizationKindDepartment:
+		return v1.OrganizationKind_ORGANIZATION_KIND_DEPARTMENT
+	case biz.OrganizationKindTeam:
+		return v1.OrganizationKind_ORGANIZATION_KIND_TEAM
+	default:
+		return v1.OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
+	}
 }

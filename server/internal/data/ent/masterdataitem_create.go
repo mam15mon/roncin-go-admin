@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
@@ -52,12 +51,6 @@ func (_c *MasterDataItemCreate) SetNillableUpdatedAt(v *time.Time) *MasterDataIt
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *MasterDataItemCreate) SetOrganizationID(v uuid.UUID) *MasterDataItemCreate {
-	_c.mutation.SetOrganizationID(v)
 	return _c
 }
 
@@ -197,24 +190,19 @@ func (_c *MasterDataItemCreate) SetNillableID(v *uuid.UUID) *MasterDataItemCreat
 	return _c
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *MasterDataItemCreate) SetOrganization(v *Organization) *MasterDataItemCreate {
-	return _c.SetOrganizationID(v.ID)
-}
-
-// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
-func (_c *MasterDataItemCreate) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
-	_c.mutation.AddServiceTypeFeeSettingIDs(ids...)
+// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
+func (_c *MasterDataItemCreate) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
+	_c.mutation.AddChargeCategoryFeeSettingIDs(ids...)
 	return _c
 }
 
-// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
-func (_c *MasterDataItemCreate) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemCreate {
+// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
+func (_c *MasterDataItemCreate) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddServiceTypeFeeSettingIDs(ids...)
+	return _c.AddChargeCategoryFeeSettingIDs(ids...)
 }
 
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
@@ -321,9 +309,6 @@ func (_c *MasterDataItemCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "MasterDataItem.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "MasterDataItem.organization_id"`)}
-	}
 	if _, ok := _c.mutation.Kind(); !ok {
 		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "MasterDataItem.kind"`)}
 	}
@@ -382,9 +367,6 @@ func (_c *MasterDataItemCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "MasterDataItem.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "MasterDataItem.organization"`)}
 	}
 	return nil
 }
@@ -474,29 +456,12 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
 	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   masterdataitem.OrganizationTable,
-			Columns: []string{masterdataitem.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -584,18 +549,6 @@ func (u *MasterDataItemUpsert) SetUpdatedAt(v time.Time) *MasterDataItemUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *MasterDataItemUpsert) UpdateUpdatedAt() *MasterDataItemUpsert {
 	u.SetExcluded(masterdataitem.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *MasterDataItemUpsert) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsert {
-	u.Set(masterdataitem.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *MasterDataItemUpsert) UpdateOrganizationID() *MasterDataItemUpsert {
-	u.SetExcluded(masterdataitem.FieldOrganizationID)
 	return u
 }
 
@@ -808,20 +761,6 @@ func (u *MasterDataItemUpsertOne) SetUpdatedAt(v time.Time) *MasterDataItemUpser
 func (u *MasterDataItemUpsertOne) UpdateUpdatedAt() *MasterDataItemUpsertOne {
 	return u.Update(func(s *MasterDataItemUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *MasterDataItemUpsertOne) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsertOne {
-	return u.Update(func(s *MasterDataItemUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *MasterDataItemUpsertOne) UpdateOrganizationID() *MasterDataItemUpsertOne {
-	return u.Update(func(s *MasterDataItemUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 
@@ -1225,20 +1164,6 @@ func (u *MasterDataItemUpsertBulk) SetUpdatedAt(v time.Time) *MasterDataItemUpse
 func (u *MasterDataItemUpsertBulk) UpdateUpdatedAt() *MasterDataItemUpsertBulk {
 	return u.Update(func(s *MasterDataItemUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *MasterDataItemUpsertBulk) SetOrganizationID(v uuid.UUID) *MasterDataItemUpsertBulk {
-	return u.Update(func(s *MasterDataItemUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *MasterDataItemUpsertBulk) UpdateOrganizationID() *MasterDataItemUpsertBulk {
-	return u.Update(func(s *MasterDataItemUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 

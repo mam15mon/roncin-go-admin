@@ -271,7 +271,7 @@ func init() {
 	// airline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	airline.UpdateDefaultUpdatedAt = airlineDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// airlineDescIataCode is the schema descriptor for iata_code field.
-	airlineDescIataCode := airlineFields[1].Descriptor()
+	airlineDescIataCode := airlineFields[0].Descriptor()
 	// airline.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	airline.IataCodeValidator = func() func(string) error {
 		validators := airlineDescIataCode.Validators
@@ -289,19 +289,19 @@ func init() {
 		}
 	}()
 	// airlineDescIcaoCode is the schema descriptor for icao_code field.
-	airlineDescIcaoCode := airlineFields[2].Descriptor()
+	airlineDescIcaoCode := airlineFields[1].Descriptor()
 	// airline.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
 	airline.IcaoCodeValidator = airlineDescIcaoCode.Validators[0].(func(string) error)
 	// airlineDescAwbPrefix is the schema descriptor for awb_prefix field.
-	airlineDescAwbPrefix := airlineFields[3].Descriptor()
+	airlineDescAwbPrefix := airlineFields[2].Descriptor()
 	// airline.AwbPrefixValidator is a validator for the "awb_prefix" field. It is called by the builders before save.
 	airline.AwbPrefixValidator = airlineDescAwbPrefix.Validators[0].(func(string) error)
 	// airlineDescNameZh is the schema descriptor for name_zh field.
-	airlineDescNameZh := airlineFields[4].Descriptor()
+	airlineDescNameZh := airlineFields[3].Descriptor()
 	// airline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
 	airline.NameZhValidator = airlineDescNameZh.Validators[0].(func(string) error)
 	// airlineDescNameEn is the schema descriptor for name_en field.
-	airlineDescNameEn := airlineFields[5].Descriptor()
+	airlineDescNameEn := airlineFields[4].Descriptor()
 	// airline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
 	airline.NameEnValidator = func() func(string) error {
 		validators := airlineDescNameEn.Validators
@@ -319,7 +319,7 @@ func init() {
 		}
 	}()
 	// airlineDescCountryCode is the schema descriptor for country_code field.
-	airlineDescCountryCode := airlineFields[6].Descriptor()
+	airlineDescCountryCode := airlineFields[5].Descriptor()
 	// airline.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
 	airline.CountryCodeValidator = func() func(string) error {
 		validators := airlineDescCountryCode.Validators
@@ -337,33 +337,33 @@ func init() {
 		}
 	}()
 	// airlineDescCargoOnly is the schema descriptor for cargo_only field.
-	airlineDescCargoOnly := airlineFields[7].Descriptor()
+	airlineDescCargoOnly := airlineFields[6].Descriptor()
 	// airline.DefaultCargoOnly holds the default value on creation for the cargo_only field.
 	airline.DefaultCargoOnly = airlineDescCargoOnly.Default.(bool)
 	// airlineDescSource is the schema descriptor for source field.
-	airlineDescSource := airlineFields[8].Descriptor()
+	airlineDescSource := airlineFields[7].Descriptor()
 	// airline.DefaultSource holds the default value on creation for the source field.
 	airline.DefaultSource = airlineDescSource.Default.(string)
 	// airline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	airline.SourceValidator = airlineDescSource.Validators[0].(func(string) error)
 	// airlineDescSourceVersion is the schema descriptor for source_version field.
-	airlineDescSourceVersion := airlineFields[9].Descriptor()
+	airlineDescSourceVersion := airlineFields[8].Descriptor()
 	// airline.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
 	airline.SourceVersionValidator = airlineDescSourceVersion.Validators[0].(func(string) error)
 	// airlineDescSourceHash is the schema descriptor for source_hash field.
-	airlineDescSourceHash := airlineFields[10].Descriptor()
+	airlineDescSourceHash := airlineFields[9].Descriptor()
 	// airline.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
 	airline.SourceHashValidator = airlineDescSourceHash.Validators[0].(func(string) error)
 	// airlineDescSortOrder is the schema descriptor for sort_order field.
-	airlineDescSortOrder := airlineFields[11].Descriptor()
+	airlineDescSortOrder := airlineFields[10].Descriptor()
 	// airline.DefaultSortOrder holds the default value on creation for the sort_order field.
 	airline.DefaultSortOrder = airlineDescSortOrder.Default.(int)
 	// airlineDescEnabled is the schema descriptor for enabled field.
-	airlineDescEnabled := airlineFields[12].Descriptor()
+	airlineDescEnabled := airlineFields[11].Descriptor()
 	// airline.DefaultEnabled holds the default value on creation for the enabled field.
 	airline.DefaultEnabled = airlineDescEnabled.Default.(bool)
 	// airlineDescSearchKeywords is the schema descriptor for search_keywords field.
-	airlineDescSearchKeywords := airlineFields[13].Descriptor()
+	airlineDescSearchKeywords := airlineFields[12].Descriptor()
 	// airline.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	airline.DefaultSearchKeywords = airlineDescSearchKeywords.Default.(string)
 	// airlineDescID is the schema descriptor for id field.
@@ -645,7 +645,7 @@ func init() {
 	// billingunit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	billingunit.UpdateDefaultUpdatedAt = billingunitDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// billingunitDescCode is the schema descriptor for code field.
-	billingunitDescCode := billingunitFields[1].Descriptor()
+	billingunitDescCode := billingunitFields[0].Descriptor()
 	// billingunit.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	billingunit.CodeValidator = func() func(string) error {
 		validators := billingunitDescCode.Validators
@@ -663,7 +663,7 @@ func init() {
 		}
 	}()
 	// billingunitDescName is the schema descriptor for name field.
-	billingunitDescName := billingunitFields[2].Descriptor()
+	billingunitDescName := billingunitFields[1].Descriptor()
 	// billingunit.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	billingunit.NameValidator = func() func(string) error {
 		validators := billingunitDescName.Validators
@@ -681,19 +681,19 @@ func init() {
 		}
 	}()
 	// billingunitDescIsContainerUnit is the schema descriptor for is_container_unit field.
-	billingunitDescIsContainerUnit := billingunitFields[3].Descriptor()
+	billingunitDescIsContainerUnit := billingunitFields[2].Descriptor()
 	// billingunit.DefaultIsContainerUnit holds the default value on creation for the is_container_unit field.
 	billingunit.DefaultIsContainerUnit = billingunitDescIsContainerUnit.Default.(bool)
 	// billingunitDescSortOrder is the schema descriptor for sort_order field.
-	billingunitDescSortOrder := billingunitFields[4].Descriptor()
+	billingunitDescSortOrder := billingunitFields[3].Descriptor()
 	// billingunit.DefaultSortOrder holds the default value on creation for the sort_order field.
 	billingunit.DefaultSortOrder = billingunitDescSortOrder.Default.(int)
 	// billingunitDescEnabled is the schema descriptor for enabled field.
-	billingunitDescEnabled := billingunitFields[5].Descriptor()
+	billingunitDescEnabled := billingunitFields[4].Descriptor()
 	// billingunit.DefaultEnabled holds the default value on creation for the enabled field.
 	billingunit.DefaultEnabled = billingunitDescEnabled.Default.(bool)
 	// billingunitDescSearchKeywords is the schema descriptor for search_keywords field.
-	billingunitDescSearchKeywords := billingunitFields[6].Descriptor()
+	billingunitDescSearchKeywords := billingunitFields[5].Descriptor()
 	// billingunit.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	billingunit.DefaultSearchKeywords = billingunitDescSearchKeywords.Default.(string)
 	// billingunitDescID is the schema descriptor for id field.
@@ -1819,7 +1819,7 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
-	exchangeratesettingDescIsActive := exchangeratesettingFields[6].Descriptor()
+	exchangeratesettingDescIsActive := exchangeratesettingFields[8].Descriptor()
 	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.
 	exchangeratesetting.DefaultIsActive = exchangeratesettingDescIsActive.Default.(bool)
 	// exchangeratesettingDescID is the schema descriptor for id field.
@@ -4221,7 +4221,7 @@ func init() {
 	// masterdataitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	masterdataitem.UpdateDefaultUpdatedAt = masterdataitemDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// masterdataitemDescCode is the schema descriptor for code field.
-	masterdataitemDescCode := masterdataitemFields[2].Descriptor()
+	masterdataitemDescCode := masterdataitemFields[1].Descriptor()
 	// masterdataitem.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	masterdataitem.CodeValidator = func() func(string) error {
 		validators := masterdataitemDescCode.Validators
@@ -4239,7 +4239,7 @@ func init() {
 		}
 	}()
 	// masterdataitemDescName is the schema descriptor for name field.
-	masterdataitemDescName := masterdataitemFields[3].Descriptor()
+	masterdataitemDescName := masterdataitemFields[2].Descriptor()
 	// masterdataitem.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	masterdataitem.NameValidator = func() func(string) error {
 		validators := masterdataitemDescName.Validators
@@ -4257,37 +4257,37 @@ func init() {
 		}
 	}()
 	// masterdataitemDescNameEn is the schema descriptor for name_en field.
-	masterdataitemDescNameEn := masterdataitemFields[4].Descriptor()
+	masterdataitemDescNameEn := masterdataitemFields[3].Descriptor()
 	// masterdataitem.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
 	masterdataitem.NameEnValidator = masterdataitemDescNameEn.Validators[0].(func(string) error)
 	// masterdataitemDescParentCode is the schema descriptor for parent_code field.
-	masterdataitemDescParentCode := masterdataitemFields[5].Descriptor()
+	masterdataitemDescParentCode := masterdataitemFields[4].Descriptor()
 	// masterdataitem.ParentCodeValidator is a validator for the "parent_code" field. It is called by the builders before save.
 	masterdataitem.ParentCodeValidator = masterdataitemDescParentCode.Validators[0].(func(string) error)
 	// masterdataitemDescTeuFactor is the schema descriptor for teu_factor field.
-	masterdataitemDescTeuFactor := masterdataitemFields[6].Descriptor()
+	masterdataitemDescTeuFactor := masterdataitemFields[5].Descriptor()
 	// masterdataitem.TeuFactorValidator is a validator for the "teu_factor" field. It is called by the builders before save.
 	masterdataitem.TeuFactorValidator = masterdataitemDescTeuFactor.Validators[0].(func(string) error)
 	// masterdataitemDescSource is the schema descriptor for source field.
-	masterdataitemDescSource := masterdataitemFields[7].Descriptor()
+	masterdataitemDescSource := masterdataitemFields[6].Descriptor()
 	// masterdataitem.DefaultSource holds the default value on creation for the source field.
 	masterdataitem.DefaultSource = masterdataitemDescSource.Default.(string)
 	// masterdataitem.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	masterdataitem.SourceValidator = masterdataitemDescSource.Validators[0].(func(string) error)
 	// masterdataitemDescSortOrder is the schema descriptor for sort_order field.
-	masterdataitemDescSortOrder := masterdataitemFields[8].Descriptor()
+	masterdataitemDescSortOrder := masterdataitemFields[7].Descriptor()
 	// masterdataitem.DefaultSortOrder holds the default value on creation for the sort_order field.
 	masterdataitem.DefaultSortOrder = masterdataitemDescSortOrder.Default.(int)
 	// masterdataitemDescEnabled is the schema descriptor for enabled field.
-	masterdataitemDescEnabled := masterdataitemFields[9].Descriptor()
+	masterdataitemDescEnabled := masterdataitemFields[8].Descriptor()
 	// masterdataitem.DefaultEnabled holds the default value on creation for the enabled field.
 	masterdataitem.DefaultEnabled = masterdataitemDescEnabled.Default.(bool)
 	// masterdataitemDescAttributes is the schema descriptor for attributes field.
-	masterdataitemDescAttributes := masterdataitemFields[10].Descriptor()
+	masterdataitemDescAttributes := masterdataitemFields[9].Descriptor()
 	// masterdataitem.DefaultAttributes holds the default value on creation for the attributes field.
 	masterdataitem.DefaultAttributes = masterdataitemDescAttributes.Default.(*schema.MasterDataAttributes)
 	// masterdataitemDescSearchKeywords is the schema descriptor for search_keywords field.
-	masterdataitemDescSearchKeywords := masterdataitemFields[11].Descriptor()
+	masterdataitemDescSearchKeywords := masterdataitemFields[10].Descriptor()
 	// masterdataitem.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	masterdataitem.DefaultSearchKeywords = masterdataitemDescSearchKeywords.Default.(string)
 	// masterdataitemDescID is the schema descriptor for id field.
@@ -8238,7 +8238,7 @@ func init() {
 	// shippingline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	shippingline.UpdateDefaultUpdatedAt = shippinglineDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// shippinglineDescScacCode is the schema descriptor for scac_code field.
-	shippinglineDescScacCode := shippinglineFields[1].Descriptor()
+	shippinglineDescScacCode := shippinglineFields[0].Descriptor()
 	// shippingline.ScacCodeValidator is a validator for the "scac_code" field. It is called by the builders before save.
 	shippingline.ScacCodeValidator = func() func(string) error {
 		validators := shippinglineDescScacCode.Validators
@@ -8256,7 +8256,7 @@ func init() {
 		}
 	}()
 	// shippinglineDescNameZh is the schema descriptor for name_zh field.
-	shippinglineDescNameZh := shippinglineFields[2].Descriptor()
+	shippinglineDescNameZh := shippinglineFields[1].Descriptor()
 	// shippingline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
 	shippingline.NameZhValidator = func() func(string) error {
 		validators := shippinglineDescNameZh.Validators
@@ -8274,7 +8274,7 @@ func init() {
 		}
 	}()
 	// shippinglineDescNameEn is the schema descriptor for name_en field.
-	shippinglineDescNameEn := shippinglineFields[3].Descriptor()
+	shippinglineDescNameEn := shippinglineFields[2].Descriptor()
 	// shippingline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
 	shippingline.NameEnValidator = func() func(string) error {
 		validators := shippinglineDescNameEn.Validators
@@ -8292,7 +8292,7 @@ func init() {
 		}
 	}()
 	// shippinglineDescCountryCode is the schema descriptor for country_code field.
-	shippinglineDescCountryCode := shippinglineFields[4].Descriptor()
+	shippinglineDescCountryCode := shippinglineFields[3].Descriptor()
 	// shippingline.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
 	shippingline.CountryCodeValidator = func() func(string) error {
 		validators := shippinglineDescCountryCode.Validators
@@ -8310,29 +8310,29 @@ func init() {
 		}
 	}()
 	// shippinglineDescTrackingURL is the schema descriptor for tracking_url field.
-	shippinglineDescTrackingURL := shippinglineFields[5].Descriptor()
+	shippinglineDescTrackingURL := shippinglineFields[4].Descriptor()
 	// shippingline.TrackingURLValidator is a validator for the "tracking_url" field. It is called by the builders before save.
 	shippingline.TrackingURLValidator = shippinglineDescTrackingURL.Validators[0].(func(string) error)
 	// shippinglineDescAlliance is the schema descriptor for alliance field.
-	shippinglineDescAlliance := shippinglineFields[6].Descriptor()
+	shippinglineDescAlliance := shippinglineFields[5].Descriptor()
 	// shippingline.AllianceValidator is a validator for the "alliance" field. It is called by the builders before save.
 	shippingline.AllianceValidator = shippinglineDescAlliance.Validators[0].(func(string) error)
 	// shippinglineDescSource is the schema descriptor for source field.
-	shippinglineDescSource := shippinglineFields[7].Descriptor()
+	shippinglineDescSource := shippinglineFields[6].Descriptor()
 	// shippingline.DefaultSource holds the default value on creation for the source field.
 	shippingline.DefaultSource = shippinglineDescSource.Default.(string)
 	// shippingline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	shippingline.SourceValidator = shippinglineDescSource.Validators[0].(func(string) error)
 	// shippinglineDescSortOrder is the schema descriptor for sort_order field.
-	shippinglineDescSortOrder := shippinglineFields[8].Descriptor()
+	shippinglineDescSortOrder := shippinglineFields[7].Descriptor()
 	// shippingline.DefaultSortOrder holds the default value on creation for the sort_order field.
 	shippingline.DefaultSortOrder = shippinglineDescSortOrder.Default.(int)
 	// shippinglineDescEnabled is the schema descriptor for enabled field.
-	shippinglineDescEnabled := shippinglineFields[9].Descriptor()
+	shippinglineDescEnabled := shippinglineFields[8].Descriptor()
 	// shippingline.DefaultEnabled holds the default value on creation for the enabled field.
 	shippingline.DefaultEnabled = shippinglineDescEnabled.Default.(bool)
 	// shippinglineDescSearchKeywords is the schema descriptor for search_keywords field.
-	shippinglineDescSearchKeywords := shippinglineFields[10].Descriptor()
+	shippinglineDescSearchKeywords := shippinglineFields[9].Descriptor()
 	// shippingline.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	shippingline.DefaultSearchKeywords = shippinglineDescSearchKeywords.Default.(string)
 	// shippinglineDescID is the schema descriptor for id field.
@@ -8357,7 +8357,7 @@ func init() {
 	// shippinglinecontainerprefix.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	shippinglinecontainerprefix.UpdateDefaultUpdatedAt = shippinglinecontainerprefixDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// shippinglinecontainerprefixDescPrefix is the schema descriptor for prefix field.
-	shippinglinecontainerprefixDescPrefix := shippinglinecontainerprefixFields[2].Descriptor()
+	shippinglinecontainerprefixDescPrefix := shippinglinecontainerprefixFields[1].Descriptor()
 	// shippinglinecontainerprefix.PrefixValidator is a validator for the "prefix" field. It is called by the builders before save.
 	shippinglinecontainerprefix.PrefixValidator = func() func(string) error {
 		validators := shippinglinecontainerprefixDescPrefix.Validators

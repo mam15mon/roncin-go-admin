@@ -66,11 +66,6 @@ func UpdatedAt(v time.Time) predicate.ShippingLine {
 	return predicate.ShippingLine(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
-func OrganizationID(v uuid.UUID) predicate.ShippingLine {
-	return predicate.ShippingLine(sql.FieldEQ(FieldOrganizationID, v))
-}
-
 // ScacCode applies equality check predicate on the "scac_code" field. It's identical to ScacCodeEQ.
 func ScacCode(v string) predicate.ShippingLine {
 	return predicate.ShippingLine(sql.FieldEQ(FieldScacCode, v))
@@ -199,26 +194,6 @@ func UpdatedAtLT(v time.Time) predicate.ShippingLine {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.ShippingLine {
 	return predicate.ShippingLine(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
-func OrganizationIDEQ(v uuid.UUID) predicate.ShippingLine {
-	return predicate.ShippingLine(sql.FieldEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
-func OrganizationIDNEQ(v uuid.UUID) predicate.ShippingLine {
-	return predicate.ShippingLine(sql.FieldNEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDIn applies the In predicate on the "organization_id" field.
-func OrganizationIDIn(vs ...uuid.UUID) predicate.ShippingLine {
-	return predicate.ShippingLine(sql.FieldIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
-func OrganizationIDNotIn(vs ...uuid.UUID) predicate.ShippingLine {
-	return predicate.ShippingLine(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
 // ScacCodeEQ applies the EQ predicate on the "scac_code" field.
@@ -809,29 +784,6 @@ func SearchKeywordsEqualFold(v string) predicate.ShippingLine {
 // SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
 func SearchKeywordsContainsFold(v string) predicate.ShippingLine {
 	return predicate.ShippingLine(sql.FieldContainsFold(FieldSearchKeywords, v))
-}
-
-// HasOrganization applies the HasEdge predicate on the "organization" edge.
-func HasOrganization() predicate.ShippingLine {
-	return predicate.ShippingLine(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
-func HasOrganizationWith(preds ...predicate.Organization) predicate.ShippingLine {
-	return predicate.ShippingLine(func(s *sql.Selector) {
-		step := newOrganizationStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // HasContainerPrefixes applies the HasEdge predicate on the "container_prefixes" edge.

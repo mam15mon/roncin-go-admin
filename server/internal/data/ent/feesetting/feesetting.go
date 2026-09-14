@@ -30,8 +30,8 @@ const (
 	FieldNameEn = "name_en"
 	// FieldAliasName holds the string denoting the alias_name field in the database.
 	FieldAliasName = "alias_name"
-	// FieldServiceTypeID holds the string denoting the service_type_id field in the database.
-	FieldServiceTypeID = "service_type_id"
+	// FieldChargeCategoryID holds the string denoting the charge_category_id field in the database.
+	FieldChargeCategoryID = "charge_category_id"
 	// FieldDefaultCurrency holds the string denoting the default_currency field in the database.
 	FieldDefaultCurrency = "default_currency"
 	// FieldBillingUnitID holds the string denoting the billing_unit_id field in the database.
@@ -50,8 +50,8 @@ const (
 	FieldSearchKeywords = "search_keywords"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
-	// EdgeServiceType holds the string denoting the service_type edge name in mutations.
-	EdgeServiceType = "service_type"
+	// EdgeChargeCategory holds the string denoting the charge_category edge name in mutations.
+	EdgeChargeCategory = "charge_category"
 	// EdgeBillingUnit holds the string denoting the billing_unit edge name in mutations.
 	EdgeBillingUnit = "billing_unit"
 	// EdgeAbnormalCase holds the string denoting the abnormal_case edge name in mutations.
@@ -69,13 +69,13 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
-	// ServiceTypeTable is the table that holds the service_type relation/edge.
-	ServiceTypeTable = "fee_settings"
-	// ServiceTypeInverseTable is the table name for the MasterDataItem entity.
+	// ChargeCategoryTable is the table that holds the charge_category relation/edge.
+	ChargeCategoryTable = "fee_settings"
+	// ChargeCategoryInverseTable is the table name for the MasterDataItem entity.
 	// It exists in this package in order to avoid circular dependency with the "masterdataitem" package.
-	ServiceTypeInverseTable = "master_data_items"
-	// ServiceTypeColumn is the table column denoting the service_type relation/edge.
-	ServiceTypeColumn = "service_type_id"
+	ChargeCategoryInverseTable = "master_data_items"
+	// ChargeCategoryColumn is the table column denoting the charge_category relation/edge.
+	ChargeCategoryColumn = "charge_category_id"
 	// BillingUnitTable is the table that holds the billing_unit relation/edge.
 	BillingUnitTable = "fee_settings"
 	// BillingUnitInverseTable is the table name for the BillingUnit entity.
@@ -116,7 +116,7 @@ var Columns = []string{
 	FieldNameZh,
 	FieldNameEn,
 	FieldAliasName,
-	FieldServiceTypeID,
+	FieldChargeCategoryID,
 	FieldDefaultCurrency,
 	FieldBillingUnitID,
 	FieldAbnormalCaseID,
@@ -213,9 +213,9 @@ func ByAliasName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAliasName, opts...).ToFunc()
 }
 
-// ByServiceTypeID orders the results by the service_type_id field.
-func ByServiceTypeID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldServiceTypeID, opts...).ToFunc()
+// ByChargeCategoryID orders the results by the charge_category_id field.
+func ByChargeCategoryID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChargeCategoryID, opts...).ToFunc()
 }
 
 // ByDefaultCurrency orders the results by the default_currency field.
@@ -265,10 +265,10 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
-// ByServiceTypeField orders the results by service_type field.
-func ByServiceTypeField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByChargeCategoryField orders the results by charge_category field.
+func ByChargeCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceTypeStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newChargeCategoryStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -313,11 +313,11 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
 	)
 }
-func newServiceTypeStep() *sqlgraph.Step {
+func newChargeCategoryStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceTypeInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ServiceTypeTable, ServiceTypeColumn),
+		sqlgraph.To(ChargeCategoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ChargeCategoryTable, ChargeCategoryColumn),
 	)
 }
 func newBillingUnitStep() *sqlgraph.Step {

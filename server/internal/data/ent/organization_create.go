@@ -13,10 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
@@ -35,7 +33,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -70,7 +67,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -294,36 +290,6 @@ func (_c *OrganizationCreate) AddPartnerAssignments(v ...*PartnerAssignment) *Or
 	return _c.AddPartnerAssignmentIDs(ids...)
 }
 
-// AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
-func (_c *OrganizationCreate) AddMasterDataItemIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddMasterDataItemIDs(ids...)
-	return _c
-}
-
-// AddMasterDataItems adds the "master_data_items" edges to the MasterDataItem entity.
-func (_c *OrganizationCreate) AddMasterDataItems(v ...*MasterDataItem) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddMasterDataItemIDs(ids...)
-}
-
-// AddBillingUnitIDs adds the "billing_units" edge to the BillingUnit entity by IDs.
-func (_c *OrganizationCreate) AddBillingUnitIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddBillingUnitIDs(ids...)
-	return _c
-}
-
-// AddBillingUnits adds the "billing_units" edges to the BillingUnit entity.
-func (_c *OrganizationCreate) AddBillingUnits(v ...*BillingUnit) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddBillingUnitIDs(ids...)
-}
-
 // AddTaxableServiceIDs adds the "taxable_services" edge to the TaxableService entity by IDs.
 func (_c *OrganizationCreate) AddTaxableServiceIDs(ids ...uuid.UUID) *OrganizationCreate {
 	_c.mutation.AddTaxableServiceIDs(ids...)
@@ -382,36 +348,6 @@ func (_c *OrganizationCreate) AddAirports(v ...*Airport) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddAirportIDs(ids...)
-}
-
-// AddAirlineIDs adds the "airlines" edge to the Airline entity by IDs.
-func (_c *OrganizationCreate) AddAirlineIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddAirlineIDs(ids...)
-	return _c
-}
-
-// AddAirlines adds the "airlines" edges to the Airline entity.
-func (_c *OrganizationCreate) AddAirlines(v ...*Airline) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddAirlineIDs(ids...)
-}
-
-// AddShippingLineIDs adds the "shipping_lines" edge to the ShippingLine entity by IDs.
-func (_c *OrganizationCreate) AddShippingLineIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddShippingLineIDs(ids...)
-	return _c
-}
-
-// AddShippingLines adds the "shipping_lines" edges to the ShippingLine entity.
-func (_c *OrganizationCreate) AddShippingLines(v ...*ShippingLine) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddShippingLineIDs(ids...)
 }
 
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
@@ -1427,38 +1363,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.MasterDataItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MasterDataItemsTable,
-			Columns: []string{organization.MasterDataItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.BillingUnitsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.BillingUnitsTable,
-			Columns: []string{organization.BillingUnitsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := _c.mutation.TaxableServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1516,38 +1420,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AirlinesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirlinesTable,
-			Columns: []string{organization.AirlinesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airline.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ShippingLinesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.ShippingLinesTable,
-			Columns: []string{organization.ShippingLinesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -310,7 +310,6 @@ declare namespace API {
 
   type Airline = {
     id?: string;
-    organizationId?: string;
     iataCode?: string;
     icaoCode?: string;
     awbPrefix?: string;
@@ -329,6 +328,7 @@ declare namespace API {
 
   type Airport = {
     id?: string;
+    /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。 */
     organizationId?: string;
     iataCode?: string;
     icaoCode?: string;
@@ -681,7 +681,6 @@ declare namespace API {
 
   type BillingUnit = {
     id?: string;
-    organizationId?: string;
     code?: string;
     name?: string;
     sortOrder?: number;
@@ -1291,7 +1290,8 @@ declare namespace API {
     nameZh: string;
     nameEn?: string;
     aliasName?: string;
-    serviceTypeId?: string;
+    /** 费用大类必挂（原 service_type 就地更名）。 */
+    chargeCategoryId: string;
     defaultCurrency: string;
     billingUnitId: string;
     abnormalCaseId?: string;
@@ -2362,13 +2362,15 @@ declare namespace API {
 
   type FeeSetting = {
     id?: string;
+    /** 为空表示总部公共科目基线行，非空表示分公司本地明细行。 */
     organizationId?: string;
     feeCode?: string;
     nameZh?: string;
     nameEn?: string;
     aliasName?: string;
-    serviceTypeId?: string;
-    serviceTypeName?: string;
+    /** 费用大类必挂（原 service_type 就地更名）：合并报表底座。 */
+    chargeCategoryId: string;
+    chargeCategoryName?: string;
     defaultCurrency?: string;
     billingUnitId?: string;
     billingUnitName?: string;
@@ -4029,7 +4031,6 @@ declare namespace API {
 
   type MasterDataItem = {
     id?: string;
-    organizationId?: string;
     kind?: number;
     code?: string;
     name?: string;
@@ -4908,6 +4909,8 @@ declare namespace API {
     code?: string;
     name?: string;
     baseCurrency?: string;
+    /** 组织节点类型，供前端推导主数据维护视角（总部/公司）。 */
+    kind?: number;
   };
 
   type OrganizationChoice = {
@@ -4915,6 +4918,8 @@ declare namespace API {
     organizationName: string;
     organizationCode: string;
     isDefault?: boolean;
+    /** 组织节点类型，供前端推导主数据维护视角（总部/公司）。 */
+    kind?: number;
   };
 
   type Partner = {
@@ -5331,6 +5336,7 @@ declare namespace API {
 
   type Port = {
     id?: string;
+    /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。 */
     organizationId?: string;
     unLocode?: string;
     nameZh?: string;
@@ -7146,7 +7152,6 @@ declare namespace API {
 
   type ShippingLine = {
     id?: string;
-    organizationId?: string;
     scacCode?: string;
     nameZh?: string;
     nameEn?: string;
@@ -7545,7 +7550,8 @@ declare namespace API {
     nameZh: string;
     nameEn?: string;
     aliasName?: string;
-    serviceTypeId?: string;
+    /** 费用大类必挂（原 service_type 就地更名）。 */
+    chargeCategoryId: string;
     defaultCurrency: string;
     billingUnitId: string;
     abnormalCaseId?: string;

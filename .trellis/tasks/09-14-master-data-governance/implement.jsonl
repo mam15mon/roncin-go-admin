@@ -1,0 +1,8 @@
+{"file": "AGENTS.md", "reason": "仓库协作规范：分层边界、事务并发约定、生成流程、验证阶段"}
+{"file": "server/internal/data/ent/schema/", "type": "directory", "reason": "Ent Schema 真相源：阶段一全部存储改造对象（去 org 列、可空化、partial unique index、kind 改名）"}
+{"file": "server/internal/data/industry_reference.go", "reason": "B 型让位谓词现状（writeIndustryLocalCodePrecedence 与四个组织过滤器），演进为 baseline_query 工厂的基线"}
+{"file": "server/internal/biz/exchange_rate.go", "reason": "汇率用例与双解析域改造对象：ResolveRate/ResolveBaseRate/来源快照语义"}
+{"file": "server/internal/data/exchange_rate.go", "reason": "汇率仓储：owner 解析退役、org 行/NULL 基线行读写与重叠校验同域化"}
+{"file": "server/internal/biz/fee_catalog.go", "reason": "费用三件套用例：A/C/B 归型后的门禁、charge_category 必挂与引用校验放宽"}
+{"file": "server/internal/data/organization_currency.go", "reason": "resolveHeadquartersOrganizationID 实现：主数据读路径移除、拦截器保留组织身份判定"}
+{"file": "web/src/access.ts", "reason": "前端权限组合：canRead/WriteMasterData* × 组织身份 kind 推导页签可维护性"}

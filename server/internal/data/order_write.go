@@ -1227,7 +1227,6 @@ func validateSeaMasterBillShippingLine(ctx context.Context, tx *ent.Tx, organiza
 	}
 	predicates := []predicate.ShippingLine{
 		shippinglineent.IDEQ(shippingLineID),
-		shippinglineent.OrganizationIDEQ(organizationID),
 	}
 	if requireEnabled {
 		predicates = append(predicates, shippinglineent.EnabledEQ(true))

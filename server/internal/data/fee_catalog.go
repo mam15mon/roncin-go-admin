@@ -17,57 +17,32 @@ type feeCatalogRepo struct{ data *Data }
 
 func NewFeeCatalogRepo(data *Data) biz.FeeCatalogRepo { return &feeCatalogRepo{data: data} }
 
-func (r *feeCatalogRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-}
-
-func (r *feeCatalogRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return err
-	}
-	if headquartersID != organizationID {
-		return biz.ErrFeeCatalogHeadquartersRequired
-	}
-	return nil
-}
-
 func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.FeeSetting], error) {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	query := client.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(headquartersID))
+	// B 型基线+本地：本组织行 + 未被同码本地行覆盖的基线行（Shadowing 去重下推）。
+	query := client.FeeSetting.Query().Where(feeSettingBaselineScope(organizationID))
 	if options.Keyword != "" {
 		query.Where(feesettingent.Or(feesettingent.FeeCodeContainsFold(options.Keyword), feesettingent.NameZhContainsFold(options.Keyword), feesettingent.NameEnContainsFold(options.Keyword), feesettingent.AliasNameContainsFold(options.Keyword), feesettingent.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.FeeSetting, error) {
-		return query.WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().
+		return query.WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().
 			Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
 			Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, feeSettingToBiz)
 }
 
 func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		builder := tx.FeeSetting.Create().
-			SetID(input.ID).SetOrganizationID(input.OrganizationID).SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
-			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetNillableServiceTypeID(input.ServiceTypeID).
+			SetID(input.ID).SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
+			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetChargeCategoryID(input.ChargeCategoryID).
 			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
 			SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
 		if _, createErr := builder.Save(ctx); createErr != nil {
@@ -77,7 +52,7 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 			return auditErr
 		}
 		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-			WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+			WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -92,22 +67,19 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 }
 
 func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), feesettingent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrFeeSettingNotFound, nil)
 		}
 		builder := current.Update().
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
 			SetBillingUnitID(input.BillingUnitID).SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).
-			SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
+			SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetChargeCategoryID(input.ChargeCategoryID)
 		if input.NameEN == nil {
 			builder.ClearNameEn()
 		} else {
@@ -117,11 +89,6 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 			builder.ClearAliasName()
 		} else {
 			builder.SetAliasName(*input.AliasName)
-		}
-		if input.ServiceTypeID == nil {
-			builder.ClearServiceTypeID()
-		} else {
-			builder.SetServiceTypeID(*input.ServiceTypeID)
 		}
 		if input.AbnormalCaseID == nil {
 			builder.ClearAbnormalCaseID()
@@ -135,7 +102,7 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 			return auditErr
 		}
 		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-			WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+			WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -149,34 +116,34 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 	return converted, nil
 }
 
+// validateFeeSettingReferences 校验费用设置引用：计费单位与费用大类查 A 型全局表；
+// 异常类型同属 A 型主数据；税务名称查 C 型本组织行；币种查全局币种表；全部要求 enabled。
 func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input *biz.FeeSetting) error {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return err
 	}
-	if input.ServiceTypeID != nil {
-		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.ServiceTypeID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindServiceType), masterdataitement.EnabledEQ(true)).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return biz.ErrFeeCatalogReferenceInvalid
-		}
-	}
-	if input.AbnormalCaseID != nil {
-		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.AbnormalCaseID), masterdataitement.OrganizationIDEQ(input.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase), masterdataitement.EnabledEQ(true)).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return biz.ErrFeeCatalogReferenceInvalid
-		}
-	}
-	billingExists, err := client.BillingUnit.Query().Where(billingunitent.IDEQ(input.BillingUnitID), billingunitent.OrganizationIDEQ(input.OrganizationID), billingunitent.EnabledEQ(true)).Exist(ctx)
+	chargeCategoryExists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(input.ChargeCategoryID), masterdataitement.KindEQ(masterdataitement.KindChargeCategory), masterdataitement.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
-	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(input.OrganizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
+	if !chargeCategoryExists {
+		return biz.ErrFeeCatalogReferenceInvalid
+	}
+	if input.AbnormalCaseID != nil {
+		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.AbnormalCaseID), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase), masterdataitement.EnabledEQ(true)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return biz.ErrFeeCatalogReferenceInvalid
+		}
+	}
+	billingExists, err := client.BillingUnit.Query().Where(billingunitent.IDEQ(input.BillingUnitID), billingunitent.EnabledEQ(true)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(*input.OrganizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -190,16 +157,13 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 	return nil
 }
 
-func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.BillingUnit], error) {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
+func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, _ uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.BillingUnit], error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	query := client.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID))
+	// A 型全局主数据：全员同权可见，无组织过滤。
+	query := client.BillingUnit.Query()
 	if options.Keyword != "" {
 		query.Where(billingunitent.Or(billingunitent.CodeContainsFold(options.Keyword), billingunitent.NameContainsFold(options.Keyword), billingunitent.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -209,13 +173,10 @@ func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uu
 }
 
 func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.BillingUnit, audit *biz.AuditEvent) (*biz.BillingUnit, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	var saved *ent.BillingUnit
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var saveErr error
-		saved, saveErr = tx.BillingUnit.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+		saved, saveErr = tx.BillingUnit.Create().SetID(input.ID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrBillingUnitCodeExists)
 		}
@@ -228,12 +189,9 @@ func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.Billi
 }
 
 func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.BillingUnit, audit *biz.AuditEvent) (*biz.BillingUnit, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	var saved *ent.BillingUnit
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(input.ID), billingunitent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		current, queryErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(input.ID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrBillingUnitNotFound, nil)
 		}
@@ -251,15 +209,12 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 }
 
 func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.TaxableService], error) {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	query := client.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID))
+	// C 型组织私有：随组织税务主体自维护，仅读本组织行。
+	query := client.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(organizationID))
 	if options.Keyword != "" {
 		query.Where(taxableserviceent.Or(taxableserviceent.NameContainsFold(options.Keyword), taxableserviceent.ShortNameContainsFold(options.Keyword), taxableserviceent.GoodsCodeContainsFold(options.Keyword), taxableserviceent.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -269,9 +224,6 @@ func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID
 }
 
 func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.TaxableService, audit *biz.AuditEvent) (*biz.TaxableService, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	var saved *ent.TaxableService
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var saveErr error
@@ -288,9 +240,6 @@ func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.Ta
 }
 
 func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.TaxableService, audit *biz.AuditEvent) (*biz.TaxableService, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	var saved *ent.TaxableService
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.TaxableService.Query().Where(taxableserviceent.IDEQ(input.ID), taxableserviceent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
@@ -334,10 +283,9 @@ func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FeeSetting{ID: item.ID, OrganizationID: item.OrganizationID, FeeCode: item.FeeCode, NameZH: item.NameZh, NameEN: item.NameEn, AliasName: item.AliasName, ServiceTypeID: item.ServiceTypeID, DefaultCurrency: item.DefaultCurrency, BillingUnitID: item.BillingUnitID, BillingUnitName: billingUnit.Name, AbnormalCaseID: item.AbnormalCaseID, TaxRate: taxRate, TaxableServiceID: item.TaxableServiceID, TaxableServiceName: taxableService.Name, Enabled: item.Enabled, SortOrder: item.SortOrder, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
-	if item.Edges.ServiceType != nil {
-		name := item.Edges.ServiceType.Name
-		result.ServiceTypeName = &name
+	result := &biz.FeeSetting{ID: item.ID, OrganizationID: item.OrganizationID, FeeCode: item.FeeCode, NameZH: item.NameZh, NameEN: item.NameEn, AliasName: item.AliasName, ChargeCategoryID: item.ChargeCategoryID, DefaultCurrency: item.DefaultCurrency, BillingUnitID: item.BillingUnitID, BillingUnitName: billingUnit.Name, AbnormalCaseID: item.AbnormalCaseID, TaxRate: taxRate, TaxableServiceID: item.TaxableServiceID, TaxableServiceName: taxableService.Name, Enabled: item.Enabled, SortOrder: item.SortOrder, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	if item.Edges.ChargeCategory != nil {
+		result.ChargeCategoryName = item.Edges.ChargeCategory.Name
 	}
 	if item.Edges.AbnormalCase != nil {
 		name := item.Edges.AbnormalCase.Name
@@ -347,7 +295,7 @@ func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
 }
 
 func billingUnitToBiz(item *ent.BillingUnit) *biz.BillingUnit {
-	return &biz.BillingUnit{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, IsContainerUnit: item.IsContainerUnit, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.BillingUnit{ID: item.ID, Code: item.Code, Name: item.Name, IsContainerUnit: item.IsContainerUnit, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func taxableServiceToBiz(item *ent.TaxableService) (*biz.TaxableService, error) {

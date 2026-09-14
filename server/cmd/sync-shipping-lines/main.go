@@ -58,7 +58,7 @@ func run(ctx context.Context) error {
 	}
 	defer cleanup()
 
-	conflicts, err := store.CheckShippingLines(ctx, options.OrganizationCode, smdgSource, rows)
+	conflicts, err := store.CheckShippingLines(ctx, smdgSource, rows)
 	if err != nil {
 		return fmt.Errorf("检查船公司同步冲突失败: %w", err)
 	}
@@ -73,7 +73,7 @@ func run(ctx context.Context) error {
 		return nil
 	}
 
-	result, err := store.ApplyShippingLines(ctx, options.OrganizationCode, smdgSource, rows)
+	result, err := store.ApplyShippingLines(ctx, smdgSource, rows)
 	if err != nil {
 		return fmt.Errorf("写入船公司数据失败: %w", err)
 	}
@@ -85,7 +85,6 @@ func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将船公司数据写入数据库")
 	source := flag.String("source", "", "SMDG Liner codes list (.xlsx) 路径")
 	release := flag.String("release", "", "数据版本；默认从 Sheet 名或文件名识别")
-	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
 
 	path := resolveSourcePath(strings.TrimSpace(*source))
@@ -105,15 +104,11 @@ func parseOptions() syncrunner.Options {
 			}
 		}
 	}
-	code := strings.TrimSpace(*organizationCode)
-	if code == "" {
-		code = "HQ"
-	}
 	if path == "" {
 		fmt.Fprintln(os.Stderr, "source 不能为空，未找到默认的 SMDG Excel 文件")
 		os.Exit(2)
 	}
-	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release), OrganizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}
 }
 
 func resolveSourcePath(source string) string {
@@ -220,7 +215,7 @@ func cell(row []string, index int) string {
 
 func printSummary(sourcePath string, options syncrunner.Options, summary shippingLineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("船公司数据源：%s\n", sourcePath)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
+	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效船公司 %d，空行跳过 %d，非法代码跳过 %d\n", summary.RawRows, summary.ValidLiners, summary.SkippedEmpty, summary.InvalidCodes)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {

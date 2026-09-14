@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
@@ -39,20 +38,6 @@ func (_u *ShippingLineUpdate) Where(ps ...predicate.ShippingLine) *ShippingLineU
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ShippingLineUpdate) SetUpdatedAt(v time.Time) *ShippingLineUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *ShippingLineUpdate) SetOrganizationID(v uuid.UUID) *ShippingLineUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *ShippingLineUpdate) SetNillableOrganizationID(v *uuid.UUID) *ShippingLineUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
 	return _u
 }
 
@@ -201,11 +186,6 @@ func (_u *ShippingLineUpdate) SetNillableSearchKeywords(v *string) *ShippingLine
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *ShippingLineUpdate) SetOrganization(v *Organization) *ShippingLineUpdate {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // AddContainerPrefixIDs adds the "container_prefixes" edge to the ShippingLineContainerPrefix entity by IDs.
 func (_u *ShippingLineUpdate) AddContainerPrefixIDs(ids ...uuid.UUID) *ShippingLineUpdate {
 	_u.mutation.AddContainerPrefixIDs(ids...)
@@ -299,12 +279,6 @@ func (_u *ShippingLineUpdate) AddSeaMasterBillVersions(v ...*SeaMasterBillVersio
 // Mutation returns the ShippingLineMutation object of the builder.
 func (_u *ShippingLineUpdate) Mutation() *ShippingLineMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *ShippingLineUpdate) ClearOrganization() *ShippingLineUpdate {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // ClearContainerPrefixes clears all "container_prefixes" edges to the ShippingLineContainerPrefix entity.
@@ -507,9 +481,6 @@ func (_u *ShippingLineUpdate) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ShippingLine.source": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ShippingLine.organization"`)
-	}
 	return nil
 }
 
@@ -563,35 +534,6 @@ func (_u *ShippingLineUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   shippingline.OrganizationTable,
-			Columns: []string{shippingline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   shippingline.OrganizationTable,
-			Columns: []string{shippingline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ContainerPrefixesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -889,20 +831,6 @@ func (_u *ShippingLineUpdateOne) SetUpdatedAt(v time.Time) *ShippingLineUpdateOn
 	return _u
 }
 
-// SetOrganizationID sets the "organization_id" field.
-func (_u *ShippingLineUpdateOne) SetOrganizationID(v uuid.UUID) *ShippingLineUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *ShippingLineUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *ShippingLineUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
 // SetNameZh sets the "name_zh" field.
 func (_u *ShippingLineUpdateOne) SetNameZh(v string) *ShippingLineUpdateOne {
 	_u.mutation.SetNameZh(v)
@@ -1048,11 +976,6 @@ func (_u *ShippingLineUpdateOne) SetNillableSearchKeywords(v *string) *ShippingL
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *ShippingLineUpdateOne) SetOrganization(v *Organization) *ShippingLineUpdateOne {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // AddContainerPrefixIDs adds the "container_prefixes" edge to the ShippingLineContainerPrefix entity by IDs.
 func (_u *ShippingLineUpdateOne) AddContainerPrefixIDs(ids ...uuid.UUID) *ShippingLineUpdateOne {
 	_u.mutation.AddContainerPrefixIDs(ids...)
@@ -1146,12 +1069,6 @@ func (_u *ShippingLineUpdateOne) AddSeaMasterBillVersions(v ...*SeaMasterBillVer
 // Mutation returns the ShippingLineMutation object of the builder.
 func (_u *ShippingLineUpdateOne) Mutation() *ShippingLineMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *ShippingLineUpdateOne) ClearOrganization() *ShippingLineUpdateOne {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // ClearContainerPrefixes clears all "container_prefixes" edges to the ShippingLineContainerPrefix entity.
@@ -1367,9 +1284,6 @@ func (_u *ShippingLineUpdateOne) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ShippingLine.source": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ShippingLine.organization"`)
-	}
 	return nil
 }
 
@@ -1440,35 +1354,6 @@ func (_u *ShippingLineUpdateOne) sqlSave(ctx context.Context) (_node *ShippingLi
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   shippingline.OrganizationTable,
-			Columns: []string{shippingline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   shippingline.OrganizationTable,
-			Columns: []string{shippingline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ContainerPrefixesCleared() {
 		edge := &sqlgraph.EdgeSpec{

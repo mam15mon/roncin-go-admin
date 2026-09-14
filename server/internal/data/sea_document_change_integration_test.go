@@ -59,7 +59,6 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetNormalizedName("单证变更测试合作伙伴").
 		SaveX(ctx)
 	shippingLine := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("DCTL").
 		SetNameZh("单证变更测试船公司").
 		SetNameEn("Document Change Test Shipping Line").
@@ -668,7 +667,6 @@ func createHouseBillSharedAllocation(t *testing.T, f *seaDocumentChangeFixture, 
 	t.Helper()
 	ctx := context.Background()
 	spec := f.data.db.MasterDataItem.Create().
-		SetOrganizationID(f.orgID).
 		SetKind(masterdataitement.KindContainerSpec).
 		SetCode("40HQ-" + suffix).
 		SetName("40HQ超高箱").

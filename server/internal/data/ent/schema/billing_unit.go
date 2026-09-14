@@ -5,17 +5,16 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"github.com/google/uuid"
 )
 
-// BillingUnit 定义组织级费用计费单位。
+// BillingUnit 定义费用计费单位。
+// A 型全局主数据：客观通用单位全球唯一，无组织归属。
 type BillingUnit struct{ ent.Schema }
 
 func (BillingUnit) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (BillingUnit) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("organization_id", uuid.Nil),
 		field.String("code").NotEmpty().MaxLen(32),
 		field.String("name").NotEmpty().MaxLen(64),
 		field.Bool("is_container_unit").Default(false),
@@ -29,7 +28,6 @@ func (BillingUnit) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("na
 
 func (BillingUnit) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("organization", Organization.Type).Ref("billing_units").Field("organization_id").Unique().Required(),
 		edge.To("fee_settings", FeeSetting.Type),
 		edge.To("order_fees", OrderFee.Type),
 	}
@@ -37,7 +35,7 @@ func (BillingUnit) Edges() []ent.Edge {
 
 func (BillingUnit) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "code").Unique(),
-		index.Fields("organization_id", "enabled", "sort_order"),
+		index.Fields("code").Unique(),
+		index.Fields("enabled", "sort_order"),
 	}
 }

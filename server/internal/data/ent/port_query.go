@@ -411,7 +411,10 @@ func (_q *PortQuery) loadOrganization(ctx context.Context, query *OrganizationQu
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Port)
 	for i := range nodes {
-		fk := nodes[i].OrganizationID
+		if nodes[i].OrganizationID == nil {
+			continue
+		}
+		fk := *nodes[i].OrganizationID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

@@ -53,12 +53,6 @@ func (_c *ShippingLineContainerPrefixCreate) SetNillableUpdatedAt(v *time.Time) 
 	return _c
 }
 
-// SetOrganizationID sets the "organization_id" field.
-func (_c *ShippingLineContainerPrefixCreate) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixCreate {
-	_c.mutation.SetOrganizationID(v)
-	return _c
-}
-
 // SetShippingLineID sets the "shipping_line_id" field.
 func (_c *ShippingLineContainerPrefixCreate) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixCreate {
 	_c.mutation.SetShippingLineID(v)
@@ -147,9 +141,6 @@ func (_c *ShippingLineContainerPrefixCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ShippingLineContainerPrefix.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "ShippingLineContainerPrefix.organization_id"`)}
-	}
 	if _, ok := _c.mutation.ShippingLineID(); !ok {
 		return &ValidationError{Name: "shipping_line_id", err: errors.New(`ent: missing required field "ShippingLineContainerPrefix.shipping_line_id"`)}
 	}
@@ -207,10 +198,6 @@ func (_c *ShippingLineContainerPrefixCreate) createSpec() (*ShippingLineContaine
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(shippinglinecontainerprefix.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := _c.mutation.OrganizationID(); ok {
-		_spec.SetField(shippinglinecontainerprefix.FieldOrganizationID, field.TypeUUID, value)
-		_node.OrganizationID = value
 	}
 	if value, ok := _c.mutation.Prefix(); ok {
 		_spec.SetField(shippinglinecontainerprefix.FieldPrefix, field.TypeString, value)
@@ -297,18 +284,6 @@ func (u *ShippingLineContainerPrefixUpsert) UpdateUpdatedAt() *ShippingLineConta
 	return u
 }
 
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineContainerPrefixUpsert) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsert {
-	u.Set(shippinglinecontainerprefix.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineContainerPrefixUpsert) UpdateOrganizationID() *ShippingLineContainerPrefixUpsert {
-	u.SetExcluded(shippinglinecontainerprefix.FieldOrganizationID)
-	return u
-}
-
 // SetShippingLineID sets the "shipping_line_id" field.
 func (u *ShippingLineContainerPrefixUpsert) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixUpsert {
 	u.Set(shippinglinecontainerprefix.FieldShippingLineID, v)
@@ -386,20 +361,6 @@ func (u *ShippingLineContainerPrefixUpsertOne) SetUpdatedAt(v time.Time) *Shippi
 func (u *ShippingLineContainerPrefixUpsertOne) UpdateUpdatedAt() *ShippingLineContainerPrefixUpsertOne {
 	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineContainerPrefixUpsertOne) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsertOne {
-	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineContainerPrefixUpsertOne) UpdateOrganizationID() *ShippingLineContainerPrefixUpsertOne {
-	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 
@@ -649,20 +610,6 @@ func (u *ShippingLineContainerPrefixUpsertBulk) SetUpdatedAt(v time.Time) *Shipp
 func (u *ShippingLineContainerPrefixUpsertBulk) UpdateUpdatedAt() *ShippingLineContainerPrefixUpsertBulk {
 	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineContainerPrefixUpsertBulk) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpsertBulk {
-	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineContainerPrefixUpsertBulk) UpdateOrganizationID() *ShippingLineContainerPrefixUpsertBulk {
-	return u.Update(func(s *ShippingLineContainerPrefixUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 

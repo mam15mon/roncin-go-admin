@@ -91,9 +91,9 @@ func AliasName(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldAliasName, v))
 }
 
-// ServiceTypeID applies equality check predicate on the "service_type_id" field. It's identical to ServiceTypeIDEQ.
-func ServiceTypeID(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldEQ(FieldServiceTypeID, v))
+// ChargeCategoryID applies equality check predicate on the "charge_category_id" field. It's identical to ChargeCategoryIDEQ.
+func ChargeCategoryID(v uuid.UUID) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldEQ(FieldChargeCategoryID, v))
 }
 
 // DefaultCurrency applies equality check predicate on the "default_currency" field. It's identical to DefaultCurrencyEQ.
@@ -234,6 +234,16 @@ func OrganizationIDIn(vs ...uuid.UUID) predicate.FeeSetting {
 // OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
 func OrganizationIDNotIn(vs ...uuid.UUID) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldNotIn(FieldOrganizationID, vs...))
+}
+
+// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
+func OrganizationIDIsNil() predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldIsNull(FieldOrganizationID))
+}
+
+// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
+func OrganizationIDNotNil() predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldNotNull(FieldOrganizationID))
 }
 
 // FeeCodeEQ applies the EQ predicate on the "fee_code" field.
@@ -516,34 +526,24 @@ func AliasNameContainsFold(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldContainsFold(FieldAliasName, v))
 }
 
-// ServiceTypeIDEQ applies the EQ predicate on the "service_type_id" field.
-func ServiceTypeIDEQ(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldEQ(FieldServiceTypeID, v))
+// ChargeCategoryIDEQ applies the EQ predicate on the "charge_category_id" field.
+func ChargeCategoryIDEQ(v uuid.UUID) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldEQ(FieldChargeCategoryID, v))
 }
 
-// ServiceTypeIDNEQ applies the NEQ predicate on the "service_type_id" field.
-func ServiceTypeIDNEQ(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNEQ(FieldServiceTypeID, v))
+// ChargeCategoryIDNEQ applies the NEQ predicate on the "charge_category_id" field.
+func ChargeCategoryIDNEQ(v uuid.UUID) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldNEQ(FieldChargeCategoryID, v))
 }
 
-// ServiceTypeIDIn applies the In predicate on the "service_type_id" field.
-func ServiceTypeIDIn(vs ...uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldIn(FieldServiceTypeID, vs...))
+// ChargeCategoryIDIn applies the In predicate on the "charge_category_id" field.
+func ChargeCategoryIDIn(vs ...uuid.UUID) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldIn(FieldChargeCategoryID, vs...))
 }
 
-// ServiceTypeIDNotIn applies the NotIn predicate on the "service_type_id" field.
-func ServiceTypeIDNotIn(vs ...uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNotIn(FieldServiceTypeID, vs...))
-}
-
-// ServiceTypeIDIsNil applies the IsNil predicate on the "service_type_id" field.
-func ServiceTypeIDIsNil() predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldIsNull(FieldServiceTypeID))
-}
-
-// ServiceTypeIDNotNil applies the NotNil predicate on the "service_type_id" field.
-func ServiceTypeIDNotNil() predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNotNull(FieldServiceTypeID))
+// ChargeCategoryIDNotIn applies the NotIn predicate on the "charge_category_id" field.
+func ChargeCategoryIDNotIn(vs ...uuid.UUID) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldNotIn(FieldChargeCategoryID, vs...))
 }
 
 // DefaultCurrencyEQ applies the EQ predicate on the "default_currency" field.
@@ -884,21 +884,21 @@ func HasOrganizationWith(preds ...predicate.Organization) predicate.FeeSetting {
 	})
 }
 
-// HasServiceType applies the HasEdge predicate on the "service_type" edge.
-func HasServiceType() predicate.FeeSetting {
+// HasChargeCategory applies the HasEdge predicate on the "charge_category" edge.
+func HasChargeCategory() predicate.FeeSetting {
 	return predicate.FeeSetting(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTypeTable, ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ChargeCategoryTable, ChargeCategoryColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasServiceTypeWith applies the HasEdge predicate on the "service_type" edge with a given conditions (other predicates).
-func HasServiceTypeWith(preds ...predicate.MasterDataItem) predicate.FeeSetting {
+// HasChargeCategoryWith applies the HasEdge predicate on the "charge_category" edge with a given conditions (other predicates).
+func HasChargeCategoryWith(preds ...predicate.MasterDataItem) predicate.FeeSetting {
 	return predicate.FeeSetting(func(s *sql.Selector) {
-		step := newServiceTypeStep()
+		step := newChargeCategoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

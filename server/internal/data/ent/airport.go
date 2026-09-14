@@ -24,7 +24,7 @@ type Airport struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
+	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
 	// IataCode holds the value of the "iata_code" field.
 	IataCode string `json:"iata_code,omitempty"`
 	// IcaoCode holds the value of the "icao_code" field.
@@ -82,6 +82,8 @@ func (*Airport) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airport.FieldOrganizationID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case airport.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case airport.FieldSortOrder:
@@ -90,7 +92,7 @@ func (*Airport) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case airport.FieldCreatedAt, airport.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case airport.FieldID, airport.FieldOrganizationID:
+		case airport.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -126,10 +128,11 @@ func (_m *Airport) assignValues(columns []string, values []any) error {
 				_m.UpdatedAt = value.Time
 			}
 		case airport.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
+			} else if value.Valid {
+				_m.OrganizationID = new(uuid.UUID)
+				*_m.OrganizationID = *value.S.(*uuid.UUID)
 			}
 		case airport.FieldIataCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -262,8 +265,10 @@ func (_m *Airport) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	if v := _m.OrganizationID; v != nil {
+		builder.WriteString("organization_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("iata_code=")
 	builder.WriteString(_m.IataCode)

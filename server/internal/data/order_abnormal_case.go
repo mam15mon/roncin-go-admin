@@ -27,15 +27,11 @@ func (r *orderAbnormalCaseRepo) order(ctx context.Context, organizationID, order
 	return nil
 }
 
-func (r *orderAbnormalCaseRepo) validateAbnormalCaseKind(ctx context.Context, organizationID, abnormalCaseID uuid.UUID) error {
-	headquartersID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
-	if err != nil {
-		return err
-	}
+func (r *orderAbnormalCaseRepo) validateAbnormalCaseKind(ctx context.Context, _ uuid.UUID, abnormalCaseID uuid.UUID) error {
+	// A 型主数据全局唯一，无组织过滤。
 	count, err := r.data.db.MasterDataItem.Query().
 		Where(
 			masterdataitement.IDEQ(abnormalCaseID),
-			masterdataitement.OrganizationIDEQ(headquartersID),
 			masterdataitement.KindEQ(masterdataitement.KindAbnormalCase),
 			masterdataitement.EnabledEQ(true),
 		).

@@ -9,13 +9,13 @@ import (
 )
 
 // ShippingLineContainerPrefix 定义船司持有的 BIC 箱主前缀。
+// 随主表归入 A 型：前缀跟随船司行，无组织归属。
 type ShippingLineContainerPrefix struct{ ent.Schema }
 
 func (ShippingLineContainerPrefix) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (ShippingLineContainerPrefix) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("organization_id", uuid.Nil),
 		field.UUID("shipping_line_id", uuid.Nil),
 		field.String("prefix").NotEmpty().MaxLen(4).Immutable(),
 	}
@@ -29,7 +29,7 @@ func (ShippingLineContainerPrefix) Edges() []ent.Edge {
 
 func (ShippingLineContainerPrefix) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "prefix").Unique(),
+		index.Fields("prefix").Unique(),
 		index.Fields("shipping_line_id", "prefix").Unique(),
 	}
 }

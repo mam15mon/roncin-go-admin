@@ -399,8 +399,8 @@ func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 		return biz.MasterDataKindRegion
 	case v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC:
 		return biz.MasterDataKindContainerSpec
-	case v1.MasterDataKind_MASTER_DATA_KIND_SERVICE_TYPE:
-		return biz.MasterDataKindServiceType
+	case v1.MasterDataKind_MASTER_DATA_KIND_CHARGE_CATEGORY:
+		return biz.MasterDataKindChargeCategory
 	case v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY:
 		return biz.MasterDataKindCargoCategory
 	case v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE:
@@ -420,8 +420,8 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_REGION
 	case biz.MasterDataKindContainerSpec:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC
-	case biz.MasterDataKindServiceType:
-		return v1.MasterDataKind_MASTER_DATA_KIND_SERVICE_TYPE
+	case biz.MasterDataKindChargeCategory:
+		return v1.MasterDataKind_MASTER_DATA_KIND_CHARGE_CATEGORY
 	case biz.MasterDataKindCargoCategory:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY
 	case biz.MasterDataKindAbnormalCase:
@@ -452,9 +452,8 @@ func masterDataItemsToAPI(items []*biz.MasterDataItem) []*v1.MasterDataItem {
 
 func masterDataItemToAPI(item *biz.MasterDataItem) *v1.MasterDataItem {
 	return &v1.MasterDataItem{
-		Id:             item.ID.String(),
-		OrganizationId: item.OrganizationID.String(),
-		Kind:           masterDataKindToAPI(item.Kind),
+		Id:        item.ID.String(),
+		Kind:      masterDataKindToAPI(item.Kind),
 		Code:           item.Code,
 		Name:           item.Name,
 		NameEn:         item.NameEN,
@@ -523,7 +522,9 @@ func portsToAPI(items []*biz.Port) []*v1.Port {
 }
 
 func portToAPI(item *biz.Port) *v1.Port {
-	return &v1.Port{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), UnLocode: item.UNLocode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
+	// 基线行 OrganizationID 为 nil，必须先判空再取 String()，避免空指针 panic。
+	portOrganizationID := uuidStringPtr(item.OrganizationID)
+	return &v1.Port{Id: item.ID.String(), OrganizationId: portOrganizationID, UnLocode: item.UNLocode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airportsToAPI(items []*biz.Airport) []*v1.Airport {
@@ -535,7 +536,9 @@ func airportsToAPI(items []*biz.Airport) []*v1.Airport {
 }
 
 func airportToAPI(item *biz.Airport) *v1.Airport {
-	return &v1.Airport{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CityNameZh: optionalString(item.CityNameZH, item.CityNameZH != ""), CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
+	// 基线行 OrganizationID 为 nil，必须先判空再取 String()，避免空指针 panic。
+	airportOrganizationID := uuidStringPtr(item.OrganizationID)
+	return &v1.Airport{Id: item.ID.String(), OrganizationId: airportOrganizationID, IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CityNameZh: optionalString(item.CityNameZH, item.CityNameZH != ""), CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
@@ -548,9 +551,8 @@ func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
 
 func airlineToAPI(item *biz.Airline) *v1.Airline {
 	return &v1.Airline{
-		Id:             item.ID.String(),
-		OrganizationId: item.OrganizationID.String(),
-		IataCode:       item.IATACode,
+		Id:       item.ID.String(),
+		IataCode: item.IATACode,
 		IcaoCode:       item.ICAOCode,
 		AwbPrefix:      optionalString(item.AWBPrefix, item.AWBPrefix != ""),
 		NameZh:         optionalString(item.NameZH, item.NameZH != ""),
@@ -576,7 +578,7 @@ func shippingLinesToAPI(items []*biz.ShippingLine) []*v1.ShippingLine {
 }
 
 func shippingLineToAPI(item *biz.ShippingLine) *v1.ShippingLine {
-	return &v1.ShippingLine{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), ScacCode: item.SCACCode, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, TrackingUrl: item.TrackingURL, Alliance: item.Alliance, ContainerPrefixes: append([]string(nil), item.ContainerPrefixes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.ShippingLine{Id: item.ID.String(), ScacCode: item.SCACCode, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, TrackingUrl: item.TrackingURL, Alliance: item.Alliance, ContainerPrefixes: append([]string(nil), item.ContainerPrefixes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func optionalBool(value bool, present bool) *bool {

@@ -31,19 +31,17 @@ func (s *masterDataRepoStub) ListEnabled(context.Context, uuid.UUID) ([]*MasterD
 	return nil, nil
 }
 
-func (s *masterDataRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
+func (s *masterDataRepoStub) Create(_ context.Context, _ uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
 	s.created = input
 	s.createAudit = audit
-	input.OrganizationID = organizationID
 	input.ID = uuid.New()
 	audit.Details["master_data.id"] = input.ID.String()
 	return input, nil
 }
 
-func (s *masterDataRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
+func (s *masterDataRepoStub) Update(_ context.Context, _ uuid.UUID, id uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
 	s.updated = input
 	s.updateAudit = audit
-	input.OrganizationID = organizationID
 	input.ID = id
 	input.Code = "40HC"
 	return input, nil
@@ -75,7 +73,7 @@ func TestDefaultOrderOptions(t *testing.T) {
 	counts := map[MasterDataKind]int{}
 	seen := make(map[string]struct{}, len(items))
 	for _, item := range items {
-		if item.Kind != MasterDataKindContainerSpec && item.Kind != MasterDataKindServiceType && item.Kind != MasterDataKindCargoCategory {
+		if item.Kind != MasterDataKindContainerSpec && item.Kind != MasterDataKindChargeCategory && item.Kind != MasterDataKindCargoCategory {
 			t.Fatalf("unexpected kind %q", item.Kind)
 		}
 		key := string(item.Kind) + "/" + item.Code
@@ -88,7 +86,7 @@ func TestDefaultOrderOptions(t *testing.T) {
 			t.Fatalf("invalid default option: %#v", item)
 		}
 	}
-	if counts[MasterDataKindContainerSpec] != 18 || counts[MasterDataKindServiceType] != 19 || counts[MasterDataKindCargoCategory] != 5 {
+	if counts[MasterDataKindContainerSpec] != 18 || counts[MasterDataKindChargeCategory] != 19 || counts[MasterDataKindCargoCategory] != 5 {
 		t.Fatalf("option counts = %#v", counts)
 	}
 }
@@ -126,7 +124,7 @@ func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
-	created, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindCurrency, Code: " cny ", Name: " 人民币 ", NameEN: stringPtr(" Renminbi "), Source: " ", SortOrder: 10})
+	created, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindCurrency, Code: " cny ", Name: " 人民币 ", NameEN: stringPtr(" Renminbi "), Source: " ", SortOrder: 10})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -143,10 +141,10 @@ func TestMasterDataRejectsInvalidTEUFactor(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindCurrency, Code: "CNY", Name: "人民币", TEUFactor: stringPtr("1")}); err != ErrMasterDataInvalidArgument {
+	if _, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindCurrency, Code: "CNY", Name: "人民币", TEUFactor: stringPtr("1")}); err != ErrMasterDataInvalidArgument {
 		t.Fatalf("currency TEU factor error = %v, want ErrMasterDataInvalidArgument", err)
 	}
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindContainerSpec, Code: "40HC", Name: "40尺高柜", TEUFactor: stringPtr("not-number")}); err != ErrMasterDataInvalidArgument {
+	if _, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{Kind: MasterDataKindContainerSpec, Code: "40HC", Name: "40尺高柜", TEUFactor: stringPtr("not-number")}); err != ErrMasterDataInvalidArgument {
 		t.Fatalf("invalid TEU factor error = %v, want ErrMasterDataInvalidArgument", err)
 	}
 }
@@ -188,7 +186,7 @@ func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 		},
 	}
 
-	result, err := usecase.Import(context.Background(), organizationID, actorID, input)
+	result, err := usecase.Import(headquartersMasterDataContext(), organizationID, actorID, input)
 	if err != nil {
 		t.Fatalf("Import() error = %v", err)
 	}
@@ -369,7 +367,7 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 	// 1. ParentCode 测试：只允许 region
 	validParentCodeKinds := []MasterDataKind{MasterDataKindRegion}
 	for _, kind := range validParentCodeKinds {
-		_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
+		_, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{
 			Kind:       kind,
 			Code:       "TEST",
 			Name:       "测试",
@@ -384,11 +382,11 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
 		MasterDataKindContainerSpec,
-		MasterDataKindServiceType,
+		MasterDataKindChargeCategory,
 		MasterDataKindCargoCategory,
 	}
 	for _, kind := range invalidParentCodeKinds {
-		_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
+		_, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{
 			Kind:       kind,
 			Code:       "TEST",
 			Name:       "测试",
@@ -400,7 +398,7 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 	}
 
 	// 2. TEUFactor 测试：只允许 container_spec
-	_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
+	_, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{
 		Kind:      MasterDataKindContainerSpec,
 		Code:      "20GP",
 		Name:      "20尺普柜",
@@ -414,11 +412,11 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
 		MasterDataKindRegion,
-		MasterDataKindServiceType,
+		MasterDataKindChargeCategory,
 		MasterDataKindCargoCategory,
 	}
 	for _, kind := range invalidTEUFactorKinds {
-		_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
+		_, err := usecase.Create(headquartersMasterDataContext(), organizationID, actorID, &MasterDataItem{
 			Kind:      kind,
 			Code:      "TEST",
 			Name:      "测试",
@@ -450,7 +448,7 @@ func TestMasterDataImportUpsertModePassThrough(t *testing.T) {
 		},
 	}
 
-	_, err := usecase.Import(context.Background(), organizationID, actorID, input)
+	_, err := usecase.Import(headquartersMasterDataContext(), organizationID, actorID, input)
 	if err != nil {
 		t.Fatalf("Import() error = %v", err)
 	}
@@ -488,3 +486,19 @@ func TestDefaultOrderOptionsIncludesContainerSpecs(t *testing.T) {
 }
 
 var _ MasterDataRepo = (*masterDataRepoStub)(nil)
+
+// headquartersMasterDataContext 返回总部身份 + 主数据维护权限（创建/更新/导入）的测试上下文。
+func headquartersMasterDataContext() context.Context {
+	return principalContext(headquartersPrincipal("system.master_data.item.create", "system.master_data.item.update", "system.master_data.item.import"))
+}
+
+// TestMasterDataCreateRejectsBranchContext 验证 A 型写路径拦截：分支上下文即使持有
+// 权限码，也不能写全局主数据。
+func TestMasterDataCreateRejectsBranchContext(t *testing.T) {
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
+	ctx := principalContext(companyPrincipal("system.master_data.item.create"))
+	_, err := usecase.Create(ctx, uuid.New(), uuid.New(), &MasterDataItem{Kind: MasterDataKindCurrency, Code: "CNY", Name: "人民币"})
+	if err != ErrMasterDataHeadquartersRequired {
+		t.Fatalf("分支上下文写 A 型主数据应返回 403 业务错误，实际 %v", err)
+	}
+}

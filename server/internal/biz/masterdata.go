@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 )
 
 var (
@@ -22,18 +23,18 @@ var (
 type MasterDataKind string
 
 const (
-	MasterDataKindCurrency      MasterDataKind = "currency"
-	MasterDataKindCountry       MasterDataKind = "country"
-	MasterDataKindRegion        MasterDataKind = "region"
-	MasterDataKindContainerSpec MasterDataKind = "container_spec"
-	MasterDataKindServiceType   MasterDataKind = "service_type"
-	MasterDataKindCargoCategory MasterDataKind = "cargo_category"
-	MasterDataKindAbnormalCase  MasterDataKind = "abnormal_case"
+	MasterDataKindCurrency       MasterDataKind = "currency"
+	MasterDataKindCountry        MasterDataKind = "country"
+	MasterDataKindRegion         MasterDataKind = "region"
+	MasterDataKindContainerSpec  MasterDataKind = "container_spec"
+	MasterDataKindChargeCategory MasterDataKind = "charge_category"
+	MasterDataKindCargoCategory  MasterDataKind = "cargo_category"
+	MasterDataKindAbnormalCase   MasterDataKind = "abnormal_case"
 )
 
 func (kind MasterDataKind) Valid() bool {
 	switch kind {
-	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindServiceType, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
+	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindChargeCategory, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
 		return true
 	default:
 		return false
@@ -41,20 +42,19 @@ func (kind MasterDataKind) Valid() bool {
 }
 
 type MasterDataItem struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
-	Kind           MasterDataKind
-	Code           string
-	Name           string
-	NameEN         *string
-	ParentCode     *string
-	TEUFactor      *string
-	Attributes     MasterDataAttributes
-	Source         string
-	SortOrder      int
-	Enabled        bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID         uuid.UUID
+	Kind       MasterDataKind
+	Code       string
+	Name       string
+	NameEN     *string
+	ParentCode *string
+	TEUFactor  *string
+	Attributes MasterDataAttributes
+	Source     string
+	SortOrder  int
+	Enabled    bool
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func DefaultOrderOptions() []MasterDataItem {
@@ -113,7 +113,7 @@ func DefaultOrderOptions() []MasterDataItem {
 		items = append(items, MasterDataItem{Kind: MasterDataKindContainerSpec, Code: item.code, Name: item.code, TEUFactor: &teuFactor, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
 	}
 	for index, item := range serviceTypes {
-		items = append(items, MasterDataItem{Kind: MasterDataKindServiceType, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
+		items = append(items, MasterDataItem{Kind: MasterDataKindChargeCategory, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
 	}
 	for index, item := range cargoCategories {
 		items = append(items, MasterDataItem{Kind: MasterDataKindCargoCategory, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
@@ -302,6 +302,9 @@ func (uc *MasterDataUsecase) Create(ctx context.Context, organizationID, actorID
 	if organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataItemCreate); err != nil {
+		return nil, err
+	}
 	normalized, err := normalizeMasterDataItem(input, true)
 	if err != nil {
 		return nil, err
@@ -338,6 +341,9 @@ func (uc *MasterDataUsecase) Import(ctx context.Context, organizationID, actorID
 		seen[normalized.Code] = struct{}{}
 		items = append(items, normalized)
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataItemImport); err != nil {
+		return nil, err
+	}
 	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.import", Result: "success", Details: map[string]string{"master_data.kind": string(input.Kind), "source": input.Source, "mode": string(input.Mode)}}
 	result, err := uc.repo.Import(ctx, organizationID, input.Mode, items, audit)
 	if err != nil {
@@ -349,6 +355,9 @@ func (uc *MasterDataUsecase) Import(ctx context.Context, organizationID, actorID
 func (uc *MasterDataUsecase) Update(ctx context.Context, organizationID, actorID, id uuid.UUID, input *MasterDataItem) (*MasterDataItem, error) {
 	if id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
+	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.MasterDataItemUpdate); err != nil {
+		return nil, err
 	}
 	normalized, err := normalizeMasterDataItem(input, false)
 	if err != nil {

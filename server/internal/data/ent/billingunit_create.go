@@ -16,7 +16,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // BillingUnitCreate is the builder for creating a BillingUnit entity.
@@ -52,12 +51,6 @@ func (_c *BillingUnitCreate) SetNillableUpdatedAt(v *time.Time) *BillingUnitCrea
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *BillingUnitCreate) SetOrganizationID(v uuid.UUID) *BillingUnitCreate {
-	_c.mutation.SetOrganizationID(v)
 	return _c
 }
 
@@ -141,11 +134,6 @@ func (_c *BillingUnitCreate) SetNillableID(v *uuid.UUID) *BillingUnitCreate {
 		_c.SetID(*v)
 	}
 	return _c
-}
-
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *BillingUnitCreate) SetOrganization(v *Organization) *BillingUnitCreate {
-	return _c.SetOrganizationID(v.ID)
 }
 
 // AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
@@ -263,9 +251,6 @@ func (_c *BillingUnitCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "BillingUnit.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "BillingUnit.organization_id"`)}
-	}
 	if _, ok := _c.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "BillingUnit.code"`)}
 	}
@@ -293,9 +278,6 @@ func (_c *BillingUnitCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "BillingUnit.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "BillingUnit.organization"`)}
 	}
 	return nil
 }
@@ -364,23 +346,6 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
-	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   billingunit.OrganizationTable,
-			Columns: []string{billingunit.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.FeeSettingsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -475,18 +440,6 @@ func (u *BillingUnitUpsert) SetUpdatedAt(v time.Time) *BillingUnitUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *BillingUnitUpsert) UpdateUpdatedAt() *BillingUnitUpsert {
 	u.SetExcluded(billingunit.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *BillingUnitUpsert) SetOrganizationID(v uuid.UUID) *BillingUnitUpsert {
-	u.Set(billingunit.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *BillingUnitUpsert) UpdateOrganizationID() *BillingUnitUpsert {
-	u.SetExcluded(billingunit.FieldOrganizationID)
 	return u
 }
 
@@ -630,20 +583,6 @@ func (u *BillingUnitUpsertOne) SetUpdatedAt(v time.Time) *BillingUnitUpsertOne {
 func (u *BillingUnitUpsertOne) UpdateUpdatedAt() *BillingUnitUpsertOne {
 	return u.Update(func(s *BillingUnitUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *BillingUnitUpsertOne) SetOrganizationID(v uuid.UUID) *BillingUnitUpsertOne {
-	return u.Update(func(s *BillingUnitUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *BillingUnitUpsertOne) UpdateOrganizationID() *BillingUnitUpsertOne {
-	return u.Update(func(s *BillingUnitUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 
@@ -967,20 +906,6 @@ func (u *BillingUnitUpsertBulk) SetUpdatedAt(v time.Time) *BillingUnitUpsertBulk
 func (u *BillingUnitUpsertBulk) UpdateUpdatedAt() *BillingUnitUpsertBulk {
 	return u.Update(func(s *BillingUnitUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *BillingUnitUpsertBulk) SetOrganizationID(v uuid.UUID) *BillingUnitUpsertBulk {
-	return u.Update(func(s *BillingUnitUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *BillingUnitUpsertBulk) UpdateOrganizationID() *BillingUnitUpsertBulk {
-	return u.Update(func(s *BillingUnitUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 

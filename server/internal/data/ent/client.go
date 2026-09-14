@@ -1352,22 +1352,6 @@ func (c *AirlineClient) GetX(ctx context.Context, id uuid.UUID) *Airline {
 	return obj
 }
 
-// QueryOrganization queries the organization edge of a Airline.
-func (c *AirlineClient) QueryOrganization(_m *Airline) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(airline.Table, airline.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, airline.OrganizationTable, airline.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *AirlineClient) Hooks() []Hook {
 	hooks := c.hooks.Airline
@@ -1980,22 +1964,6 @@ func (c *BillingUnitClient) GetX(ctx context.Context, id uuid.UUID) *BillingUnit
 		panic(err)
 	}
 	return obj
-}
-
-// QueryOrganization queries the organization edge of a BillingUnit.
-func (c *BillingUnitClient) QueryOrganization(_m *BillingUnit) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(billingunit.Table, billingunit.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, billingunit.OrganizationTable, billingunit.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // QueryFeeSettings queries the fee_settings edge of a BillingUnit.
@@ -5036,15 +5004,15 @@ func (c *FeeSettingClient) QueryOrganization(_m *FeeSetting) *OrganizationQuery 
 	return query
 }
 
-// QueryServiceType queries the service_type edge of a FeeSetting.
-func (c *FeeSettingClient) QueryServiceType(_m *FeeSetting) *MasterDataItemQuery {
+// QueryChargeCategory queries the charge_category edge of a FeeSetting.
+func (c *FeeSettingClient) QueryChargeCategory(_m *FeeSetting) *MasterDataItemQuery {
 	query := (&MasterDataItemClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.ServiceTypeTable, feesetting.ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.ChargeCategoryTable, feesetting.ChargeCategoryColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -9089,31 +9057,15 @@ func (c *MasterDataItemClient) GetX(ctx context.Context, id uuid.UUID) *MasterDa
 	return obj
 }
 
-// QueryOrganization queries the organization edge of a MasterDataItem.
-func (c *MasterDataItemClient) QueryOrganization(_m *MasterDataItem) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, masterdataitem.OrganizationTable, masterdataitem.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryServiceTypeFeeSettings queries the service_type_fee_settings edge of a MasterDataItem.
-func (c *MasterDataItemClient) QueryServiceTypeFeeSettings(_m *MasterDataItem) *FeeSettingQuery {
+// QueryChargeCategoryFeeSettings queries the charge_category_fee_settings edge of a MasterDataItem.
+func (c *MasterDataItemClient) QueryChargeCategoryFeeSettings(_m *MasterDataItem) *FeeSettingQuery {
 	query := (&FeeSettingClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
 			sqlgraph.To(feesetting.Table, feesetting.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, masterdataitem.ServiceTypeFeeSettingsTable, masterdataitem.ServiceTypeFeeSettingsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, masterdataitem.ChargeCategoryFeeSettingsTable, masterdataitem.ChargeCategoryFeeSettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -14894,38 +14846,6 @@ func (c *OrganizationClient) QueryPartnerAssignments(_m *Organization) *PartnerA
 	return query
 }
 
-// QueryMasterDataItems queries the master_data_items edge of a Organization.
-func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataItemQuery {
-	query := (&MasterDataItemClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryBillingUnits queries the billing_units edge of a Organization.
-func (c *OrganizationClient) QueryBillingUnits(_m *Organization) *BillingUnitQuery {
-	query := (&BillingUnitClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(billingunit.Table, billingunit.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.BillingUnitsTable, organization.BillingUnitsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryTaxableServices queries the taxable_services edge of a Organization.
 func (c *OrganizationClient) QueryTaxableServices(_m *Organization) *TaxableServiceQuery {
 	query := (&TaxableServiceClient{config: c.config}).Query()
@@ -14983,38 +14903,6 @@ func (c *OrganizationClient) QueryAirports(_m *Organization) *AirportQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(airport.Table, airport.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirportsTable, organization.AirportsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAirlines queries the airlines edge of a Organization.
-func (c *OrganizationClient) QueryAirlines(_m *Organization) *AirlineQuery {
-	query := (&AirlineClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(airline.Table, airline.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirlinesTable, organization.AirlinesColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryShippingLines queries the shipping_lines edge of a Organization.
-func (c *OrganizationClient) QueryShippingLines(_m *Organization) *ShippingLineQuery {
-	query := (&ShippingLineClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(shippingline.Table, shippingline.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.ShippingLinesTable, organization.ShippingLinesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -22475,22 +22363,6 @@ func (c *ShippingLineClient) GetX(ctx context.Context, id uuid.UUID) *ShippingLi
 		panic(err)
 	}
 	return obj
-}
-
-// QueryOrganization queries the organization edge of a ShippingLine.
-func (c *ShippingLineClient) QueryOrganization(_m *ShippingLine) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, shippingline.OrganizationTable, shippingline.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // QueryContainerPrefixes queries the container_prefixes edge of a ShippingLine.

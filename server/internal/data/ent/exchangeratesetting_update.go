@@ -49,6 +49,12 @@ func (_u *ExchangeRateSettingUpdate) SetNillableOrganizationID(v *uuid.UUID) *Ex
 	return _u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *ExchangeRateSettingUpdate) ClearOrganizationID() *ExchangeRateSettingUpdate {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetFromCurrency sets the "from_currency" field.
 func (_u *ExchangeRateSettingUpdate) SetFromCurrency(v string) *ExchangeRateSettingUpdate {
 	_u.mutation.SetFromCurrency(v)
@@ -122,6 +128,46 @@ func (_u *ExchangeRateSettingUpdate) SetNillableRate(v *string) *ExchangeRateSet
 	if v != nil {
 		_u.SetRate(*v)
 	}
+	return _u
+}
+
+// SetArRate sets the "ar_rate" field.
+func (_u *ExchangeRateSettingUpdate) SetArRate(v string) *ExchangeRateSettingUpdate {
+	_u.mutation.SetArRate(v)
+	return _u
+}
+
+// SetNillableArRate sets the "ar_rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdate) SetNillableArRate(v *string) *ExchangeRateSettingUpdate {
+	if v != nil {
+		_u.SetArRate(*v)
+	}
+	return _u
+}
+
+// ClearArRate clears the value of the "ar_rate" field.
+func (_u *ExchangeRateSettingUpdate) ClearArRate() *ExchangeRateSettingUpdate {
+	_u.mutation.ClearArRate()
+	return _u
+}
+
+// SetApRate sets the "ap_rate" field.
+func (_u *ExchangeRateSettingUpdate) SetApRate(v string) *ExchangeRateSettingUpdate {
+	_u.mutation.SetApRate(v)
+	return _u
+}
+
+// SetNillableApRate sets the "ap_rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdate) SetNillableApRate(v *string) *ExchangeRateSettingUpdate {
+	if v != nil {
+		_u.SetApRate(*v)
+	}
+	return _u
+}
+
+// ClearApRate clears the value of the "ap_rate" field.
+func (_u *ExchangeRateSettingUpdate) ClearApRate() *ExchangeRateSettingUpdate {
+	_u.mutation.ClearApRate()
 	return _u
 }
 
@@ -213,6 +259,9 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	if value, ok := _u.mutation.OrganizationID(); ok {
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
 	}
+	if _u.mutation.OrganizationIDCleared() {
+		_spec.ClearField(exchangeratesetting.FieldOrganizationID, field.TypeUUID)
+	}
 	if value, ok := _u.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
 	}
@@ -230,6 +279,18 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	}
 	if value, ok := _u.mutation.Rate(); ok {
 		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ArRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldArRate, field.TypeString, value)
+	}
+	if _u.mutation.ArRateCleared() {
+		_spec.ClearField(exchangeratesetting.FieldArRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ApRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldApRate, field.TypeString, value)
+	}
+	if _u.mutation.ApRateCleared() {
+		_spec.ClearField(exchangeratesetting.FieldApRate, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)
@@ -271,6 +332,12 @@ func (_u *ExchangeRateSettingUpdateOne) SetNillableOrganizationID(v *uuid.UUID) 
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
+	return _u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *ExchangeRateSettingUpdateOne) ClearOrganizationID() *ExchangeRateSettingUpdateOne {
+	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -347,6 +414,46 @@ func (_u *ExchangeRateSettingUpdateOne) SetNillableRate(v *string) *ExchangeRate
 	if v != nil {
 		_u.SetRate(*v)
 	}
+	return _u
+}
+
+// SetArRate sets the "ar_rate" field.
+func (_u *ExchangeRateSettingUpdateOne) SetArRate(v string) *ExchangeRateSettingUpdateOne {
+	_u.mutation.SetArRate(v)
+	return _u
+}
+
+// SetNillableArRate sets the "ar_rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdateOne) SetNillableArRate(v *string) *ExchangeRateSettingUpdateOne {
+	if v != nil {
+		_u.SetArRate(*v)
+	}
+	return _u
+}
+
+// ClearArRate clears the value of the "ar_rate" field.
+func (_u *ExchangeRateSettingUpdateOne) ClearArRate() *ExchangeRateSettingUpdateOne {
+	_u.mutation.ClearArRate()
+	return _u
+}
+
+// SetApRate sets the "ap_rate" field.
+func (_u *ExchangeRateSettingUpdateOne) SetApRate(v string) *ExchangeRateSettingUpdateOne {
+	_u.mutation.SetApRate(v)
+	return _u
+}
+
+// SetNillableApRate sets the "ap_rate" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdateOne) SetNillableApRate(v *string) *ExchangeRateSettingUpdateOne {
+	if v != nil {
+		_u.SetApRate(*v)
+	}
+	return _u
+}
+
+// ClearApRate clears the value of the "ap_rate" field.
+func (_u *ExchangeRateSettingUpdateOne) ClearApRate() *ExchangeRateSettingUpdateOne {
+	_u.mutation.ClearApRate()
 	return _u
 }
 
@@ -468,6 +575,9 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	if value, ok := _u.mutation.OrganizationID(); ok {
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
 	}
+	if _u.mutation.OrganizationIDCleared() {
+		_spec.ClearField(exchangeratesetting.FieldOrganizationID, field.TypeUUID)
+	}
 	if value, ok := _u.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
 	}
@@ -485,6 +595,18 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	}
 	if value, ok := _u.mutation.Rate(); ok {
 		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ArRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldArRate, field.TypeString, value)
+	}
+	if _u.mutation.ArRateCleared() {
+		_spec.ClearField(exchangeratesetting.FieldArRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ApRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldApRate, field.TypeString, value)
+	}
+	if _u.mutation.ApRateCleared() {
+		_spec.ClearField(exchangeratesetting.FieldApRate, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)

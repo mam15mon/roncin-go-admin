@@ -15,7 +15,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -35,20 +34,6 @@ func (_u *BillingUnitUpdate) Where(ps ...predicate.BillingUnit) *BillingUnitUpda
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *BillingUnitUpdate) SetUpdatedAt(v time.Time) *BillingUnitUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *BillingUnitUpdate) SetOrganizationID(v uuid.UUID) *BillingUnitUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *BillingUnitUpdate) SetNillableOrganizationID(v *uuid.UUID) *BillingUnitUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
 	return _u
 }
 
@@ -143,11 +128,6 @@ func (_u *BillingUnitUpdate) SetNillableSearchKeywords(v *string) *BillingUnitUp
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *BillingUnitUpdate) SetOrganization(v *Organization) *BillingUnitUpdate {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
 func (_u *BillingUnitUpdate) AddFeeSettingIDs(ids ...uuid.UUID) *BillingUnitUpdate {
 	_u.mutation.AddFeeSettingIDs(ids...)
@@ -181,12 +161,6 @@ func (_u *BillingUnitUpdate) AddOrderFees(v ...*OrderFee) *BillingUnitUpdate {
 // Mutation returns the BillingUnitMutation object of the builder.
 func (_u *BillingUnitUpdate) Mutation() *BillingUnitMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *BillingUnitUpdate) ClearOrganization() *BillingUnitUpdate {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // ClearFeeSettings clears all "fee_settings" edges to the FeeSetting entity.
@@ -285,9 +259,6 @@ func (_u *BillingUnitUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "BillingUnit.name": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "BillingUnit.organization"`)
-	}
 	return nil
 }
 
@@ -326,35 +297,6 @@ func (_u *BillingUnitUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   billingunit.OrganizationTable,
-			Columns: []string{billingunit.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   billingunit.OrganizationTable,
-			Columns: []string{billingunit.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.FeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -472,20 +414,6 @@ func (_u *BillingUnitUpdateOne) SetUpdatedAt(v time.Time) *BillingUnitUpdateOne 
 	return _u
 }
 
-// SetOrganizationID sets the "organization_id" field.
-func (_u *BillingUnitUpdateOne) SetOrganizationID(v uuid.UUID) *BillingUnitUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *BillingUnitUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *BillingUnitUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
 // SetCode sets the "code" field.
 func (_u *BillingUnitUpdateOne) SetCode(v string) *BillingUnitUpdateOne {
 	_u.mutation.SetCode(v)
@@ -577,11 +505,6 @@ func (_u *BillingUnitUpdateOne) SetNillableSearchKeywords(v *string) *BillingUni
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *BillingUnitUpdateOne) SetOrganization(v *Organization) *BillingUnitUpdateOne {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
 func (_u *BillingUnitUpdateOne) AddFeeSettingIDs(ids ...uuid.UUID) *BillingUnitUpdateOne {
 	_u.mutation.AddFeeSettingIDs(ids...)
@@ -615,12 +538,6 @@ func (_u *BillingUnitUpdateOne) AddOrderFees(v ...*OrderFee) *BillingUnitUpdateO
 // Mutation returns the BillingUnitMutation object of the builder.
 func (_u *BillingUnitUpdateOne) Mutation() *BillingUnitMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *BillingUnitUpdateOne) ClearOrganization() *BillingUnitUpdateOne {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // ClearFeeSettings clears all "fee_settings" edges to the FeeSetting entity.
@@ -732,9 +649,6 @@ func (_u *BillingUnitUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "BillingUnit.name": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "BillingUnit.organization"`)
-	}
 	return nil
 }
 
@@ -790,35 +704,6 @@ func (_u *BillingUnitUpdateOne) sqlSave(ctx context.Context) (_node *BillingUnit
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   billingunit.OrganizationTable,
-			Columns: []string{billingunit.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   billingunit.OrganizationTable,
-			Columns: []string{billingunit.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.FeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{

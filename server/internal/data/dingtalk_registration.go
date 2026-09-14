@@ -381,7 +381,7 @@ func (r *dingTalkRegistrationRepo) ListRegistrationOrganizations(ctx context.Con
 	}
 	choices := make([]biz.OrganizationChoice, 0, len(items))
 	for _, item := range items {
-		choices = append(choices, biz.OrganizationChoice{OrganizationID: item.ID, OrganizationName: item.Name, OrganizationCode: item.Code})
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: item.ID, OrganizationName: item.Name, OrganizationCode: item.Code, Kind: biz.OrganizationKind(item.Kind)})
 	}
 	sort.Slice(choices, func(i, j int) bool {
 		if choices[i].OrganizationName != choices[j].OrganizationName {

@@ -38,7 +38,10 @@ func (OrderFee) Fields() []ent.Field {
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
-		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"),
+		// 汇率快照来源：SYSTEM/DERIVED/MANUAL 为现行解析链产物，BASE_CURRENCY 为
+		// 历史保留值（阶段二随 ResolveBaseRate 退役一并清理）；WEEKLY/
+		// INHERITED_LAST_WEEK/BOC_SYNC 为周汇率双轨阶段（阶段二）的快照来源。
+		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED", "WEEKLY", "INHERITED_LAST_WEEK", "BOC_SYNC"),
 		field.String("exchange_rate_date").NotEmpty().MinLen(10).MaxLen(10),
 		field.UUID("exchange_rate_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3),

@@ -15,7 +15,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
@@ -32,7 +31,6 @@ type ShippingLineQuery struct {
 	order                             []shippingline.OrderOption
 	inters                            []Interceptor
 	predicates                        []predicate.ShippingLine
-	withOrganization                  *OrganizationQuery
 	withContainerPrefixes             *ShippingLineContainerPrefixQuery
 	withOrders                        *OrderQuery
 	withSeaTransportExecutions        *SeaTransportExecutionQuery
@@ -74,28 +72,6 @@ func (_q *ShippingLineQuery) Unique(unique bool) *ShippingLineQuery {
 func (_q *ShippingLineQuery) Order(o ...shippingline.OrderOption) *ShippingLineQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryOrganization chains the current query on the "organization" edge.
-func (_q *ShippingLineQuery) QueryOrganization() *OrganizationQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(shippingline.Table, shippingline.FieldID, selector),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, shippingline.OrganizationTable, shippingline.OrganizationColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryContainerPrefixes chains the current query on the "container_prefixes" edge.
@@ -422,7 +398,6 @@ func (_q *ShippingLineQuery) Clone() *ShippingLineQuery {
 		order:                             append([]shippingline.OrderOption{}, _q.order...),
 		inters:                            append([]Interceptor{}, _q.inters...),
 		predicates:                        append([]predicate.ShippingLine{}, _q.predicates...),
-		withOrganization:                  _q.withOrganization.Clone(),
 		withContainerPrefixes:             _q.withContainerPrefixes.Clone(),
 		withOrders:                        _q.withOrders.Clone(),
 		withSeaTransportExecutions:        _q.withSeaTransportExecutions.Clone(),
@@ -433,17 +408,6 @@ func (_q *ShippingLineQuery) Clone() *ShippingLineQuery {
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithOrganization tells the query-builder to eager-load the nodes that are connected to
-// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *ShippingLineQuery) WithOrganization(opts ...func(*OrganizationQuery)) *ShippingLineQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withOrganization = query
-	return _q
 }
 
 // WithContainerPrefixes tells the query-builder to eager-load the nodes that are connected to
@@ -590,8 +554,7 @@ func (_q *ShippingLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*ShippingLine{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
-			_q.withOrganization != nil,
+		loadedTypes = [6]bool{
 			_q.withContainerPrefixes != nil,
 			_q.withOrders != nil,
 			_q.withSeaTransportExecutions != nil,
@@ -620,12 +583,6 @@ func (_q *ShippingLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
-	}
-	if query := _q.withOrganization; query != nil {
-		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *ShippingLine, e *Organization) { n.Edges.Organization = e }); err != nil {
-			return nil, err
-		}
 	}
 	if query := _q.withContainerPrefixes; query != nil {
 		if err := _q.loadContainerPrefixes(ctx, query, nodes,
@@ -680,35 +637,6 @@ func (_q *ShippingLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	return nodes, nil
 }
 
-func (_q *ShippingLineQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*ShippingLine, init func(*ShippingLine), assign func(*ShippingLine, *Organization)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*ShippingLine)
-	for i := range nodes {
-		fk := nodes[i].OrganizationID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(organization.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (_q *ShippingLineQuery) loadContainerPrefixes(ctx context.Context, query *ShippingLineContainerPrefixQuery, nodes []*ShippingLine, init func(*ShippingLine), assign func(*ShippingLine, *ShippingLineContainerPrefix)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*ShippingLine)
@@ -920,9 +848,6 @@ func (_q *ShippingLineQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != shippingline.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(shippingline.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

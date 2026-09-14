@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // Airline is the model entity for the Airline schema.
@@ -23,8 +22,6 @@ type Airline struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// IataCode holds the value of the "iata_code" field.
 	IataCode string `json:"iata_code,omitempty"`
 	// IcaoCode holds the value of the "icao_code" field.
@@ -51,30 +48,7 @@ type Airline struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// SearchKeywords holds the value of the "search_keywords" field.
 	SearchKeywords string `json:"search_keywords,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the AirlineQuery when eager-loading is set.
-	Edges        AirlineEdges `json:"edges"`
-	selectValues sql.SelectValues
-}
-
-// AirlineEdges holds the relations/edges for other nodes in the graph.
-type AirlineEdges struct {
-	// Organization holds the value of the organization edge.
-	Organization *Organization `json:"organization,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// OrganizationOrErr returns the Organization value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AirlineEdges) OrganizationOrErr() (*Organization, error) {
-	if e.Organization != nil {
-		return e.Organization, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: organization.Label}
-	}
-	return nil, &NotLoadedError{edge: "organization"}
+	selectValues   sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -90,7 +64,7 @@ func (*Airline) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case airline.FieldCreatedAt, airline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case airline.FieldID, airline.FieldOrganizationID:
+		case airline.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -124,12 +98,6 @@ func (_m *Airline) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case airline.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
 			}
 		case airline.FieldIataCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -227,11 +195,6 @@ func (_m *Airline) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOrganization queries the "organization" edge of the Airline entity.
-func (_m *Airline) QueryOrganization() *OrganizationQuery {
-	return NewAirlineClient(_m.config).QueryOrganization(_m)
-}
-
 // Update returns a builder for updating this Airline.
 // Note that you need to call Airline.Unwrap() before calling this method if this Airline
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -260,9 +223,6 @@ func (_m *Airline) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("iata_code=")
 	builder.WriteString(_m.IataCode)

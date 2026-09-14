@@ -9,6 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/shopspring/decimal"
 )
 
@@ -28,10 +29,11 @@ var exchangeRateBusinessLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
 func ExchangeRateBusinessLocation() *time.Location { return exchangeRateBusinessLocation }
 
-// ExchangeRateSetting 是总部维护的折本币基准汇率。
+// ExchangeRateSetting 是折本币基准汇率：NULL 组织为集团基线行，非空为本组织行。
 type ExchangeRateSetting struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
+	ID uuid.UUID
+	// OrganizationID 为空表示集团基线行（NULL），非空表示本组织行。
+	OrganizationID *uuid.UUID
 	FromCurrency   string
 	ToCurrency     string
 	EffectiveFrom  string
@@ -90,7 +92,7 @@ func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUI
 	if err != nil {
 		return nil, "", err
 	}
-	items, err := uc.repo.List(ctx, rateContext.OwnerOrganizationID)
+	items, err := uc.repo.List(ctx, organizationID)
 	return items, rateContext.BaseCurrency, err
 }
 
@@ -107,8 +109,11 @@ func (uc *ExchangeRateUsecase) Create(ctx context.Context, organizationID, actor
 	if normalized.ToCurrency != rateContext.BaseCurrency {
 		return nil, ErrExchangeRateCurrencyInvalid
 	}
-	// 汇率只在总部落地；非总部调用由仓储层拒绝，不再重定向写入总部行。
-	normalized.OrganizationID = organizationID
+	// 阶段一：汇率只允许总部写基线行（NULL）；组织行落位随阶段二开放。
+	if err := RequireBaselineWrite(ctx, access.FinanceExchangeRateCreate); err != nil {
+		return nil, err
+	}
+	normalized.OrganizationID = nil
 	normalized.IsActive = true
 	return uc.repo.Create(ctx, organizationID, normalized, exchangeRateAudit(organizationID, actorID, normalized.ID, "finance.exchange_rate.create"))
 }
@@ -126,13 +131,19 @@ func (uc *ExchangeRateUsecase) Update(ctx context.Context, organizationID, actor
 	if normalized.ToCurrency != rateContext.BaseCurrency {
 		return nil, ErrExchangeRateCurrencyInvalid
 	}
-	normalized.OrganizationID = organizationID
+	if err := RequireBaselineWrite(ctx, access.FinanceExchangeRateUpdate); err != nil {
+		return nil, err
+	}
+	normalized.OrganizationID = nil
 	return uc.repo.Update(ctx, organizationID, normalized, exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.update"))
 }
 
 func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, actorID uuid.UUID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return ErrExchangeRateInvalidArgument
+	}
+	if err := RequireBaselineWrite(ctx, access.FinanceExchangeRateDisable); err != nil {
+		return err
 	}
 	return uc.repo.Disable(ctx, organizationID, id, exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
 }
@@ -155,14 +166,14 @@ func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID u
 	if currency == rateContext.BaseCurrency {
 		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
 	}
-	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, currency, rateContext.BaseCurrency, rateContext.PivotCurrency, targetDate)
+	return uc.repo.ResolveRate(ctx, organizationID, currency, rateContext.BaseCurrency, rateContext.PivotCurrency, targetDate)
 }
 
-// ResolveBaseRate 按目标日期在总部基准汇率表解析 fromCurrency → toCurrency 的
+// ResolveBaseRate 按目标日期在集团基线汇率表解析 fromCurrency → toCurrency 的
 // 正向汇率；两币相同恒为 1，不要求目标币种等于组织基准币种。提成 CNY 折算用它
 // 解析「本位币 → CNY」，避免总部只维护 X→CNY 基准时反查 CNY→X 报缺失；直连行
-// 缺失时同样经总部基准币交叉套算。与 ResolveRate 一致，先在事务内读取组织汇率
-// 上下文再短路，保证同事务内的组织上下文读取语义不变。
+// 缺失时同样经基线基准币交叉套算。跨组织资金流结算严格锁定基线行（orgID 传
+// uuid.Nil 即只读 NULL 行），跳过任何组织的私有汇率，保证结算双方金额一致。
 func (uc *ExchangeRateUsecase) ResolveBaseRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, targetDate string) (ResolvedRate, error) {
 	fromCurrency = strings.ToUpper(strings.TrimSpace(fromCurrency))
 	toCurrency = strings.ToUpper(strings.TrimSpace(toCurrency))
@@ -179,7 +190,7 @@ func (uc *ExchangeRateUsecase) ResolveBaseRate(ctx context.Context, organization
 	if fromCurrency == toCurrency {
 		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
 	}
-	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, fromCurrency, toCurrency, rateContext.PivotCurrency, targetDate)
+	return uc.repo.ResolveRate(ctx, uuid.Nil, fromCurrency, toCurrency, rateContext.PivotCurrency, targetDate)
 }
 
 func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID uuid.UUID) (string, error) {

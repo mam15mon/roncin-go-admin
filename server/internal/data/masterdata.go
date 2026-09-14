@@ -16,25 +16,11 @@ type masterDataRepo struct{ data *Data }
 
 func NewMasterDataRepo(data *Data) biz.MasterDataRepo { return &masterDataRepo{data: data} }
 
-func (r *masterDataRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
-	return resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
-}
-
-func (r *masterDataRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return err
-	}
-	if headquartersID != organizationID {
-		return biz.ErrMasterDataHeadquartersRequired
-	}
-	return nil
-}
-
-func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+// CreateDefaultOrderOptions 为空库写入订单默认选项种子。A 型主数据全局唯一，
+// 不再挂载组织，种子随迁移幂等补齐。
+func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx) error {
 	for _, item := range biz.DefaultOrderOptions() {
 		if _, err := tx.MasterDataItem.Create().
-			SetOrganizationID(organizationID).
 			SetKind(masterdataent.Kind(item.Kind)).
 			SetCode(item.Code).
 			SetName(item.Name).
@@ -49,10 +35,10 @@ func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID u
 	return nil
 }
 
-func CreateDefaultCountries(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+// CreateDefaultCountries 为空库写入默认国家种子。A 型主数据全局唯一，不再挂载组织。
+func CreateDefaultCountries(ctx context.Context, tx *ent.Tx) error {
 	for _, item := range biz.DefaultCountryOptions() {
 		if _, err := tx.MasterDataItem.Create().
-			SetOrganizationID(organizationID).
 			SetKind(masterdataent.Kind(item.Kind)).
 			SetCode(item.Code).
 			SetName(item.Name).
@@ -68,12 +54,8 @@ func CreateDefaultCountries(ctx context.Context, tx *ent.Tx, organizationID uuid
 	return nil
 }
 
-func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	query := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(headquartersID))
+func (r *masterDataRepo) List(ctx context.Context, _ uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
+	query := r.data.db.MasterDataItem.Query()
 	if options.Kind != "" {
 		query.Where(masterdataent.KindEQ(masterdataent.Kind(options.Kind)))
 	}
@@ -88,25 +70,18 @@ func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, opt
 	}, options.Page, options.PageSize, infalliblePageConverter(masterDataItemToBiz))
 }
 
-func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UUID) ([]*biz.MasterDataItem, error) {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	items, err := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(headquartersID), masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
+func (r *masterDataRepo) ListEnabled(ctx context.Context, _ uuid.UUID) ([]*biz.MasterDataItem, error) {
+	items, err := r.data.db.MasterDataItem.Query().Where(masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return masterDataItemsToBiz(items), nil
 }
 
-func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
-	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
-		return nil, err
-	}
+func (r *masterDataRepo) Create(ctx context.Context, _ uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
 	var created *ent.MasterDataItem
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		create := tx.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
+		create := tx.MasterDataItem.Create().SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 		var createErr error
 		created, createErr = create.Save(ctx)
 		if createErr != nil {
@@ -121,13 +96,10 @@ func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, i
 	return masterDataItemToBiz(created), nil
 }
 
-func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
-	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
-		return nil, err
-	}
+func (r *masterDataRepo) Update(ctx context.Context, _ uuid.UUID, id uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
 	var updated *ent.MasterDataItem
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
+		existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrMasterDataNotFound, nil)
 		}
@@ -155,17 +127,13 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 	return masterDataItemToBiz(updated), nil
 }
 
-func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataImportResult, error) {
-	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
-		return nil, err
-	}
+func (r *masterDataRepo) Import(ctx context.Context, _ uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataImportResult, error) {
 	result := &biz.MasterDataImportResult{Items: make([]*biz.MasterDataItem, 0, len(inputs))}
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		for _, input := range inputs {
-			existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind)), masterdataent.CodeEQ(input.Code)).Only(ctx)
+			existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.KindEQ(masterdataent.Kind(input.Kind)), masterdataent.CodeEQ(input.Code)).Only(ctx)
 			if ent.IsNotFound(queryErr) {
 				created, createErr := tx.MasterDataItem.Create().
-					SetOrganizationID(organizationID).
 					SetKind(masterdataent.Kind(input.Kind)).
 					SetCode(input.Code).
 					SetName(input.Name).
@@ -234,7 +202,7 @@ func masterDataItemsToBiz(items []*ent.MasterDataItem) []*biz.MasterDataItem {
 }
 
 func masterDataItemToBiz(item *ent.MasterDataItem) *biz.MasterDataItem {
-	return &biz.MasterDataItem{ID: item.ID, OrganizationID: item.OrganizationID, Kind: biz.MasterDataKind(item.Kind), Code: item.Code, Name: item.Name, NameEN: item.NameEn, ParentCode: item.ParentCode, TEUFactor: item.TeuFactor, Attributes: masterDataAttributesToBiz(item.Attributes), Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.MasterDataItem{ID: item.ID, Kind: biz.MasterDataKind(item.Kind), Code: item.Code, Name: item.Name, NameEN: item.NameEn, ParentCode: item.ParentCode, TEUFactor: item.TeuFactor, Attributes: masterDataAttributesToBiz(item.Attributes), Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func masterDataAttributesToEnt(attributes biz.MasterDataAttributes) *entschema.MasterDataAttributes {

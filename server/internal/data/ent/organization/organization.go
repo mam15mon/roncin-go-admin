@@ -49,10 +49,6 @@ const (
 	EdgePartners = "partners"
 	// EdgePartnerAssignments holds the string denoting the partner_assignments edge name in mutations.
 	EdgePartnerAssignments = "partner_assignments"
-	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
-	EdgeMasterDataItems = "master_data_items"
-	// EdgeBillingUnits holds the string denoting the billing_units edge name in mutations.
-	EdgeBillingUnits = "billing_units"
 	// EdgeTaxableServices holds the string denoting the taxable_services edge name in mutations.
 	EdgeTaxableServices = "taxable_services"
 	// EdgeFeeSettings holds the string denoting the fee_settings edge name in mutations.
@@ -61,10 +57,6 @@ const (
 	EdgePorts = "ports"
 	// EdgeAirports holds the string denoting the airports edge name in mutations.
 	EdgeAirports = "airports"
-	// EdgeAirlines holds the string denoting the airlines edge name in mutations.
-	EdgeAirlines = "airlines"
-	// EdgeShippingLines holds the string denoting the shipping_lines edge name in mutations.
-	EdgeShippingLines = "shipping_lines"
 	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
 	EdgeNumberRules = "number_rules"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
@@ -206,20 +198,6 @@ const (
 	PartnerAssignmentsInverseTable = "partner_assignments"
 	// PartnerAssignmentsColumn is the table column denoting the partner_assignments relation/edge.
 	PartnerAssignmentsColumn = "organization_id"
-	// MasterDataItemsTable is the table that holds the master_data_items relation/edge.
-	MasterDataItemsTable = "master_data_items"
-	// MasterDataItemsInverseTable is the table name for the MasterDataItem entity.
-	// It exists in this package in order to avoid circular dependency with the "masterdataitem" package.
-	MasterDataItemsInverseTable = "master_data_items"
-	// MasterDataItemsColumn is the table column denoting the master_data_items relation/edge.
-	MasterDataItemsColumn = "organization_id"
-	// BillingUnitsTable is the table that holds the billing_units relation/edge.
-	BillingUnitsTable = "billing_units"
-	// BillingUnitsInverseTable is the table name for the BillingUnit entity.
-	// It exists in this package in order to avoid circular dependency with the "billingunit" package.
-	BillingUnitsInverseTable = "billing_units"
-	// BillingUnitsColumn is the table column denoting the billing_units relation/edge.
-	BillingUnitsColumn = "organization_id"
 	// TaxableServicesTable is the table that holds the taxable_services relation/edge.
 	TaxableServicesTable = "taxable_services"
 	// TaxableServicesInverseTable is the table name for the TaxableService entity.
@@ -248,20 +226,6 @@ const (
 	AirportsInverseTable = "airports"
 	// AirportsColumn is the table column denoting the airports relation/edge.
 	AirportsColumn = "organization_id"
-	// AirlinesTable is the table that holds the airlines relation/edge.
-	AirlinesTable = "airlines"
-	// AirlinesInverseTable is the table name for the Airline entity.
-	// It exists in this package in order to avoid circular dependency with the "airline" package.
-	AirlinesInverseTable = "airlines"
-	// AirlinesColumn is the table column denoting the airlines relation/edge.
-	AirlinesColumn = "organization_id"
-	// ShippingLinesTable is the table that holds the shipping_lines relation/edge.
-	ShippingLinesTable = "shipping_lines"
-	// ShippingLinesInverseTable is the table name for the ShippingLine entity.
-	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
-	ShippingLinesInverseTable = "shipping_lines"
-	// ShippingLinesColumn is the table column denoting the shipping_lines relation/edge.
-	ShippingLinesColumn = "organization_id"
 	// NumberRulesTable is the table that holds the number_rules relation/edge.
 	NumberRulesTable = "number_rules"
 	// NumberRulesInverseTable is the table name for the NumberRule entity.
@@ -820,34 +784,6 @@ func ByPartnerAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
-// ByMasterDataItemsCount orders the results by master_data_items count.
-func ByMasterDataItemsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMasterDataItemsStep(), opts...)
-	}
-}
-
-// ByMasterDataItems orders the results by master_data_items terms.
-func ByMasterDataItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMasterDataItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByBillingUnitsCount orders the results by billing_units count.
-func ByBillingUnitsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newBillingUnitsStep(), opts...)
-	}
-}
-
-// ByBillingUnits orders the results by billing_units terms.
-func ByBillingUnits(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newBillingUnitsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByTaxableServicesCount orders the results by taxable_services count.
 func ByTaxableServicesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -901,34 +837,6 @@ func ByAirportsCount(opts ...sql.OrderTermOption) OrderOption {
 func ByAirports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAirportsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByAirlinesCount orders the results by airlines count.
-func ByAirlinesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAirlinesStep(), opts...)
-	}
-}
-
-// ByAirlines orders the results by airlines terms.
-func ByAirlines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAirlinesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByShippingLinesCount orders the results by shipping_lines count.
-func ByShippingLinesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newShippingLinesStep(), opts...)
-	}
-}
-
-// ByShippingLines orders the results by shipping_lines terms.
-func ByShippingLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newShippingLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1652,20 +1560,6 @@ func newPartnerAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, PartnerAssignmentsTable, PartnerAssignmentsColumn),
 	)
 }
-func newMasterDataItemsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MasterDataItemsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
-	)
-}
-func newBillingUnitsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(BillingUnitsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, BillingUnitsTable, BillingUnitsColumn),
-	)
-}
 func newTaxableServicesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1692,20 +1586,6 @@ func newAirportsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AirportsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AirportsTable, AirportsColumn),
-	)
-}
-func newAirlinesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AirlinesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AirlinesTable, AirlinesColumn),
-	)
-}
-func newShippingLinesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ShippingLinesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ShippingLinesTable, ShippingLinesColumn),
 	)
 }
 func newNumberRulesStep() *sqlgraph.Step {

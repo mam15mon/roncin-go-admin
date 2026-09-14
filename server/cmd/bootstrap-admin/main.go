@@ -108,11 +108,12 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return err
 	}
-	if err := data.CreateDefaultOrderOptions(ctx, tx, organization.ID); err != nil {
+	// A 型主数据种子全局唯一，不挂载组织。
+	if err := data.CreateDefaultOrderOptions(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := data.CreateDefaultCountries(ctx, tx, organization.ID); err != nil {
+	if err := data.CreateDefaultCountries(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}

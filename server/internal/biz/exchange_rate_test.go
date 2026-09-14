@@ -30,17 +30,15 @@ func (*exchangeRateRepoStub) List(context.Context, uuid.UUID) ([]*ExchangeRateSe
 	return nil, nil
 }
 
-func (s *exchangeRateRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
+func (s *exchangeRateRepoStub) Create(_ context.Context, _ uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
 	s.savedSetting = input
 	saved := *input
-	saved.OrganizationID = organizationID
 	return &saved, nil
 }
 
-func (s *exchangeRateRepoStub) Update(_ context.Context, organizationID uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
+func (s *exchangeRateRepoStub) Update(_ context.Context, _ uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
 	s.savedSetting = input
 	saved := *input
-	saved.OrganizationID = organizationID
 	return &saved, nil
 }
 
@@ -218,20 +216,36 @@ func TestResolveRateRejectsInvalidDateOrCurrency(t *testing.T) {
 	}
 }
 
-func TestCreateKeepsCallerOrganizationWithoutRedirect(t *testing.T) {
+func TestCreateWritesBaselineRowForHeadquarters(t *testing.T) {
 	caller := uuid.Must(uuid.NewV7())
 	owner := uuid.Must(uuid.NewV7())
 	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: owner, BaseCurrency: "CNY"}}
 	usecase := NewExchangeRateUsecase(repo)
-	created, err := usecase.Create(context.Background(), caller, uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
+	ctx := principalContext(headquartersPrincipal("system.finance.exchange_rate.create"))
+	created, err := usecase.Create(ctx, caller, uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
 		FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.NewFromInt(7),
 	})
 	if err != nil {
 		t.Fatalf("创建汇率失败: %v", err)
 	}
-	// 写入不再重定向到总部行：调用组织即目标组织，越权由数据层总部校验拒绝。
-	if created.OrganizationID != caller || repo.savedSetting.OrganizationID != caller {
-		t.Fatalf("汇率写入应保留调用组织 %s，实际 %s / %s", caller, created.OrganizationID, repo.savedSetting.OrganizationID)
+	// 汇率基线行 organization_id 必须为 NULL，与存储 B 型结构一致。
+	if created.OrganizationID != nil || repo.savedSetting.OrganizationID != nil {
+		t.Fatalf("汇率写入应落基线行（organization_id 为空），实际 %v / %v", created.OrganizationID, repo.savedSetting.OrganizationID)
+	}
+}
+
+func TestCreateRejectsBranchContextWithoutHeadquartersIdentity(t *testing.T) {
+	caller := uuid.Must(uuid.NewV7())
+	owner := uuid.Must(uuid.NewV7())
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: owner, BaseCurrency: "CNY"}}
+	usecase := NewExchangeRateUsecase(repo)
+	// 分支上下文即使持有权限码，也不得写基线行。
+	ctx := principalContext(companyPrincipal("system.finance.exchange_rate.create"))
+	_, err := usecase.Create(ctx, caller, uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.NewFromInt(7),
+	})
+	if err != ErrMasterDataHeadquartersRequired {
+		t.Fatalf("分支上下文写基线行应返回 403 业务错误，实际 %v", err)
 	}
 }
 

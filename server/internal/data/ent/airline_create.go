@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // AirlineCreate is the builder for creating a Airline entity.
@@ -50,12 +49,6 @@ func (_c *AirlineCreate) SetNillableUpdatedAt(v *time.Time) *AirlineCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *AirlineCreate) SetOrganizationID(v uuid.UUID) *AirlineCreate {
-	_c.mutation.SetOrganizationID(v)
 	return _c
 }
 
@@ -231,11 +224,6 @@ func (_c *AirlineCreate) SetNillableID(v *uuid.UUID) *AirlineCreate {
 	return _c
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *AirlineCreate) SetOrganization(v *Organization) *AirlineCreate {
-	return _c.SetOrganizationID(v.ID)
-}
-
 // Mutation returns the AirlineMutation object of the builder.
 func (_c *AirlineCreate) Mutation() *AirlineMutation {
 	return _c.mutation
@@ -325,9 +313,6 @@ func (_c *AirlineCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Airline.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Airline.organization_id"`)}
-	}
 	if _, ok := _c.mutation.IataCode(); !ok {
 		return &ValidationError{Name: "iata_code", err: errors.New(`ent: missing required field "Airline.iata_code"`)}
 	}
@@ -396,9 +381,6 @@ func (_c *AirlineCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Airline.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Airline.organization"`)}
 	}
 	return nil
 }
@@ -496,23 +478,6 @@ func (_c *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 		_spec.SetField(airline.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
 	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airline.OrganizationTable,
-			Columns: []string{airline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	return _node, _spec
 }
 
@@ -574,18 +539,6 @@ func (u *AirlineUpsert) SetUpdatedAt(v time.Time) *AirlineUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *AirlineUpsert) UpdateUpdatedAt() *AirlineUpsert {
 	u.SetExcluded(airline.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirlineUpsert) SetOrganizationID(v uuid.UUID) *AirlineUpsert {
-	u.Set(airline.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirlineUpsert) UpdateOrganizationID() *AirlineUpsert {
-	u.SetExcluded(airline.FieldOrganizationID)
 	return u
 }
 
@@ -834,20 +787,6 @@ func (u *AirlineUpsertOne) SetUpdatedAt(v time.Time) *AirlineUpsertOne {
 func (u *AirlineUpsertOne) UpdateUpdatedAt() *AirlineUpsertOne {
 	return u.Update(func(s *AirlineUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirlineUpsertOne) SetOrganizationID(v uuid.UUID) *AirlineUpsertOne {
-	return u.Update(func(s *AirlineUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirlineUpsertOne) UpdateOrganizationID() *AirlineUpsertOne {
-	return u.Update(func(s *AirlineUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 
@@ -1293,20 +1232,6 @@ func (u *AirlineUpsertBulk) SetUpdatedAt(v time.Time) *AirlineUpsertBulk {
 func (u *AirlineUpsertBulk) UpdateUpdatedAt() *AirlineUpsertBulk {
 	return u.Update(func(s *AirlineUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirlineUpsertBulk) SetOrganizationID(v uuid.UUID) *AirlineUpsertBulk {
-	return u.Update(func(s *AirlineUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirlineUpsertBulk) UpdateOrganizationID() *AirlineUpsertBulk {
-	return u.Update(func(s *AirlineUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 

@@ -20,8 +20,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldOrganizationID holds the string denoting the organization_id field in the database.
-	FieldOrganizationID = "organization_id"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
 	// FieldName holds the string denoting the name field in the database.
@@ -34,21 +32,12 @@ const (
 	FieldEnabled = "enabled"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
-	// EdgeOrganization holds the string denoting the organization edge name in mutations.
-	EdgeOrganization = "organization"
 	// EdgeFeeSettings holds the string denoting the fee_settings edge name in mutations.
 	EdgeFeeSettings = "fee_settings"
 	// EdgeOrderFees holds the string denoting the order_fees edge name in mutations.
 	EdgeOrderFees = "order_fees"
 	// Table holds the table name of the billingunit in the database.
 	Table = "billing_units"
-	// OrganizationTable is the table that holds the organization relation/edge.
-	OrganizationTable = "billing_units"
-	// OrganizationInverseTable is the table name for the Organization entity.
-	// It exists in this package in order to avoid circular dependency with the "organization" package.
-	OrganizationInverseTable = "organizations"
-	// OrganizationColumn is the table column denoting the organization relation/edge.
-	OrganizationColumn = "organization_id"
 	// FeeSettingsTable is the table that holds the fee_settings relation/edge.
 	FeeSettingsTable = "fee_settings"
 	// FeeSettingsInverseTable is the table name for the FeeSetting entity.
@@ -70,7 +59,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldOrganizationID,
 	FieldCode,
 	FieldName,
 	FieldIsContainerUnit,
@@ -136,11 +124,6 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByOrganizationID orders the results by the organization_id field.
-func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
-}
-
 // ByCode orders the results by the code field.
 func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
@@ -171,13 +154,6 @@ func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
-// ByOrganizationField orders the results by organization field.
-func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
-	}
-}
-
 // ByFeeSettingsCount orders the results by fee_settings count.
 func ByFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -204,13 +180,6 @@ func ByOrderFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
-}
-func newOrganizationStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrganizationInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-	)
 }
 func newFeeSettingsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

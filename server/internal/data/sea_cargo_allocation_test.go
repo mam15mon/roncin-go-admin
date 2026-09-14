@@ -77,7 +77,6 @@ func newSharedContainerFixture(t *testing.T) *sharedContainerFixture {
 		t.Fatalf("创建测试客户失败: %v", err)
 	}
 	line, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("SHRD").
 		SetNameZh("共享箱测试船公司").
 		SetNameEn("Shared Test Shipping Line").
@@ -88,7 +87,6 @@ func newSharedContainerFixture(t *testing.T) *sharedContainerFixture {
 		t.Fatalf("创建船公司失败: %v", err)
 	}
 	spec, err := data.db.MasterDataItem.Create().
-		SetOrganizationID(org.ID).
 		SetKind(masterdataitement.KindContainerSpec).
 		SetCode("40HC").
 		SetName("40HC高箱").

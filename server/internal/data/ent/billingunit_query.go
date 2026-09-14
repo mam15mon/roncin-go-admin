@@ -17,21 +17,19 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
 // BillingUnitQuery is the builder for querying BillingUnit entities.
 type BillingUnitQuery struct {
 	config
-	ctx              *QueryContext
-	order            []billingunit.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.BillingUnit
-	withOrganization *OrganizationQuery
-	withFeeSettings  *FeeSettingQuery
-	withOrderFees    *OrderFeeQuery
-	modifiers        []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []billingunit.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.BillingUnit
+	withFeeSettings *FeeSettingQuery
+	withOrderFees   *OrderFeeQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,28 +64,6 @@ func (_q *BillingUnitQuery) Unique(unique bool) *BillingUnitQuery {
 func (_q *BillingUnitQuery) Order(o ...billingunit.OrderOption) *BillingUnitQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryOrganization chains the current query on the "organization" edge.
-func (_q *BillingUnitQuery) QueryOrganization() *OrganizationQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(billingunit.Table, billingunit.FieldID, selector),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, billingunit.OrganizationTable, billingunit.OrganizationColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryFeeSettings chains the current query on the "fee_settings" edge.
@@ -321,29 +297,17 @@ func (_q *BillingUnitQuery) Clone() *BillingUnitQuery {
 		return nil
 	}
 	return &BillingUnitQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]billingunit.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.BillingUnit{}, _q.predicates...),
-		withOrganization: _q.withOrganization.Clone(),
-		withFeeSettings:  _q.withFeeSettings.Clone(),
-		withOrderFees:    _q.withOrderFees.Clone(),
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]billingunit.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.BillingUnit{}, _q.predicates...),
+		withFeeSettings: _q.withFeeSettings.Clone(),
+		withOrderFees:   _q.withOrderFees.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithOrganization tells the query-builder to eager-load the nodes that are connected to
-// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BillingUnitQuery) WithOrganization(opts ...func(*OrganizationQuery)) *BillingUnitQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withOrganization = query
-	return _q
 }
 
 // WithFeeSettings tells the query-builder to eager-load the nodes that are connected to
@@ -446,8 +410,7 @@ func (_q *BillingUnitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*BillingUnit{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
-			_q.withOrganization != nil,
+		loadedTypes = [2]bool{
 			_q.withFeeSettings != nil,
 			_q.withOrderFees != nil,
 		}
@@ -473,12 +436,6 @@ func (_q *BillingUnitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withOrganization; query != nil {
-		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *BillingUnit, e *Organization) { n.Edges.Organization = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withFeeSettings; query != nil {
 		if err := _q.loadFeeSettings(ctx, query, nodes,
 			func(n *BillingUnit) { n.Edges.FeeSettings = []*FeeSetting{} },
@@ -496,35 +453,6 @@ func (_q *BillingUnitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	return nodes, nil
 }
 
-func (_q *BillingUnitQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*BillingUnit, init func(*BillingUnit), assign func(*BillingUnit, *Organization)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*BillingUnit)
-	for i := range nodes {
-		fk := nodes[i].OrganizationID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(organization.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (_q *BillingUnitQuery) loadFeeSettings(ctx context.Context, query *FeeSettingQuery, nodes []*BillingUnit, init func(*BillingUnit), assign func(*BillingUnit, *FeeSetting)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*BillingUnit)
@@ -616,9 +544,6 @@ func (_q *BillingUnitQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != billingunit.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(billingunit.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

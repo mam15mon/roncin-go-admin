@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // BillingUnit is the model entity for the BillingUnit schema.
@@ -23,8 +22,6 @@ type BillingUnit struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
@@ -45,32 +42,19 @@ type BillingUnit struct {
 
 // BillingUnitEdges holds the relations/edges for other nodes in the graph.
 type BillingUnitEdges struct {
-	// Organization holds the value of the organization edge.
-	Organization *Organization `json:"organization,omitempty"`
 	// FeeSettings holds the value of the fee_settings edge.
 	FeeSettings []*FeeSetting `json:"fee_settings,omitempty"`
 	// OrderFees holds the value of the order_fees edge.
 	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
-}
-
-// OrganizationOrErr returns the Organization value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e BillingUnitEdges) OrganizationOrErr() (*Organization, error) {
-	if e.Organization != nil {
-		return e.Organization, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: organization.Label}
-	}
-	return nil, &NotLoadedError{edge: "organization"}
+	loadedTypes [2]bool
 }
 
 // FeeSettingsOrErr returns the FeeSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e BillingUnitEdges) FeeSettingsOrErr() ([]*FeeSetting, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.FeeSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "fee_settings"}
@@ -79,7 +63,7 @@ func (e BillingUnitEdges) FeeSettingsOrErr() ([]*FeeSetting, error) {
 // OrderFeesOrErr returns the OrderFees value or an error if the edge
 // was not loaded in eager-loading.
 func (e BillingUnitEdges) OrderFeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.OrderFees, nil
 	}
 	return nil, &NotLoadedError{edge: "order_fees"}
@@ -98,7 +82,7 @@ func (*BillingUnit) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case billingunit.FieldCreatedAt, billingunit.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case billingunit.FieldID, billingunit.FieldOrganizationID:
+		case billingunit.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -132,12 +116,6 @@ func (_m *BillingUnit) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case billingunit.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
 			}
 		case billingunit.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -188,11 +166,6 @@ func (_m *BillingUnit) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOrganization queries the "organization" edge of the BillingUnit entity.
-func (_m *BillingUnit) QueryOrganization() *OrganizationQuery {
-	return NewBillingUnitClient(_m.config).QueryOrganization(_m)
-}
-
 // QueryFeeSettings queries the "fee_settings" edge of the BillingUnit entity.
 func (_m *BillingUnit) QueryFeeSettings() *FeeSettingQuery {
 	return NewBillingUnitClient(_m.config).QueryFeeSettings(_m)
@@ -231,9 +204,6 @@ func (_m *BillingUnit) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)

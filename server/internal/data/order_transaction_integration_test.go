@@ -652,7 +652,6 @@ func (f *orderPostgresFixture) mustCountActiveMasterBillLinks(ctx context.Contex
 
 func (f *orderPostgresFixture) createCarrier(ctx context.Context, code string) *ent.ShippingLine {
 	line, err := f.data.db.ShippingLine.Create().
-		SetOrganizationID(f.organizationID).
 		SetScacCode(newTestSCAC()).
 		SetNameZh("订单事务测试船公司-" + code).
 		SetNameEn("Order transaction shipping line-" + code).
@@ -710,7 +709,6 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		t.Fatalf("创建测试供应商角色: %v", err)
 	}
 	carrier, err := data.db.ShippingLine.Create().
-		SetOrganizationID(organization.ID).
 		SetScacCode(newTestSCAC()).
 		SetNameZh("订单事务测试船公司-" + suffix).
 		SetNameEn("Order transaction shipping line-" + suffix).
@@ -926,7 +924,7 @@ func (f *orderPostgresFixture) cleanup() {
 			return err
 		}},
 		{name: "船公司", run: func() error {
-			_, err := f.data.db.ShippingLine.Delete().Where(shippinglineent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			_, err := f.data.db.ShippingLine.Delete().Where(shippinglineent.ScacCodeHasPrefix("TEST-")).Exec(ctx)
 			return err
 		}},
 		{name: "订单审计", run: func() error {

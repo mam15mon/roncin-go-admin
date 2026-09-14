@@ -21,8 +21,8 @@ import { getCurrencies } from '@/utils/options';
 const isServiceType = (kind?: number | string) =>
   kind === 8 ||
   kind === '8' ||
-  kind === 'MASTER_DATA_KIND_SERVICE_TYPE' ||
-  kind === 'service_type';
+  kind === 'MASTER_DATA_KIND_CHARGE_CATEGORY' ||
+  kind === 'charge_category';
 
 const isAbnormalCase = (kind?: number | string) =>
   kind === 10 ||
@@ -39,7 +39,7 @@ type FeeSettingFormValues = {
   nameZh: string;
   nameEn?: string;
   aliasName?: string;
-  serviceTypeId?: string;
+  chargeCategoryId?: string;
   defaultCurrency: string;
   billingUnitId: string;
   abnormalCaseId?: string;
@@ -165,7 +165,7 @@ export function FeeItemsPanel() {
           nameZh: values.nameZh.trim(),
           nameEn: values.nameEn?.trim() || undefined,
           aliasName: values.aliasName?.trim() || undefined,
-          serviceTypeId: values.serviceTypeId || undefined,
+          chargeCategoryId: values.chargeCategoryId ?? '',
           defaultCurrency: values.defaultCurrency,
           billingUnitId: values.billingUnitId,
           abnormalCaseId: values.abnormalCaseId || undefined,
@@ -184,7 +184,7 @@ export function FeeItemsPanel() {
             nameZh: values.nameZh.trim(),
             nameEn: values.nameEn?.trim() || undefined,
             aliasName: values.aliasName?.trim() || undefined,
-            serviceTypeId: values.serviceTypeId || undefined,
+            chargeCategoryId: values.chargeCategoryId ?? '',
             defaultCurrency: values.defaultCurrency,
             billingUnitId: values.billingUnitId,
             abnormalCaseId: values.abnormalCaseId || undefined,
@@ -202,7 +202,7 @@ export function FeeItemsPanel() {
               nameZh: editing.nameZh,
               nameEn: editing.nameEn,
               aliasName: editing.aliasName,
-              serviceTypeId: editing.serviceTypeId,
+              chargeCategoryId: editing.chargeCategoryId,
               defaultCurrency: editing.defaultCurrency,
               billingUnitId: editing.billingUnitId,
               abnormalCaseId: editing.abnormalCaseId,
@@ -249,7 +249,7 @@ export function FeeItemsPanel() {
           />
           <ProFormSearchableSelect
             colProps={{ span: 12 }}
-            name="serviceTypeId"
+            name="chargeCategoryId"
             label="对应服务类型"
             allowClear
             options={serviceTypes.map((item) => ({

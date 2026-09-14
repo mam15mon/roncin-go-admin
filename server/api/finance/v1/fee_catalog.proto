@@ -64,7 +64,8 @@ service FeeCatalogService {
 
 message BillingUnit {
   string id = 1;
-  string organization_id = 2;
+  reserved 2;
+  reserved "organization_id";
   string code = 3;
   string name = 4;
   int32 sort_order = 5;
@@ -88,13 +89,15 @@ message TaxableService {
 
 message FeeSetting {
   string id = 1;
-  string organization_id = 2;
+  // 为空表示总部公共科目基线行，非空表示分公司本地明细行。
+  optional string organization_id = 2;
   string fee_code = 3;
   string name_zh = 4;
   optional string name_en = 5;
   optional string alias_name = 6;
-  optional string service_type_id = 7;
-  optional string service_type_name = 8;
+  // 费用大类必挂（原 service_type 就地更名）：合并报表底座。
+  string charge_category_id = 7 [(google.api.field_behavior) = REQUIRED];
+  string charge_category_name = 8;
   string default_currency = 9;
   string billing_unit_id = 10;
   string billing_unit_name = 11;
@@ -121,7 +124,8 @@ message CreateFeeSettingRequest {
   string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 3;
   optional string alias_name = 4;
-  optional string service_type_id = 5;
+  // 费用大类必挂（原 service_type 就地更名）。
+  string charge_category_id = 5 [(google.api.field_behavior) = REQUIRED];
   string default_currency = 6 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 7 [(google.api.field_behavior) = REQUIRED];
   optional string abnormal_case_id = 8;
@@ -136,7 +140,8 @@ message UpdateFeeSettingRequest {
   string name_zh = 3 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 4;
   optional string alias_name = 5;
-  optional string service_type_id = 6;
+  // 费用大类必挂（原 service_type 就地更名）。
+  string charge_category_id = 6 [(google.api.field_behavior) = REQUIRED];
   string default_currency = 7 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 8 [(google.api.field_behavior) = REQUIRED];
   optional string abnormal_case_id = 9;

@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
@@ -35,20 +34,6 @@ func (_u *MasterDataItemUpdate) Where(ps ...predicate.MasterDataItem) *MasterDat
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *MasterDataItemUpdate) SetUpdatedAt(v time.Time) *MasterDataItemUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *MasterDataItemUpdate) SetOrganizationID(v uuid.UUID) *MasterDataItemUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *MasterDataItemUpdate) SetNillableOrganizationID(v *uuid.UUID) *MasterDataItemUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
 	return _u
 }
 
@@ -209,24 +194,19 @@ func (_u *MasterDataItemUpdate) SetNillableSearchKeywords(v *string) *MasterData
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *MasterDataItemUpdate) SetOrganization(v *Organization) *MasterDataItemUpdate {
-	return _u.SetOrganizationID(v.ID)
-}
-
-// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
-func (_u *MasterDataItemUpdate) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
-	_u.mutation.AddServiceTypeFeeSettingIDs(ids...)
+// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdate) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.AddChargeCategoryFeeSettingIDs(ids...)
 	return _u
 }
 
-// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdate) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddServiceTypeFeeSettingIDs(ids...)
+	return _u.AddChargeCategoryFeeSettingIDs(ids...)
 }
 
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
@@ -249,31 +229,25 @@ func (_u *MasterDataItemUpdate) Mutation() *MasterDataItemMutation {
 	return _u.mutation
 }
 
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *MasterDataItemUpdate) ClearOrganization() *MasterDataItemUpdate {
-	_u.mutation.ClearOrganization()
+// ClearChargeCategoryFeeSettings clears all "charge_category_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) ClearChargeCategoryFeeSettings() *MasterDataItemUpdate {
+	_u.mutation.ClearChargeCategoryFeeSettings()
 	return _u
 }
 
-// ClearServiceTypeFeeSettings clears all "service_type_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdate) ClearServiceTypeFeeSettings() *MasterDataItemUpdate {
-	_u.mutation.ClearServiceTypeFeeSettings()
+// RemoveChargeCategoryFeeSettingIDs removes the "charge_category_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdate) RemoveChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.RemoveChargeCategoryFeeSettingIDs(ids...)
 	return _u
 }
 
-// RemoveServiceTypeFeeSettingIDs removes the "service_type_fee_settings" edge to FeeSetting entities by IDs.
-func (_u *MasterDataItemUpdate) RemoveServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
-	_u.mutation.RemoveServiceTypeFeeSettingIDs(ids...)
-	return _u
-}
-
-// RemoveServiceTypeFeeSettings removes "service_type_fee_settings" edges to FeeSetting entities.
-func (_u *MasterDataItemUpdate) RemoveServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+// RemoveChargeCategoryFeeSettings removes "charge_category_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdate) RemoveChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveServiceTypeFeeSettingIDs(ids...)
+	return _u.RemoveChargeCategoryFeeSettingIDs(ids...)
 }
 
 // ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
@@ -371,9 +345,6 @@ func (_u *MasterDataItemUpdate) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.source": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "MasterDataItem.organization"`)
-	}
 	return nil
 }
 
@@ -434,41 +405,12 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   masterdataitem.OrganizationTable,
-			Columns: []string{masterdataitem.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   masterdataitem.OrganizationTable,
-			Columns: []string{masterdataitem.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ServiceTypeFeeSettingsCleared() {
+	if _u.mutation.ChargeCategoryFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -476,12 +418,12 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedServiceTypeFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypeFeeSettingsCleared() {
+	if nodes := _u.mutation.RemovedChargeCategoryFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChargeCategoryFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -492,12 +434,12 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -576,20 +518,6 @@ type MasterDataItemUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *MasterDataItemUpdateOne) SetUpdatedAt(v time.Time) *MasterDataItemUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *MasterDataItemUpdateOne) SetOrganizationID(v uuid.UUID) *MasterDataItemUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *MasterDataItemUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *MasterDataItemUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
 	return _u
 }
 
@@ -750,24 +678,19 @@ func (_u *MasterDataItemUpdateOne) SetNillableSearchKeywords(v *string) *MasterD
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *MasterDataItemUpdateOne) SetOrganization(v *Organization) *MasterDataItemUpdateOne {
-	return _u.SetOrganizationID(v.ID)
-}
-
-// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
-func (_u *MasterDataItemUpdateOne) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
-	_u.mutation.AddServiceTypeFeeSettingIDs(ids...)
+// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdateOne) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.AddChargeCategoryFeeSettingIDs(ids...)
 	return _u
 }
 
-// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdateOne) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddServiceTypeFeeSettingIDs(ids...)
+	return _u.AddChargeCategoryFeeSettingIDs(ids...)
 }
 
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
@@ -790,31 +713,25 @@ func (_u *MasterDataItemUpdateOne) Mutation() *MasterDataItemMutation {
 	return _u.mutation
 }
 
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *MasterDataItemUpdateOne) ClearOrganization() *MasterDataItemUpdateOne {
-	_u.mutation.ClearOrganization()
+// ClearChargeCategoryFeeSettings clears all "charge_category_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) ClearChargeCategoryFeeSettings() *MasterDataItemUpdateOne {
+	_u.mutation.ClearChargeCategoryFeeSettings()
 	return _u
 }
 
-// ClearServiceTypeFeeSettings clears all "service_type_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdateOne) ClearServiceTypeFeeSettings() *MasterDataItemUpdateOne {
-	_u.mutation.ClearServiceTypeFeeSettings()
+// RemoveChargeCategoryFeeSettingIDs removes the "charge_category_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdateOne) RemoveChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.RemoveChargeCategoryFeeSettingIDs(ids...)
 	return _u
 }
 
-// RemoveServiceTypeFeeSettingIDs removes the "service_type_fee_settings" edge to FeeSetting entities by IDs.
-func (_u *MasterDataItemUpdateOne) RemoveServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
-	_u.mutation.RemoveServiceTypeFeeSettingIDs(ids...)
-	return _u
-}
-
-// RemoveServiceTypeFeeSettings removes "service_type_fee_settings" edges to FeeSetting entities.
-func (_u *MasterDataItemUpdateOne) RemoveServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+// RemoveChargeCategoryFeeSettings removes "charge_category_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdateOne) RemoveChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveServiceTypeFeeSettingIDs(ids...)
+	return _u.RemoveChargeCategoryFeeSettingIDs(ids...)
 }
 
 // ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
@@ -925,9 +842,6 @@ func (_u *MasterDataItemUpdateOne) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.source": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "MasterDataItem.organization"`)
-	}
 	return nil
 }
 
@@ -1005,41 +919,12 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   masterdataitem.OrganizationTable,
-			Columns: []string{masterdataitem.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   masterdataitem.OrganizationTable,
-			Columns: []string{masterdataitem.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ServiceTypeFeeSettingsCleared() {
+	if _u.mutation.ChargeCategoryFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -1047,12 +932,12 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedServiceTypeFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypeFeeSettingsCleared() {
+	if nodes := _u.mutation.RemovedChargeCategoryFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChargeCategoryFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
@@ -1063,12 +948,12 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
-			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
+			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),

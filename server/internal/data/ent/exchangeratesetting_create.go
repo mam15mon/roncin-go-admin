@@ -58,6 +58,14 @@ func (_c *ExchangeRateSettingCreate) SetOrganizationID(v uuid.UUID) *ExchangeRat
 	return _c
 }
 
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_c *ExchangeRateSettingCreate) SetNillableOrganizationID(v *uuid.UUID) *ExchangeRateSettingCreate {
+	if v != nil {
+		_c.SetOrganizationID(*v)
+	}
+	return _c
+}
+
 // SetFromCurrency sets the "from_currency" field.
 func (_c *ExchangeRateSettingCreate) SetFromCurrency(v string) *ExchangeRateSettingCreate {
 	_c.mutation.SetFromCurrency(v)
@@ -93,6 +101,34 @@ func (_c *ExchangeRateSettingCreate) SetNillableEffectiveTo(v *time.Time) *Excha
 // SetRate sets the "rate" field.
 func (_c *ExchangeRateSettingCreate) SetRate(v string) *ExchangeRateSettingCreate {
 	_c.mutation.SetRate(v)
+	return _c
+}
+
+// SetArRate sets the "ar_rate" field.
+func (_c *ExchangeRateSettingCreate) SetArRate(v string) *ExchangeRateSettingCreate {
+	_c.mutation.SetArRate(v)
+	return _c
+}
+
+// SetNillableArRate sets the "ar_rate" field if the given value is not nil.
+func (_c *ExchangeRateSettingCreate) SetNillableArRate(v *string) *ExchangeRateSettingCreate {
+	if v != nil {
+		_c.SetArRate(*v)
+	}
+	return _c
+}
+
+// SetApRate sets the "ap_rate" field.
+func (_c *ExchangeRateSettingCreate) SetApRate(v string) *ExchangeRateSettingCreate {
+	_c.mutation.SetApRate(v)
+	return _c
+}
+
+// SetNillableApRate sets the "ap_rate" field if the given value is not nil.
+func (_c *ExchangeRateSettingCreate) SetNillableApRate(v *string) *ExchangeRateSettingCreate {
+	if v != nil {
+		_c.SetApRate(*v)
+	}
 	return _c
 }
 
@@ -185,9 +221,6 @@ func (_c *ExchangeRateSettingCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ExchangeRateSetting.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "ExchangeRateSetting.organization_id"`)}
-	}
 	if _, ok := _c.mutation.FromCurrency(); !ok {
 		return &ValidationError{Name: "from_currency", err: errors.New(`ent: missing required field "ExchangeRateSetting.from_currency"`)}
 	}
@@ -259,7 +292,7 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 	}
 	if value, ok := _c.mutation.OrganizationID(); ok {
 		_spec.SetField(exchangeratesetting.FieldOrganizationID, field.TypeUUID, value)
-		_node.OrganizationID = value
+		_node.OrganizationID = &value
 	}
 	if value, ok := _c.mutation.FromCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldFromCurrency, field.TypeString, value)
@@ -280,6 +313,14 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 	if value, ok := _c.mutation.Rate(); ok {
 		_spec.SetField(exchangeratesetting.FieldRate, field.TypeString, value)
 		_node.Rate = value
+	}
+	if value, ok := _c.mutation.ArRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldArRate, field.TypeString, value)
+		_node.ArRate = &value
+	}
+	if value, ok := _c.mutation.ApRate(); ok {
+		_spec.SetField(exchangeratesetting.FieldApRate, field.TypeString, value)
+		_node.ApRate = &value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)
@@ -361,6 +402,12 @@ func (u *ExchangeRateSettingUpsert) UpdateOrganizationID() *ExchangeRateSettingU
 	return u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *ExchangeRateSettingUpsert) ClearOrganizationID() *ExchangeRateSettingUpsert {
+	u.SetNull(exchangeratesetting.FieldOrganizationID)
+	return u
+}
+
 // SetFromCurrency sets the "from_currency" field.
 func (u *ExchangeRateSettingUpsert) SetFromCurrency(v string) *ExchangeRateSettingUpsert {
 	u.Set(exchangeratesetting.FieldFromCurrency, v)
@@ -424,6 +471,42 @@ func (u *ExchangeRateSettingUpsert) SetRate(v string) *ExchangeRateSettingUpsert
 // UpdateRate sets the "rate" field to the value that was provided on create.
 func (u *ExchangeRateSettingUpsert) UpdateRate() *ExchangeRateSettingUpsert {
 	u.SetExcluded(exchangeratesetting.FieldRate)
+	return u
+}
+
+// SetArRate sets the "ar_rate" field.
+func (u *ExchangeRateSettingUpsert) SetArRate(v string) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldArRate, v)
+	return u
+}
+
+// UpdateArRate sets the "ar_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateArRate() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldArRate)
+	return u
+}
+
+// ClearArRate clears the value of the "ar_rate" field.
+func (u *ExchangeRateSettingUpsert) ClearArRate() *ExchangeRateSettingUpsert {
+	u.SetNull(exchangeratesetting.FieldArRate)
+	return u
+}
+
+// SetApRate sets the "ap_rate" field.
+func (u *ExchangeRateSettingUpsert) SetApRate(v string) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldApRate, v)
+	return u
+}
+
+// UpdateApRate sets the "ap_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateApRate() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldApRate)
+	return u
+}
+
+// ClearApRate clears the value of the "ap_rate" field.
+func (u *ExchangeRateSettingUpsert) ClearApRate() *ExchangeRateSettingUpsert {
+	u.SetNull(exchangeratesetting.FieldApRate)
 	return u
 }
 
@@ -518,6 +601,13 @@ func (u *ExchangeRateSettingUpsertOne) UpdateOrganizationID() *ExchangeRateSetti
 	})
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *ExchangeRateSettingUpsertOne) ClearOrganizationID() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearOrganizationID()
+	})
+}
+
 // SetFromCurrency sets the "from_currency" field.
 func (u *ExchangeRateSettingUpsertOne) SetFromCurrency(v string) *ExchangeRateSettingUpsertOne {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
@@ -592,6 +682,48 @@ func (u *ExchangeRateSettingUpsertOne) SetRate(v string) *ExchangeRateSettingUps
 func (u *ExchangeRateSettingUpsertOne) UpdateRate() *ExchangeRateSettingUpsertOne {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
 		s.UpdateRate()
+	})
+}
+
+// SetArRate sets the "ar_rate" field.
+func (u *ExchangeRateSettingUpsertOne) SetArRate(v string) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetArRate(v)
+	})
+}
+
+// UpdateArRate sets the "ar_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateArRate() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateArRate()
+	})
+}
+
+// ClearArRate clears the value of the "ar_rate" field.
+func (u *ExchangeRateSettingUpsertOne) ClearArRate() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearArRate()
+	})
+}
+
+// SetApRate sets the "ap_rate" field.
+func (u *ExchangeRateSettingUpsertOne) SetApRate(v string) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetApRate(v)
+	})
+}
+
+// UpdateApRate sets the "ap_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateApRate() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateApRate()
+	})
+}
+
+// ClearApRate clears the value of the "ap_rate" field.
+func (u *ExchangeRateSettingUpsertOne) ClearApRate() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearApRate()
 	})
 }
 
@@ -855,6 +987,13 @@ func (u *ExchangeRateSettingUpsertBulk) UpdateOrganizationID() *ExchangeRateSett
 	})
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (u *ExchangeRateSettingUpsertBulk) ClearOrganizationID() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearOrganizationID()
+	})
+}
+
 // SetFromCurrency sets the "from_currency" field.
 func (u *ExchangeRateSettingUpsertBulk) SetFromCurrency(v string) *ExchangeRateSettingUpsertBulk {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
@@ -929,6 +1068,48 @@ func (u *ExchangeRateSettingUpsertBulk) SetRate(v string) *ExchangeRateSettingUp
 func (u *ExchangeRateSettingUpsertBulk) UpdateRate() *ExchangeRateSettingUpsertBulk {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
 		s.UpdateRate()
+	})
+}
+
+// SetArRate sets the "ar_rate" field.
+func (u *ExchangeRateSettingUpsertBulk) SetArRate(v string) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetArRate(v)
+	})
+}
+
+// UpdateArRate sets the "ar_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateArRate() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateArRate()
+	})
+}
+
+// ClearArRate clears the value of the "ar_rate" field.
+func (u *ExchangeRateSettingUpsertBulk) ClearArRate() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearArRate()
+	})
+}
+
+// SetApRate sets the "ap_rate" field.
+func (u *ExchangeRateSettingUpsertBulk) SetApRate(v string) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetApRate(v)
+	})
+}
+
+// UpdateApRate sets the "ap_rate" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateApRate() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateApRate()
+	})
+}
+
+// ClearApRate clears the value of the "ap_rate" field.
+func (u *ExchangeRateSettingUpsertBulk) ClearApRate() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.ClearApRate()
 	})
 }
 

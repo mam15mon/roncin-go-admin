@@ -36,7 +36,7 @@ const numericMasterData = [
     id: `service-${index}`,
     code,
     name: code === 'BOOKING' ? '自定义订舱名称' : name,
-    kind: MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE,
+    kind: MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
     enabled: true,
   })),
   {
@@ -120,7 +120,7 @@ describe('orders common and config', () => {
     expect(MASTER_DATA_KINDS).toEqual({
       REGION: MasterDataKind.MASTER_DATA_KIND_REGION,
       CONTAINER_SPEC: MasterDataKind.MASTER_DATA_KIND_CONTAINER_SPEC,
-      SERVICE_TYPE: MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE,
+      SERVICE_TYPE: MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
       CARGO_CATEGORY: MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
     });
     expect(
@@ -137,7 +137,7 @@ describe('orders common and config', () => {
     ).toBe(true);
     expect(
       isMasterDataKind(
-        MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE,
+        MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
         MASTER_DATA_KINDS.SERVICE_TYPE,
       ),
     ).toBe(true);

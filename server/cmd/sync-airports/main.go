@@ -73,7 +73,7 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("初始化机场同步存储失败: %w", err)
 	}
 	defer cleanup()
-	conflicts, err := store.CheckAirports(ctx, options.OrganizationCode, ourAirportsSource, rows)
+	conflicts, err := store.CheckAirports(ctx, ourAirportsSource, rows)
 	if err != nil {
 		return fmt.Errorf("检查机场同步冲突失败: %w", err)
 	}
@@ -85,7 +85,7 @@ func run(ctx context.Context) error {
 		fmt.Println("当前为预览模式；确认统计后使用 -apply 写入数据库")
 		return nil
 	}
-	result, err := store.ApplyAirports(ctx, options.OrganizationCode, ourAirportsSource, options.Release, summary.SourceHash, rows)
+	result, err := store.ApplyAirports(ctx, ourAirportsSource, options.Release, summary.SourceHash, rows)
 	if err != nil {
 		return fmt.Errorf("写入机场数据失败: %w", err)
 	}
@@ -97,14 +97,8 @@ func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将机场数据写入数据库")
 	source := flag.String("source", "", "本地 airports.csv 路径；为空时从 OurAirports 下载")
 	release := flag.String("release", "", "数据版本；默认使用同步日期")
-	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
-	code := strings.TrimSpace(*organizationCode)
-	if code == "" {
-		fmt.Fprintln(os.Stderr, "org-code 不能为空，也未配置 BOOTSTRAP_ORGANIZATION_CODE")
-		os.Exit(2)
-	}
-	return syncrunner.Options{Apply: *apply, Source: strings.TrimSpace(*source), Release: strings.TrimSpace(*release), OrganizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: strings.TrimSpace(*source), Release: strings.TrimSpace(*release)}
 }
 
 func loadSource(ctx context.Context, source string) ([]byte, string, error) {
@@ -244,7 +238,7 @@ func cacheDownload(raw []byte, release, hash string) (string, error) {
 
 func printSummary(sourceLabel string, options syncrunner.Options, summary airportParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("机场数据源：%s\n", sourceLabel)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
+	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效机场 %d，无有效 IATA 跳过 %d，非法 ICAO %d，关闭机场 %d\n", summary.RawRows, summary.ValidRows, summary.SkippedIATA, summary.InvalidICAO, summary.Closed)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {

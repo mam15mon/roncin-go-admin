@@ -5,11 +5,11 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"github.com/google/uuid"
 )
 
 // MasterDataItem is a fixed-kind option catalog used by order forms.
 // Business rules and dynamic page definitions do not belong in this table.
+// A 型全局主数据：客观事实只有一份真相，无组织归属，业务码全局唯一。
 type MasterDataItem struct{ ent.Schema }
 
 // MasterDataAttributes 是主数据专属属性的 JSONB 持久化结构。
@@ -23,8 +23,7 @@ func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (MasterDataItem) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("organization_id", uuid.Nil),
-		field.Enum("kind").Values("currency", "country", "region", "container_spec", "service_type", "cargo_category", "abnormal_case"),
+		field.Enum("kind").Values("currency", "country", "region", "container_spec", "charge_category", "cargo_category", "abnormal_case"),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
 		field.String("name_en").MaxLen(200).Optional().Nillable(),
@@ -44,16 +43,15 @@ func (MasterDataItem) Hooks() []ent.Hook {
 
 func (MasterDataItem) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("organization", Organization.Type).Ref("master_data_items").Field("organization_id").Unique().Required(),
-		edge.To("service_type_fee_settings", FeeSetting.Type),
+		edge.To("charge_category_fee_settings", FeeSetting.Type),
 		edge.To("abnormal_case_fee_settings", FeeSetting.Type),
 	}
 }
 
 func (MasterDataItem) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "kind", "code").Unique(),
-		index.Fields("organization_id", "kind", "enabled", "sort_order"),
-		index.Fields("organization_id", "kind", "name"),
+		index.Fields("kind", "code").Unique(),
+		index.Fields("kind", "enabled", "sort_order"),
+		index.Fields("kind", "name"),
 	}
 }

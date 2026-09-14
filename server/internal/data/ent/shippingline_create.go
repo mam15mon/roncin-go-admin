@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -56,12 +55,6 @@ func (_c *ShippingLineCreate) SetNillableUpdatedAt(v *time.Time) *ShippingLineCr
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *ShippingLineCreate) SetOrganizationID(v uuid.UUID) *ShippingLineCreate {
-	_c.mutation.SetOrganizationID(v)
 	return _c
 }
 
@@ -185,11 +178,6 @@ func (_c *ShippingLineCreate) SetNillableID(v *uuid.UUID) *ShippingLineCreate {
 		_c.SetID(*v)
 	}
 	return _c
-}
-
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *ShippingLineCreate) SetOrganization(v *Organization) *ShippingLineCreate {
-	return _c.SetOrganizationID(v.ID)
 }
 
 // AddContainerPrefixIDs adds the "container_prefixes" edge to the ShippingLineContainerPrefix entity by IDs.
@@ -367,9 +355,6 @@ func (_c *ShippingLineCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ShippingLine.updated_at"`)}
 	}
-	if _, ok := _c.mutation.OrganizationID(); !ok {
-		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "ShippingLine.organization_id"`)}
-	}
 	if _, ok := _c.mutation.ScacCode(); !ok {
 		return &ValidationError{Name: "scac_code", err: errors.New(`ent: missing required field "ShippingLine.scac_code"`)}
 	}
@@ -428,9 +413,6 @@ func (_c *ShippingLineCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "ShippingLine.search_keywords"`)}
-	}
-	if len(_c.mutation.OrganizationIDs()) == 0 {
-		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "ShippingLine.organization"`)}
 	}
 	return nil
 }
@@ -515,23 +497,6 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
-	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   shippingline.OrganizationTable,
-			Columns: []string{shippingline.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ContainerPrefixesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -690,18 +655,6 @@ func (u *ShippingLineUpsert) SetUpdatedAt(v time.Time) *ShippingLineUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *ShippingLineUpsert) UpdateUpdatedAt() *ShippingLineUpsert {
 	u.SetExcluded(shippingline.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineUpsert) SetOrganizationID(v uuid.UUID) *ShippingLineUpsert {
-	u.Set(shippingline.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineUpsert) UpdateOrganizationID() *ShippingLineUpsert {
-	u.SetExcluded(shippingline.FieldOrganizationID)
 	return u
 }
 
@@ -896,20 +849,6 @@ func (u *ShippingLineUpsertOne) SetUpdatedAt(v time.Time) *ShippingLineUpsertOne
 func (u *ShippingLineUpsertOne) UpdateUpdatedAt() *ShippingLineUpsertOne {
 	return u.Update(func(s *ShippingLineUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineUpsertOne) SetOrganizationID(v uuid.UUID) *ShippingLineUpsertOne {
-	return u.Update(func(s *ShippingLineUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineUpsertOne) UpdateOrganizationID() *ShippingLineUpsertOne {
-	return u.Update(func(s *ShippingLineUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 
@@ -1292,20 +1231,6 @@ func (u *ShippingLineUpsertBulk) SetUpdatedAt(v time.Time) *ShippingLineUpsertBu
 func (u *ShippingLineUpsertBulk) UpdateUpdatedAt() *ShippingLineUpsertBulk {
 	return u.Update(func(s *ShippingLineUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *ShippingLineUpsertBulk) SetOrganizationID(v uuid.UUID) *ShippingLineUpsertBulk {
-	return u.Update(func(s *ShippingLineUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *ShippingLineUpsertBulk) UpdateOrganizationID() *ShippingLineUpsertBulk {
-	return u.Update(func(s *ShippingLineUpsert) {
-		s.UpdateOrganizationID()
 	})
 }
 

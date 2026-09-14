@@ -54,6 +54,12 @@ func (_u *FeeSettingUpdate) SetNillableOrganizationID(v *uuid.UUID) *FeeSettingU
 	return _u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *FeeSettingUpdate) ClearOrganizationID() *FeeSettingUpdate {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (_u *FeeSettingUpdate) SetFeeCode(v string) *FeeSettingUpdate {
 	_u.mutation.SetFeeCode(v)
@@ -122,23 +128,17 @@ func (_u *FeeSettingUpdate) ClearAliasName() *FeeSettingUpdate {
 	return _u
 }
 
-// SetServiceTypeID sets the "service_type_id" field.
-func (_u *FeeSettingUpdate) SetServiceTypeID(v uuid.UUID) *FeeSettingUpdate {
-	_u.mutation.SetServiceTypeID(v)
+// SetChargeCategoryID sets the "charge_category_id" field.
+func (_u *FeeSettingUpdate) SetChargeCategoryID(v uuid.UUID) *FeeSettingUpdate {
+	_u.mutation.SetChargeCategoryID(v)
 	return _u
 }
 
-// SetNillableServiceTypeID sets the "service_type_id" field if the given value is not nil.
-func (_u *FeeSettingUpdate) SetNillableServiceTypeID(v *uuid.UUID) *FeeSettingUpdate {
+// SetNillableChargeCategoryID sets the "charge_category_id" field if the given value is not nil.
+func (_u *FeeSettingUpdate) SetNillableChargeCategoryID(v *uuid.UUID) *FeeSettingUpdate {
 	if v != nil {
-		_u.SetServiceTypeID(*v)
+		_u.SetChargeCategoryID(*v)
 	}
-	return _u
-}
-
-// ClearServiceTypeID clears the value of the "service_type_id" field.
-func (_u *FeeSettingUpdate) ClearServiceTypeID() *FeeSettingUpdate {
-	_u.mutation.ClearServiceTypeID()
 	return _u
 }
 
@@ -272,9 +272,9 @@ func (_u *FeeSettingUpdate) SetOrganization(v *Organization) *FeeSettingUpdate {
 	return _u.SetOrganizationID(v.ID)
 }
 
-// SetServiceType sets the "service_type" edge to the MasterDataItem entity.
-func (_u *FeeSettingUpdate) SetServiceType(v *MasterDataItem) *FeeSettingUpdate {
-	return _u.SetServiceTypeID(v.ID)
+// SetChargeCategory sets the "charge_category" edge to the MasterDataItem entity.
+func (_u *FeeSettingUpdate) SetChargeCategory(v *MasterDataItem) *FeeSettingUpdate {
+	return _u.SetChargeCategoryID(v.ID)
 }
 
 // SetBillingUnit sets the "billing_unit" edge to the BillingUnit entity.
@@ -318,9 +318,9 @@ func (_u *FeeSettingUpdate) ClearOrganization() *FeeSettingUpdate {
 	return _u
 }
 
-// ClearServiceType clears the "service_type" edge to the MasterDataItem entity.
-func (_u *FeeSettingUpdate) ClearServiceType() *FeeSettingUpdate {
-	_u.mutation.ClearServiceType()
+// ClearChargeCategory clears the "charge_category" edge to the MasterDataItem entity.
+func (_u *FeeSettingUpdate) ClearChargeCategory() *FeeSettingUpdate {
+	_u.mutation.ClearChargeCategory()
 	return _u
 }
 
@@ -432,8 +432,8 @@ func (_u *FeeSettingUpdate) check() error {
 			return &ValidationError{Name: "default_currency", err: fmt.Errorf(`ent: validator failed for field "FeeSetting.default_currency": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FeeSetting.organization"`)
+	if _u.mutation.ChargeCategoryCleared() && len(_u.mutation.ChargeCategoryIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "FeeSetting.charge_category"`)
 	}
 	if _u.mutation.BillingUnitCleared() && len(_u.mutation.BillingUnitIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FeeSetting.billing_unit"`)
@@ -524,12 +524,12 @@ func (_u *FeeSettingUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.ServiceTypeCleared() {
+	if _u.mutation.ChargeCategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   feesetting.ServiceTypeTable,
-			Columns: []string{feesetting.ServiceTypeColumn},
+			Table:   feesetting.ChargeCategoryTable,
+			Columns: []string{feesetting.ChargeCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
@@ -537,12 +537,12 @@ func (_u *FeeSettingUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ServiceTypeIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ChargeCategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   feesetting.ServiceTypeTable,
-			Columns: []string{feesetting.ServiceTypeColumn},
+			Table:   feesetting.ChargeCategoryTable,
+			Columns: []string{feesetting.ChargeCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
@@ -725,6 +725,12 @@ func (_u *FeeSettingUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *FeeSetti
 	return _u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *FeeSettingUpdateOne) ClearOrganizationID() *FeeSettingUpdateOne {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (_u *FeeSettingUpdateOne) SetFeeCode(v string) *FeeSettingUpdateOne {
 	_u.mutation.SetFeeCode(v)
@@ -793,23 +799,17 @@ func (_u *FeeSettingUpdateOne) ClearAliasName() *FeeSettingUpdateOne {
 	return _u
 }
 
-// SetServiceTypeID sets the "service_type_id" field.
-func (_u *FeeSettingUpdateOne) SetServiceTypeID(v uuid.UUID) *FeeSettingUpdateOne {
-	_u.mutation.SetServiceTypeID(v)
+// SetChargeCategoryID sets the "charge_category_id" field.
+func (_u *FeeSettingUpdateOne) SetChargeCategoryID(v uuid.UUID) *FeeSettingUpdateOne {
+	_u.mutation.SetChargeCategoryID(v)
 	return _u
 }
 
-// SetNillableServiceTypeID sets the "service_type_id" field if the given value is not nil.
-func (_u *FeeSettingUpdateOne) SetNillableServiceTypeID(v *uuid.UUID) *FeeSettingUpdateOne {
+// SetNillableChargeCategoryID sets the "charge_category_id" field if the given value is not nil.
+func (_u *FeeSettingUpdateOne) SetNillableChargeCategoryID(v *uuid.UUID) *FeeSettingUpdateOne {
 	if v != nil {
-		_u.SetServiceTypeID(*v)
+		_u.SetChargeCategoryID(*v)
 	}
-	return _u
-}
-
-// ClearServiceTypeID clears the value of the "service_type_id" field.
-func (_u *FeeSettingUpdateOne) ClearServiceTypeID() *FeeSettingUpdateOne {
-	_u.mutation.ClearServiceTypeID()
 	return _u
 }
 
@@ -943,9 +943,9 @@ func (_u *FeeSettingUpdateOne) SetOrganization(v *Organization) *FeeSettingUpdat
 	return _u.SetOrganizationID(v.ID)
 }
 
-// SetServiceType sets the "service_type" edge to the MasterDataItem entity.
-func (_u *FeeSettingUpdateOne) SetServiceType(v *MasterDataItem) *FeeSettingUpdateOne {
-	return _u.SetServiceTypeID(v.ID)
+// SetChargeCategory sets the "charge_category" edge to the MasterDataItem entity.
+func (_u *FeeSettingUpdateOne) SetChargeCategory(v *MasterDataItem) *FeeSettingUpdateOne {
+	return _u.SetChargeCategoryID(v.ID)
 }
 
 // SetBillingUnit sets the "billing_unit" edge to the BillingUnit entity.
@@ -989,9 +989,9 @@ func (_u *FeeSettingUpdateOne) ClearOrganization() *FeeSettingUpdateOne {
 	return _u
 }
 
-// ClearServiceType clears the "service_type" edge to the MasterDataItem entity.
-func (_u *FeeSettingUpdateOne) ClearServiceType() *FeeSettingUpdateOne {
-	_u.mutation.ClearServiceType()
+// ClearChargeCategory clears the "charge_category" edge to the MasterDataItem entity.
+func (_u *FeeSettingUpdateOne) ClearChargeCategory() *FeeSettingUpdateOne {
+	_u.mutation.ClearChargeCategory()
 	return _u
 }
 
@@ -1116,8 +1116,8 @@ func (_u *FeeSettingUpdateOne) check() error {
 			return &ValidationError{Name: "default_currency", err: fmt.Errorf(`ent: validator failed for field "FeeSetting.default_currency": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FeeSetting.organization"`)
+	if _u.mutation.ChargeCategoryCleared() && len(_u.mutation.ChargeCategoryIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "FeeSetting.charge_category"`)
 	}
 	if _u.mutation.BillingUnitCleared() && len(_u.mutation.BillingUnitIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FeeSetting.billing_unit"`)
@@ -1225,12 +1225,12 @@ func (_u *FeeSettingUpdateOne) sqlSave(ctx context.Context) (_node *FeeSetting, 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.ServiceTypeCleared() {
+	if _u.mutation.ChargeCategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   feesetting.ServiceTypeTable,
-			Columns: []string{feesetting.ServiceTypeColumn},
+			Table:   feesetting.ChargeCategoryTable,
+			Columns: []string{feesetting.ChargeCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
@@ -1238,12 +1238,12 @@ func (_u *FeeSettingUpdateOne) sqlSave(ctx context.Context) (_node *FeeSetting, 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ServiceTypeIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ChargeCategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   feesetting.ServiceTypeTable,
-			Columns: []string{feesetting.ServiceTypeColumn},
+			Table:   feesetting.ChargeCategoryTable,
+			Columns: []string{feesetting.ChargeCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),

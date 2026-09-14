@@ -19,12 +19,10 @@ func TestFeeSettingAppliesToOrderContext(t *testing.T) {
 		setting *ent.FeeSetting
 		want    bool
 	}{
-		{name: "通用费用", setting: &ent.FeeSetting{}, want: true},
-		{name: "服务类型匹配", setting: &ent.FeeSetting{ServiceTypeID: &serviceTypeID}, want: true},
-		{name: "异常情况匹配", setting: &ent.FeeSetting{AbnormalCaseID: &abnormalCaseID}, want: true},
-		{name: "两个条件均匹配", setting: &ent.FeeSetting{ServiceTypeID: &serviceTypeID, AbnormalCaseID: &abnormalCaseID}, want: true},
-		{name: "服务类型不匹配", setting: &ent.FeeSetting{ServiceTypeID: uuidPointerForOrderFeeTest()}, want: false},
-		{name: "异常情况不匹配", setting: &ent.FeeSetting{AbnormalCaseID: uuidPointerForOrderFeeTest()}, want: false},
+		{name: "费用大类匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID}, want: true},
+		{name: "费用大类与异常情况均匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID, AbnormalCaseID: &abnormalCaseID}, want: true},
+		{name: "费用大类不匹配", setting: &ent.FeeSetting{ChargeCategoryID: *uuidPointerForOrderFeeTest()}, want: false},
+		{name: "异常情况不匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID, AbnormalCaseID: uuidPointerForOrderFeeTest()}, want: false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

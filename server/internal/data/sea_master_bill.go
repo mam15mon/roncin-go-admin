@@ -246,7 +246,6 @@ func (r *seaMasterBillRepo) getShippingLineName(ctx context.Context, client *ent
 	}
 	line, err := client.ShippingLine.Query().Where(
 		shippinglineent.IDEQ(shippingLineID),
-		shippinglineent.OrganizationIDEQ(organizationID),
 	).Only(ctx)
 	if err != nil {
 		return "", mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)

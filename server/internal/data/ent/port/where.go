@@ -221,6 +221,16 @@ func OrganizationIDNotIn(vs ...uuid.UUID) predicate.Port {
 	return predicate.Port(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
+// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
+func OrganizationIDIsNil() predicate.Port {
+	return predicate.Port(sql.FieldIsNull(FieldOrganizationID))
+}
+
+// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
+func OrganizationIDNotNil() predicate.Port {
+	return predicate.Port(sql.FieldNotNull(FieldOrganizationID))
+}
+
 // UnLocodeEQ applies the EQ predicate on the "un_locode" field.
 func UnLocodeEQ(v string) predicate.Port {
 	return predicate.Port(sql.FieldEQ(FieldUnLocode, v))

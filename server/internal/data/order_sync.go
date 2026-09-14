@@ -36,7 +36,6 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 	if input.ShippingLineID != nil {
 		predicates := []predicate.ShippingLine{
 			shippinglineent.IDEQ(*input.ShippingLineID),
-			shippinglineent.OrganizationIDEQ(organizationID),
 		}
 		if currentShippingLineID == nil || *currentShippingLineID != *input.ShippingLineID {
 			predicates = append(predicates, shippinglineent.EnabledEQ(true))
@@ -88,7 +87,7 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 			return biz.ErrOrderInvalidArgument
 		}
 	}
-	if err := validateMasterDataIDs(ctx, tx, organizationID, input.ServiceTypeIDs, masterdataent.KindServiceType); err != nil {
+	if err := validateMasterDataIDs(ctx, tx, organizationID, input.ServiceTypeIDs, masterdataent.KindChargeCategory); err != nil {
 		return err
 	}
 	if err := validateMasterDataIDs(ctx, tx, organizationID, input.CargoCategoryIDs, masterdataent.KindCargoCategory); err != nil {
@@ -151,7 +150,7 @@ func validateMasterDataIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.
 	if len(ids) == 0 {
 		return nil
 	}
-	count, err := tx.MasterDataItem.Query().Where(masterdataent.IDIn(ids...), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(kind), masterdataent.EnabledEQ(true)).Count(ctx)
+	count, err := tx.MasterDataItem.Query().Where(masterdataent.IDIn(ids...), masterdataent.KindEQ(kind), masterdataent.EnabledEQ(true)).Count(ctx)
 	if err != nil {
 		return err
 	}
@@ -294,7 +293,6 @@ func syncOrderContainerRequests(ctx context.Context, tx *ent.Tx, organizationID,
 	for _, input := range inputs {
 		exists, err := tx.MasterDataItem.Query().Where(
 			masterdataent.IDEQ(input.ContainerSpecID),
-			masterdataent.OrganizationIDEQ(organizationID),
 			masterdataent.KindEQ(masterdataent.KindContainerSpec),
 			masterdataent.EnabledEQ(true),
 		).Exist(ctx)

@@ -36,20 +36,6 @@ func (_u *ShippingLineContainerPrefixUpdate) SetUpdatedAt(v time.Time) *Shipping
 	return _u
 }
 
-// SetOrganizationID sets the "organization_id" field.
-func (_u *ShippingLineContainerPrefixUpdate) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *ShippingLineContainerPrefixUpdate) SetNillableOrganizationID(v *uuid.UUID) *ShippingLineContainerPrefixUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
 // SetShippingLineID sets the "shipping_line_id" field.
 func (_u *ShippingLineContainerPrefixUpdate) SetShippingLineID(v uuid.UUID) *ShippingLineContainerPrefixUpdate {
 	_u.mutation.SetShippingLineID(v)
@@ -139,9 +125,6 @@ func (_u *ShippingLineContainerPrefixUpdate) sqlSave(ctx context.Context) (_node
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(shippinglinecontainerprefix.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.OrganizationID(); ok {
-		_spec.SetField(shippinglinecontainerprefix.FieldOrganizationID, field.TypeUUID, value)
-	}
 	if _u.mutation.ShippingLineCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -194,20 +177,6 @@ type ShippingLineContainerPrefixUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ShippingLineContainerPrefixUpdateOne) SetUpdatedAt(v time.Time) *ShippingLineContainerPrefixUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *ShippingLineContainerPrefixUpdateOne) SetOrganizationID(v uuid.UUID) *ShippingLineContainerPrefixUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *ShippingLineContainerPrefixUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *ShippingLineContainerPrefixUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
 	return _u
 }
 
@@ -329,9 +298,6 @@ func (_u *ShippingLineContainerPrefixUpdateOne) sqlSave(ctx context.Context) (_n
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(shippinglinecontainerprefix.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.OrganizationID(); ok {
-		_spec.SetField(shippinglinecontainerprefix.FieldOrganizationID, field.TypeUUID, value)
 	}
 	if _u.mutation.ShippingLineCleared() {
 		edge := &sqlgraph.EdgeSpec{

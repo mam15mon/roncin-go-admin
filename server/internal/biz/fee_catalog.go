@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/shopspring/decimal"
 )
 
@@ -28,7 +29,6 @@ var catalogCodePattern = regexp.MustCompile(`^[A-Z0-9_]{2,32}$`)
 
 type BillingUnit struct {
 	ID              uuid.UUID
-	OrganizationID  uuid.UUID
 	Code            string
 	Name            string
 	IsContainerUnit bool
@@ -51,14 +51,16 @@ type TaxableService struct {
 }
 
 type FeeSetting struct {
-	ID                 uuid.UUID
-	OrganizationID     uuid.UUID
-	FeeCode            string
-	NameZH             string
-	NameEN             *string
-	AliasName          *string
-	ServiceTypeID      *uuid.UUID
-	ServiceTypeName    *string
+	ID uuid.UUID
+	// OrganizationID 为空表示总部公共科目基线行（NULL），非空表示分公司本地明细行。
+	OrganizationID *uuid.UUID
+	FeeCode        string
+	NameZH         string
+	NameEN         *string
+	AliasName      *string
+	// ChargeCategoryID 必挂 A 型费用大类（合并报表底座）。
+	ChargeCategoryID   uuid.UUID
+	ChargeCategoryName string
 	DefaultCurrency    string
 	BillingUnitID      uuid.UUID
 	BillingUnitName    string
@@ -113,8 +115,11 @@ func (uc *FeeCatalogUsecase) CreateFeeSetting(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
+	if err := RequireBaselineWrite(ctx, access.FinanceFeeSettingCreate); err != nil {
+		return nil, err
+	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	normalized.OrganizationID = organizationID
+	normalized.OrganizationID = nil
 	normalized.Enabled = true
 	return uc.repo.CreateFeeSetting(ctx, normalized, feeCatalogAudit(organizationID, actorID, normalized.ID, "finance.fee_setting.create", "fee_setting"))
 }
@@ -127,8 +132,11 @@ func (uc *FeeCatalogUsecase) UpdateFeeSetting(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
+	if err := RequireBaselineWrite(ctx, access.FinanceFeeSettingUpdate); err != nil {
+		return nil, err
+	}
 	normalized.ID = id
-	normalized.OrganizationID = organizationID
+	normalized.OrganizationID = nil
 	return uc.repo.UpdateFeeSetting(ctx, normalized, feeCatalogAudit(organizationID, actorID, id, "finance.fee_setting.update", "fee_setting"))
 }
 
@@ -148,8 +156,10 @@ func (uc *FeeCatalogUsecase) CreateBillingUnit(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.FinanceFeeSettingCreate); err != nil {
+		return nil, err
+	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	normalized.OrganizationID = organizationID
 	normalized.Enabled = true
 	return uc.repo.CreateBillingUnit(ctx, normalized, feeCatalogAudit(organizationID, actorID, normalized.ID, "finance.billing_unit.create", "billing_unit"))
 }
@@ -162,8 +172,10 @@ func (uc *FeeCatalogUsecase) UpdateBillingUnit(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
+	if err := RequireGlobalMasterDataWrite(ctx, access.FinanceFeeSettingUpdate); err != nil {
+		return nil, err
+	}
 	normalized.ID = id
-	normalized.OrganizationID = organizationID
 	return uc.repo.UpdateBillingUnit(ctx, normalized, feeCatalogAudit(organizationID, actorID, id, "finance.billing_unit.update", "billing_unit"))
 }
 
@@ -203,7 +215,7 @@ func (uc *FeeCatalogUsecase) UpdateTaxableService(ctx context.Context, organizat
 }
 
 func normalizeFeeSetting(input *FeeSetting) (*FeeSetting, error) {
-	if input == nil || input.BillingUnitID == uuid.Nil || input.TaxableServiceID == uuid.Nil || input.SortOrder < 0 {
+	if input == nil || input.BillingUnitID == uuid.Nil || input.TaxableServiceID == uuid.Nil || input.ChargeCategoryID == uuid.Nil || input.SortOrder < 0 {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
 	output := *input

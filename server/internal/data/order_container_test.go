@@ -50,7 +50,7 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		WillReturnRows(orderRows(orderID, orgID))
 
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
-		WithArgs(input.ContainerSpecID, orgID, "container_spec").
+		WithArgs(input.ContainerSpecID, "container_spec").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	mock.ExpectBegin()
@@ -126,7 +126,7 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 
 	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(orderRows(orderID, orgID))
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
-		WithArgs(input.ContainerSpecID, orgID, "container_spec").
+		WithArgs(input.ContainerSpecID, "container_spec").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT "orders"\."id"`).

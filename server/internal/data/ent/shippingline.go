@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -23,8 +22,6 @@ type ShippingLine struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// ScacCode holds the value of the "scac_code" field.
 	ScacCode string `json:"scac_code,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
@@ -53,8 +50,6 @@ type ShippingLine struct {
 
 // ShippingLineEdges holds the relations/edges for other nodes in the graph.
 type ShippingLineEdges struct {
-	// Organization holds the value of the organization edge.
-	Organization *Organization `json:"organization,omitempty"`
 	// ContainerPrefixes holds the value of the container_prefixes edge.
 	ContainerPrefixes []*ShippingLineContainerPrefix `json:"container_prefixes,omitempty"`
 	// Orders holds the value of the orders edge.
@@ -69,24 +64,13 @@ type ShippingLineEdges struct {
 	SeaMasterBillVersions []*SeaMasterBillVersion `json:"sea_master_bill_versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
-}
-
-// OrganizationOrErr returns the Organization value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ShippingLineEdges) OrganizationOrErr() (*Organization, error) {
-	if e.Organization != nil {
-		return e.Organization, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: organization.Label}
-	}
-	return nil, &NotLoadedError{edge: "organization"}
+	loadedTypes [6]bool
 }
 
 // ContainerPrefixesOrErr returns the ContainerPrefixes value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) ContainerPrefixesOrErr() ([]*ShippingLineContainerPrefix, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.ContainerPrefixes, nil
 	}
 	return nil, &NotLoadedError{edge: "container_prefixes"}
@@ -95,7 +79,7 @@ func (e ShippingLineEdges) ContainerPrefixesOrErr() ([]*ShippingLineContainerPre
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -104,7 +88,7 @@ func (e ShippingLineEdges) OrdersOrErr() ([]*Order, error) {
 // SeaTransportExecutionsOrErr returns the SeaTransportExecutions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaTransportExecutionsOrErr() ([]*SeaTransportExecution, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.SeaTransportExecutions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_transport_executions"}
@@ -113,7 +97,7 @@ func (e ShippingLineEdges) SeaTransportExecutionsOrErr() ([]*SeaTransportExecuti
 // SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.SeaTransportExecutionVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
@@ -122,7 +106,7 @@ func (e ShippingLineEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransport
 // SeaMasterBillsOrErr returns the SeaMasterBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.SeaMasterBills, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bills"}
@@ -131,7 +115,7 @@ func (e ShippingLineEdges) SeaMasterBillsOrErr() ([]*SeaMasterBill, error) {
 // SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ShippingLineEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[5] {
 		return e.SeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
@@ -150,7 +134,7 @@ func (*ShippingLine) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case shippingline.FieldCreatedAt, shippingline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case shippingline.FieldID, shippingline.FieldOrganizationID:
+		case shippingline.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -184,12 +168,6 @@ func (_m *ShippingLine) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case shippingline.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
 			}
 		case shippingline.FieldScacCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -266,11 +244,6 @@ func (_m *ShippingLine) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOrganization queries the "organization" edge of the ShippingLine entity.
-func (_m *ShippingLine) QueryOrganization() *OrganizationQuery {
-	return NewShippingLineClient(_m.config).QueryOrganization(_m)
-}
-
 // QueryContainerPrefixes queries the "container_prefixes" edge of the ShippingLine entity.
 func (_m *ShippingLine) QueryContainerPrefixes() *ShippingLineContainerPrefixQuery {
 	return NewShippingLineClient(_m.config).QueryContainerPrefixes(_m)
@@ -329,9 +302,6 @@ func (_m *ShippingLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("scac_code=")
 	builder.WriteString(_m.ScacCode)

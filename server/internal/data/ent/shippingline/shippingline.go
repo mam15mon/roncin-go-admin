@@ -20,8 +20,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldOrganizationID holds the string denoting the organization_id field in the database.
-	FieldOrganizationID = "organization_id"
 	// FieldScacCode holds the string denoting the scac_code field in the database.
 	FieldScacCode = "scac_code"
 	// FieldNameZh holds the string denoting the name_zh field in the database.
@@ -42,8 +40,6 @@ const (
 	FieldEnabled = "enabled"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
-	// EdgeOrganization holds the string denoting the organization edge name in mutations.
-	EdgeOrganization = "organization"
 	// EdgeContainerPrefixes holds the string denoting the container_prefixes edge name in mutations.
 	EdgeContainerPrefixes = "container_prefixes"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
@@ -58,13 +54,6 @@ const (
 	EdgeSeaMasterBillVersions = "sea_master_bill_versions"
 	// Table holds the table name of the shippingline in the database.
 	Table = "shipping_lines"
-	// OrganizationTable is the table that holds the organization relation/edge.
-	OrganizationTable = "shipping_lines"
-	// OrganizationInverseTable is the table name for the Organization entity.
-	// It exists in this package in order to avoid circular dependency with the "organization" package.
-	OrganizationInverseTable = "organizations"
-	// OrganizationColumn is the table column denoting the organization relation/edge.
-	OrganizationColumn = "organization_id"
 	// ContainerPrefixesTable is the table that holds the container_prefixes relation/edge.
 	ContainerPrefixesTable = "shipping_line_container_prefixes"
 	// ContainerPrefixesInverseTable is the table name for the ShippingLineContainerPrefix entity.
@@ -114,7 +103,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldOrganizationID,
 	FieldScacCode,
 	FieldNameZh,
 	FieldNameEn,
@@ -194,11 +182,6 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByOrganizationID orders the results by the organization_id field.
-func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
-}
-
 // ByScacCode orders the results by the scac_code field.
 func ByScacCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScacCode, opts...).ToFunc()
@@ -247,13 +230,6 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 // BySearchKeywords orders the results by the search_keywords field.
 func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
-}
-
-// ByOrganizationField orders the results by organization field.
-func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
-	}
 }
 
 // ByContainerPrefixesCount orders the results by container_prefixes count.
@@ -338,13 +314,6 @@ func BySeaMasterBillVersions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSeaMasterBillVersionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
-}
-func newOrganizationStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrganizationInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-	)
 }
 func newContainerPrefixesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

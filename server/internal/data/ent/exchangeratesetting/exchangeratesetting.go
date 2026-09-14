@@ -30,6 +30,10 @@ const (
 	FieldEffectiveTo = "effective_to"
 	// FieldRate holds the string denoting the rate field in the database.
 	FieldRate = "rate"
+	// FieldArRate holds the string denoting the ar_rate field in the database.
+	FieldArRate = "ar_rate"
+	// FieldApRate holds the string denoting the ap_rate field in the database.
+	FieldApRate = "ap_rate"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// Table holds the table name of the exchangeratesetting in the database.
@@ -47,6 +51,8 @@ var Columns = []string{
 	FieldEffectiveFrom,
 	FieldEffectiveTo,
 	FieldRate,
+	FieldArRate,
+	FieldApRate,
 	FieldIsActive,
 }
 
@@ -123,6 +129,16 @@ func ByEffectiveTo(opts ...sql.OrderTermOption) OrderOption {
 // ByRate orders the results by the rate field.
 func ByRate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRate, opts...).ToFunc()
+}
+
+// ByArRate orders the results by the ar_rate field.
+func ByArRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArRate, opts...).ToFunc()
+}
+
+// ByApRate orders the results by the ap_rate field.
+func ByApRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApRate, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

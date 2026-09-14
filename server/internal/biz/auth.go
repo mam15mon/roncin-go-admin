@@ -60,6 +60,8 @@ type Organization struct {
 	Code         string
 	Name         string
 	BaseCurrency string
+	// Kind 是该组织节点自身的类型；工作台候选只可能是总部或公司。
+	Kind OrganizationKind
 }
 
 // OrganizationChoice 是登录组织选择与应用内切换器共用的「工作台」候选视图。
@@ -70,6 +72,8 @@ type OrganizationChoice struct {
 	OrganizationName string
 	OrganizationCode string
 	IsDefault        bool
+	// Kind 供前端推导主数据维护视角（总部/公司）；部门/团队不进入候选。
+	Kind OrganizationKind
 }
 
 type RoleScope struct {
@@ -92,6 +96,8 @@ type OrganizationScopeNode struct {
 	ID       uuid.UUID
 	ParentID *uuid.UUID
 	Disabled bool
+	// Kind 供写路径组织身份判定（A/B 型维护权拦截）使用，不参与读路径过滤。
+	Kind OrganizationKind
 }
 
 // PermissionOrganizationScope 是某一具体权限可读取和可写入的组织集合。

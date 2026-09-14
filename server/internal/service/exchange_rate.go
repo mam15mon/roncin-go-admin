@@ -149,7 +149,12 @@ func exchangeRateInputFromAPI(fromCurrency, toCurrency, effectiveFrom string, ef
 }
 
 func exchangeRateToAPI(value *biz.ExchangeRateSetting) *v1.ExchangeRateSetting {
-	return &v1.ExchangeRateSetting{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), FromCurrency: value.FromCurrency, ToCurrency: value.ToCurrency, EffectiveFrom: value.EffectiveFrom, EffectiveTo: value.EffectiveTo, Rate: value.Rate.StringFixed(8), IsActive: value.IsActive, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
+	// 基线行 OrganizationID 为 nil，先判空再取 String()，契约上落空串。
+	organizationID := ""
+	if value.OrganizationID != nil {
+		organizationID = value.OrganizationID.String()
+	}
+	return &v1.ExchangeRateSetting{Id: value.ID.String(), OrganizationId: organizationID, FromCurrency: value.FromCurrency, ToCurrency: value.ToCurrency, EffectiveFrom: value.EffectiveFrom, EffectiveTo: value.EffectiveTo, Rate: value.Rate.StringFixed(8), IsActive: value.IsActive, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func exchangeRateImportBatchToAPI(batch *biz.ExchangeRateImportBatch) *v1.ExchangeRateImportBatch {

@@ -50,6 +50,12 @@ func (_u *AirportUpdate) SetNillableOrganizationID(v *uuid.UUID) *AirportUpdate 
 	return _u
 }
 
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *AirportUpdate) ClearOrganizationID() *AirportUpdate {
+	_u.mutation.ClearOrganizationID()
+	return _u
+}
+
 // SetIcaoCode sets the "icao_code" field.
 func (_u *AirportUpdate) SetIcaoCode(v string) *AirportUpdate {
 	_u.mutation.SetIcaoCode(v)
@@ -366,9 +372,6 @@ func (_u *AirportUpdate) check() error {
 			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airport.source_hash": %w`, err)}
 		}
 	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Airport.organization"`)
-	}
 	return nil
 }
 
@@ -510,6 +513,12 @@ func (_u *AirportUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *AirportUpda
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
+	return _u
+}
+
+// ClearOrganizationID clears the value of the "organization_id" field.
+func (_u *AirportUpdateOne) ClearOrganizationID() *AirportUpdateOne {
+	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -841,9 +850,6 @@ func (_u *AirportUpdateOne) check() error {
 		if err := airport.SourceHashValidator(v); err != nil {
 			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airport.source_hash": %w`, err)}
 		}
-	}
-	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Airport.organization"`)
 	}
 	return nil
 }

@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
@@ -35,18 +34,6 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 		t.Fatalf("初始化集成测试 Schema: %v", err)
 	}
 
-	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:8]
-	organization, err := client.Organization.Create().
-		SetCode("ORDER-SEED-" + suffix).
-		SetName("订单种子测试组织").
-		SetKind("headquarters").
-		SetBaseCurrency("CNY").
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试组织: %v", err)
-	}
-	t.Cleanup(func() { cleanupOrderOptionsSyncOrganization(t, client, organization.ID) })
-
 	first, err := SyncDefaultOrderOptions(ctx, db)
 	if err != nil {
 		t.Fatalf("首次同步默认订单主数据: %v", err)
@@ -54,31 +41,29 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 	if first.Created < len(biz.DefaultOrderOptions()) {
 		t.Fatalf("首次补齐数量 = %d, want >= %d", first.Created, len(biz.DefaultOrderOptions()))
 	}
-	count, err := client.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organization.ID)).Count(ctx)
-	if err != nil || count != len(biz.DefaultOrderOptions()) {
-		t.Fatalf("组织默认订单主数据数 = %d, want %d, error = %v", count, len(biz.DefaultOrderOptions()), err)
+	total, err := client.MasterDataItem.Query().Count(ctx)
+	if err != nil || total < len(biz.DefaultOrderOptions()) {
+		t.Fatalf("全局默认订单主数据数 = %d, want >= %d, error = %v", total, len(biz.DefaultOrderOptions()), err)
 	}
 
 	booking, err := client.MasterDataItem.Query().Where(
-		masterdataent.OrganizationIDEQ(organization.ID),
-		masterdataent.KindEQ(masterdataent.KindServiceType),
+		masterdataent.KindEQ(masterdataent.KindChargeCategory),
 		masterdataent.CodeEQ("BOOKING"),
 	).Only(ctx)
 	if err != nil {
-		t.Fatalf("查询订舱服务类型: %v", err)
+		t.Fatalf("查询订舱费用大类: %v", err)
 	}
 	if !strings.Contains(booking.SearchKeywords, "DINGCANG") {
-		t.Fatalf("订舱服务类型缺少拼音检索键: %q", booking.SearchKeywords)
+		t.Fatalf("订舱费用大类缺少拼音检索键: %q", booking.SearchKeywords)
 	}
 	if _, err := booking.Update().SetName("自定义订舱").SetEnabled(false).Save(ctx); err != nil {
-		t.Fatalf("修改订舱服务类型: %v", err)
+		t.Fatalf("修改订舱费用大类: %v", err)
 	}
 	if _, err := client.MasterDataItem.Delete().Where(
-		masterdataent.OrganizationIDEQ(organization.ID),
-		masterdataent.KindEQ(masterdataent.KindServiceType),
+		masterdataent.KindEQ(masterdataent.KindChargeCategory),
 		masterdataent.CodeEQ("TRUCKING"),
 	).Exec(ctx); err != nil {
-		t.Fatalf("删除拖车服务类型: %v", err)
+		t.Fatalf("删除拖车费用大类: %v", err)
 	}
 
 	second, err := SyncDefaultOrderOptions(ctx, db)
@@ -100,6 +85,8 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 	if third.Created != 0 {
 		t.Fatalf("重复同步不是幂等操作: %+v", third)
 	}
+	// A 型主数据不再按组织重复落行，同步完成后清理全局种子，避免污染其他用例。
+	t.Cleanup(func() { cleanupMasterDataItems(t, client) })
 }
 
 func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
@@ -123,28 +110,15 @@ func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("开启测试事务: %v", err)
 	}
-	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:8]
-	organization, err := tx.Organization.Create().
-		SetCode("ORDER-CREATE-" + suffix).
-		SetName("订单种子创建测试组织").
-		SetKind("headquarters").
-		SetBaseCurrency("CNY").
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		t.Fatalf("创建测试组织: %v", err)
-	}
-	if err := CreateDefaultOrderOptions(ctx, tx, organization.ID); err != nil {
+	if err := CreateDefaultOrderOptions(ctx, tx); err != nil {
 		_ = tx.Rollback()
 		t.Fatalf("创建默认订单主数据: %v", err)
 	}
 	if err := tx.Commit(); err != nil {
 		t.Fatalf("提交测试事务: %v", err)
 	}
-	t.Cleanup(func() { cleanupOrderOptionsSyncOrganization(t, client, organization.ID) })
 
 	containerSpec, err := client.MasterDataItem.Query().Where(
-		masterdataent.OrganizationIDEQ(organization.ID),
 		masterdataent.KindEQ(masterdataent.KindContainerSpec),
 		masterdataent.CodeEQ("20GP"),
 	).Only(ctx)
@@ -154,18 +128,15 @@ func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
 	if containerSpec.TeuFactor == nil || *containerSpec.TeuFactor != "1" {
 		t.Fatalf("20GP TEU 系数 = %v, want 1", containerSpec.TeuFactor)
 	}
+	// A 型主数据全局唯一，测试完成后清理种子行。
+	t.Cleanup(func() { cleanupMasterDataItems(t, client) })
 }
 
-// cleanupOrderOptionsSyncOrganization 先删除组织下的主数据再删除组织，
-// 避免直接删组织被外键挡下而残留测试数据。
-func cleanupOrderOptionsSyncOrganization(t *testing.T, client *ent.Client, organizationID uuid.UUID) {
+// cleanupMasterDataItems 清理集成测试写入的全局主数据种子行。
+func cleanupMasterDataItems(t *testing.T, client *ent.Client) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if _, err := client.MasterDataItem.Delete().Where(masterdataent.OrganizationIDEQ(organizationID)).Exec(ctx); err != nil {
-		t.Errorf("清理订单主数据失败: %v", err)
-		return
-	}
-	if err := client.Organization.DeleteOneID(organizationID).Exec(ctx); err != nil {
-		t.Errorf("清理测试组织失败: %v", err)
+	if _, err := client.MasterDataItem.Delete().Exec(ctx); err != nil {
+		t.Errorf("清理全局主数据失败: %v", err)
 	}
 }

@@ -153,7 +153,9 @@ enum MasterDataKind {
   MASTER_DATA_KIND_COUNTRY = 2;
   MASTER_DATA_KIND_REGION = 3;
   MASTER_DATA_KIND_CONTAINER_SPEC = 7;
-  MASTER_DATA_KIND_SERVICE_TYPE = 8;
+  // 费用大类（原 SERVICE_TYPE 就地更名，编号不变）：货代语境 Service Type 已绑定
+  // 业务模式（FCL/LCL/AIR），本枚举值实际承载费用大类语义。
+  MASTER_DATA_KIND_CHARGE_CATEGORY = 8;
   MASTER_DATA_KIND_CARGO_CATEGORY = 9;
   MASTER_DATA_KIND_ABNORMAL_CASE = 10;
 }
@@ -277,7 +279,8 @@ message ListOptionsRequest {}
 
 message MasterDataItem {
   string id = 1;
-  string organization_id = 2;
+  reserved 2;
+  reserved "organization_id";
   MasterDataKind kind = 3;
   string code = 4;
   string name = 5;
@@ -357,7 +360,8 @@ message ListShippingLinesRequest {
 
 message Port {
   string id = 1;
-  string organization_id = 2;
+  // 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
+  optional string organization_id = 2;
   string un_locode = 3;
   optional string name_zh = 4;
   string name_en = 5;
@@ -424,7 +428,8 @@ message UpdatePortResponse {
 
 message Airport {
   string id = 1;
-  string organization_id = 2;
+  // 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
+  optional string organization_id = 2;
   string iata_code = 3;
   optional string icao_code = 4;
   optional string name_zh = 5;
@@ -497,7 +502,8 @@ message UpdateAirportResponse {
 
 message Airline {
   string id = 1;
-  string organization_id = 2;
+  reserved 2;
+  reserved "organization_id";
   string iata_code = 3;
   optional string icao_code = 4;
   optional string awb_prefix = 5;
@@ -568,7 +574,8 @@ message UpdateAirlineResponse {
 
 message ShippingLine {
   string id = 1;
-  string organization_id = 2;
+  reserved 2;
+  reserved "organization_id";
   string scac_code = 3;
   string name_zh = 4;
   string name_en = 5;

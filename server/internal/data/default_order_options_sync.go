@@ -14,8 +14,9 @@ type DefaultOrderOptionsSyncSummary struct {
 	Created int
 }
 
-// SyncDefaultOrderOptions 为所有已有组织补齐缺失的系统订单主数据种子。已存在的
-// 主数据保持原名称、启停状态和排序，避免覆盖业务人员的显式维护结果。
+// SyncDefaultOrderOptions 幂等补齐缺失的系统订单主数据种子。A 型主数据全局唯一，
+// 不再按组织重复落行；已存在的种子保持原名称、启停状态和排序，避免覆盖业务人员
+// 的显式维护结果。
 func SyncDefaultOrderOptions(ctx context.Context, database transactionStarter) (*DefaultOrderOptionsSyncSummary, error) {
 	summary := &DefaultOrderOptionsSyncSummary{}
 	operationCompleted := false
@@ -31,12 +32,11 @@ func SyncDefaultOrderOptions(ctx context.Context, database transactionStarter) (
 INSERT INTO "master_data_items" (
   "id", "created_at", "updated_at", "kind", "code", "name",
   "teu_factor", "source", "sort_order", "enabled", "attributes",
-  "search_keywords", "organization_id"
+  "search_keywords"
 )
-SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, true,
-       '{}'::jsonb, $7, "id"
-FROM "organizations"
-ON CONFLICT ("organization_id", "kind", "code") DO NOTHING`,
+VALUES (gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, true,
+        '{}'::jsonb, $7)
+ON CONFLICT ("kind", "code") DO NOTHING`,
 				item.Kind, item.Code, item.Name, item.TEUFactor, item.Source, item.SortOrder,
 				searchtext.Build(item.Name),
 			)

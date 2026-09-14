@@ -75,21 +75,12 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// AirlinesTable holds the schema information for the "airlines" table.
 	AirlinesTable = &schema.Table{
 		Name:       "airlines",
 		Columns:    AirlinesColumns,
 		PrimaryKey: []*schema.Column{AirlinesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "airlines_organizations_airlines",
-				Columns:    []*schema.Column{AirlinesColumns[16]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "airline_updated_at",
@@ -97,24 +88,24 @@ var (
 				Columns: []*schema.Column{AirlinesColumns[2]},
 			},
 			{
-				Name:    "airline_organization_id_iata_code",
+				Name:    "airline_iata_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[3]},
+				Columns: []*schema.Column{AirlinesColumns[3]},
 			},
 			{
-				Name:    "airline_organization_id_icao_code",
+				Name:    "airline_icao_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[4]},
+				Columns: []*schema.Column{AirlinesColumns[4]},
 			},
 			{
-				Name:    "airline_organization_id_awb_prefix",
+				Name:    "airline_awb_prefix",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[5]},
+				Columns: []*schema.Column{AirlinesColumns[5]},
 			},
 			{
-				Name:    "airline_organization_id_enabled_sort_order",
+				Name:    "airline_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirlinesColumns[16], AirlinesColumns[14], AirlinesColumns[13]},
+				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[13]},
 			},
 		},
 	}
@@ -136,7 +127,7 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AirportsTable holds the schema information for the "airports" table.
 	AirportsTable = &schema.Table{
@@ -148,7 +139,7 @@ var (
 				Symbol:     "airports_organizations_airports",
 				Columns:    []*schema.Column{AirportsColumns[16]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -158,14 +149,28 @@ var (
 				Columns: []*schema.Column{AirportsColumns[2]},
 			},
 			{
-				Name:    "airport_organization_id_iata_code",
+				Name:    "airports_baseline_iata_unique",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[3]},
+				Columns: []*schema.Column{AirportsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NULL",
+				},
 			},
 			{
-				Name:    "airport_organization_id_icao_code",
+				Name:    "airports_org_iata_unique",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[4]},
+				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "airports_baseline_icao_unique",
+				Unique:  true,
+				Columns: []*schema.Column{AirportsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NULL AND icao_code IS NOT NULL",
+				},
 			},
 			{
 				Name:    "airport_organization_id_enabled_sort_order",
@@ -291,21 +296,12 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// BillingUnitsTable holds the schema information for the "billing_units" table.
 	BillingUnitsTable = &schema.Table{
 		Name:       "billing_units",
 		Columns:    BillingUnitsColumns,
 		PrimaryKey: []*schema.Column{BillingUnitsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "billing_units_organizations_billing_units",
-				Columns:    []*schema.Column{BillingUnitsColumns[9]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "billingunit_updated_at",
@@ -313,14 +309,14 @@ var (
 				Columns: []*schema.Column{BillingUnitsColumns[2]},
 			},
 			{
-				Name:    "billingunit_organization_id_code",
+				Name:    "billingunit_code",
 				Unique:  true,
-				Columns: []*schema.Column{BillingUnitsColumns[9], BillingUnitsColumns[3]},
+				Columns: []*schema.Column{BillingUnitsColumns[3]},
 			},
 			{
-				Name:    "billingunit_organization_id_enabled_sort_order",
+				Name:    "billingunit_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{BillingUnitsColumns[9], BillingUnitsColumns[7], BillingUnitsColumns[6]},
+				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[6]},
 			},
 		},
 	}
@@ -1106,12 +1102,14 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "from_currency", Type: field.TypeString, Size: 3},
 		{Name: "to_currency", Type: field.TypeString, Size: 3},
 		{Name: "effective_from", Type: field.TypeTime},
 		{Name: "effective_to", Type: field.TypeTime, Nullable: true},
 		{Name: "rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "ar_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "ap_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 	}
 	// ExchangeRateSettingsTable holds the schema information for the "exchange_rate_settings" table.
@@ -1126,14 +1124,25 @@ var (
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[2]},
 			},
 			{
-				Name:    "exchange_rate_setting_unique_effective_from",
+				Name:    "exchange_rate_setting_baseline_effective_from_unique",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NULL",
+				},
+			},
+			{
+				Name:    "exchange_rate_setting_org_effective_from_unique",
 				Unique:  true,
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NOT NULL",
+				},
 			},
 			{
 				Name:    "exchange_rate_setting_active_lookup",
 				Unique:  false,
-				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[9]},
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[11]},
 			},
 			{
 				Name:    "exchange_rate_setting_effective_range",
@@ -1157,9 +1166,9 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "billing_unit_id", Type: field.TypeUUID},
-		{Name: "service_type_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "charge_category_id", Type: field.TypeUUID},
 		{Name: "abnormal_case_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "taxable_service_id", Type: field.TypeUUID},
 	}
 	// FeeSettingsTable holds the schema information for the "fee_settings" table.
@@ -1175,10 +1184,10 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "fee_settings_master_data_items_service_type_fee_settings",
+				Symbol:     "fee_settings_master_data_items_charge_category_fee_settings",
 				Columns:    []*schema.Column{FeeSettingsColumns[13]},
 				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fee_settings_master_data_items_abnormal_case_fee_settings",
@@ -1190,7 +1199,7 @@ var (
 				Symbol:     "fee_settings_organizations_fee_settings",
 				Columns:    []*schema.Column{FeeSettingsColumns[15]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "fee_settings_taxable_services_fee_settings",
@@ -1206,9 +1215,20 @@ var (
 				Columns: []*schema.Column{FeeSettingsColumns[2]},
 			},
 			{
-				Name:    "feesetting_organization_id_fee_code",
+				Name:    "fee_settings_baseline_code_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FeeSettingsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NULL",
+				},
+			},
+			{
+				Name:    "fee_settings_org_code_unique",
 				Unique:  true,
 				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NOT NULL",
+				},
 			},
 			{
 				Name:    "feesetting_organization_id_enabled_sort_order",
@@ -1216,7 +1236,7 @@ var (
 				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[9], FeeSettingsColumns[10]},
 			},
 			{
-				Name:    "feesetting_organization_id_service_type_id_abnormal_case_id",
+				Name:    "feesetting_organization_id_charge_category_id_abnormal_case_id",
 				Unique:  false,
 				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[13], FeeSettingsColumns[14]},
 			},
@@ -2709,7 +2729,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "container_spec", "service_type", "cargo_category", "abnormal_case"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "container_spec", "charge_category", "cargo_category", "abnormal_case"}},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
@@ -2720,21 +2740,12 @@ var (
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "attributes", Type: field.TypeJSON},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// MasterDataItemsTable holds the schema information for the "master_data_items" table.
 	MasterDataItemsTable = &schema.Table{
 		Name:       "master_data_items",
 		Columns:    MasterDataItemsColumns,
 		PrimaryKey: []*schema.Column{MasterDataItemsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "master_data_items_organizations_master_data_items",
-				Columns:    []*schema.Column{MasterDataItemsColumns[14]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "masterdataitem_updated_at",
@@ -2742,19 +2753,19 @@ var (
 				Columns: []*schema.Column{MasterDataItemsColumns[2]},
 			},
 			{
-				Name:    "masterdataitem_organization_id_kind_code",
+				Name:    "masterdataitem_kind_code",
 				Unique:  true,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
+				Columns: []*schema.Column{MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
 			},
 			{
-				Name:    "masterdataitem_organization_id_kind_enabled_sort_order",
+				Name:    "masterdataitem_kind_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[11], MasterDataItemsColumns[10]},
+				Columns: []*schema.Column{MasterDataItemsColumns[3], MasterDataItemsColumns[11], MasterDataItemsColumns[10]},
 			},
 			{
-				Name:    "masterdataitem_organization_id_kind_name",
+				Name:    "masterdataitem_kind_name",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
+				Columns: []*schema.Column{MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
 			},
 		},
 	}
@@ -3647,7 +3658,7 @@ var (
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED", "WEEKLY", "INHERITED_LAST_WEEK", "BOC_SYNC"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -5075,7 +5086,7 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// PortsTable holds the schema information for the "ports" table.
 	PortsTable = &schema.Table{
@@ -5087,7 +5098,7 @@ var (
 				Symbol:     "ports_organizations_ports",
 				Columns:    []*schema.Column{PortsColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -5097,9 +5108,20 @@ var (
 				Columns: []*schema.Column{PortsColumns[2]},
 			},
 			{
-				Name:    "port_organization_id_un_locode",
+				Name:    "ports_baseline_locode_unique",
+				Unique:  true,
+				Columns: []*schema.Column{PortsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NULL",
+				},
+			},
+			{
+				Name:    "ports_org_locode_unique",
 				Unique:  true,
 				Columns: []*schema.Column{PortsColumns[14], PortsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "organization_id IS NOT NULL",
+				},
 			},
 			{
 				Name:    "port_organization_id_enabled_sort_order",
@@ -6496,21 +6518,12 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// ShippingLinesTable holds the schema information for the "shipping_lines" table.
 	ShippingLinesTable = &schema.Table{
 		Name:       "shipping_lines",
 		Columns:    ShippingLinesColumns,
 		PrimaryKey: []*schema.Column{ShippingLinesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "shipping_lines_organizations_shipping_lines",
-				Columns:    []*schema.Column{ShippingLinesColumns[13]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "shippingline_updated_at",
@@ -6518,14 +6531,14 @@ var (
 				Columns: []*schema.Column{ShippingLinesColumns[2]},
 			},
 			{
-				Name:    "shippingline_organization_id_scac_code",
+				Name:    "shippingline_scac_code",
 				Unique:  true,
-				Columns: []*schema.Column{ShippingLinesColumns[13], ShippingLinesColumns[3]},
+				Columns: []*schema.Column{ShippingLinesColumns[3]},
 			},
 			{
-				Name:    "shippingline_organization_id_enabled_sort_order",
+				Name:    "shippingline_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{ShippingLinesColumns[13], ShippingLinesColumns[11], ShippingLinesColumns[10]},
+				Columns: []*schema.Column{ShippingLinesColumns[11], ShippingLinesColumns[10]},
 			},
 		},
 	}
@@ -6534,7 +6547,6 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "prefix", Type: field.TypeString, Size: 4},
 		{Name: "shipping_line_id", Type: field.TypeUUID},
 	}
@@ -6546,7 +6558,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "shipping_line_container_prefixes_shipping_lines_container_prefixes",
-				Columns:    []*schema.Column{ShippingLineContainerPrefixesColumns[5]},
+				Columns:    []*schema.Column{ShippingLineContainerPrefixesColumns[4]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -6558,14 +6570,14 @@ var (
 				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[2]},
 			},
 			{
-				Name:    "shippinglinecontainerprefix_organization_id_prefix",
+				Name:    "shippinglinecontainerprefix_prefix",
 				Unique:  true,
-				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[3], ShippingLineContainerPrefixesColumns[4]},
+				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[3]},
 			},
 			{
 				Name:    "shippinglinecontainerprefix_shipping_line_id_prefix",
 				Unique:  true,
-				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[5], ShippingLineContainerPrefixesColumns[4]},
+				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[4], ShippingLineContainerPrefixesColumns[3]},
 			},
 		},
 	}
@@ -6825,10 +6837,8 @@ var (
 )
 
 func init() {
-	AirlinesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
-	BillingUnitsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[1].RefTable = OrderUnlockRequestsTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[2].RefTable = OrganizationsTable
@@ -6951,7 +6961,6 @@ func init() {
 	FinanceVerificationAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceVerificationAllocationsTable.ForeignKeys[1].RefTable = FinanceCashflowsTable
 	FinanceVerificationAllocationsTable.ForeignKeys[2].RefTable = FinanceVerificationsTable
-	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	NotificationDeliveriesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
@@ -7167,7 +7176,6 @@ func init() {
 	SeaTransportExecutionVersionsTable.ForeignKeys[4].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
-	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	UsersTable.ForeignKeys[0].RefTable = OrganizationsTable

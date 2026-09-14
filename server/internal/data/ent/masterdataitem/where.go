@@ -66,11 +66,6 @@ func UpdatedAt(v time.Time) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
-func OrganizationID(v uuid.UUID) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldEQ(FieldOrganizationID, v))
-}
-
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
 func Code(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldEQ(FieldCode, v))
@@ -194,26 +189,6 @@ func UpdatedAtLT(v time.Time) predicate.MasterDataItem {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
-func OrganizationIDEQ(v uuid.UUID) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
-func OrganizationIDNEQ(v uuid.UUID) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldNEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDIn applies the In predicate on the "organization_id" field.
-func OrganizationIDIn(vs ...uuid.UUID) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
-func OrganizationIDNotIn(vs ...uuid.UUID) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
 // KindEQ applies the EQ predicate on the "kind" field.
@@ -771,44 +746,21 @@ func SearchKeywordsContainsFold(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
-// HasOrganization applies the HasEdge predicate on the "organization" edge.
-func HasOrganization() predicate.MasterDataItem {
+// HasChargeCategoryFeeSettings applies the HasEdge predicate on the "charge_category_fee_settings" edge.
+func HasChargeCategoryFeeSettings() predicate.MasterDataItem {
 	return predicate.MasterDataItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChargeCategoryFeeSettingsTable, ChargeCategoryFeeSettingsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
-func HasOrganizationWith(preds ...predicate.Organization) predicate.MasterDataItem {
+// HasChargeCategoryFeeSettingsWith applies the HasEdge predicate on the "charge_category_fee_settings" edge with a given conditions (other predicates).
+func HasChargeCategoryFeeSettingsWith(preds ...predicate.FeeSetting) predicate.MasterDataItem {
 	return predicate.MasterDataItem(func(s *sql.Selector) {
-		step := newOrganizationStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasServiceTypeFeeSettings applies the HasEdge predicate on the "service_type_fee_settings" edge.
-func HasServiceTypeFeeSettings() predicate.MasterDataItem {
-	return predicate.MasterDataItem(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypeFeeSettingsTable, ServiceTypeFeeSettingsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasServiceTypeFeeSettingsWith applies the HasEdge predicate on the "service_type_fee_settings" edge with a given conditions (other predicates).
-func HasServiceTypeFeeSettingsWith(preds ...predicate.FeeSetting) predicate.MasterDataItem {
-	return predicate.MasterDataItem(func(s *sql.Selector) {
-		step := newServiceTypeFeeSettingsStep()
+		step := newChargeCategoryFeeSettingsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

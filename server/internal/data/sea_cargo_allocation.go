@@ -188,7 +188,7 @@ func (r *seaSharedContainerRepo) Create(ctx context.Context, organizationID, act
 		if err := validateExecutionHasHouseOrders(txCtx, client, organizationID, input.TransportExecutionID); err != nil {
 			return err
 		}
-		if err := validateSharedContainerSpec(txCtx, client, organizationID, input.ContainerSpecID); err != nil {
+		if err := validateSharedContainerSpec(txCtx, client, input.ContainerSpecID); err != nil {
 			return err
 		}
 		_, err = client.SeaSharedContainer.Create().SetID(input.ID).SetOrganizationID(organizationID).SetTransportExecutionID(input.TransportExecutionID).SetContainerNo(input.ContainerNo).SetContainerSpecID(input.ContainerSpecID).SetNillableSealNo(input.SealNo).SetPackageCount(int(input.PackageCount)).SetGrossWeightKg(input.GrossWeightKg.StringFixed(3)).SetVolumeCbm(input.VolumeCbm.StringFixed(6)).SetStatus(seasharedcontainerent.StatusDRAFT).SetNillableNote(input.Note).SetVersion(1).Save(txCtx)
@@ -209,7 +209,7 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if err != nil {
 			return err
 		}
-		if err := validateSharedContainerSpec(txCtx, client, organizationID, input.ContainerSpecID); err != nil {
+		if err := validateSharedContainerSpec(txCtx, client, input.ContainerSpecID); err != nil {
 			return err
 		}
 		// 锁定目标箱后，以锁内实体校验锚点归属，消除定位与锁定之间的 TOCTOU 窗口
@@ -604,7 +604,7 @@ func (r *seaSharedContainerRepo) getByEntity(ctx context.Context, client *ent.Cl
 	if err != nil {
 		return nil, err
 	}
-	spec, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(container.ContainerSpecID), masterdataitement.OrganizationIDEQ(container.OrganizationID), masterdataitement.KindEQ(masterdataitement.KindContainerSpec)).Only(ctx)
+	spec, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(container.ContainerSpecID), masterdataitement.KindEQ(masterdataitement.KindContainerSpec)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
 	}
@@ -737,8 +737,8 @@ func validateSharedExecution(ctx context.Context, client *ent.Client, organizati
 	return nil
 }
 
-func validateSharedContainerSpec(ctx context.Context, client *ent.Client, organizationID, specID uuid.UUID) error {
-	_, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(specID), masterdataitement.OrganizationIDEQ(organizationID), masterdataitement.KindEQ(masterdataitement.KindContainerSpec), masterdataitement.EnabledEQ(true)).ForShare().Only(ctx)
+func validateSharedContainerSpec(ctx context.Context, client *ent.Client, specID uuid.UUID) error {
+	_, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(specID), masterdataitement.KindEQ(masterdataitement.KindContainerSpec), masterdataitement.EnabledEQ(true)).ForShare().Only(ctx)
 	if ent.IsNotFound(err) {
 		return biz.ErrOrderContainerSpecInvalid
 	}

@@ -8588,6 +8588,10 @@ components:
                     type: string
                 baseCurrency:
                     type: string
+                kind:
+                    type: integer
+                    description: 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+                    format: enum
         auth.v1.OrganizationChoice:
             required:
                 - organizationId
@@ -8603,6 +8607,10 @@ components:
                     type: string
                 isDefault:
                     type: boolean
+                kind:
+                    type: integer
+                    description: 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+                    format: enum
             description: OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。
         auth.v1.RegisterDingTalkUserRequest:
             type: object
@@ -9756,8 +9764,6 @@ components:
             properties:
                 id:
                     type: string
-                organizationId:
-                    type: string
                 code:
                     type: string
                 name:
@@ -10652,6 +10658,7 @@ components:
             required:
                 - feeCode
                 - nameZh
+                - chargeCategoryId
                 - defaultCurrency
                 - billingUnitId
                 - taxRate
@@ -10666,8 +10673,9 @@ components:
                     type: string
                 aliasName:
                     type: string
-                serviceTypeId:
+                chargeCategoryId:
                     type: string
+                    description: 费用大类必挂（原 service_type 就地更名）。
                 defaultCurrency:
                     type: string
                 billingUnitId:
@@ -11155,12 +11163,15 @@ components:
                     items:
                         $ref: '#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount'
         finance.v1.FeeSetting:
+            required:
+                - chargeCategoryId
             type: object
             properties:
                 id:
                     type: string
                 organizationId:
                     type: string
+                    description: 为空表示总部公共科目基线行，非空表示分公司本地明细行。
                 feeCode:
                     type: string
                 nameZh:
@@ -11169,9 +11180,10 @@ components:
                     type: string
                 aliasName:
                     type: string
-                serviceTypeId:
+                chargeCategoryId:
                     type: string
-                serviceTypeName:
+                    description: 费用大类必挂（原 service_type 就地更名）：合并报表底座。
+                chargeCategoryName:
                     type: string
                 defaultCurrency:
                     type: string
@@ -13465,6 +13477,7 @@ components:
                 - id
                 - feeCode
                 - nameZh
+                - chargeCategoryId
                 - defaultCurrency
                 - billingUnitId
                 - taxRate
@@ -13481,8 +13494,9 @@ components:
                     type: string
                 aliasName:
                     type: string
-                serviceTypeId:
+                chargeCategoryId:
                     type: string
+                    description: 费用大类必挂（原 service_type 就地更名）。
                 defaultCurrency:
                     type: string
                 billingUnitId:
@@ -13600,8 +13614,6 @@ components:
             properties:
                 id:
                     type: string
-                organizationId:
-                    type: string
                 iataCode:
                     type: string
                 icaoCode:
@@ -13638,6 +13650,7 @@ components:
                     type: string
                 organizationId:
                     type: string
+                    description: 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
                 iataCode:
                     type: string
                 icaoCode:
@@ -14212,8 +14225,6 @@ components:
             properties:
                 id:
                     type: string
-                organizationId:
-                    type: string
                 kind:
                     type: integer
                     format: enum
@@ -14274,6 +14285,7 @@ components:
                     type: string
                 organizationId:
                     type: string
+                    description: 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
                 unLocode:
                     type: string
                 nameZh:
@@ -14330,8 +14342,6 @@ components:
             type: object
             properties:
                 id:
-                    type: string
-                organizationId:
                     type: string
                 scacCode:
                     type: string

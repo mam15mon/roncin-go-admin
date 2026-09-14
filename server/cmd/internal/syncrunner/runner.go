@@ -13,10 +13,9 @@ import (
 )
 
 type Options struct {
-	Apply            bool
-	Source           string
-	Release          string
-	OrganizationCode string
+	Apply   bool
+	Source  string
+	Release string
 }
 
 func Run(task func(context.Context) error) {

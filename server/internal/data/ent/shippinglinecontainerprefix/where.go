@@ -66,11 +66,6 @@ func UpdatedAt(v time.Time) predicate.ShippingLineContainerPrefix {
 	return predicate.ShippingLineContainerPrefix(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
-func OrganizationID(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldEQ(FieldOrganizationID, v))
-}
-
 // ShippingLineID applies equality check predicate on the "shipping_line_id" field. It's identical to ShippingLineIDEQ.
 func ShippingLineID(v uuid.UUID) predicate.ShippingLineContainerPrefix {
 	return predicate.ShippingLineContainerPrefix(sql.FieldEQ(FieldShippingLineID, v))
@@ -159,46 +154,6 @@ func UpdatedAtLT(v time.Time) predicate.ShippingLineContainerPrefix {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.ShippingLineContainerPrefix {
 	return predicate.ShippingLineContainerPrefix(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
-func OrganizationIDEQ(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
-func OrganizationIDNEQ(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldNEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDIn applies the In predicate on the "organization_id" field.
-func OrganizationIDIn(vs ...uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
-func OrganizationIDNotIn(vs ...uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldNotIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDGT applies the GT predicate on the "organization_id" field.
-func OrganizationIDGT(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldGT(FieldOrganizationID, v))
-}
-
-// OrganizationIDGTE applies the GTE predicate on the "organization_id" field.
-func OrganizationIDGTE(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldGTE(FieldOrganizationID, v))
-}
-
-// OrganizationIDLT applies the LT predicate on the "organization_id" field.
-func OrganizationIDLT(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldLT(FieldOrganizationID, v))
-}
-
-// OrganizationIDLTE applies the LTE predicate on the "organization_id" field.
-func OrganizationIDLTE(v uuid.UUID) predicate.ShippingLineContainerPrefix {
-	return predicate.ShippingLineContainerPrefix(sql.FieldLTE(FieldOrganizationID, v))
 }
 
 // ShippingLineIDEQ applies the EQ predicate on the "shipping_line_id" field.

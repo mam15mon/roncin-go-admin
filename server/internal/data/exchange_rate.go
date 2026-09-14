@@ -20,26 +20,6 @@ type exchangeRateRepo struct{ data *Data }
 
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
 
-func (r *exchangeRateRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-}
-
-// requireHeadquarters 校验调用组织即总部；折本币基准汇率只允许总部写入，不提供重定向通道。
-func (r *exchangeRateRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
-	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
-	if err != nil {
-		return err
-	}
-	if headquartersID != organizationID {
-		return biz.ErrExchangeRateHeadquartersRequired
-	}
-	return nil
-}
-
 func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -76,13 +56,17 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 	}
 }
 
+// List 返回调用方组织行 + 集团基线行；维护入口按行归属呈现（阶段二开放组织行维护）。
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateSetting, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	items, err := client.ExchangeRateSetting.Query().
-		Where(exchangerateent.OrganizationIDEQ(organizationID)).
+		Where(exchangerateent.Or(
+			exchangerateent.OrganizationIDEQ(organizationID),
+			exchangerateent.OrganizationIDIsNil(),
+		)).
 		Order(exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
@@ -98,28 +82,27 @@ func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) (
 	return result, nil
 }
 
-func (r *exchangeRateRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
-	if organizationID != input.OrganizationID {
+func (r *exchangeRateRepo) Create(ctx context.Context, _ uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+	if input.OrganizationID != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
 	return r.save(ctx, input, audit, false)
 }
 
-func (r *exchangeRateRepo) Update(ctx context.Context, organizationID uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
-	if organizationID != input.OrganizationID {
+func (r *exchangeRateRepo) Update(ctx context.Context, _ uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+	if input.OrganizationID != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
 	return r.save(ctx, input, audit, true)
 }
 
+// save 写入基线行（organization_id IS NULL）。阶段一仅总部可写（biz 层拦截器已校验）；
+// 组织行落位与重叠校验同域化随阶段二开放。
 func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSetting, audit *biz.AuditEvent, updating bool) (*biz.ExchangeRateSetting, error) {
-	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
-		return nil, err
-	}
 	if err := r.validateCurrencies(ctx, input.FromCurrency, input.ToCurrency); err != nil {
 		return nil, err
 	}
-	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s", input.OrganizationID, input.FromCurrency, input.ToCurrency)
+	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s", "baseline", input.FromCurrency, input.ToCurrency)
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -145,7 +128,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	var saved *ent.ExchangeRateSetting
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if updating {
-			current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+			current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDIsNil()).ForUpdate().Only(ctx)
 			if queryErr != nil {
 				return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 			}
@@ -153,8 +136,9 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 				return biz.ErrExchangeRateNotFound
 			}
 		}
+		// 重叠校验同域：基线行只与基线行比对。
 		conflict := tx.ExchangeRateSetting.Query().Where(
-			exchangerateent.OrganizationIDEQ(input.OrganizationID),
+			exchangerateent.OrganizationIDIsNil(),
 			exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
 			exchangerateent.IsActiveEQ(true),
 			exchangerateent.IDNEQ(input.ID),
@@ -183,7 +167,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 			}
 			saved, saveErr = builder.Save(ctx)
 		} else {
-			builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
+			builder := tx.ExchangeRateSetting.Create().SetID(input.ID).
 				SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
 				SetEffectiveFrom(effectiveFrom).
 				SetRate(input.Rate.StringFixed(8)).SetIsActive(true)
@@ -203,12 +187,9 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	return exchangeRateToBiz(saved)
 }
 
-func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
-	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
-		return err
-	}
+func (r *exchangeRateRepo) Disable(ctx context.Context, _ uuid.UUID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
+		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDIsNil(), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 		}
@@ -219,15 +200,17 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 	})
 }
 
-// ResolveRate 直连优先解析总部基准汇率：财务显式维护的直连行永远优先（来源 SYSTEM）；
-// 直连缺失时经总部基准币单跳交叉套算 from→to = (from→pivot) ÷ (to→pivot)，来源 DERIVED。
+// ResolveRate 直连优先解析：本组织行直连（SYSTEM）优先于基线行直连（SYSTEM），
+// 由 BaselineOrLocal 点查形态 + 本组织行优先排序表达；直连缺失时经基线基准币单跳
+// 交叉套算 from→to = (from→pivot) ÷ (to→pivot)，来源 DERIVED。orgID 为 uuid.Nil
+// 时仅解析基线行（跨组织资金流结算域，跳过一切组织行）。
 // 任一腿缺失或 to 腿非正数均视为缺失（fail-closed，不做日期回退或静默 1）；
-// 直连或任一腿命中多行沿用 ErrExchangeRateConflict；from == to 防御性恒为 1。
-func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
+// from == to 防御性恒为 1。
+func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
 	if fromCurrency == toCurrency {
 		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem}, nil
 	}
-	direct, err := r.resolveDirectRate(ctx, ownerOrganizationID, fromCurrency, toCurrency, rateDate)
+	direct, err := r.resolveDirectRate(ctx, organizationID, fromCurrency, toCurrency, rateDate)
 	if err == nil {
 		return biz.ResolvedRate{Rate: direct, Source: biz.ExchangeRateSourceSystem}, nil
 	}
@@ -236,14 +219,14 @@ func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID 
 	}
 	legFrom := decimal.NewFromInt(1)
 	if fromCurrency != pivotCurrency {
-		legFrom, err = r.resolveDirectRate(ctx, ownerOrganizationID, fromCurrency, pivotCurrency, rateDate)
+		legFrom, err = r.resolveDirectRate(ctx, organizationID, fromCurrency, pivotCurrency, rateDate)
 		if err != nil {
 			return biz.ResolvedRate{}, err
 		}
 	}
 	legTo := decimal.NewFromInt(1)
 	if toCurrency != pivotCurrency {
-		legTo, err = r.resolveDirectRate(ctx, ownerOrganizationID, toCurrency, pivotCurrency, rateDate)
+		legTo, err = r.resolveDirectRate(ctx, organizationID, toCurrency, pivotCurrency, rateDate)
 		if err != nil {
 			return biz.ResolvedRate{}, err
 		}
@@ -254,9 +237,13 @@ func (r *exchangeRateRepo) ResolveRate(ctx context.Context, ownerOrganizationID 
 	return biz.ResolvedRate{Rate: legFrom.Div(legTo).RoundBank(8), Source: biz.ExchangeRateSourceDerived}, nil
 }
 
-// resolveDirectRate 查询单条直连汇率行：有效区间覆盖 rateDate 的唯一启用行，
-// 未命中返回 ErrExchangeRateMissing，多行命中返回 ErrExchangeRateConflict。
-func (r *exchangeRateRepo) resolveDirectRate(ctx context.Context, ownerOrganizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
+// resolveDirectRate 查询单条直连汇率行：本组织行优先于基线行（同码覆盖），
+// 有效区间覆盖 rateDate 的启用行，未命中返回 ErrExchangeRateMissing。
+// 部分唯一索引按 (organization_id, from_currency, to_currency, effective_from)
+// 与基线/组织两个作用域分别约束 effective_from 唯一，但同一作用域内历史任意区间行
+// 仍可能同时覆盖同一日期：同作用域命中多行视为脏数据冲突（fail-closed）；
+// 本组织行与基线行并存属预期遮蔽（Shadowing），本组织行优先，不算冲突。
+func (r *exchangeRateRepo) resolveDirectRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, rateDate string) (decimal.Decimal, error) {
 	lookupTime, err := parseExchangeRateStorageTime(rateDate)
 	if err != nil {
 		return decimal.Decimal{}, biz.ErrExchangeRateInvalidArgument
@@ -265,12 +252,18 @@ func (r *exchangeRateRepo) resolveDirectRate(ctx context.Context, ownerOrganizat
 	if err != nil {
 		return decimal.Decimal{}, err
 	}
+	// 本组织行 + 基线行各至多取 1 行，第 3 行仅用于同作用域冲突探测。
 	query := client.ExchangeRateSetting.Query().Where(
-		exchangerateent.OrganizationIDEQ(ownerOrganizationID),
+		exchangeRateBaselineScope(organizationID),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
 		exchangerateent.IsActiveEQ(true),
 		exchangerateent.EffectiveFromLTE(lookupTime), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(lookupTime)),
-	).Limit(2)
+	)
+	if organizationID != uuid.Nil {
+		// 本组织行优先；uuid.Nil 表示仅解析基线行，无需排序。
+		query.Order(exchangeRateLocalFirstOrder(organizationID))
+	}
+	query.Limit(3)
 	if _, transactional := transactionFromContext(ctx); transactional {
 		query.ForShare()
 	}
@@ -278,13 +271,27 @@ func (r *exchangeRateRepo) resolveDirectRate(ctx context.Context, ownerOrganizat
 	if err != nil {
 		return decimal.Decimal{}, err
 	}
-	if len(items) == 0 {
+	var localRow, baselineRow *ent.ExchangeRateSetting
+	localCount, baselineCount := 0, 0
+	for _, item := range items {
+		if item.OrganizationID != nil && organizationID != uuid.Nil && *item.OrganizationID == organizationID {
+			localCount++
+			localRow = item
+			continue
+		}
+		baselineCount++
+		baselineRow = item
+	}
+	switch {
+	case localCount > 1, baselineCount > 1:
+		return decimal.Decimal{}, biz.ErrExchangeRateConflict
+	case localRow != nil:
+		return decimalOf(localRow.Rate)
+	case baselineRow != nil:
+		return decimalOf(baselineRow.Rate)
+	default:
 		return decimal.Decimal{}, biz.ErrExchangeRateMissing
 	}
-	if len(items) > 1 {
-		return decimal.Decimal{}, biz.ErrExchangeRateConflict
-	}
-	return decimalOf(items[0].Rate)
 }
 
 func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...string) error {

@@ -48,7 +48,6 @@ func (r *orderContainerRepo) validateContainerSpec(ctx context.Context, organiza
 	count, err := client.MasterDataItem.Query().
 		Where(
 			masterdataitement.IDEQ(specID),
-			masterdataitement.OrganizationIDEQ(organizationID),
 			masterdataitement.KindEQ(masterdataitement.KindContainerSpec),
 			masterdataitement.EnabledEQ(true),
 		).

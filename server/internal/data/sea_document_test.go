@@ -66,7 +66,6 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// 3. 创建船公司主数据
 	shippingLine, err := data.db.ShippingLine.Create().
-		SetOrganizationID(deptOrg.ID).
 		SetScacCode("TSTL").
 		SetNameZh("测试船公司").
 		SetNameEn("Test Shipping Line").
@@ -629,7 +628,6 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	}
 
 	shippingLine, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("CNCL").
 		SetNameZh("并发船公司").
 		SetNameEn("Concurrent Shipping Line").
@@ -772,7 +770,6 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	}
 
 	shippingLine, err := data.db.ShippingLine.Create().
-		SetOrganizationID(org.ID).
 		SetScacCode("UOTL").
 		SetNameZh("UO船公司").
 		SetNameEn("Update Order Shipping Line").

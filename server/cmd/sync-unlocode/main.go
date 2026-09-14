@@ -73,7 +73,7 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("初始化港口同步存储失败: %w", err)
 	}
 	defer cleanup()
-	conflicts, err := store.CheckPorts(ctx, options.OrganizationCode, unlocodeSource, rows)
+	conflicts, err := store.CheckPorts(ctx, unlocodeSource, rows)
 	if err != nil {
 		return fmt.Errorf("检查港口同步冲突失败: %w", err)
 	}
@@ -85,7 +85,7 @@ func run(ctx context.Context) error {
 		fmt.Println("当前为预览模式；确认统计后使用 -apply 写入数据库")
 		return nil
 	}
-	result, err := store.ApplyPorts(ctx, options.OrganizationCode, unlocodeSource, options.Release, summary.SourceHash, rows)
+	result, err := store.ApplyPorts(ctx, unlocodeSource, options.Release, summary.SourceHash, rows)
 	if err != nil {
 		return fmt.Errorf("写入港口数据失败: %w", err)
 	}
@@ -97,7 +97,6 @@ func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将港口数据写入数据库")
 	source := flag.String("source", "", "UNECE UN/LOCODE 官方 ZIP 路径")
 	release := flag.String("release", "", "数据版本；文件名无版本前缀时必填")
-	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
 	path := resolveSourcePath(strings.TrimSpace(*source))
 	if path == "" {
@@ -115,15 +114,11 @@ func parseOptions() syncrunner.Options {
 			}
 		}
 	}
-	code := strings.TrimSpace(*organizationCode)
-	if code == "" {
-		code = "HQ"
-	}
 	if path == "" {
 		fmt.Fprintln(os.Stderr, "source 不能为空，未找到默认的 UN/LOCODE ZIP 文件")
 		os.Exit(2)
 	}
-	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release), OrganizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}
 }
 
 func resolveSourcePath(source string) string {
@@ -330,7 +325,7 @@ func decodeCSV(raw []byte) (string, error) {
 
 func printSummary(options syncrunner.Options, summary unlocodeParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("UN/LOCODE 数据源：%s\n", options.Source)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
+	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效海港 %d，非海港 %d，国家标题 %d，别名 %d，变更覆盖 %d，无效行 %d，撤销港口 %d\n", summary.RawRows, summary.ValidPorts, summary.NonPorts, summary.CountryHeaders, summary.Aliases, summary.Superseded, summary.InvalidRows, summary.Withdrawn)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {

@@ -23,7 +23,7 @@ type ExchangeRateSetting struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
+	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
 	// FromCurrency holds the value of the "from_currency" field.
 	FromCurrency string `json:"from_currency,omitempty"`
 	// ToCurrency holds the value of the "to_currency" field.
@@ -34,6 +34,10 @@ type ExchangeRateSetting struct {
 	EffectiveTo *time.Time `json:"effective_to,omitempty"`
 	// Rate holds the value of the "rate" field.
 	Rate string `json:"rate,omitempty"`
+	// ArRate holds the value of the "ar_rate" field.
+	ArRate *string `json:"ar_rate,omitempty"`
+	// ApRate holds the value of the "ap_rate" field.
+	ApRate *string `json:"ap_rate,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive     bool `json:"is_active,omitempty"`
 	selectValues sql.SelectValues
@@ -44,13 +48,15 @@ func (*ExchangeRateSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case exchangeratesetting.FieldOrganizationID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case exchangeratesetting.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldRate:
+		case exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldRate, exchangeratesetting.FieldArRate, exchangeratesetting.FieldApRate:
 			values[i] = new(sql.NullString)
 		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo:
 			values[i] = new(sql.NullTime)
-		case exchangeratesetting.FieldID, exchangeratesetting.FieldOrganizationID:
+		case exchangeratesetting.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -86,10 +92,11 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				_m.UpdatedAt = value.Time
 			}
 		case exchangeratesetting.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
+			} else if value.Valid {
+				_m.OrganizationID = new(uuid.UUID)
+				*_m.OrganizationID = *value.S.(*uuid.UUID)
 			}
 		case exchangeratesetting.FieldFromCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -121,6 +128,20 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field rate", values[i])
 			} else if value.Valid {
 				_m.Rate = value.String
+			}
+		case exchangeratesetting.FieldArRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ar_rate", values[i])
+			} else if value.Valid {
+				_m.ArRate = new(string)
+				*_m.ArRate = value.String
+			}
+		case exchangeratesetting.FieldApRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ap_rate", values[i])
+			} else if value.Valid {
+				_m.ApRate = new(string)
+				*_m.ApRate = value.String
 			}
 		case exchangeratesetting.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -170,8 +191,10 @@ func (_m *ExchangeRateSetting) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	if v := _m.OrganizationID; v != nil {
+		builder.WriteString("organization_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("from_currency=")
 	builder.WriteString(_m.FromCurrency)
@@ -189,6 +212,16 @@ func (_m *ExchangeRateSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("rate=")
 	builder.WriteString(_m.Rate)
+	builder.WriteString(", ")
+	if v := _m.ArRate; v != nil {
+		builder.WriteString("ar_rate=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ApRate; v != nil {
+		builder.WriteString("ap_rate=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))

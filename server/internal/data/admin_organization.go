@@ -58,11 +58,16 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		if defaultErr := CreateDefaultNumberRules(ctx, tx, created.ID); defaultErr != nil {
 			return defaultErr
 		}
-		if defaultErr := CreateDefaultOrderOptions(ctx, tx, created.ID); defaultErr != nil {
-			return defaultErr
-		}
-		if defaultErr := CreateDefaultCountries(ctx, tx, created.ID); defaultErr != nil {
-			return defaultErr
+		// A 型主数据种子全局唯一，仅首次建库初始化，不再随组织重复落行。
+		if exists, existErr := tx.MasterDataItem.Query().Limit(1).Exist(ctx); existErr != nil {
+			return existErr
+		} else if !exists {
+			if defaultErr := CreateDefaultOrderOptions(ctx, tx); defaultErr != nil {
+				return defaultErr
+			}
+			if defaultErr := CreateDefaultCountries(ctx, tx); defaultErr != nil {
+				return defaultErr
+			}
 		}
 		audit.Details["value"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)

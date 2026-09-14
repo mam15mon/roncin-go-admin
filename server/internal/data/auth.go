@@ -634,7 +634,7 @@ func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userI
 		if !ok {
 			return nil, biz.ErrOrganizationForbidden
 		}
-		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: workspaceID == primaryWorkspaceID})
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: workspaceID == primaryWorkspaceID, Kind: biz.OrganizationKind(org.Kind)})
 	}
 	return choices, nil
 }
@@ -662,7 +662,7 @@ func (r *authRepo) ListEnabledOrganizations(ctx context.Context, userID uuid.UUI
 		if !org.Enabled || !isWorkspaceKind(string(org.Kind)) {
 			continue
 		}
-		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: org.ID == primaryWorkspaceID})
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: org.ID == primaryWorkspaceID, Kind: biz.OrganizationKind(org.Kind)})
 	}
 	return choices, nil
 }
@@ -721,7 +721,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 			if currencyErr != nil {
 				return nil, currencyErr
 			}
-			organizations = append(organizations, biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name, BaseCurrency: baseCurrency})
+			organizations = append(organizations, biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name, BaseCurrency: baseCurrency, Kind: biz.OrganizationKind(org.Kind)})
 		}
 		if !slices.Contains(workspaceIDs, organizationID) {
 			return nil, biz.ErrOrganizationForbidden
@@ -731,7 +731,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		if currencyErr != nil {
 			return nil, currencyErr
 		}
-		current = &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency}
+		current = &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency, Kind: biz.OrganizationKind(target.Kind)}
 		roleGrants = collectWorkspaceRoleGrants(memberships, nodeMap, organizationID)
 	}
 	if current == nil {
@@ -746,7 +746,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	})
 	organizationNodes := make([]biz.OrganizationScopeNode, 0, len(nodes))
 	for _, node := range nodes {
-		organizationNodes = append(organizationNodes, biz.OrganizationScopeNode{ID: node.ID, ParentID: node.ParentID, Disabled: !node.Enabled})
+		organizationNodes = append(organizationNodes, biz.OrganizationScopeNode{ID: node.ID, ParentID: node.ParentID, Disabled: !node.Enabled, Kind: biz.OrganizationKind(node.Kind)})
 	}
 	sort.Slice(organizationNodes, func(i, j int) bool {
 		return organizationNodes[i].ID.String() < organizationNodes[j].ID.String()
@@ -772,13 +772,13 @@ func resolveBootstrapAdminPrincipalView(ctx context.Context, client *ent.Client,
 		if currencyErr != nil {
 			return nil, nil, nil, currencyErr
 		}
-		organizations = append(organizations, biz.Organization{ID: node.ID, Code: node.Code, Name: node.Name, BaseCurrency: baseCurrency})
+		organizations = append(organizations, biz.Organization{ID: node.ID, Code: node.Code, Name: node.Name, BaseCurrency: baseCurrency, Kind: biz.OrganizationKind(node.Kind)})
 	}
 	baseCurrency, currencyErr := resolvePrincipalOrganizationBaseCurrency(target, organizationsByID)
 	if currencyErr != nil {
 		return nil, nil, nil, currencyErr
 	}
-	current := &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency}
+	current := &biz.Organization{ID: target.ID, Code: target.Code, Name: target.Name, BaseCurrency: baseCurrency, Kind: biz.OrganizationKind(target.Kind)}
 	roleGrants, err := bootstrapAdminRoleGrants(ctx, client)
 	if err != nil {
 		return nil, nil, nil, err

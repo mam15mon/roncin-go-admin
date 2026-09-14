@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
@@ -25,8 +24,6 @@ type MasterDataItem struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Kind holds the value of the "kind" field.
 	Kind masterdataitem.Kind `json:"kind,omitempty"`
 	// Code holds the value of the "code" field.
@@ -57,41 +54,28 @@ type MasterDataItem struct {
 
 // MasterDataItemEdges holds the relations/edges for other nodes in the graph.
 type MasterDataItemEdges struct {
-	// Organization holds the value of the organization edge.
-	Organization *Organization `json:"organization,omitempty"`
-	// ServiceTypeFeeSettings holds the value of the service_type_fee_settings edge.
-	ServiceTypeFeeSettings []*FeeSetting `json:"service_type_fee_settings,omitempty"`
+	// ChargeCategoryFeeSettings holds the value of the charge_category_fee_settings edge.
+	ChargeCategoryFeeSettings []*FeeSetting `json:"charge_category_fee_settings,omitempty"`
 	// AbnormalCaseFeeSettings holds the value of the abnormal_case_fee_settings edge.
 	AbnormalCaseFeeSettings []*FeeSetting `json:"abnormal_case_fee_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
-// OrganizationOrErr returns the Organization value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e MasterDataItemEdges) OrganizationOrErr() (*Organization, error) {
-	if e.Organization != nil {
-		return e.Organization, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: organization.Label}
-	}
-	return nil, &NotLoadedError{edge: "organization"}
-}
-
-// ServiceTypeFeeSettingsOrErr returns the ServiceTypeFeeSettings value or an error if the edge
+// ChargeCategoryFeeSettingsOrErr returns the ChargeCategoryFeeSettings value or an error if the edge
 // was not loaded in eager-loading.
-func (e MasterDataItemEdges) ServiceTypeFeeSettingsOrErr() ([]*FeeSetting, error) {
-	if e.loadedTypes[1] {
-		return e.ServiceTypeFeeSettings, nil
+func (e MasterDataItemEdges) ChargeCategoryFeeSettingsOrErr() ([]*FeeSetting, error) {
+	if e.loadedTypes[0] {
+		return e.ChargeCategoryFeeSettings, nil
 	}
-	return nil, &NotLoadedError{edge: "service_type_fee_settings"}
+	return nil, &NotLoadedError{edge: "charge_category_fee_settings"}
 }
 
 // AbnormalCaseFeeSettingsOrErr returns the AbnormalCaseFeeSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e MasterDataItemEdges) AbnormalCaseFeeSettingsOrErr() ([]*FeeSetting, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.AbnormalCaseFeeSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "abnormal_case_fee_settings"}
@@ -112,7 +96,7 @@ func (*MasterDataItem) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case masterdataitem.FieldCreatedAt, masterdataitem.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case masterdataitem.FieldID, masterdataitem.FieldOrganizationID:
+		case masterdataitem.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -146,12 +130,6 @@ func (_m *MasterDataItem) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case masterdataitem.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
 			}
 		case masterdataitem.FieldKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -237,14 +215,9 @@ func (_m *MasterDataItem) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOrganization queries the "organization" edge of the MasterDataItem entity.
-func (_m *MasterDataItem) QueryOrganization() *OrganizationQuery {
-	return NewMasterDataItemClient(_m.config).QueryOrganization(_m)
-}
-
-// QueryServiceTypeFeeSettings queries the "service_type_fee_settings" edge of the MasterDataItem entity.
-func (_m *MasterDataItem) QueryServiceTypeFeeSettings() *FeeSettingQuery {
-	return NewMasterDataItemClient(_m.config).QueryServiceTypeFeeSettings(_m)
+// QueryChargeCategoryFeeSettings queries the "charge_category_fee_settings" edge of the MasterDataItem entity.
+func (_m *MasterDataItem) QueryChargeCategoryFeeSettings() *FeeSettingQuery {
+	return NewMasterDataItemClient(_m.config).QueryChargeCategoryFeeSettings(_m)
 }
 
 // QueryAbnormalCaseFeeSettings queries the "abnormal_case_fee_settings" edge of the MasterDataItem entity.
@@ -280,9 +253,6 @@ func (_m *MasterDataItem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("kind=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Kind))

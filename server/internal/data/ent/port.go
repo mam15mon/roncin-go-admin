@@ -25,7 +25,7 @@ type Port struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
+	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
 	// UnLocode holds the value of the "un_locode" field.
 	UnLocode string `json:"un_locode,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
@@ -79,6 +79,8 @@ func (*Port) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case port.FieldOrganizationID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case port.FieldTransportModes:
 			values[i] = new([]byte)
 		case port.FieldEnabled:
@@ -89,7 +91,7 @@ func (*Port) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case port.FieldCreatedAt, port.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case port.FieldID, port.FieldOrganizationID:
+		case port.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -125,10 +127,11 @@ func (_m *Port) assignValues(columns []string, values []any) error {
 				_m.UpdatedAt = value.Time
 			}
 		case port.FieldOrganizationID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value != nil {
-				_m.OrganizationID = *value
+			} else if value.Valid {
+				_m.OrganizationID = new(uuid.UUID)
+				*_m.OrganizationID = *value.S.(*uuid.UUID)
 			}
 		case port.FieldUnLocode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -248,8 +251,10 @@ func (_m *Port) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("organization_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
+	if v := _m.OrganizationID; v != nil {
+		builder.WriteString("organization_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("un_locode=")
 	builder.WriteString(_m.UnLocode)
