@@ -82,99 +82,39 @@ export default function OrgInspectorPanel({
       {/* Header */}
       <div
         style={{
-          padding: '12px 14px',
+          padding: '10px 14px',
           borderBottom: '1px solid #f1f5f9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
           backgroundColor: '#fafbfc',
         }}
       >
+        {/* 标题行：名称独占整行宽度，避免与操作按钮挤压折行 */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
             minWidth: 0,
-            flex: 1,
           }}
         >
-          <ApartmentOutlined style={{ color: '#1677ff', fontSize: 16 }} />
+          <ApartmentOutlined
+            style={{ color: '#1677ff', fontSize: 16, flexShrink: 0 }}
+          />
           <div
             style={{
               flex: 1,
               minWidth: 0,
               fontWeight: 600,
               fontSize: 14,
-              lineHeight: 1.4,
+              lineHeight: '22px',
               color: 'rgba(0, 0, 0, 0.88)',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 2,
               overflow: 'hidden',
-              wordBreak: 'break-word',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
             title={selectedOrg?.name}
           >
             {selectedOrg?.name || '组织详情'}
           </div>
-          {selectedOrg && (
-            <Tag
-              color={selectedOrg.enabled ? 'success' : 'default'}
-              variant="filled"
-              style={{ margin: 0, fontSize: 11, flexShrink: 0 }}
-            >
-              {selectedOrg.enabled ? '启用' : '停用'}
-            </Tag>
-          )}
-        </div>
-
-        <Space size={4}>
-          {selectedOrg && onLocateNode && (
-            <Tooltip title="在画布中居中对焦">
-              <Button
-                size="small"
-                type="text"
-                aria-label="在画布中居中对焦"
-                icon={<AimOutlined />}
-                onClick={() => onLocateNode(selectedOrg.id ?? '')}
-              />
-            </Tooltip>
-          )}
-          {selectedOrg &&
-            canCreate &&
-            getChildOrganizationKind(selectedOrg.kind) && (
-              <Tooltip
-                title={`新增${
-                  getOrganizationKindMeta(
-                    getChildOrganizationKind(selectedOrg.kind),
-                  )?.label
-                }`}
-              >
-                <Button
-                  size="small"
-                  type="text"
-                  aria-label={`新增${
-                    getOrganizationKindMeta(
-                      getChildOrganizationKind(selectedOrg.kind),
-                    )?.label
-                  }`}
-                  icon={<PlusOutlined />}
-                  onClick={() => onOpenCreateChild(selectedOrg)}
-                />
-              </Tooltip>
-            )}
-          {selectedOrg && canUpdate && (
-            <Tooltip title="编辑组织">
-              <Button
-                size="small"
-                type="text"
-                aria-label="编辑组织"
-                icon={<EditOutlined />}
-                onClick={() => onOpenEdit(selectedOrg)}
-              />
-            </Tooltip>
-          )}
           <Tooltip title="收起面板 (Esc)">
             <Button
               size="small"
@@ -184,7 +124,76 @@ export default function OrgInspectorPanel({
               onClick={onClose}
             />
           </Tooltip>
-        </Space>
+        </div>
+
+        {/* 状态与操作行 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 6,
+          }}
+        >
+          {selectedOrg ? (
+            <Tag
+              color={selectedOrg.enabled ? 'success' : 'default'}
+              variant="filled"
+              style={{ margin: 0, fontSize: 11 }}
+            >
+              {selectedOrg.enabled ? '启用' : '停用'}
+            </Tag>
+          ) : (
+            <span />
+          )}
+          <Space size={4}>
+            {selectedOrg && onLocateNode && (
+              <Tooltip title="在画布中居中对焦">
+                <Button
+                  size="small"
+                  type="text"
+                  aria-label="在画布中居中对焦"
+                  icon={<AimOutlined />}
+                  onClick={() => onLocateNode(selectedOrg.id ?? '')}
+                />
+              </Tooltip>
+            )}
+            {selectedOrg &&
+              canCreate &&
+              getChildOrganizationKind(selectedOrg.kind) && (
+                <Tooltip
+                  title={`新增${
+                    getOrganizationKindMeta(
+                      getChildOrganizationKind(selectedOrg.kind),
+                    )?.label
+                  }`}
+                >
+                  <Button
+                    size="small"
+                    type="text"
+                    aria-label={`新增${
+                      getOrganizationKindMeta(
+                        getChildOrganizationKind(selectedOrg.kind),
+                      )?.label
+                    }`}
+                    icon={<PlusOutlined />}
+                    onClick={() => onOpenCreateChild(selectedOrg)}
+                  />
+                </Tooltip>
+              )}
+            {selectedOrg && canUpdate && (
+              <Tooltip title="编辑组织">
+                <Button
+                  size="small"
+                  type="text"
+                  aria-label="编辑组织"
+                  icon={<EditOutlined />}
+                  onClick={() => onOpenEdit(selectedOrg)}
+                />
+              </Tooltip>
+            )}
+          </Space>
+        </div>
       </div>
 
       {/* Body Content */}
