@@ -373,6 +373,7 @@ export default function RolesPanel() {
         onOpenChange={setModalOpen}
         editing={editing}
         formRef={formRef}
+        permissions={permissions}
         allLeafKeys={permissionTree.allLeafKeys}
         allGroupKeys={permissionTree.allBranchKeys}
         filteredTreeData={filteredTreeData}

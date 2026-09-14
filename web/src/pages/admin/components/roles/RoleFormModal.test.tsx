@@ -26,8 +26,37 @@ vi.mock('@/components/ui', () => ({
 
 vi.mock('antd', () => ({
   App: { useApp: () => ({ message: { error: vi.fn(), success: vi.fn() } }) },
-  Button: ({ children }: { children: React.ReactNode }) => (
-    <button type="button">{children}</button>
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+  }) => (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
+  ),
+  Checkbox: ({
+    children,
+    checked,
+    onChange,
+    disabled,
+  }: {
+    children?: React.ReactNode;
+    checked?: boolean;
+    onChange?: (e: { target: { checked: boolean } }) => void;
+    disabled?: boolean;
+  }) => (
+    <label>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange?.({ target: { checked: e.target.checked } })}
+      />
+      {children}
+    </label>
   ),
   Col: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Empty: () => null,
@@ -139,5 +168,95 @@ describe('RoleFormModal 角色提交载荷', () => {
       enabled: false,
       permissionKeys: ['business.order.read'],
     });
+  });
+
+  it('点击全选只读时仅选中只读类权限', () => {
+    const setSelectedPermissionKeys = vi.fn();
+    const permissions: API.AdminPermission[] = [
+      { key: 'system.user.read', name: '查看用户', group: '系统管理 · 用户' },
+      {
+        key: 'system.user.create',
+        name: '新建用户',
+        group: '系统管理 · 用户',
+        requires: ['system.user.read'],
+      },
+    ];
+
+    const { getByRole } = render(
+      <RoleFormModal
+        open
+        onOpenChange={vi.fn()}
+        formRef={{ current: undefined }}
+        permissions={permissions}
+        selectedPermissionKeys={[]}
+        setSelectedPermissionKeys={setSelectedPermissionKeys}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    const readOnlyBtn = getByRole('button', { name: /全选只读/ });
+    act(() => {
+      readOnlyBtn.click();
+    });
+
+    expect(setSelectedPermissionKeys).toHaveBeenCalledWith([
+      'system.user.read',
+    ]);
+  });
+
+  it('点击全选读写时选中全部权限', () => {
+    const setSelectedPermissionKeys = vi.fn();
+    const permissions: API.AdminPermission[] = [
+      { key: 'system.user.read', name: '查看用户', group: '系统管理 · 用户' },
+      {
+        key: 'system.user.create',
+        name: '新建用户',
+        group: '系统管理 · 用户',
+        requires: ['system.user.read'],
+      },
+    ];
+
+    const { getByRole } = render(
+      <RoleFormModal
+        open
+        onOpenChange={vi.fn()}
+        formRef={{ current: undefined }}
+        permissions={permissions}
+        selectedPermissionKeys={[]}
+        setSelectedPermissionKeys={setSelectedPermissionKeys}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    const fullBtn = getByRole('button', { name: /全选读写/ });
+    act(() => {
+      fullBtn.click();
+    });
+
+    expect(setSelectedPermissionKeys).toHaveBeenCalledWith([
+      'system.user.read',
+      'system.user.create',
+    ]);
+  });
+
+  it('点击清空时将权限集置空', () => {
+    const setSelectedPermissionKeys = vi.fn();
+    const { getByRole } = render(
+      <RoleFormModal
+        open
+        onOpenChange={vi.fn()}
+        formRef={{ current: undefined }}
+        selectedPermissionKeys={['system.user.read']}
+        setSelectedPermissionKeys={setSelectedPermissionKeys}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    const clearBtn = getByRole('button', { name: /清空/ });
+    act(() => {
+      clearBtn.click();
+    });
+
+    expect(setSelectedPermissionKeys).toHaveBeenCalledWith([]);
   });
 });
