@@ -1327,6 +1327,13 @@ textarea.ant-input {
   resize: none;
 }
 
+/* 字数计数器（如 0 / 1000）收入文本域右下角内部，不再悬挂在框外 */
+.ant-input-textarea.ant-input-textarea-show-count .ant-input-data-count,
+.ant-input-textarea-affix-wrapper.ant-input-textarea-show-count .ant-input-data-count {
+  bottom: 6px;
+  inset-inline-end: 11px;
+}
+
 /* 单证 Tabs 内的白色卡片容器：清零 body 内边距，内容与卡片内容区对齐 */
 .ant-tabs .ant-card-small > .ant-card-body {
   padding: 0 !important;
