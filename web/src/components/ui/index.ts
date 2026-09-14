@@ -6,6 +6,7 @@ export * from './ellipsis-tooltip';
 export * from './exchange-rate-input';
 export * from './finance-ledger-template';
 export * from './form-navigator';
+export * from './form-row';
 export * from './master-data-template';
 export * from './order-list-template';
 export * from './order-template';

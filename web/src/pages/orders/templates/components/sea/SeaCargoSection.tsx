@@ -1,6 +1,7 @@
 import { ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, Col, Form, Input } from 'antd';
 import React from 'react';
+import { FormRow } from '@/components/ui';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 
 export function SeaRevenueTonAlert() {
@@ -38,21 +39,23 @@ export function buildSeaCargoSection() {
         <Form.Item name="paymentTerm" hidden initialValue={1}>
           <Input />
         </Form.Item>
-        {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}
-        <ProFormTextArea
-          colProps={{ xs: 24, lg: 12 }}
-          name="goodsDescription"
-          label="委托品名 / 货物描述"
-          placeholder="请输入客户委托申报的中英文品名或货物描述"
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
-        />
-        <ProFormTextArea
-          colProps={{ xs: 24, lg: 12 }}
-          name="specialRequirements"
-          label="特殊要求"
-          placeholder="请输入客户或货物的特殊运输、装卸要求"
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
-        />
+        {/* 第 1 行：品名与特殊要求（FormRow row-2 对半，与后续行共享列边界） */}
+        <Col span={24}>
+          <FormRow cols={2}>
+            <ProFormTextArea
+              name="goodsDescription"
+              label="委托品名 / 货物描述"
+              placeholder="请输入客户委托申报的中英文品名或货物描述"
+              fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+            />
+            <ProFormTextArea
+              name="specialRequirements"
+              label="特殊要求"
+              placeholder="请输入客户或货物的特殊运输、装卸要求"
+              fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+            />
+          </FormRow>
+        </Col>
         <SeaRevenueTonAlert />
       </>
     ),

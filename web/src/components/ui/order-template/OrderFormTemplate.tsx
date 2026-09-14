@@ -23,7 +23,6 @@ import {
   scrollToFirstFormError,
 } from '../form-navigator';
 import { SectionCard } from '../page-shell/SectionCard';
-import './OrderFormTemplate.less';
 import type { OrderFormTemplateProps, OrderFormTemplateSection } from './types';
 
 const { Text } = Typography;
@@ -246,11 +245,7 @@ export function OrderFormTemplate<T>({
           autoComplete="off"
           readonly={readonly}
           grid
-          layout="horizontal"
-          labelAlign="right"
-          labelCol={{ flex: '96px' }}
-          labelWrap={false}
-          wrapperCol={{ flex: 'auto' }}
+          layout="vertical"
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
             if (!internalDirty) {

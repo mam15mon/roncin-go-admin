@@ -31,7 +31,11 @@ import {
 import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { PackageCountInput, ProFormSearchableSelect } from '@/components/ui';
+import {
+  FormRow,
+  PackageCountInput,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 
 const useVerticalFormStyles = createStyles(({ css }) => ({
   verticalFields: css`
@@ -437,171 +441,74 @@ export function SeaBillContentFormFields({
   return (
     <div>
       <div className={styles.verticalFields}>
-        <Row gutter={[16, 0]}>
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
+        {/* 发货人/收货人 + 通知人/外国代理：FormRow row-2 对半，两行共享列边界 */}
+        <FormRow cols={2}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.88)',
-                  }}
-                >
-                  发货人 (Shipper)
-                </span>
-                {!disabled && (
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<DownloadOutlined />}
-                    loading={importingShipper}
-                    onClick={handleImportShipperFromCustomer}
-                    style={{
-                      padding: 0,
-                      height: 'auto',
-                      fontSize: 12,
-                      fontWeight: 'normal',
-                    }}
-                  >
-                    从委托客户带入
-                  </Button>
-                )}
-              </div>
-              <ProFormTextArea
-                name={[...namePathPrefix, 'shipperText']}
-                placeholder="请输入发货人英文名称与详细地址"
-                disabled={disabled}
-                fieldProps={{ rows: 3 }}
-                noStyle
-              />
-            </div>
-          </Col>
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.88)',
-                  }}
-                >
-                  收货人 (Consignee)
-                </span>
-                {!disabled && (
-                  <Space size={4}>
-                    <Tag
-                      style={{
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        margin: 0,
-                        fontSize: 11,
-                        padding: '0 4px',
-                      }}
-                      onClick={() =>
-                        form?.setFieldValue(
-                          [...namePathPrefix, 'consigneeText'],
-                          'TO ORDER',
-                        )
-                      }
-                    >
-                      + TO ORDER
-                    </Tag>
-                    <Tag
-                      style={{
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        margin: 0,
-                        fontSize: 11,
-                        padding: '0 4px',
-                      }}
-                      onClick={() =>
-                        form?.setFieldValue(
-                          [...namePathPrefix, 'consigneeText'],
-                          'TO ORDER OF SHIPPER',
-                        )
-                      }
-                    >
-                      + TO ORDER OF SHIPPER
-                    </Tag>
-                  </Space>
-                )}
-              </div>
-              <ProFormTextArea
-                name={[...namePathPrefix, 'consigneeText']}
-                placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
-                disabled={disabled}
-                fieldProps={{ rows: 3 }}
-                noStyle
-              />
-            </div>
-          </Col>
-
-          {/* 通知人与第二通知人 Tab 切换 */}
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
-                }}
-              >
-                <Segmented
+                发货人 (Shipper)
+              </span>
+              {!disabled && (
+                <Button
+                  type="link"
                   size="small"
-                  value={notifyTab}
-                  onChange={(val) =>
-                    setNotifyTab(val as 'notify' | 'secondNotify')
-                  }
-                  options={[
-                    {
-                      value: 'notify',
-                      label: '通知人 (Notify Party)',
-                    },
-                    {
-                      value: 'secondNotify',
-                      label: (
-                        <Space size={4}>
-                          <span>第二通知人 (Second Notify Party)</span>
-                          {hasSecondNotify ? (
-                            <Tag
-                              color="blue"
-                              variant="filled"
-                              style={{
-                                margin: 0,
-                                fontSize: 10,
-                                lineHeight: '16px',
-                                padding: '0 4px',
-                              }}
-                            >
-                              已填写
-                            </Tag>
-                          ) : null}
-                        </Space>
-                      ),
-                    },
-                  ]}
-                />
-                {!disabled && notifyTab === 'notify' && (
+                  icon={<DownloadOutlined />}
+                  loading={importingShipper}
+                  onClick={handleImportShipperFromCustomer}
+                  style={{
+                    padding: 0,
+                    height: 'auto',
+                    fontSize: 12,
+                    fontWeight: 'normal',
+                  }}
+                >
+                  从委托客户带入
+                </Button>
+              )}
+            </div>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'shipperText']}
+              placeholder="请输入发货人英文名称与详细地址"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                收货人 (Consignee)
+              </span>
+              {!disabled && (
+                <Space size={4}>
                   <Tag
                     style={{
                       cursor: 'pointer',
@@ -612,84 +519,174 @@ export function SeaBillContentFormFields({
                     }}
                     onClick={() =>
                       form?.setFieldValue(
-                        [...namePathPrefix, 'notifyPartyText'],
-                        'SAME AS CONSIGNEE',
+                        [...namePathPrefix, 'consigneeText'],
+                        'TO ORDER',
                       )
                     }
                   >
-                    + SAME AS CONSIGNEE
+                    + TO ORDER
                   </Tag>
-                )}
-              </div>
-              {notifyTab === 'notify' ? (
-                <ProFormTextArea
-                  name={[...namePathPrefix, 'notifyPartyText']}
-                  placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
-                  disabled={disabled}
-                  fieldProps={{ rows: 3 }}
-                  noStyle
-                />
-              ) : (
-                <ProFormTextArea
-                  name={[...namePathPrefix, 'secondNotifyPartyText']}
-                  placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
-                  disabled={disabled}
-                  fieldProps={{ rows: 3 }}
-                  noStyle
-                />
+                  <Tag
+                    style={{
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      margin: 0,
+                      fontSize: 11,
+                      padding: '0 4px',
+                    }}
+                    onClick={() =>
+                      form?.setFieldValue(
+                        [...namePathPrefix, 'consigneeText'],
+                        'TO ORDER OF SHIPPER',
+                      )
+                    }
+                  >
+                    + TO ORDER OF SHIPPER
+                  </Tag>
+                </Space>
               )}
             </div>
-          </Col>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'consigneeText']}
+              placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
 
-          {/* 外国代理 (Foreign Agent) */}
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
-                }}
-              >
-                <span
+          {/* 通知人与第二通知人 Tab 切换 */}
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <Segmented
+                size="small"
+                value={notifyTab}
+                onChange={(val) =>
+                  setNotifyTab(val as 'notify' | 'secondNotify')
+                }
+                options={[
+                  {
+                    value: 'notify',
+                    label: '通知人 (Notify Party)',
+                  },
+                  {
+                    value: 'secondNotify',
+                    label: (
+                      <Space size={4}>
+                        <span>第二通知人 (Second Notify Party)</span>
+                        {hasSecondNotify ? (
+                          <Tag
+                            color="blue"
+                            variant="filled"
+                            style={{
+                              margin: 0,
+                              fontSize: 10,
+                              lineHeight: '16px',
+                              padding: '0 4px',
+                            }}
+                          >
+                            已填写
+                          </Tag>
+                        ) : null}
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
+              {!disabled && notifyTab === 'notify' && (
+                <Tag
                   style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.88)',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
                   }}
+                  onClick={() =>
+                    form?.setFieldValue(
+                      [...namePathPrefix, 'notifyPartyText'],
+                      'SAME AS CONSIGNEE',
+                    )
+                  }
                 >
-                  外国代理 (Foreign Agent)
-                </span>
-                {!disabled && (
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<DownloadOutlined />}
-                    loading={importingAgent}
-                    onClick={handleImportForeignAgent}
-                    style={{
-                      padding: 0,
-                      height: 'auto',
-                      fontSize: 12,
-                      fontWeight: 'normal',
-                    }}
-                  >
-                    从订单国外代理带入
-                  </Button>
-                )}
-              </div>
+                  + SAME AS CONSIGNEE
+                </Tag>
+              )}
+            </div>
+            {notifyTab === 'notify' ? (
               <ProFormTextArea
-                name={[...namePathPrefix, 'foreignAgentText']}
-                placeholder="请输入目的港/国外代理名称、地址与联系方式"
+                name={[...namePathPrefix, 'notifyPartyText']}
+                placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
                 disabled={disabled}
                 fieldProps={{ rows: 3 }}
                 noStyle
               />
+            ) : (
+              <ProFormTextArea
+                name={[...namePathPrefix, 'secondNotifyPartyText']}
+                placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
+                disabled={disabled}
+                fieldProps={{ rows: 3 }}
+                noStyle
+              />
+            )}
+          </div>
+
+          {/* 外国代理 (Foreign Agent) */}
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
+                外国代理 (Foreign Agent)
+              </span>
+              {!disabled && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  loading={importingAgent}
+                  onClick={handleImportForeignAgent}
+                  style={{
+                    padding: 0,
+                    height: 'auto',
+                    fontSize: 12,
+                    fontWeight: 'normal',
+                  }}
+                >
+                  从订单国外代理带入
+                </Button>
+              )}
             </div>
-          </Col>
-        </Row>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'foreignAgentText']}
+              placeholder="请输入目的港/国外代理名称、地址与联系方式"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
+        </FormRow>
 
         {/* 唛头与货物信息区块 */}
         <div
@@ -841,9 +838,50 @@ export function SeaBillContentFormFields({
         </Row>
       </div>
 
-      {/* 紧凑对照与条款区：四列网格，三行共享列边界（件数 / 毛重 / 体积 / 条款与操作） */}
-      <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
-        <Col span={6}>
+      {/* 委托 vs 实际件重尺对照：标题行右侧放「带入委托件重尺」操作；
+          字段按 row-4 四分排三行（委托 / 实际 / 条款），跨行共享列边界 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          margin: '8px 0 12px 0',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              width: 3,
+              height: 14,
+              backgroundColor: '#1677ff',
+              borderRadius: 2,
+              marginRight: 8,
+            }}
+          />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
+            委托 vs 实际件重尺对照
+          </span>
+        </div>
+        {!disabled && (
+          <Button
+            type="link"
+            size="small"
+            icon={<SwapOutlined />}
+            onClick={handleImportMeasurementsFromCargo}
+            style={{
+              fontSize: 12,
+              padding: '0 4px',
+              height: 'auto',
+              fontWeight: 'normal',
+              color: '#1677ff',
+            }}
+          >
+            带入委托件重尺 ↓
+          </Button>
+        )}
+      </div>
+      <div style={{ display: 'grid', gap: 12 }}>
+        <FormRow cols={4}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -867,8 +905,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -895,8 +931,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -923,9 +957,8 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6} />
-        <Col span={6}>
+        </FormRow>
+        <FormRow cols={4}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -950,8 +983,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -979,8 +1010,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1008,27 +1037,8 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
-          {!disabled && (
-            <Button
-              type="link"
-              size="small"
-              icon={<SwapOutlined />}
-              onClick={handleImportMeasurementsFromCargo}
-              style={{
-                fontSize: 12,
-                padding: '0 4px',
-                height: 'auto',
-                fontWeight: 'normal',
-                color: '#1677ff',
-              }}
-            >
-              带入委托件重尺 ↓
-            </Button>
-          )}
-        </Col>
-        <Col span={6}>
+        </FormRow>
+        <FormRow cols={4}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1075,8 +1085,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1119,8 +1127,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1148,8 +1154,6 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-        <Col span={6}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -1177,11 +1181,12 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-        </Col>
-      </Row>
+        </FormRow>
+      </div>
 
-      <Row gutter={[0, 12]}>
-        <Col span={12}>
+      {/* 提单特别条款：row-2 对半取左格，右格空置 */}
+      <div style={{ marginTop: 12 }}>
+        <FormRow cols={2}>
           <ProFormTextArea
             name={[...namePathPrefix, 'clauses']}
             label="提单特别条款 (Clauses)"
@@ -1189,8 +1194,8 @@ export function SeaBillContentFormFields({
             disabled={disabled}
             fieldProps={{ maxLength: 1000, showCount: true, rows: 2 }}
           />
-        </Col>
-      </Row>
+        </FormRow>
+      </div>
     </div>
   );
 }

@@ -1317,37 +1317,11 @@ ol {
 
 /* ============================================================
    全局多行文本域规范（ProFormTextArea / Input.TextArea）：
-   标题置于输入框上方、固定 240px 高度、禁止拖拽调整大小。
+   固定 240px 高度、禁止拖拽调整大小。
+   标签上置由各表单根 layout="vertical" 天然达成，不再需要
+   针对 OrderFormTemplate 横向 96px 钳制的 :has(textarea) 反制规则
+   （该钳制已随 OrderFormTemplate.less 删除，塌陷源同步消除）。
    ============================================================ */
-.ant-form-item:has(textarea.ant-input) {
-  > .ant-form-item-row {
-    flex-direction: column;
-    align-items: stretch;
-    row-gap: 8px;
-
-    > .ant-form-item-label {
-      /* 反制 OrderFormTemplate.less 的 flex: 0 0 96px / max-width: 96px !important：
-         纵向布局下那会变成 96px 高的空带并截断长标签 */
-      flex: 0 0 auto !important;
-      max-width: 100% !important;
-      text-align: left;
-
-      > label {
-        height: auto;
-        line-height: 22px;
-      }
-    }
-
-    > .ant-form-item-control {
-      /* 纵向主轴下必须按内容自然撑高：OrderFormTemplate 的 flex: 1 1 0 !important
-         在纵向会把控件列压塌（basis 0），240px 输入框溢出画到后续卡片背后 */
-      flex: 0 0 auto !important;
-      width: 100%;
-      max-width: 100%;
-    }
-  }
-}
-
 textarea.ant-input {
   height: 240px;
   resize: none;
@@ -1355,5 +1329,5 @@ textarea.ant-input {
 
 /* 单证 Tabs 内的白色卡片容器：清零 body 内边距，内容与卡片内容区对齐 */
 .ant-tabs .ant-card-small > .ant-card-body {
-  padding: 0;
+  padding: 0 !important;
 }
