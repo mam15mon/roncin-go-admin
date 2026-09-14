@@ -191,7 +191,7 @@ func (f *financeBillBatchPostgresFixture) createBatchConfirmedFee(key string) uu
 		SetTaxRate("0.00").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
@@ -329,7 +329,7 @@ func (f *financeBillBatchPostgresFixture) createBatchConfirmedPayableFee(key str
 		SetTaxRate("0.00").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("40.00000000").

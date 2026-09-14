@@ -1271,10 +1271,14 @@ declare namespace API {
   type CreateExchangeRateSettingRequest = {
     fromCurrency: string;
     toCurrency: string;
-    /** 示例：2026-08-27T09:30:00+08:00。 */
+    /** 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。 */
     effectiveFrom: string;
-    effectiveTo?: string;
-    rate: string;
+    /** ar_rate 为应收汇率（现汇卖出价），必填。 */
+    arRate: string;
+    /** ap_rate 为应付汇率（现汇买入价），必填。 */
+    apRate: string;
+    /** rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。 */
+    rate?: string;
   };
 
   type CreateExchangeRateSettingResponse = {
@@ -2053,6 +2057,11 @@ declare namespace API {
     rowNumber?: number;
     fromCurrency?: string;
     toCurrency?: string;
+    /** ar_rate 为应收汇率（现汇卖出价）。 */
+    arRate?: string;
+    /** ap_rate 为应付汇率（现汇买入价）。 */
+    apRate?: string;
+    /** rate 为基准汇率（中行折算价口径），可空。 */
     rate?: string;
     effectiveFrom?: string;
     effectiveTo?: string;
@@ -2077,15 +2086,44 @@ declare namespace API {
     organizationId?: string;
     fromCurrency?: string;
     toCurrency?: string;
-    /** effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。 */
+    /** effective_from 为带时区且精确到秒的 RFC 3339 时间（自然周周一 00:00:00，Asia/Shanghai），区间左边界包含该时刻。 */
     effectiveFrom?: string;
-    /** effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。 */
+    /** effective_to 为带时区且精确到秒的 RFC 3339 时间（同一自然周周日 23:59:59，Asia/Shanghai），区间右边界包含该时刻。 */
     effectiveTo?: string;
+    /** ar_rate 为应收汇率（现汇卖出价）：客户账单（AR）外币折本币收款使用。 */
+    arRate?: string;
+    /** ap_rate 为应付汇率（现汇买入价）：供应商账单（AP）外币折本币付款使用。 */
+    apRate?: string;
     isActive?: boolean;
     createdAt?: string;
     updatedAt?: string;
-    /** rate 为原币折本位币的单一基准汇率。 */
+    /** rate 为基准汇率（中行折算价口径），用于内部综合审计与报表基准。 */
     rate?: string;
+  };
+
+  type ExchangeRateSyncPreview = {
+    target?: number;
+    /** base_currency 为当前组织本币（同步行的 to_currency）。 */
+    baseCurrency?: string;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    /** source 为数据来源明示（如「中国银行官方牌价」「新浪财经中行专线」「国际直盘行情」）。 */
+    source?: string;
+    /** fallback_used 表示主源失败后启用了备选源（非静默兜底，前端需展示）。 */
+    fallbackUsed?: boolean;
+    rows?: ExchangeRateSyncPreviewRow[];
+  };
+
+  type ExchangeRateSyncPreviewRow = {
+    fromCurrency?: string;
+    /** ar_rate 为建议应收汇率（现汇卖出价/直盘 Ask）。 */
+    arRate?: string;
+    /** ap_rate 为建议应付汇率（现汇买入价/直盘 Bid）。 */
+    apRate?: string;
+    /** rate 为建议基准汇率（中行折算价/中间价口径）。 */
+    rate?: string;
+    /** conversion_path 说明换算路径（如「国际直盘 USD→HKD」或「中行交叉盘 USD→CNY ÷ HKD→CNY」）。 */
+    conversionPath?: string;
   };
 
   type ExecuteChangeSeaDocumentModeRequest = {
@@ -2383,6 +2421,19 @@ declare namespace API {
     sortOrder?: number;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type FetchExchangeRatesRequest = {
+    /** target 为目标自然周（本周/预设下周）。 */
+    target: number;
+  };
+
+  type FetchExchangeRatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateSyncPreview;
+    traceId?: string;
   };
 
   type FinanceBaseCurrencyAmount = {
@@ -7180,6 +7231,30 @@ declare namespace API {
     organizationChoices?: OrganizationChoice[];
   };
 
+  type SyncExchangeRateRow = {
+    fromCurrency: string;
+    arRate: string;
+    apRate: string;
+    rate?: string;
+  };
+
+  type SyncExchangeRatesRequest = {
+    target: number;
+    /** rows 为财务终审（含微调）后的牌价行；同周重复发布执行幂等覆盖更新。 */
+    rows: SyncExchangeRateRow[];
+  };
+
+  type SyncExchangeRatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    /** synced_count 为本次幂等入库（新建+覆盖更新）的汇率行数。 */
+    syncedCount?: number;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    traceId?: string;
+  };
+
   type TaxableService = {
     id?: string;
     organizationId?: string;
@@ -7484,10 +7559,14 @@ declare namespace API {
     id: string;
     fromCurrency: string;
     toCurrency: string;
-    /** 示例：2026-08-27T09:30:00+08:00。 */
+    /** 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。 */
     effectiveFrom: string;
-    effectiveTo?: string;
-    rate: string;
+    /** ar_rate 为应收汇率（现汇卖出价），必填。 */
+    arRate: string;
+    /** ap_rate 为应付汇率（现汇买入价），必填。 */
+    apRate: string;
+    /** rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。 */
+    rate?: string;
   };
 
   type UpdateExchangeRateSettingResponse = {

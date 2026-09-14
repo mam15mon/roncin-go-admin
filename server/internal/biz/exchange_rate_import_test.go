@@ -31,40 +31,54 @@ func (stub *exchangeRateImportRepoStub) CreateImportPreview(_ context.Context, b
 func TestNormalizeExchangeRateImportRowsSupportsSecondPrecision(t *testing.T) {
 	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{{
 		RowNumber: 2, FromCurrency: " usd ", ToCurrency: "cny",
-		Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01", EffectiveTo: exchangeRateStringPointer("2026-08-27 18:00:00"),
+		ARRate: "7.3", APRate: "7.1", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01",
 	}}, "CNY")
 	if len(rows) != 1 || rows[0].Status != ExchangeRateImportRowValid || rows[0].SettingID == uuid.Nil {
 		t.Fatalf("合法秒级汇率行应通过规范化: %#v", rows)
 	}
-	if rows[0].FromCurrency != "USD" || rows[0].Rate != "7.20000000" || rows[0].EffectiveFrom != "2026-08-27T09:30:01+08:00" || rows[0].EffectiveTo == nil || *rows[0].EffectiveTo != "2026-08-27T18:00:00+08:00" {
+	// 周内时刻归一化为自然周窗口，双轨点差与基准价按 8 位小数固化。
+	if rows[0].FromCurrency != "USD" || rows[0].ARRate != "7.30000000" || rows[0].APRate != "7.10000000" || rows[0].Rate != "7.20000000" {
 		t.Fatalf("汇率导入行规范化结果不正确: %#v", rows[0])
 	}
-}
-
-func TestNormalizeExchangeRateImportRowsMarksAllInternalOverlaps(t *testing.T) {
-	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{
-		{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.2", EffectiveFrom: "2026-08-27 09:00:00", EffectiveTo: exchangeRateStringPointer("2026-08-27 12:00:00")},
-		{RowNumber: 3, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.3", EffectiveFrom: "2026-08-27 11:59:59", EffectiveTo: exchangeRateStringPointer("2026-08-27 15:00:00")},
-	}, "CNY")
-	if rows[0].Status != ExchangeRateImportRowInvalid || rows[1].Status != ExchangeRateImportRowInvalid || len(rows[0].Errors) == 0 || len(rows[1].Errors) == 0 {
-		t.Fatalf("重叠的两行都必须标记错误: %#v", rows)
+	if rows[0].EffectiveFrom != "2026-08-24T00:00:00+08:00" || rows[0].EffectiveTo == nil || *rows[0].EffectiveTo != "2026-08-30T23:59:59+08:00" {
+		t.Fatalf("生效周归一化结果不正确: %#v", rows[0])
 	}
 }
 
-func TestNormalizeExchangeRateImportRowsAllowsAdjacentIntervals(t *testing.T) {
+func TestNormalizeExchangeRateImportRowsMarksSameWeekDuplicates(t *testing.T) {
 	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{
-		{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.2", EffectiveFrom: "2026-08-27 09:00:00", EffectiveTo: exchangeRateStringPointer("2026-08-27 12:00:00")},
-		{RowNumber: 3, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.3", EffectiveFrom: "2026-08-27 12:00:00", EffectiveTo: exchangeRateStringPointer("2026-08-27 15:00:00")},
+		{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.30", APRate: "7.10", Rate: "7.2", EffectiveFrom: "2026-08-25 09:00:00"},
+		{RowNumber: 3, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.31", APRate: "7.11", Rate: "7.3", EffectiveFrom: "2026-08-27 11:59:59"},
+	}, "CNY")
+	// 同一自然周的两行归一化后为同周重复，整批标记不可确认。
+	if rows[0].Status != ExchangeRateImportRowInvalid || rows[1].Status != ExchangeRateImportRowInvalid || len(rows[0].Errors) == 0 || len(rows[1].Errors) == 0 {
+		t.Fatalf("同周重复的两行都必须标记错误: %#v", rows)
+	}
+}
+
+func TestNormalizeExchangeRateImportRowsAllowsAdjacentWeeks(t *testing.T) {
+	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{
+		{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.30", APRate: "7.10", EffectiveFrom: "2026-08-25 09:00:00"},
+		{RowNumber: 3, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.31", APRate: "7.11", EffectiveFrom: "2026-09-01 09:00:00"},
 	}, "CNY")
 	if rows[0].Status != ExchangeRateImportRowValid || rows[1].Status != ExchangeRateImportRowValid {
-		t.Fatalf("左闭右开相邻区间不应冲突: %#v", rows)
+		t.Fatalf("相邻自然周行不应冲突: %#v", rows)
+	}
+}
+
+func TestNormalizeExchangeRateImportRowsRequiresDualRates(t *testing.T) {
+	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{
+		{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", APRate: "7.10", EffectiveFrom: "2026-08-25 09:00:00"},
+	}, "CNY")
+	if rows[0].Status != ExchangeRateImportRowInvalid || len(rows[0].Errors) == 0 {
+		t.Fatalf("缺少应收汇率的行必须标记错误: %#v", rows[0])
 	}
 }
 
 func TestNormalizeExchangeRateImportRowsRejectsWrongBaseCurrency(t *testing.T) {
 	rows := normalizeExchangeRateImportRows([]*ExchangeRateImportRow{{
 		RowNumber: 2, FromCurrency: "USD", ToCurrency: "EUR",
-		Rate: "7.2", EffectiveFrom: "2026-08-27 09:00:00",
+		ARRate: "7.3", APRate: "7.1", EffectiveFrom: "2026-08-27 09:00:00",
 	}}, "CNY")
 	if rows[0].Status != ExchangeRateImportRowInvalid || len(rows[0].Errors) == 0 {
 		t.Fatalf("非组织本币必须标记错误: %#v", rows[0])
@@ -74,10 +88,10 @@ func TestNormalizeExchangeRateImportRowsRejectsWrongBaseCurrency(t *testing.T) {
 func TestPreviewExchangeRateImportPersistsNormalizedSnapshot(t *testing.T) {
 	organizationID, actorID := uuid.New(), uuid.New()
 	repo := &exchangeRateImportRepoStub{context: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}}
-	usecase := NewExchangeRateUsecase(repo)
+	usecase := NewExchangeRateUsecase(repo, nil)
 	batch, token, err := usecase.PreviewImport(context.Background(), organizationID, actorID, PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("a", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
-		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01"}},
+		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
 	if err != nil {
 		t.Fatalf("汇率导入预检失败: %v", err)
@@ -91,12 +105,12 @@ func TestPreviewExchangeRateImportMarksDatabaseConflict(t *testing.T) {
 	organizationID := uuid.New()
 	repo := &exchangeRateImportRepoStub{
 		context:          &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
-		inspectionErrors: map[int][]string{2: {"生效区间与现有启用汇率重叠"}},
+		inspectionErrors: map[int][]string{2: {"原币或本币不是启用的 ISO 币种"}},
 	}
-	usecase := NewExchangeRateUsecase(repo)
+	usecase := NewExchangeRateUsecase(repo, nil)
 	batch, _, err := usecase.PreviewImport(context.Background(), organizationID, uuid.New(), PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("b", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
-		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01"}},
+		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
 	if err != nil {
 		t.Fatalf("存在业务错误的文件也应返回预检结果: %v", err)
@@ -106,19 +120,22 @@ func TestPreviewExchangeRateImportMarksDatabaseConflict(t *testing.T) {
 	}
 }
 
-func TestPreviewExchangeRateImportRejectsBranchOrganization(t *testing.T) {
+// TestPreviewExchangeRateImportAllowsBranchOrganization 验证导入按当前组织落地：
+// 分公司导入不再被总部门禁拦截（总部导基线行、分公司导本组织行由确认导入按
+// 组织身份判定）。
+func TestPreviewExchangeRateImportAllowsBranchOrganization(t *testing.T) {
 	branchID, ownerID := uuid.New(), uuid.New()
 	repo := &exchangeRateImportRepoStub{context: &ExchangeRateContext{OwnerOrganizationID: ownerID, BaseCurrency: "CNY"}}
-	usecase := NewExchangeRateUsecase(repo)
-	_, _, err := usecase.PreviewImport(context.Background(), branchID, uuid.New(), PreviewExchangeRateImportInput{
+	usecase := NewExchangeRateUsecase(repo, nil)
+	batch, _, err := usecase.PreviewImport(context.Background(), branchID, uuid.New(), PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("c", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
-		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01"}},
+		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
-	if err != ErrExchangeRateHeadquartersRequired {
-		t.Fatalf("分支机构导入汇率应被拒绝，实际 %v", err)
+	if err != nil {
+		t.Fatalf("分支机构导入汇率不应被拒绝: %v", err)
 	}
-	if repo.created != nil {
-		t.Fatalf("被拒绝的导入不应创建预检批次")
+	if batch == nil || batch.OrganizationID != branchID || repo.created == nil {
+		t.Fatalf("分支机构导入应创建本组织预检批次: %#v", batch)
 	}
 }
 

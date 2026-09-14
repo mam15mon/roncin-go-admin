@@ -64,7 +64,7 @@ func (s *financeBillTargetExchangeRateRepoStub) ResolveContext(_ context.Context
 	return &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, nil
 }
 
-func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _, _, _, rateDate string) (ResolvedRate, error) {
+func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _ OrderFeeDirection, _, _, _, rateDate string) (ResolvedRate, error) {
 	s.resolvedRateOrganizationID = organizationID
 	s.resolveDates = append(s.resolveDates, rateDate)
 	return ResolvedRate{Rate: s.resolvedRate, Source: ExchangeRateSourceSystem}, nil
@@ -76,7 +76,7 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
-	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{})
 	bill := &FinanceBill{
 		Direction:    OrderFeeReceivable,
 		Currency:     "USD",
@@ -103,7 +103,7 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.1234567891")},
 	}
-	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{})
 	taxRate := decimal.Zero
 	bill := &FinanceBill{
 		Direction:    OrderFeeReceivable,
@@ -147,7 +147,7 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	}}
 	billRepo.fees = []*FinanceBillableFee{{OrderNo: "SE001", Fee: &OrderFee{ID: feeID, OrderID: orderID, Direction: OrderFeeReceivable, Status: OrderFeeBilled, SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, TaxRate: &taxRate, Currency: "USD", ExchangeRate: decimal.RequireFromString("7.10"), BaseCurrency: "CNY", BaseCurrencyAmount: decimal.NewFromInt(710)}}}
 	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolvedRate: decimal.RequireFromString("7.20")}
-	usecase := NewFinanceBillUsecase(billRepo, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
+	usecase := NewFinanceBillUsecase(billRepo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{})
 
 	_, err := usecase.Update(t.Context(), []uuid.UUID{currentOrganizationID, targetOrganizationID}, actorID, UpdateFinanceBillInput{
 		ID: billID, BillDate: "2026-09-09", ExpectedVersion: 2, SettlementAccountID: accountID,

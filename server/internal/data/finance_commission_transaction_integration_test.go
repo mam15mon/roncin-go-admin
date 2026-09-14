@@ -97,17 +97,6 @@ type observingCommissionRepo struct {
 	getUsedTransaction bool
 }
 
-// failingExchangeRateRepo 包装真实汇率仓储并让组织汇率上下文解析固定失败，
-// 用于验证提成创建事务内汇率错误的整体回滚。
-type failingExchangeRateRepo struct {
-	biz.ExchangeRateRepo
-	err error
-}
-
-func (r *failingExchangeRateRepo) ResolveContext(context.Context, uuid.UUID) (*biz.ExchangeRateContext, error) {
-	return nil, r.err
-}
-
 func (r *observingCommissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCommission, error) {
 	r.getCalls++
 	_, r.getUsedTransaction = transactionFromContext(ctx)
@@ -160,29 +149,6 @@ func TestCommissionCreateSharedTransactionPostgres(t *testing.T) {
 			t.Fatalf("创建成功后重读边界不符: getCalls=%d getUsedTransaction=%t", repo.getCalls, repo.getUsedTransaction)
 		}
 		fixture.requireCommittedState(created.ID)
-	})
-
-	t.Run("真实汇率解析失败时不创建提成主单明细与审计", func(t *testing.T) {
-		fixture := newCommissionPostgresFixture(t)
-		ctx := context.Background()
-		// 夹具本位币为 CNY，CNY 折算恒为 1 不会触达按日汇率查询；在 ResolveContext
-		// 边界注入 ErrExchangeRateMissing，验证汇率解析错误在共享事务内整体回滚。
-		rateRepo := &failingExchangeRateRepo{ExchangeRateRepo: NewExchangeRateRepo(fixture.data), err: biz.ErrExchangeRateMissing}
-		usecase := biz.NewCommissionUsecase(
-			NewCommissionRepo(fixture.data),
-			biz.NewOrderConfigUsecase(NewOrderConfigRepo(fixture.data)),
-			biz.NewExchangeRateUsecase(rateRepo),
-			fixture.data,
-		)
-
-		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("rate-fail"))
-		if err == nil {
-			t.Fatalf("汇率解析失败时未返回错误: created=%#v", created)
-		}
-		if !errors.Is(err, biz.ErrExchangeRateMissing) {
-			t.Fatalf("返回错误 = %v，期望 %v", err, biz.ErrExchangeRateMissing)
-		}
-		fixture.requireRolledBackState()
 	})
 
 	t.Run("委托真实仓储保存失败时回滚事务且无半成品", func(t *testing.T) {
@@ -347,7 +313,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetTaxAmount("0.00000000").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(fee.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
@@ -374,7 +340,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetTaxAmount("0.00000000").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(fee.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
@@ -395,7 +361,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetTotalAmount("1000.00000000").
 		SetNetAmount("1000.00000000").
@@ -442,7 +408,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetCurrency("CNY").
 		SetAmount("1000.00000000").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseAmount("1000.00000000").
@@ -536,7 +502,6 @@ func (f *commissionPostgresFixture) newUsecase(repo biz.CommissionRepo) *biz.Com
 	return biz.NewCommissionUsecase(
 		repo,
 		biz.NewOrderConfigUsecase(NewOrderConfigRepo(f.data)),
-		biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data)),
 		f.data,
 	)
 }
@@ -775,7 +740,7 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate("2026-08-30").
 		SetTotalAmount("1000.00000000").
 		SetNetAmount("1000.00000000").
@@ -799,7 +764,7 @@ func TestCommissionBillLockOrderConcurrentPostgres(t *testing.T) {
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate("2026-08-30").
 		SetTotalAmount("2000.00000000").
 		SetNetAmount("2000.00000000").

@@ -117,7 +117,7 @@ func (f *feeLedgerPostgresFixture) createLedgerFeeWithStatus(key, total string, 
 		SetTaxAmount("0.00000000").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
@@ -160,7 +160,7 @@ func (f *feeLedgerPostgresFixture) createConfirmedBill(key, total, billDate stri
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetTotalAmount(total8).
 		SetNetAmount(total8).
@@ -253,7 +253,7 @@ func (f *feeLedgerPostgresFixture) createConfirmedCashflow(key, total, transacti
 		SetCurrency("CNY").
 		SetAmount(total8).
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseAmount(total8).
@@ -655,7 +655,7 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 				SetCurrency("CNY").
 				SetBaseCurrency("CNY").
 				SetExchangeRate("1.00000000").
-				SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+				SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 				SetExchangeRateDate(financeBillIntegrationDate).
 				SetTotalAmount("10.00000000").
 				SetNetAmount("10.00000000").
@@ -697,7 +697,7 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 				SetCurrency("CNY").
 				SetAmount("10.00000000").
 				SetExchangeRate("1.00000000").
-				SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).
+				SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 				SetExchangeRateDate(financeBillIntegrationDate).
 				SetBaseCurrency("CNY").
 				SetBaseAmount("10.00000000").

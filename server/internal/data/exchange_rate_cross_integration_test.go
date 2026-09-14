@@ -116,7 +116,7 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	})
 
 	t.Run("CAD组织USD费用按两腿套算", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, hqID, "USD", "CAD", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "CAD", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("套算 USD→CAD 失败: %v", err)
 		}
@@ -126,7 +126,7 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	})
 
 	t.Run("CAD组织CNY费用按恒等腿套算", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, hqID, "CNY", "CAD", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "CNY", "CAD", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("套算 CNY→CAD 失败: %v", err)
 		}
@@ -136,13 +136,13 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	})
 
 	t.Run("to腿未生效时fail-closed", func(t *testing.T) {
-		if _, err := repo.ResolveRate(ctx, hqID, "USD", "CAD", "CNY", "2026-03-01"); !errors.Is(err, biz.ErrExchangeRateMissing) {
+		if _, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "CAD", "CNY", "2026-03-01"); !errors.Is(err, biz.ErrExchangeRateMissing) {
 			t.Fatalf("CAD 腿未生效应报缺失，实际 %v", err)
 		}
 	})
 
 	t.Run("from腿缺失时fail-closed", func(t *testing.T) {
-		if _, err := repo.ResolveRate(ctx, hqID, "EUR", "CAD", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateMissing) {
+		if _, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "EUR", "CAD", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateMissing) {
 			t.Fatalf("EUR 腿缺失应报缺失，实际 %v", err)
 		}
 	})
@@ -150,14 +150,14 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	t.Run("to腿非正数视为缺失", func(t *testing.T) {
 		// rate 列无数据库正数约束，直接落零行模拟脏数据，验证除零守卫。
 		createCrossCalcRate(t, data, "KRW", "0.00000000", crossCalcEffectiveDate(time.January))
-		if _, err := repo.ResolveRate(ctx, hqID, "USD", "KRW", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateMissing) {
+		if _, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "KRW", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateMissing) {
 			t.Fatalf("to 腿为零应视为缺失，实际 %v", err)
 		}
 	})
 
 	t.Run("任一腿命中多行沿用冲突错误", func(t *testing.T) {
 		createCrossCalcRate(t, data, "USD", "7.30000000", crossCalcEffectiveDate(time.August))
-		if _, err := repo.ResolveRate(ctx, hqID, "USD", "CAD", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateConflict) {
+		if _, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "CAD", "CNY", crossCalcIntegrationDate); !errors.Is(err, biz.ErrExchangeRateConflict) {
 			t.Fatalf("USD 腿命中多行应报冲突，实际 %v", err)
 		}
 	})
@@ -171,17 +171,18 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 			Save(ctx); err != nil {
 			t.Fatalf("创建直连 USD→CAD 行: %v", err)
 		}
-		resolved, err := repo.ResolveRate(ctx, hqID, "USD", "CAD", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "CAD", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("直连解析失败: %v", err)
 		}
-		if resolved.Rate.StringFixed(8) != "1.50000000" || resolved.Source != biz.ExchangeRateSourceSystem {
-			t.Fatalf("直连行应优先且来源 SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
+		// 本组织行（手工维护）命中：快照来源为 WEEKLY（周汇率口径）。
+		if resolved.Rate.StringFixed(8) != "1.50000000" || resolved.Source != biz.ExchangeRateSourceWeekly {
+			t.Fatalf("直连行应优先且来源 WEEKLY，实际 %s/%s", resolved.Rate, resolved.Source)
 		}
 	})
 
 	t.Run("套算精度RoundBank八位", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, hqID, "GBP", "AUD", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "GBP", "AUD", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("套算 GBP→AUD 失败: %v", err)
 		}
@@ -193,14 +194,14 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 
 	t.Run("CNY总部组织直连行为不变", func(t *testing.T) {
 		// 2026-07-15 仅一条 USD 行生效（第二条自 8 月起），直连命中且无套算参与。
-		resolved, err := repo.ResolveRate(ctx, hqID, "USD", "CNY", "CNY", "2026-07-15")
+		resolved, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", "2026-07-15")
 		if err != nil {
 			t.Fatalf("总部直连解析失败: %v", err)
 		}
 		if resolved.Rate.StringFixed(8) != "7.20000000" || resolved.Source != biz.ExchangeRateSourceSystem {
 			t.Fatalf("总部直连应得 7.20000000/SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
 		}
-		identity, err := repo.ResolveRate(ctx, hqID, "CNY", "CNY", "CNY", "2026-07-15")
+		identity, err := repo.ResolveRate(ctx, hqID, biz.OrderFeeReceivable, "CNY", "CNY", "CNY", "2026-07-15")
 		if err != nil || !identity.Rate.Equal(decimal.NewFromInt(1)) || identity.Source != biz.ExchangeRateSourceSystem {
 			t.Fatalf("同币应恒为 1/SYSTEM，实际 %s/%s error=%v", identity.Rate, identity.Source, err)
 		}
@@ -287,7 +288,7 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建费用科目: %v", err)
 	}
-	usecase := biz.NewOrderFeeUsecase(NewOrderFeeRepo(data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(data)), nil, biz.NewPartnerCreditUsecase(NewFinanceBillRepo(data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(data))))
+	usecase := biz.NewOrderFeeUsecase(NewOrderFeeRepo(data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(data), nil), nil, biz.NewPartnerCreditUsecase(NewFinanceBillRepo(data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(data))))
 	newFeeInput := func(key string) *biz.OrderFee {
 		return &biz.OrderFee{
 			IdempotencyKey:    "fee-" + key + "-" + suffix,
@@ -372,7 +373,7 @@ func TestExchangeRateBaselineShadowingPostgres(t *testing.T) {
 	repo := NewExchangeRateRepo(data)
 
 	t.Run("无本组织行命中 NULL 基线行", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, observer.ID, "USD", "CNY", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, observer.ID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("观察组织解析失败: %v", err)
 		}
@@ -382,22 +383,16 @@ func TestExchangeRateBaselineShadowingPostgres(t *testing.T) {
 	})
 
 	t.Run("本组织行覆盖基线行", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, branchID, "USD", "CNY", "CNY", crossCalcIntegrationDate)
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", crossCalcIntegrationDate)
 		if err != nil {
 			t.Fatalf("分公司解析失败: %v", err)
 		}
-		if resolved.Rate.StringFixed(8) != "7.50000000" || resolved.Source != biz.ExchangeRateSourceSystem {
-			t.Fatalf("本组织行应覆盖基线得 7.50000000/SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
+		// 本组织行覆盖基线行：命中组织行，快照来源为 WEEKLY。
+		if resolved.Rate.StringFixed(8) != "7.50000000" || resolved.Source != biz.ExchangeRateSourceWeekly {
+			t.Fatalf("本组织行应覆盖基线得 7.50000000/WEEKLY，实际 %s/%s", resolved.Rate, resolved.Source)
 		}
 	})
 
-	t.Run("uuidNil仅解析基线行", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, uuid.Nil, "USD", "CNY", "CNY", crossCalcIntegrationDate)
-		if err != nil {
-			t.Fatalf("基线域解析失败: %v", err)
-		}
-		if resolved.Rate.StringFixed(8) != "7.20000000" {
-			t.Fatalf("uuid.Nil 应仅命中基线 7.20000000，实际 %s", resolved.Rate)
-		}
-	})
+	// 退役回归：ResolveRate 的 uuid.Nil「仅基线域」入口已随 ResolveBaseRate 退役
+	// 删除——跨组织协同结算按单据原币对账，不再锁定基线行二次折算。
 }

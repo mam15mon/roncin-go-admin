@@ -29,6 +29,9 @@ func (ExchangeRateSetting) Fields() []ent.Field {
 		// rate 保留为基准价（中行折算价口径）。阶段一仅落存储结构，写入与解析在阶段二接入。
 		field.String("ar_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}).Optional().Nillable(),
 		field.String("ap_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}).Optional().Nillable(),
+		// 行写入来源：手工维护（MANUAL，含 Excel 导入前的历史写法）、Excel 导入（IMPORT）、
+		// 牌价一键同步（BOC_SYNC）；费用快照来源据此区分 WEEKLY 与 BOC_SYNC。
+		field.Enum("source").Values("MANUAL", "IMPORT", "BOC_SYNC").Default("MANUAL"),
 		field.Bool("is_active").Default(true),
 	}
 }

@@ -675,6 +675,26 @@ func ApRateContainsFold(v string) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldApRate, v))
 }
 
+// SourceEQ applies the EQ predicate on the "source" field.
+func SourceEQ(v Source) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldSource, v))
+}
+
+// SourceNEQ applies the NEQ predicate on the "source" field.
+func SourceNEQ(v Source) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldSource, v))
+}
+
+// SourceIn applies the In predicate on the "source" field.
+func SourceIn(vs ...Source) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldIn(FieldSource, vs...))
+}
+
+// SourceNotIn applies the NotIn predicate on the "source" field.
+func SourceNotIn(vs ...Source) predicate.ExchangeRateSetting {
+	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldSource, vs...))
+}
+
 // IsActiveEQ applies the EQ predicate on the "is_active" field.
 func IsActiveEQ(v bool) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldIsActive, v))

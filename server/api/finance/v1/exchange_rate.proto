@@ -8,7 +8,7 @@ import "google/api/field_behavior.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
-// ExchangeRateService 维护总部统一的折本币基准汇率主数据。
+// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
 service ExchangeRateService {
   rpc ListExchangeRateSettings(ListExchangeRateSettingsRequest) returns (ListExchangeRateSettingsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -52,6 +52,28 @@ service ExchangeRateService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/exchange-rate-imports/{id}"};
   }
+
+  // FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+  // 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+  rpc FetchExchangeRates(FetchExchangeRatesRequest) returns (FetchExchangeRatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/exchange-rate-syncs/fetch" body: "*"};
+  }
+
+  // SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+  rpc SyncExchangeRates(SyncExchangeRatesRequest) returns (SyncExchangeRatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/exchange-rate-syncs" body: "*"};
+  }
+}
+
+// ExchangeRateSyncTarget 汇率同步目标自然周。
+enum ExchangeRateSyncTarget {
+  EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED = 0;
+  // 本周（周一 00:00:00 至周日 23:59:59，Asia/Shanghai）。
+  EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK = 1;
+  // 预设下周（下周一 00:00:00 至下周日 23:59:59，Asia/Shanghai）。
+  EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK = 2;
 }
 
 message ExchangeRateSetting {
@@ -63,18 +85,18 @@ message ExchangeRateSetting {
   string to_currency = 5;
   reserved 6;
   reserved "time_standard";
-  // effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。
+  // effective_from 为带时区且精确到秒的 RFC 3339 时间（自然周周一 00:00:00，Asia/Shanghai），区间左边界包含该时刻。
   string effective_from = 7;
-  // effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。
+  // effective_to 为带时区且精确到秒的 RFC 3339 时间（同一自然周周日 23:59:59，Asia/Shanghai），区间右边界包含该时刻。
   optional string effective_to = 8;
-  reserved 9;
-  reserved "receivable_rate";
-  reserved 10;
-  reserved "payable_rate";
+  // ar_rate 为应收汇率（现汇卖出价）：客户账单（AR）外币折本币收款使用。
+  string ar_rate = 9;
+  // ap_rate 为应付汇率（现汇买入价）：供应商账单（AP）外币折本币付款使用。
+  string ap_rate = 10;
   bool is_active = 11;
   string created_at = 12;
   string updated_at = 13;
-  // rate 为原币折本位币的单一基准汇率。
+  // rate 为基准汇率（中行折算价口径），用于内部综合审计与报表基准。
   string rate = 14;
 }
 
@@ -96,14 +118,15 @@ message CreateExchangeRateSettingRequest {
   string to_currency = 3 [(google.api.field_behavior) = REQUIRED];
   reserved 4;
   reserved "time_standard";
-  // 示例：2026-08-27T09:30:00+08:00。
+  // 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
   string effective_from = 5 [(google.api.field_behavior) = REQUIRED];
-  optional string effective_to = 6;
-  reserved 7;
-  reserved "receivable_rate";
-  reserved 8;
-  reserved "payable_rate";
-  string rate = 9 [(google.api.field_behavior) = REQUIRED];
+  reserved 6;
+  // ar_rate 为应收汇率（现汇卖出价），必填。
+  string ar_rate = 7 [(google.api.field_behavior) = REQUIRED];
+  // ap_rate 为应付汇率（现汇买入价），必填。
+  string ap_rate = 8 [(google.api.field_behavior) = REQUIRED];
+  // rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
+  string rate = 9;
 }
 
 message UpdateExchangeRateSettingRequest {
@@ -114,14 +137,15 @@ message UpdateExchangeRateSettingRequest {
   string to_currency = 4 [(google.api.field_behavior) = REQUIRED];
   reserved 5;
   reserved "time_standard";
-  // 示例：2026-08-27T09:30:00+08:00。
+  // 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
   string effective_from = 6 [(google.api.field_behavior) = REQUIRED];
-  optional string effective_to = 7;
-  reserved 8;
-  reserved "receivable_rate";
-  reserved 9;
-  reserved "payable_rate";
-  string rate = 10 [(google.api.field_behavior) = REQUIRED];
+  reserved 7;
+  // ar_rate 为应收汇率（现汇卖出价），必填。
+  string ar_rate = 8 [(google.api.field_behavior) = REQUIRED];
+  // ap_rate 为应付汇率（现汇买入价），必填。
+  string ap_rate = 9 [(google.api.field_behavior) = REQUIRED];
+  // rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
+  string rate = 10;
 }
 
 message DisableExchangeRateSettingRequest {
@@ -184,10 +208,11 @@ message ExchangeRateImportRow {
   reserved "rate_type";
   string from_currency = 3;
   string to_currency = 4;
-  reserved 5;
-  reserved "receivable_rate";
-  reserved 6;
-  reserved "payable_rate";
+  // ar_rate 为应收汇率（现汇卖出价）。
+  string ar_rate = 5;
+  // ap_rate 为应付汇率（现汇买入价）。
+  string ap_rate = 6;
+  // rate 为基准汇率（中行折算价口径），可空。
   string rate = 7;
   string effective_from = 8;
   optional string effective_to = 9;
@@ -235,4 +260,67 @@ message GetExchangeRateImportResponse {
   string message = 3;
   ExchangeRateImportBatch data = 4;
   string trace_id = 5;
+}
+
+message FetchExchangeRatesRequest {
+  // target 为目标自然周（本周/预设下周）。
+  ExchangeRateSyncTarget target = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ExchangeRateSyncPreviewRow 是单币种的抓取建议值（财务终审前可微调）。
+message ExchangeRateSyncPreviewRow {
+  string from_currency = 1;
+  // ar_rate 为建议应收汇率（现汇卖出价/直盘 Ask）。
+  string ar_rate = 2;
+  // ap_rate 为建议应付汇率（现汇买入价/直盘 Bid）。
+  string ap_rate = 3;
+  // rate 为建议基准汇率（中行折算价/中间价口径）。
+  string rate = 4;
+  // conversion_path 说明换算路径（如「国际直盘 USD→HKD」或「中行交叉盘 USD→CNY ÷ HKD→CNY」）。
+  string conversion_path = 5;
+}
+
+message ExchangeRateSyncPreview {
+  ExchangeRateSyncTarget target = 1;
+  // base_currency 为当前组织本币（同步行的 to_currency）。
+  string base_currency = 2;
+  string effective_from = 3;
+  string effective_to = 4;
+  // source 为数据来源明示（如「中国银行官方牌价」「新浪财经中行专线」「国际直盘行情」）。
+  string source = 5;
+  // fallback_used 表示主源失败后启用了备选源（非静默兜底，前端需展示）。
+  bool fallback_used = 6;
+  repeated ExchangeRateSyncPreviewRow rows = 7;
+}
+
+message FetchExchangeRatesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateSyncPreview data = 4;
+  string trace_id = 5;
+}
+
+message SyncExchangeRatesRequest {
+  ExchangeRateSyncTarget target = 1 [(google.api.field_behavior) = REQUIRED];
+  // rows 为财务终审（含微调）后的牌价行；同周重复发布执行幂等覆盖更新。
+  repeated SyncExchangeRateRow rows = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SyncExchangeRateRow {
+  string from_currency = 1 [(google.api.field_behavior) = REQUIRED];
+  string ar_rate = 2 [(google.api.field_behavior) = REQUIRED];
+  string ap_rate = 3 [(google.api.field_behavior) = REQUIRED];
+  string rate = 4;
+}
+
+message SyncExchangeRatesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  // synced_count 为本次幂等入库（新建+覆盖更新）的汇率行数。
+  int32 synced_count = 4;
+  string effective_from = 5;
+  string effective_to = 6;
+  string trace_id = 7;
 }

@@ -1819,7 +1819,7 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
-	exchangeratesettingDescIsActive := exchangeratesettingFields[8].Descriptor()
+	exchangeratesettingDescIsActive := exchangeratesettingFields[9].Descriptor()
 	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.
 	exchangeratesetting.DefaultIsActive = exchangeratesettingDescIsActive.Default.(bool)
 	// exchangeratesettingDescID is the schema descriptor for id field.

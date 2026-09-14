@@ -119,7 +119,7 @@ func (s *exchangeRateStub) ResolveContext(context.Context, uuid.UUID) (*biz.Exch
 	return s.context, nil
 }
 
-func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, string, string, string, string) (biz.ResolvedRate, error) {
+func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, biz.OrderFeeDirection, string, string, string, string) (biz.ResolvedRate, error) {
 	return biz.ResolvedRate{Rate: s.rate, Source: biz.ExchangeRateSourceSystem}, nil
 }
 
@@ -148,7 +148,7 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 			rate:    decimal.RequireFromString("0.5"),
 		},
 	}
-	usecase := biz.NewCommissionUsecase(repo, nil, biz.NewExchangeRateUsecase(repo.rateStub), &commissionTransactorStub{})
+	usecase := biz.NewCommissionUsecase(repo, nil, &commissionTransactorStub{})
 	verificationUsecase := biz.NewVerificationUsecase(&verificationRepoStub{}, nil, nil)
 	nettingUsecase := biz.NewFinanceNettingUsecase(&nettingRepoStub{}, nil)
 	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, nettingUsecase, usecase, nil, nil, nil, nil)
@@ -307,8 +307,9 @@ func TestPreviewCommissionReturnsCNYRateBasis(t *testing.T) {
 	if err != nil {
 		t.Fatalf("PreviewCommission() error = %v", err)
 	}
-	if response.Data.CnyExchangeRate != "0.50000000" || response.Data.CnyExchangeRateSource != biz.CommissionCNYRateSourceDerived ||
-		response.Data.CnyExchangeRateDate != "2026-08-15" || response.Data.CnyCommissionAmount != "50.00000000" {
+	// 原币记账口径：CNY 快照恒等固化（汇率 1、来源 BASE_CURRENCY、金额恒等）。
+	if response.Data.CnyExchangeRate != "1.00000000" || response.Data.CnyExchangeRateSource != biz.CommissionCNYRateSourceBaseCurrency ||
+		response.Data.CnyExchangeRateDate != "2026-08-15" || response.Data.CnyCommissionAmount != "100.00000000" {
 		t.Fatalf("预览折算依据未返回: %#v", response.Data)
 	}
 	if response.Data.VerificationId == nil || *response.Data.VerificationId != verificationID || response.Data.NettingId != nil {

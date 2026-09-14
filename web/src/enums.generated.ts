@@ -132,6 +132,14 @@ export const EnterpriseAddressType = {
 
 export type EnterpriseAddressType = (typeof EnterpriseAddressType)[keyof typeof EnterpriseAddressType];
 
+export const ExchangeRateSyncTarget = {
+  EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED: 0,
+  EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK: 1,
+  EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK: 2,
+} as const;
+
+export type ExchangeRateSyncTarget = (typeof ExchangeRateSyncTarget)[keyof typeof ExchangeRateSyncTarget];
+
 export const FinanceBillStatus = {
   FINANCE_BILL_STATUS_UNSPECIFIED: 0,
   FINANCE_BILL_STATUS_DRAFT: 1,

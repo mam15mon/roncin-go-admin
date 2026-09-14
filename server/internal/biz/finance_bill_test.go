@@ -377,7 +377,7 @@ func TestPreviewBatchEnrichesFormalTermsAndCreditWarning(t *testing.T) {
 		exceededClientID: {PartnerID: exceededClientID, CreditLimitBase: &exceededLimit, UnsettledReceivableBase: decimal.NewFromInt(150)},
 		casualClientID:   {PartnerID: casualClientID, CreditLimitBase: &casualLimit, UnsettledReceivableBase: decimal.Zero},
 	}}
-	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(nil), nil)
+	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(nil, nil), nil)
 
 	input := PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	// 普通模式一次建账只允许单一方向；应收与应付分别预览。
@@ -505,7 +505,7 @@ func newDefaultTermsWriteUsecase(repo *defaultTermsWriteRepoStub) *FinanceBillUs
 	return NewFinanceBillUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{
 		rateContext:    repo.rateContext,
 		rateByCurrency: repo.rateByCurrency,
-	}), &financeBillTransactorStub{})
+	}, nil), &financeBillTransactorStub{})
 }
 
 func defaultTermsWriteFees(partyID uuid.UUID, isCasual bool) []*FinanceBillableFee {

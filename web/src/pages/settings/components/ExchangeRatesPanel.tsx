@@ -1,4 +1,5 @@
 import {
+  CloudSyncOutlined,
   DownloadOutlined,
   EditOutlined,
   PlusOutlined,
@@ -8,15 +9,16 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
-  ProFormDateTimePicker,
+  ProFormDatePicker,
   ProFormSelect,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
-import { App, Button, Card, Form, Popconfirm, Space, Tag } from 'antd';
+import { useAccess, useModel } from '@umijs/max';
+import { App, Button, Card, Form, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { AuthOrganizationKind } from '@/enums.generated';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
@@ -29,6 +31,7 @@ import { isPositiveExactDecimal } from '@/utils/decimal';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { getCurrencies } from '@/utils/options';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
+import { ExchangeRateSyncModal } from './ExchangeRateSyncModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
 
@@ -36,24 +39,36 @@ type ExchangeRateFormValues = {
   fromCurrency: string;
   toCurrency: string;
   effectiveFrom: string | Dayjs;
-  effectiveTo?: string | Dayjs;
-  rate: string;
+  arRate: string;
+  apRate: string;
+  rate?: string;
 };
 
-const rateRule = async (_: unknown, value?: string) => {
-  if (!value) throw new Error('请输入汇率');
-  if (!isPositiveExactDecimal(value, exchangeRatePattern)) {
-    throw new Error('汇率必须大于 0，最多 10 位整数、8 位小数');
-  }
-};
+const rateRule =
+  (label: string, required: boolean) => async (_: unknown, value?: string) => {
+    if (!value) {
+      if (required) throw new Error(`请输入${label}`);
+      return;
+    }
+    if (!isPositiveExactDecimal(value, exchangeRatePattern)) {
+      throw new Error(`${label}必须大于 0，最多 10 位整数、8 位小数`);
+    }
+  };
 
 export function ExchangeRatesPanel() {
   const access = useAccess();
+  const { initialState } = useModel('@@initialState');
+  // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相；
+  // 仅总部（根组织 kind=headquarters）可编辑 NULL 基线行。
+  const isHeadquartersOrganization =
+    initialState?.currentUser?.currentOrganization?.kind ===
+    AuthOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<ExchangeRateFormValues>();
   const [modalOpen, setModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
@@ -77,7 +92,8 @@ export function ExchangeRatesPanel() {
       effectiveFrom: record.effectiveFrom
         ? dayjs(record.effectiveFrom)
         : undefined,
-      effectiveTo: record.effectiveTo ? dayjs(record.effectiveTo) : undefined,
+      arRate: trimDecimal(record.arRate),
+      apRate: trimDecimal(record.apRate),
       rate: trimDecimal(record.rate),
     });
     setModalOpen(true);
@@ -144,36 +160,59 @@ export function ExchangeRatesPanel() {
       },
     },
     {
-      title: '折本币汇率',
-      dataIndex: 'rate',
+      title: '应收汇率（现汇卖出价）',
+      dataIndex: 'arRate',
       align: 'right',
-      width: 120,
+      width: 150,
       render: (_, record) => (
         <span style={{ fontWeight: 600, color: '#1677ff' }}>
-          {trimDecimal(record.rate)}
+          {trimDecimal(record.arRate)}
         </span>
       ),
     },
     {
-      title: '生效起始日',
-      dataIndex: 'effectiveFrom',
-      width: 165,
-      render: (_, record) => formatDate(record.effectiveFrom),
+      title: '应付汇率（现汇买入价）',
+      dataIndex: 'apRate',
+      align: 'right',
+      width: 150,
+      render: (_, record) => (
+        <span style={{ fontWeight: 600, color: '#52c41a' }}>
+          {trimDecimal(record.apRate)}
+        </span>
+      ),
     },
     {
-      title: '失效日',
-      dataIndex: 'effectiveTo',
-      width: 165,
-      render: (_, record) => {
-        if (!record.effectiveTo) {
-          return (
-            <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>
-              长期有效
-            </Tag>
-          );
-        }
-        return formatDate(record.effectiveTo);
-      },
+      title: '基准汇率',
+      dataIndex: 'rate',
+      align: 'right',
+      width: 110,
+      render: (_, record) => (
+        <Tooltip title="中行折算价口径，内部审计与报表基准">
+          <span style={{ color: '#8c8c8c' }}>{trimDecimal(record.rate)}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: '生效周',
+      dataIndex: 'effectiveFrom',
+      width: 200,
+      render: (_, record) =>
+        `${formatDate(record.effectiveFrom)} ~ ${formatDate(record.effectiveTo)}`,
+    },
+    {
+      title: '归属',
+      dataIndex: 'organizationId',
+      width: 110,
+      render: (_, record) =>
+        record.organizationId ? (
+          <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
+            本组织行
+          </Tag>
+        ) : (
+          <Tag color="purple" style={{ margin: 0, fontSize: 11 }}>
+            集团基线行
+          </Tag>
+        ),
     },
     {
       title: '状态',
@@ -186,38 +225,49 @@ export function ExchangeRatesPanel() {
       title: '操作',
       valueType: 'option',
       width: 150,
-      render: (_, record) => (
-        <Space size="small">
-          {record.isActive && access.canUpdateExchangeRates && (
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => openEdit(record)}
-            >
-              编辑
-            </Button>
-          )}
-          {record.isActive && access.canDisableExchangeRates && (
-            <Popconfirm
-              title="确定停用该汇率设置？"
-              onConfirm={async () => {
-                if (!record.id) return;
-                await exchangeRateServiceDisableExchangeRateSetting(
-                  { id: record.id },
-                  { id: record.id },
-                );
-                message.success('汇率已停用');
-                actionRef.current?.reload();
-              }}
-            >
-              <Button type="link" danger size="small" icon={<StopOutlined />}>
-                停用
+      render: (_, record) => {
+        const isBaseline = !record.organizationId;
+        const canEdit =
+          record.isActive &&
+          access.canUpdateExchangeRates &&
+          (isBaseline ? isHeadquartersOrganization : true);
+        const canDisable =
+          record.isActive &&
+          access.canDisableExchangeRates &&
+          (isBaseline ? isHeadquartersOrganization : true);
+        return (
+          <Space size="small">
+            {canEdit && (
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              >
+                编辑
               </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
+            )}
+            {canDisable && (
+              <Popconfirm
+                title="确定停用该汇率设置？"
+                onConfirm={async () => {
+                  if (!record.id) return;
+                  await exchangeRateServiceDisableExchangeRateSetting(
+                    { id: record.id },
+                    { id: record.id },
+                  );
+                  message.success('汇率已停用');
+                  actionRef.current?.reload();
+                }}
+              >
+                <Button type="link" danger size="small" icon={<StopOutlined />}>
+                  停用
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -236,9 +286,8 @@ export function ExchangeRatesPanel() {
         effectiveFrom: editing.effectiveFrom
           ? dayjs(editing.effectiveFrom)
           : undefined,
-        effectiveTo: editing.effectiveTo
-          ? dayjs(editing.effectiveTo)
-          : undefined,
+        arRate: trimDecimal(editing.arRate),
+        apRate: trimDecimal(editing.apRate),
         rate: trimDecimal(editing.rate),
       }
     : { toCurrency: baseCurrency, effectiveFrom: dayjs() };
@@ -272,6 +321,30 @@ export function ExchangeRatesPanel() {
           return toTableRequest(rateResponse);
         }}
         toolBarRender={() => [
+          ...(access.canCreateExchangeRates
+            ? [
+                <Tooltip
+                  key="sync-tip"
+                  title={
+                    baseCurrency === 'CNY'
+                      ? '抓取中国银行现汇买卖价，一键维护本周（或预设下周）汇率'
+                      : `按本币 ${baseCurrency} 抓取国际直盘或中行交叉盘牌价`
+                  }
+                >
+                  <Button
+                    key="sync"
+                    type="primary"
+                    ghost
+                    icon={<CloudSyncOutlined />}
+                    onClick={() => setSyncModalOpen(true)}
+                  >
+                    {baseCurrency === 'CNY'
+                      ? '从中国银行同步周汇率'
+                      : '一键同步周汇率'}
+                  </Button>
+                </Tooltip>,
+              ]
+            : []),
           <Button
             key="download-template"
             icon={<DownloadOutlined />}
@@ -312,13 +385,13 @@ export function ExchangeRatesPanel() {
         initialValues={initialValues}
         layout="horizontal"
         labelAlign="right"
-        labelCol={{ flex: '110px' }}
+        labelCol={{ flex: '150px' }}
         wrapperCol={{ flex: 'auto' }}
         form={form}
         modalProps={{
           destroyOnHidden: true,
           onCancel: () => setModalOpen(false),
-          width: 580,
+          width: 620,
         }}
         onOpenChange={(visible) => {
           setModalOpen(visible);
@@ -328,22 +401,20 @@ export function ExchangeRatesPanel() {
           const effectiveFrom = dayjs(values.effectiveFrom).format(
             'YYYY-MM-DDTHH:mm:ssZ',
           );
-          const effectiveTo = values.effectiveTo
-            ? dayjs(values.effectiveTo).format('YYYY-MM-DDTHH:mm:ssZ')
-            : undefined;
           if (
-            effectiveTo &&
-            (dayjs(effectiveTo).isBefore(dayjs(effectiveFrom)) ||
-              dayjs(effectiveTo).isSame(dayjs(effectiveFrom)))
+            values.arRate &&
+            values.apRate &&
+            !isPositiveExactDecimal(values.arRate, exchangeRatePattern)
           ) {
-            message.error('生效结束时间必须晚于生效开始时间');
+            message.error('应收汇率格式不正确');
             return false;
           }
           const input = {
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
             toCurrency: values.toCurrency.trim().toUpperCase(),
             effectiveFrom,
-            effectiveTo,
+            arRate: values.arRate,
+            apRate: values.apRate,
             rate: values.rate,
           };
           if (editing?.id) {
@@ -383,6 +454,7 @@ export function ExchangeRatesPanel() {
           name="toCurrency"
           label="本币"
           showSearch
+          disabled
           options={
             currencyOptions.length > 0
               ? currencyOptions
@@ -405,36 +477,49 @@ export function ExchangeRatesPanel() {
             }),
           ]}
         />
+        <ProFormDatePicker
+          name="effectiveFrom"
+          label="生效周"
+          extra="任选目标自然周内日期，保存后按该自然周（周一至周日）生效"
+          rules={[{ required: true, message: '请选择生效周' }]}
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormText
+          name="arRate"
+          label="应收汇率"
+          extra="现汇卖出价：客户账单（AR）折本币收款使用"
+          rules={[
+            { required: true, message: '请输入应收汇率' },
+            { validator: rateRule('应收汇率', true) },
+          ]}
+        />
+        <ProFormText
+          name="apRate"
+          label="应付汇率"
+          extra="现汇买入价：供应商账单（AP）折本币付款使用"
+          rules={[
+            { required: true, message: '请输入应付汇率' },
+            { validator: rateRule('应付汇率', true) },
+          ]}
+        />
         <ProFormText
           name="rate"
-          label="折本币汇率"
-          rules={[{ validator: rateRule }]}
-        />
-        <ProFormDateTimePicker
-          name="effectiveFrom"
-          label="生效开始时间"
-          extra="精确至秒级（左闭区间包含该时刻起生效）"
-          rules={[{ required: true, message: '请选择生效开始时间' }]}
-          fieldProps={{
-            style: { width: '100%' },
-            format: 'YYYY-MM-DD HH:mm:ss',
-          }}
-        />
-        <ProFormDateTimePicker
-          name="effectiveTo"
-          label="生效结束时间"
-          extra="精确至秒级（右开区间不包含该时刻）；留空表示长期有效"
-          fieldProps={{
-            style: { width: '100%' },
-            format: 'YYYY-MM-DD HH:mm:ss',
-            showTime: { defaultValue: dayjs('23:59:59', 'HH:mm:ss') },
-          }}
+          label="基准汇率"
+          extra="中行折算价口径（可空），缺省按应收/应付中间价记录"
+          rules={[{ validator: rateRule('基准汇率', false) }]}
         />
       </ModalForm>
 
       <ExchangeRateImportModal
         open={importModalOpen}
         onClose={() => setImportModalOpen(false)}
+        onSuccess={() => actionRef.current?.reload()}
+      />
+
+      <ExchangeRateSyncModal
+        open={syncModalOpen}
+        baseCurrency={baseCurrency}
+        onClose={() => setSyncModalOpen(false)}
         onSuccess={() => actionRef.current?.reload()}
       />
     </Card>

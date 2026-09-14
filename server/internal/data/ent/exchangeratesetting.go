@@ -38,6 +38,8 @@ type ExchangeRateSetting struct {
 	ArRate *string `json:"ar_rate,omitempty"`
 	// ApRate holds the value of the "ap_rate" field.
 	ApRate *string `json:"ap_rate,omitempty"`
+	// Source holds the value of the "source" field.
+	Source exchangeratesetting.Source `json:"source,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive     bool `json:"is_active,omitempty"`
 	selectValues sql.SelectValues
@@ -52,7 +54,7 @@ func (*ExchangeRateSetting) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case exchangeratesetting.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldRate, exchangeratesetting.FieldArRate, exchangeratesetting.FieldApRate:
+		case exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldRate, exchangeratesetting.FieldArRate, exchangeratesetting.FieldApRate, exchangeratesetting.FieldSource:
 			values[i] = new(sql.NullString)
 		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo:
 			values[i] = new(sql.NullTime)
@@ -143,6 +145,12 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				_m.ApRate = new(string)
 				*_m.ApRate = value.String
 			}
+		case exchangeratesetting.FieldSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source", values[i])
+			} else if value.Valid {
+				_m.Source = exchangeratesetting.Source(value.String)
+			}
 		case exchangeratesetting.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
@@ -222,6 +230,9 @@ func (_m *ExchangeRateSetting) String() string {
 		builder.WriteString("ap_rate=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Source))
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))

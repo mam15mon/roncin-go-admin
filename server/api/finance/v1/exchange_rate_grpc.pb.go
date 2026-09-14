@@ -27,13 +27,15 @@ const (
 	ExchangeRateService_PreviewExchangeRateImport_FullMethodName          = "/finance.v1.ExchangeRateService/PreviewExchangeRateImport"
 	ExchangeRateService_ConfirmExchangeRateImport_FullMethodName          = "/finance.v1.ExchangeRateService/ConfirmExchangeRateImport"
 	ExchangeRateService_GetExchangeRateImport_FullMethodName              = "/finance.v1.ExchangeRateService/GetExchangeRateImport"
+	ExchangeRateService_FetchExchangeRates_FullMethodName                 = "/finance.v1.ExchangeRateService/FetchExchangeRates"
+	ExchangeRateService_SyncExchangeRates_FullMethodName                  = "/finance.v1.ExchangeRateService/SyncExchangeRates"
 )
 
 // ExchangeRateServiceClient is the client API for ExchangeRateService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ExchangeRateService 维护总部统一的折本币基准汇率主数据。
+// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
 type ExchangeRateServiceClient interface {
 	ListExchangeRateSettings(ctx context.Context, in *ListExchangeRateSettingsRequest, opts ...grpc.CallOption) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(ctx context.Context, in *CreateExchangeRateSettingRequest, opts ...grpc.CallOption) (*CreateExchangeRateSettingResponse, error)
@@ -46,6 +48,11 @@ type ExchangeRateServiceClient interface {
 	// ConfirmExchangeRateImport 使用预检令牌确认整批导入。
 	ConfirmExchangeRateImport(ctx context.Context, in *ConfirmExchangeRateImportRequest, opts ...grpc.CallOption) (*ConfirmExchangeRateImportResponse, error)
 	GetExchangeRateImport(ctx context.Context, in *GetExchangeRateImportRequest, opts ...grpc.CallOption) (*GetExchangeRateImportResponse, error)
+	// FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+	// 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+	FetchExchangeRates(ctx context.Context, in *FetchExchangeRatesRequest, opts ...grpc.CallOption) (*FetchExchangeRatesResponse, error)
+	// SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+	SyncExchangeRates(ctx context.Context, in *SyncExchangeRatesRequest, opts ...grpc.CallOption) (*SyncExchangeRatesResponse, error)
 }
 
 type exchangeRateServiceClient struct {
@@ -136,11 +143,31 @@ func (c *exchangeRateServiceClient) GetExchangeRateImport(ctx context.Context, i
 	return out, nil
 }
 
+func (c *exchangeRateServiceClient) FetchExchangeRates(ctx context.Context, in *FetchExchangeRatesRequest, opts ...grpc.CallOption) (*FetchExchangeRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FetchExchangeRatesResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_FetchExchangeRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exchangeRateServiceClient) SyncExchangeRates(ctx context.Context, in *SyncExchangeRatesRequest, opts ...grpc.CallOption) (*SyncExchangeRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncExchangeRatesResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_SyncExchangeRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ExchangeRateServiceServer is the server API for ExchangeRateService service.
 // All implementations must embed UnimplementedExchangeRateServiceServer
 // for forward compatibility.
 //
-// ExchangeRateService 维护总部统一的折本币基准汇率主数据。
+// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
 type ExchangeRateServiceServer interface {
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(context.Context, *CreateExchangeRateSettingRequest) (*CreateExchangeRateSettingResponse, error)
@@ -153,6 +180,11 @@ type ExchangeRateServiceServer interface {
 	// ConfirmExchangeRateImport 使用预检令牌确认整批导入。
 	ConfirmExchangeRateImport(context.Context, *ConfirmExchangeRateImportRequest) (*ConfirmExchangeRateImportResponse, error)
 	GetExchangeRateImport(context.Context, *GetExchangeRateImportRequest) (*GetExchangeRateImportResponse, error)
+	// FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+	// 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+	FetchExchangeRates(context.Context, *FetchExchangeRatesRequest) (*FetchExchangeRatesResponse, error)
+	// SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+	SyncExchangeRates(context.Context, *SyncExchangeRatesRequest) (*SyncExchangeRatesResponse, error)
 	mustEmbedUnimplementedExchangeRateServiceServer()
 }
 
@@ -186,6 +218,12 @@ func (UnimplementedExchangeRateServiceServer) ConfirmExchangeRateImport(context.
 }
 func (UnimplementedExchangeRateServiceServer) GetExchangeRateImport(context.Context, *GetExchangeRateImportRequest) (*GetExchangeRateImportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetExchangeRateImport not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) FetchExchangeRates(context.Context, *FetchExchangeRatesRequest) (*FetchExchangeRatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FetchExchangeRates not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) SyncExchangeRates(context.Context, *SyncExchangeRatesRequest) (*SyncExchangeRatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncExchangeRates not implemented")
 }
 func (UnimplementedExchangeRateServiceServer) mustEmbedUnimplementedExchangeRateServiceServer() {}
 func (UnimplementedExchangeRateServiceServer) testEmbeddedByValue()                             {}
@@ -352,6 +390,42 @@ func _ExchangeRateService_GetExchangeRateImport_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExchangeRateService_FetchExchangeRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchExchangeRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).FetchExchangeRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_FetchExchangeRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).FetchExchangeRates(ctx, req.(*FetchExchangeRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExchangeRateService_SyncExchangeRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncExchangeRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).SyncExchangeRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_SyncExchangeRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).SyncExchangeRates(ctx, req.(*SyncExchangeRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ExchangeRateService_ServiceDesc is the grpc.ServiceDesc for ExchangeRateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -390,6 +464,14 @@ var ExchangeRateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetExchangeRateImport",
 			Handler:    _ExchangeRateService_GetExchangeRateImport_Handler,
+		},
+		{
+			MethodName: "FetchExchangeRates",
+			Handler:    _ExchangeRateService_FetchExchangeRates_Handler,
+		},
+		{
+			MethodName: "SyncExchangeRates",
+			Handler:    _ExchangeRateService_SyncExchangeRates_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

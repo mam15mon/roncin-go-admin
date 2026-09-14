@@ -171,6 +171,20 @@ func (_u *ExchangeRateSettingUpdate) ClearApRate() *ExchangeRateSettingUpdate {
 	return _u
 }
 
+// SetSource sets the "source" field.
+func (_u *ExchangeRateSettingUpdate) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingUpdate {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdate) SetNillableSource(v *exchangeratesetting.Source) *ExchangeRateSettingUpdate {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *ExchangeRateSettingUpdate) SetIsActive(v bool) *ExchangeRateSettingUpdate {
 	_u.mutation.SetIsActive(v)
@@ -238,6 +252,11 @@ func (_u *ExchangeRateSettingUpdate) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Source(); ok {
+		if err := exchangeratesetting.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.source": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -291,6 +310,9 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	}
 	if _u.mutation.ApRateCleared() {
 		_spec.ClearField(exchangeratesetting.FieldApRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(exchangeratesetting.FieldSource, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)
@@ -457,6 +479,20 @@ func (_u *ExchangeRateSettingUpdateOne) ClearApRate() *ExchangeRateSettingUpdate
 	return _u
 }
 
+// SetSource sets the "source" field.
+func (_u *ExchangeRateSettingUpdateOne) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingUpdateOne {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *ExchangeRateSettingUpdateOne) SetNillableSource(v *exchangeratesetting.Source) *ExchangeRateSettingUpdateOne {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *ExchangeRateSettingUpdateOne) SetIsActive(v bool) *ExchangeRateSettingUpdateOne {
 	_u.mutation.SetIsActive(v)
@@ -537,6 +573,11 @@ func (_u *ExchangeRateSettingUpdateOne) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Source(); ok {
+		if err := exchangeratesetting.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.source": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -607,6 +648,9 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	}
 	if _u.mutation.ApRateCleared() {
 		_spec.ClearField(exchangeratesetting.FieldApRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(exchangeratesetting.FieldSource, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)

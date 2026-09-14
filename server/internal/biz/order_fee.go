@@ -356,7 +356,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 			if billContext.FeeCount != 1 {
 				return nil, ErrBilledFeeCurrencyConflict
 			}
-			billRate, contextErr := uc.exchangeRate.ResolveRate(ctx, organizationID, normalized.Currency, billContext.BillDate)
+			billRate, contextErr := uc.exchangeRate.ResolveRate(ctx, organizationID, normalized.Direction, normalized.Currency, billContext.BillDate)
 			if contextErr != nil {
 				return nil, contextErr
 			}
@@ -453,12 +453,13 @@ func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, o
 	return nil
 }
 
-// ResolveExchangeRate 按费用发生日解析折本币基准汇率（携带来源），供前端录入费用时预览。
+// ResolveExchangeRate 按费用发生日与收支方向解析折本币周汇率（携带来源与命中行），
+// 供前端录入费用时预览；应收命中 ar_rate，应付命中 ap_rate。
 func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (ResolvedRate, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
 		return ResolvedRate{}, ErrOrderFeeInvalidArgument
 	}
-	return uc.exchangeRate.ResolveRate(ctx, organizationID, currency, expenseDate)
+	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, expenseDate)
 }
 
 func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
@@ -472,14 +473,14 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Currency, fee.ExpenseDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, fee.ExpenseDate)
 	if err != nil {
 		return err
 	}
 	fee.ExchangeRate = resolved.Rate
 	fee.ExchangeRateSource = resolved.Source
 	fee.ExchangeRateDate = fee.ExpenseDate
-	fee.ExchangeRateSettingID = nil
+	fee.ExchangeRateSettingID = resolved.SettingID
 	return nil
 }
 

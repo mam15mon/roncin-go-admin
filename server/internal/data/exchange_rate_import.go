@@ -2,10 +2,8 @@ package data
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,21 +11,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	importent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
-	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/shopspring/decimal"
 )
 
 func (r *exchangeRateRepo) InspectImport(ctx context.Context, ownerOrganizationID uuid.UUID, rows []*biz.ExchangeRateImportRow) (map[int][]string, error) {
 	errorsByRow := make(map[int][]string)
 	validCurrencies, err := r.enabledExchangeRateCurrencies(ctx, rows)
-	if err != nil {
-		return nil, err
-	}
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// 阶段一导入只落基线行，重叠比对也限定在基线域。
-	existing, err := client.ExchangeRateSetting.Query().Where(exchangerateent.OrganizationIDIsNil(), exchangerateent.IsActiveEQ(true)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +26,10 @@ func (r *exchangeRateRepo) InspectImport(ctx context.Context, ownerOrganizationI
 		}
 		if !validCurrencies[row.FromCurrency] || !validCurrencies[row.ToCurrency] {
 			errorsByRow[row.RowNumber] = append(errorsByRow[row.RowNumber], "原币或本币不是启用的 ISO 币种")
-			continue
-		}
-		if exchangeRateImportOverlapsExisting(row, existing) {
-			errorsByRow[row.RowNumber] = append(errorsByRow[row.RowNumber], "生效区间与现有启用汇率重叠")
 		}
 	}
+	// 与现有启用行的同周重叠不再判为错误：确认导入按自然周幂等 Upsert 覆盖更新；
+	// 文件内部同周重复行仍在 biz 层标记为不可确认。
 	return errorsByRow, nil
 }
 
@@ -113,22 +100,22 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 	if err != nil {
 		return nil, err
 	}
-	// 导入只写基线行，advisory 锁与 save 路径保持同域。
-	lockKeys := exchangeRateImportLockKeys(rows)
+	// 导入按当前组织落地：总部写 NULL 基线行，分公司写本组织行；与页面写入、
+	// 牌价同步共用作用域级 advisory 锁。
+	scope := organizationID.String()
+	if biz.IsHeadquartersOrganization(ctx) {
+		scope = "baseline"
+	}
+	lockKey := "exchange-rate-weekly:" + scope
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer connection.Close()
-	locked := make([]string, 0, len(lockKeys))
-	for _, key := range lockKeys {
-		if _, err = connection.ExecContext(ctx, "SELECT pg_advisory_lock(hashtext($1))", key); err != nil {
-			unlockExchangeRateImportKeys(connection, locked)
-			return nil, err
-		}
-		locked = append(locked, key)
+	if _, err = connection.ExecContext(ctx, "SELECT pg_advisory_lock(hashtext($1))", lockKey); err != nil {
+		return nil, err
 	}
-	defer unlockExchangeRateImportKeys(connection, locked)
+	defer connection.ExecContext(context.Background(), "SELECT pg_advisory_unlock(hashtext($1))", lockKey)
 
 	var updated *ent.ExchangeRateImportBatch
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -166,27 +153,27 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, rows); validateErr != nil {
 			return validateErr
 		}
-		builders := make([]*ent.ExchangeRateSettingCreate, 0, len(rows))
+		// 行归属与组织身份一致：总部导入基线行，分公司导入本组织行；
+		// 同周重复导入按幂等 Upsert 覆盖更新，不抛唯一键冲突。
+		var organizationScope *uuid.UUID
+		if !biz.IsHeadquartersOrganization(ctx) {
+			organizationScope = &organizationID
+		}
 		for _, row := range rows {
-			effectiveFrom, parseErr := parseExchangeRateStorageTime(row.EffectiveFrom)
-			if parseErr != nil {
+			arRate, arErr := decimal.NewFromString(row.ARRate)
+			apRate, apErr := decimal.NewFromString(row.APRate)
+			rate, rateErr := decimal.NewFromString(row.Rate)
+			if arErr != nil || apErr != nil || rateErr != nil || row.EffectiveTo == nil {
 				return biz.ErrExchangeRateImportStale
 			}
-			// 阶段一导入只落基线行（organization_id IS NULL）；组织行导入随阶段二开放。
-			builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).
-				SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
-				SetEffectiveFrom(effectiveFrom).SetRate(row.Rate).SetIsActive(true)
-			if row.EffectiveTo != nil {
-				effectiveTo, parseErr := parseExchangeRateStorageTime(*row.EffectiveTo)
-				if parseErr != nil {
-					return biz.ErrExchangeRateImportStale
-				}
-				builder.SetEffectiveTo(effectiveTo)
+			if _, saveErr := upsertWeeklyExchangeRate(ctx, tx, &biz.ExchangeRateSetting{
+				ID: row.SettingID, OrganizationID: organizationScope,
+				FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency,
+				EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo,
+				ARRate: &arRate, APRate: &apRate, Rate: rate,
+			}, biz.ExchangeRateSettingSourceImport); saveErr != nil {
+				return saveErr
 			}
-			builders = append(builders, builder)
-		}
-		if _, saveErr := tx.ExchangeRateSetting.CreateBulk(builders...).Save(ctx); saveErr != nil {
-			return biz.ErrExchangeRateImportStale
 		}
 		var saveErr error
 		updated, saveErr = tx.ExchangeRateImportBatch.UpdateOneID(current.ID).
@@ -252,74 +239,7 @@ func validateExchangeRateImportRowsInTx(ctx context.Context, tx *ent.Tx, rows []
 	if count != len(currencyCodes) {
 		return biz.ErrExchangeRateImportStale
 	}
-	for _, row := range rows {
-		effectiveFrom, _ := parseExchangeRateStorageTime(row.EffectiveFrom)
-		query := tx.ExchangeRateSetting.Query().Where(
-			exchangerateent.OrganizationIDIsNil(),
-			exchangerateent.FromCurrencyEQ(row.FromCurrency), exchangerateent.ToCurrencyEQ(row.ToCurrency), exchangerateent.IsActiveEQ(true),
-			exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
-		)
-		if row.EffectiveTo != nil {
-			effectiveTo, _ := parseExchangeRateStorageTime(*row.EffectiveTo)
-			query.Where(exchangerateent.EffectiveFromLT(effectiveTo))
-		}
-		overlap, queryErr := query.Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if overlap {
-			return biz.ErrExchangeRateImportStale
-		}
-	}
 	return nil
-}
-
-func exchangeRateImportOverlapsExisting(row *biz.ExchangeRateImportRow, existing []*ent.ExchangeRateSetting) bool {
-	rowFrom, err := parseExchangeRateStorageTime(row.EffectiveFrom)
-	if err != nil {
-		return false
-	}
-	var rowTo *time.Time
-	if row.EffectiveTo != nil {
-		value, parseErr := parseExchangeRateStorageTime(*row.EffectiveTo)
-		if parseErr != nil {
-			return false
-		}
-		rowTo = &value
-	}
-	for _, current := range existing {
-		if current.FromCurrency != row.FromCurrency || current.ToCurrency != row.ToCurrency {
-			continue
-		}
-		rowBeforeCurrentEnd := current.EffectiveTo == nil || rowFrom.Before(*current.EffectiveTo)
-		currentBeforeRowEnd := rowTo == nil || current.EffectiveFrom.Before(*rowTo)
-		if rowBeforeCurrentEnd && currentBeforeRowEnd {
-			return true
-		}
-	}
-	return false
-}
-
-func exchangeRateImportLockKeys(rows []*biz.ExchangeRateImportRow) []string {
-	set := make(map[string]struct{})
-	for _, row := range rows {
-		if row != nil {
-			key := fmt.Sprintf("exchange-rate:%s:%s:%s", "baseline", row.FromCurrency, row.ToCurrency)
-			set[key] = struct{}{}
-		}
-	}
-	keys := make([]string, 0, len(set))
-	for key := range set {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-func unlockExchangeRateImportKeys(connection *sql.Conn, keys []string) {
-	for index := len(keys) - 1; index >= 0; index-- {
-		_, _ = connection.ExecContext(context.Background(), "SELECT pg_advisory_unlock(hashtext($1))", keys[index])
-	}
 }
 
 func exchangeRateImportRowsFromJSON(raw json.RawMessage) ([]*biz.ExchangeRateImportRow, error) {

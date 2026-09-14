@@ -113,15 +113,6 @@ func (orderConfigNumberStub) AllocateNumber(context.Context, uuid.UUID, Document
 	return &NumberRule{Prefix: "TC", DateFormat: DateFormatYYYYMMDD, SequenceLength: 6}, 1, nil
 }
 
-// newCommissionRateStub 以 baseCurrency→CNY 的正向基准汇率构造汇率仓储桩；
-// ResolveBaseRate 在总部解析 From=baseCurrency、To=CNY。
-func newCommissionRateStub(org uuid.UUID, baseCurrency string, rate decimal.Decimal) *exchangeRateRepoStub {
-	return &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: baseCurrency, PivotCurrency: "CNY"},
-		rateByCurrency: map[string]decimal.Decimal{baseCurrency: rate},
-	}
-}
-
 type commissionAdjustmentRepoStub struct {
 	CommissionRepo
 	created         *FinanceCommissionAdjustment
@@ -192,7 +183,7 @@ func TestCommissionExportAuditKeepsMultiOrganizationScopeUnattributed(t *testing
 
 func TestListCommissionEmployeesNormalizesAndValidatesPagination(t *testing.T) {
 	repo := &commissionAdjustmentRepoStub{}
-	usecase := NewCommissionUsecase(repo, nil, nil, nil)
+	usecase := NewCommissionUsecase(repo, nil, nil)
 	_, err := usecase.ListEmployees(context.Background(), uuid.New(), SelectorListOptions{
 		Page: 1, PageSize: MaxListPageSize, Keyword: "  张三  ",
 	})
@@ -293,7 +284,7 @@ func TestCreateCommissionAdjustment(t *testing.T) {
 
 	t.Run("创建逐订单增提草稿", func(t *testing.T) {
 		repo := &commissionAdjustmentRepoStub{}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		item, err := usecase.CreateAdjustment(context.Background(), org, actor, CreateCommissionAdjustmentInput{
 			CommissionID: commissionID, OrderID: orderID, Direction: CommissionAdjustmentIncrease,
 			Amount: decimal.RequireFromString("1.25000000"), Reason: "补提", IdempotencyKey: "adjustment-test",
@@ -315,7 +306,7 @@ func TestCreateCommissionAdjustment(t *testing.T) {
 		{name: "拒绝空原因", input: CreateCommissionAdjustmentInput{CommissionID: commissionID, OrderID: orderID, Direction: CommissionAdjustmentDecrease, Amount: decimal.NewFromInt(1), IdempotencyKey: "reason"}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			usecase := NewCommissionUsecase(&commissionAdjustmentRepoStub{}, nil, nil, nil)
+			usecase := NewCommissionUsecase(&commissionAdjustmentRepoStub{}, nil, nil)
 			if _, err := usecase.CreateAdjustment(context.Background(), org, actor, tt.input); err != ErrCommissionAdjustmentInvalid {
 				t.Fatalf("error = %v, want %v", err, ErrCommissionAdjustmentInvalid)
 			}
@@ -371,48 +362,24 @@ func TestPlanCommissionReversal(t *testing.T) {
 }
 
 func TestResolveCommissionCNYRate(t *testing.T) {
-	t.Run("本位币为CNY时汇率恒为一且来源为本位币", func(t *testing.T) {
-		snapshot, err := ResolveCommissionCNYRate("CNY", "2026-08-15", decimal.Decimal{})
+	t.Run("原币记账口径恒等固化", func(t *testing.T) {
+		snapshot, err := ResolveCommissionCNYRate("USD", "2026-08-15", decimal.RequireFromString("100"))
 		if err != nil {
 			t.Fatalf("ResolveCommissionCNYRate() error = %v", err)
 		}
+		// ResolveBaseRate 已退役：跨组织提成按单据原币记账，CNY 快照固化恒等口径
+		// （汇率 1、来源 BASE_CURRENCY、金额恒等），不再经总部基线汇率二次折算。
 		if snapshot.CommissionDate != "2026-08-15" || snapshot.ExchangeRate.StringFixed(8) != "1.00000000" ||
 			snapshot.ExchangeRateSource != CommissionCNYRateSourceBaseCurrency || snapshot.ExchangeRateDate != "2026-08-15" ||
 			snapshot.ExchangeRateSettingID != nil {
-			t.Fatalf("CNY 快照汇率部分不符: %#v", snapshot)
+			t.Fatalf("原币记账快照不符: %#v", snapshot)
+		}
+		if snapshot.CommissionAmount.StringFixed(8) != "100.00000000" {
+			t.Fatalf("CNY 原始提成金额应恒等于本位币金额: %s", snapshot.CommissionAmount.StringFixed(8))
 		}
 		snapshot.ApplyCommissionAmount(decimal.RequireFromString("123.45"))
 		if snapshot.CommissionAmount.StringFixed(8) != "123.45000000" {
-			t.Fatalf("CNY 原始提成金额应等于本位币金额: %s", snapshot.CommissionAmount.StringFixed(8))
-		}
-	})
-
-	t.Run("非CNY本币按提成生成日正向汇率直接固化", func(t *testing.T) {
-		snapshot, err := ResolveCommissionCNYRate("USD", "2026-08-15", decimal.RequireFromString("3"))
-		if err != nil {
-			t.Fatalf("ResolveCommissionCNYRate() error = %v", err)
-		}
-		if snapshot.ExchangeRate.StringFixed(8) != "3.00000000" || snapshot.ExchangeRateSource != CommissionCNYRateSourceDerived ||
-			snapshot.ExchangeRateDate != "2026-08-15" || snapshot.ExchangeRateSettingID != nil {
-			t.Fatalf("正向汇率快照不符: %#v", snapshot)
-		}
-		snapshot.ApplyCommissionAmount(decimal.RequireFromString("100"))
-		if snapshot.CommissionAmount.StringFixed(8) != "300.00000000" {
-			t.Fatalf("CNY 提成金额公式不符: %s", snapshot.CommissionAmount.StringFixed(8))
-		}
-	})
-
-	t.Run("正向汇率按八位舍入且不补差", func(t *testing.T) {
-		snapshot, err := ResolveCommissionCNYRate("USD", "2026-08-15", decimal.RequireFromString("0.333333333"))
-		if err != nil {
-			t.Fatalf("ResolveCommissionCNYRate() error = %v", err)
-		}
-		if snapshot.ExchangeRate.StringFixed(8) != "0.33333333" {
-			t.Fatalf("正向汇率精度应为 0.33333333: %s", snapshot.ExchangeRate.StringFixed(8))
-		}
-		snapshot.ApplyCommissionAmount(decimal.RequireFromString("3"))
-		if snapshot.CommissionAmount.StringFixed(8) != "0.99999999" {
-			t.Fatalf("金额乘法不应补差: %s", snapshot.CommissionAmount.StringFixed(8))
+			t.Fatalf("ApplyCommissionAmount 应按汇率 1 恒等改写: %s", snapshot.CommissionAmount.StringFixed(8))
 		}
 	})
 
@@ -420,15 +387,12 @@ func TestResolveCommissionCNYRate(t *testing.T) {
 		name          string
 		baseCurrency  string
 		commissionDay string
-		resolvedRate  decimal.Decimal
 	}{
-		{name: "拒绝非法归属日期", baseCurrency: "USD", commissionDay: "2026/08/15", resolvedRate: decimal.NewFromInt(1)},
-		{name: "拒绝无效归属日期", baseCurrency: "USD", commissionDay: "2026-02-30", resolvedRate: decimal.NewFromInt(1)},
-		{name: "拒绝非正汇率", baseCurrency: "USD", commissionDay: "2026-08-15", resolvedRate: decimal.Zero},
-		{name: "拒绝零汇率", baseCurrency: "USD", commissionDay: "2026-08-15", resolvedRate: decimal.Decimal{}},
+		{name: "拒绝非法归属日期", baseCurrency: "USD", commissionDay: "2026/08/15"},
+		{name: "拒绝无效归属日期", baseCurrency: "USD", commissionDay: "2026-02-30"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := ResolveCommissionCNYRate(tt.baseCurrency, tt.commissionDay, tt.resolvedRate); err == nil {
+			if _, err := ResolveCommissionCNYRate(tt.baseCurrency, tt.commissionDay, decimal.NewFromInt(1)); err == nil {
 				t.Fatalf("ResolveCommissionCNYRate() 应返回错误")
 			}
 		})
@@ -442,20 +406,17 @@ func TestCommissionUsecasePreviewResolvesCNYSnapshot(t *testing.T) {
 		preview:    calculation,
 		generation: &CommissionGenerationContext{CommissionDate: "2026-08-15", BaseCurrency: "USD"},
 	}
-	rateStub := newCommissionRateStub(org, "USD", decimal.RequireFromString("0.5"))
-	usecase := NewCommissionUsecase(repo, nil, NewExchangeRateUsecase(rateStub), &transactorStub{})
+	// 原币记账后提成预览不再依赖汇率用例（退役回归：ResolveBaseRate 已删除）。
+	usecase := NewCommissionUsecase(repo, nil, &transactorStub{})
 
 	result, err := usecase.Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), uuid.New())
 	if err != nil {
 		t.Fatalf("Preview() error = %v", err)
 	}
-	if result.CNY == nil || result.CNY.ExchangeRate.StringFixed(8) != "0.50000000" ||
-		result.CNY.ExchangeRateSource != CommissionCNYRateSourceDerived || result.CNY.ExchangeRateDate != "2026-08-15" ||
-		result.CNY.CommissionAmount.StringFixed(8) != "50.00000000" {
-		t.Fatalf("预览 CNY 折算依据不符: %#v", result.CNY)
-	}
-	if len(rateStub.resolveDates) != 1 || rateStub.resolveDates[0] != "2026-08-15" {
-		t.Fatalf("CNY 汇率必须按提成生成日解析: %v", rateStub.resolveDates)
+	if result.CNY == nil || result.CNY.ExchangeRate.StringFixed(8) != "1.00000000" ||
+		result.CNY.ExchangeRateSource != CommissionCNYRateSourceBaseCurrency || result.CNY.ExchangeRateDate != "2026-08-15" ||
+		result.CNY.CommissionAmount.StringFixed(8) != "100.00000000" {
+		t.Fatalf("预览 CNY 快照应为原币记账恒等口径: %#v", result.CNY)
 	}
 }
 
@@ -464,8 +425,8 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 	verificationID, employeeID, ruleID := uuid.New(), uuid.New(), uuid.New()
 	input := CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, IdempotencyKey: "commission-cny"}
 
-	newUsecase := func(rateStub *exchangeRateRepoStub, repo *commissionRepoStub) *CommissionUsecase {
-		return NewCommissionUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), NewExchangeRateUsecase(rateStub), &transactorStub{})
+	newUsecase := func(repo *commissionRepoStub) *CommissionUsecase {
+		return NewCommissionUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), &transactorStub{})
 	}
 	newRepo := func() *commissionRepoStub {
 		return &commissionRepoStub{
@@ -474,10 +435,9 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 		}
 	}
 
-	t.Run("非CNY本币按事务内解析结果写入快照", func(t *testing.T) {
+	t.Run("非CNY本币按原币记账口径写入恒等快照", func(t *testing.T) {
 		repo := newRepo()
-		rateStub := newCommissionRateStub(org, "USD", decimal.RequireFromString("0.5"))
-		usecase := newUsecase(rateStub, repo)
+		usecase := newUsecase(repo)
 		created, err := usecase.Create(context.Background(), org, actor, input)
 		if err != nil {
 			t.Fatalf("Create() error = %v", err)
@@ -489,23 +449,22 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 		if snapshot == nil || !repo.createCalled {
 			t.Fatalf("事务内未写入提成快照")
 		}
-		if snapshot.CommissionDate != "2026-08-15" || snapshot.ExchangeRate.StringFixed(8) != "0.50000000" ||
-			snapshot.ExchangeRateSource != CommissionCNYRateSourceDerived || snapshot.ExchangeRateDate != "2026-08-15" ||
+		if snapshot.CommissionDate != "2026-08-15" || snapshot.ExchangeRate.StringFixed(8) != "1.00000000" ||
+			snapshot.ExchangeRateSource != CommissionCNYRateSourceBaseCurrency || snapshot.ExchangeRateDate != "2026-08-15" ||
 			snapshot.ExchangeRateSettingID != nil {
-			t.Fatalf("创建快照不符: %#v", snapshot)
+			t.Fatalf("创建快照应为原币记账恒等口径: %#v", snapshot)
 		}
-		if repo.createAudit == nil || repo.createAudit.Details["cny.exchange_rate"] != "0.50000000" ||
-			repo.createAudit.Details["cny.rate_date"] != "2026-08-15" || repo.createAudit.Details["cny.source"] != CommissionCNYRateSourceDerived ||
+		if repo.createAudit == nil || repo.createAudit.Details["cny.exchange_rate"] != "1.00000000" ||
+			repo.createAudit.Details["cny.rate_date"] != "2026-08-15" || repo.createAudit.Details["cny.source"] != CommissionCNYRateSourceBaseCurrency ||
 			repo.createAudit.Details["commission_date"] != "2026-08-15" {
 			t.Fatalf("创建审计详情不符: %#v", repo.createAudit)
 		}
 	})
 
-	t.Run("本位币为CNY时无需外部汇率配置", func(t *testing.T) {
+	t.Run("本位币为CNY时同样恒等固化", func(t *testing.T) {
 		repo := newRepo()
 		repo.generation.BaseCurrency = "CNY"
-		rateStub := newCommissionRateStub(org, "CNY", decimal.Decimal{})
-		usecase := newUsecase(rateStub, repo)
+		usecase := newUsecase(repo)
 		if _, err := usecase.Create(context.Background(), org, actor, input); err != nil {
 			t.Fatalf("Create() error = %v", err)
 		}
@@ -515,43 +474,20 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 		}
 	})
 
-	t.Run("预览后汇率变化时按创建事务内重新解析结果写入", func(t *testing.T) {
-		repo := newRepo()
-		repo.preview = &CommissionCalculation{BaseCurrency: "USD", CommissionAmount: decimal.RequireFromString("100")}
-		rateStub := newCommissionRateStub(org, "USD", decimal.RequireFromString("0.5"))
-		usecase := newUsecase(rateStub, repo)
-		preview, err := usecase.Preview(context.Background(), org, verificationID, uuid.Nil, employeeID, ruleID)
-		if err != nil {
-			t.Fatalf("Preview() error = %v", err)
-		}
-		if preview.CNY.ExchangeRate.StringFixed(8) != "0.50000000" {
-			t.Fatalf("预览折算率不符: %s", preview.CNY.ExchangeRate.StringFixed(8))
-		}
-		rateStub.rateByCurrency["USD"] = decimal.RequireFromString("0.25")
-		if _, err = usecase.Create(context.Background(), org, actor, input); err != nil {
-			t.Fatalf("Create() error = %v", err)
-		}
-		if repo.createdSnapshot.ExchangeRate.StringFixed(8) != "0.25000000" {
-			t.Fatalf("创建应按事务内重新解析的汇率写入: %s", repo.createdSnapshot.ExchangeRate.StringFixed(8))
-		}
-	})
-
 	t.Run("同核销单重生成按新快照不沿用旧值", func(t *testing.T) {
 		repo := newRepo()
-		rateStub := newCommissionRateStub(org, "USD", decimal.RequireFromString("0.5"))
-		usecase := newUsecase(rateStub, repo)
+		usecase := newUsecase(repo)
 		if _, err := usecase.Create(context.Background(), org, actor, input); err != nil {
 			t.Fatalf("Create() error = %v", err)
 		}
 		first := *repo.createdSnapshot
 		repo.createdSnapshot = nil
 		repo.generation = &CommissionGenerationContext{CommissionDate: "2026-09-01", BaseCurrency: "USD"}
-		rateStub.rateByCurrency["USD"] = decimal.RequireFromString("0.4")
 		if _, createErr := usecase.Create(context.Background(), org, actor, input); createErr != nil {
 			t.Fatalf("重新生成 Create() error = %v", createErr)
 		}
 		second := repo.createdSnapshot
-		if second.CommissionDate != "2026-09-01" || second.ExchangeRate.StringFixed(8) != "0.40000000" || second.ExchangeRateDate != "2026-09-01" {
+		if second.CommissionDate != "2026-09-01" || second.ExchangeRateDate != "2026-09-01" {
 			t.Fatalf("重新生成应按新核销单派生快照: %#v", second)
 		}
 		if first.CommissionDate == second.CommissionDate {
@@ -559,26 +495,10 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 		}
 	})
 
-	t.Run("汇率缺失时报错且不写入", func(t *testing.T) {
-		repo := newRepo()
-		rateStub := &exchangeRateRepoStub{
-			rateContext: &ExchangeRateContext{OwnerOrganizationID: org, BaseCurrency: "USD"},
-			resolveErr:  ErrExchangeRateMissing,
-		}
-		usecase := newUsecase(rateStub, repo)
-		if _, err := usecase.Create(context.Background(), org, actor, input); err != ErrExchangeRateMissing {
-			t.Fatalf("Create() error = %v, want %v", err, ErrExchangeRateMissing)
-		}
-		if repo.createCalled {
-			t.Fatalf("汇率缺失时不应写入提成")
-		}
-	})
-
 	t.Run("写入失败时错误原样外传", func(t *testing.T) {
 		repo := newRepo()
 		repo.createErr = ErrCommissionDuplicate
-		rateStub := newCommissionRateStub(org, "USD", decimal.RequireFromString("0.5"))
-		usecase := newUsecase(rateStub, repo)
+		usecase := newUsecase(repo)
 		if _, err := usecase.Create(context.Background(), org, actor, input); err != ErrCommissionDuplicate {
 			t.Fatalf("Create() error = %v, want %v", err, ErrCommissionDuplicate)
 		}
@@ -588,7 +508,7 @@ func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 func TestCommissionUsecaseListValidatesCommissionDateFilter(t *testing.T) {
 	org := uuid.New()
 	repo := &commissionRepoStub{}
-	usecase := NewCommissionUsecase(repo, nil, nil, nil)
+	usecase := NewCommissionUsecase(repo, nil, nil)
 
 	for _, tt := range []struct {
 		name     string
@@ -638,7 +558,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 
 	t.Run("超上限拒绝且不查询数据不写审计", func(t *testing.T) {
 		repo := &commissionRepoStub{count: CommissionExportLimit + 1}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{Status: CommissionPaid})
 		if err != ErrCommissionExportLimit {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionExportLimit)
@@ -653,7 +573,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 
 	t.Run("零行导出仍写审计且不发起分批查询", func(t *testing.T) {
 		repo := &commissionRepoStub{}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
 		if err != nil {
 			t.Fatalf("Export() error = %v", err)
@@ -670,7 +590,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 		repo := &commissionRepoStub{count: 450, exportBatches: [][]*FinanceCommission{
 			commissionExportBatch(200, 0), commissionExportBatch(200, 200), commissionExportBatch(50, 400),
 		}}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
 		if err != nil {
 			t.Fatalf("Export() error = %v", err)
@@ -712,7 +632,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 				batches = append(batches, commissionExportBatch(size, offset))
 			}
 			repo.exportBatches = batches
-			usecase := NewCommissionUsecase(repo, nil, nil, nil)
+			usecase := NewCommissionUsecase(repo, nil, nil)
 			items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
 			if err != nil {
 				t.Fatalf("Export() error = %v", err)
@@ -732,7 +652,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 
 	t.Run("审计记录操作人组织筛选与行数", func(t *testing.T) {
 		repo := &commissionRepoStub{count: 1, exportBatches: [][]*FinanceCommission{commissionExportBatch(1, 0)}}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{Keyword: "张三", Status: CommissionConfirmed, CommissionDateFrom: "2026-07-01", CommissionDateTo: "2026-08-31"}); err != nil {
 			t.Fatalf("Export() error = %v", err)
 		}
@@ -751,7 +671,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 
 	t.Run("审计失败时整体失败不返回数据", func(t *testing.T) {
 		repo := &commissionRepoStub{count: 1, exportBatches: [][]*FinanceCommission{commissionExportBatch(1, 0)}, exportAuditErr: ErrCommissionInvalid}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
 		if err != ErrCommissionInvalid {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
@@ -775,7 +695,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 			{name: "起始晚于结束", org: org, actor: actor, filter: CommissionFilter{CommissionDateFrom: "2026-08-01", CommissionDateTo: "2026-07-01"}},
 		} {
 			repo := &commissionRepoStub{}
-			usecase := NewCommissionUsecase(repo, nil, nil, nil)
+			usecase := NewCommissionUsecase(repo, nil, nil)
 			if _, err := usecase.Export(context.Background(), tt.org, tt.actor, tt.filter); err != ErrCommissionInvalid {
 				t.Fatalf("%s: error = %v, want %v", tt.name, err, ErrCommissionInvalid)
 			}
@@ -787,7 +707,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 
 	t.Run("计数失败原样外传", func(t *testing.T) {
 		repo := &commissionRepoStub{countErr: ErrCommissionInvalid}
-		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		usecase := NewCommissionUsecase(repo, nil, nil)
 		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{}); err != ErrCommissionInvalid {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
 		}
@@ -804,7 +724,7 @@ func TestCommissionUsecaseValidatesExclusiveSource(t *testing.T) {
 			generation: &CommissionGenerationContext{CommissionDate: "2026-08-15", BaseCurrency: "CNY"},
 			preview:    &CommissionCalculation{BaseCurrency: "CNY", CommissionAmount: decimal.RequireFromString("10")},
 		}
-		return NewCommissionUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), NewExchangeRateUsecase(newCommissionRateStub(org, "CNY", decimal.Decimal{})), &transactorStub{})
+		return NewCommissionUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), &transactorStub{})
 	}
 
 	for name, input := range map[string]CreateCommissionInput{

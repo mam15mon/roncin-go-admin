@@ -18,7 +18,9 @@ type exchangeRateRepoStub struct {
 	resolveDates   []string
 	resolvePairs   []string
 	resolvePivots  []string
-	savedSetting   *ExchangeRateSetting
+	savedSettings  []*ExchangeRateSetting
+	savedSource    string
+	updatedSetting *ExchangeRateSetting
 	disabledID     uuid.UUID
 }
 
@@ -30,27 +32,31 @@ func (*exchangeRateRepoStub) List(context.Context, uuid.UUID) ([]*ExchangeRateSe
 	return nil, nil
 }
 
-func (s *exchangeRateRepoStub) Create(_ context.Context, _ uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
-	s.savedSetting = input
+func (s *exchangeRateRepoStub) UpsertWeeklyBatch(_ context.Context, source string, inputs []*ExchangeRateSetting, _ *AuditEvent) ([]*ExchangeRateSetting, error) {
+	s.savedSettings = append(s.savedSettings, inputs...)
+	s.savedSource = source
+	return inputs, nil
+}
+
+func (s *exchangeRateRepoStub) UpdateScoped(_ context.Context, _ uuid.UUID, input *ExchangeRateSetting, _ bool, _ *AuditEvent) (*ExchangeRateSetting, error) {
+	s.updatedSetting = input
 	saved := *input
 	return &saved, nil
 }
 
-func (s *exchangeRateRepoStub) Update(_ context.Context, _ uuid.UUID, input *ExchangeRateSetting, _ *AuditEvent) (*ExchangeRateSetting, error) {
-	s.savedSetting = input
-	saved := *input
-	return &saved, nil
-}
-
-func (s *exchangeRateRepoStub) Disable(_ context.Context, _ uuid.UUID, id uuid.UUID, _ *AuditEvent) error {
+func (s *exchangeRateRepoStub) DisableScoped(_ context.Context, _ uuid.UUID, id uuid.UUID, _ bool, _ *AuditEvent) error {
 	s.disabledID = id
 	return nil
 }
 
-// ResolveRate 模拟仓储解析：rateByCurrency 表示总部维护的「X → pivot」单边行；
+func (*exchangeRateRepoStub) EnabledCurrencyCodes(context.Context) ([]string, error) {
+	return []string{"USD", "EUR", "HKD", "CNY", "CAD"}, nil
+}
+
+// ResolveRate 模拟仓储解析：rateByCurrency 表示维护的「X → pivot」单边行；
 // 目标即 pivot 时单边行就是直连行（SYSTEM）；目标非 pivot 时先查 rateByPair
 // 直连行，缺失再按两腿交叉套算（DERIVED），任一腿缺失或 to 腿非正即报缺失。
-func (s *exchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (ResolvedRate, error) {
+func (s *exchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, fromCurrency, toCurrency, pivotCurrency, rateDate string) (ResolvedRate, error) {
 	s.resolveDates = append(s.resolveDates, rateDate)
 	s.resolvePairs = append(s.resolvePairs, fromCurrency+"→"+toCurrency)
 	s.resolvePivots = append(s.resolvePivots, pivotCurrency)
@@ -82,90 +88,85 @@ func (s *exchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, fromC
 	return ResolvedRate{Rate: legFrom.Div(legTo).RoundBank(8), Source: ExchangeRateSourceDerived}, nil
 }
 
-func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
-	effectiveTo := "2026-09-01T23:59:59+08:00"
+func validDualRateForTest(ar, ap string) (*decimal.Decimal, *decimal.Decimal) {
+	arRate := decimal.RequireFromString(ar)
+	apRate := decimal.RequireFromString(ap)
+	return &arRate, &apRate
+}
+
+func TestNormalizeExchangeRateSettingSnapsToNaturalWeek(t *testing.T) {
+	arRate, apRate := validDualRateForTest("6.7500", "6.7000")
 	input := &ExchangeRateSetting{
 		FromCurrency: "usd", ToCurrency: "cny",
-		EffectiveFrom: "2026-08-01T09:30:00+08:00", EffectiveTo: &effectiveTo,
-		Rate: decimal.RequireFromString("7.12345678"),
+		EffectiveFrom: "2026-08-05T09:30:00+08:00",
+		ARRate:        arRate, APRate: apRate,
 	}
 	value, err := normalizeExchangeRateSetting(input)
 	if err != nil {
 		t.Fatalf("规范化汇率失败: %v", err)
 	}
-	if value.FromCurrency != "USD" || value.ToCurrency != "CNY" || value.EffectiveFrom != "2026-08-01T09:30:00+08:00" || value.Rate.StringFixed(8) != "7.12345678" {
-		t.Fatalf("汇率规范化结果不正确: %#v", value)
+	// 周内时刻归一化为所在自然周：周一 00:00:00 至周日 23:59:59（Asia/Shanghai）。
+	if value.EffectiveFrom != "2026-08-03T00:00:00+08:00" {
+		t.Fatalf("生效起点应归一化为周一 00:00:00，实际 %s", value.EffectiveFrom)
+	}
+	if value.EffectiveTo == nil || *value.EffectiveTo != "2026-08-09T23:59:59+08:00" {
+		t.Fatalf("生效终点应归一化为周日 23:59:59，实际 %v", value.EffectiveTo)
+	}
+	// 基准价缺省按应收/应付中间价记录。
+	if value.Rate.StringFixed(8) != "6.72500000" {
+		t.Fatalf("基准价缺省应为中间价 6.72500000，实际 %s", value.Rate)
+	}
+	if value.ARRate.StringFixed(4) != "6.7500" || value.APRate.StringFixed(4) != "6.7000" {
+		t.Fatalf("双轨点差应保留，实际 ar=%s ap=%s", value.ARRate, value.APRate)
 	}
 }
 
-func TestNormalizeExchangeRateSettingRejectsNonPositiveRate(t *testing.T) {
-	for _, rate := range []decimal.Decimal{decimal.Zero, decimal.NewFromInt(-7), decimal.RequireFromString("0.00000000")} {
-		input := &ExchangeRateSetting{
-			FromCurrency: "USD", ToCurrency: "CNY",
-			EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: rate,
-		}
+func TestNormalizeExchangeRateSettingRequiresDualRates(t *testing.T) {
+	arRate, apRate := validDualRateForTest("6.7500", "6.7000")
+	cases := map[string]*ExchangeRateSetting{
+		"缺少应收汇率": {FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00", APRate: apRate},
+		"缺少应付汇率": {FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: arRate},
+		"应收非正数":  {FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: decimalPtr(decimal.Zero), APRate: apRate},
+	}
+	for name, input := range cases {
 		if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
-			t.Fatalf("非正汇率 %s 应被拒绝，实际错误为 %v", rate, err)
+			t.Fatalf("%s 应被拒绝，实际错误为 %v", name, err)
 		}
+	}
+}
+
+func TestNormalizeExchangeRateSettingAcceptsExplicitBaselineRate(t *testing.T) {
+	arRate, apRate := validDualRateForTest("6.7500", "6.7000")
+	input := &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "CNY",
+		EffectiveFrom: "2026-08-05", // 纯日期同样按业务时区归周。
+		ARRate:        arRate, APRate: apRate,
+		Rate: decimal.RequireFromString("6.72"),
+	}
+	value, err := normalizeExchangeRateSetting(input)
+	if err != nil {
+		t.Fatalf("规范化汇率失败: %v", err)
+	}
+	if value.Rate.StringFixed(8) != "6.72000000" {
+		t.Fatalf("显式基准价应保留，实际 %s", value.Rate)
 	}
 }
 
 func TestNormalizeExchangeRateSettingRejectsInvalidInterval(t *testing.T) {
-	effectiveTo := "2026-08-01T09:29:59+08:00"
+	arRate, apRate := validDualRateForTest("6.7500", "6.7000")
 	input := &ExchangeRateSetting{
 		FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-01T09:30:00+08:00", EffectiveTo: &effectiveTo,
-		Rate: decimal.NewFromInt(7),
+		EffectiveFrom: "2026-08-27T09:30:00", // 无时区时间拒绝。
+		ARRate:        arRate, APRate: apRate,
 	}
 	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
-		t.Fatalf("无效生效区间应被拒绝，实际错误为 %v", err)
-	}
-}
-
-func TestNormalizeExchangeRateSettingRejectsExcessPrecision(t *testing.T) {
-	input := &ExchangeRateSetting{
-		FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.RequireFromString("7.123456789"),
-	}
-	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
-		t.Fatalf("九位小数汇率应被拒绝，实际错误为 %v", err)
-	}
-}
-
-func TestNormalizeExchangeRateSettingRequiresZonedSecondTimestamp(t *testing.T) {
-	cases := []string{
-		"2026-08-27",
-		"2026-08-27T09:30:00",
-		"2026-08-27T09:30:00.123+08:00",
-	}
-	for _, effectiveFrom := range cases {
-		input := &ExchangeRateSetting{
-			FromCurrency: "USD", ToCurrency: "CNY",
-			EffectiveFrom: effectiveFrom, Rate: decimal.NewFromInt(7),
-		}
-		if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
-			t.Fatalf("非带时区秒级时间 %q 应被拒绝，实际错误为 %v", effectiveFrom, err)
-		}
-	}
-}
-
-func TestNormalizeExchangeRateSettingConvertsToBusinessTimezone(t *testing.T) {
-	input := &ExchangeRateSetting{
-		FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-27T01:30:00Z", Rate: decimal.NewFromInt(7),
-	}
-	normalized, err := normalizeExchangeRateSetting(input)
-	if err != nil {
-		t.Fatalf("规范化带时区时间失败: %v", err)
-	}
-	if normalized.EffectiveFrom != "2026-08-27T09:30:00+08:00" {
-		t.Fatalf("汇率时间未统一到业务时区: %s", normalized.EffectiveFrom)
+		t.Fatalf("无时区生效时刻应被拒绝，实际错误为 %v", err)
 	}
 }
 
 func TestResolveRateReturnsExactOneForBaseCurrency(t *testing.T) {
 	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "USD"}}
-	rate, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-08-27")
+	rate, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-08-27")
 	if err != nil {
 		t.Fatalf("解析本币汇率失败: %v", err)
 	}
@@ -177,12 +178,12 @@ func TestResolveRateReturnsExactOneForBaseCurrency(t *testing.T) {
 	}
 }
 
-func TestResolveRateUsesHeadquartersOwnerAndTargetDate(t *testing.T) {
+func TestResolveRateUsesOrganizationOwnerAndTargetDate(t *testing.T) {
 	repo := &exchangeRateRepoStub{
 		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
-	rate, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "usd", "2026-08-27")
+	rate, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "usd", "2026-08-27")
 	if err != nil {
 		t.Fatalf("解析折本币汇率失败: %v", err)
 	}
@@ -191,27 +192,19 @@ func TestResolveRateUsesHeadquartersOwnerAndTargetDate(t *testing.T) {
 	}
 }
 
-func TestResolveRateKeepsMissingError(t *testing.T) {
-	repo := &exchangeRateRepoStub{
-		rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
-		resolveErr:  ErrExchangeRateMissing,
-	}
-	_, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-08-27")
-	if err != ErrExchangeRateMissing {
-		t.Fatalf("未命中生效汇率应保留缺失错误，实际 %v", err)
-	}
-}
-
-func TestResolveRateRejectsInvalidDateOrCurrency(t *testing.T) {
-	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}})
+func TestResolveRateRejectsInvalidDirectionDateOrCurrency(t *testing.T) {
+	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}}, nil)
 	org := uuid.Must(uuid.NewV7())
-	if _, err := usecase.ResolveRate(context.Background(), org, "USD", "2026-8-27"); err != ErrExchangeRateInvalidArgument {
+	if _, err := usecase.ResolveRate(context.Background(), org, OrderFeeDirection("INVALID"), "USD", "2026-08-27"); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("非法收支方向应被拒绝，实际 %v", err)
+	}
+	if _, err := usecase.ResolveRate(context.Background(), org, OrderFeeReceivable, "USD", "2026-8-27"); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("非法日期应被拒绝，实际 %v", err)
 	}
-	if _, err := usecase.ResolveRate(context.Background(), org, "US", "2026-08-27"); err != ErrExchangeRateInvalidArgument {
+	if _, err := usecase.ResolveRate(context.Background(), org, OrderFeeReceivable, "US", "2026-08-27"); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("非法币种应被拒绝，实际 %v", err)
 	}
-	if _, err := usecase.ResolveRate(context.Background(), uuid.Nil, "USD", "2026-08-27"); err != ErrExchangeRateInvalidArgument {
+	if _, err := usecase.ResolveRate(context.Background(), uuid.Nil, OrderFeeReceivable, "USD", "2026-08-27"); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("空组织应被拒绝，实际 %v", err)
 	}
 }
@@ -219,43 +212,97 @@ func TestResolveRateRejectsInvalidDateOrCurrency(t *testing.T) {
 func TestCreateWritesBaselineRowForHeadquarters(t *testing.T) {
 	caller := uuid.Must(uuid.NewV7())
 	owner := uuid.Must(uuid.NewV7())
+	arRate, apRate := validDualRateForTest("6.75", "6.70")
 	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: owner, BaseCurrency: "CNY"}}
-	usecase := NewExchangeRateUsecase(repo)
+	usecase := NewExchangeRateUsecase(repo, nil)
 	ctx := principalContext(headquartersPrincipal("system.finance.exchange_rate.create"))
 	created, err := usecase.Create(ctx, caller, uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
-		FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.NewFromInt(7),
+		FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: arRate, APRate: apRate,
 	})
 	if err != nil {
 		t.Fatalf("创建汇率失败: %v", err)
 	}
-	// 汇率基线行 organization_id 必须为 NULL，与存储 B 型结构一致。
-	if created.OrganizationID != nil || repo.savedSetting.OrganizationID != nil {
-		t.Fatalf("汇率写入应落基线行（organization_id 为空），实际 %v / %v", created.OrganizationID, repo.savedSetting.OrganizationID)
+	// 总部写 NULL 基线行（公共兜底），与存储 B 型结构一致。
+	if created.OrganizationID != nil || len(repo.savedSettings) != 1 || repo.savedSettings[0].OrganizationID != nil {
+		t.Fatalf("总部写入应落基线行（organization_id 为空），实际 %v", repo.savedSettings)
+	}
+	if repo.savedSource != ExchangeRateSettingSourceManual {
+		t.Fatalf("页面写入来源应为 MANUAL，实际 %s", repo.savedSource)
 	}
 }
 
-func TestCreateRejectsBranchContextWithoutHeadquartersIdentity(t *testing.T) {
-	caller := uuid.Must(uuid.NewV7())
-	owner := uuid.Must(uuid.NewV7())
-	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: owner, BaseCurrency: "CNY"}}
-	usecase := NewExchangeRateUsecase(repo)
-	// 分支上下文即使持有权限码，也不得写基线行。
+func TestCreateWritesOrganizationRowForBranch(t *testing.T) {
+	branchOrg := uuid.Must(uuid.NewV7())
+	actor := uuid.Must(uuid.NewV7())
+	arRate, apRate := validDualRateForTest("1.10", "1.08")
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: branchOrg, BaseCurrency: "HKD"}}
+	usecase := NewExchangeRateUsecase(repo, nil)
+	// 分公司上下文只持有权限码即可维护本组织周汇率行。
 	ctx := principalContext(companyPrincipal("system.finance.exchange_rate.create"))
-	_, err := usecase.Create(ctx, caller, uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
-		FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.NewFromInt(7),
+	created, err := usecase.Create(ctx, branchOrg, actor, &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "HKD", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: arRate, APRate: apRate,
 	})
-	if err != ErrMasterDataHeadquartersRequired {
-		t.Fatalf("分支上下文写基线行应返回 403 业务错误，实际 %v", err)
+	if err != nil {
+		t.Fatalf("分公司创建汇率失败: %v", err)
+	}
+	if created.OrganizationID == nil || *created.OrganizationID != branchOrg {
+		t.Fatalf("分公司写入应落本组织行，实际 %v", created.OrganizationID)
+	}
+}
+
+func TestCreateRejectsBranchContextWithoutPermission(t *testing.T) {
+	branchOrg := uuid.Must(uuid.NewV7())
+	actor := uuid.Must(uuid.NewV7())
+	arRate, apRate := validDualRateForTest("1.10", "1.08")
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: branchOrg, BaseCurrency: "HKD"}}
+	usecase := NewExchangeRateUsecase(repo, nil)
+	ctx := principalContext(companyPrincipal())
+	if _, err := usecase.Create(ctx, branchOrg, actor, &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "HKD", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: arRate, APRate: apRate,
+	}); err != ErrExchangeRatePermissionDenied {
+		t.Fatalf("无权限分公司写汇率应返回 403 业务错误，实际 %v", err)
 	}
 }
 
 func TestCreateRejectsNonBaseTargetCurrency(t *testing.T) {
+	arRate, apRate := validDualRateForTest("6.75", "6.70")
 	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}}
-	_, err := NewExchangeRateUsecase(repo).Create(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
-		FromCurrency: "USD", ToCurrency: "EUR", EffectiveFrom: "2026-08-01T00:00:00+08:00", Rate: decimal.NewFromInt(7),
+	_, err := NewExchangeRateUsecase(repo, nil).Create(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "EUR", EffectiveFrom: "2026-08-05T00:00:00+08:00", ARRate: arRate, APRate: apRate,
 	})
 	if err != ErrExchangeRateCurrencyInvalid {
 		t.Fatalf("目标币种不是组织本币应被拒绝，实际 %v", err)
+	}
+}
+
+func TestExchangeRateWeekWindowBounds(t *testing.T) {
+	// 2026-09-16 是周三：窗口应锚定本周一 00:00:00 至周日 23:59:59。
+	monday, sunday := ExchangeRateWeekWindow(time.Date(2026, 9, 16, 15, 30, 0, 0, ExchangeRateBusinessLocation()))
+	if monday.Format("2006-01-02 15:04:05") != "2026-09-14 00:00:00" {
+		t.Fatalf("周窗口起点应为周一 00:00:00，实际 %s", monday)
+	}
+	if sunday.Format("2006-01-02 15:04:05") != "2026-09-20 23:59:59" {
+		t.Fatalf("周窗口终点应为周日 23:59:59，实际 %s", sunday)
+	}
+	// 周日时刻仍属于同一周。
+	weekEndFrom, weekEndTo := ExchangeRateWeekWindow(sunday)
+	if !weekEndFrom.Equal(monday) || !weekEndTo.Equal(sunday) {
+		t.Fatalf("周日时刻应命中同一周窗口: %s ~ %s", weekEndFrom, weekEndTo)
+	}
+}
+
+func TestExchangeRateSyncWeekWindowSupportsNextWeekPreset(t *testing.T) {
+	now := time.Date(2026, 9, 16, 8, 0, 0, 0, ExchangeRateBusinessLocation())
+	from, to, ok := ExchangeRateSyncWeekWindow(ExchangeRateSyncTargetCurrentWeek, now)
+	if !ok || from.Format("2006-01-02") != "2026-09-14" || to.Format("2006-01-02") != "2026-09-20" {
+		t.Fatalf("本周窗口不正确: %s ~ %s ok=%t", from, to, ok)
+	}
+	nextFrom, nextTo, ok := ExchangeRateSyncWeekWindow(ExchangeRateSyncTargetNextWeek, now)
+	if !ok || nextFrom.Format("2006-01-02") != "2026-09-21" || nextTo.Format("2006-01-02") != "2026-09-27" {
+		t.Fatalf("预设下周窗口不正确: %s ~ %s ok=%t", nextFrom, nextTo, ok)
+	}
+	if _, _, ok := ExchangeRateSyncWeekWindow("BOGUS", now); ok {
+		t.Fatal("非法目标周应返回 false")
 	}
 }
 

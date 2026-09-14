@@ -2706,6 +2706,46 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.GetExchangeRateImportResponse'
+    /api/v1/finance/exchange-rate-syncs:
+        post:
+            tags:
+                - ExchangeRateService
+            description: SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+            operationId: ExchangeRateService_SyncExchangeRates
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.SyncExchangeRatesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.SyncExchangeRatesResponse'
+    /api/v1/finance/exchange-rate-syncs/fetch:
+        post:
+            tags:
+                - ExchangeRateService
+            description: |-
+                FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+                 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+            operationId: ExchangeRateService_FetchExchangeRates
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.FetchExchangeRatesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.FetchExchangeRatesResponse'
     /api/v1/finance/exchange-rates:
         get:
             tags:
@@ -10626,7 +10666,8 @@ components:
                 - fromCurrency
                 - toCurrency
                 - effectiveFrom
-                - rate
+                - arRate
+                - apRate
             type: object
             properties:
                 fromCurrency:
@@ -10635,11 +10676,16 @@ components:
                     type: string
                 effectiveFrom:
                     type: string
-                    description: 示例：2026-08-27T09:30:00+08:00。
-                effectiveTo:
+                    description: 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
+                arRate:
                     type: string
+                    description: ar_rate 为应收汇率（现汇卖出价），必填。
+                apRate:
+                    type: string
+                    description: ap_rate 为应付汇率（现汇买入价），必填。
                 rate:
                     type: string
+                    description: rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
         finance.v1.CreateExchangeRateSettingResponse:
             type: object
             properties:
@@ -10934,8 +10980,15 @@ components:
                     type: string
                 toCurrency:
                     type: string
+                arRate:
+                    type: string
+                    description: ar_rate 为应收汇率（现汇卖出价）。
+                apRate:
+                    type: string
+                    description: ap_rate 为应付汇率（现汇买入价）。
                 rate:
                     type: string
+                    description: rate 为基准汇率（中行折算价口径），可空。
                 effectiveFrom:
                     type: string
                 effectiveTo:
@@ -10959,10 +11012,16 @@ components:
                     type: string
                 effectiveFrom:
                     type: string
-                    description: effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。
+                    description: effective_from 为带时区且精确到秒的 RFC 3339 时间（自然周周一 00:00:00，Asia/Shanghai），区间左边界包含该时刻。
                 effectiveTo:
                     type: string
-                    description: effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。
+                    description: effective_to 为带时区且精确到秒的 RFC 3339 时间（同一自然周周日 23:59:59，Asia/Shanghai），区间右边界包含该时刻。
+                arRate:
+                    type: string
+                    description: ar_rate 为应收汇率（现汇卖出价）：客户账单（AR）外币折本币收款使用。
+                apRate:
+                    type: string
+                    description: ap_rate 为应付汇率（现汇买入价）：供应商账单（AP）外币折本币付款使用。
                 isActive:
                     type: boolean
                 createdAt:
@@ -10971,7 +11030,48 @@ components:
                     type: string
                 rate:
                     type: string
-                    description: rate 为原币折本位币的单一基准汇率。
+                    description: rate 为基准汇率（中行折算价口径），用于内部综合审计与报表基准。
+        finance.v1.ExchangeRateSyncPreview:
+            type: object
+            properties:
+                target:
+                    type: integer
+                    format: enum
+                baseCurrency:
+                    type: string
+                    description: base_currency 为当前组织本币（同步行的 to_currency）。
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                source:
+                    type: string
+                    description: source 为数据来源明示（如「中国银行官方牌价」「新浪财经中行专线」「国际直盘行情」）。
+                fallbackUsed:
+                    type: boolean
+                    description: fallback_used 表示主源失败后启用了备选源（非静默兜底，前端需展示）。
+                rows:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.ExchangeRateSyncPreviewRow'
+        finance.v1.ExchangeRateSyncPreviewRow:
+            type: object
+            properties:
+                fromCurrency:
+                    type: string
+                arRate:
+                    type: string
+                    description: ar_rate 为建议应收汇率（现汇卖出价/直盘 Ask）。
+                apRate:
+                    type: string
+                    description: ap_rate 为建议应付汇率（现汇买入价/直盘 Bid）。
+                rate:
+                    type: string
+                    description: rate 为建议基准汇率（中行折算价/中间价口径）。
+                conversionPath:
+                    type: string
+                    description: conversion_path 说明换算路径（如「国际直盘 USD→HKD」或「中行交叉盘 USD→CNY ÷ HKD→CNY」）。
+            description: ExchangeRateSyncPreviewRow 是单币种的抓取建议值（财务终审前可微调）。
         finance.v1.ExportCommissionsResponse:
             type: object
             properties:
@@ -11209,6 +11309,29 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+        finance.v1.FetchExchangeRatesRequest:
+            required:
+                - target
+            type: object
+            properties:
+                target:
+                    type: integer
+                    description: target 为目标自然周（本周/预设下周）。
+                    format: enum
+        finance.v1.FetchExchangeRatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.ExchangeRateSyncPreview'
+                traceId:
                     type: string
         finance.v1.FinanceBaseCurrencyAmount:
             type: object
@@ -13222,6 +13345,55 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.SyncExchangeRateRow:
+            required:
+                - fromCurrency
+                - arRate
+                - apRate
+            type: object
+            properties:
+                fromCurrency:
+                    type: string
+                arRate:
+                    type: string
+                apRate:
+                    type: string
+                rate:
+                    type: string
+        finance.v1.SyncExchangeRatesRequest:
+            required:
+                - target
+                - rows
+            type: object
+            properties:
+                target:
+                    type: integer
+                    format: enum
+                rows:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.SyncExchangeRateRow'
+                    description: rows 为财务终审（含微调）后的牌价行；同周重复发布执行幂等覆盖更新。
+        finance.v1.SyncExchangeRatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                syncedCount:
+                    type: integer
+                    description: synced_count 为本次幂等入库（新建+覆盖更新）的汇率行数。
+                    format: int32
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.TaxableService:
             type: object
             properties:
@@ -13406,7 +13578,8 @@ components:
                 - fromCurrency
                 - toCurrency
                 - effectiveFrom
-                - rate
+                - arRate
+                - apRate
             type: object
             properties:
                 id:
@@ -13417,11 +13590,16 @@ components:
                     type: string
                 effectiveFrom:
                     type: string
-                    description: 示例：2026-08-27T09:30:00+08:00。
-                effectiveTo:
+                    description: 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
+                arRate:
                     type: string
+                    description: ar_rate 为应收汇率（现汇卖出价），必填。
+                apRate:
+                    type: string
+                    description: ap_rate 为应付汇率（现汇买入价），必填。
                 rate:
                     type: string
+                    description: rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
         finance.v1.UpdateExchangeRateSettingResponse:
             type: object
             properties:
@@ -21229,7 +21407,7 @@ tags:
          不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
     - name: EnterpriseResourceService
     - name: ExchangeRateService
-      description: ExchangeRateService 维护总部统一的折本币基准汇率主数据。
+      description: ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
     - name: FeeCatalogService
       description: FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
     - name: MasterDataService

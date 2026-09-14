@@ -94,6 +94,7 @@ export default function OrderFeesPage() {
     exchangeRateStatus,
     manualExchangeRate,
     setManualExchangeRate,
+    inheritedLastWeek,
     resetPreview,
     seedFromFee,
     handleValuesChange,
@@ -631,6 +632,7 @@ export default function OrderFeesPage() {
         totalPreview={totalPreview}
         exchangeRateStatus={exchangeRateStatus}
         exchangeRatePreview={exchangeRatePreview}
+        inheritedLastWeek={inheritedLastWeek}
         manualExchangeRate={manualExchangeRate}
         setManualExchangeRate={setManualExchangeRate}
         onOpenQuickAddFee={handleOpenQuickAddFee}

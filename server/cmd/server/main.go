@@ -39,7 +39,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications *server.NotificationWorker, approvals *server.DingTalkApprovalWorker, objectDeletions *server.ObjectDeletionWorker) *kratos.App {
+func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications *server.NotificationWorker, approvals *server.DingTalkApprovalWorker, objectDeletions *server.ObjectDeletionWorker, exchangeRateReminders *server.ExchangeRateReminderWorker) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -52,6 +52,7 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications
 			notifications,
 			approvals,
 			objectDeletions,
+			exchangeRateReminders,
 		),
 	)
 }

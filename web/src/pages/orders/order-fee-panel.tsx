@@ -140,6 +140,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       exchangeRateStatus,
       manualExchangeRate,
       setManualExchangeRate,
+      inheritedLastWeek,
       resetPreview,
       seedFromFee,
       resolveExchangeRate,
@@ -550,6 +551,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           totalPreview={totalPreview}
           exchangeRateStatus={exchangeRateStatus}
           exchangeRatePreview={exchangeRatePreview}
+          inheritedLastWeek={inheritedLastWeek}
           manualExchangeRate={manualExchangeRate}
           setManualExchangeRate={setManualExchangeRate}
           onOpenQuickAddFee={() => {

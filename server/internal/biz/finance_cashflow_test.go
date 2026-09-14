@@ -93,7 +93,7 @@ func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	repo := &financeCashflowRepoStub{}
-	usecase := NewFinanceCashflowUsecase(repo, NewExchangeRateUsecase(exchangeRepo))
+	usecase := NewFinanceCashflowUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil))
 	item, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), CreateFinanceCashflowInput{
 		Direction:         OrderFeeReceivable,
 		SettlementPartyID: uuid.New(),
@@ -120,7 +120,7 @@ func TestCreateFinanceCashflowRejectsUnauthorizedRateOverride(t *testing.T) {
 		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY", PivotCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
-	usecase := NewFinanceCashflowUsecase(&financeCashflowRepoStub{}, NewExchangeRateUsecase(exchangeRepo))
+	usecase := NewFinanceCashflowUsecase(&financeCashflowRepoStub{}, NewExchangeRateUsecase(exchangeRepo, nil))
 	override := decimal.RequireFromString("7.30")
 	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), CreateFinanceCashflowInput{
 		Direction:            OrderFeeReceivable,
@@ -156,7 +156,7 @@ func TestCreateFinanceCashflowReplaysBeforeResolvingCurrentRate(t *testing.T) {
 		PaymentMethod:     "银行转账",
 	}
 	repo := &financeCashflowRepoStub{existing: existing}
-	usecase := NewFinanceCashflowUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{}))
+	usecase := NewFinanceCashflowUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{}, nil))
 	override := decimal.RequireFromString("7.20")
 
 	replayed, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
@@ -185,7 +185,7 @@ func TestFinanceCashflow_CasualSupplierAccountConstraint(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
 		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 	}
-	rateUsecase := NewExchangeRateUsecase(exchangeRepo)
+	rateUsecase := NewExchangeRateUsecase(exchangeRepo, nil)
 
 	t.Run("散客供应商付款无对方账户直接拒绝", func(t *testing.T) {
 		repo := &financeCashflowRepoStub{isCasual: true}

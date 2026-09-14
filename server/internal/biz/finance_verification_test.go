@@ -175,7 +175,7 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 	}
 	transactor := &verificationTransactorStub{}
-	usecase := NewVerificationUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
+	usecase := NewVerificationUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateVerificationInput{
 		Allocations:      []*VerificationAllocation{{CashflowID: cashflowID, BillID: billID, Amount: decimal.RequireFromString("40")}},

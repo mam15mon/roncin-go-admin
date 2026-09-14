@@ -68,6 +68,43 @@ export async function exchangeRateServicePreviewExchangeRateImport(
   );
 }
 
+/** SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。 POST /api/v1/finance/exchange-rate-syncs */
+export async function exchangeRateServiceSyncExchangeRates(
+  body: API.SyncExchangeRatesRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.SyncExchangeRatesResponse>(
+    "/api/v1/finance/exchange-rate-syncs",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+ 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。 POST /api/v1/finance/exchange-rate-syncs/fetch */
+export async function exchangeRateServiceFetchExchangeRates(
+  body: API.FetchExchangeRatesRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.FetchExchangeRatesResponse>(
+    "/api/v1/finance/exchange-rate-syncs/fetch",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/exchange-rates */
 export async function exchangeRateServiceListExchangeRateSettings(options?: {
   [key: string]: any;

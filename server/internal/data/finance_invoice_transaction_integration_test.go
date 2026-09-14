@@ -106,7 +106,7 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetTaxAmount("0.00000000").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(orderfeeent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeInvoiceIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
@@ -127,7 +127,7 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeInvoiceIntegrationDate).
 		SetTotalAmount("100.00000000").
 		SetNetAmount("100.00000000").
@@ -193,7 +193,7 @@ func (f *financeInvoicePostgresFixture) createInvoiceWithStatus(key string, stat
 			SetIssuedAt(now).
 			SetIssuedBy(f.actorID).
 			SetExchangeRate("1.00000000").
-			SetExchangeRateSource(financeinvoiceent.ExchangeRateSourceBASE_CURRENCY).
+			SetExchangeRateSource(financeinvoiceent.ExchangeRateSourceSYSTEM).
 			SetExchangeRateDate(financeInvoiceIntegrationDate).
 			SetBaseCurrencyAmount("100.00000000")
 	}

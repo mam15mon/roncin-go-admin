@@ -18,7 +18,7 @@ const (
 	exchangeRateImportMaxFileSize = 5 << 20
 )
 
-var exchangeRateImportHeaders = []string{"原币", "本币", "折本币汇率", "生效开始时间", "生效结束时间"}
+var exchangeRateImportHeaders = []string{"原币", "本币", "应收汇率（现汇卖出价）", "应付汇率（现汇买入价）", "基准汇率", "生效开始时间"}
 
 func buildExchangeRateImportTemplate() ([]byte, error) {
 	file := excelize.NewFile()
@@ -40,7 +40,7 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = file.SetCellStyle(exchangeRateImportSheet, "A1", "E1", headerStyle); err != nil {
+	if err = file.SetCellStyle(exchangeRateImportSheet, "A1", "F1", headerStyle); err != nil {
 		return nil, err
 	}
 	timeFormat := "yyyy-mm-dd hh:mm:ss"
@@ -48,10 +48,10 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = file.SetCellStyle(exchangeRateImportSheet, "D2", "E501", timeStyle); err != nil {
+	if err = file.SetCellStyle(exchangeRateImportSheet, "F2", "F501", timeStyle); err != nil {
 		return nil, err
 	}
-	widths := map[string]float64{"A": 12, "B": 12, "C": 16, "D": 24, "E": 24}
+	widths := map[string]float64{"A": 12, "B": 12, "C": 22, "D": 22, "E": 16, "F": 24}
 	for column, width := range widths {
 		if err = file.SetColWidth(exchangeRateImportSheet, column, column, width); err != nil {
 			return nil, err
@@ -62,10 +62,11 @@ func buildExchangeRateImportTemplate() ([]byte, error) {
 	}
 	help := [][]any{
 		{"模板版本", biz.ExchangeRateImportTemplateVersion},
-		{"填写规则", "所有时间精确到秒，格式为 YYYY-MM-DD HH:mm:ss，按 Asia/Shanghai 解释。"},
-		{"折本币汇率", "原币折组织本位币的统一基准汇率，最多 8 位小数且必须大于 0。"},
-		{"生效区间", "左闭右开：[生效开始时间, 生效结束时间)；结束时间留空表示长期有效。"},
-		{"导入策略", "严格整批导入：任一行错误、文件内重叠或与现有启用汇率重叠时均不能确认。"},
+		{"填写规则", "生效开始时间精确到秒，格式为 YYYY-MM-DD HH:mm:ss，按 Asia/Shanghai 解释；任选目标自然周内时刻，服务端自动归一化为该自然周（周一 00:00:00 至周日 23:59:59）。"},
+		{"应收汇率", "现汇卖出价口径：客户账单（AR）外币折本币收款使用，最多 8 位小数且必须大于 0。"},
+		{"应付汇率", "现汇买入价口径：供应商账单（AP）外币折本币付款使用，最多 8 位小数且必须大于 0。"},
+		{"基准汇率", "中行折算价口径（可空）：内部综合审计与报表基准；留空按应收/应付中间价记录。"},
+		{"导入策略", "整批导入：任一行错误或文件内同周重复时不能确认；与现有同周汇率重复时执行覆盖更新。"},
 		{"最大行数", biz.ExchangeRateImportMaxRows},
 	}
 	for rowIndex, row := range help {
@@ -145,12 +146,7 @@ func parseExchangeRateImportWorkbook(fileName string, content []byte) (biz.Previ
 				values[index] = strings.TrimSpace(columns[index])
 			}
 		}
-		var effectiveTo *string
-		if values[4] != "" {
-			value := values[4]
-			effectiveTo = &value
-		}
-		rows = append(rows, &biz.ExchangeRateImportRow{RowNumber: rowNumber, FromCurrency: values[0], ToCurrency: values[1], Rate: values[2], EffectiveFrom: values[3], EffectiveTo: effectiveTo, Errors: []string{}})
+		rows = append(rows, &biz.ExchangeRateImportRow{RowNumber: rowNumber, FromCurrency: values[0], ToCurrency: values[1], ARRate: values[2], APRate: values[3], Rate: values[4], EffectiveFrom: values[5], Errors: []string{}})
 	}
 	if err = iterator.Error(); err != nil {
 		return biz.PreviewExchangeRateImportInput{}, biz.ErrExchangeRateImportFileInvalid

@@ -19,7 +19,7 @@ func TestExchangeRateImportTemplateCanBeParsed(t *testing.T) {
 		t.Fatalf("生成结果不是有效 xlsx: %v", err)
 	}
 	defer file.Close()
-	if version, _ := file.GetCellValue(exchangeRateImportHelpSheet, "B1"); version != "2" {
+	if version, _ := file.GetCellValue(exchangeRateImportHelpSheet, "B1"); version != "3" {
 		t.Fatalf("模板版本错误: %q", version)
 	}
 }
@@ -33,7 +33,7 @@ func TestParseExchangeRateImportWorkbook(t *testing.T) {
 	if err != nil {
 		t.Fatalf("打开模板失败: %v", err)
 	}
-	values := []any{"USD", "CNY", "7.20000000", "2026-08-27 09:30:01", "2026-08-27 18:00:00"}
+	values := []any{"USD", "CNY", "7.30000000", "7.10000000", "7.20000000", "2026-08-27 09:30:01"}
 	for index, value := range values {
 		cell, _ := excelize.CoordinatesToCellName(index+1, 2)
 		if err = file.SetCellValue(exchangeRateImportSheet, cell, value); err != nil {
@@ -49,7 +49,7 @@ func TestParseExchangeRateImportWorkbook(t *testing.T) {
 	if err != nil {
 		t.Fatalf("解析汇率工作簿失败: %v", err)
 	}
-	if input.TemplateVersion != biz.ExchangeRateImportTemplateVersion || len(input.Rows) != 1 || input.Rows[0].RowNumber != 2 || input.Rows[0].EffectiveFrom != "2026-08-27 09:30:01" {
+	if input.TemplateVersion != biz.ExchangeRateImportTemplateVersion || len(input.Rows) != 1 || input.Rows[0].RowNumber != 2 || input.Rows[0].EffectiveFrom != "2026-08-27 09:30:01" || input.Rows[0].ARRate != "7.30000000" || input.Rows[0].APRate != "7.10000000" {
 		t.Fatalf("工作簿解析结果不正确: %#v", input)
 	}
 }
@@ -77,15 +77,15 @@ func TestParseExchangeRateImportWorkbookFormatsExcelDateTimeCells(t *testing.T) 
 		cell, _ := excelize.CoordinatesToCellName(index+1, 2)
 		_ = file.SetCellValue(exchangeRateImportSheet, cell, value)
 	}
-	_ = file.SetCellValue(exchangeRateImportSheet, "D2", time.Date(2026, 8, 27, 9, 30, 1, 0, time.Local))
-	_ = file.SetCellValue(exchangeRateImportSheet, "E2", time.Date(2026, 8, 27, 18, 0, 0, 0, time.Local))
+	// 生效时刻列（F）由 Excel 日期时间单元格写入，应被格式化为秒级文本。
+	_ = file.SetCellValue(exchangeRateImportSheet, "F2", time.Date(2026, 8, 27, 9, 30, 1, 0, time.Local))
 	buffer, _ := file.WriteToBuffer()
 	_ = file.Close()
 	input, err := parseExchangeRateImportWorkbook("汇率.xlsx", buffer.Bytes())
 	if err != nil {
 		t.Fatalf("Excel 日期时间单元格应能解析: %v", err)
 	}
-	if input.Rows[0].EffectiveFrom != "2026-08-27 09:30:01" || input.Rows[0].EffectiveTo == nil || *input.Rows[0].EffectiveTo != "2026-08-27 18:00:00" {
+	if input.Rows[0].EffectiveFrom != "2026-08-27 09:30:01" {
 		t.Fatalf("Excel 日期时间格式化错误: %#v", input.Rows[0])
 	}
 }

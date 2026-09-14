@@ -296,7 +296,6 @@ type ExchangeRateSource string
 // ExchangeRateSource values.
 const (
 	ExchangeRateSourceSYSTEM              ExchangeRateSource = "SYSTEM"
-	ExchangeRateSourceBASE_CURRENCY       ExchangeRateSource = "BASE_CURRENCY"
 	ExchangeRateSourceMANUAL              ExchangeRateSource = "MANUAL"
 	ExchangeRateSourceDERIVED             ExchangeRateSource = "DERIVED"
 	ExchangeRateSourceWEEKLY              ExchangeRateSource = "WEEKLY"
@@ -311,7 +310,7 @@ func (ers ExchangeRateSource) String() string {
 // ExchangeRateSourceValidator is a validator for the "exchange_rate_source" field enum values. It is called by the builders before save.
 func ExchangeRateSourceValidator(ers ExchangeRateSource) error {
 	switch ers {
-	case ExchangeRateSourceSYSTEM, ExchangeRateSourceBASE_CURRENCY, ExchangeRateSourceMANUAL, ExchangeRateSourceDERIVED, ExchangeRateSourceWEEKLY, ExchangeRateSourceINHERITED_LAST_WEEK, ExchangeRateSourceBOC_SYNC:
+	case ExchangeRateSourceSYSTEM, ExchangeRateSourceMANUAL, ExchangeRateSourceDERIVED, ExchangeRateSourceWEEKLY, ExchangeRateSourceINHERITED_LAST_WEEK, ExchangeRateSourceBOC_SYNC:
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for exchange_rate_source field: %q", ers)

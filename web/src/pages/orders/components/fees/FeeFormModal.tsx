@@ -52,6 +52,8 @@ type FeeFormModalProps = {
   totalPreview?: string;
   exchangeRateStatus: 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
   exchangeRatePreview?: string;
+  /** 漏配容灾：当周汇率未配置、回溯沿用最近历史周行时展示黄色提示。 */
+  inheritedLastWeek?: boolean;
   manualExchangeRate: boolean;
   setManualExchangeRate: (val: boolean) => void;
   onOpenQuickAddFee: () => void;
@@ -75,6 +77,7 @@ export default function FeeFormModal({
   totalPreview,
   exchangeRateStatus,
   exchangeRatePreview,
+  inheritedLastWeek = false,
   manualExchangeRate,
   setManualExchangeRate,
   onOpenQuickAddFee,
@@ -280,6 +283,7 @@ export default function FeeFormModal({
             amountColor={modalDirection === 1 ? '#1677ff' : '#fa8c16'}
             status={exchangeRateStatus}
             ratePreview={exchangeRatePreview}
+            inherited={inheritedLastWeek}
             onEnableManual={() => setManualExchangeRate(true)}
           />
         </Col>

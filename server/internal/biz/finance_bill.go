@@ -789,7 +789,7 @@ func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context,
 			return nil, ErrFinanceBillFeeMismatch
 		}
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, group.Currency, billDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, group.Direction, group.Currency, billDate)
 	if err != nil {
 		return nil, err
 	}
@@ -799,7 +799,8 @@ func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context,
 		SettlementPartyID: group.SettlementPartyID, SettlementPartyName: group.SettlementPartyName,
 		SettlementAccountID: group.SettlementAccountID, Currency: group.Currency, BaseCurrency: group.BaseCurrency,
 		ExchangeRate: resolved.Rate.RoundBank(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: billDate,
-		BillDate: billDate, Version: 1,
+		ExchangeRateSettingID: resolved.SettingID,
+		BillDate:              billDate, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(group.Fees)),
 	}
 	for _, item := range group.Fees {
@@ -1164,7 +1165,7 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 	if uc.exchangeRate == nil || bill == nil {
 		return ErrFinanceBillInvalidArgument
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, bill.Currency, bill.BillDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, bill.Direction, bill.Currency, bill.BillDate)
 	if err != nil {
 		return err
 	}
@@ -1178,7 +1179,7 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 	bill.ExchangeRate = resolved.Rate.RoundBank(8)
 	bill.ExchangeRateSource = resolved.Source
 	bill.ExchangeRateDate = bill.BillDate
-	bill.ExchangeRateSettingID = nil
+	bill.ExchangeRateSettingID = resolved.SettingID
 	// 头本位币金额必须使用已固化（舍入到 8 位）的账单汇率，与批量内核口径一致。
 	bill.BaseCurrencyAmount = bill.TotalAmount.Mul(bill.ExchangeRate).RoundBank(8)
 	allocated := decimal.Zero

@@ -23681,6 +23681,7 @@ type ExchangeRateSettingMutation struct {
 	rate            *string
 	ar_rate         *string
 	ap_rate         *string
+	source          *exchangeratesetting.Source
 	is_active       *bool
 	clearedFields   map[string]struct{}
 	done            bool
@@ -24204,6 +24205,42 @@ func (m *ExchangeRateSettingMutation) ResetApRate() {
 	delete(m.clearedFields, exchangeratesetting.FieldApRate)
 }
 
+// SetSource sets the "source" field.
+func (m *ExchangeRateSettingMutation) SetSource(e exchangeratesetting.Source) {
+	m.source = &e
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *ExchangeRateSettingMutation) Source() (r exchangeratesetting.Source, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the ExchangeRateSetting entity.
+// If the ExchangeRateSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateSettingMutation) OldSource(ctx context.Context) (v exchangeratesetting.Source, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *ExchangeRateSettingMutation) ResetSource() {
+	m.source = nil
+}
+
 // SetIsActive sets the "is_active" field.
 func (m *ExchangeRateSettingMutation) SetIsActive(b bool) {
 	m.is_active = &b
@@ -24274,7 +24311,7 @@ func (m *ExchangeRateSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ExchangeRateSettingMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, exchangeratesetting.FieldCreatedAt)
 	}
@@ -24304,6 +24341,9 @@ func (m *ExchangeRateSettingMutation) Fields() []string {
 	}
 	if m.ap_rate != nil {
 		fields = append(fields, exchangeratesetting.FieldApRate)
+	}
+	if m.source != nil {
+		fields = append(fields, exchangeratesetting.FieldSource)
 	}
 	if m.is_active != nil {
 		fields = append(fields, exchangeratesetting.FieldIsActive)
@@ -24336,6 +24376,8 @@ func (m *ExchangeRateSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.ArRate()
 	case exchangeratesetting.FieldApRate:
 		return m.ApRate()
+	case exchangeratesetting.FieldSource:
+		return m.Source()
 	case exchangeratesetting.FieldIsActive:
 		return m.IsActive()
 	}
@@ -24367,6 +24409,8 @@ func (m *ExchangeRateSettingMutation) OldField(ctx context.Context, name string)
 		return m.OldArRate(ctx)
 	case exchangeratesetting.FieldApRate:
 		return m.OldApRate(ctx)
+	case exchangeratesetting.FieldSource:
+		return m.OldSource(ctx)
 	case exchangeratesetting.FieldIsActive:
 		return m.OldIsActive(ctx)
 	}
@@ -24447,6 +24491,13 @@ func (m *ExchangeRateSettingMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetApRate(v)
+		return nil
+	case exchangeratesetting.FieldSource:
+		v, ok := value.(exchangeratesetting.Source)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
 		return nil
 	case exchangeratesetting.FieldIsActive:
 		v, ok := value.(bool)
@@ -24560,6 +24611,9 @@ func (m *ExchangeRateSettingMutation) ResetField(name string) error {
 		return nil
 	case exchangeratesetting.FieldApRate:
 		m.ResetApRate()
+		return nil
+	case exchangeratesetting.FieldSource:
+		m.ResetSource()
 		return nil
 	case exchangeratesetting.FieldIsActive:
 		m.ResetIsActive()

@@ -108,10 +108,10 @@ const (
 // CommissionCNYSnapshot 是提成生成时固化的 CNY 折算快照与归属日期，写入后不可变。
 type CommissionCNYSnapshot struct {
 	CommissionDate        string          // 归属日期，等于核销单 verification_date
-	ExchangeRate          decimal.Decimal // 本位币折算到 CNY 的汇率
-	ExchangeRateSource    string          // BASE_CURRENCY 或 DERIVED
+	ExchangeRate          decimal.Decimal // 本位币折算到 CNY 的汇率（原币记账口径恒为 1）
+	ExchangeRateSource    string          // BASE_CURRENCY（原币记账恒等口径）
 	ExchangeRateDate      string          // 来源汇率日期
-	ExchangeRateSettingID *uuid.UUID      // 被反算的原始 CNY→本位币汇率配置
+	ExchangeRateSettingID *uuid.UUID      // 被反算的原始 CNY→本位币汇率配置（原币记账后恒空）
 	CommissionAmount      decimal.Decimal // 原始提成 CNY 快照
 }
 
@@ -124,27 +124,21 @@ func (s *CommissionCNYSnapshot) ApplyCommissionAmount(commissionAmount decimal.D
 	s.CommissionAmount = commissionAmount.Mul(s.ExchangeRate).Round(8)
 }
 
-// ResolveCommissionCNYRate 是预览与创建共用的 CNY 汇率快照纯计算函数：
-// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种直接固化
-// resolvedRate——即总部基准汇率表按提成生成日解析到的「本位币 → CNY」正向汇率
-// （round 8 位），来源 DERIVED。禁止浮点数、补差与零值回退；汇率缺失或日期无效时
-// 返回业务错误。
-func ResolveCommissionCNYRate(baseCurrency, commissionDate string, resolvedRate decimal.Decimal) (*CommissionCNYSnapshot, error) {
+// ResolveCommissionCNYRate 是预览与创建共用的 CNY 快照纯计算函数（原币记账口径）：
+// 提成金额已按组织本位币核算，CNY 快照固化恒等口径（汇率 1、来源 BASE_CURRENCY），
+// 不再经总部基线汇率二次折算——ResolveBaseRate 已退役，跨组织提成与往来按单据
+// 原币记账（PRD R3.5），各组织本币管理口径如需折算用本组织汇率自行处理。
+func ResolveCommissionCNYRate(baseCurrency, commissionDate string, commissionAmount decimal.Decimal) (*CommissionCNYSnapshot, error) {
 	if baseCurrency == "" || !validFinanceDate(commissionDate) {
 		return nil, ErrCommissionInvalid
 	}
-	snapshot := &CommissionCNYSnapshot{CommissionDate: commissionDate, ExchangeRateDate: commissionDate}
-	if baseCurrency == cnyCurrency {
-		snapshot.ExchangeRate = decimal.NewFromInt(1)
-		snapshot.ExchangeRateSource = CommissionCNYRateSourceBaseCurrency
-		return snapshot, nil
-	}
-	if !resolvedRate.IsPositive() {
-		return nil, ErrExchangeRateInvalidArgument
-	}
-	snapshot.ExchangeRate = resolvedRate.Round(8)
-	snapshot.ExchangeRateSource = CommissionCNYRateSourceDerived
-	return snapshot, nil
+	return &CommissionCNYSnapshot{
+		CommissionDate:     commissionDate,
+		ExchangeRate:       decimal.NewFromInt(1),
+		ExchangeRateSource: CommissionCNYRateSourceBaseCurrency,
+		ExchangeRateDate:   commissionDate,
+		CommissionAmount:   commissionAmount.Round(8),
+	}, nil
 }
 
 // CommissionCalculation 是预览和创建提成共用的计算结果，不包含持久化状态。
@@ -439,14 +433,13 @@ func (u *CommissionUsecase) ListNettingCandidates(ctx context.Context, org uuid.
 }
 
 type CommissionUsecase struct {
-	repo         CommissionRepo
-	config       *OrderConfigUsecase
-	exchangeRate *ExchangeRateUsecase
-	transactor   Transactor
+	repo       CommissionRepo
+	config     *OrderConfigUsecase
+	transactor Transactor
 }
 
-func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase, exchangeRate *ExchangeRateUsecase, transactor Transactor) *CommissionUsecase {
-	return &CommissionUsecase{repo: repo, config: config, exchangeRate: exchangeRate, transactor: transactor}
+func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase, transactor Transactor) *CommissionUsecase {
+	return &CommissionUsecase{repo: repo, config: config, transactor: transactor}
 }
 
 func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
@@ -561,12 +554,9 @@ func (u *CommissionUsecase) GetAdjustmentScoped(ctx context.Context, organizatio
 	return u.repo.GetAdjustmentScoped(ctx, organizationIDs, id)
 }
 
-// Preview 按核销或对冲来源二选一预览提成计算，并按生成日解析 CNY 汇率快照。
+// Preview 按核销或对冲来源二选一预览提成计算，并按生成日固化 CNY 快照（原币记账口径）。
 func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
 	if org == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil || !validCommissionSource(verificationID, nettingID) {
-		return nil, ErrCommissionInvalid
-	}
-	if u.exchangeRate == nil {
 		return nil, ErrCommissionInvalid
 	}
 	calculation, err := u.repo.Preview(ctx, org, verificationID, nettingID, employeeID, ruleID)
@@ -577,15 +567,10 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, ne
 	if err != nil {
 		return nil, err
 	}
-	resolvedRate, err := u.exchangeRate.ResolveBaseRate(ctx, org, generation.BaseCurrency, cnyCurrency, generation.CommissionDate)
+	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, calculation.CommissionAmount)
 	if err != nil {
 		return nil, err
 	}
-	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, resolvedRate.Rate)
-	if err != nil {
-		return nil, err
-	}
-	snapshot.ApplyCommissionAmount(calculation.CommissionAmount)
 	calculation.CNY = snapshot
 	return calculation, nil
 }
@@ -678,7 +663,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	if org == uuid.Nil || actor == uuid.Nil || !validCommissionSource(in.VerificationID, in.NettingID) || in.EmployeeID == uuid.Nil || in.RuleID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return nil, ErrCommissionInvalid
 	}
-	if u.exchangeRate == nil || u.transactor == nil {
+	if u.transactor == nil {
 		return nil, ErrCommissionInvalid
 	}
 	if old, err := u.repo.GetByKey(ctx, org, in.IdempotencyKey); err != nil {
@@ -695,18 +680,14 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		return nil, err
 	}
 	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, NettingID: in.NettingID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
-	// 生成上下文读取、汇率解析与提成写入在同一共享事务内完成；
-	// CNY 快照不依赖预览结果，按事务内解析结果固化。
+	// 生成上下文读取与提成写入在同一共享事务内完成；CNY 快照不依赖预览结果，
+	// 按事务内固化（原币记账恒等口径，无需再解析外部汇率）。
 	err = u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID, in.NettingID)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		resolvedRate, transactionErr := u.exchangeRate.ResolveBaseRate(txCtx, org, generation.BaseCurrency, cnyCurrency, generation.CommissionDate)
-		if transactionErr != nil {
-			return transactionErr
-		}
-		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, resolvedRate.Rate)
+		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, decimal.Zero)
 		if transactionErr != nil {
 			return transactionErr
 		}

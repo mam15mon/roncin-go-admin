@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	ExchangeRateImportTemplateVersion = 2
+	ExchangeRateImportTemplateVersion = 3
 	ExchangeRateImportMaxRows         = 500
 	ExchangeRateImportPreviewTTL      = 30 * time.Minute
 	ExchangeRateImportPreviewReady    = "PREVIEW_READY"
@@ -43,6 +43,8 @@ type ExchangeRateImportRow struct {
 	RowNumber     int       `json:"rowNumber"`
 	FromCurrency  string    `json:"fromCurrency"`
 	ToCurrency    string    `json:"toCurrency"`
+	ARRate        string    `json:"arRate"`
+	APRate        string    `json:"apRate"`
 	Rate          string    `json:"rate"`
 	EffectiveFrom string    `json:"effectiveFrom"`
 	EffectiveTo   *string   `json:"effectiveTo,omitempty"`
@@ -85,10 +87,7 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, "", err
 	}
-	// 汇率导入同样只在总部执行，分支机构不提供导入通道。
-	if rateContext.OwnerOrganizationID != organizationID {
-		return nil, "", ErrExchangeRateHeadquartersRequired
-	}
+	// 汇率导入按当前组织落地：总部落 NULL 基线行，分公司落本组织行。
 	rows := normalizeExchangeRateImportRows(input.Rows, rateContext.BaseCurrency)
 	inspectionErrors, err := uc.repo.InspectImport(ctx, rateContext.OwnerOrganizationID, rows)
 	if err != nil {
@@ -139,9 +138,6 @@ func (uc *ExchangeRateUsecase) ConfirmImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	if rateContext.OwnerOrganizationID != organizationID {
-		return nil, ErrExchangeRateHeadquartersRequired
-	}
 	tokenHash := hashExchangeRateImportPreviewToken(previewToken)
 	audit := exchangeRateImportAudit(organizationID, actorID, uuid.Nil, "finance.exchange_rate.import.confirm", "")
 	return uc.repo.ConfirmImport(ctx, organizationID, rateContext.OwnerOrganizationID, actorID, tokenHash, idempotencyKey, time.Now().UTC(), audit)
@@ -164,6 +160,8 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 		row.Errors = append([]string(nil), source.Errors...)
 		row.FromCurrency = strings.ToUpper(strings.TrimSpace(row.FromCurrency))
 		row.ToCurrency = strings.ToUpper(strings.TrimSpace(row.ToCurrency))
+		row.ARRate = strings.TrimSpace(row.ARRate)
+		row.APRate = strings.TrimSpace(row.APRate)
 		row.Rate = strings.TrimSpace(row.Rate)
 		row.EffectiveFrom = normalizeExchangeRateImportTime(row.EffectiveFrom)
 		if row.EffectiveTo != nil {
@@ -174,9 +172,22 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 				row.EffectiveTo = &value
 			}
 		}
-		rate, rateErr := decimal.NewFromString(row.Rate)
-		if rateErr != nil {
-			row.Errors = appendUniqueStrings(row.Errors, "折本币汇率格式不合法")
+		arRate, arErr := decimal.NewFromString(row.ARRate)
+		if arErr != nil {
+			row.Errors = appendUniqueStrings(row.Errors, "应收汇率（现汇卖出价）格式不合法")
+		}
+		apRate, apErr := decimal.NewFromString(row.APRate)
+		if apErr != nil {
+			row.Errors = appendUniqueStrings(row.Errors, "应付汇率（现汇买入价）格式不合法")
+		}
+		rate := decimal.Zero
+		if row.Rate != "" {
+			parsed, rateErr := decimal.NewFromString(row.Rate)
+			if rateErr != nil {
+				row.Errors = appendUniqueStrings(row.Errors, "基准汇率格式不合法")
+			} else {
+				rate = parsed
+			}
 		}
 		if row.EffectiveFrom == "" {
 			row.Errors = appendUniqueStrings(row.Errors, "生效开始时间格式不合法")
@@ -184,13 +195,14 @@ func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrenc
 		if row.ToCurrency != baseCurrency {
 			row.Errors = appendUniqueStrings(row.Errors, "本币必须是当前组织本币 "+baseCurrency)
 		}
-		if rateErr == nil && row.EffectiveFrom != "" {
-			setting := &ExchangeRateSetting{FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency, EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo, Rate: rate}
+		if arErr == nil && apErr == nil && row.EffectiveFrom != "" {
+			setting := &ExchangeRateSetting{FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency, EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo, ARRate: &arRate, APRate: &apRate, Rate: rate}
 			if normalized, err := normalizeExchangeRateSetting(setting); err != nil {
-				row.Errors = appendUniqueStrings(row.Errors, "汇率字段或生效区间不合法")
+				row.Errors = appendUniqueStrings(row.Errors, "汇率字段或生效周不合法")
 			} else {
 				row.SettingID = uuid.Must(uuid.NewV7())
 				row.FromCurrency, row.ToCurrency = normalized.FromCurrency, normalized.ToCurrency
+				row.ARRate, row.APRate = normalized.ARRate.StringFixed(8), normalized.APRate.StringFixed(8)
 				row.Rate = normalized.Rate.StringFixed(8)
 				row.EffectiveFrom, row.EffectiveTo = normalized.EffectiveFrom, normalized.EffectiveTo
 			}

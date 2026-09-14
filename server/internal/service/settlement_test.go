@@ -440,7 +440,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		rate:    decimal.NewFromInt(1),
 	}
 	accountID := uuid.New()
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo), settlementServiceTransactorStub{})}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo, nil), settlementServiceTransactorStub{})}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
 	policy := &v1.BillGroupingPolicy{Mode: v1.BillGroupingMode_BILL_GROUPING_MODE_NORMAL}

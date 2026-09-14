@@ -103,7 +103,7 @@ func (f *creditPartnerFixture) newConfirmedBill(key string, partyID uuid.UUID, p
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetTotalAmount(amount).
 		SetNetAmount(amount).
@@ -135,7 +135,7 @@ func (f *creditPartnerFixture) settleBill(key string, bill *ent.FinanceBill, amo
 		SetCurrency("CNY").
 		SetAmount(amount8).
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseAmount(amount8).

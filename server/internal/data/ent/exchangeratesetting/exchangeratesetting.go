@@ -3,6 +3,7 @@
 package exchangeratesetting
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -34,6 +35,8 @@ const (
 	FieldArRate = "ar_rate"
 	// FieldApRate holds the string denoting the ap_rate field in the database.
 	FieldApRate = "ap_rate"
+	// FieldSource holds the string denoting the source field in the database.
+	FieldSource = "source"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// Table holds the table name of the exchangeratesetting in the database.
@@ -53,6 +56,7 @@ var Columns = []string{
 	FieldRate,
 	FieldArRate,
 	FieldApRate,
+	FieldSource,
 	FieldIsActive,
 }
 
@@ -82,6 +86,33 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Source defines the type for the "source" enum field.
+type Source string
+
+// SourceMANUAL is the default value of the Source enum.
+const DefaultSource = SourceMANUAL
+
+// Source values.
+const (
+	SourceMANUAL   Source = "MANUAL"
+	SourceIMPORT   Source = "IMPORT"
+	SourceBOC_SYNC Source = "BOC_SYNC"
+)
+
+func (s Source) String() string {
+	return string(s)
+}
+
+// SourceValidator is a validator for the "source" field enum values. It is called by the builders before save.
+func SourceValidator(s Source) error {
+	switch s {
+	case SourceMANUAL, SourceIMPORT, SourceBOC_SYNC:
+		return nil
+	default:
+		return fmt.Errorf("exchangeratesetting: invalid enum value for source field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the ExchangeRateSetting queries.
 type OrderOption func(*sql.Selector)
@@ -139,6 +170,11 @@ func ByArRate(opts ...sql.OrderTermOption) OrderOption {
 // ByApRate orders the results by the ap_rate field.
 func ByApRate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldApRate, opts...).ToFunc()
+}
+
+// BySource orders the results by the source field.
+func BySource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSource, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

@@ -19,7 +19,7 @@ func (r *orderFeeExchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID
 	return &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}, nil
 }
 
-func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _, _, _, rateDate string) (ResolvedRate, error) {
+func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, _, rateDate string) (ResolvedRate, error) {
 	r.resolveCalls++
 	r.resolveDates = append(r.resolveDates, rateDate)
 	return ResolvedRate{Rate: r.rate, Source: ExchangeRateSourceSystem}, nil
@@ -108,7 +108,7 @@ func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl())
 	override := decimal.RequireFromString("7.12345678")
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
@@ -124,7 +124,7 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl())
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
@@ -147,7 +147,7 @@ func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{rate: decimal.RequireFromString("7.12345678")}
-	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl())
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
@@ -193,7 +193,7 @@ func TestSameOrderFeeCreateIntentAcceptsRetryAndRejectsKeyReuse(t *testing.T) {
 
 func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl())
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -214,7 +214,7 @@ func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *tes
 
 func TestCalculateOrderFeeAmountsAddsTaxForExclusivePrice(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl())
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -246,7 +246,7 @@ func TestOrderFeeCreditGateBlocksExceededReceivablePartyOnly(t *testing.T) {
 	creditControl := NewPartnerCreditUsecase(&partnerCreditRepoStub{summaries: map[uuid.UUID]*PartnerCreditSummary{
 		exceededPartyID: {PartnerID: exceededPartyID, CreditLimitBase: &creditLimit, UnsettledReceivableBase: decimal.NewFromInt(200)},
 	}}, NewFinanceCustomSettingUsecase(&interventionModeSettingRepo{allowSelection: false}))
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}), nil, creditControl)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, creditControl)
 
 	receivable := validOrderFeeForTest()
 	receivable.SettlementPartyID = exceededPartyID
@@ -261,7 +261,7 @@ func TestOrderFeeCreditGateBlocksExceededReceivablePartyOnly(t *testing.T) {
 		t.Fatalf("应付方向不占用客户信用额度，不应被拦截: %v", err)
 	}
 
-	reminderUsecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}), nil, newReminderModeCreditControl())
+	reminderUsecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, newReminderModeCreditControl())
 	if err := reminderUsecase.ensureReceivablePartySelectionAllowed(ctx, organizationID, receivable); err != nil {
 		t.Fatalf("仅提醒模式下超额客户应放行: %v", err)
 	}

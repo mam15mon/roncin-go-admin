@@ -20,12 +20,15 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
   const [exchangeRateStatus, setExchangeRateStatus] =
     useState<ExchangeRateStatus>('idle');
   const [manualExchangeRate, setManualExchangeRate] = useState(false);
+  // 漏配容灾：命中最近历史周行时置位，供费用表单展示「暂沿用上周汇率」黄色提示。
+  const [inheritedLastWeek, setInheritedLastWeek] = useState(false);
 
   const resetPreview = () => {
     setTotalPreview(undefined);
     setExchangeRatePreview(undefined);
     setExchangeRateStatus('idle');
     setManualExchangeRate(false);
+    setInheritedLastWeek(false);
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
@@ -35,6 +38,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
     );
     setExchangeRateStatus(fee.exchangeRate ? 'resolved' : 'missing');
     setManualExchangeRate(fee.exchangeRateSource === 'MANUAL');
+    setInheritedLastWeek(fee.exchangeRateSource === 'INHERITED_LAST_WEEK');
   };
 
   const resolveExchangeRate = (
@@ -47,6 +51,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
     setExchangeRateStatus('loading');
     setExchangeRatePreview(undefined);
     setManualExchangeRate(false);
+    setInheritedLastWeek(false);
     orderFeeServiceResolveFeeExchangeRate(
       { orderId, direction, currency, expenseDate },
       { skipErrorHandler: true },
@@ -56,6 +61,9 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
         if (response.success && response.exchangeRate) {
           setExchangeRateStatus('resolved');
           setExchangeRatePreview(trimDecimal(response.exchangeRate));
+          setInheritedLastWeek(
+            response.exchangeRateSource === 'INHERITED_LAST_WEEK',
+          );
           if (!editingFee) {
             setManualExchangeRate(false);
           }
@@ -83,6 +91,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
     exchangeRateStatus,
     manualExchangeRate,
     setManualExchangeRate,
+    inheritedLastWeek,
     resetPreview,
     seedFromFee,
     resolveExchangeRate,

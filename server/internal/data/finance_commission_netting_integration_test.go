@@ -151,7 +151,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 				SetTaxAmount("0.00000000").
 				SetCurrency("CNY").
 				SetExchangeRate("1.00000000").
-				SetExchangeRateSource(fee.ExchangeRateSourceBASE_CURRENCY).
+				SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
 				SetExchangeRateDate(financeCommissionIntegrationDate).
 				SetBaseCurrency("CNY").
 				SetBaseCurrencyAmount(feeSpec.amount).
@@ -180,7 +180,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 			SetCurrency("CNY").
 			SetBaseCurrency("CNY").
 			SetExchangeRate("1.00000000").
-			SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+			SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 			SetExchangeRateDate(financeCommissionIntegrationDate).
 			SetTotalAmount(amount).
 			SetNetAmount(amount).
@@ -226,7 +226,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetTotalAmount("800.00000000").
 		SetNetAmount("800.00000000").
@@ -293,7 +293,6 @@ func (f *commissionNettingPostgresFixture) newUsecase() *biz.CommissionUsecase {
 	return biz.NewCommissionUsecase(
 		NewCommissionRepo(f.data),
 		biz.NewOrderConfigUsecase(NewOrderConfigRepo(f.data)),
-		biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data)),
 		f.data,
 	)
 }
@@ -612,7 +611,7 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetTaxAmount("0.00000000").
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(fee.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("200.00000000").
@@ -633,7 +632,7 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financebillent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetTotalAmount("200.00000000").
 		SetNetAmount("200.00000000").
@@ -677,7 +676,7 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetCurrency("CNY").
 		SetAmount("200.00000000").
 		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(financecashflowent.ExchangeRateSourceBASE_CURRENCY).
+		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseAmount("200.00000000").

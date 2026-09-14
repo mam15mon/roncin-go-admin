@@ -20,6 +20,7 @@ const (
 	NotificationTemplateDingTalkRegistrationPending  = "DINGTALK_REGISTRATION_PENDING"
 	NotificationTemplateDingTalkRegistrationRejected = "DINGTALK_REGISTRATION_REJECTED"
 	NotificationTemplateDingTalkInvitationActivated  = "DINGTALK_INVITATION_ACTIVATED"
+	NotificationTemplateExchangeRateWeeklyReminder   = "EXCHANGE_RATE_WEEKLY_REMINDER"
 )
 
 // NotificationIntent 是业务用例交给仓储、并与业务写入同事务落库的通知意图。
@@ -201,6 +202,14 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 			return "", fmt.Errorf("通知明细不完整")
 		}
 		return fmt.Sprintf("【Roncin 邀请已激活】\n您邀请的 %s 已完成激活并加入 %s，可直接使用钉钉扫码登录。", activatedName, organizationName), nil
+	case NotificationTemplateExchangeRateWeeklyReminder:
+		organizationName := strings.TrimSpace(delivery.ReferenceCode)
+		// Parameter 携带「本币 目标周起~目标周止」，如「CNY 2026-09-14~2026-09-20」。
+		weekScope := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "ORGANIZATION" || organizationName == "" || weekScope == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【周汇率同步督办】\n组织：%s\n本周汇率尚未同步（%s），费用折算正暂沿用上周汇率。\n请尽快在「财务 · 汇率」页完成一键同步或手工维护。", organizationName, weekScope), nil
 	default:
 		return "", fmt.Errorf("通知渠道或模板不受支持")
 	}

@@ -113,7 +113,7 @@ func (s *financeBillExchangeRateTransactionStub) ResolveContext(ctx context.Cont
 	return s.rateContext, nil
 }
 
-func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _, _, _, _ string) (ResolvedRate, error) {
+func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, _, _ string) (ResolvedRate, error) {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
 		return ResolvedRate{}, err
 	}
@@ -140,7 +140,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 		resolvedRate: decimal.RequireFromString("7.20"),
 	}
 	transactor := &financeBillTransactorStub{}
-	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo), transactor)
+	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
 		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test", SettlementAccountID: uuid.New(),

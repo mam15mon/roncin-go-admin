@@ -59,8 +59,8 @@ func (r *invalidAuditResultFinanceBillRepo) Create(ctx context.Context, bill *bi
 	return r.FinanceBillRepo.Create(ctx, bill, audit)
 }
 
-func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
-	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, fromCurrency, toCurrency, pivotCurrency, rateDate)
+func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
+	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, direction, fromCurrency, toCurrency, pivotCurrency, rateDate)
 	if err != nil {
 		return biz.ResolvedRate{}, err
 	}
@@ -163,7 +163,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 			ExchangeRateRepo: NewExchangeRateRepo(data), resolved: make(chan struct{}), release: make(chan struct{}),
 		}
 		defer exchangeRepo.continueResolve()
-		usecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(data), biz.NewExchangeRateUsecase(exchangeRepo), data)
+		usecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(data), biz.NewExchangeRateUsecase(exchangeRepo, nil), data)
 		billResult := make(chan financeBillCreateResult, 1)
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -557,7 +557,7 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 }
 
 func (f *financeBillPostgresFixture) createConfirmedFee(key string) uuid.UUID {
-	return f.createConfirmedFeeWithCurrency(key, "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceBASE_CURRENCY)
+	return f.createConfirmedFeeWithCurrency(key, "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
 }
 
 func (f *financeBillPostgresFixture) createConfirmedFeeWithCurrency(key, currency, rate, baseAmount string, source orderfeeent.ExchangeRateSource) uuid.UUID {
@@ -608,7 +608,7 @@ func (f *financeBillPostgresFixture) createExchangeRateSetting(rate string) uuid
 }
 
 func (f *financeBillPostgresFixture) newUsecase(repo biz.FinanceBillRepo) *biz.FinanceBillUsecase {
-	return biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data)), f.data)
+	return biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), f.data)
 }
 
 func createFinanceBillsConcurrently(usecase *biz.FinanceBillUsecase, organizationID, actorID uuid.UUID, inputs ...biz.CreateFinanceBillInput) []financeBillCreateResult {

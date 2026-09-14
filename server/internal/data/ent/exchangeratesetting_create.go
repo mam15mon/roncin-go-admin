@@ -132,6 +132,20 @@ func (_c *ExchangeRateSettingCreate) SetNillableApRate(v *string) *ExchangeRateS
 	return _c
 }
 
+// SetSource sets the "source" field.
+func (_c *ExchangeRateSettingCreate) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingCreate {
+	_c.mutation.SetSource(v)
+	return _c
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_c *ExchangeRateSettingCreate) SetNillableSource(v *exchangeratesetting.Source) *ExchangeRateSettingCreate {
+	if v != nil {
+		_c.SetSource(*v)
+	}
+	return _c
+}
+
 // SetIsActive sets the "is_active" field.
 func (_c *ExchangeRateSettingCreate) SetIsActive(v bool) *ExchangeRateSettingCreate {
 	_c.mutation.SetIsActive(v)
@@ -203,6 +217,10 @@ func (_c *ExchangeRateSettingCreate) defaults() {
 		v := exchangeratesetting.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Source(); !ok {
+		v := exchangeratesetting.DefaultSource
+		_c.mutation.SetSource(v)
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		v := exchangeratesetting.DefaultIsActive
 		_c.mutation.SetIsActive(v)
@@ -242,6 +260,14 @@ func (_c *ExchangeRateSettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.Rate(); !ok {
 		return &ValidationError{Name: "rate", err: errors.New(`ent: missing required field "ExchangeRateSetting.rate"`)}
+	}
+	if _, ok := _c.mutation.Source(); !ok {
+		return &ValidationError{Name: "source", err: errors.New(`ent: missing required field "ExchangeRateSetting.source"`)}
+	}
+	if v, ok := _c.mutation.Source(); ok {
+		if err := exchangeratesetting.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.source": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "ExchangeRateSetting.is_active"`)}
@@ -321,6 +347,10 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 	if value, ok := _c.mutation.ApRate(); ok {
 		_spec.SetField(exchangeratesetting.FieldApRate, field.TypeString, value)
 		_node.ApRate = &value
+	}
+	if value, ok := _c.mutation.Source(); ok {
+		_spec.SetField(exchangeratesetting.FieldSource, field.TypeEnum, value)
+		_node.Source = value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(exchangeratesetting.FieldIsActive, field.TypeBool, value)
@@ -507,6 +537,18 @@ func (u *ExchangeRateSettingUpsert) UpdateApRate() *ExchangeRateSettingUpsert {
 // ClearApRate clears the value of the "ap_rate" field.
 func (u *ExchangeRateSettingUpsert) ClearApRate() *ExchangeRateSettingUpsert {
 	u.SetNull(exchangeratesetting.FieldApRate)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *ExchangeRateSettingUpsert) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingUpsert {
+	u.Set(exchangeratesetting.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsert) UpdateSource() *ExchangeRateSettingUpsert {
+	u.SetExcluded(exchangeratesetting.FieldSource)
 	return u
 }
 
@@ -724,6 +766,20 @@ func (u *ExchangeRateSettingUpsertOne) UpdateApRate() *ExchangeRateSettingUpsert
 func (u *ExchangeRateSettingUpsertOne) ClearApRate() *ExchangeRateSettingUpsertOne {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
 		s.ClearApRate()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *ExchangeRateSettingUpsertOne) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertOne) UpdateSource() *ExchangeRateSettingUpsertOne {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateSource()
 	})
 }
 
@@ -1110,6 +1166,20 @@ func (u *ExchangeRateSettingUpsertBulk) UpdateApRate() *ExchangeRateSettingUpser
 func (u *ExchangeRateSettingUpsertBulk) ClearApRate() *ExchangeRateSettingUpsertBulk {
 	return u.Update(func(s *ExchangeRateSettingUpsert) {
 		s.ClearApRate()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *ExchangeRateSettingUpsertBulk) SetSource(v exchangeratesetting.Source) *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *ExchangeRateSettingUpsertBulk) UpdateSource() *ExchangeRateSettingUpsertBulk {
+	return u.Update(func(s *ExchangeRateSettingUpsert) {
+		s.UpdateSource()
 	})
 }
 

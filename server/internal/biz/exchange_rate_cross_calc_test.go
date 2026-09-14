@@ -25,7 +25,7 @@ func TestResolveRateCrossCalculatesUSDForCADBaseOrganization(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	resolved, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-09-12")
+	resolved, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-09-12")
 	if err != nil {
 		t.Fatalf("交叉套算 USD→CAD 失败: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestResolveRateCrossTreatsPivotCurrencyLegAsIdentity(t *testing.T) {
 	repo := newCrossCalcRepoStub(map[string]decimal.Decimal{
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	resolved, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "CNY", "2026-09-12")
+	resolved, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "CNY", "2026-09-12")
 	if err != nil {
 		t.Fatalf("交叉套算 CNY→CAD 失败: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestResolveRatePrefersDirectRowOverCrossCalculation(t *testing.T) {
 	}, map[string]decimal.Decimal{
 		"USD→CAD": decimal.RequireFromString("1.50"),
 	})
-	resolved, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-09-12")
+	resolved, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-09-12")
 	if err != nil {
 		t.Fatalf("解析直连 USD→CAD 失败: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestResolveRateFailsClosedWhenCrossLegMissing(t *testing.T) {
 	}
 	for name, rates := range cases {
 		repo := newCrossCalcRepoStub(rates, nil)
-		if _, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-09-12"); err != ErrExchangeRateMissing {
+		if _, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-09-12"); err != ErrExchangeRateMissing {
 			t.Fatalf("%s 应报 ErrExchangeRateMissing，实际 %v", name, err)
 		}
 	}
@@ -100,33 +100,14 @@ func TestResolveRateTreatsNonPositiveCrossLegAsMissing(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.Zero,
 	}, nil)
-	if _, err := NewExchangeRateUsecase(repo).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), "USD", "2026-09-12"); err != ErrExchangeRateMissing {
+	if _, err := NewExchangeRateUsecase(repo, nil).ResolveRate(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-09-12"); err != ErrExchangeRateMissing {
 		t.Fatalf("to 腿为零应视为缺失，实际 %v", err)
 	}
 }
 
-// TestResolveBaseRateCrossCalculatesViaPivot 验证提成入口 ResolveBaseRate 同样
-// 获得套算能力：非基准币对经 pivot 单跳推导；两币相同恒为 1 且来源 SYSTEM。
-func TestResolveBaseRateCrossCalculatesViaPivot(t *testing.T) {
-	repo := newCrossCalcRepoStub(map[string]decimal.Decimal{
-		"EUR": decimal.RequireFromString("7.80"),
-		"CAD": decimal.RequireFromString("5.20"),
-	}, nil)
-	usecase := NewExchangeRateUsecase(repo)
-	org := uuid.Must(uuid.NewV7())
-	resolved, err := usecase.ResolveBaseRate(context.Background(), org, "EUR", "CAD", "2026-09-12")
-	if err != nil {
-		t.Fatalf("交叉套算 EUR→CAD 失败: %v", err)
-	}
-	expected := decimal.RequireFromString("7.80").Div(decimal.RequireFromString("5.20")).RoundBank(8)
-	if !resolved.Rate.Equal(expected) || resolved.Source != ExchangeRateSourceDerived {
-		t.Fatalf("套算结果应为 %s/DERIVED，实际 %s/%s", expected, resolved.Rate, resolved.Source)
-	}
-	identity, err := usecase.ResolveBaseRate(context.Background(), org, "EUR", "EUR", "2026-09-12")
-	if err != nil || !identity.Rate.Equal(decimal.NewFromInt(1)) || identity.Source != ExchangeRateSourceSystem {
-		t.Fatalf("同币解析应恒为 1/SYSTEM，实际 %s/%s error=%v", identity.Rate, identity.Source, err)
-	}
-}
+// 退役回归：ResolveBaseRate 已随阶段二退役，基线交叉套算（DERIVED）仅作为
+// 组织解析链的兜底来源存在；跨组织提成与往来按单据原币记账（见
+// ResolveCommissionCNYRate 的原币记账口径与其测试）。
 
 // TestResolveOrderFeeExchangeRatePropagatesDerivedSource 验证费用快照来源透传：
 // CAD 组织 USD 费用经套算后快照记录 DERIVED（SYSTEM/MANUAL 分别由既有测试锚定）。
@@ -135,7 +116,7 @@ func TestResolveOrderFeeExchangeRatePropagatesDerivedSource(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(repo), nil, newReminderModeCreditControl())
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(repo, nil), nil, newReminderModeCreditControl())
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
@@ -155,7 +136,7 @@ func TestApplyBillExchangeRatePropagatesDerivedSource(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(repo), nil)
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(repo, nil), nil)
 	organizationID := uuid.New()
 	bill := &FinanceBill{
 		Direction:    OrderFeeReceivable,

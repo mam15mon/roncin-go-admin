@@ -21,9 +21,11 @@ const OperationExchangeRateServiceConfirmExchangeRateImport = "/finance.v1.Excha
 const OperationExchangeRateServiceCreateExchangeRateSetting = "/finance.v1.ExchangeRateService/CreateExchangeRateSetting"
 const OperationExchangeRateServiceDisableExchangeRateSetting = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
 const OperationExchangeRateServiceDownloadExchangeRateImportTemplate = "/finance.v1.ExchangeRateService/DownloadExchangeRateImportTemplate"
+const OperationExchangeRateServiceFetchExchangeRates = "/finance.v1.ExchangeRateService/FetchExchangeRates"
 const OperationExchangeRateServiceGetExchangeRateImport = "/finance.v1.ExchangeRateService/GetExchangeRateImport"
 const OperationExchangeRateServiceListExchangeRateSettings = "/finance.v1.ExchangeRateService/ListExchangeRateSettings"
 const OperationExchangeRateServicePreviewExchangeRateImport = "/finance.v1.ExchangeRateService/PreviewExchangeRateImport"
+const OperationExchangeRateServiceSyncExchangeRates = "/finance.v1.ExchangeRateService/SyncExchangeRates"
 const OperationExchangeRateServiceUpdateExchangeRateSetting = "/finance.v1.ExchangeRateService/UpdateExchangeRateSetting"
 
 type ExchangeRateServiceHTTPServer interface {
@@ -33,10 +35,15 @@ type ExchangeRateServiceHTTPServer interface {
 	DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error)
 	// DownloadExchangeRateImportTemplate DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(context.Context, *DownloadExchangeRateImportTemplateRequest) (*DownloadExchangeRateImportTemplateResponse, error)
+	// FetchExchangeRates FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+	// 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+	FetchExchangeRates(context.Context, *FetchExchangeRatesRequest) (*FetchExchangeRatesResponse, error)
 	GetExchangeRateImport(context.Context, *GetExchangeRateImportRequest) (*GetExchangeRateImportResponse, error)
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
 	// PreviewExchangeRateImport PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
 	PreviewExchangeRateImport(context.Context, *PreviewExchangeRateImportRequest) (*PreviewExchangeRateImportResponse, error)
+	// SyncExchangeRates SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+	SyncExchangeRates(context.Context, *SyncExchangeRatesRequest) (*SyncExchangeRatesResponse, error)
 	UpdateExchangeRateSetting(context.Context, *UpdateExchangeRateSettingRequest) (*UpdateExchangeRateSettingResponse, error)
 }
 
@@ -50,6 +57,8 @@ func RegisterExchangeRateServiceHTTPServer(s *http.Server, srv ExchangeRateServi
 	r.Handle("POST", "/api/v1/finance/exchange-rate-imports/preview", _ExchangeRateService_PreviewExchangeRateImport0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/exchange-rate-imports", _ExchangeRateService_ConfirmExchangeRateImport0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/exchange-rate-imports/{id}", _ExchangeRateService_GetExchangeRateImport0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/exchange-rate-syncs/fetch", _ExchangeRateService_FetchExchangeRates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/exchange-rate-syncs", _ExchangeRateService_SyncExchangeRates0_HTTP_Handler(srv))
 }
 
 func _ExchangeRateService_ListExchangeRateSettings0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
@@ -213,6 +222,44 @@ func _ExchangeRateService_GetExchangeRateImport0_HTTP_Handler(srv ExchangeRateSe
 	}
 }
 
+func _ExchangeRateService_FetchExchangeRates0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in FetchExchangeRatesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceFetchExchangeRates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.FetchExchangeRates(ctx, req.(*FetchExchangeRatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*FetchExchangeRatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ExchangeRateService_SyncExchangeRates0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SyncExchangeRatesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceSyncExchangeRates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SyncExchangeRates(ctx, req.(*SyncExchangeRatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SyncExchangeRatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ExchangeRateServiceHTTPClient interface {
 	// ConfirmExchangeRateImport ConfirmExchangeRateImport 使用预检令牌确认整批导入。
 	ConfirmExchangeRateImport(ctx context.Context, req *ConfirmExchangeRateImportRequest, opts ...http.CallOption) (rsp *ConfirmExchangeRateImportResponse, err error)
@@ -220,10 +267,15 @@ type ExchangeRateServiceHTTPClient interface {
 	DisableExchangeRateSetting(ctx context.Context, req *DisableExchangeRateSettingRequest, opts ...http.CallOption) (rsp *DisableExchangeRateSettingResponse, err error)
 	// DownloadExchangeRateImportTemplate DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(ctx context.Context, req *DownloadExchangeRateImportTemplateRequest, opts ...http.CallOption) (rsp *DownloadExchangeRateImportTemplateResponse, err error)
+	// FetchExchangeRates FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+	// 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+	FetchExchangeRates(ctx context.Context, req *FetchExchangeRatesRequest, opts ...http.CallOption) (rsp *FetchExchangeRatesResponse, err error)
 	GetExchangeRateImport(ctx context.Context, req *GetExchangeRateImportRequest, opts ...http.CallOption) (rsp *GetExchangeRateImportResponse, err error)
 	ListExchangeRateSettings(ctx context.Context, req *ListExchangeRateSettingsRequest, opts ...http.CallOption) (rsp *ListExchangeRateSettingsResponse, err error)
 	// PreviewExchangeRateImport PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
 	PreviewExchangeRateImport(ctx context.Context, req *PreviewExchangeRateImportRequest, opts ...http.CallOption) (rsp *PreviewExchangeRateImportResponse, err error)
+	// SyncExchangeRates SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+	SyncExchangeRates(ctx context.Context, req *SyncExchangeRatesRequest, opts ...http.CallOption) (rsp *SyncExchangeRatesResponse, err error)
 	UpdateExchangeRateSetting(ctx context.Context, req *UpdateExchangeRateSettingRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateSettingResponse, err error)
 }
 
@@ -304,6 +356,25 @@ func (c *ExchangeRateServiceHTTPClientImpl) DownloadExchangeRateImportTemplate(c
 	return &out, nil
 }
 
+// FetchExchangeRates FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
+// 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
+func (c *ExchangeRateServiceHTTPClientImpl) FetchExchangeRates(ctx context.Context, in *FetchExchangeRatesRequest, opts ...http.CallOption) (*FetchExchangeRatesResponse, error) {
+	var out FetchExchangeRatesResponse
+	pattern := "/api/v1/finance/exchange-rate-syncs/fetch"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationExchangeRateServiceFetchExchangeRates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ExchangeRateServiceHTTPClientImpl) GetExchangeRateImport(ctx context.Context, in *GetExchangeRateImportRequest, opts ...http.CallOption) (*GetExchangeRateImportResponse, error) {
 	var out GetExchangeRateImportResponse
 	pattern := "/api/v1/finance/exchange-rate-imports/{id}"
@@ -345,6 +416,24 @@ func (c *ExchangeRateServiceHTTPClientImpl) PreviewExchangeRateImport(ctx contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationExchangeRateServicePreviewExchangeRateImport),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SyncExchangeRates SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。
+func (c *ExchangeRateServiceHTTPClientImpl) SyncExchangeRates(ctx context.Context, in *SyncExchangeRatesRequest, opts ...http.CallOption) (*SyncExchangeRatesResponse, error) {
+	var out SyncExchangeRatesResponse
+	pattern := "/api/v1/finance/exchange-rate-syncs"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationExchangeRateServiceSyncExchangeRates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -23,20 +23,76 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ExchangeRateSyncTarget 汇率同步目标自然周。
+type ExchangeRateSyncTarget int32
+
+const (
+	ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED ExchangeRateSyncTarget = 0
+	// 本周（周一 00:00:00 至周日 23:59:59，Asia/Shanghai）。
+	ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK ExchangeRateSyncTarget = 1
+	// 预设下周（下周一 00:00:00 至下周日 23:59:59，Asia/Shanghai）。
+	ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK ExchangeRateSyncTarget = 2
+)
+
+// Enum value maps for ExchangeRateSyncTarget.
+var (
+	ExchangeRateSyncTarget_name = map[int32]string{
+		0: "EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED",
+		1: "EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK",
+		2: "EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK",
+	}
+	ExchangeRateSyncTarget_value = map[string]int32{
+		"EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED":  0,
+		"EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK": 1,
+		"EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK":    2,
+	}
+)
+
+func (x ExchangeRateSyncTarget) Enum() *ExchangeRateSyncTarget {
+	p := new(ExchangeRateSyncTarget)
+	*p = x
+	return p
+}
+
+func (x ExchangeRateSyncTarget) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ExchangeRateSyncTarget) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_exchange_rate_proto_enumTypes[0].Descriptor()
+}
+
+func (ExchangeRateSyncTarget) Type() protoreflect.EnumType {
+	return &file_finance_v1_exchange_rate_proto_enumTypes[0]
+}
+
+func (x ExchangeRateSyncTarget) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ExchangeRateSyncTarget.Descriptor instead.
+func (ExchangeRateSyncTarget) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{0}
+}
+
 type ExchangeRateSetting struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	FromCurrency   string                 `protobuf:"bytes,4,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency     string                 `protobuf:"bytes,5,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	// effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。
+	// effective_from 为带时区且精确到秒的 RFC 3339 时间（自然周周一 00:00:00，Asia/Shanghai），区间左边界包含该时刻。
 	EffectiveFrom string `protobuf:"bytes,7,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	// effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。
+	// effective_to 为带时区且精确到秒的 RFC 3339 时间（同一自然周周日 23:59:59，Asia/Shanghai），区间右边界包含该时刻。
 	EffectiveTo *string `protobuf:"bytes,8,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	IsActive    bool    `protobuf:"varint,11,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	CreatedAt   string  `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt   string  `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// rate 为原币折本位币的单一基准汇率。
+	// ar_rate 为应收汇率（现汇卖出价）：客户账单（AR）外币折本币收款使用。
+	ArRate string `protobuf:"bytes,9,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	// ap_rate 为应付汇率（现汇买入价）：供应商账单（AP）外币折本币付款使用。
+	ApRate    string `protobuf:"bytes,10,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	IsActive  bool   `protobuf:"varint,11,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	CreatedAt string `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// rate 为基准汇率（中行折算价口径），用于内部综合审计与报表基准。
 	Rate          string `protobuf:"bytes,14,opt,name=rate,proto3" json:"rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -110,6 +166,20 @@ func (x *ExchangeRateSetting) GetEffectiveFrom() string {
 func (x *ExchangeRateSetting) GetEffectiveTo() string {
 	if x != nil && x.EffectiveTo != nil {
 		return *x.EffectiveTo
+	}
+	return ""
+}
+
+func (x *ExchangeRateSetting) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *ExchangeRateSetting) GetApRate() string {
+	if x != nil {
+		return x.ApRate
 	}
 	return ""
 }
@@ -266,10 +336,14 @@ type CreateExchangeRateSettingRequest struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	FromCurrency string                 `protobuf:"bytes,2,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency   string                 `protobuf:"bytes,3,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	// 示例：2026-08-27T09:30:00+08:00。
-	EffectiveFrom string  `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo   *string `protobuf:"bytes,6,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	Rate          string  `protobuf:"bytes,9,opt,name=rate,proto3" json:"rate,omitempty"`
+	// 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
+	EffectiveFrom string `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	// ar_rate 为应收汇率（现汇卖出价），必填。
+	ArRate string `protobuf:"bytes,7,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	// ap_rate 为应付汇率（现汇买入价），必填。
+	ApRate string `protobuf:"bytes,8,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	// rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
+	Rate          string `protobuf:"bytes,9,opt,name=rate,proto3" json:"rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,9 +399,16 @@ func (x *CreateExchangeRateSettingRequest) GetEffectiveFrom() string {
 	return ""
 }
 
-func (x *CreateExchangeRateSettingRequest) GetEffectiveTo() string {
-	if x != nil && x.EffectiveTo != nil {
-		return *x.EffectiveTo
+func (x *CreateExchangeRateSettingRequest) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *CreateExchangeRateSettingRequest) GetApRate() string {
+	if x != nil {
+		return x.ApRate
 	}
 	return ""
 }
@@ -344,10 +425,14 @@ type UpdateExchangeRateSettingRequest struct {
 	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	FromCurrency string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency   string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	// 示例：2026-08-27T09:30:00+08:00。
-	EffectiveFrom string  `protobuf:"bytes,6,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo   *string `protobuf:"bytes,7,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	Rate          string  `protobuf:"bytes,10,opt,name=rate,proto3" json:"rate,omitempty"`
+	// 任选目标自然周内时刻，服务端归一化为该周周一 00:00:00（Asia/Shanghai）。
+	EffectiveFrom string `protobuf:"bytes,6,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	// ar_rate 为应收汇率（现汇卖出价），必填。
+	ArRate string `protobuf:"bytes,8,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	// ap_rate 为应付汇率（现汇买入价），必填。
+	ApRate string `protobuf:"bytes,9,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	// rate 为基准汇率（中行折算价口径），可空；缺省时按应收/应付中间价记录。
+	Rate          string `protobuf:"bytes,10,opt,name=rate,proto3" json:"rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -410,9 +495,16 @@ func (x *UpdateExchangeRateSettingRequest) GetEffectiveFrom() string {
 	return ""
 }
 
-func (x *UpdateExchangeRateSettingRequest) GetEffectiveTo() string {
-	if x != nil && x.EffectiveTo != nil {
-		return *x.EffectiveTo
+func (x *UpdateExchangeRateSettingRequest) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *UpdateExchangeRateSettingRequest) GetApRate() string {
+	if x != nil {
+		return x.ApRate
 	}
 	return ""
 }
@@ -973,15 +1065,20 @@ func (x *GetExchangeRateImportRequest) GetId() string {
 }
 
 type ExchangeRateImportRow struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RowNumber     int32                  `protobuf:"varint,1,opt,name=row_number,json=rowNumber,proto3" json:"row_number,omitempty"`
-	FromCurrency  string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
-	ToCurrency    string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	Rate          string                 `protobuf:"bytes,7,opt,name=rate,proto3" json:"rate,omitempty"`
-	EffectiveFrom string                 `protobuf:"bytes,8,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo   *string                `protobuf:"bytes,9,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	Status        string                 `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
-	Errors        []string               `protobuf:"bytes,11,rep,name=errors,proto3" json:"errors,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	RowNumber    int32                  `protobuf:"varint,1,opt,name=row_number,json=rowNumber,proto3" json:"row_number,omitempty"`
+	FromCurrency string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	ToCurrency   string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
+	// ar_rate 为应收汇率（现汇卖出价）。
+	ArRate string `protobuf:"bytes,5,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	// ap_rate 为应付汇率（现汇买入价）。
+	ApRate string `protobuf:"bytes,6,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	// rate 为基准汇率（中行折算价口径），可空。
+	Rate          string   `protobuf:"bytes,7,opt,name=rate,proto3" json:"rate,omitempty"`
+	EffectiveFrom string   `protobuf:"bytes,8,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	EffectiveTo   *string  `protobuf:"bytes,9,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
+	Status        string   `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
+	Errors        []string `protobuf:"bytes,11,rep,name=errors,proto3" json:"errors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1033,6 +1130,20 @@ func (x *ExchangeRateImportRow) GetFromCurrency() string {
 func (x *ExchangeRateImportRow) GetToCurrency() string {
 	if x != nil {
 		return x.ToCurrency
+	}
+	return ""
+}
+
+func (x *ExchangeRateImportRow) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *ExchangeRateImportRow) GetApRate() string {
+	if x != nil {
+		return x.ApRate
 	}
 	return ""
 }
@@ -1456,12 +1567,523 @@ func (x *GetExchangeRateImportResponse) GetTraceId() string {
 	return ""
 }
 
+type FetchExchangeRatesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// target 为目标自然周（本周/预设下周）。
+	Target        ExchangeRateSyncTarget `protobuf:"varint,1,opt,name=target,proto3,enum=finance.v1.ExchangeRateSyncTarget" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FetchExchangeRatesRequest) Reset() {
+	*x = FetchExchangeRatesRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FetchExchangeRatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FetchExchangeRatesRequest) ProtoMessage() {}
+
+func (x *FetchExchangeRatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FetchExchangeRatesRequest.ProtoReflect.Descriptor instead.
+func (*FetchExchangeRatesRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *FetchExchangeRatesRequest) GetTarget() ExchangeRateSyncTarget {
+	if x != nil {
+		return x.Target
+	}
+	return ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED
+}
+
+// ExchangeRateSyncPreviewRow 是单币种的抓取建议值（财务终审前可微调）。
+type ExchangeRateSyncPreviewRow struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	FromCurrency string                 `protobuf:"bytes,1,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	// ar_rate 为建议应收汇率（现汇卖出价/直盘 Ask）。
+	ArRate string `protobuf:"bytes,2,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	// ap_rate 为建议应付汇率（现汇买入价/直盘 Bid）。
+	ApRate string `protobuf:"bytes,3,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	// rate 为建议基准汇率（中行折算价/中间价口径）。
+	Rate string `protobuf:"bytes,4,opt,name=rate,proto3" json:"rate,omitempty"`
+	// conversion_path 说明换算路径（如「国际直盘 USD→HKD」或「中行交叉盘 USD→CNY ÷ HKD→CNY」）。
+	ConversionPath string `protobuf:"bytes,5,opt,name=conversion_path,json=conversionPath,proto3" json:"conversion_path,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ExchangeRateSyncPreviewRow) Reset() {
+	*x = ExchangeRateSyncPreviewRow{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeRateSyncPreviewRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeRateSyncPreviewRow) ProtoMessage() {}
+
+func (x *ExchangeRateSyncPreviewRow) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeRateSyncPreviewRow.ProtoReflect.Descriptor instead.
+func (*ExchangeRateSyncPreviewRow) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ExchangeRateSyncPreviewRow) GetFromCurrency() string {
+	if x != nil {
+		return x.FromCurrency
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreviewRow) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreviewRow) GetApRate() string {
+	if x != nil {
+		return x.ApRate
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreviewRow) GetRate() string {
+	if x != nil {
+		return x.Rate
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreviewRow) GetConversionPath() string {
+	if x != nil {
+		return x.ConversionPath
+	}
+	return ""
+}
+
+type ExchangeRateSyncPreview struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Target ExchangeRateSyncTarget `protobuf:"varint,1,opt,name=target,proto3,enum=finance.v1.ExchangeRateSyncTarget" json:"target,omitempty"`
+	// base_currency 为当前组织本币（同步行的 to_currency）。
+	BaseCurrency  string `protobuf:"bytes,2,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	EffectiveFrom string `protobuf:"bytes,3,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	EffectiveTo   string `protobuf:"bytes,4,opt,name=effective_to,json=effectiveTo,proto3" json:"effective_to,omitempty"`
+	// source 为数据来源明示（如「中国银行官方牌价」「新浪财经中行专线」「国际直盘行情」）。
+	Source string `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
+	// fallback_used 表示主源失败后启用了备选源（非静默兜底，前端需展示）。
+	FallbackUsed  bool                          `protobuf:"varint,6,opt,name=fallback_used,json=fallbackUsed,proto3" json:"fallback_used,omitempty"`
+	Rows          []*ExchangeRateSyncPreviewRow `protobuf:"bytes,7,rep,name=rows,proto3" json:"rows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeRateSyncPreview) Reset() {
+	*x = ExchangeRateSyncPreview{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeRateSyncPreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeRateSyncPreview) ProtoMessage() {}
+
+func (x *ExchangeRateSyncPreview) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeRateSyncPreview.ProtoReflect.Descriptor instead.
+func (*ExchangeRateSyncPreview) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ExchangeRateSyncPreview) GetTarget() ExchangeRateSyncTarget {
+	if x != nil {
+		return x.Target
+	}
+	return ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED
+}
+
+func (x *ExchangeRateSyncPreview) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreview) GetEffectiveFrom() string {
+	if x != nil {
+		return x.EffectiveFrom
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreview) GetEffectiveTo() string {
+	if x != nil {
+		return x.EffectiveTo
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreview) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ExchangeRateSyncPreview) GetFallbackUsed() bool {
+	if x != nil {
+		return x.FallbackUsed
+	}
+	return false
+}
+
+func (x *ExchangeRateSyncPreview) GetRows() []*ExchangeRateSyncPreviewRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+type FetchExchangeRatesResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Success       bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *ExchangeRateSyncPreview `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                   `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FetchExchangeRatesResponse) Reset() {
+	*x = FetchExchangeRatesResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FetchExchangeRatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FetchExchangeRatesResponse) ProtoMessage() {}
+
+func (x *FetchExchangeRatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FetchExchangeRatesResponse.ProtoReflect.Descriptor instead.
+func (*FetchExchangeRatesResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *FetchExchangeRatesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *FetchExchangeRatesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *FetchExchangeRatesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *FetchExchangeRatesResponse) GetData() *ExchangeRateSyncPreview {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *FetchExchangeRatesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SyncExchangeRatesRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Target ExchangeRateSyncTarget `protobuf:"varint,1,opt,name=target,proto3,enum=finance.v1.ExchangeRateSyncTarget" json:"target,omitempty"`
+	// rows 为财务终审（含微调）后的牌价行；同周重复发布执行幂等覆盖更新。
+	Rows          []*SyncExchangeRateRow `protobuf:"bytes,2,rep,name=rows,proto3" json:"rows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncExchangeRatesRequest) Reset() {
+	*x = SyncExchangeRatesRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncExchangeRatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncExchangeRatesRequest) ProtoMessage() {}
+
+func (x *SyncExchangeRatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncExchangeRatesRequest.ProtoReflect.Descriptor instead.
+func (*SyncExchangeRatesRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *SyncExchangeRatesRequest) GetTarget() ExchangeRateSyncTarget {
+	if x != nil {
+		return x.Target
+	}
+	return ExchangeRateSyncTarget_EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED
+}
+
+func (x *SyncExchangeRatesRequest) GetRows() []*SyncExchangeRateRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+type SyncExchangeRateRow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromCurrency  string                 `protobuf:"bytes,1,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	ArRate        string                 `protobuf:"bytes,2,opt,name=ar_rate,json=arRate,proto3" json:"ar_rate,omitempty"`
+	ApRate        string                 `protobuf:"bytes,3,opt,name=ap_rate,json=apRate,proto3" json:"ap_rate,omitempty"`
+	Rate          string                 `protobuf:"bytes,4,opt,name=rate,proto3" json:"rate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncExchangeRateRow) Reset() {
+	*x = SyncExchangeRateRow{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncExchangeRateRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncExchangeRateRow) ProtoMessage() {}
+
+func (x *SyncExchangeRateRow) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncExchangeRateRow.ProtoReflect.Descriptor instead.
+func (*SyncExchangeRateRow) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SyncExchangeRateRow) GetFromCurrency() string {
+	if x != nil {
+		return x.FromCurrency
+	}
+	return ""
+}
+
+func (x *SyncExchangeRateRow) GetArRate() string {
+	if x != nil {
+		return x.ArRate
+	}
+	return ""
+}
+
+func (x *SyncExchangeRateRow) GetApRate() string {
+	if x != nil {
+		return x.ApRate
+	}
+	return ""
+}
+
+func (x *SyncExchangeRateRow) GetRate() string {
+	if x != nil {
+		return x.Rate
+	}
+	return ""
+}
+
+type SyncExchangeRatesResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Success bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// synced_count 为本次幂等入库（新建+覆盖更新）的汇率行数。
+	SyncedCount   int32  `protobuf:"varint,4,opt,name=synced_count,json=syncedCount,proto3" json:"synced_count,omitempty"`
+	EffectiveFrom string `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	EffectiveTo   string `protobuf:"bytes,6,opt,name=effective_to,json=effectiveTo,proto3" json:"effective_to,omitempty"`
+	TraceId       string `protobuf:"bytes,7,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncExchangeRatesResponse) Reset() {
+	*x = SyncExchangeRatesResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncExchangeRatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncExchangeRatesResponse) ProtoMessage() {}
+
+func (x *SyncExchangeRatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncExchangeRatesResponse.ProtoReflect.Descriptor instead.
+func (*SyncExchangeRatesResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *SyncExchangeRatesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SyncExchangeRatesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SyncExchangeRatesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SyncExchangeRatesResponse) GetSyncedCount() int32 {
+	if x != nil {
+		return x.SyncedCount
+	}
+	return 0
+}
+
+func (x *SyncExchangeRatesResponse) GetEffectiveFrom() string {
+	if x != nil {
+		return x.EffectiveFrom
+	}
+	return ""
+}
+
+func (x *SyncExchangeRatesResponse) GetEffectiveTo() string {
+	if x != nil {
+		return x.EffectiveTo
+	}
+	return ""
+}
+
+func (x *SyncExchangeRatesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_finance_v1_exchange_rate_proto protoreflect.FileDescriptor
 
 const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\n" +
 	"\x1efinance/v1/exchange_rate.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xb4\x03\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xbb\x03\n" +
 	"\x13ExchangeRateSetting\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12#\n" +
@@ -1469,16 +2091,17 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\vto_currency\x18\x05 \x01(\tR\n" +
 	"toCurrency\x12%\n" +
 	"\x0eeffective_from\x18\a \x01(\tR\reffectiveFrom\x12&\n" +
-	"\feffective_to\x18\b \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12\x1b\n" +
+	"\feffective_to\x18\b \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12\x17\n" +
+	"\aar_rate\x18\t \x01(\tR\x06arRate\x12\x17\n" +
+	"\aap_rate\x18\n" +
+	" \x01(\tR\x06apRate\x12\x1b\n" +
 	"\tis_active\x18\v \x01(\bR\bisActive\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAt\x12\x12\n" +
 	"\x04rate\x18\x0e \x01(\tR\x04rateB\x0f\n" +
-	"\r_effective_toJ\x04\b\x03\x10\x04J\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
-	"J\x04\b\n" +
-	"\x10\vR\trate_typeR\rtime_standardR\x0freceivable_rateR\fpayable_rate\"!\n" +
+	"\r_effective_toJ\x04\b\x03\x10\x04J\x04\b\x06\x10\aR\trate_typeR\rtime_standard\"!\n" +
 	"\x1fListExchangeRateSettingsRequest\"\xdf\x01\n" +
 	" ListExchangeRateSettingsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -1486,26 +2109,25 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x03(\v2\x1f.finance.v1.ExchangeRateSettingR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12#\n" +
-	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\xc1\x02\n" +
+	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\x9a\x02\n" +
 	" CreateExchangeRateSettingRequest\x12(\n" +
 	"\rfrom_currency\x18\x02 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +
 	"\vto_currency\x18\x03 \x01(\tB\x03\xe0A\x02R\n" +
 	"toCurrency\x12*\n" +
-	"\x0eeffective_from\x18\x05 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12&\n" +
-	"\feffective_to\x18\x06 \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12\x17\n" +
-	"\x04rate\x18\t \x01(\tB\x03\xe0A\x02R\x04rateB\x0f\n" +
-	"\r_effective_toJ\x04\b\x01\x10\x02J\x04\b\x04\x10\x05J\x04\b\a\x10\bJ\x04\b\b\x10\tR\trate_typeR\rtime_standardR\x0freceivable_rateR\fpayable_rate\"\xd6\x02\n" +
+	"\x0eeffective_from\x18\x05 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12\x1c\n" +
+	"\aar_rate\x18\a \x01(\tB\x03\xe0A\x02R\x06arRate\x12\x1c\n" +
+	"\aap_rate\x18\b \x01(\tB\x03\xe0A\x02R\x06apRate\x12\x12\n" +
+	"\x04rate\x18\t \x01(\tR\x04rateJ\x04\b\x01\x10\x02J\x04\b\x04\x10\x05J\x04\b\x06\x10\aR\trate_typeR\rtime_standard\"\xaf\x02\n" +
 	" UpdateExchangeRateSettingRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12(\n" +
 	"\rfrom_currency\x18\x03 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +
 	"\vto_currency\x18\x04 \x01(\tB\x03\xe0A\x02R\n" +
 	"toCurrency\x12*\n" +
-	"\x0eeffective_from\x18\x06 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12&\n" +
-	"\feffective_to\x18\a \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12\x17\n" +
+	"\x0eeffective_from\x18\x06 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12\x1c\n" +
+	"\aar_rate\x18\b \x01(\tB\x03\xe0A\x02R\x06arRate\x12\x1c\n" +
+	"\aap_rate\x18\t \x01(\tB\x03\xe0A\x02R\x06apRate\x12\x12\n" +
 	"\x04rate\x18\n" +
-	" \x01(\tB\x03\xe0A\x02R\x04rateB\x0f\n" +
-	"\r_effective_toJ\x04\b\x02\x10\x03J\x04\b\x05\x10\x06J\x04\b\b\x10\tJ\x04\b\t\x10\n" +
-	"R\trate_typeR\rtime_standardR\x0freceivable_rateR\fpayable_rate\"8\n" +
+	" \x01(\tR\x04rateJ\x04\b\x02\x10\x03J\x04\b\x05\x10\x06J\x04\b\a\x10\bR\trate_typeR\rtime_standard\"8\n" +
 	"!DisableExchangeRateSettingRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbb\x01\n" +
 	"!CreateExchangeRateSettingResponse\x12\x18\n" +
@@ -1542,20 +2164,22 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\rpreview_token\x18\x01 \x01(\tB\x03\xe0A\x02R\fpreviewToken\x12,\n" +
 	"\x0fidempotency_key\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\"3\n" +
 	"\x1cGetExchangeRateImportRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xdc\x02\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xe3\x02\n" +
 	"\x15ExchangeRateImportRow\x12\x1d\n" +
 	"\n" +
 	"row_number\x18\x01 \x01(\x05R\trowNumber\x12#\n" +
 	"\rfrom_currency\x18\x03 \x01(\tR\ffromCurrency\x12\x1f\n" +
 	"\vto_currency\x18\x04 \x01(\tR\n" +
-	"toCurrency\x12\x12\n" +
+	"toCurrency\x12\x17\n" +
+	"\aar_rate\x18\x05 \x01(\tR\x06arRate\x12\x17\n" +
+	"\aap_rate\x18\x06 \x01(\tR\x06apRate\x12\x12\n" +
 	"\x04rate\x18\a \x01(\tR\x04rate\x12%\n" +
 	"\x0eeffective_from\x18\b \x01(\tR\reffectiveFrom\x12&\n" +
 	"\feffective_to\x18\t \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12\x16\n" +
 	"\x06status\x18\n" +
 	" \x01(\tR\x06status\x12\x16\n" +
 	"\x06errors\x18\v \x03(\tR\x06errorsB\x0f\n" +
-	"\r_effective_toJ\x04\b\x02\x10\x03J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\trate_typeR\x0freceivable_rateR\fpayable_rate\"\x88\x04\n" +
+	"\r_effective_toJ\x04\b\x02\x10\x03R\trate_type\"\x88\x04\n" +
 	"\x17ExchangeRateImportBatch\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12#\n" +
@@ -1597,7 +2221,49 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x127\n" +
 	"\x04data\x18\x04 \x01(\v2#.finance.v1.ExchangeRateImportBatchR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xf1\r\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\\\n" +
+	"\x19FetchExchangeRatesRequest\x12?\n" +
+	"\x06target\x18\x01 \x01(\x0e2\".finance.v1.ExchangeRateSyncTargetB\x03\xe0A\x02R\x06target\"\xb0\x01\n" +
+	"\x1aExchangeRateSyncPreviewRow\x12#\n" +
+	"\rfrom_currency\x18\x01 \x01(\tR\ffromCurrency\x12\x17\n" +
+	"\aar_rate\x18\x02 \x01(\tR\x06arRate\x12\x17\n" +
+	"\aap_rate\x18\x03 \x01(\tR\x06apRate\x12\x12\n" +
+	"\x04rate\x18\x04 \x01(\tR\x04rate\x12'\n" +
+	"\x0fconversion_path\x18\x05 \x01(\tR\x0econversionPath\"\xbd\x02\n" +
+	"\x17ExchangeRateSyncPreview\x12:\n" +
+	"\x06target\x18\x01 \x01(\x0e2\".finance.v1.ExchangeRateSyncTargetR\x06target\x12#\n" +
+	"\rbase_currency\x18\x02 \x01(\tR\fbaseCurrency\x12%\n" +
+	"\x0eeffective_from\x18\x03 \x01(\tR\reffectiveFrom\x12!\n" +
+	"\feffective_to\x18\x04 \x01(\tR\veffectiveTo\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\x12#\n" +
+	"\rfallback_used\x18\x06 \x01(\bR\ffallbackUsed\x12:\n" +
+	"\x04rows\x18\a \x03(\v2&.finance.v1.ExchangeRateSyncPreviewRowR\x04rows\"\xb8\x01\n" +
+	"\x1aFetchExchangeRatesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x127\n" +
+	"\x04data\x18\x04 \x01(\v2#.finance.v1.ExchangeRateSyncPreviewR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x95\x01\n" +
+	"\x18SyncExchangeRatesRequest\x12?\n" +
+	"\x06target\x18\x01 \x01(\x0e2\".finance.v1.ExchangeRateSyncTargetB\x03\xe0A\x02R\x06target\x128\n" +
+	"\x04rows\x18\x02 \x03(\v2\x1f.finance.v1.SyncExchangeRateRowB\x03\xe0A\x02R\x04rows\"\x8f\x01\n" +
+	"\x13SyncExchangeRateRow\x12(\n" +
+	"\rfrom_currency\x18\x01 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12\x1c\n" +
+	"\aar_rate\x18\x02 \x01(\tB\x03\xe0A\x02R\x06arRate\x12\x1c\n" +
+	"\aap_rate\x18\x03 \x01(\tB\x03\xe0A\x02R\x06apRate\x12\x12\n" +
+	"\x04rate\x18\x04 \x01(\tR\x04rate\"\xeb\x01\n" +
+	"\x19SyncExchangeRatesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12!\n" +
+	"\fsynced_count\x18\x04 \x01(\x05R\vsyncedCount\x12%\n" +
+	"\x0eeffective_from\x18\x05 \x01(\tR\reffectiveFrom\x12!\n" +
+	"\feffective_to\x18\x06 \x01(\tR\veffectiveTo\x12\x19\n" +
+	"\btrace_id\x18\a \x01(\tR\atraceId*\x98\x01\n" +
+	"\x16ExchangeRateSyncTarget\x12)\n" +
+	"%EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED\x10\x00\x12*\n" +
+	"&EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK\x10\x01\x12'\n" +
+	"#EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK\x10\x022\xf8\x10\n" +
 	"\x13ExchangeRateService\x12\xc8\x01\n" +
 	"\x18ListExchangeRateSettings\x12+.finance.v1.ListExchangeRateSettingsRequest\x1a,.finance.v1.ListExchangeRateSettingsResponse\"Q\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/finance/exchange-rates\x12\xd0\x01\n" +
 	"\x19CreateExchangeRateSetting\x12,.finance.v1.CreateExchangeRateSettingRequest\x1a-.finance.v1.CreateExchangeRateSettingResponse\"V\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/finance/exchange-rates\x12\xd5\x01\n" +
@@ -1606,7 +2272,9 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\"DownloadExchangeRateImportTemplate\x125.finance.v1.DownloadExchangeRateImportTemplateRequest\x1a6.finance.v1.DownloadExchangeRateImportTemplateResponse\"`\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02/\x12-/api/v1/finance/exchange-rate-import-template\x12\xdf\x01\n" +
 	"\x19PreviewExchangeRateImport\x12,.finance.v1.PreviewExchangeRateImportRequest\x1a-.finance.v1.PreviewExchangeRateImportResponse\"e\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x022:\x01*\"-/api/v1/finance/exchange-rate-imports/preview\x12\xd7\x01\n" +
 	"\x19ConfirmExchangeRateImport\x12,.finance.v1.ConfirmExchangeRateImportRequest\x1a-.finance.v1.ConfirmExchangeRateImportResponse\"]\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/exchange-rate-imports\x12\xcb\x01\n" +
-	"\x15GetExchangeRateImport\x12(.finance.v1.GetExchangeRateImportRequest\x1a).finance.v1.GetExchangeRateImportResponse\"]\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02,\x12*/api/v1/finance/exchange-rate-imports/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"\x15GetExchangeRateImport\x12(.finance.v1.GetExchangeRateImportRequest\x1a).finance.v1.GetExchangeRateImportResponse\"]\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02,\x12*/api/v1/finance/exchange-rate-imports/{id}\x12\xc4\x01\n" +
+	"\x12FetchExchangeRates\x12%.finance.v1.FetchExchangeRatesRequest\x1a&.finance.v1.FetchExchangeRatesResponse\"_\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/finance/exchange-rate-syncs/fetch\x12\xbd\x01\n" +
+	"\x11SyncExchangeRates\x12$.finance.v1.SyncExchangeRatesRequest\x1a%.finance.v1.SyncExchangeRatesResponse\"[\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/finance/exchange-rate-syncsB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_exchange_rate_proto_rawDescOnce sync.Once
@@ -1620,57 +2288,76 @@ func file_finance_v1_exchange_rate_proto_rawDescGZIP() []byte {
 	return file_finance_v1_exchange_rate_proto_rawDescData
 }
 
-var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_finance_v1_exchange_rate_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_finance_v1_exchange_rate_proto_goTypes = []any{
-	(*ExchangeRateSetting)(nil),                        // 0: finance.v1.ExchangeRateSetting
-	(*ListExchangeRateSettingsRequest)(nil),            // 1: finance.v1.ListExchangeRateSettingsRequest
-	(*ListExchangeRateSettingsResponse)(nil),           // 2: finance.v1.ListExchangeRateSettingsResponse
-	(*CreateExchangeRateSettingRequest)(nil),           // 3: finance.v1.CreateExchangeRateSettingRequest
-	(*UpdateExchangeRateSettingRequest)(nil),           // 4: finance.v1.UpdateExchangeRateSettingRequest
-	(*DisableExchangeRateSettingRequest)(nil),          // 5: finance.v1.DisableExchangeRateSettingRequest
-	(*CreateExchangeRateSettingResponse)(nil),          // 6: finance.v1.CreateExchangeRateSettingResponse
-	(*UpdateExchangeRateSettingResponse)(nil),          // 7: finance.v1.UpdateExchangeRateSettingResponse
-	(*DisableExchangeRateSettingResponse)(nil),         // 8: finance.v1.DisableExchangeRateSettingResponse
-	(*DownloadExchangeRateImportTemplateRequest)(nil),  // 9: finance.v1.DownloadExchangeRateImportTemplateRequest
-	(*DownloadExchangeRateImportTemplateResponse)(nil), // 10: finance.v1.DownloadExchangeRateImportTemplateResponse
-	(*PreviewExchangeRateImportRequest)(nil),           // 11: finance.v1.PreviewExchangeRateImportRequest
-	(*ConfirmExchangeRateImportRequest)(nil),           // 12: finance.v1.ConfirmExchangeRateImportRequest
-	(*GetExchangeRateImportRequest)(nil),               // 13: finance.v1.GetExchangeRateImportRequest
-	(*ExchangeRateImportRow)(nil),                      // 14: finance.v1.ExchangeRateImportRow
-	(*ExchangeRateImportBatch)(nil),                    // 15: finance.v1.ExchangeRateImportBatch
-	(*PreviewExchangeRateImportResponse)(nil),          // 16: finance.v1.PreviewExchangeRateImportResponse
-	(*ConfirmExchangeRateImportResponse)(nil),          // 17: finance.v1.ConfirmExchangeRateImportResponse
-	(*GetExchangeRateImportResponse)(nil),              // 18: finance.v1.GetExchangeRateImportResponse
+	(ExchangeRateSyncTarget)(0),                        // 0: finance.v1.ExchangeRateSyncTarget
+	(*ExchangeRateSetting)(nil),                        // 1: finance.v1.ExchangeRateSetting
+	(*ListExchangeRateSettingsRequest)(nil),            // 2: finance.v1.ListExchangeRateSettingsRequest
+	(*ListExchangeRateSettingsResponse)(nil),           // 3: finance.v1.ListExchangeRateSettingsResponse
+	(*CreateExchangeRateSettingRequest)(nil),           // 4: finance.v1.CreateExchangeRateSettingRequest
+	(*UpdateExchangeRateSettingRequest)(nil),           // 5: finance.v1.UpdateExchangeRateSettingRequest
+	(*DisableExchangeRateSettingRequest)(nil),          // 6: finance.v1.DisableExchangeRateSettingRequest
+	(*CreateExchangeRateSettingResponse)(nil),          // 7: finance.v1.CreateExchangeRateSettingResponse
+	(*UpdateExchangeRateSettingResponse)(nil),          // 8: finance.v1.UpdateExchangeRateSettingResponse
+	(*DisableExchangeRateSettingResponse)(nil),         // 9: finance.v1.DisableExchangeRateSettingResponse
+	(*DownloadExchangeRateImportTemplateRequest)(nil),  // 10: finance.v1.DownloadExchangeRateImportTemplateRequest
+	(*DownloadExchangeRateImportTemplateResponse)(nil), // 11: finance.v1.DownloadExchangeRateImportTemplateResponse
+	(*PreviewExchangeRateImportRequest)(nil),           // 12: finance.v1.PreviewExchangeRateImportRequest
+	(*ConfirmExchangeRateImportRequest)(nil),           // 13: finance.v1.ConfirmExchangeRateImportRequest
+	(*GetExchangeRateImportRequest)(nil),               // 14: finance.v1.GetExchangeRateImportRequest
+	(*ExchangeRateImportRow)(nil),                      // 15: finance.v1.ExchangeRateImportRow
+	(*ExchangeRateImportBatch)(nil),                    // 16: finance.v1.ExchangeRateImportBatch
+	(*PreviewExchangeRateImportResponse)(nil),          // 17: finance.v1.PreviewExchangeRateImportResponse
+	(*ConfirmExchangeRateImportResponse)(nil),          // 18: finance.v1.ConfirmExchangeRateImportResponse
+	(*GetExchangeRateImportResponse)(nil),              // 19: finance.v1.GetExchangeRateImportResponse
+	(*FetchExchangeRatesRequest)(nil),                  // 20: finance.v1.FetchExchangeRatesRequest
+	(*ExchangeRateSyncPreviewRow)(nil),                 // 21: finance.v1.ExchangeRateSyncPreviewRow
+	(*ExchangeRateSyncPreview)(nil),                    // 22: finance.v1.ExchangeRateSyncPreview
+	(*FetchExchangeRatesResponse)(nil),                 // 23: finance.v1.FetchExchangeRatesResponse
+	(*SyncExchangeRatesRequest)(nil),                   // 24: finance.v1.SyncExchangeRatesRequest
+	(*SyncExchangeRateRow)(nil),                        // 25: finance.v1.SyncExchangeRateRow
+	(*SyncExchangeRatesResponse)(nil),                  // 26: finance.v1.SyncExchangeRatesResponse
 }
 var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
-	0,  // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	0,  // 1: finance.v1.CreateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	0,  // 2: finance.v1.UpdateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	14, // 3: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
-	15, // 4: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	15, // 5: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	15, // 6: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	1,  // 7: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
-	3,  // 8: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
-	4,  // 9: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
-	5,  // 10: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
-	9,  // 11: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
-	11, // 12: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
-	12, // 13: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
-	13, // 14: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
-	2,  // 15: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
-	6,  // 16: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
-	7,  // 17: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
-	8,  // 18: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
-	10, // 19: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
-	16, // 20: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
-	17, // 21: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
-	18, // 22: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
-	15, // [15:23] is the sub-list for method output_type
-	7,  // [7:15] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	1,  // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	1,  // 1: finance.v1.CreateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	1,  // 2: finance.v1.UpdateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	15, // 3: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
+	16, // 4: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	16, // 5: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	16, // 6: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	0,  // 7: finance.v1.FetchExchangeRatesRequest.target:type_name -> finance.v1.ExchangeRateSyncTarget
+	0,  // 8: finance.v1.ExchangeRateSyncPreview.target:type_name -> finance.v1.ExchangeRateSyncTarget
+	21, // 9: finance.v1.ExchangeRateSyncPreview.rows:type_name -> finance.v1.ExchangeRateSyncPreviewRow
+	22, // 10: finance.v1.FetchExchangeRatesResponse.data:type_name -> finance.v1.ExchangeRateSyncPreview
+	0,  // 11: finance.v1.SyncExchangeRatesRequest.target:type_name -> finance.v1.ExchangeRateSyncTarget
+	25, // 12: finance.v1.SyncExchangeRatesRequest.rows:type_name -> finance.v1.SyncExchangeRateRow
+	2,  // 13: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
+	4,  // 14: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
+	5,  // 15: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
+	6,  // 16: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
+	10, // 17: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
+	12, // 18: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
+	13, // 19: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
+	14, // 20: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
+	20, // 21: finance.v1.ExchangeRateService.FetchExchangeRates:input_type -> finance.v1.FetchExchangeRatesRequest
+	24, // 22: finance.v1.ExchangeRateService.SyncExchangeRates:input_type -> finance.v1.SyncExchangeRatesRequest
+	3,  // 23: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
+	7,  // 24: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
+	8,  // 25: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
+	9,  // 26: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
+	11, // 27: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
+	17, // 28: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
+	18, // 29: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
+	19, // 30: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
+	23, // 31: finance.v1.ExchangeRateService.FetchExchangeRates:output_type -> finance.v1.FetchExchangeRatesResponse
+	26, // 32: finance.v1.ExchangeRateService.SyncExchangeRates:output_type -> finance.v1.SyncExchangeRatesResponse
+	23, // [23:33] is the sub-list for method output_type
+	13, // [13:23] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_exchange_rate_proto_init() }
@@ -1679,8 +2366,6 @@ func file_finance_v1_exchange_rate_proto_init() {
 		return
 	}
 	file_finance_v1_exchange_rate_proto_msgTypes[0].OneofWrappers = []any{}
-	file_finance_v1_exchange_rate_proto_msgTypes[3].OneofWrappers = []any{}
-	file_finance_v1_exchange_rate_proto_msgTypes[4].OneofWrappers = []any{}
 	file_finance_v1_exchange_rate_proto_msgTypes[14].OneofWrappers = []any{}
 	file_finance_v1_exchange_rate_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
@@ -1688,13 +2373,14 @@ func file_finance_v1_exchange_rate_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_exchange_rate_proto_rawDesc), len(file_finance_v1_exchange_rate_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   19,
+			NumEnums:      1,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_finance_v1_exchange_rate_proto_goTypes,
 		DependencyIndexes: file_finance_v1_exchange_rate_proto_depIdxs,
+		EnumInfos:         file_finance_v1_exchange_rate_proto_enumTypes,
 		MessageInfos:      file_finance_v1_exchange_rate_proto_msgTypes,
 	}.Build()
 	File_finance_v1_exchange_rate_proto = out.File
