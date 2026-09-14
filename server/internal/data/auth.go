@@ -549,8 +549,8 @@ func (r *authRepo) loadEnabledMembershipRefs(ctx context.Context, client *ent.Cl
 }
 
 // loadOrganizationTree 一次取全量组织（组织总量小）并返回实体列表，供工作台判定
-// 构建父子映射，避免逐层/N+1 查询。
-func (r *authRepo) loadOrganizationTree(ctx context.Context, client *ent.Client) ([]*ent.Organization, error) {
+// 构建父子映射，避免逐层/N+1 查询。auth 与 admin 用户管理共用同一口径。
+func loadOrganizationTree(ctx context.Context, client *ent.Client) ([]*ent.Organization, error) {
 	return client.Organization.Query().
 		Select(organization.FieldID, organization.FieldParentID, organization.FieldKind, organization.FieldCode, organization.FieldName, organization.FieldBaseCurrency, organization.FieldEnabled).
 		All(ctx)
@@ -594,7 +594,7 @@ func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) 
 	if err != nil {
 		return nil, err
 	}
-	nodes, err := r.loadOrganizationTree(ctx, r.data.db)
+	nodes, err := loadOrganizationTree(ctx, r.data.db)
 	if err != nil {
 		return nil, err
 	}
@@ -619,7 +619,7 @@ func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userI
 	if err != nil {
 		return nil, err
 	}
-	nodes, err := r.loadOrganizationTree(ctx, client)
+	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -648,7 +648,7 @@ func (r *authRepo) ListEnabledOrganizations(ctx context.Context, userID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
-	nodes, err := r.loadOrganizationTree(ctx, client)
+	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +676,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
-	nodes, err := r.loadOrganizationTree(ctx, client)
+	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
 	}

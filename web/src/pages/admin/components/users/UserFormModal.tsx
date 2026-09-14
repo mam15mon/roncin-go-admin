@@ -1,7 +1,16 @@
 import { ApartmentOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm, ProFormText } from '@ant-design/pro-components';
-import { Alert, App, Button, Popconfirm, Space, Table, Tag, Typography } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Popconfirm,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
@@ -18,6 +27,7 @@ import UserMembershipModal from './UserMembershipModal';
 import {
   organizationKindLabels,
   pendingExternalProvider,
+  resolveAnchorOrganizationId,
   type UserFormValues,
 } from './userConstants';
 
@@ -62,6 +72,10 @@ export default function UserFormModal({
   const [membershipEditing, setMembershipEditing] =
     useState<API.AdminUserMembership>();
   const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
+  // 编辑时角色选项按锚定成员关系所在组织拉取：后端保存时按锚定组织校验角色，
+  // 锚定组织可能不是当前工作台组织（如总部工作台编辑公司/部门成员）。
+  const [anchorRoles, setAnchorRoles] = useState<API.AdminRole[]>([]);
+  const [anchorOrganizationId, setAnchorOrganizationId] = useState<string>();
   // 外部成员的组织授权流程（依赖 ListOrganizationRoles / ListOrganizations 的全局
   // 权限）只对具备对应授权权限的管理员开放；普通组织管理员编辑此类成员时回到
   // 普通流程，由服务端稳定拒绝未授权的组织启用。
@@ -80,25 +94,45 @@ export default function UserFormModal({
     setMembershipsLoading(true);
     try {
       const response = await adminServiceListUserMemberships({ userId });
-      setMemberships(unwrapList(response));
+      const list = unwrapList(response);
+      setMemberships(list);
+      // 按锚定成员关系所在组织拉取角色选项；保存传出的 roleIds 即该组织角色。
+      const anchorOrganizationId = resolveAnchorOrganizationId(list);
+      setAnchorOrganizationId(anchorOrganizationId);
+      if (anchorOrganizationId) {
+        const rolesResponse = await adminServiceListOrganizationRoles({
+          organizationId: anchorOrganizationId,
+        });
+        setAnchorRoles(unwrapList(rolesResponse));
+      } else {
+        setAnchorRoles([]);
+      }
     } finally {
       setMembershipsLoading(false);
     }
+  };
+
+  const resetAnchorRoles = () => {
+    setAnchorOrganizationId(undefined);
+    setAnchorRoles([]);
   };
 
   useEffect(() => {
     if (!open) return;
     if (!editing) {
       setMemberships([]);
+      resetAnchorRoles();
       return;
     }
     if (pendingProvider) {
       setApprovalRoles(roles);
       setMemberships([]);
+      resetAnchorRoles();
     } else if (editing.id && canReadAllUserMemberships) {
       void loadMemberships(editing.id);
     } else {
       setMemberships([]);
+      resetAnchorRoles();
     }
   }, [open, editing]);
 
@@ -142,9 +176,7 @@ export default function UserFormModal({
       modalProps={{
         destroyOnClose: true,
         width:
-          editing && !pendingProvider && canReadAllUserMemberships
-            ? 880
-            : 560,
+          editing && !pendingProvider && canReadAllUserMemberships ? 880 : 560,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
@@ -270,7 +302,12 @@ export default function UserFormModal({
         label={editing && !pendingProvider ? '当前组织角色' : '分配角色'}
         mode="multiple"
         placeholder="请选择角色"
-        options={(pendingProvider ? approvalRoles : roles).map((role) => ({
+        options={(pendingProvider
+          ? approvalRoles
+          : anchorOrganizationId
+            ? anchorRoles
+            : roles
+        ).map((role) => ({
           label: `${role.name} (${role.code})`,
           value: role.id,
           code: role.code,

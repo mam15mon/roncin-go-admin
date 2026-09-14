@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 func TestAdminRepoListUsersUsesDatabaseFilteringAndPagination(t *testing.T) {
@@ -28,13 +28,18 @@ func TestAdminRepoListUsersUsesDatabaseFilteringAndPagination(t *testing.T) {
 		_ = db.Close()
 	})
 	repo := NewAdminRepo(&Data{db: client, sqlDB: db})
+	workspaceID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT\("memberships"\."id"\) FROM "memberships".*EXISTS.*FROM "users".*"username"`).
+	// 工作台范围先一次加载组织树（总部工作台 = 全树启用组织）。
+	mock.ExpectQuery(`SELECT "organizations"."id", "organizations"."parent_id", "organizations"."kind", "organizations"."code", "organizations"."name", "organizations"."base_currency", "organizations"."enabled" FROM "organizations"`).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).
+			AddRow(workspaceID, nil, "headquarters", "HQ", "总部", "CNY", true))
+	mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*EXISTS.*"memberships".*"organization_id"`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-	mock.ExpectQuery(`SELECT "memberships"\..*FROM "memberships".*ORDER BY.*LIMIT 20 OFFSET 20`).
-		WillReturnRows(sqlmock.NewRows(membership.Columns))
+	mock.ExpectQuery(`SELECT "users"\."id".*FROM "users".*EXISTS.*ORDER BY "users"\."username", "users"\."id" LIMIT 20 OFFSET 20`).
+		WillReturnRows(sqlmock.NewRows(userent.Columns))
 
-	result, err := repo.ListUsers(context.Background(), uuid.New(), biz.AdminUserListOptions{
+	result, err := repo.ListUsers(context.Background(), workspaceID, biz.AdminUserListOptions{
 		Page:     2,
 		PageSize: 20,
 		Keyword:  "Alice",

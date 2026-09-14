@@ -18,31 +18,138 @@ import (
 	"github.com/google/uuid"
 )
 
+// adminWorkspaceScopeIDs 返回用户管理工作台的组织管理范围：总部工作台 = 全树全部
+// 启用组织；公司工作台 = 公司子树（含公司节点本身）中的启用组织；非启用工作台节点
+// 返回空。注意与 auth.workspaceMembershipScopeIDs 的权限解析口径区分：后者是角色
+// 生效口径（总部工作台只聚合总部节点本身成员关系上的角色），本函数是用户管理的
+// 可见/可管理范围口径（总部可管理全树任意组织的成员，公司只管理本公司子树成员）。
+func adminWorkspaceScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) []uuid.UUID {
+	node, ok := nodes[workspaceID]
+	if !ok || !node.Enabled || !isWorkspaceKind(node.Kind) {
+		return nil
+	}
+	var candidateIDs []uuid.UUID
+	if node.Kind == string(organization.KindHeadquarters) {
+		candidateIDs = make([]uuid.UUID, 0, len(nodes))
+		for _, item := range nodes {
+			candidateIDs = append(candidateIDs, item.ID)
+		}
+	} else {
+		candidateIDs = organizationSubtreeIDs(nodes, workspaceID)
+	}
+	scope := make([]uuid.UUID, 0, len(candidateIDs))
+	for _, candidateID := range candidateIDs {
+		if nodes[candidateID].Enabled {
+			scope = append(scope, candidateID)
+		}
+	}
+	return scope
+}
+
+// adminWorkspaceScope 一次加载组织树并计算工作台管理范围，避免逐层/N+1 查询。
+func adminWorkspaceScope(ctx context.Context, client *ent.Client, workspaceID uuid.UUID) ([]uuid.UUID, error) {
+	nodes, err := loadOrganizationTree(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	return adminWorkspaceScopeIDs(authOrganizationNodes(nodes), workspaceID), nil
+}
+
+// preferAdminAnchorMembership 按锚定规则从工作台范围内的候选成员关系中选取锚定
+// 成员关系（决定行的角色展示与 CurrentMembershipEnabled）；候选为空返回 nil。
+func preferAdminAnchorMembership(candidates []*ent.Membership) *ent.Membership {
+	var anchor *ent.Membership
+	for _, candidate := range candidates {
+		if anchor == nil || betterAdminAnchorMembership(candidate, anchor) {
+			anchor = candidate
+		}
+	}
+	return anchor
+}
+
+// betterAdminAnchorMembership 报告 candidate 是否比 current 更适合作为锚定成员
+// 关系：primary 优先，其次启用关系，再则创建时间最早；ID 升序做稳定兜底。
+func betterAdminAnchorMembership(candidate, current *ent.Membership) bool {
+	if candidate.Primary != current.Primary {
+		return candidate.Primary
+	}
+	if candidate.Enabled != current.Enabled {
+		return candidate.Enabled
+	}
+	if !candidate.CreatedAt.Equal(current.CreatedAt) {
+		return candidate.CreatedAt.Before(current.CreatedAt)
+	}
+	return candidate.ID.String() < current.ID.String()
+}
+
+// adminUserRow 把用户实体转换为工作台视角的用户行：在管理范围内选取锚定成员关系，
+// 组织摘要仍展示全部启用成员关系（与旧口径一致）。范围内无任何成员关系时视为
+// 用户不在当前工作台范围。
+func adminUserRow(account *ent.User, scope map[uuid.UUID]struct{}) (*biz.AdminUser, error) {
+	candidates := make([]*ent.Membership, 0, len(account.Edges.Memberships))
+	active := make([]*ent.Membership, 0, len(account.Edges.Memberships))
+	for _, member := range account.Edges.Memberships {
+		if _, inScope := scope[member.OrganizationID]; inScope {
+			candidates = append(candidates, member)
+		}
+		if member.Enabled && member.Edges.Organization != nil && member.Edges.Organization.Enabled {
+			active = append(active, member)
+		}
+	}
+	anchor := preferAdminAnchorMembership(candidates)
+	if anchor == nil {
+		return nil, biz.ErrAdminUserNotFound
+	}
+	anchor.Edges.User = account
+	account.Edges.Memberships = active
+	return membershipToUser(anchor), nil
+}
+
+// adminUserScopeSet 把范围切片转为成员关系归属判定用的集合。
+func adminUserScopeSet(scope []uuid.UUID) map[uuid.UUID]struct{} {
+	scopeSet := make(map[uuid.UUID]struct{}, len(scope))
+	for _, scopeID := range scope {
+		scopeSet[scopeID] = struct{}{}
+	}
+	return scopeSet
+}
+
+// listAdminUsersQuery 装载用户及其全部成员关系（含停用，保留查看被移除记录的能力）
+// 与成员关系角色，锚定与摘要转换在 adminUserRow 中纯内存完成。
+func listAdminUsersQuery(client *ent.Client, predicates []predicate.User) *ent.UserQuery {
+	return client.User.Query().Where(predicates...).
+		WithMemberships(func(query *ent.MembershipQuery) {
+			query.WithOrganization().WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
+		})
+}
+
 func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
-	predicates := []predicate.Membership{
-		membership.OrganizationIDEQ(organizationID),
+	scope, err := adminWorkspaceScope(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if len(scope) == 0 {
+		return &biz.AdminUserList{Items: []*biz.AdminUser{}, Page: options.Page, PageSize: options.PageSize}, nil
+	}
+	predicates := []predicate.User{
+		userent.HasMembershipsWith(membership.OrganizationIDIn(scope...)),
 	}
 	if options.Keyword != "" {
-		predicates = append(predicates, membership.HasUserWith(userent.Or(
+		predicates = append(predicates, userent.Or(
 			userent.UsernameContainsFold(options.Keyword),
 			userent.DisplayNameContainsFold(options.Keyword),
 			userent.SearchKeywordsContainsFold(options.Keyword),
-		)))
+		))
 	}
-	query := r.data.db.Membership.Query().
-		Where(predicates...).
-		WithUser(func(query *ent.UserQuery) {
-			query.WithMemberships(func(query *ent.MembershipQuery) {
-				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
-					WithOrganization()
-			})
-		}).
-		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
+	scopeSet := adminUserScopeSet(scope)
+	query := listAdminUsersQuery(r.data.db, predicates)
 	return paginate(ctx, func(ctx context.Context) (int, error) {
 		return query.Clone().Count(ctx)
-	}, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
-		return query.Order(membership.ByUserField(userent.FieldUsername), membership.ByID()).Offset(offset).Limit(limit).All(ctx)
-	}, options.Page, options.PageSize, infalliblePageConverter(membershipToUser))
+	}, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
+		return query.Order(userent.ByUsername(), userent.ByID()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, func(item *ent.User) (*biz.AdminUser, error) {
+		return adminUserRow(item, scopeSet)
+	})
 }
 
 func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
@@ -83,9 +190,25 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
-		membershipRecord, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
+		// 锚定成员关系在工作台管理范围内选取，不再要求当前工作台组织上的精确启用
+		// 成员关系（范围口径见 adminWorkspaceScopeIDs）。成员关系写入路径都先锁用户
+		// 行，这里复用用户行锁即可，无需再单独锁定成员关系行。
+		scope, scopeErr := adminWorkspaceScope(ctx, tx.Client(), organizationID)
+		if scopeErr != nil {
+			return scopeErr
+		}
+		if len(scope) == 0 {
+			return biz.ErrAdminUserNotFound
+		}
+		candidates, queryErr := tx.Membership.Query().
+			Where(membership.UserIDEQ(id), membership.OrganizationIDIn(scope...)).
+			All(ctx)
 		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
+			return queryErr
+		}
+		anchor := preferAdminAnchorMembership(candidates)
+		if anchor == nil {
+			return biz.ErrAdminUserNotFound
 		}
 		if account.Enabled && !input.Enabled {
 			return biz.ErrAdminUserTerminationRequired
@@ -93,7 +216,8 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if !account.Enabled && input.Enabled && (account.WecomUserid != nil || account.DingtalkUnionid != nil) {
 			return biz.ErrAdminUserAuthorizationRequired
 		}
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
+		// 角色必须与锚定成员关系同组织（既有规则不变）：按锚定组织校验后写入该成员关系。
+		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), anchor.OrganizationID, roleIDs)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -106,7 +230,7 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return mapEntError(updateErr, biz.ErrAdminUserNotFound, nil)
 		}
-		if replaceErr := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); replaceErr != nil {
+		if replaceErr := replaceRoleAssignments(ctx, tx, anchor.ID, roles); replaceErr != nil {
 			return replaceErr
 		}
 		audit.Details["value"] = account.Username
@@ -122,8 +246,22 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 		if _, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx); queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
-		if _, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx); queryErr != nil {
-			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
+		// 工作台范围内存在启用成员关系即可办理离职（不再要求当前工作台组织上的精确关系）。
+		scope, scopeErr := adminWorkspaceScope(ctx, tx.Client(), organizationID)
+		if scopeErr != nil {
+			return scopeErr
+		}
+		if len(scope) == 0 {
+			return biz.ErrAdminUserNotFound
+		}
+		inScope, queryErr := tx.Membership.Query().
+			Where(membership.UserIDEQ(id), membership.OrganizationIDIn(scope...), membership.EnabledEQ(true)).
+			Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if !inScope {
+			return biz.ErrAdminUserNotFound
 		}
 		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id)).IDs(ctx)
 		if queryErr != nil {
@@ -165,8 +303,23 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
-		if _, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Only(ctx); queryErr != nil {
-			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
+		// 待授权用户在来源工作台管理范围内存在启用成员关系即可发起授权（范围口径
+		// 见 adminWorkspaceScopeIDs）；目标组织逻辑保持不变。
+		sourceScope, scopeErr := adminWorkspaceScope(ctx, tx.Client(), sourceOrganizationID)
+		if scopeErr != nil {
+			return scopeErr
+		}
+		if len(sourceScope) == 0 {
+			return biz.ErrAdminUserNotFound
+		}
+		sourceInScope, queryErr := tx.Membership.Query().
+			Where(membership.UserIDEQ(input.ID), membership.OrganizationIDIn(sourceScope...), membership.EnabledEQ(true)).
+			Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if !sourceInScope {
+			return biz.ErrAdminUserNotFound
 		}
 		if !hasExternalIdentity(account) || account.Enabled {
 			return biz.ErrAdminInvalidArgument
@@ -241,11 +394,19 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
+		// 工作台管理范围内存在启用成员关系即可重置密码（不再要求当前工作台组织上的
+		// 精确关系；范围口径见 adminWorkspaceScopeIDs）。
+		scope, scopeErr := adminWorkspaceScope(ctx, tx.Client(), organizationID)
+		if scopeErr != nil {
+			return scopeErr
+		}
+		if len(scope) == 0 {
+			return biz.ErrAdminUserNotFound
+		}
 		exists, queryErr := tx.Membership.Query().Where(
 			membership.UserIDEQ(id),
-			membership.OrganizationIDEQ(organizationID),
+			membership.OrganizationIDIn(scope...),
 			membership.EnabledEQ(true),
-			membership.HasOrganizationWith(organization.EnabledEQ(true)),
 		).Exist(ctx)
 		if queryErr != nil {
 			return queryErr
@@ -268,25 +429,32 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 }
+
+// GetUser 返回用户在工作台管理范围下的锚定视图，供用例层在编辑前取得锚定组织：
+// 角色必须与锚定成员关系同组织，提权校验与写入都按锚定组织执行。
+func (r *adminRepo) GetUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {
+	return r.findUser(ctx, organizationID, userID)
+}
+
+// findUser 在工作台管理范围内按锚定规则选取成员关系并组装用户视图；范围内无任何
+// 成员关系时报「用户不存在或不在当前工作台范围」。
 func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {
-	item, err := r.data.db.Membership.Query().
-		Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID)).
-		WithUser(func(query *ent.UserQuery) {
-			query.WithMemberships(func(query *ent.MembershipQuery) {
-				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
-					WithOrganization()
-			})
-		}).
-		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
-		Only(ctx)
+	scope, err := adminWorkspaceScope(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if len(scope) == 0 {
+		return nil, biz.ErrAdminUserNotFound
+	}
+	account, err := listAdminUsersQuery(r.data.db, []predicate.User{userent.IDEQ(userID)}).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminUserNotFound, nil)
 	}
-	return membershipToUser(item), nil
+	return adminUserRow(account, adminUserScopeSet(scope))
 }
 func membershipToUser(item *ent.Membership) *biz.AdminUser {
 	account := item.Edges.User
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CurrentMembershipEnabled: item.Enabled, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CurrentMembershipEnabled: item.Enabled, CurrentOrganizationID: item.OrganizationID, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
 	for _, assignment := range item.Edges.RoleAssignments {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)

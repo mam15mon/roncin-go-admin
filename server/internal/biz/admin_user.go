@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrAdminUserNotFound              = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
+	ErrAdminUserNotFound              = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在或不在当前工作台范围")
 	ErrAdminUsernameExists            = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
 	ErrAdminUserSelfDelete            = errors.BadRequest("ADMIN_USER_SELF_DELETE", "不能移除当前登录账号或为其办理离职")
 	ErrAdminUserLastMembership        = errors.BadRequest("ADMIN_USER_LAST_MEMBERSHIP", "在职用户必须保留至少一个有效组织；请先加入新组织或办理离职")
@@ -43,12 +43,16 @@ type AdminUser struct {
 	Enabled                  bool
 	Status                   AdminUserStatus
 	CurrentMembershipEnabled bool
-	HasPassword              bool
-	RoleIDs                  []uuid.UUID
-	RoleCodes                []string
-	Organizations            []*AdminUserOrganizationSummary
-	CreatedAt                time.Time
-	UpdatedAt                time.Time
+	// CurrentOrganizationID 是锚定成员关系所在组织（用户管理工作台范围口径）。
+	// 与权限解析的总部角色生效口径不同：总部工作台的用户管理覆盖全树，锚定成员
+	// 关系可能落在任意组织，编辑时的角色提权校验与写入都按该组织执行。
+	CurrentOrganizationID uuid.UUID
+	HasPassword           bool
+	RoleIDs               []uuid.UUID
+	RoleCodes             []string
+	Organizations         []*AdminUserOrganizationSummary
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type AdminUserStatus string
@@ -98,7 +102,13 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, organizationID, roleIDs); err != nil {
+	// 先取工作台管理范围下的锚定视图：角色必须与锚定成员关系同组织，提权校验与
+	// 事务内写入都按锚定组织执行（与成员关系编辑的校验顺序一致）。
+	current, err := uc.repo.GetUser(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, current.CurrentOrganizationID, roleIDs); err != nil {
 		return nil, err
 	}
 	normalized, err := normalizeUser(input)

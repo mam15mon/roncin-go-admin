@@ -15,6 +15,8 @@ type adminRepoStub struct {
 	organizationID    uuid.UUID
 	organizationInput *AdminOrganization
 	userListOptions   AdminUserListOptions
+	userAnchor        *AdminUser
+	userAnchorErr     error
 	roleKeys          []string
 	updatedRoleKeys   []string
 	userPassword      string
@@ -29,6 +31,7 @@ type adminRepoStub struct {
 	deletedMembership uuid.UUID
 	actorRoleProfiles []*AdminRoleProfile
 	roleProfiles      []*AdminRoleProfile
+	roleProfileTarget uuid.UUID
 	currentRole       *AdminRole
 	deletedRoleID     uuid.UUID
 	notification      *NotificationIntent
@@ -61,6 +64,16 @@ func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, input
 func (s *adminRepoStub) ListUsers(_ context.Context, _ uuid.UUID, options AdminUserListOptions) (*AdminUserList, error) {
 	s.userListOptions = options
 	return &AdminUserList{Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func (s *adminRepoStub) GetUser(_ context.Context, _, userID uuid.UUID) (*AdminUser, error) {
+	if s.userAnchorErr != nil {
+		return nil, s.userAnchorErr
+	}
+	if s.userAnchor != nil {
+		return s.userAnchor, nil
+	}
+	return &AdminUser{ID: userID, CurrentOrganizationID: uuid.New()}, nil
 }
 
 func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
@@ -179,7 +192,8 @@ func (s *adminRepoStub) GetActorRolesPrivilegeProfiles(context.Context, uuid.UUI
 	return []*AdminRoleProfile{{Code: "administrator", DataScope: DataScopeAll}}, nil
 }
 
-func (s *adminRepoStub) GetRolesPrivilegeProfiles(_ context.Context, _ uuid.UUID, roleIDs []uuid.UUID) ([]*AdminRoleProfile, error) {
+func (s *adminRepoStub) GetRolesPrivilegeProfiles(_ context.Context, targetOrganizationID uuid.UUID, roleIDs []uuid.UUID) ([]*AdminRoleProfile, error) {
+	s.roleProfileTarget = targetOrganizationID
 	if s.roleProfiles != nil {
 		return s.roleProfiles, nil
 	}
@@ -639,6 +653,41 @@ func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{})
 	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseUpdateUserValidatesRolesAgainstAnchorOrganization(t *testing.T) {
+	workspaceID, actorID, userID := uuid.New(), uuid.New(), uuid.New()
+	anchorOrganizationID, roleID := uuid.New(), uuid.New()
+	repo := &adminRepoStub{
+		userAnchor:        &AdminUser{ID: userID, DisplayName: "锚定用户", CurrentOrganizationID: anchorOrganizationID},
+		actorRoleProfiles: []*AdminRoleProfile{{Code: "operator", DataScope: DataScopeOrganization, PermissionKeys: []string{"user_update"}}},
+	}
+	repo.roleProfiles = []*AdminRoleProfile{{ID: roleID, Code: "operator", DataScope: DataScopeOrganization, PermissionKeys: []string{"user_update"}}}
+	usecase := NewAdminUsecase(repo)
+
+	updated, err := usecase.UpdateUser(context.Background(), workspaceID, actorID, userID, &AdminUser{ID: userID, DisplayName: "锚定用户"}, []uuid.UUID{roleID})
+	if err != nil {
+		t.Fatalf("UpdateUser() error = %v", err)
+	}
+	if updated == nil || updated.ID != userID {
+		t.Fatalf("UpdateUser() 结果 = %#v", updated)
+	}
+	// 角色提权校验的目标组织必须是锚定成员关系所在组织，而不是当前工作台组织。
+	if repo.roleProfileTarget != anchorOrganizationID {
+		t.Fatalf("角色校验目标组织 = %v, want 锚定组织 %v", repo.roleProfileTarget, anchorOrganizationID)
+	}
+}
+
+func TestAdminUsecaseUpdateUserPropagatesAnchorNotFound(t *testing.T) {
+	repo := &adminRepoStub{userAnchorErr: ErrAdminUserNotFound}
+	usecase := NewAdminUsecase(repo)
+
+	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{DisplayName: "任意"}, nil); err != ErrAdminUserNotFound {
+		t.Fatalf("UpdateUser() error = %v, want ErrAdminUserNotFound", err)
+	}
+	if repo.auditEvent != nil {
+		t.Fatalf("锚定失败时不应继续写入：audit = %#v", repo.auditEvent)
 	}
 }
 

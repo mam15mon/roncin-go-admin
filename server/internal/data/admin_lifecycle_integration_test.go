@@ -190,13 +190,15 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != nil {
 		t.Fatalf("移出总部: %v", err)
 	}
+	// 工作台范围口径变更：移出总部后用户仍归属公司（总部子树），总部工作台仍可为其
+	// 重置密码；精确组织口径下的「历史组织不可重置」不再成立。
 	replacementUsername := "replacement." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
-		t.Fatalf("历史组织重置全局密码 error = %v, want ErrAdminUserNotFound", err)
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != nil {
+		t.Fatalf("总部工作台为公司子树成员重置密码: %v", err)
 	}
 	retainedAccount, err := data.db.User.Get(ctx, account.ID)
-	if err != nil || !retainedAccount.Enabled || retainedAccount.Username != backupUsername || retainedAccount.PasswordHash == nil || *retainedAccount.PasswordHash != "active-password-hash" {
-		t.Fatalf("移出组织后的账号结果 = %#v, error = %v", retainedAccount, err)
+	if err != nil || !retainedAccount.Enabled || retainedAccount.Username != replacementUsername || retainedAccount.PasswordHash == nil || *retainedAccount.PasswordHash != "replacement-password-hash" {
+		t.Fatalf("重置密码后的账号结果 = %#v, error = %v", retainedAccount, err)
 	}
 	if _, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("历史组织读取操作者能力 error = %v, want ErrAdminPrivilegeEscalation", err)

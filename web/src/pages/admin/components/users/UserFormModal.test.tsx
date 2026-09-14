@@ -45,7 +45,11 @@ vi.mock('antd', () => ({
   Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Table: () => null,
   Tag: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-  Typography: () => null,
+  Typography: {
+    Text: ({ children }: { children?: React.ReactNode }) => (
+      <span>{children}</span>
+    ),
+  },
 }));
 
 vi.mock('@/services/roncin/adminService', () => ({
@@ -83,7 +87,10 @@ const normalUser: API.AdminUser = {
   status: 1,
 };
 
-function renderModal(editing: API.AdminUser | undefined, flags: Record<string, unknown>) {
+function renderModal(
+  editing: API.AdminUser | undefined,
+  flags: Record<string, unknown>,
+) {
   render(
     <UserFormModal
       open
@@ -147,6 +154,47 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     await submitForm({ displayName: '张三', roleIds: ['role-1'] });
     expect(serviceMocks.updateUser).toHaveBeenCalled();
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
+  });
+
+  it('编辑时按锚定成员关系所在组织拉取角色选项', async () => {
+    serviceMocks.listUserMemberships.mockResolvedValue({
+      data: [
+        { id: 'm-1', organizationId: 'org-2', primary: true, enabled: true },
+      ],
+    });
+    serviceMocks.listOrganizationRoles.mockResolvedValue({
+      data: [{ id: 'role-9', name: '锚定组织角色', code: 'anchor_role' }],
+    });
+
+    renderModal(normalUser, { canReadAllUserMemberships: true });
+
+    await act(async () => {});
+    expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
+      organizationId: 'org-2',
+    });
+    const roleSelect = requiredSelect('roleIds');
+    expect(roleSelect.options).toEqual([
+      expect.objectContaining({ value: 'role-9' }),
+    ]);
+
+    await submitForm({ displayName: '张三', roleIds: ['role-9'] });
+    expect(serviceMocks.updateUser).toHaveBeenCalled();
+  });
+
+  it('编辑时无 primary 成员关系则取第一条启用关系的组织', async () => {
+    serviceMocks.listUserMemberships.mockResolvedValue({
+      data: [
+        { id: 'm-1', organizationId: 'org-9', primary: false, enabled: false },
+        { id: 'm-2', organizationId: 'org-3', primary: false, enabled: true },
+      ],
+    });
+
+    renderModal(normalUser, { canReadAllUserMemberships: true });
+
+    await act(async () => {});
+    expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
+      organizationId: 'org-3',
+    });
   });
 
   it('具备钉钉授权权限时，外部成员流程按目标组织调用 ListOrganizationRoles', async () => {
