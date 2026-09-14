@@ -17,6 +17,7 @@ const {
   authServiceGetDingTalkLoginConfigMock,
   authServiceGetDingTalkInvitationInfoMock,
   messageSuccessMock,
+  messageErrorMock,
   setInitialStateMock,
 } = vi.hoisted(() => ({
   authServiceLoginMock: vi.fn(),
@@ -25,6 +26,7 @@ const {
   authServiceGetDingTalkLoginConfigMock: vi.fn(),
   authServiceGetDingTalkInvitationInfoMock: vi.fn(),
   messageSuccessMock: vi.fn(),
+  messageErrorMock: vi.fn(),
   setInitialStateMock: vi.fn(),
 }));
 
@@ -38,7 +40,7 @@ vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();
   const MockedApp = Object.assign(actual.App, {
     useApp: () => ({
-      message: { success: messageSuccessMock },
+      message: { success: messageSuccessMock, error: messageErrorMock },
     }),
   });
   return { ...actual, App: MockedApp };
@@ -132,6 +134,41 @@ describe('Login', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     cleanup();
+  });
+
+  it('登录失败时展示服务端业务提示，而非 Axios 默认状态码文案', async () => {
+    authServiceLoginMock.mockRejectedValue({
+      response: {
+        status: 401,
+        data: { success: false, code: 401, message: '用户名或密码错误' },
+      },
+    });
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+    await submitLogin();
+
+    await waitFor(() => {
+      expect(messageErrorMock).toHaveBeenCalledWith('用户名或密码错误');
+    });
+  });
+
+  it('登录请求无服务端报文时回退通用失败提示', async () => {
+    authServiceLoginMock.mockRejectedValue(new Error('Network Error'));
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+    await submitLogin();
+
+    await waitFor(() => {
+      expect(messageErrorMock).toHaveBeenCalledWith('登录失败，请稍后重试');
+    });
   });
 
   it('多组织用户登录后先出现组织选择视图', async () => {

@@ -28,6 +28,7 @@ import {
   authServiceGetWeComLoginConfig,
   authServiceLogin,
 } from '@/services/roncin/authService';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
 import {
@@ -90,7 +91,7 @@ export default function Login() {
         })
         .catch((error) => {
           setInvitationError(
-            error instanceof Error ? error.message : '邀请链接无效或已过期',
+            getRequestErrorMessage(error, '邀请链接无效或已过期'),
           );
           sessionStorage.removeItem('dingtalk_invitation_token');
         });
@@ -130,9 +131,8 @@ export default function Login() {
       }
       finishLogin(redirect);
     } catch (error) {
-      message.error(
-        error instanceof Error ? error.message : '登录失败，请稍后重试',
-      );
+      // 登录失败已跳过全局 401 跳转，这里展示服务端业务提示（如「用户名或密码错误」）。
+      message.error(getRequestErrorMessage(error, '登录失败，请稍后重试'));
     } finally {
       setLoading(false);
     }
@@ -156,9 +156,7 @@ export default function Login() {
       setWecomAuthUrl(response.data.authorizeUrl);
       setWecomModalOpen(true);
     } catch (error) {
-      message.error(
-        error instanceof Error ? error.message : '企业微信登录启动失败',
-      );
+      message.error(getRequestErrorMessage(error, '企业微信登录启动失败'));
     } finally {
       setWecomLoading(false);
     }
@@ -180,9 +178,7 @@ export default function Login() {
       sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
       window.location.assign(response.data.authorizeUrl);
     } catch (error) {
-      message.error(
-        error instanceof Error ? error.message : '钉钉登录启动失败',
-      );
+      message.error(getRequestErrorMessage(error, '钉钉登录启动失败'));
     } finally {
       setDingtalkLoading(false);
     }

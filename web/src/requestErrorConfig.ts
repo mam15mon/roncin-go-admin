@@ -41,6 +41,16 @@ export function getRequestErrorStatus(rawError: unknown): number | undefined {
   );
 }
 
+// 提取服务端业务报文中的用户可读提示。skipErrorHandler 的调用方（如登录页）
+// 用它展示后端原因，避免把 Axios 的英文默认文案直接抛给用户。
+export function getRequestErrorMessage(
+  rawError: unknown,
+  fallback: string,
+): string {
+  const error = rawError as RequestError;
+  return error.data?.message ?? error.response?.data?.message ?? fallback;
+}
+
 export function isRequestTimeoutError(rawError: unknown): boolean {
   const error = rawError as RequestError;
   return (
