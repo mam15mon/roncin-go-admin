@@ -2035,7 +2035,7 @@ func (x *ListPartnersRequest) GetIsCasual() bool {
 
 type CreatePartnerRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 客商代码；留空时由服务端按组织内唯一规则自动生成。
+	// 客商代码；选填搜索辅助字段，留空表示未设置，不做自动生成。
 	Code                    *string                   `protobuf:"bytes,1,opt,name=code,proto3,oneof" json:"code,omitempty"`
 	LegalName               string                    `protobuf:"bytes,2,opt,name=legal_name,json=legalName,proto3" json:"legal_name,omitempty"`
 	UnifiedSocialCreditCode string                    `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`

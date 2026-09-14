@@ -26,8 +26,8 @@ type Partner struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
-	// Code holds the value of the "code" field.
-	Code string `json:"code,omitempty"`
+	// 客商代码；选填，仅用于操作人员搜索
+	Code *string `json:"code,omitempty"`
 	// LegalName holds the value of the "legal_name" field.
 	LegalName string `json:"legal_name,omitempty"`
 	// NormalizedName holds the value of the "normalized_name" field.
@@ -357,7 +357,8 @@ func (_m *Partner) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
-				_m.Code = value.String
+				_m.Code = new(string)
+				*_m.Code = value.String
 			}
 		case partner.FieldLegalName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -557,8 +558,10 @@ func (_m *Partner) String() string {
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
-	builder.WriteString("code=")
-	builder.WriteString(_m.Code)
+	if v := _m.Code; v != nil {
+		builder.WriteString("code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("legal_name=")
 	builder.WriteString(_m.LegalName)

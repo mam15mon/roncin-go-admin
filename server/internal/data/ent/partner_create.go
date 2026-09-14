@@ -86,6 +86,14 @@ func (_c *PartnerCreate) SetCode(v string) *PartnerCreate {
 	return _c
 }
 
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (_c *PartnerCreate) SetNillableCode(v *string) *PartnerCreate {
+	if v != nil {
+		_c.SetCode(*v)
+	}
+	return _c
+}
+
 // SetLegalName sets the "legal_name" field.
 func (_c *PartnerCreate) SetLegalName(v string) *PartnerCreate {
 	_c.mutation.SetLegalName(v)
@@ -590,9 +598,6 @@ func (_c *PartnerCreate) check() error {
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Partner.organization_id"`)}
 	}
-	if _, ok := _c.mutation.Code(); !ok {
-		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Partner.code"`)}
-	}
 	if v, ok := _c.mutation.Code(); ok {
 		if err := partner.CodeValidator(v); err != nil {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Partner.code": %w`, err)}
@@ -682,7 +687,7 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(partner.FieldCode, field.TypeString, value)
-		_node.Code = value
+		_node.Code = &value
 	}
 	if value, ok := _c.mutation.LegalName(); ok {
 		_spec.SetField(partner.FieldLegalName, field.TypeString, value)

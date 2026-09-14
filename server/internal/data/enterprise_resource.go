@@ -63,7 +63,7 @@ func (r *enterpriseResourceRepo) SearchPartnerOptions(ctx context.Context, organ
 	}
 	result := make([]*biz.EnterpriseResourcePartnerOption, 0, len(items))
 	for _, item := range items {
-		result = append(result, &biz.EnterpriseResourcePartnerOption{ID: item.ID, Code: item.Code, Name: item.LegalName})
+		result = append(result, &biz.EnterpriseResourcePartnerOption{ID: item.ID, Code: partnerCodeValue(item.Code), Name: item.LegalName})
 	}
 	return result, int64(total), nil
 }

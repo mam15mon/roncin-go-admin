@@ -306,7 +306,7 @@ export default function PartnerQuickAddSelect({
             ({ signal }) =>
               partnerServiceCreatePartner(
                 {
-                  // 客商代码留空由服务端按组织内唯一规则自动生成。
+                  // 客商代码留空表示未设置，仅作为操作人员搜索辅助，不做自动生成。
                   legalName: values.legalName.trim(),
                   roles: [{ type: role, enabled: true }],
                   isCasual: values.isCasual ?? true,

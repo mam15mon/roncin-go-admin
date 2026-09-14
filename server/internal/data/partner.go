@@ -207,12 +207,14 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		create := tx.Partner.Create().
 			SetOrganizationID(organizationID).
-			SetCode(input.Code).
 			SetLegalName(input.LegalName).
 			SetNormalizedName(input.NormalizedName).
 			SetRegisteredAddress(input.RegisteredAddress).
 			SetEnabled(true).
 			SetIsCasual(input.IsCasual)
+		if input.Code != "" {
+			create.SetCode(input.Code)
+		}
 		if input.UnifiedSocialCreditCode != "" {
 			create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 		}
@@ -360,12 +362,14 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 			if ent.IsNotFound(queryErr) {
 				create := tx.Partner.Create().
 					SetOrganizationID(organizationID).
-					SetCode(input.Code).
 					SetLegalName(input.LegalName).
 					SetNormalizedName(input.NormalizedName).
 					SetRegisteredAddress(input.RegisteredAddress).
 					SetEnabled(true).
 					SetIsCasual(false)
+				if input.Code != "" {
+					create.SetCode(input.Code)
+				}
 				if input.UnifiedSocialCreditCode != "" {
 					create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 				}
@@ -727,11 +731,19 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID u
 	return nil
 }
 
+// partnerCodeValue 解引用可空客商代码，未设置时统一返回空串。
+func partnerCodeValue(code *string) string {
+	if code == nil {
+		return ""
+	}
+	return *code
+}
+
 func partnerToBiz(item *ent.Partner) *biz.Partner {
 	result := &biz.Partner{
 		ID:                item.ID,
 		OrganizationID:    item.OrganizationID,
-		Code:              item.Code,
+		Code:              partnerCodeValue(item.Code),
 		LegalName:         item.LegalName,
 		NormalizedName:    item.NormalizedName,
 		RegisteredAddress: item.RegisteredAddress,

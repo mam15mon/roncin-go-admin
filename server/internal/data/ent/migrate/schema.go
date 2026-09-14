@@ -4457,7 +4457,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "legal_name", Type: field.TypeString, Size: 200},
 		{Name: "normalized_name", Type: field.TypeString, Size: 200},
 		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},

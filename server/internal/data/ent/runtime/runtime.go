@@ -5946,21 +5946,7 @@ func init() {
 	// partnerDescCode is the schema descriptor for code field.
 	partnerDescCode := partnerFields[1].Descriptor()
 	// partner.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	partner.CodeValidator = func() func(string) error {
-		validators := partnerDescCode.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(code string) error {
-			for _, fn := range fns {
-				if err := fn(code); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	partner.CodeValidator = partnerDescCode.Validators[0].(func(string) error)
 	// partnerDescLegalName is the schema descriptor for legal_name field.
 	partnerDescLegalName := partnerFields[2].Descriptor()
 	// partner.LegalNameValidator is a validator for the "legal_name" field. It is called by the builders before save.

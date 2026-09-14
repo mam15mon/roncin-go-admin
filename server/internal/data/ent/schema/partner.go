@@ -16,7 +16,7 @@ func (Partner) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} 
 func (Partner) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.String("code").NotEmpty().MaxLen(64).Immutable(),
+		field.String("code").Optional().Nillable().MaxLen(64).Immutable().Comment("客商代码；选填，仅用于操作人员搜索"),
 		field.String("legal_name").NotEmpty().MaxLen(200),
 		field.String("normalized_name").NotEmpty().MaxLen(200),
 		field.String("unified_social_credit_code").Optional().Nillable().MaxLen(64),

@@ -194,7 +194,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		result.FinanceLockReason = "关联提成已确认或已发放，原费用事实已锁定"
 	}
 	for _, party := range parties {
-		result.SettlementParties = append(result.SettlementParties, biz.OrderFeeSettlementPartyOption{ID: party.ID, Code: party.Code, Name: party.LegalName})
+		result.SettlementParties = append(result.SettlementParties, biz.OrderFeeSettlementPartyOption{ID: party.ID, Code: partnerCodeValue(party.Code), Name: party.LegalName})
 	}
 	enabledCurrencies := make(map[string]struct{}, len(currencies))
 	for _, currency := range currencies {

@@ -812,7 +812,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 		attributionItem := attributionByOrder[orderItem.ID]
 		line := &biz.FinanceCommissionLine{
 			OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, OrderDate: orderItem.OrderDate,
-			CustomerID: customer.ID, CustomerCode: customer.Code, CustomerName: customer.LegalName,
+			CustomerID: customer.ID, CustomerCode: partnerCodeValue(customer.Code), CustomerName: customer.LegalName,
 			CustomerAssignmentID: attributionItem.SourceAssignmentID, CustomerAssignmentOrganizationID: attributionItem.OrganizationID, CustomerAssignedAt: attributionItem.AttributedAt,
 			EmployeeID: employee.ID, EmployeeName: attributionItem.EmployeeName, PersonnelRole: result.PersonnelRole,
 			CalculationBasis: result.CalculationBasis, RatePercent: source.rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),

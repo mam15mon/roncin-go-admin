@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 	"net/mail"
 	"sort"
@@ -247,16 +246,14 @@ type PartnerRepo interface {
 }
 
 type PartnerUsecase struct {
-	repo                PartnerRepo
-	now                 func() time.Time
-	generatePartnerCode func() (string, error)
+	repo PartnerRepo
+	now  func() time.Time
 }
 
 func NewPartnerUsecase(repo PartnerRepo) *PartnerUsecase {
 	return &PartnerUsecase{
-		repo:                repo,
-		now:                 time.Now,
-		generatePartnerCode: generatePartnerCode,
+		repo: repo,
+		now:  time.Now,
 	}
 }
 
@@ -354,60 +351,20 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 	}
 	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 
-	create := func(candidate *Partner) (*Partner, error) {
-		audit := &AuditEvent{
-			OrganizationID: &organizationID,
-			UserID:         &userID,
-			Action:         "partner.create",
-			ResourceType:   "partner",
-			Result:         "success",
-			Details: map[string]string{
-				"partner.code": candidate.Code,
-				"legal_name":   candidate.LegalName,
-				"roles":        FormatPartnerRolesAuditValue(candidate.Roles),
-			},
-		}
-		return uc.repo.Create(ctx, organizationID, candidate, audit)
+	// 客商代码为选填搜索辅助字段，留空即表示未设置，由数据库唯一索引兜底显式代码冲突。
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &userID,
+		Action:         "partner.create",
+		ResourceType:   "partner",
+		Result:         "success",
+		Details: map[string]string{
+			"partner.code": normalized.Code,
+			"legal_name":   normalized.LegalName,
+			"roles":        FormatPartnerRolesAuditValue(normalized.Roles),
+		},
 	}
-
-	if normalized.Code != "" {
-		return create(normalized)
-	}
-
-	// 自动代码冲突时重新生成候选；唯一性仍由数据库索引兜底。
-	seenCodes := make(map[string]struct{}, 3)
-	for attempt := 0; attempt < 3; attempt++ {
-		generated, genErr := uc.generatePartnerCode()
-		if genErr != nil {
-			return nil, genErr
-		}
-		if _, duplicate := seenCodes[generated]; duplicate {
-			continue
-		}
-		seenCodes[generated] = struct{}{}
-		candidate := *normalized
-		candidate.Code = generated
-		created, createErr := create(&candidate)
-		if createErr == nil || !errors.Is(createErr, ErrPartnerCodeExists) {
-			return created, createErr
-		}
-	}
-	return nil, ErrPartnerCodeExists
-}
-
-// generatePartnerCode 生成客商代码候选值（P 前缀 + 8 位大写字母数字）。
-// 唯一性不在此处保证，由 partner_org_code_key 唯一索引兜底并在 Create 中重试。
-func generatePartnerCode() (string, error) {
-	raw := make([]byte, 8)
-	if _, err := rand.Read(raw); err != nil {
-		return "", err
-	}
-	const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	code := make([]byte, len(raw))
-	for i, b := range raw {
-		code[i] = alphabet[int(b)%len(alphabet)]
-	}
-	return "P" + string(code), nil
+	return uc.repo.Create(ctx, organizationID, normalized, audit)
 }
 
 func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {

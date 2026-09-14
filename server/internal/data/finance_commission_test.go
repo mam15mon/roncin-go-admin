@@ -67,7 +67,7 @@ func TestCalculateCommissionFromSourceUsesSharedBatchData(t *testing.T) {
 	organizationID := uuid.New()
 	orderID := uuid.New()
 	employeeID := uuid.New()
-	customer := &ent.Partner{ID: uuid.New(), Code: "CUS001", LegalName: "测试客户"}
+	customer := &ent.Partner{ID: uuid.New(), Code: ptr("CUS001"), LegalName: "测试客户"}
 	settlementParty := &ent.Partner{ID: uuid.New(), LegalName: "测试结算单位"}
 	orderItem := &ent.Order{
 		ID: orderID, OrderNo: "SE20260001", OrderDate: "2026-08-28", CustomerID: customer.ID,

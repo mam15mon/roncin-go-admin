@@ -167,7 +167,7 @@ export default function BasicInfoSection({
             <ProFormText
               name="code"
               label="代码"
-              placeholder="留空自动生成，如 CDRT"
+              placeholder="选填，仅用于搜索，如 CDRT"
               disabled={Boolean(partnerId)}
               rules={[
                 {

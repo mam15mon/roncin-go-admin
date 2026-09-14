@@ -1027,6 +1027,9 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.CodeCleared() {
+		_spec.ClearField(partner.FieldCode, field.TypeString)
+	}
 	if value, ok := _u.mutation.LegalName(); ok {
 		_spec.SetField(partner.FieldLegalName, field.TypeString, value)
 	}
@@ -3037,6 +3040,9 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CodeCleared() {
+		_spec.ClearField(partner.FieldCode, field.TypeString)
 	}
 	if value, ok := _u.mutation.LegalName(); ok {
 		_spec.SetField(partner.FieldLegalName, field.TypeString, value)

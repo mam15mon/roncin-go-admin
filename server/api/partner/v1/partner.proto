@@ -365,7 +365,7 @@ message ListPartnersRequest {
 }
 
 message CreatePartnerRequest {
-  // 客商代码；留空时由服务端按组织内唯一规则自动生成。
+  // 客商代码；选填搜索辅助字段，留空表示未设置，不做自动生成。
   optional string code = 1;
   string legal_name = 2 [(google.api.field_behavior) = REQUIRED];
   string unified_social_credit_code = 3;

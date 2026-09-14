@@ -266,6 +266,16 @@ func CodeHasSuffix(v string) predicate.Partner {
 	return predicate.Partner(sql.FieldHasSuffix(FieldCode, v))
 }
 
+// CodeIsNil applies the IsNil predicate on the "code" field.
+func CodeIsNil() predicate.Partner {
+	return predicate.Partner(sql.FieldIsNull(FieldCode))
+}
+
+// CodeNotNil applies the NotNil predicate on the "code" field.
+func CodeNotNil() predicate.Partner {
+	return predicate.Partner(sql.FieldNotNull(FieldCode))
+}
+
 // CodeEqualFold applies the EqualFold predicate on the "code" field.
 func CodeEqualFold(v string) predicate.Partner {
 	return predicate.Partner(sql.FieldEqualFold(FieldCode, v))

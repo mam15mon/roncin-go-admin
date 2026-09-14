@@ -102915,7 +102915,7 @@ func (m *PartnerMutation) Code() (r string, exists bool) {
 // OldCode returns the old "code" field's value of the Partner entity.
 // If the Partner object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerMutation) OldCode(ctx context.Context) (v string, err error) {
+func (m *PartnerMutation) OldCode(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCode is only allowed on UpdateOne operations")
 	}
@@ -102929,9 +102929,22 @@ func (m *PartnerMutation) OldCode(ctx context.Context) (v string, err error) {
 	return oldValue.Code, nil
 }
 
+// ClearCode clears the value of the "code" field.
+func (m *PartnerMutation) ClearCode() {
+	m.code = nil
+	m.clearedFields[partner.FieldCode] = struct{}{}
+}
+
+// CodeCleared returns if the "code" field was cleared in this mutation.
+func (m *PartnerMutation) CodeCleared() bool {
+	_, ok := m.clearedFields[partner.FieldCode]
+	return ok
+}
+
 // ResetCode resets all changes to the "code" field.
 func (m *PartnerMutation) ResetCode() {
 	m.code = nil
+	delete(m.clearedFields, partner.FieldCode)
 }
 
 // SetLegalName sets the "legal_name" field.
@@ -104603,6 +104616,9 @@ func (m *PartnerMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PartnerMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(partner.FieldCode) {
+		fields = append(fields, partner.FieldCode)
+	}
 	if m.FieldCleared(partner.FieldUnifiedSocialCreditCode) {
 		fields = append(fields, partner.FieldUnifiedSocialCreditCode)
 	}
@@ -104623,6 +104639,9 @@ func (m *PartnerMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PartnerMutation) ClearField(name string) error {
 	switch name {
+	case partner.FieldCode:
+		m.ClearCode()
+		return nil
 	case partner.FieldUnifiedSocialCreditCode:
 		m.ClearUnifiedSocialCreditCode()
 		return nil
