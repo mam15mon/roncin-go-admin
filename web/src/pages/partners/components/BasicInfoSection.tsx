@@ -167,10 +167,9 @@ export default function BasicInfoSection({
             <ProFormText
               name="code"
               label="代码"
-              placeholder="如 CDRT"
+              placeholder="留空自动生成，如 CDRT"
               disabled={Boolean(partnerId)}
               rules={[
-                { required: true, message: '请输入唯一代码' },
                 {
                   pattern: /^[A-Za-z0-9_-]+$/,
                   message: '仅支持字母数字',
