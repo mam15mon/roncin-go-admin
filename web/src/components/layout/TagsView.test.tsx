@@ -68,7 +68,7 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/partners')).toBe('客户');
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
-      expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新增海运出口');
+      expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新建订单');
       // 订单动态路由统一使用中性占位标题，具体订单页加载后回填真实标题
       expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe(
         '订单详情',
@@ -315,7 +315,7 @@ describe('TagsView Component', () => {
     render(<TagsView />);
 
     expect(screen.getByText('工作台')).toBeInTheDocument();
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
     // 只有 2 个 tab
     const tabs = screen.getAllByRole('tab');
     expect(tabs.length).toBe(2);
@@ -332,7 +332,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/new';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
     expect(screen.queryByText('海运出口订单列表')).not.toBeInTheDocument();
 
     // 跳转至订单详情
@@ -453,7 +453,7 @@ describe('TagsView Component', () => {
     // 用户跳转到新建页面
     mockPathname = '/orders/sea-export/new';
     rerender(<TagsView />);
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
 
     // 之前 SE001 迟到的标题事件到达，应被门禁拦截，不能覆盖新建页面的标题
     act(() => {
@@ -467,7 +467,7 @@ describe('TagsView Component', () => {
       );
     });
 
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
     expect(screen.queryByText('迟到的SE001标题')).not.toBeInTheDocument();
   });
 
@@ -730,7 +730,7 @@ describe('TagsView Component', () => {
 
     const modalSpy = spyOnConfirm();
 
-    const closeBtn = screen.getByLabelText('关闭 新增海运出口');
+    const closeBtn = screen.getByLabelText('关闭 新建订单');
     act(() => {
       fireEvent.click(closeBtn);
     });
@@ -743,7 +743,7 @@ describe('TagsView Component', () => {
     expect(modalArgs.cancelText).toBe('取消');
 
     // 未执行 onOk，页签依然存在，未跳转
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
 
     modalSpy.mockRestore();
@@ -808,13 +808,13 @@ describe('TagsView Component', () => {
     );
 
     // 取消时，海运出口页签依然存在
-    expect(screen.getByText('新增海运出口')).toBeInTheDocument();
+    expect(screen.getByText('新建订单')).toBeInTheDocument();
 
     // 确认后，其他标签页被关闭
     act(() => {
       modalSpy.mock.calls[0][0].onOk?.();
     });
-    expect(screen.queryByText('新增海运出口')).not.toBeInTheDocument();
+    expect(screen.queryByText('新建订单')).not.toBeInTheDocument();
     expect(screen.getByText('客户')).toBeInTheDocument();
 
     modalSpy.mockRestore();

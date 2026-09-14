@@ -11,7 +11,7 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/partners/foreign-agents': '国外代理',
   '/partners/foreign-agents/create': '新建国外代理',
   '/orders/sea-export': '海运出口订单列表',
-  '/orders/sea-export/new': '新增海运出口',
+  '/orders/sea-export/new': '新建订单',
   '/orders': '订单管理',
   '/master-data': '主数据',
   '/settings': '参数设置',

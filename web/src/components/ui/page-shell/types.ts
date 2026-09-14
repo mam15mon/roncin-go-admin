@@ -15,6 +15,8 @@ export interface PageHeaderShellProps {
   tags?: ReactNode;
   /** 右侧主要操作按钮组 */
   extra?: ReactNode;
+  /** 紧贴在面包屑与标题下方的操作按钮行 */
+  actions?: ReactNode;
   /** 是否固定在顶部 */
   sticky?: boolean;
   /** 额外样式 */
