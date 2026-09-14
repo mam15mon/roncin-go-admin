@@ -33,7 +33,8 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 		Where(predicates...).
 		WithUser(func(query *ent.UserQuery) {
 			query.WithMemberships(func(query *ent.MembershipQuery) {
-				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true)))
+				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
+					WithOrganization()
 			})
 		}).
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
@@ -272,7 +273,8 @@ func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UU
 		Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID)).
 		WithUser(func(query *ent.UserQuery) {
 			query.WithMemberships(func(query *ent.MembershipQuery) {
-				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true)))
+				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
+					WithOrganization()
 			})
 		}).
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
@@ -292,6 +294,23 @@ func membershipToUser(item *ent.Membership) *biz.AdminUser {
 		}
 	}
 	sort.Strings(result.RoleCodes)
+	for _, membershipRecord := range account.Edges.Memberships {
+		organizationRecord := membershipRecord.Edges.Organization
+		if organizationRecord == nil {
+			continue
+		}
+		result.Organizations = append(result.Organizations, &biz.AdminUserOrganizationSummary{
+			OrganizationID: organizationRecord.ID,
+			Name:           organizationRecord.Name,
+			Primary:        membershipRecord.Primary,
+		})
+	}
+	sort.Slice(result.Organizations, func(i, j int) bool {
+		if result.Organizations[i].Primary != result.Organizations[j].Primary {
+			return result.Organizations[i].Primary
+		}
+		return result.Organizations[i].Name < result.Organizations[j].Name
+	})
 	result.Status = adminUserStatus(account, item, len(account.Edges.Memberships) > 0)
 	return result
 }

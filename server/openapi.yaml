@@ -7529,6 +7529,10 @@ components:
                     format: enum
                 currentMembershipEnabled:
                     type: boolean
+                organizations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.AdminUserOrganizationSummary'
         admin.v1.AdminUserMembership:
             type: object
             properties:
@@ -7565,6 +7569,16 @@ components:
                     type: string
                 updatedAt:
                     type: string
+        admin.v1.AdminUserOrganizationSummary:
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                primary:
+                    type: boolean
+            description: 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
         admin.v1.ApproveDingTalkRegistrationRequest:
             required:
                 - id

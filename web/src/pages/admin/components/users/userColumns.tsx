@@ -1,4 +1,5 @@
 import {
+  BankOutlined,
   DeleteOutlined,
   EditOutlined,
   KeyOutlined,
@@ -16,6 +17,7 @@ interface UserColumnsDeps {
   canUpdateUsers: boolean;
   canResetUserPasswords: boolean;
   canTerminateUsers: boolean;
+  canReadAllUserMemberships: boolean;
   currentUserId?: string;
   onEdit: (user: API.AdminUser) => void;
   onResetPassword: (user: API.AdminUser) => void;
@@ -27,6 +29,7 @@ export function buildUserColumns({
   canUpdateUsers,
   canResetUserPasswords,
   canTerminateUsers,
+  canReadAllUserMemberships,
   currentUserId,
   onEdit,
   onResetPassword,
@@ -83,6 +86,53 @@ export function buildUserColumns({
         );
       },
     },
+    ...(canReadAllUserMemberships
+      ? [
+          {
+            title: '所属组织',
+            dataIndex: 'organizations',
+            width: 200,
+            search: false,
+            render: (_: unknown, record: API.AdminUser) => {
+              const organizations = record.organizations ?? [];
+              if (organizations.length === 0) {
+                return (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    -
+                  </Text>
+                );
+              }
+              const primary =
+                organizations.find((item) => item.primary) ?? organizations[0];
+              const label =
+                organizations.length > 1
+                  ? `${primary.organizationName} 等 ${organizations.length} 个组织`
+                  : primary.organizationName;
+              return (
+                <Space size={4} style={{ minWidth: 0 }}>
+                  <BankOutlined
+                    style={{ color: '#1677ff', fontSize: 12, flexShrink: 0 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      maxWidth: 150,
+                      display: 'inline-block',
+                    }}
+                    ellipsis={{
+                      tooltip: organizations
+                        .map((item) => item.organizationName)
+                        .join('、'),
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </Space>
+              );
+            },
+          },
+        ]
+      : []),
     {
       title: '用户名',
       dataIndex: 'username',

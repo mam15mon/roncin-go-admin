@@ -22,6 +22,13 @@ var (
 	ErrAdminUserAuthorizationRequired = errors.BadRequest("ADMIN_USER_AUTHORIZATION_REQUIRED", "外部身份账号必须通过身份授权流程启用")
 )
 
+// AdminUserOrganizationSummary 描述用户在某个启用组织的归属摘要。
+type AdminUserOrganizationSummary struct {
+	OrganizationID uuid.UUID
+	Name           string
+	Primary        bool
+}
+
 type AdminUser struct {
 	ID                       uuid.UUID
 	Username                 string
@@ -39,6 +46,7 @@ type AdminUser struct {
 	HasPassword              bool
 	RoleIDs                  []uuid.UUID
 	RoleCodes                []string
+	Organizations            []*AdminUserOrganizationSummary
 	CreatedAt                time.Time
 	UpdatedAt                time.Time
 }

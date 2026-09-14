@@ -275,6 +275,7 @@ declare namespace API {
     dingtalkUserid?: string;
     status?: number;
     currentMembershipEnabled?: boolean;
+    organizations?: AdminUserOrganizationSummary[];
   };
 
   type AdminUserMembership = {
@@ -291,6 +292,12 @@ declare namespace API {
     roleNames?: string[];
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type AdminUserOrganizationSummary = {
+    organizationId?: string;
+    organizationName?: string;
+    primary?: boolean;
   };
 
   type Airline = {

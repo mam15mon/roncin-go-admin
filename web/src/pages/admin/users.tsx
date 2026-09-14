@@ -35,7 +35,9 @@ export default function UsersPanel() {
     // 角色与组织数据源按权限分流：普通组织管理员只加载当前组织的 ListRoles，
     // 全组织列表仅限具备全局组织读取权限的管理员，避免进入用户页即触发预期外 403。
     if (access.canReadRoles) {
-      adminServiceListRoles().then((response) => setRoles(unwrapList(response)));
+      adminServiceListRoles().then((response) =>
+        setRoles(unwrapList(response)),
+      );
     }
     if (access.canReadOrganizations) {
       adminServiceListOrganizations().then((response) =>
@@ -67,6 +69,7 @@ export default function UsersPanel() {
     canUpdateUsers: access.canUpdateUsers,
     canResetUserPasswords: access.canResetUserPasswords,
     canTerminateUsers: access.canTerminateUsers,
+    canReadAllUserMemberships: access.canReadAllUserMemberships,
     currentUserId: initialState?.currentUser?.id,
     onEdit: openEdit,
     onResetPassword: setResetting,

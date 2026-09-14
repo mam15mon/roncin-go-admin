@@ -6,6 +6,7 @@ import (
 	"time"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
 	"github.com/google/uuid"
@@ -85,9 +86,12 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	if err != nil {
 		return nil, err
 	}
+	// 组织摘要涉及跨组织可见性，仅对持有用户读取 ALL 范围的操作者填充，
+	// 与 ListUserMemberships 接口的范围要求保持一致。
+	includeOrganizations := principal.HasPermissionInScope(access.UserRead, biz.DataScopeAll)
 	data := make([]*v1.AdminUser, 0, len(list.Items))
 	for _, item := range list.Items {
-		data = append(data, userToAPI(item))
+		data = append(data, userToAPI(item, includeOrganizations))
 	}
 	return okList(ctx, &v1.ListUsersResponse{Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
@@ -105,7 +109,7 @@ func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.CreateUserResponse{Data: userToAPI(created)}), nil
+	return ok(ctx, &v1.CreateUserResponse{Data: userToAPI(created, false)}), nil
 }
 
 func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
@@ -125,7 +129,7 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.UpdateUserResponse{Data: userToAPI(updated)}), nil
+	return ok(ctx, &v1.UpdateUserResponse{Data: userToAPI(updated, false)}), nil
 }
 
 func (s *AdminService) ListUserMemberships(ctx context.Context, request *v1.ListUserMembershipsRequest) (*v1.ListUserMembershipsResponse, error) {
@@ -250,7 +254,7 @@ func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.Autho
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.AuthorizeWeComUserResponse{Data: userToAPI(authorized)}), nil
+	return ok(ctx, &v1.AuthorizeWeComUserResponse{Data: userToAPI(authorized, false)}), nil
 }
 
 func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.AuthorizeDingTalkUserRequest) (*v1.AuthorizeDingTalkUserResponse, error) {
@@ -274,7 +278,7 @@ func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.Au
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.AuthorizeDingTalkUserResponse{Data: userToAPI(authorized)}), nil
+	return ok(ctx, &v1.AuthorizeDingTalkUserResponse{Data: userToAPI(authorized, false)}), nil
 }
 
 func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetUserPasswordRequest) (*v1.ResetUserPasswordResponse, error) {
@@ -496,8 +500,16 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 	}
 }
 
-func userToAPI(value *biz.AdminUser) *v1.AdminUser {
-	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
+	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	if includeOrganizations {
+		organizations := make([]*v1.AdminUserOrganizationSummary, 0, len(value.Organizations))
+		for _, organization := range value.Organizations {
+			organizations = append(organizations, &v1.AdminUserOrganizationSummary{OrganizationId: organization.OrganizationID.String(), OrganizationName: organization.Name, Primary: organization.Primary})
+		}
+		result.Organizations = organizations
+	}
+	return result
 }
 
 func adminUserStatusToAPI(value biz.AdminUserStatus) v1.AdminUserStatus {

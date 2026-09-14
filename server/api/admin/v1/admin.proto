@@ -388,6 +388,14 @@ message AdminUser {
   optional string dingtalk_userid = 16;
   AdminUserStatus status = 17;
   bool current_membership_enabled = 18;
+  repeated AdminUserOrganizationSummary organizations = 19;
+}
+
+// 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
+message AdminUserOrganizationSummary {
+  string organization_id = 1;
+  string organization_name = 2;
+  bool primary = 3;
 }
 
 message AdminUserMembership {
