@@ -19,6 +19,7 @@ export function SettingTableTemplate<
   updateItem,
   canCreate = true,
   canUpdate = true,
+  canEditRecord,
   initialValues,
   beforeSubmit,
   modalWidth = 520,
@@ -42,7 +43,9 @@ export function SettingTableTemplate<
   const actionRef = externalActionRef || internalActionRef;
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<TRecord | undefined>(undefined);
+  const [editingRecord, setEditingRecord] = useState<TRecord | undefined>(
+    undefined,
+  );
 
   // 1. 处理操作列（若未自定义 option 列且具备修改权限，自动追加标准编辑列）
   const tableColumns = useMemo<ProColumns<TRecord>[]>(() => {
@@ -56,23 +59,24 @@ export function SettingTableTemplate<
       valueType: 'option',
       width: 90,
       fixed: 'right',
-      render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => {
-            setEditingRecord(record);
-            setModalOpen(true);
-          }}
-        >
-          编辑
-        </Button>
-      ),
+      render: (_, record) =>
+        canEditRecord && !canEditRecord(record) ? null : (
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingRecord(record);
+              setModalOpen(true);
+            }}
+          >
+            编辑
+          </Button>
+        ),
     };
 
     return [...columns, actionColumn];
-  }, [columns, canUpdate, updateItem]);
+  }, [columns, canUpdate, canEditRecord, updateItem]);
 
   // 2. 初始表单值
   const currentInitialValues = useMemo<Partial<TFormValues>>(() => {
@@ -104,7 +108,9 @@ export function SettingTableTemplate<
   // 4. 提交处理
   const handleFinish = async (values: TFormValues) => {
     try {
-      const submitData = beforeSubmit ? beforeSubmit(values, editingRecord) : values;
+      const submitData = beforeSubmit
+        ? beforeSubmit(values, editingRecord)
+        : values;
 
       if (editingRecord) {
         if (updateItem) {
@@ -150,8 +156,8 @@ export function SettingTableTemplate<
           pagination === false
             ? false
             : typeof pagination === 'object'
-            ? pagination
-            : undefined
+              ? pagination
+              : undefined
         }
         rowSelection={rowSelection || undefined}
         scroll={scroll}

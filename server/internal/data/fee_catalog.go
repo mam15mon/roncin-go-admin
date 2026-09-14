@@ -34,14 +34,17 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 	}, options.Page, options.PageSize, feeSettingToBiz)
 }
 
-func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
-	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
+// CreateFeeSetting 创建费用设置：行归属由 input.OrganizationID 决定（总部 nil
+// 基线行 / 分公司本组织行）；organizationID 为调用组织，税务名称引用按其校验。
+func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
+	if err := r.validateFeeSettingReferences(ctx, organizationID, input); err != nil {
 		return nil, err
 	}
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		builder := tx.FeeSetting.Create().
-			SetID(input.ID).SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
+			SetID(input.ID).SetNillableOrganizationID(input.OrganizationID).
+			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
 			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetChargeCategoryID(input.ChargeCategoryID).
 			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
 			SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
@@ -66,15 +69,23 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 	return converted, nil
 }
 
-func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
-	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
-		return nil, err
-	}
+// UpdateFeeSetting 按 ID 更新费用设置（悲观锁 + 作用域归属校验，语义同汇率
+// UpdateScoped）：allowBaseline 时总部可命中 NULL 基线行，否则仅限调用组织
+// 自己的组织行；行归属不可迁移，作用域外一律按不存在处理。
+func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting, allowBaseline bool, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).ForUpdate().Only(ctx)
+		scope := feesettingent.OrganizationIDEQ(organizationID)
+		if allowBaseline {
+			scope = feesettingent.Or(feesettingent.OrganizationIDEQ(organizationID), feesettingent.OrganizationIDIsNil())
+		}
+		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), scope).ForUpdate().Only(ctx)
 		if queryErr != nil {
+			// 归属校验先行：作用域外的行一律按不存在处理，不提前泄漏引用细节。
 			return mapEntError(queryErr, biz.ErrFeeSettingNotFound, nil)
+		}
+		if err := r.validateFeeSettingReferences(ctx, organizationID, input); err != nil {
+			return err
 		}
 		builder := current.Update().
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
@@ -116,9 +127,10 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 	return converted, nil
 }
 
-// validateFeeSettingReferences 校验费用设置引用：计费单位与费用大类查 A 型全局表；
-// 异常类型同属 A 型主数据；税务名称查 C 型本组织行；币种查全局币种表；全部要求 enabled。
-func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input *biz.FeeSetting) error {
+// validateFeeSettingReferences 校验费用设置引用（design §5 放宽）：计费单位与
+// 费用大类查 A 型全局表（无组织维度）；异常类型同属 A 型主数据；税务名称为
+// C 型组织私有，查「本组织有效行」；币种查全局币种表；全部要求 enabled。
+func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting) error {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return err
@@ -143,7 +155,7 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 	if err != nil {
 		return err
 	}
-	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(*input.OrganizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
+	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(organizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}

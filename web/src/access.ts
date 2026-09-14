@@ -1,3 +1,4 @@
+import { AuthOrganizationKind } from '@/enums.generated';
 import type {
   ManifestPermissionKey,
   OrderPermissionOperation,
@@ -148,6 +149,11 @@ export default function access(
   };
   const inOrganization = hasScope('organization');
   const inAll = hasScope('all');
+  // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相：
+  // A 型页签与 B 型基线行的维护入口仅总部可见。
+  const isHeadquartersOrganization =
+    initialState?.currentUser?.currentOrganization?.kind ===
+    AuthOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS;
   const canOrder = (
     businessType: number | string,
     operation: OrderPermissionOperation,
@@ -158,6 +164,7 @@ export default function access(
 
   const result = {
     isAuthenticated: Boolean(initialState?.currentUser),
+    isHeadquartersOrganization,
     canAccessPlatform: has(permissions.platformAccess),
     canReadOrganizations: has(permissions.organizationRead) && inAll,
     canCreateOrganizations: has(permissions.organizationCreate) && inAll,

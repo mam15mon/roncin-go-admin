@@ -1,7 +1,16 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MultiTabCenterTemplate, ParameterSettingTemplate } from './ParameterSettingTemplate';
+import {
+  MultiTabCenterTemplate,
+  ParameterSettingTemplate,
+} from './ParameterSettingTemplate';
 import { SettingTableTemplate } from './SettingTableTemplate';
 
 // Mock umi hooks
@@ -127,5 +136,35 @@ describe('SettingTableTemplate', () => {
       expect(screen.getByText('BOX')).toBeInTheDocument();
       expect(screen.getByText('CBM')).toBeInTheDocument();
     });
+  });
+
+  it('canEditRecord 命中的行不展示编辑按钮（B 型基线行仅总部可编辑）', async () => {
+    const mockQuery = vi.fn().mockResolvedValue({
+      data: [
+        { id: '1', code: 'BASE', name: '基线行', organizationId: undefined },
+        { id: '2', code: 'LOCAL', name: '本地行', organizationId: 'org-1' },
+      ],
+      success: true,
+    });
+
+    render(
+      <SettingTableTemplate
+        entityName="费用设置"
+        columns={[{ title: '代码', dataIndex: 'code' }]}
+        query={mockQuery}
+        createItem={vi.fn()}
+        updateItem={vi.fn()}
+        canEditRecord={(record) => Boolean(record.organizationId)}
+        renderFormItems={() => <div>表单项内容</div>}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('BASE')).toBeInTheDocument();
+      expect(screen.getByText('LOCAL')).toBeInTheDocument();
+    });
+    expect(screen.getByText('编辑')).toBeInTheDocument();
+    // 仅本地行的编辑按钮存在：通过查询编辑文案数量区分（基线行无按钮）。
+    expect(screen.getAllByText('编辑')).toHaveLength(1);
   });
 });

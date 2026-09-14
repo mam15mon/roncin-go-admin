@@ -28,6 +28,37 @@ function currentUserWithAllScope(permissions: string[]) {
   };
 }
 
+function currentUserWithOrganizationKind(
+  permissions: string[],
+  kind: API.Organization['kind'],
+) {
+  return {
+    currentUser: {
+      permissions,
+      roleScopes: [{ dataScope: 'organization' }],
+      currentOrganization: { kind },
+    } as API.CurrentUser,
+  };
+}
+
+describe('组织身份判定（auth/me kind 契约）', () => {
+  it('总部工作台判定为总部组织', () => {
+    const result = access(
+      currentUserWithOrganizationKind([], 1), // ORGANIZATION_KIND_HEADQUARTERS
+    );
+    expect(result.isHeadquartersOrganization).toBe(true);
+  });
+
+  it('公司/部门等分支工作台判定为非总部组织', () => {
+    const company = access(currentUserWithOrganizationKind([], 2)); // ORGANIZATION_KIND_COMPANY
+    const department = access(currentUserWithOrganizationKind([], 3)); // ORGANIZATION_KIND_DEPARTMENT
+    const anonymous = access(currentUser([]));
+    expect(company.isHeadquartersOrganization).toBe(false);
+    expect(department.isHeadquartersOrganization).toBe(false);
+    expect(anonymous.isHeadquartersOrganization).toBe(false);
+  });
+});
+
 describe('用户页数据源分流权限', () => {
   it('普通组织管理员可读当前组织角色，但无全组织读取与外部成员授权能力', () => {
     const result = access(
