@@ -1,4 +1,5 @@
 import { RocketOutlined } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { Tag } from 'antd';
 import React from 'react';
 import {
@@ -49,6 +50,11 @@ const mapAirline = (item: API.Airline): AirlineItem => {
 };
 
 export default function AirlinesPanel() {
+  const access = useAccess();
+  // A 型全局主数据（阶段一起后端写路径仅总部放行）：前端按钮同步收敛，
+  // 非总部组织只读并提示由总部统一维护。
+  const canCreate = access.isHeadquartersOrganization && access.canCreateMasterDataAirlines;
+  const canUpdate = access.isHeadquartersOrganization && access.canUpdateMasterDataAirlines;
   const fetchAirlines = React.useCallback(
     (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
       masterDataServiceListAirlines(query),
@@ -273,9 +279,12 @@ export default function AirlinesPanel() {
           ],
         },
       ]}
-      onCreate={handleCreate}
-      onUpdate={handleUpdate}
-      onToggleActive={handleToggleActive}
+      onCreate={canCreate ? handleCreate : undefined}
+      onUpdate={canUpdate ? handleUpdate : undefined}
+      onToggleActive={canUpdate ? handleToggleActive : undefined}
+      notice={
+        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+      }
     />
   );
 }

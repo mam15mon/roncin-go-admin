@@ -84,6 +84,14 @@ export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMast
   extraStats?: Array<{ label: string; value: string | number; color?: string }>;
   showStats?: boolean;
 
+  // 顶部提示横幅（非空时渲染）：A 型页签非总部提示「由总部统一维护与共享」，
+  // B 型页签非总部提示「总部共享基线 + 本地补充行仅本组织可见」。
+  notice?: string;
+
+  // 行级写入口门控（返回 false 时该行不渲染编辑与停用/启用按钮）：
+  // B 型基线行（organizationId 为空）对非总部组织禁用编辑。
+  canEditRecord?: (record: T) => boolean;
+
   style?: React.CSSProperties;
   className?: string;
 }

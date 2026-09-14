@@ -1,4 +1,5 @@
 import { CompassOutlined } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { Space, Tag } from 'antd';
 import React from 'react';
 import {
@@ -13,6 +14,8 @@ import {
 import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface PortItem extends PersistedMasterDataItem {
+  /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织本地补充行。 */
+  organizationId?: string;
   countryCode: string;
   countryName?: string;
   modes: string[];
@@ -41,6 +44,7 @@ const mapPort = (item: API.Port): PortItem => {
     code: item.unLocode,
     name: item.nameZh ?? '',
     nameEn: item.nameEn,
+    organizationId: item.organizationId,
     countryCode: item.countryCode,
     modes: item.transportModes ?? [],
     enabled: item.enabled,
@@ -51,6 +55,11 @@ const mapPort = (item: API.Port): PortItem => {
 };
 
 export default function PortsPanel() {
+  const access = useAccess();
+  // B 型基线+本地：总部可编辑全部行，非总部仅可编辑本组织本地行（同码本地行
+  // 覆盖基线行）；本地新增入口对具备写权限的组织保持开放。
+  const canCreate = access.canCreateMasterDataPorts;
+  const canUpdate = access.canUpdateMasterDataPorts;
   const fetchPorts = React.useCallback(
     (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
       masterDataServiceListPorts(query),
@@ -148,6 +157,22 @@ export default function PortsPanel() {
       ]}
       extraColumns={[
         {
+          title: '归属',
+          dataIndex: 'organizationId',
+          key: 'organizationId',
+          width: 100,
+          render: (_, record: PortItem) =>
+            record.organizationId ? (
+              <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
+                本组织行
+              </Tag>
+            ) : (
+              <Tag color="purple" style={{ margin: 0, fontSize: 11 }}>
+                集团基线行
+              </Tag>
+            ),
+        },
+        {
           title: '所属国家',
           dataIndex: 'countryCode',
           key: 'countryCode',
@@ -230,9 +255,17 @@ export default function PortsPanel() {
           ],
         },
       ]}
-      onCreate={handleCreate}
-      onUpdate={handleUpdate}
-      onToggleActive={handleToggleActive}
+      onCreate={canCreate ? handleCreate : undefined}
+      onUpdate={canUpdate ? handleUpdate : undefined}
+      onToggleActive={canUpdate ? handleToggleActive : undefined}
+      canEditRecord={(record) =>
+        access.isHeadquartersOrganization || Boolean(record.organizationId)
+      }
+      notice={
+        access.isHeadquartersOrganization
+          ? undefined
+          : '总部共享基线 + 本地补充行仅本组织可见'
+      }
     />
   );
 }

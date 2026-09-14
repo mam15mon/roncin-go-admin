@@ -14,11 +14,10 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess, useModel } from '@umijs/max';
+import { useAccess } from '@umijs/max';
 import { App, Button, Card, Form, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import { AuthOrganizationKind } from '@/enums.generated';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
@@ -57,12 +56,9 @@ const rateRule =
 
 export function ExchangeRatesPanel() {
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
-  // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相；
-  // 仅总部（根组织 kind=headquarters）可编辑 NULL 基线行。
-  const isHeadquartersOrganization =
-    initialState?.currentUser?.currentOrganization?.kind ===
-    AuthOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS;
+  // 组织身份统一取自 access.ts 的 isHeadquartersOrganization（auth/me kind 契约），
+  // 不在面板内重复推导；仅总部可编辑 NULL 基线行。
+  const isHeadquartersOrganization = access.isHeadquartersOrganization;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<ExchangeRateFormValues>();

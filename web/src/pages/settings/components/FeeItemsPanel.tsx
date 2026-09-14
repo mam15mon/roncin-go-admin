@@ -63,7 +63,7 @@ export function FeeItemsPanel() {
   const [serviceTypes, setServiceTypes] = useState<API.MasterDataItem[]>([]);
   const [abnormalCases, setAbnormalCases] = useState<API.MasterDataItem[]>([]);
 
-  // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、币种、计费单位、税率、货物或应税劳务名称、对应服务类型、对应异常情况、操作
+  // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、归属、币种、计费单位、税率、货物或应税劳务名称、费用大类、对应异常情况、操作
   const columns: ProColumns<API.FeeSetting>[] = [
     {
       title: '序号',
@@ -126,10 +126,10 @@ export function FeeItemsPanel() {
       ellipsis: true,
     },
     {
-      title: '对应服务类型',
-      dataIndex: 'serviceTypeName',
+      title: '费用大类',
+      dataIndex: 'chargeCategoryName',
       width: 120,
-      renderText: (value) => value || '通用',
+      renderText: (value) => value || '-',
     },
     {
       title: '对应异常情况',
@@ -286,15 +286,15 @@ export function FeeItemsPanel() {
             <ProFormSearchableSelect
               colProps={{ span: 12 }}
               name="chargeCategoryId"
-              label="对应服务类型"
-              allowClear
+              label="费用大类"
               options={serviceTypes.map((item) => ({
                 label: `${item.name} (${item.code})`,
                 value: item.id,
                 code: item.code,
                 name: item.name,
               }))}
-              placeholder="不选择表示通用费用"
+              placeholder="请选择费用大类"
+              rules={[{ required: true, message: '请选择费用大类' }]}
             />
             <ProFormSearchableSelect
               colProps={{ span: 12 }}

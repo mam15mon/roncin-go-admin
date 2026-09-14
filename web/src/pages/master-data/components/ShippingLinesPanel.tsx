@@ -1,4 +1,5 @@
 import { GlobalOutlined, LinkOutlined } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { Button, Tag, Tooltip } from 'antd';
 import React from 'react';
 import {
@@ -59,6 +60,13 @@ const parseContainerPrefixes = (value?: string) =>
     .filter(Boolean) ?? [];
 
 export default function ShippingLinesPanel() {
+  const access = useAccess();
+  // A 型全局主数据（阶段一起后端写路径仅总部放行）：前端按钮同步收敛，
+  // 非总部组织只读并提示由总部统一维护。
+  const canCreate =
+    access.isHeadquartersOrganization && access.canCreateMasterDataShippingLines;
+  const canUpdate =
+    access.isHeadquartersOrganization && access.canUpdateMasterDataShippingLines;
   const fetchShippingLines = React.useCallback(
     (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
       masterDataServiceListShippingLines(query),
@@ -299,9 +307,12 @@ export default function ShippingLinesPanel() {
           initialValue: 'CN',
         },
       ]}
-      onCreate={handleCreate}
-      onUpdate={handleUpdate}
-      onToggleActive={handleToggleActive}
+      onCreate={canCreate ? handleCreate : undefined}
+      onUpdate={canUpdate ? handleUpdate : undefined}
+      onToggleActive={canUpdate ? handleToggleActive : undefined}
+      notice={
+        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+      }
     />
   );
 }

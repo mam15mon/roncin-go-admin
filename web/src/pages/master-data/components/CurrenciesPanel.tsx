@@ -1,4 +1,5 @@
 import { DollarOutlined } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
@@ -13,6 +14,7 @@ export interface CurrencyItem extends BaseMasterDataItem {
 
 export default function CurrenciesPanel() {
   const { message } = App.useApp();
+  const access = useAccess();
   const [data, setData] = useState<CurrencyItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +52,9 @@ export default function CurrenciesPanel() {
       items={data}
       loading={loading}
       onRefresh={fetchCurrencies}
+      notice={
+        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+      }
       searchPlaceholder="搜索货币代码 (如 USD, CNY) / 货币中文名称..."
       extraStats={[
         {

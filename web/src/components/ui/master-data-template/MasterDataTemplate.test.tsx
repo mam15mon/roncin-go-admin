@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataTemplate } from './MasterDataTemplate';
@@ -118,5 +118,64 @@ describe('MasterDataTemplate (紧凑一体化 ProTable 模板与单行6卡片)',
     fireEvent.click(addBtn);
 
     expect(screen.getByText('港口代码')).toBeInTheDocument();
+  });
+
+  it('配置 notice 时在顶部渲染组织治理提示横幅', () => {
+    render(
+      <MasterDataTemplate<TestItem>
+        title="国际货币与币种管理"
+        items={mockItems}
+        formFields={[]}
+        notice="由总部统一维护与共享"
+      />,
+    );
+
+    expect(screen.getByText('由总部统一维护与共享')).toBeInTheDocument();
+  });
+
+  it('canEditRecord 返回 false 的行不渲染编辑与停用按钮', () => {
+    // 模拟 B 型页签非总部视角：基线行（organizationId 为空）禁用编辑。
+    render(
+      <MasterDataTemplate<TestItem>
+        title="海运港口管理"
+        items={[
+          { ...mockItems[0], organizationId: undefined },
+          { ...mockItems[1], organizationId: 'org-1' },
+        ]}
+        onUpdate={vi.fn()}
+        onToggleActive={vi.fn()}
+        formFields={[]}
+        canEditRecord={(record) => Boolean(record.organizationId)}
+      />,
+    );
+
+    const baselineRow = screen.getByText('CNSHG').closest('tr');
+    const localRow = screen.getByText('USLAX').closest('tr');
+    expect(baselineRow).not.toBeNull();
+    expect(localRow).not.toBeNull();
+
+    expect(within(baselineRow as HTMLElement).queryByText('编辑')).toBeNull();
+    expect(within(baselineRow as HTMLElement).queryByText('停用')).toBeNull();
+    expect(
+      within(localRow as HTMLElement).getByText('编辑'),
+    ).toBeInTheDocument();
+    // USLAX 处于停用状态，行级开关按钮显示「启用」。
+    expect(
+      within(localRow as HTMLElement).getByText('启用'),
+    ).toBeInTheDocument();
+  });
+
+  it('未配置 canEditRecord 时所有行保持原有编辑入口', () => {
+    render(
+      <MasterDataTemplate<TestItem>
+        title="海运港口管理"
+        items={mockItems}
+        onUpdate={vi.fn()}
+        onToggleActive={vi.fn()}
+        formFields={[]}
+      />,
+    );
+
+    expect(screen.getAllByText('编辑')).toHaveLength(mockItems.length);
   });
 });

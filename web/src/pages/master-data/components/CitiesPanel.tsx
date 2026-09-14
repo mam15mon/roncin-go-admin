@@ -1,4 +1,5 @@
 import { CompassOutlined } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
@@ -33,6 +34,7 @@ const mapRegion = (item: API.AdministrativeRegion): RegionItem => {
 
 export default function CitiesPanel() {
   const { message } = App.useApp();
+  const access = useAccess();
   const [data, setData] = useState<RegionItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -76,6 +78,9 @@ export default function CitiesPanel() {
       items={displayedData}
       loading={loading}
       onRefresh={fetchServerData}
+      notice={
+        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+      }
       searchPlaceholder="搜索12位区划代码(如 310115000000) / 城市区划名称..."
       extraStats={[
         {

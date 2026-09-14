@@ -22,6 +22,7 @@ import {
 } from '@ant-design/pro-components';
 import {
   App,
+  Alert,
   Badge,
   Button,
   Card,
@@ -66,6 +67,8 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   onExport,
   extraStats = [],
   showStats = true,
+  notice,
+  canEditRecord,
   style,
   className,
 }: MasterDataTemplateProps<T>) {
@@ -345,43 +348,56 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       width: 130,
       align: 'right',
       fixed: 'right',
-      render: (_, record) => (
-        <Space size={6}>
-          {onUpdate && (
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              style={{ padding: 0 }}
-              onClick={() => handleOpenEdit(record)}
-            >
-              编辑
-            </Button>
-          )}
-          {onToggleActive && (
-            <Popconfirm
-              title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
-              onConfirm={() => handleToggleActive(record)}
-              okText="确定"
-              cancelText="取消"
-            >
+      render: (_, record) => {
+        // B 型基线行对非总部禁用编辑：不渲染编辑与停用/启用入口。
+        const canEditRow = !canEditRecord || canEditRecord(record);
+        return (
+          <Space size={6}>
+            {onUpdate && canEditRow && (
               <Button
                 type="link"
                 size="small"
-                danger={record.enabled}
+                icon={<EditOutlined />}
                 style={{ padding: 0 }}
+                onClick={() => handleOpenEdit(record)}
               >
-                {record.enabled ? '停用' : '启用'}
+                编辑
               </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
+            )}
+            {onToggleActive && canEditRow && (
+              <Popconfirm
+                title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
+                onConfirm={() => handleToggleActive(record)}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  danger={record.enabled}
+                  style={{ padding: 0 }}
+                >
+                  {record.enabled ? '停用' : '启用'}
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        );
+      },
     },
-  ], [codeLabel, extraColumns, onUpdate, onToggleActive]);
+  ], [codeLabel, extraColumns, onUpdate, onToggleActive, canEditRecord]);
 
   return (
     <div style={{ minHeight: '100%' }}>
+      {/* 0. 组织治理提示横幅：A 型非总部只读提示 / B 型非总部基线+本地说明 */}
+      {notice && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={notice}
+        />
+      )}
       {/* 1. Stats Row: 6-column grid per row (xs=12, sm=8, md=4, lg=4, xl=4) */}
       {showStats && (
         <Row gutter={[10, 10]} style={{ marginBottom: 12 }}>
