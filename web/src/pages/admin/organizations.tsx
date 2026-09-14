@@ -205,18 +205,25 @@ export default function OrganizationsPanel() {
     return (
       <span
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
           gap: 6,
           padding: '2px 0',
           fontSize: 13,
+          minWidth: 0,
         }}
       >
         <span
           style={{
+            flex: 1,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
             fontWeight: node.children && node.children.length > 0 ? 600 : 400,
             color: isMatched ? '#1677ff' : 'rgba(0, 0, 0, 0.88)',
           }}
+          title={title}
         >
           {title}
         </span>
@@ -230,12 +237,17 @@ export default function OrganizationsPanel() {
             fontFamily: 'monospace',
             backgroundColor: '#fafafa',
             color: 'rgba(0, 0, 0, 0.45)',
+            flexShrink: 0,
           }}
         >
           {code}
         </Tag>
         {kindMeta && (
-          <Tag color={kindMeta.color} variant="filled" style={{ margin: 0 }}>
+          <Tag
+            color={kindMeta.color}
+            variant="filled"
+            style={{ margin: 0, flexShrink: 0 }}
+          >
             {kindMeta.label}
           </Tag>
         )}
@@ -248,6 +260,7 @@ export default function OrganizationsPanel() {
               fontSize: 11,
               lineHeight: '18px',
               padding: '0 4px',
+              flexShrink: 0,
             }}
           >
             已停用
