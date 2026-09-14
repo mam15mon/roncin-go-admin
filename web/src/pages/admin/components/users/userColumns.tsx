@@ -14,6 +14,8 @@ const { Text } = Typography;
 
 interface UserColumnsDeps {
   roles: API.AdminRole[];
+  // 是否展示操作列（编辑/重置密码/办理离职）；离职页签隐藏整列，展示列保留。
+  showActions?: boolean;
   canUpdateUsers: boolean;
   canResetUserPasswords: boolean;
   canTerminateUsers: boolean;
@@ -26,6 +28,7 @@ interface UserColumnsDeps {
 
 export function buildUserColumns({
   roles,
+  showActions = true,
   canUpdateUsers,
   canResetUserPasswords,
   canTerminateUsers,
@@ -289,63 +292,69 @@ export function buildUserColumns({
       width: 170,
       search: false,
     },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 230,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space size={8}>
-          {canUpdateUsers && record.status !== 3 && record.status !== 4 && (
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              style={{ padding: 0 }}
-              onClick={() => onEdit(record)}
-            >
-              编辑
-            </Button>
-          )}
-          {canResetUserPasswords && record.status === 1 && (
-            <Button
-              type="link"
-              size="small"
-              icon={<KeyOutlined />}
-              style={{
-                padding: 0,
-                color: record.hasPassword ? '#f59e0b' : '#1677ff',
-              }}
-              onClick={() => onResetPassword(record)}
-            >
-              {record.hasPassword ? '重置密码' : '设置密码'}
-            </Button>
-          )}
-          {canTerminateUsers &&
-            record.status === 1 &&
-            record.currentMembershipEnabled &&
-            record.id !== currentUserId && (
-              <Popconfirm
-                title={`确定为“${record.displayName || record.username}”办理离职？`}
-                description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时需重新审批角色。"
-                okText="确认离职"
-                cancelText="取消"
-                okButtonProps={{ danger: true }}
-                onConfirm={() => onTerminate(record)}
-              >
-                <Button
-                  type="link"
-                  danger
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  style={{ padding: 0 }}
-                >
-                  办理离职
-                </Button>
-              </Popconfirm>
-            )}
-        </Space>
-      ),
-    },
+    ...(showActions
+      ? [
+          {
+            title: '操作',
+            valueType: 'option' as const,
+            width: 230,
+            fixed: 'right' as const,
+            render: (_: unknown, record: API.AdminUser) => (
+              <Space size={8}>
+                {canUpdateUsers &&
+                  record.status !== 3 &&
+                  record.status !== 4 && (
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<EditOutlined />}
+                      style={{ padding: 0 }}
+                      onClick={() => onEdit(record)}
+                    >
+                      编辑
+                    </Button>
+                  )}
+                {canResetUserPasswords && record.status === 1 && (
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<KeyOutlined />}
+                    style={{
+                      padding: 0,
+                      color: record.hasPassword ? '#f59e0b' : '#1677ff',
+                    }}
+                    onClick={() => onResetPassword(record)}
+                  >
+                    {record.hasPassword ? '重置密码' : '设置密码'}
+                  </Button>
+                )}
+                {canTerminateUsers &&
+                  record.status === 1 &&
+                  record.currentMembershipEnabled &&
+                  record.id !== currentUserId && (
+                    <Popconfirm
+                      title={`确定为“${record.displayName || record.username}”办理离职？`}
+                      description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时需重新审批角色。"
+                      okText="确认离职"
+                      cancelText="取消"
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => onTerminate(record)}
+                    >
+                      <Button
+                        type="link"
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        style={{ padding: 0 }}
+                      >
+                        办理离职
+                      </Button>
+                    </Popconfirm>
+                  )}
+              </Space>
+            ),
+          },
+        ]
+      : []),
   ];
 }

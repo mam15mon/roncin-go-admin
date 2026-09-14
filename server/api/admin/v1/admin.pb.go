@@ -864,10 +864,12 @@ func (x *UpdateOrganizationResponse) GetTraceId() string {
 }
 
 type ListUsersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Page     int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword  string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
+	Enabled       *bool `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -921,6 +923,13 @@ func (x *ListUsersRequest) GetKeyword() string {
 		return x.Keyword
 	}
 	return ""
+}
+
+func (x *ListUsersRequest) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
 }
 
 type CreateUserRequest struct {
@@ -5533,11 +5542,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.admin.v1.AdminOrganizationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"]\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
 	"\x10ListUsersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
-	"\akeyword\x18\x03 \x01(\tR\akeyword\"\xbd\x01\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\xbd\x01\n" +
 	"\x11CreateUserRequest\x12\x1f\n" +
 	"\busername\x18\x01 \x01(\tB\x03\xe0A\x02R\busername\x12&\n" +
 	"\fdisplay_name\x18\x02 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x1f\n" +
@@ -6231,6 +6243,7 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[1].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[2].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[3].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[8].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[9].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[16].OneofWrappers = []any{}

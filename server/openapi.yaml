@@ -425,6 +425,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: enabled
+                  in: query
+                  description: 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK

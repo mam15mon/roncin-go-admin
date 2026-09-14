@@ -302,6 +302,8 @@ message ListUsersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string keyword = 3;
+  // 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
+  optional bool enabled = 4;
 }
 
 message CreateUserRequest {

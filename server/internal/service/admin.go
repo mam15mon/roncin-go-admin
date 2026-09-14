@@ -82,7 +82,12 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	if err != nil {
 		return nil, err
 	}
-	list, err := s.usecase.ListUsers(ctx, principal.Organization.ID, biz.AdminUserListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword()})
+	options := biz.AdminUserListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword()}
+	if request.Enabled != nil {
+		enabled := request.GetEnabled()
+		options.Enabled = &enabled
+	}
+	list, err := s.usecase.ListUsers(ctx, principal.Organization.ID, options)
 	if err != nil {
 		return nil, err
 	}

@@ -69,6 +69,8 @@ type AdminUserListOptions struct {
 	Page     int
 	PageSize int
 	Keyword  string
+	// Enabled 过滤账号启用状态：nil=不过滤；true=在职；false=离职/停用。
+	Enabled *bool
 }
 
 type AdminUserList = PagedList[*AdminUser]

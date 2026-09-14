@@ -141,6 +141,9 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 			userent.SearchKeywordsContainsFold(options.Keyword),
 		))
 	}
+	if options.Enabled != nil {
+		predicates = append(predicates, userent.EnabledEQ(*options.Enabled))
+	}
 	scopeSet := adminUserScopeSet(scope)
 	query := listAdminUsersQuery(r.data.db, predicates)
 	return paginate(ctx, func(ctx context.Context) (int, error) {

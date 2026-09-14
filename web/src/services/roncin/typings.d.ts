@@ -223,6 +223,8 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    /** 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。 */
+    enabled?: boolean;
   };
 
   type AdminServiceRejectDingTalkRegistrationParams = {

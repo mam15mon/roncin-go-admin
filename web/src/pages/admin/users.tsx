@@ -2,7 +2,7 @@ import { PlusOutlined, ReloadOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess, useModel } from '@umijs/max';
-import { App, Button, Space } from 'antd';
+import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import {
@@ -15,6 +15,9 @@ import { toTableRequest, unwrapList } from '@/utils/api';
 import ResetPasswordModal from './components/users/ResetPasswordModal';
 import UserFormModal from './components/users/UserFormModal';
 import { buildUserColumns } from './components/users/userColumns';
+
+// 用户列表按「在职 / 离职」拆分为两个页签，共享关键字搜索，页签切换回到第一页。
+type UserListTab = 'active' | 'departed';
 
 export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -30,6 +33,14 @@ export default function UsersPanel() {
     [],
   );
   const [searchParams, setSearchParams] = useState<{ keyword?: string }>({});
+  const [listTab, setListTab] = useState<UserListTab>('active');
+
+  // ProTable 的 params 变化只按当前页码重新请求，切页签时显式回到第一页，
+  // 避免大页码切到数据较少的页签时停留在超出范围的空页。
+  const switchListTab = (tab: string) => {
+    setListTab(tab as UserListTab);
+    actionRef.current?.setPageInfo?.({ current: 1 });
+  };
 
   useEffect(() => {
     // 角色与组织数据源按权限分流：普通组织管理员只加载当前组织的 ListRoles，
@@ -66,6 +77,7 @@ export default function UsersPanel() {
 
   const columns = buildUserColumns({
     roles,
+    showActions: listTab === 'active',
     canUpdateUsers: access.canUpdateUsers,
     canResetUserPasswords: access.canResetUserPasswords,
     canTerminateUsers: access.canTerminateUsers,
@@ -111,6 +123,26 @@ export default function UsersPanel() {
           </Space>
         }
       />
+      <Card
+        variant="borderless"
+        style={{
+          borderRadius: 8,
+          border: '1px solid #f0f0f0',
+          backgroundColor: '#ffffff',
+          marginBottom: 12,
+        }}
+        styles={{ body: { padding: '0 16px' } }}
+      >
+        <Tabs
+          activeKey={listTab}
+          onChange={switchListTab}
+          items={[
+            { key: 'active', label: '在职用户' },
+            { key: 'departed', label: '离职用户' },
+          ]}
+          tabBarStyle={{ marginBottom: 0 }}
+        />
+      </Card>
       <ProTable<API.AdminUser>
         headerTitle={
           <Space size={8}>
@@ -127,11 +159,13 @@ export default function UsersPanel() {
           showSizeChanger: true,
           showQuickJumper: true,
         }}
+        params={{ enabled: listTab === 'active' }}
         request={async (params) => {
           const response = await adminServiceListUsers({
             page: params.current,
             pageSize: params.pageSize,
             keyword: searchParams.keyword,
+            enabled: params.enabled,
           });
           return toTableRequest(response);
         }}
@@ -154,7 +188,14 @@ export default function UsersPanel() {
         defaultOrganizationId={
           initialState?.currentUser?.currentOrganization?.id
         }
-        onReload={() => actionRef.current?.reload()}
+        onReload={() => {
+          // 新建用户固定为在职账号；在离职页签发起创建后落回在职页签第一页，
+          // 避免新用户在当前页签不可见造成「创建失败」的误解。
+          if (!editing) {
+            switchListTab('active');
+          }
+          actionRef.current?.reload();
+        }}
       />
 
       <ResetPasswordModal
