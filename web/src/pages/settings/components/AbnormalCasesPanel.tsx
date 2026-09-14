@@ -61,8 +61,12 @@ export function AbnormalCasesPanel() {
         });
         return toTableRequest(res);
       }}
-      canCreate={access.canCreateMasterDataItems}
-      canUpdate={access.canUpdateMasterDataItems}
+      canCreate={
+        access.canCreateMasterDataItems && access.isHeadquartersOrganization
+      }
+      canUpdate={
+        access.canUpdateMasterDataItems && access.isHeadquartersOrganization
+      }
       createItem={(values) =>
         masterDataServiceCreateItem({
           kind: ABNORMAL_CASE_KIND,
