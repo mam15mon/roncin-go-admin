@@ -90,17 +90,29 @@ export default function OrgInspectorPanel({
           backgroundColor: '#fafbfc',
         }}
       >
-        <Space size={8} style={{ minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
           <ApartmentOutlined style={{ color: '#1677ff', fontSize: 16 }} />
           <div
             style={{
+              flex: 1,
+              minWidth: 0,
               fontWeight: 600,
               fontSize: 14,
+              lineHeight: 1.4,
               color: 'rgba(0, 0, 0, 0.88)',
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: 150,
+              wordBreak: 'break-word',
             }}
             title={selectedOrg?.name}
           >
@@ -110,12 +122,12 @@ export default function OrgInspectorPanel({
             <Tag
               color={selectedOrg.enabled ? 'success' : 'default'}
               variant="filled"
-              style={{ margin: 0, fontSize: 11 }}
+              style={{ margin: 0, fontSize: 11, flexShrink: 0 }}
             >
               {selectedOrg.enabled ? '启用' : '停用'}
             </Tag>
           )}
-        </Space>
+        </div>
 
         <Space size={4}>
           {selectedOrg && onLocateNode && (

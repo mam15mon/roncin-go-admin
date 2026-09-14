@@ -73,7 +73,9 @@ function OrgCard({
         }
       }}
       style={{
-        width: 220,
+        width: 'max-content',
+        minWidth: 220,
+        maxWidth: 360,
         height: 82,
         backgroundColor: '#ffffff',
         borderRadius: 8,
