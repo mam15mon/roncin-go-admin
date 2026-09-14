@@ -128,6 +128,11 @@ export default function AirlinesPanel() {
           value: data.filter((a) => a.isCargoOnly).length,
           color: '#fa8c16',
         },
+        {
+          label: '配备AWB运单前缀',
+          value: data.filter((a) => Boolean(a.awbPrefix)).length,
+          color: '#722ed1',
+        },
       ]}
       filterOptions={[
         {

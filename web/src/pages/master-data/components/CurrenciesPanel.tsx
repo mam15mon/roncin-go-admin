@@ -58,9 +58,14 @@ export default function CurrenciesPanel() {
           color: '#1677ff',
         },
         {
-          label: '启用币种',
-          value: data.filter((c) => c.enabled).length,
-          color: '#52c41a',
+          label: '标准2位小数',
+          value: data.filter((c) => c.minorUnit === 2).length,
+          color: '#13c2c2',
+        },
+        {
+          label: '特殊/0位小数',
+          value: data.filter((c) => c.minorUnit !== 2).length,
+          color: '#722ed1',
         },
       ]}
       extraColumns={[

@@ -115,18 +115,23 @@ export default function AirportsPanel() {
       searchPlaceholder="搜索三字码(如 PVG) / 四字码(如 ZSPD) / 机场中英文名..."
       extraStats={[
         {
-          label: '国内枢纽',
+          label: '国内机场',
           value: data.filter((a) =>
             ['CN', 'HK', 'TW'].includes(a.countryCode),
           ).length,
           color: '#1677ff',
         },
         {
-          label: '国际枢纽',
+          label: '国际机场',
           value: data.filter(
             (a) => !['CN', 'HK', 'TW'].includes(a.countryCode),
           ).length,
           color: '#722ed1',
+        },
+        {
+          label: '配备ICAO四字码',
+          value: data.filter((a) => Boolean(a.icaoCode)).length,
+          color: '#13c2c2',
         },
       ]}
       filterOptions={[

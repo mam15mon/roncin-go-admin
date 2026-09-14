@@ -147,6 +147,11 @@ export default function ShippingLinesPanel() {
           ).length,
           color: '#52c41a',
         },
+        {
+          label: '配备标准SCAC',
+          value: data.filter((s) => Boolean(s.scacCode)).length,
+          color: '#722ed1',
+        },
       ]}
       filterOptions={[
         {

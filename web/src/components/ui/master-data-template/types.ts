@@ -43,7 +43,7 @@ export interface MasterDataListQuery {
 export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMasterDataItem> {
   // Page Header
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon?: ReactNode;
   codeLabel?: string; // 例如 "港口五字码" / "机场三字码" / "航司二字码"
 
@@ -82,4 +82,8 @@ export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMast
 
   // Extra Quick Stats (e.g. { label: '国家覆盖', value: '186 个' })
   extraStats?: Array<{ label: string; value: string | number; color?: string }>;
+  showStats?: boolean;
+
+  style?: React.CSSProperties;
+  className?: string;
 }

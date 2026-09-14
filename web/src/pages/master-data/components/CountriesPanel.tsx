@@ -102,16 +102,23 @@ export default function CountriesPanel() {
       searchPlaceholder="搜索国家代码(如 CN) / 国家中英文名称..."
       extraStats={[
         {
-          label: '亚洲国家',
+          label: '亚洲国家与地区',
           value: data.filter((c) => c.continent === '亚洲').length,
           color: '#1677ff',
         },
         {
-          label: '欧美国家',
+          label: '欧美国家与地区',
           value: data.filter((c) =>
             ['欧洲', '北美洲'].includes(c.continent || ''),
           ).length,
           color: '#722ed1',
+        },
+        {
+          label: '其他大洲与岛屿',
+          value: data.filter(
+            (c) => !['亚洲', '欧洲', '北美洲'].includes(c.continent || ''),
+          ).length,
+          color: '#13c2c2',
         },
       ]}
       filterOptions={[

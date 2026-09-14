@@ -9,6 +9,7 @@ import {
   ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormCheckbox,
@@ -17,6 +18,7 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
+  ProTable,
 } from '@ant-design/pro-components';
 import {
   App,
@@ -26,20 +28,16 @@ import {
   Col,
   Form,
   Input,
-  Pagination,
   Popconfirm,
   Row,
   Select,
   Space,
-  Spin,
   Statistic,
-  Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { BaseMasterDataItem, MasterDataTemplateProps } from './types';
 
 const { Text } = Typography;
@@ -67,9 +65,13 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   onSync,
   onExport,
   extraStats = [],
+  showStats = true,
+  style,
+  className,
 }: MasterDataTemplateProps<T>) {
   const { message } = App.useApp();
   const serverMode = query !== undefined && onQueryChange !== undefined;
+  const actionRef = useRef<ActionType | undefined>(undefined);
 
   // Search & Filter state
   const [search, setSearch] = useState('');
@@ -94,21 +96,20 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [form] = Form.useForm();
 
-  // Filter items
+  // Filter items in clientMode
   const filteredItems = useMemo(() => {
     if (serverMode) return items;
     return items.filter((item) => {
       // 1. Keyword search (code, name, nameEn)
       if (search.trim()) {
-        const query = search.trim().toLowerCase();
-        const matchCode = item.code.toLowerCase().includes(query);
-        const matchName = item.name.toLowerCase().includes(query);
-        const matchNameEn = (item.nameEn || '').toLowerCase().includes(query);
+        const q = search.trim().toLowerCase();
+        const matchCode = item.code?.toLowerCase().includes(q);
+        const matchName = item.name?.toLowerCase().includes(q);
+        const matchNameEn = (item.nameEn || '').toLowerCase().includes(q);
         if (!matchCode && !matchName && !matchNameEn) {
-          // Check other string properties
           let matchAny = false;
           for (const key of Object.keys(item)) {
-            if (typeof item[key] === 'string' && item[key].toLowerCase().includes(query)) {
+            if (typeof item[key] === 'string' && item[key].toLowerCase().includes(q)) {
               matchAny = true;
               break;
             }
@@ -136,12 +137,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     });
   }, [items, search, activeFilter, filterValues, serverMode]);
 
-  // Paged items
-  const pagedItems = useMemo(() => {
-    if (serverMode) return filteredItems;
+  // Current display data source
+  const displayDataSource = useMemo(() => {
+    if (serverMode) return items;
     const start = (page - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, page, pageSize, serverMode]);
+  }, [serverMode, items, filteredItems, page, pageSize]);
 
   // Stats calculation
   const filteredTotal = serverMode ? (total ?? 0) : filteredItems.length;
@@ -206,6 +207,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         message.success(`${title}已创建`);
       }
       setModalOpen(false);
+      actionRef.current?.reload();
       return true;
     } catch (err: any) {
       message.error(err?.message || '操作失败');
@@ -219,6 +221,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     setSyncing(true);
     try {
       await onSync();
+      actionRef.current?.reload();
     } finally {
       setSyncing(false);
     }
@@ -228,8 +231,21 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     if (!onRefresh) return;
     try {
       await onRefresh();
+      actionRef.current?.reload();
     } catch (err: any) {
       message.error(err?.message || '刷新失败');
+    }
+  };
+
+  const handleReset = () => {
+    setSearch('');
+    if (serverMode) {
+      onQueryChange({ page: 1, pageSize: query.pageSize });
+    } else {
+      setActiveFilter('all');
+      setFilterValues({});
+      setPage(1);
+      void onRefresh?.();
     }
   };
 
@@ -237,19 +253,20 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     if (!onToggleActive) return;
     try {
       await onToggleActive(record);
+      actionRef.current?.reload();
     } catch (err: any) {
       message.error(err?.message || '操作失败');
     }
   };
 
   // Build Columns
-  const columns: ColumnsType<T> = [
+  const proColumns: ProColumns<T>[] = useMemo(() => [
     {
       title: codeLabel,
       dataIndex: 'code',
       key: 'code',
       width: 140,
-      render: (code: string) => (
+      render: (_, record) => (
         <Space size={4}>
           <Tag
             style={{
@@ -263,14 +280,14 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               padding: '1px 6px',
             }}
           >
-            {code}
+            {record.code}
           </Tag>
           <Tooltip title={`复制${codeLabel}`}>
             <Button
               type="text"
               size="small"
               icon={<CopyOutlined style={{ fontSize: 11, color: '#8c8c8c' }} />}
-              onClick={() => handleCopyCode(code)}
+              onClick={() => handleCopyCode(record.code)}
               style={{ width: 20, height: 20, padding: 0 }}
             />
           </Tooltip>
@@ -281,9 +298,9 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       title: '名称 (中/英文)',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: T) => {
-        const primaryName = name || record.nameEn || '-';
-        const secondaryName = name && record.nameEn ? record.nameEn : '';
+      render: (_, record) => {
+        const primaryName = record.name || record.nameEn || '-';
+        const secondaryName = record.name && record.nameEn ? record.nameEn : '';
         return (
           <div>
             <div style={{ fontWeight: 600, fontSize: 13, color: '#262626' }}>
@@ -298,17 +315,16 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         );
       },
     },
-    // Injected Custom Columns
-    ...(extraColumns as any[]),
+    ...(extraColumns as ProColumns<T>[]),
     {
       title: '状态',
       dataIndex: 'enabled',
       key: 'enabled',
       width: 90,
-      render: (enabled: boolean) => (
+      render: (_, record) => (
         <Badge
-          status={enabled ? 'success' : 'default'}
-          text={enabled ? '启用' : '停用'}
+          status={record.enabled ? 'success' : 'default'}
+          text={record.enabled ? '启用' : '停用'}
         />
       ),
     },
@@ -317,9 +333,9 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       dataIndex: 'updatedAt',
       key: 'updatedAt',
       width: 160,
-      render: (t: string) => (
+      render: (_, record) => (
         <Text type="secondary" style={{ fontSize: 12 }}>
-          {t || '-'}
+          {record.updatedAt || '-'}
         </Text>
       ),
     },
@@ -328,7 +344,8 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       key: 'action',
       width: 130,
       align: 'right',
-      render: (_: any, record: T) => (
+      fixed: 'right',
+      render: (_, record) => (
         <Space size={6}>
           {onUpdate && (
             <Button
@@ -343,7 +360,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           )}
           {onToggleActive && (
             <Popconfirm
-              title={`确定要${record.enabled ? '停用' : '启用'}【${record.name}】吗？`}
+              title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
               onConfirm={() => handleToggleActive(record)}
               okText="确定"
               cancelText="取消"
@@ -361,164 +378,157 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         </Space>
       ),
     },
-  ];
+  ], [codeLabel, extraColumns, onUpdate, onToggleActive]);
 
   return (
     <div style={{ minHeight: '100%' }}>
-      {/* 1. Page Header */}
-      <Card
-        size="small"
-        variant="borderless"
-        style={{
-          borderRadius: 8,
-          marginBottom: 12,
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
-        }}
-        styles={{ body: { padding: '14px 20px' } }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <Space size={10} align="center">
-            {icon && (
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 8,
-                  backgroundColor: '#e6f4ff',
-                  color: '#1677ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 20,
-                }}
-              >
-                {icon}
-              </div>
-            )}
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0, 0, 0, 0.88)' }}>
-                {title}
-              </div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {subtitle}
-              </Text>
-            </div>
-          </Space>
-
-          {/* Header Action Buttons */}
-          <Space size={8}>
-            {onSync && (
-              <Button
-                icon={<CloudSyncOutlined />}
-                loading={syncing}
-                onClick={handleSyncTrigger}
-              >
-                同步官方数据
-              </Button>
-            )}
-            {onExport && (
-              <Button
-                icon={<CloudDownloadOutlined />}
-                onClick={onExport}
-              >
-                导出数据
-              </Button>
-            )}
-            {onCreate && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleOpenCreate}
-                style={{ fontWeight: 500 }}
-              >
-                新增{title.replace(/管理|维护/g, '')}
-              </Button>
-            )}
-          </Space>
-        </div>
-      </Card>
-
-      {/* 2. Top Stats Bar */}
-      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
-        <Col xs={12} sm={6} md={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
-            styles={{ body: { padding: '10px 16px' } }}
-          >
-            <Statistic
-              title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>全部{title.replace(/管理|维护/g, '')}</span>}
-              value={totalCount}
-              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#262626' } }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} md={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
-            styles={{ body: { padding: '10px 16px' } }}
-          >
-            <Statistic
-              title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>启用中</span>}
-              value={activeCount}
-              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#52c41a' } }}
-              prefix={<CheckCircleOutlined style={{ fontSize: 16 }} />}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} md={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
-            styles={{ body: { padding: '10px 16px' } }}
-          >
-            <Statistic
-              title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>已停用</span>}
-              value={disabledCount}
-              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#ff4d4f' } }}
-              prefix={<CloseCircleOutlined style={{ fontSize: 16 }} />}
-            />
-          </Card>
-        </Col>
-        {!serverMode && extraStats.map((stat, idx) => (
-          <Col xs={12} sm={6} md={6} key={stat.label || idx}>
+      {/* 1. Stats Row: 6-column grid per row (xs=12, sm=8, md=4, lg=4, xl=4) */}
+      {showStats && (
+        <Row gutter={[10, 10]} style={{ marginBottom: 12 }}>
+          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
             <Card
               size="small"
               variant="borderless"
-              style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
-              styles={{ body: { padding: '10px 16px' } }}
+              style={{
+                borderRadius: 8,
+                backgroundColor: '#ffffff',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                height: '100%',
+              }}
+              styles={{ body: { padding: '8px 12px' } }}
             >
               <Statistic
-                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>{stat.label}</span>}
-                value={stat.value}
-                styles={{ content: { fontSize: 20, fontWeight: 600, color: stat.color || '#1677ff' } }}
+                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>全部{title.replace(/管理|维护/g, '')}</span>}
+                value={totalCount}
+                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#262626' } }}
               />
             </Card>
           </Col>
-        ))}
-      </Row>
+          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
+            <Card
+              size="small"
+              variant="borderless"
+              style={{
+                borderRadius: 8,
+                backgroundColor: '#ffffff',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                height: '100%',
+              }}
+              styles={{ body: { padding: '8px 12px' } }}
+            >
+              <Statistic
+                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>启用中</span>}
+                value={activeCount}
+                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#52c41a' } }}
+                prefix={<CheckCircleOutlined style={{ fontSize: 14 }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
+            <Card
+              size="small"
+              variant="borderless"
+              style={{
+                borderRadius: 8,
+                backgroundColor: '#ffffff',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                height: '100%',
+              }}
+              styles={{ body: { padding: '8px 12px' } }}
+            >
+              <Statistic
+                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>已停用</span>}
+                value={disabledCount}
+                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#ff4d4f' } }}
+                prefix={<CloseCircleOutlined style={{ fontSize: 14 }} />}
+              />
+            </Card>
+          </Col>
+          {extraStats.map((stat, idx) => (
+            <Col xs={12} sm={8} md={4} lg={4} xl={4} key={stat.label || idx}>
+              <Card
+                size="small"
+                variant="borderless"
+                style={{
+                  borderRadius: 8,
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                  height: '100%',
+                }}
+                styles={{ body: { padding: '8px 12px' } }}
+              >
+                <Statistic
+                  title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>{stat.label}</span>}
+                  value={stat.value}
+                  styles={{ content: { fontSize: 18, fontWeight: 600, color: stat.color || '#1677ff' } }}
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
-      {/* 3. Search & Filters Bar */}
+      {/* 2. Unified ProTable Card: Integrated Filters, Actions, and High-Density Table */}
       <Card
-        size="small"
         variant="borderless"
+        className={`roncin-master-data-template ${className || ''}`}
         style={{
           borderRadius: 8,
-          marginBottom: 12,
+          border: '1px solid #f0f0f0',
           backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+          ...style,
         }}
-        styles={{ body: { padding: '12px 16px' } }}
+        styles={{ body: { padding: '10px 14px' } }}
       >
-        <Row gutter={[10, 10]} justify="space-between" align="middle">
-          <Col xs={24} lg={18}>
-            <Space wrap size={8}>
-              {/* Keyword input */}
+        <ProTable<T>
+          actionRef={actionRef}
+          rowKey="id"
+          columns={proColumns}
+          dataSource={displayDataSource}
+          loading={loading}
+          cardProps={false}
+          tableAlertRender={false}
+          tableAlertOptionRender={false}
+          search={false}
+          scroll={{ x: 'max-content' }}
+          headerTitle={
+            <Space wrap size={8} align="center">
+              {icon && (
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    backgroundColor: '#e6f4ff',
+                    color: '#1677ff',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 15,
+                    flexShrink: 0,
+                  }}
+                >
+                  {icon}
+                </span>
+              )}
+              <Tooltip title={subtitle}>
+                <Text
+                  strong
+                  style={{
+                    fontSize: 15,
+                    color: '#1f1f1f',
+                    marginRight: 4,
+                    cursor: subtitle ? 'help' : 'default',
+                  }}
+                >
+                  {title.replace(/管理|维护/g, '')}
+                </Text>
+              </Tooltip>
               <Input
                 placeholder={searchPlaceholder}
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
@@ -534,8 +544,6 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                 style={{ width: 220 }}
                 allowClear
               />
-
-              {/* Status Select */}
               <Select
                 value={currentActiveFilter}
                 onChange={(val) => {
@@ -555,106 +563,99 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   { label: '仅启用', value: 'true' },
                   { label: '仅停用', value: 'false' },
                 ]}
-                style={{ width: 105 }}
+                style={{ width: 100 }}
               />
-
-              {/* Dynamic Filter Dropdowns */}
-              {!serverMode && filterOptions.map((opt) => (
-                <Select
-                  key={opt.key}
-                  placeholder={opt.placeholder || opt.label}
-                  value={filterValues[opt.key] ?? 'all'}
-                  onChange={(val) => {
-                    setFilterValues({ ...filterValues, [opt.key]: val });
-                    setPage(1);
-                  }}
-                  options={opt.options}
-                  style={{ width: opt.width || 130 }}
-                  allowClear
-                />
-              ))}
-
-              {/* Reset button */}
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => {
-                  if (serverMode) {
-                    setSearch('');
-                    onQueryChange({ page: 1, pageSize: query.pageSize });
-                  } else {
-                    setSearch('');
-                    setActiveFilter('all');
-                    setFilterValues({});
-                    setPage(1);
-                    void handleRefresh();
-                  }
-                }}
-              >
+              {!serverMode &&
+                filterOptions.map((opt) => (
+                  <Select
+                    key={opt.key}
+                    placeholder={opt.placeholder || opt.label}
+                    value={filterValues[opt.key] ?? 'all'}
+                    onChange={(val) => {
+                      setFilterValues({ ...filterValues, [opt.key]: val });
+                      setPage(1);
+                    }}
+                    options={opt.options}
+                    style={{ width: opt.width || 120 }}
+                    allowClear
+                  />
+                ))}
+              <Button icon={<ReloadOutlined />} onClick={handleReset}>
                 重置
               </Button>
             </Space>
-          </Col>
-
-          <Col xs={24} lg={6} style={{ textAlign: 'right' }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              当前筛选显示 <Text strong style={{ color: '#1677ff' }}>{filteredTotal}</Text> 条
-            </Text>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* 4. Table Container */}
-      <Card
-        size="small"
-        variant="borderless"
-        style={{
-          borderRadius: 8,
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
-        }}
-        styles={{ body: { padding: 0 } }}
-      >
-        <Spin spinning={loading}>
-          <Table
-            columns={columns}
-            dataSource={pagedItems}
-            rowKey="id"
-            pagination={false}
-            size="middle"
-          />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 16px',
-              borderTop: '1px solid #f0f0f0',
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              第 {currentPage} 页 / 共 {Math.ceil(filteredTotal / currentPageSize) || 1} 页
-            </Text>
-            <Pagination
-              current={currentPage}
-              pageSize={currentPageSize}
-              total={filteredTotal}
-              size="small"
-              showSizeChanger
-              pageSizeOptions={['10', '20', '50', '100']}
-              onChange={(p, ps) => {
-                if (serverMode) {
-                  onQueryChange({ ...query, page: p, pageSize: ps });
-                } else {
-                  setPage(p);
-                  setPageSize(ps);
-                }
+          }
+          toolBarRender={() => [
+            <Tag
+              key="total"
+              color="blue"
+              style={{
+                borderRadius: 10,
+                margin: 0,
+                padding: '2px 8px',
+                fontSize: 12,
+                fontWeight: 500,
               }}
-            />
-          </div>
-        </Spin>
+            >
+              共 {filteredTotal} 条
+            </Tag>,
+            onSync && (
+              <Button
+                key="sync"
+                icon={<CloudSyncOutlined />}
+                loading={syncing}
+                onClick={handleSyncTrigger}
+              >
+                同步官方数据
+              </Button>
+            ),
+            onExport && (
+              <Button
+                key="export"
+                icon={<CloudDownloadOutlined />}
+                onClick={onExport}
+              >
+                导出数据
+              </Button>
+            ),
+            onCreate && (
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleOpenCreate}
+                style={{ fontWeight: 500 }}
+              >
+                新增{title.replace(/管理|维护/g, '')}
+              </Button>
+            ),
+          ].filter(Boolean)}
+          options={{
+            reload: onRefresh ? () => handleRefresh() : false,
+            density: true,
+            fullScreen: true,
+            setting: true,
+          }}
+          pagination={{
+            current: currentPage,
+            pageSize: currentPageSize,
+            total: filteredTotal,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            showTotal: (t) => `共 ${t} 条`,
+            onChange: (p, ps) => {
+              if (serverMode) {
+                onQueryChange({ ...query, page: p, pageSize: ps });
+              } else {
+                setPage(p);
+                setPageSize(ps);
+              }
+            },
+          }}
+        />
       </Card>
 
-      {/* 5. Dynamic Create / Edit Modal Form */}
+      {/* 3. Dynamic Create / Edit Modal Form */}
       <ModalForm
         title={editingItem ? `编辑${title.replace(/管理|维护/g, '')} - ${editingItem.code}` : `新增${title.replace(/管理|维护/g, '')}`}
         open={modalOpen}
@@ -662,8 +663,8 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         onOpenChange={setModalOpen}
         onFinish={handleFormFinish}
         modalProps={{
-          destroyOnClose: true,
-          maskClosable: false,
+          destroyOnHidden: true,
+          mask: { closable: false },
           width: 520,
         }}
         layout="horizontal"

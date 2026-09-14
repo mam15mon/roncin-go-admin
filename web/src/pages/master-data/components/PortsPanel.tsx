@@ -114,8 +114,13 @@ export default function PortsPanel() {
       extraStats={[
         {
           label: '海港枢纽',
-          value: data.filter((p) => p.modes.includes('PORT')).length,
+          value: data.filter((p) => p.modes.includes('SEA') || p.modes.includes('PORT')).length,
           color: '#1677ff',
+        },
+        {
+          label: '铁路联运枢纽',
+          value: data.filter((p) => p.modes.includes('RAIL')).length,
+          color: '#fa8c16',
         },
         {
           label: '多式联运港',
