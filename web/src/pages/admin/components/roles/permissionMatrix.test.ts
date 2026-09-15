@@ -14,7 +14,7 @@ const mockPermissions = [
   {
     key: 'system.platform.access',
     name: '访问工作台',
-    group: '系统管理 · 平台',
+    group: '系统管理 · 工作台',
   },
   {
     key: 'system.user.read',
@@ -116,7 +116,7 @@ describe('buildPermissionMatrix', () => {
     const sysModule = matrix.modules.find((m) => m.name === '系统管理');
     expect(sysModule).toBeDefined();
     expect(sysModule?.resources.map((r) => r.name)).toEqual([
-      '平台',
+      '工作台',
       '用户',
       '审计',
     ]);

@@ -185,7 +185,7 @@ const (
 )
 
 var manifest = append([]Permission{
-	{Key: PlatformAccess, Name: "访问工作台", Group: "系统管理 · 平台", Description: "登录并进入工作台，是使用系统的基础权限"},
+	{Key: PlatformAccess, Name: "访问工作台", Group: "系统管理 · 工作台", Description: "登录并进入工作台，是使用系统的基础权限"},
 	{Key: OrganizationRead, Name: "查看组织", Group: "系统管理 · 组织", Description: "查看公司、部门和组的组织架构"},
 	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组", Requires: []string{OrganizationRead}},
 	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态", Requires: []string{OrganizationRead}},
