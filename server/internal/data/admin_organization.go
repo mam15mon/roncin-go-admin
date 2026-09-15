@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -46,6 +47,9 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 				return currencyErr
 			}
 			create.SetBaseCurrency(input.BaseCurrency)
+		}
+		if input.Kind == biz.OrganizationKindCompany {
+			create.SetEnabledCurrencies(defaultCompanyEnabledCurrencies(input.BaseCurrency))
 		}
 		if input.ParentID != nil {
 			create.SetParentID(*input.ParentID)
@@ -91,6 +95,24 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 				return currencyErr
 			}
 			update.SetBaseCurrency(input.BaseCurrency)
+			if input.Kind == biz.OrganizationKindCompany {
+				target, getErr := tx.Organization.Get(ctx, input.ID)
+				if getErr == nil && len(target.EnabledCurrencies) > 0 {
+					newBase := strings.ToUpper(strings.TrimSpace(input.BaseCurrency))
+					has := false
+					for _, c := range target.EnabledCurrencies {
+						if c == newBase {
+							has = true
+							break
+						}
+					}
+					if !has {
+						newCurrs := append(target.EnabledCurrencies, newBase)
+						sort.Strings(newCurrs)
+						update.SetEnabledCurrencies(newCurrs)
+					}
+				}
+			}
 		}
 		var saveErr error
 		updated, saveErr = update.Save(ctx)

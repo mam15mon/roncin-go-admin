@@ -2,11 +2,16 @@ package data
 
 import (
 	"context"
+	"sort"
+	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 type referenceDataRepo struct {
@@ -17,7 +22,79 @@ func NewReferenceDataRepo(data *Data) biz.ReferenceDataRepo {
 	return &referenceDataRepo{data: data}
 }
 
-func (r *referenceDataRepo) ListCurrencies(ctx context.Context) ([]*biz.Currency, error) {
+type orgCurrencyContext struct {
+	orgID             uuid.UUID
+	isHeadquarters    bool
+	baseCurrency      string
+	enabledCurrencies []string
+}
+
+func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organizationID uuid.UUID) (*orgCurrencyContext, error) {
+	if organizationID == uuid.Nil {
+		hq, err := r.data.db.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters), organizationent.EnabledEQ(true)).First(ctx)
+		if err != nil {
+			return &orgCurrencyContext{
+				orgID:          uuid.Nil,
+				isHeadquarters: true,
+				baseCurrency:   "CNY",
+			}, nil
+		}
+		base := "CNY"
+		if hq.BaseCurrency != nil && *hq.BaseCurrency != "" {
+			base = *hq.BaseCurrency
+		}
+		return &orgCurrencyContext{
+			orgID:          hq.ID,
+			isHeadquarters: true,
+			baseCurrency:   base,
+		}, nil
+	}
+
+	currentID := organizationID
+	baseCurrency := ""
+	var targetOrg *ent.Organization
+	for {
+		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if targetOrg == nil {
+			targetOrg = item
+		}
+		if baseCurrency == "" && item.BaseCurrency != nil && *item.BaseCurrency != "" {
+			baseCurrency = *item.BaseCurrency
+		}
+		if item.ParentID == nil {
+			if baseCurrency == "" {
+				baseCurrency = "CNY"
+			}
+			isHQ := (targetOrg.Kind == organizationent.KindHeadquarters)
+			var enabled []string
+			if !isHQ {
+				if len(targetOrg.EnabledCurrencies) > 0 {
+					enabled = targetOrg.EnabledCurrencies
+				} else {
+					enabled = defaultCompanyEnabledCurrencies(baseCurrency)
+				}
+			}
+			return &orgCurrencyContext{
+				orgID:             targetOrg.ID,
+				isHeadquarters:    isHQ,
+				baseCurrency:      baseCurrency,
+				enabledCurrencies: enabled,
+			}, nil
+		}
+		currentID = *item.ParentID
+	}
+}
+
+func (r *referenceDataRepo) ListCurrencies(ctx context.Context, organizationID uuid.UUID, enabledOnly bool) ([]*biz.Currency, error) {
+	orgCtx, err := r.resolveOrgCurrencyContext(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 全局所有启用的 ISO 4217 币种主库
 	items, err := r.data.db.Currency.Query().
 		Where(currency.EnabledEQ(true)).
 		Order(ent.Asc(currency.FieldCode)).
@@ -25,14 +102,127 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context) ([]*biz.Currency
 	if err != nil {
 		return nil, err
 	}
+
+	enabledMap := make(map[string]bool)
+	if orgCtx.isHeadquarters {
+		// 总部视角：全库所有有效币种均视为启用
+		for _, item := range items {
+			enabledMap[item.Code] = true
+		}
+	} else {
+		// 分公司视角：读取组织启用的币种，本位币常开
+		for _, code := range orgCtx.enabledCurrencies {
+			enabledMap[strings.ToUpper(code)] = true
+		}
+		enabledMap[orgCtx.baseCurrency] = true
+	}
+
 	result := make([]*biz.Currency, 0, len(items))
 	for _, item := range items {
+		isBase := (item.Code == orgCtx.baseCurrency)
+		isEnabled := isBase || enabledMap[item.Code]
+
+		if enabledOnly && !isEnabled {
+			continue
+		}
+
 		result = append(result, &biz.Currency{
-			ID: item.ID, Code: item.Code, Name: item.Name, Symbol: item.Symbol,
-			MinorUnit: item.MinorUnit, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
+			ID:             item.ID,
+			Code:           item.Code,
+			Name:           item.Name,
+			Symbol:         item.Symbol,
+			MinorUnit:      item.MinorUnit,
+			Enabled:        isEnabled,
+			IsBaseCurrency: isBase,
+			CreatedAt:      item.CreatedAt,
+			UpdatedAt:      item.UpdatedAt,
 		})
 	}
+
+	// 本位币排第一位，其余按币种代码升序
+	sort.SliceStable(result, func(i, j int) bool {
+		if result[i].IsBaseCurrency != result[j].IsBaseCurrency {
+			return result[i].IsBaseCurrency
+		}
+		return result[i].Code < result[j].Code
+	})
+
 	return result, nil
+}
+
+func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organizationID uuid.UUID, code string, enabled bool) (*biz.Currency, error) {
+	curr, err := r.data.db.Currency.Query().Where(currency.CodeEQ(code)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrCurrencyNotFound
+		}
+		return nil, err
+	}
+
+	orgCtx, err := r.resolveOrgCurrencyContext(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if orgCtx.isHeadquarters {
+		// 总部操作：切换全局币种启用状态
+		updated, err := r.data.db.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &biz.Currency{
+			ID:             updated.ID,
+			Code:           updated.Code,
+			Name:           updated.Name,
+			Symbol:         updated.Symbol,
+			MinorUnit:      updated.MinorUnit,
+			Enabled:        updated.Enabled,
+			IsBaseCurrency: (updated.Code == orgCtx.baseCurrency),
+			CreatedAt:      updated.CreatedAt,
+			UpdatedAt:      updated.UpdatedAt,
+		}, nil
+	}
+
+	// 分公司操作：
+	// 校验：本位币绝对不可禁用
+	if !enabled && code == orgCtx.baseCurrency {
+		return nil, biz.ErrCurrencyBaseCannotBeDisabled
+	}
+
+	currentMap := make(map[string]bool)
+	for _, c := range orgCtx.enabledCurrencies {
+		currentMap[strings.ToUpper(c)] = true
+	}
+	currentMap[orgCtx.baseCurrency] = true
+
+	if enabled {
+		currentMap[code] = true
+	} else {
+		delete(currentMap, code)
+	}
+	currentMap[orgCtx.baseCurrency] = true
+
+	newCurrencies := make([]string, 0, len(currentMap))
+	for k := range currentMap {
+		newCurrencies = append(newCurrencies, k)
+	}
+	sort.Strings(newCurrencies)
+
+	if err := r.data.db.Organization.UpdateOneID(orgCtx.orgID).SetEnabledCurrencies(newCurrencies).Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	return &biz.Currency{
+		ID:             curr.ID,
+		Code:           curr.Code,
+		Name:           curr.Name,
+		Symbol:         curr.Symbol,
+		MinorUnit:      curr.MinorUnit,
+		Enabled:        enabled,
+		IsBaseCurrency: (curr.Code == orgCtx.baseCurrency),
+		CreatedAt:      curr.CreatedAt,
+		UpdatedAt:      time.Now(),
+	}, nil
 }
 
 func (r *referenceDataRepo) SearchCurrencies(ctx context.Context, options biz.SelectorListOptions) (*biz.PagedList[*biz.Currency], error) {
