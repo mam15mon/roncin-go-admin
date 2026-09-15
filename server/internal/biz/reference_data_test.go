@@ -84,4 +84,22 @@ func TestReferenceDataRejectsInvalidAdministrativeRegionQuery(t *testing.T) {
 
 func stringPointer(value string) *string { return &value }
 
+func TestReferenceDataAdministrativeRegionFullListQuery(t *testing.T) {
+	repo := &referenceDataRepoStub{}
+	usecase := NewReferenceDataUsecase(repo)
+	// 维护页整表加载：0/0 透传仓储层，不得被缺省规则改写
+	if _, err := usecase.ListAdministrativeRegions(context.Background(), AdministrativeRegionQuery{}); err != nil {
+		t.Fatalf("full-list query error = %v", err)
+	}
+	if repo.query.Page != 0 || repo.query.PageSize != 0 {
+		t.Fatalf("full-list query = %#v, want zero Page/PageSize", repo.query)
+	}
+	if _, err := usecase.ListAdministrativeRegions(context.Background(), AdministrativeRegionQuery{Page: 1}); err != ErrReferenceDataInvalidArgument {
+		t.Fatalf("page-only query error = %v, want ErrReferenceDataInvalidArgument", err)
+	}
+	if _, err := usecase.ListAdministrativeRegions(context.Background(), AdministrativeRegionQuery{PageSize: MaxListPageSize}); err != ErrReferenceDataInvalidArgument {
+		t.Fatalf("pageSize-only query error = %v, want ErrReferenceDataInvalidArgument", err)
+	}
+}
+
 var _ ReferenceDataRepo = (*referenceDataRepoStub)(nil)

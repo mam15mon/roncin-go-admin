@@ -69,7 +69,11 @@ func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, reque
 	if _, err := requirePrincipal(ctx); err != nil {
 		return nil, err
 	}
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), biz.MaxListPageSize)
+	page, pageSize := int(request.GetPage()), int(request.GetPageSize())
+	// 城市维护页整表加载：分页参数全缺省（均为零）时透传零值，由业务层按全量语义处理。
+	if page != 0 || pageSize != 0 {
+		page, pageSize = biz.ListPagination(page, pageSize, biz.MaxListPageSize)
+	}
 	result, err := s.referenceDataUsecase.ListAdministrativeRegions(ctx, biz.AdministrativeRegionQuery{
 		Level: int(request.GetLevel()), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), Keyword: request.GetKeyword(), Page: page, PageSize: pageSize,
 	})

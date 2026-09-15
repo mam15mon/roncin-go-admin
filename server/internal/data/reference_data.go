@@ -62,15 +62,29 @@ func (r *referenceDataRepo) ListAdministrativeRegions(ctx context.Context, query
 			administrativeregion.SearchKeywordsContainsFold(query.Keyword),
 		))
 	}
+	// Page/PageSize 同时为零表示维护页整表加载：跳过 COUNT 与深分页 OFFSET，一次按代码序返回全部。
+	if query.Page == 0 && query.PageSize == 0 {
+		entities, err := builder.Order(ent.Asc(administrativeregion.FieldCode)).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		items := make([]*biz.AdministrativeRegion, 0, len(entities))
+		for _, entity := range entities {
+			items = append(items, convertAdministrativeRegion(entity))
+		}
+		return &biz.PagedList[*biz.AdministrativeRegion]{Items: items, Total: len(items), Page: 1, PageSize: len(items)}, nil
+	}
 	return paginate(ctx, builder.Count, func(ctx context.Context, offset, limit int) ([]*ent.AdministrativeRegion, error) {
 		return builder.Order(ent.Asc(administrativeregion.FieldCode)).Offset(offset).Limit(limit).All(ctx)
-	}, query.Page, query.PageSize, infalliblePageConverter(func(item *ent.AdministrativeRegion) *biz.AdministrativeRegion {
-		return &biz.AdministrativeRegion{
-			ID: item.ID, Code: item.Code, Name: item.Name, Level: item.Level,
-			ParentCode: item.ParentCode, RegionType: item.RegionType, Source: item.Source,
-			SourceVersion: item.SourceVersion, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
-		}
-	}))
+	}, query.Page, query.PageSize, infalliblePageConverter(convertAdministrativeRegion))
+}
+
+func convertAdministrativeRegion(item *ent.AdministrativeRegion) *biz.AdministrativeRegion {
+	return &biz.AdministrativeRegion{
+		ID: item.ID, Code: item.Code, Name: item.Name, Level: item.Level,
+		ParentCode: item.ParentCode, RegionType: item.RegionType, Source: item.Source,
+		SourceVersion: item.SourceVersion, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
+	}
 }
 
 var _ biz.ReferenceDataRepo = (*referenceDataRepo)(nil)

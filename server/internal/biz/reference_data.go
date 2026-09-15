@@ -75,7 +75,9 @@ func (uc *ReferenceDataUsecase) SearchCurrencies(ctx context.Context, options Se
 
 func (uc *ReferenceDataUsecase) ListAdministrativeRegions(ctx context.Context, query AdministrativeRegionQuery) (*PagedList[*AdministrativeRegion], error) {
 	query.Keyword = strings.TrimSpace(query.Keyword)
-	if query.Level < 0 || query.Level > 3 || !ValidListPagination(query.Page, query.PageSize) {
+	// Page/PageSize 同时为零表示维护页整表加载，跳过分页校验，仓储层返回全量。
+	fullList := query.Page == 0 && query.PageSize == 0
+	if query.Level < 0 || query.Level > 3 || (!fullList && !ValidListPagination(query.Page, query.PageSize)) {
 		return nil, ErrReferenceDataInvalidArgument
 	}
 	if query.Level <= 1 {
