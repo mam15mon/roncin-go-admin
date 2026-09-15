@@ -18,6 +18,7 @@
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 主数据存储三型（A 全局/B 基线+本地/C 组织私有）与维护权、B 型统一读取谓词、写拦截器、迁移 CHECK/部分索引陷阱 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
+| [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属总部/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
 | [DingTalk Registration Approval](./dingtalk-registration-approval.md) | 钉钉注册双通道：邀请自动激活（降级红线）、认领审批、按目标组织路由通知、手机号与令牌安全 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |
@@ -40,6 +41,9 @@
 10. 涉及汇率、核销、对冲、提成锁或总部共享主数据的改动是否对照对应专项规范
     （exchange-rate-single-rate / finance-bill-currency / finance-commission-lock /
     organization-shared-masterdata）。
+11. 涉及角色读写、成员关系角色分配或组织 kind 判定的改动是否对照角色库归属规范
+    （role-workspace-ownership）：写路径只允许工作台锚点、读路径解析失败显式报错，
+    前端工作台判定复用 `isWorkspaceKindValue`，不新增第二套口径。
 
 ## Quality Check
 

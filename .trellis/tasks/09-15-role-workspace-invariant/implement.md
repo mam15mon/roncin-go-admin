@@ -40,14 +40,22 @@ WHERE o.kind IN ('department', 'team');
 
 ## 步骤
 
-1. [ ] 服务端错误定义：`internal/biz` 新增 `ErrAdminRoleAnchorInvalid`；服务层按
+1. [x] 服务端错误定义：`internal/biz` 新增 `ErrAdminRoleAnchorInvalid`；服务层按
    `error-handling.md` 既有模式映射中文提示「角色只能在公司/总部维护」。
-2. [ ] data 层改造（`internal/data/admin_role.go`）：
+   （已完成：`internal/biz/admin_role.go` 定义
+   `errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/总部维护")`；
+   kratos 错误自带 HTTP 语义，`service` 层按既有惯例不做二次翻译，故无 service 改动。）
+2. [x] data 层改造（`internal/data/admin_role.go`）：
    - `resolveRoleOrganizationID`：解析失败返回 `ErrAdminOrganizationNotFound`，删除静默回退；
    - `CreateRole` / `UpdateRole` / `DeleteRole`：锚点解析后 `resolved != 入参` 即拒绝；
    - `actorRolesPrivilegeProfiles` 内 Nil 兜底分支同步收紧。
-3. [ ] 迁移回填：`cmd/migrate` 新增幂等归一步骤 + 迁移后自检断言（无 department/team 锚定行）。
-4. [ ] 服务端验证：
+   （已完成，另新增 `resolveRoleAnchorOrganizationID` 承载写路径守门；顺带按 AGENTS.md
+   「仓储必须经 `Data.client(ctx)`」把本文件 `r.data.db` 直连全部收敛。）
+3. [x] 迁移回填：`cmd/migrate` 新增幂等归一步骤 + 迁移后自检断言（无 department/team 锚定行）。
+   （已完成：新增 `internal/data/role_workspace_backfill.go` 的
+   `BackfillRoleWorkspaceAnchors`，在 `cmd/migrate` PostStep 内调用；断链/成环与唯一索引
+   冲突均显式报错终止，无重命名/停用兜底。）
+4. [x] 服务端验证：
 
 ```bash
 go -C server vet ./...
@@ -57,15 +65,24 @@ RONCIN_INTEGRATION_DATABASE_SOURCE='postgresql://roncin@127.0.0.1:5432/roncin_go
 ```
 
    新增集成测试 T1（部门锚点建/改/删角色被拒）、T2（未知组织显式报错）一并落在本步。
+   （已完成：`vet` 通过；集成测试以显式 DSN 复跑 3/3 PASS 且 `-v` 确认无 SKIP——
+   注意 `.env.local` 内**没有** `RONCIN_INTEGRATION_DATABASE_SOURCE`，不显式传 DSN 时
+   用例会静默 SKIP 造成假绿。新增用例落在
+   `internal/data/admin_role_anchor_integration_test.go`：T1/T2 为
+   `TestAdminRoleAnchorPostgres`，另补 `TestRoleWorkspaceAnchorBackfillPostgres` 覆盖 A4。）
 
-5. [ ] 前端改造（`web/src/pages/admin/components/users/userConstants.ts`）：
+5. [x] 前端改造（`web/src/pages/admin/components/users/userConstants.ts`）：
    - 新增 `isWorkspaceKindValue`，`formatOrganizationHierarchyName` 复用，删死分支；
    - 新增 `formatOrganizationHierarchyName` 定向测试；
    - 验证：`pnpm --dir web exec vitest run <新增测试文件>` + 修改文件
      `pnpm --dir web exec biome check`。
-6. [ ] spec 固化（trellis-update-spec）：把「角色库归属工作台、部门共享、写路径显式拒绝、
+   （已完成：判定值取自 `@/enums.generated` 的 `AdminOrganizationKind` 而非裸数字；
+   测试文件 `userConstants.test.ts` 8 用例。`organizationKindLabels` 的裸数字键未一并收敛
+   ——不在 R4/D4 范围且有其他消费点。）
+6. [x] spec 固化（trellis-update-spec）：把「角色库归属工作台、部门共享、写路径显式拒绝、
    读路径显式失败」写入 `.trellis/spec/server/backend/`（建议并入
    `auth-session-org-switch.md` 或新增 `role-workspace-ownership.md`）。
+   （已完成：新增 `role-workspace-ownership.md`，并在 `index.md` 登记索引与前置检查第 11 条。）
 
 ## 收尾核验（全任务完成时执行一次）
 
@@ -76,10 +93,28 @@ pnpm --dir web exec vitest run src/pages/admin/components/users/
 git diff --check
 ```
 
+实测结果：
+
+| 检查 | 结果 |
+| --- | --- |
+| `go -C server vet ./...` | PASS |
+| 集成测试（显式 DSN，`-v` 确认无 SKIP） | 3/3 PASS：既有部门继承公司角色 5.41s、`TestAdminRoleAnchorPostgres` 7.36s、`TestRoleWorkspaceAnchorBackfillPostgres` 7.63s |
+| `pnpm --dir web exec vitest run src/pages/admin/components/users/` | 3 文件 19 用例 PASS（新文件 8 用例） |
+| `pnpm --dir web tsc` | PASS（exit 0） |
+| 修改文件 `biome check` | PASS（无 issue） |
+| `git diff --check` | clean |
+
+对应验收标准：A1–A6 全部覆盖。A4 的迁移断言由
+`TestRoleWorkspaceAnchorBackfillPostgres` 与实施期 `cmd/migrate` 临时 schema 端到端演练
+（空库通过 / 植入部门锚定角色后归一 / 同码冲突与断链均 exit 1 且整体回滚）共同验证。
+
 ## 提交
 
 - 单提交：`refactor(admin): 角色库锚定收敛到工作台并显式失败`，包含服务端、迁移、
   前端口径与测试（无生成物变更）；若 review 需要可拆「服务端+迁移」与「前端」两笔。
+- 已提交：`ab819246`（服务端 + 迁移 + 前端 + 测试 + 任务文档）。
+  本任务未做 `trellis-check` 独立复核（用户要求直接提交），改由主会话核对真实差异后
+  自行复跑全部定向验证，结果见上表。
 
 ## 回滚点
 
