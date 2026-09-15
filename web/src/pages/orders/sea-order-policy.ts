@@ -20,12 +20,7 @@ export const SEA_SERVICE_CODE = {
   INSURANCE: 'INSURANCE',
 } as const;
 
-const traditionalForwardingServices = [
-  SEA_SERVICE_CODE.BOOKING,
-  SEA_SERVICE_CODE.TRUCKING,
-  SEA_SERVICE_CODE.CUSTOMS_EXPORT,
-  SEA_SERVICE_CODE.STUFFING,
-] as const;
+const traditionalForwardingServices = [SEA_SERVICE_CODE.BOOKING] as const;
 
 const crossBorderServices = [
   SEA_SERVICE_CODE.TRUCKING,
@@ -77,13 +72,18 @@ export function resolveSeaOrderFormPolicy(
 }
 
 export function recommendedServiceIDs(
-  options: Array<{ code?: string; value: string | number }>,
+  options: Array<{ code?: string; label?: string; value: string | number }>,
   shipmentMode?: number,
 ): string[] {
   const recommendedCodes = new Set(
     resolveSeaOrderFormPolicy({ shipmentMode }).recommendedServiceCodes,
   );
   return options
-    .filter((option) => option.code && recommendedCodes.has(option.code))
+    .filter(
+      (option) =>
+        (option.code && recommendedCodes.has(option.code)) ||
+        (recommendedCodes.has(SEA_SERVICE_CODE.BOOKING) &&
+          (option.label === '订舱' || option.code === 'BOOKING')),
+    )
     .map((option) => String(option.value));
 }

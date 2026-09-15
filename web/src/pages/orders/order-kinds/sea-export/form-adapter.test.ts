@@ -50,12 +50,7 @@ describe('buildSeaExportCreateDefaults', () => {
     );
     expect(defaults.shipmentType).toBe(ShipmentType.SHIPMENT_TYPE_FCL);
     expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
-    expect(defaults.serviceTypeIds).toEqual([
-      'st-BOOKING',
-      'st-TRUCKING',
-      'st-CUSTOMS_EXPORT',
-      'st-STUFFING',
-    ]);
+    expect(defaults.serviceTypeIds).toEqual(['st-BOOKING']);
   });
 
   it('优先按 GENERAL 业务码识别默认货类，再回退 label=普货，均无则 undefined', () => {
@@ -82,9 +77,7 @@ describe('buildSeaExportCreateDefaults', () => {
     const none = buildSeaExportCreateDefaults({
       creator,
       serviceTypeOptions: [],
-      cargoCategoryOptions: [
-        { label: '危险品', value: 'cat-dg', code: 'DG' },
-      ],
+      cargoCategoryOptions: [{ label: '危险品', value: 'cat-dg', code: 'DG' }],
     });
     expect(none.cargoCategoryIds).toBeUndefined();
   });
@@ -148,13 +141,41 @@ describe('buildSeaExportCreatePayload', () => {
       cargoReadyAt: '2026-08-29T01:00:00.000Z',
       orderDate: '2026-08-29T02:00:00.000Z',
       personnelAssignments: [
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR, userId: 'operator-1', organizationId: 'org-1' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES, userId: 'sales-1', organizationId: 'org-2' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE, userId: 'service-1', organizationId: 'org-3' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE, userId: 'associate-1', organizationId: 'org-4' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT, userId: 'document-1', organizationId: 'org-5' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL, userId: 'commercial-1', organizationId: 'org-6' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2, userId: 'associate-2', organizationId: 'org-7' },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
+          userId: 'operator-1',
+          organizationId: 'org-1',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
+          userId: 'sales-1',
+          organizationId: 'org-2',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
+          userId: 'service-1',
+          organizationId: 'org-3',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
+          userId: 'associate-1',
+          organizationId: 'org-4',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
+          userId: 'document-1',
+          organizationId: 'org-5',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
+          userId: 'commercial-1',
+          organizationId: 'org-6',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
+          userId: 'associate-2',
+          organizationId: 'org-7',
+        },
       ],
       shippingDocuments: undefined,
       seaDocument: {
@@ -242,6 +263,28 @@ describe('buildSeaExportCreatePayload', () => {
     expect(result.seaMasterBill).toEqual({
       masterNo: 'COSCO999902',
     });
+  });
+
+  it('主单号为空或空白时绝不组装 seaMasterBill 对象，避免服务端报 missing required field', () => {
+    const resultWithShippingLine = buildSeaExportCreatePayload({
+      customerId: 'customer-1',
+      tradeTerm: 3,
+      paymentTerm: 1,
+      shippingLineId: 'carrier-1',
+      seaMasterBillMasterNo: '   ',
+      seaMasterBill: {} as any,
+    });
+
+    expect(resultWithShippingLine.seaMasterBill).toBeUndefined();
+
+    const resultCompletelyEmpty = buildSeaExportCreatePayload({
+      customerId: 'customer-1',
+      tradeTerm: 3,
+      paymentTerm: 1,
+      shippingLineId: 'carrier-1',
+    });
+
+    expect(resultCompletelyEmpty.seaMasterBill).toBeUndefined();
   });
 
   it('未提供 tradeTerm 时 payload 中 tradeTerm 为 undefined', () => {
@@ -539,13 +582,41 @@ describe('SE 适配器完整固定夹具等价', () => {
       allocationNotes: '配舱备注',
       operationNotes: '操作备注',
       personnelAssignments: [
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR, userId: 'operator-1', organizationId: 'org-1' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES, userId: 'sales-1', organizationId: 'org-2' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE, userId: 'cs-1', organizationId: 'org-3' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE, userId: 'assoc-1', organizationId: 'org-4' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT, userId: 'doc-1', organizationId: 'org-5' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL, userId: 'comm-1', organizationId: 'org-6' },
-        { role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2, userId: 'assoc2-1', organizationId: 'org-7' },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
+          userId: 'operator-1',
+          organizationId: 'org-1',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
+          userId: 'sales-1',
+          organizationId: 'org-2',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
+          userId: 'cs-1',
+          organizationId: 'org-3',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
+          userId: 'assoc-1',
+          organizationId: 'org-4',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
+          userId: 'doc-1',
+          organizationId: 'org-5',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
+          userId: 'comm-1',
+          organizationId: 'org-6',
+        },
+        {
+          role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
+          userId: 'assoc2-1',
+          organizationId: 'org-7',
+        },
       ],
       shippingDocuments: undefined,
       containerRequests: [
@@ -626,7 +697,9 @@ describe('SE 适配器完整固定夹具等价', () => {
         bookingNotes: '订舱备注',
         allocationNotes: '配舱备注',
         operationNotes: '操作备注',
-        containerRequests: [{ id: 'req-1', containerSpecId: 'spec-1', quantity: 2 }],
+        containerRequests: [
+          { id: 'req-1', containerSpecId: 'spec-1', quantity: 2 },
+        ],
         seaMasterBill: {
           masterNo: 'COSCO999901',
           version: '7',

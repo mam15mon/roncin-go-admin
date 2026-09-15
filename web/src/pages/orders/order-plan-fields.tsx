@@ -276,12 +276,10 @@ export function OrderContainerRequestFields({
       >
         <input type="hidden" />
       </Form.Item>
-      {/* 相邻 ProForm 字段在 grid 模式下被自动内层 Col 的双重 gutter 右推 8px，
-          此处临时内缩对齐当前分节列缘；P3 配舱信息栅格迁移时移除。 */}
       <Form.Item
         label="箱型箱量"
         tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
-        style={{ marginBottom: 12, marginInline: 8 }}
+        style={{ marginBottom: 12 }}
       >
         <span style={{ display: 'none' }}>计划箱型箱量</span>
         <div

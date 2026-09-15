@@ -53,6 +53,7 @@ export function OrderFormTemplate<T>({
   onFinish,
   submitText = '提交',
   resetText = '重置',
+  submitter,
   footer,
   tabKey,
   draftPathname,
@@ -272,7 +273,7 @@ export function OrderFormTemplate<T>({
           onFinish={handleFinish}
           onFinishFailed={handleFinishFailed}
           submitter={
-            readonly
+            readonly || submitter === false
               ? false
               : {
                   searchConfig: {

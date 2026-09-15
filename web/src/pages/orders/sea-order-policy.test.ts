@@ -13,12 +13,7 @@ describe('海运出口表单策略', () => {
       resolveSeaOrderFormPolicy({
         shipmentMode: SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
       }).recommendedServiceCodes,
-    ).toEqual([
-      SEA_SERVICE_CODE.BOOKING,
-      SEA_SERVICE_CODE.TRUCKING,
-      SEA_SERVICE_CODE.CUSTOMS_EXPORT,
-      SEA_SERVICE_CODE.STUFFING,
-    ]);
+    ).toEqual([SEA_SERVICE_CODE.BOOKING]);
     expect(
       resolveSeaOrderFormPolicy({
         shipmentMode: SEA_SHIPMENT_MODE.CROSS_BORDER,
@@ -69,6 +64,16 @@ describe('海运出口表单策略', () => {
         ],
         SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
       ),
-    ).toEqual(['booking-id', 'trucking-id']);
+    ).toEqual(['booking-id']);
+
+    expect(
+      recommendedServiceIDs(
+        [
+          { label: '订舱', value: 'booking-label-id' },
+          { label: '拖车', value: 'trucking-label-id' },
+        ],
+        SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
+      ),
+    ).toEqual(['booking-label-id']);
   });
 });

@@ -5,17 +5,23 @@ import {
   ProFormRadio,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Input, Row, Tag, Tooltip } from 'antd';
+import { Button, Form, Input, Tooltip } from 'antd';
 import React from 'react';
-import { CurrencyAmountInput, ProFormSearchableSelect } from '@/components/ui';
-import { PartnerRoleType } from '@/enums.generated';
+import {
+  CurrencyAmountInput,
+  FormRow,
+  ProFormSearchableSelect,
+} from '@/components/ui';
+import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
+import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../../../common';
-import PartnerQuickAddSelect from '../../../components/PartnerQuickAddSelect';
-import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
+import PartnerQuickAddSelect, {
+  type PartnerSelectOption,
+} from '../../../components/PartnerQuickAddSelect';
 import type { SelectOption, TemplateProps } from '../../types';
 
 export function TooltipInput(props: any) {
@@ -39,36 +45,106 @@ export function TooltipInput(props: any) {
 }
 
 export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
-  const shipmentMode = Form.useWatch('shipmentMode');
-  const policy = resolveSeaOrderFormPolicy({ shipmentMode });
-  const recommendedCodes = new Set(policy.recommendedServiceCodes);
-
   return (
-    <Col span={24}>
+    <div style={{ width: '100%' }}>
       <ProFormCheckbox.Group
         name="serviceTypeIds"
         label="服务类型"
         options={options.map((option) => ({
-          label: (
-            <span
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <span>{option.label}</span>
-              {option.code && recommendedCodes.has(option.code) && (
-                <Tag
-                  variant="filled"
-                  color="blue"
-                  style={{ marginInlineEnd: 0 }}
-                >
-                  推荐
-                </Tag>
-              )}
-            </span>
-          ),
+          label: option.label,
           value: option.value,
         }))}
       />
-    </Col>
+    </div>
+  );
+}
+
+export function SeaDangerousGoodsFields({
+  options,
+  disabled,
+}: {
+  options: SelectOption[];
+  disabled?: boolean;
+}) {
+  const form = Form.useFormInstance();
+  const cargoCategoryIds = (Form.useWatch('cargoCategoryIds') ??
+    form?.getFieldValue('cargoCategoryIds')) as (string | number)[] | undefined;
+
+  const isDangerousGoodsSelected = React.useMemo(() => {
+    if (!Array.isArray(cargoCategoryIds) || cargoCategoryIds.length === 0) {
+      return false;
+    }
+    const dgValues = new Set(
+      options
+        .filter(
+          (opt) =>
+            opt.code === 'DANGEROUS' ||
+            opt.code === 'DG' ||
+            opt.label === '危险品',
+        )
+        .map((opt) => opt.value),
+    );
+
+    return cargoCategoryIds.some(
+      (val) =>
+        dgValues.has(val) ||
+        val === 'DANGEROUS' ||
+        val === 'DG' ||
+        val === '危险品',
+    );
+  }, [cargoCategoryIds, options]);
+
+  const prevIsDgRef = React.useRef(isDangerousGoodsSelected);
+  React.useEffect(() => {
+    if (prevIsDgRef.current && !isDangerousGoodsSelected) {
+      form?.setFieldsValue({
+        unNumber: undefined,
+        hazardClass: undefined,
+        declarationCutoffAt: undefined,
+      });
+    }
+    prevIsDgRef.current = isDangerousGoodsSelected;
+  }, [isDangerousGoodsSelected, form]);
+
+  if (!isDangerousGoodsSelected) {
+    return null;
+  }
+
+  return (
+    <FormRow cols={6}>
+      <div style={{ gridColumn: 'span 2' }}>
+        <Form.Item
+          label="UN NO."
+          name="unNumber"
+          rules={[
+            {
+              pattern: /^\d{4}$/,
+              message: 'UN NO. 应为 4 位数字',
+            },
+          ]}
+        >
+          <TooltipInput
+            placeholder="4位数字"
+            maxLength={4}
+            disabled={disabled}
+          />
+        </Form.Item>
+      </div>
+      <div style={{ gridColumn: 'span 2' }}>
+        <Form.Item label="CLASS NO." name="hazardClass">
+          <TooltipInput placeholder="类别" maxLength={16} disabled={disabled} />
+        </Form.Item>
+      </div>
+      <div style={{ gridColumn: 'span 2' }}>
+        <ProFormDateTimePicker
+          name="declarationCutoffAt"
+          label="截申报时间"
+          tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
+          readonly={disabled}
+          fieldProps={{ style: { width: '100%' } }}
+        />
+      </div>
+    </FormRow>
   );
 }
 
@@ -100,7 +176,9 @@ function SeaCarrierField({
       name="shippingLineId"
       label="船公司"
       placeholder="请选择"
-      options={currentShippingLineOption ? [currentShippingLineOption] : []}
+      options={
+        currentShippingLineOption ? [currentShippingLineOption] : undefined
+      }
       disabled={readonly || isMultiMemberLocked}
       tooltip={
         isMultiMemberLocked
@@ -128,7 +206,166 @@ function SeaCarrierField({
   );
 }
 
-export function buildSeaBaseInfoSection(props: TemplateProps) {
+export function extractPersonnelFromPartnerAssignments(
+  assignments: API.PartnerAssignment[] | undefined,
+  personnelOptions?: Array<{ userId?: string; organizationId?: string }>,
+): Record<string, string | undefined> {
+  if (!assignments || assignments.length === 0) {
+    return {};
+  }
+
+  const findAssignment = (role: number, index = 0) => {
+    const item = assignments
+      .filter((a) => a.role === role)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[index];
+    if (!item?.userId) return undefined;
+    const matchedOpt = personnelOptions?.find(
+      (opt) => opt.userId === item.userId,
+    );
+    const organizationId = item.organizationId || matchedOpt?.organizationId;
+    return {
+      userId: item.userId,
+      organizationId,
+    };
+  };
+
+  const operator = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+  );
+  const sales = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+  );
+  const customerService = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
+  );
+  const commercial = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_COMMERCIAL,
+  );
+  const contact1 = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT,
+    0,
+  );
+  const contact2 = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT,
+    1,
+  );
+  const doc = findAssignment(
+    PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_DOCUMENT,
+  );
+
+  const updates: Record<string, string | undefined> = {};
+  if (operator?.userId) {
+    updates.operatorUserId = operator.userId;
+    if (operator.organizationId) {
+      updates.operatorOrganizationId = operator.organizationId;
+    }
+  }
+  if (sales?.userId) {
+    updates.salesUserId = sales.userId;
+    if (sales.organizationId) {
+      updates.salesOrganizationId = sales.organizationId;
+    }
+  }
+  if (customerService?.userId) {
+    updates.customerServiceUserId = customerService.userId;
+    if (customerService.organizationId) {
+      updates.customerServiceOrganizationId = customerService.organizationId;
+    }
+  }
+  if (commercial?.userId) {
+    updates.commercialUserId = commercial.userId;
+    if (commercial.organizationId) {
+      updates.commercialOrganizationId = commercial.organizationId;
+    }
+  }
+  if (contact1?.userId) {
+    updates.associateUserId = contact1.userId;
+    if (contact1.organizationId) {
+      updates.associateOrganizationId = contact1.organizationId;
+    }
+  }
+  if (contact2?.userId) {
+    updates.associate2UserId = contact2.userId;
+    if (contact2.organizationId) {
+      updates.associate2OrganizationId = contact2.organizationId;
+    }
+  }
+  if (doc?.userId) {
+    updates.documentUserId = doc.userId;
+    if (doc.organizationId) {
+      updates.documentOrganizationId = doc.organizationId;
+    }
+  }
+
+  return updates;
+}
+
+export function SeaCustomerField({
+  searchCustomers,
+  readonly,
+  setCustomerCode,
+  personnelOptions,
+  onCustomerChange,
+}: {
+  searchCustomers: (keyword?: string) => Promise<PartnerSelectOption[]>;
+  readonly?: boolean;
+  setCustomerCode: (code?: string) => void;
+  personnelOptions?: Array<{ userId?: string; organizationId?: string }>;
+  onCustomerChange?: (option?: PartnerSelectOption) => void;
+}) {
+  const form = Form.useFormInstance();
+  const latestCustomerIdRef = React.useRef<string | number | undefined>(
+    undefined,
+  );
+
+  const handlePartnerChange = async (option?: PartnerSelectOption) => {
+    setCustomerCode(option?.code);
+    onCustomerChange?.(option);
+
+    const customerId = option?.value;
+    latestCustomerIdRef.current = customerId;
+    if (!customerId) {
+      return;
+    }
+
+    try {
+      const res = await partnerServiceGetPartner({ id: String(customerId) });
+      if (latestCustomerIdRef.current !== customerId) {
+        return;
+      }
+      const partner = res.data;
+      if (!partner) return;
+
+      const updates = extractPersonnelFromPartnerAssignments(
+        partner.assignments,
+        personnelOptions,
+      );
+      if (Object.keys(updates).length > 0 && form) {
+        form.setFieldsValue(updates);
+      }
+    } catch {
+      // 容错处理：获取客商内部信息失败时不阻断主表单操作
+    }
+  };
+
+  return (
+    <PartnerQuickAddSelect
+      name="customerId"
+      displayName="委托单位"
+      role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+      createRoute="/partners/customers/create"
+      searchPartners={searchCustomers}
+      required
+      disabled={readonly}
+      onPartnerChange={handlePartnerChange}
+    />
+  );
+}
+
+export function getSeaBaseInfoFields(
+  props: TemplateProps,
+  createLayout = false,
+) {
   const {
     serviceTypeOptions,
     cargoCategoryOptions,
@@ -142,96 +379,74 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
     checkCustomerReferenceNo,
     checkInternalReferenceNo,
   } = props;
-
   return {
-    key: 'basicInfo',
-    title: '业务信息',
-    content: (
-      <>
-        {/* 第 1 行：订单编号、订单编号时间及提示语 */}
-        <Col span={24}>
-          <Row gutter={16} align="middle">
-            <Col className="col-5">
-              <ProFormText
-                name="orderNo"
-                label="订单编号"
-                placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
-                fieldProps={{ disabled: true }}
-              />
-            </Col>
-            {!props.isDetail && (
-              <>
-                <Col className="col-5">
-                  <ProFormDatePicker
-                    name="orderDate"
-                    label="订单编号时间"
-                    fieldProps={{ style: { width: '100%' } }}
-                  />
-                </Col>
-                <Col flex="auto">
-                  <div
-                    style={{
-                      color: '#ff4d4f',
-                      fontSize: 12,
-                      lineHeight: '32px',
-                      marginBottom: 24,
-                    }}
-                  >
-                    *订单编号时间依据为订单编号生成时定义的时间，只可在该订单初次保存前修改
-                  </div>
-                </Col>
-              </>
-            )}
-          </Row>
-        </Col>
-
-        {/* 第 2 行：委托单位、集运/跨境、托运类型 */}
-        <Col span={24}>
-          <Row gutter={16} align="middle">
-            <Col className="col-5">
-              <PartnerQuickAddSelect
-                name="customerId"
-                displayName="委托单位"
-                role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
-                createRoute="/partners/customers/create"
-                searchPartners={searchCustomers}
-                required
-                disabled={props.readonly}
-                onPartnerChange={(option) => setCustomerCode(option?.code)}
-              />
-            </Col>
-            <Col className="col-5">
-              <ProFormRadio.Group
-                name="shipmentMode"
-                label="集运/跨境"
-                options={shipmentModeOptions}
-              />
-            </Col>
-            <Col className="col-5">
-              <ProFormRadio.Group
-                name="shipmentType"
-                label="托运类型"
-                options={shipmentTypeOptions}
-              />
-            </Col>
-          </Row>
-        </Col>
-
-        {/* 第 3 行：服务类型（整行复选框） */}
-        <SeaServiceTypeFields options={serviceTypeOptions} />
-
-        {/* 第 4 行：货物品类（整行复选框） */}
-        <Col span={24}>
-          <ProFormCheckbox.Group
-            name="cargoCategoryIds"
-            label="货物品类"
-            options={cargoCategoryOptions}
+    orderIdentity: (
+      <FormRow cols={6}>
+        <ProFormText
+          name="orderNo"
+          label="订单编号"
+          placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
+          fieldProps={{ disabled: true }}
+        />
+        {!props.isDetail ? (
+          <ProFormDatePicker
+            name="orderDate"
+            label="订单编号时间"
+            tooltip="编号时间仅在订单初次保存前可修改"
+            fieldProps={{ style: { width: '100%' } }}
           />
-        </Col>
-
-        {/* 第 5 行：客户业务编号、企业内部编号、订舱号及业务属性 */}
-        <Col className="col-5">
-          <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
+        ) : (
+          <div style={{ gridColumn: 'span 5' }} />
+        )}
+      </FormRow>
+    ),
+    customer: (
+      <FormRow cols={6}>
+        <div style={{ gridColumn: 'span 2' }}>
+          <SeaCustomerField
+            searchCustomers={searchCustomers}
+            readonly={props.readonly}
+            setCustomerCode={setCustomerCode}
+            personnelOptions={props.personnelOptions}
+          />
+        </div>
+        <Form.Item label="委托单位代码" name="customerCode">
+          <TooltipInput disabled placeholder="选择委托单位后自动带出" />
+        </Form.Item>
+        <ProFormRadio.Group
+          name="shipmentMode"
+          label="集运/跨境"
+          options={shipmentModeOptions}
+        />
+        <div style={{ gridColumn: 'span 2' }}>
+          <ProFormRadio.Group
+            name="shipmentType"
+            label="托运类型"
+            options={shipmentTypeOptions}
+          />
+        </div>
+      </FormRow>
+    ),
+    services: <SeaServiceTypeFields options={serviceTypeOptions} />,
+    categories: (
+      <div style={{ width: '100%' }}>
+        <ProFormCheckbox.Group
+          name="cargoCategoryIds"
+          label="货物品类"
+          options={cargoCategoryOptions}
+        />
+      </div>
+    ),
+    dangerous: (
+      <SeaDangerousGoodsFields
+        options={cargoCategoryOptions}
+        disabled={props.readonly}
+      />
+    ),
+    references: (
+      <>
+        <div style={{ gridColumn: 'span 2' }}>
+          <Form.Item label="客户业务编号">
             <Form.Item noStyle name="customerReferenceNo">
               <TooltipInput
                 placeholder="请输入"
@@ -241,6 +456,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                     type="link"
                     size="small"
                     htmlType="button"
+                    tabIndex={-1}
                     style={{ fontSize: 12, height: 21, padding: '0 2px' }}
                     onClick={() => void checkCustomerReferenceNo()}
                   >
@@ -250,9 +466,9 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
               />
             </Form.Item>
           </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <Form.Item label="企业内部编号" style={{ marginInline: 8 }}>
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
+          <Form.Item label="企业内部编号">
             <Form.Item noStyle name="internalReferenceNo">
               <TooltipInput
                 placeholder="请输入"
@@ -262,6 +478,7 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
                     type="link"
                     size="small"
                     htmlType="button"
+                    tabIndex={-1}
                     style={{ fontSize: 12, height: 21, padding: '0 2px' }}
                     onClick={() => void checkInternalReferenceNo()}
                   >
@@ -271,23 +488,27 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
               />
             </Form.Item>
           </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <Form.Item label="订舱号" style={{ marginInline: 8 }}>
-            <Form.Item noStyle name="bookingNo">
-              <TooltipInput placeholder="请输入" maxLength={100} />
-            </Form.Item>
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name="tradeTerm"
-            label="贸易条款"
-            options={tradeTermOptions}
-            placeholder="请选择"
-          />
-        </Col>
-        <Col className="col-5">
+        </div>
+      </>
+    ),
+    booking: (
+      <Form.Item label="订舱号">
+        <Form.Item noStyle name="bookingNo">
+          <TooltipInput placeholder="请输入" maxLength={100} />
+        </Form.Item>
+      </Form.Item>
+    ),
+    trade: (
+      <ProFormSearchableSelect
+        name="tradeTerm"
+        label="贸易条款"
+        options={tradeTermOptions}
+        placeholder="请选择"
+      />
+    ),
+    agents: (
+      <>
+        <div style={{ gridColumn: 'span 2' }}>
           <PartnerQuickAddSelect
             name="bookingAgentId"
             displayName="订舱代理"
@@ -296,8 +517,8 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
             searchPartners={searchBookingAgents}
             disabled={props.readonly}
           />
-        </Col>
-        <Col className="col-5">
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
           <PartnerQuickAddSelect
             name="foreignAgentId"
             displayName="国外代理"
@@ -306,130 +527,99 @@ export function buildSeaBaseInfoSection(props: TemplateProps) {
             searchPartners={searchForeignAgents}
             disabled={props.readonly}
           />
-        </Col>
-
-        {/* 第 6 行：一行 5 列（合约号、船公司、船代、货值、保费） */}
-        <Col className="col-5">
-          <Form.Item label="合约号" style={{ marginInline: 8 }}>
-            <Form.Item noStyle name="contractNo">
-              <TooltipInput placeholder="请输入" maxLength={100} />
-            </Form.Item>
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <SeaCarrierField
-            isDetail={props.isDetail}
-            readonly={props.readonly}
-            searchShippingLines={searchShippingLines}
-          />
-        </Col>
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name="shippingAgentId"
-            label="船代"
-            placeholder="请选择"
-            request={async ({ keyWords }: { keyWords?: string }) =>
-              searchShippingAgents(keyWords)
-            }
-          />
-        </Col>
-        <Col className="col-5">
-          <Form.Item label="货值" style={{ marginInline: 8 }}>
-            <CurrencyAmountInput
-              currencyName="cargoCurrency"
-              amountName="cargoValue"
-              currencyOptions={currencyOptions}
-              disabled={props.readonly}
-              amountPlaceholder="金额"
-              amountRuleMessage="请输入正确的货值，最多 4 位小数"
-              emptyAmountMessage="请输入货值"
-              emptyCurrencyMessage="请选择币种"
-            />
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <Form.Item label="保费" style={{ marginInline: 8 }}>
-            <CurrencyAmountInput
-              currencyName="insuranceCurrency"
-              amountName="insurancePremium"
-              currencyOptions={currencyOptions}
-              disabled={props.readonly}
-              amountPlaceholder="金额"
-              amountRuleMessage="请输入正确的保费，最多 4 位小数"
-              emptyAmountMessage="请输入保费"
-              emptyCurrencyMessage="请选择币种"
-            />
-          </Form.Item>
-        </Col>
-
-        {/* 第 7 行：危险品与合规时间（运输条款在提单信息区块维护） */}
-        <Col className="col-5">
-          <Form.Item
-            label="UN NO."
-            name="unNumber"
-            style={{ marginInline: 8 }}
-            rules={[
-              {
-                pattern: /^\d{4}$/,
-                message: 'UN NO. 应为 4 位数字',
-              },
-            ]}
-          >
-            <TooltipInput placeholder="4位数字" maxLength={4} />
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <Form.Item
-            label="CLASS NO."
-            name="hazardClass"
-            style={{ marginInline: 8 }}
-          >
-            <TooltipInput placeholder="类别" maxLength={16} />
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <ProFormDateTimePicker
-            name="declarationCutoffAt"
-            label="截申报时间"
-            tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-        </Col>
-        <Col className="col-5">
-          <ProFormDateTimePicker
-            name="receivedAt"
-            label="接单时间"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-        </Col>
-        <Col className="col-5">
-          <Form.Item
-            label="工厂"
-            name="factoryName"
-            style={{ marginInline: 8 }}
-          >
-            <TooltipInput placeholder="请输入工厂" maxLength={200} />
-          </Form.Item>
-        </Col>
-
-        {/* 第 8 行：一行 5 列（委托单位代码、货好时间、后 3 列留白） */}
-        <Col className="col-5">
-          <Form.Item
-            label="委托单位代码"
-            name="customerCode"
-            style={{ marginInline: 8 }}
-          >
-            <TooltipInput disabled placeholder="选择委托单位后自动带出" />
-          </Form.Item>
-        </Col>
-        <Col className="col-5">
-          <ProFormDateTimePicker
-            name="cargoReadyAt"
-            label="货好时间"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-        </Col>
+        </div>
       </>
+    ),
+    carrier: (
+      <SeaCarrierField
+        isDetail={props.isDetail}
+        readonly={props.readonly}
+        searchShippingLines={searchShippingLines}
+      />
+    ),
+    shippingAgent: (
+      <ProFormSearchableSelect
+        name="shippingAgentId"
+        label="船代"
+        placeholder="请选择"
+        request={async ({ keyWords }: { keyWords?: string }) =>
+          searchShippingAgents(keyWords)
+        }
+      />
+    ),
+    commercial: (
+      <FormRow cols={createLayout ? 3 : 6}>
+        <Form.Item label="合约号">
+          <Form.Item noStyle name="contractNo">
+            <TooltipInput placeholder="请输入" maxLength={100} />
+          </Form.Item>
+        </Form.Item>
+        <Form.Item label="货值">
+          <CurrencyAmountInput
+            currencyName="cargoCurrency"
+            amountName="cargoValue"
+            currencyOptions={currencyOptions}
+            disabled={props.readonly}
+            amountPlaceholder="金额"
+            amountRuleMessage="请输入正确的货值，最多 4 位小数"
+            emptyAmountMessage="请输入货值"
+            emptyCurrencyMessage="请选择币种"
+          />
+        </Form.Item>
+        <Form.Item label="保费">
+          <CurrencyAmountInput
+            currencyName="insuranceCurrency"
+            amountName="insurancePremium"
+            currencyOptions={currencyOptions}
+            disabled={props.readonly}
+            amountPlaceholder="金额"
+            amountRuleMessage="请输入正确的保费，最多 4 位小数"
+            emptyAmountMessage="请输入保费"
+            emptyCurrencyMessage="请选择币种"
+          />
+        </Form.Item>
+        <ProFormDateTimePicker
+          name="receivedAt"
+          label="接单时间"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormDateTimePicker
+          name="cargoReadyAt"
+          label="货好时间"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <Form.Item label="工厂" name="factoryName">
+          <TooltipInput placeholder="请输入工厂" maxLength={200} />
+        </Form.Item>
+      </FormRow>
+    ),
+  };
+}
+
+export function buildSeaBaseInfoSection(props: TemplateProps) {
+  const fields = getSeaBaseInfoFields(props);
+  return {
+    key: 'basicInfo',
+    title: '业务信息',
+    content: (
+      <div style={{ display: 'grid', gap: 12, width: '100%' }}>
+        {fields.orderIdentity}
+        {fields.customer}
+        {fields.services}
+        {fields.categories}
+        {fields.dangerous}
+        <FormRow cols={6}>
+          {fields.references}
+          {fields.booking}
+          {fields.trade}
+        </FormRow>
+        <FormRow cols={6}>
+          {fields.agents}
+          {fields.carrier}
+          {fields.shippingAgent}
+        </FormRow>
+        {fields.commercial}
+      </div>
     ),
   };
 }

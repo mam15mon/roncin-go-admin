@@ -217,9 +217,13 @@ export const SEA_DOCUMENT_CONTENT_FIELDS: (keyof API.SeaBillContent)[] = [
 export function SeaBillContentFormFields({
   namePathPrefix,
   disabled = false,
+  showCargoMeasurements = true,
+  createLayout = false,
 }: {
   namePathPrefix: (string | number)[];
   disabled?: boolean;
+  showCargoMeasurements?: boolean;
+  createLayout?: boolean;
 }) {
   const { styles } = useVerticalFormStyles();
   const form = Form.useFormInstance();
@@ -449,6 +453,8 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -469,6 +475,7 @@ export function SeaBillContentFormFields({
                   icon={<DownloadOutlined />}
                   loading={importingShipper}
                   onClick={handleImportShipperFromCustomer}
+                  tabIndex={-1}
                   style={{
                     padding: 0,
                     height: 'auto',
@@ -494,6 +501,8 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -562,6 +571,8 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -647,6 +658,8 @@ export function SeaBillContentFormFields({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -667,6 +680,7 @@ export function SeaBillContentFormFields({
                   icon={<DownloadOutlined />}
                   loading={importingAgent}
                   onClick={handleImportForeignAgent}
+                  tabIndex={-1}
                   style={{
                     padding: 0,
                     height: 'auto',
@@ -694,6 +708,8 @@ export function SeaBillContentFormFields({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: createLayout ? 'wrap' : undefined,
+            gap: createLayout ? 6 : undefined,
             margin: '8px 0 12px 0',
           }}
         >
@@ -720,6 +736,7 @@ export function SeaBillContentFormFields({
               size="small"
               icon={<DownloadOutlined />}
               onClick={handleImportFromCargoInfo}
+              tabIndex={-1}
               style={{ padding: 0 }}
             >
               从订单货物信息带入 (复制委托数据)
@@ -727,115 +744,110 @@ export function SeaBillContentFormFields({
           )}
         </div>
 
-        <Row gutter={[16, 0]}>
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
+        <FormRow cols={2}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
                 }}
               >
-                <span
+                唛头 (Marks & Numbers)
+              </span>
+              {!disabled && (
+                <Tag
                   style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.88)',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
                   }}
+                  onClick={() =>
+                    form?.setFieldValue([...namePathPrefix, 'marksText'], 'N/M')
+                  }
                 >
-                  唛头 (Marks & Numbers)
-                </span>
-                {!disabled && (
-                  <Tag
-                    style={{
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      margin: 0,
-                      fontSize: 11,
-                      padding: '0 4px',
-                    }}
-                    onClick={() =>
-                      form?.setFieldValue(
-                        [...namePathPrefix, 'marksText'],
-                        'N/M',
-                      )
-                    }
-                  >
-                    + N/M
-                  </Tag>
-                )}
-              </div>
-              <ProFormTextArea
-                name={[...namePathPrefix, 'marksText']}
-                placeholder="请输入唛头信息 (例如：N/M)"
-                disabled={disabled}
-                fieldProps={{ rows: 3 }}
-                noStyle
-              />
+                  + N/M
+                </Tag>
+              )}
             </div>
-          </Col>
-          <Col xs={24} lg={12}>
-            <div style={{ marginBottom: 24 }}>
-              <div
+            <ProFormTextArea
+              name={[...namePathPrefix, 'marksText']}
+              placeholder="请输入唛头信息 (例如：N/M)"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: createLayout ? 'wrap' : undefined,
+                gap: createLayout ? 6 : undefined,
+                marginBottom: 6,
+                minHeight: 24,
+              }}
+            >
+              <span
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                  minHeight: 24,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'rgba(0, 0, 0, 0.88)',
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.88)',
-                  }}
+                英文品名 / 提单货描
+              </span>
+              <Space size={6} align="center">
+                <Checkbox
+                  checked={hasClause}
+                  disabled={disabled}
+                  onChange={(e) => handleToggleClause(e.target.checked)}
+                  style={{ fontSize: 12, userSelect: 'none' }}
                 >
-                  英文品名 / 提单货描
-                </span>
-                <Space size={6} align="center">
-                  <Checkbox
-                    checked={hasClause}
-                    disabled={disabled}
-                    onChange={(e) => handleToggleClause(e.target.checked)}
-                    style={{ fontSize: 12, userSelect: 'none' }}
-                  >
-                    免责条款
-                  </Checkbox>
-                  <Tag
-                    color={hasClause ? 'blue' : 'default'}
-                    style={{
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                      userSelect: 'none',
-                      margin: 0,
-                      fontSize: 11,
-                      padding: '0 4px',
-                      fontFamily: 'monospace',
-                    }}
-                    onClick={
-                      !disabled
-                        ? () => handleToggleClause(!hasClause)
-                        : undefined
-                    }
-                  >
-                    SHIPPER LOAD,COUNT AND SEAL
-                  </Tag>
-                </Space>
-              </div>
-              <ProFormTextArea
-                name={[...namePathPrefix, 'goodsDescriptionText']}
-                placeholder="请输入提单打印品名与货物描述"
-                disabled={disabled}
-                fieldProps={{ rows: 3 }}
-                noStyle
-              />
+                  免责条款
+                </Checkbox>
+                <Tag
+                  color={hasClause ? 'blue' : 'default'}
+                  style={{
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    userSelect: 'none',
+                    margin: 0,
+                    fontSize: 11,
+                    padding: '0 4px',
+                    fontFamily: 'monospace',
+                  }}
+                  onClick={
+                    !disabled ? () => handleToggleClause(!hasClause) : undefined
+                  }
+                >
+                  SHIPPER LOAD,COUNT AND SEAL
+                </Tag>
+              </Space>
             </div>
-          </Col>
-        </Row>
+            <ProFormTextArea
+              name={[...namePathPrefix, 'goodsDescriptionText']}
+              placeholder="请输入提单打印品名与货物描述"
+              disabled={disabled}
+              fieldProps={{ rows: 3 }}
+              noStyle
+            />
+          </div>
+        </FormRow>
       </div>
 
       {/* 委托 vs 实际件重尺对照：标题行右侧放「带入委托件重尺」操作；
@@ -845,6 +857,8 @@ export function SeaBillContentFormFields({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: createLayout ? 'wrap' : undefined,
+          gap: createLayout ? 6 : undefined,
           margin: '8px 0 12px 0',
         }}
       >
@@ -859,7 +873,9 @@ export function SeaBillContentFormFields({
             }}
           />
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-            委托 vs 实际件重尺对照
+            {showCargoMeasurements
+              ? '委托 vs 实际件重尺对照'
+              : 'HBL 实际件重尺'}
           </span>
         </div>
         {!disabled && (
@@ -868,6 +884,7 @@ export function SeaBillContentFormFields({
             size="small"
             icon={<SwapOutlined />}
             onClick={handleImportMeasurementsFromCargo}
+            tabIndex={-1}
             style={{
               fontSize: 12,
               padding: '0 4px',
@@ -881,88 +898,118 @@ export function SeaBillContentFormFields({
         )}
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <FormRow cols={4}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span
+        {showCargoMeasurements && (
+          <FormRow cols={createLayout ? 3 : 4}>
+            <div
               style={{
-                width: 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
+                display: 'flex',
+                alignItems: createLayout ? 'stretch' : 'center',
+                flexDirection: createLayout ? 'column' : 'row',
+                gap: createLayout ? 4 : undefined,
               }}
             >
-              委托总件数
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <PackageCountInput
-                countName="totalPackages"
-                unitName="totalPackageUnit"
-                countPlaceholder="0"
-                unitPlaceholder="请选择单位"
-                unitWidth={104}
-                style={{ width: 210 }}
-                disabled={disabled}
-              />
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span
-              style={{
-                width: 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
-              }}
-            >
-              委托总毛重
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormDigit
-                name="totalGrossWeightKg"
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                noStyle
-                fieldProps={{
-                  precision: 3,
-                  addonAfter: 'KGS',
-                  style: { width: '100%' },
+              <span
+                style={{
+                  width: createLayout ? 'auto' : 68,
+                  fontSize: 13,
+                  color: 'rgba(0, 0, 0, 0.85)',
+                  flexShrink: 0,
                 }}
-              />
+              >
+                委托总件数
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <PackageCountInput
+                  countName="totalPackages"
+                  unitName="totalPackageUnit"
+                  countPlaceholder="0"
+                  unitPlaceholder="请选择单位"
+                  unitWidth={104}
+                  style={{ width: createLayout ? '100%' : 210 }}
+                  disabled={disabled}
+                />
+              </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span
+            <div
               style={{
-                width: 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
+                display: 'flex',
+                alignItems: createLayout ? 'stretch' : 'center',
+                flexDirection: createLayout ? 'column' : 'row',
+                gap: createLayout ? 4 : undefined,
               }}
             >
-              委托总体积
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormDigit
-                name="totalVolumeCbm"
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                noStyle
-                fieldProps={{
-                  precision: 3,
-                  addonAfter: 'CBM',
-                  style: { width: '100%' },
+              <span
+                style={{
+                  width: createLayout ? 'auto' : 68,
+                  fontSize: 13,
+                  color: 'rgba(0, 0, 0, 0.85)',
+                  flexShrink: 0,
                 }}
-              />
+              >
+                委托总毛重
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <ProFormDigit
+                  name="totalGrossWeightKg"
+                  placeholder="0"
+                  disabled={disabled}
+                  min={0}
+                  noStyle
+                  fieldProps={{
+                    precision: 3,
+                    addonAfter: 'KGS',
+                    style: { width: '100%' },
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </FormRow>
-        <FormRow cols={4}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: createLayout ? 'stretch' : 'center',
+                flexDirection: createLayout ? 'column' : 'row',
+                gap: createLayout ? 4 : undefined,
+              }}
+            >
+              <span
+                style={{
+                  width: createLayout ? 'auto' : 68,
+                  fontSize: 13,
+                  color: 'rgba(0, 0, 0, 0.85)',
+                  flexShrink: 0,
+                }}
+              >
+                委托总体积
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <ProFormDigit
+                  name="totalVolumeCbm"
+                  placeholder="0"
+                  disabled={disabled}
+                  min={0}
+                  noStyle
+                  fieldProps={{
+                    precision: 3,
+                    addonAfter: 'CBM',
+                    style: { width: '100%' },
+                  }}
+                />
+              </div>
+            </div>
+          </FormRow>
+        )}
+        <FormRow cols={createLayout ? 3 : 4}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: '#1677ff',
                 fontWeight: 500,
@@ -978,15 +1025,22 @@ export function SeaBillContentFormFields({
                 countPlaceholder="0"
                 unitPlaceholder="请选择单位"
                 unitWidth={104}
-                style={{ width: 210 }}
+                style={{ width: createLayout ? '100%' : 210 }}
                 disabled={disabled}
               />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: '#1677ff',
                 fontWeight: 500,
@@ -1010,10 +1064,17 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: '#1677ff',
                 fontWeight: 500,
@@ -1039,10 +1100,17 @@ export function SeaBillContentFormFields({
           </div>
         </FormRow>
         <FormRow cols={4}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: 'rgba(0, 0, 0, 0.85)',
                 flexShrink: 0,
@@ -1085,10 +1153,17 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: 'rgba(0, 0, 0, 0.85)',
                 flexShrink: 0,
@@ -1127,10 +1202,17 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: 'rgba(0, 0, 0, 0.85)',
                 flexShrink: 0,
@@ -1154,10 +1236,17 @@ export function SeaBillContentFormFields({
               />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: createLayout ? 'stretch' : 'center',
+              flexDirection: createLayout ? 'column' : 'row',
+              gap: createLayout ? 4 : undefined,
+            }}
+          >
             <span
               style={{
-                width: 68,
+                width: createLayout ? 'auto' : 68,
                 fontSize: 13,
                 color: 'rgba(0, 0, 0, 0.85)',
                 flexShrink: 0,
@@ -1202,7 +1291,7 @@ export function SeaBillContentFormFields({
 
 type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
 
-function HouseBillIdentityFields({
+export function HouseBillIdentityFields({
   fieldKey,
   disabled = false,
 }: {
@@ -1439,6 +1528,82 @@ function ModeChangePreviewResult({
         />
       ) : null}
     </Space>
+  );
+}
+
+export function SeaCreateDocumentModeField({
+  disabled = false,
+  onModeChange,
+}: {
+  disabled?: boolean;
+  onModeChange?: (mode: SeaDocumentStructure) => void;
+}) {
+  const form = Form.useFormInstance();
+  const changeCreateMode = (nextMode: SeaDocumentStructure) => {
+    onModeChange?.(nextMode);
+    form.setFieldValue('seaDocumentStructure', nextMode);
+
+    const goodsDescription = form.getFieldValue('goodsDescription');
+    const totalPackages = form.getFieldValue('totalPackages');
+    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
+    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
+    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
+
+    const cargoDefaults = {
+      ...(goodsDescription ? { goodsDescriptionText: goodsDescription } : {}),
+      ...(totalPackages !== undefined ? { packageCount: totalPackages } : {}),
+      ...(totalPackageUnit ? { packageUnit: totalPackageUnit } : {}),
+      ...(totalGrossWeightKg !== undefined
+        ? { grossWeightKg: totalGrossWeightKg }
+        : {}),
+      ...(totalVolumeCbm !== undefined ? { volumeCbm: totalVolumeCbm } : {}),
+    };
+
+    const currentMbl = (form.getFieldValue('seaMasterBillContent') ??
+      {}) as Record<string, unknown>;
+    form.setFieldValue('seaMasterBillContent', {
+      transportTerms: DEFAULT_TRANSPORT_TERMS,
+      freightTerms: DEFAULT_FREIGHT_TERMS,
+      ...cargoDefaults,
+      ...currentMbl,
+    });
+
+    if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
+      form.setFieldValue('seaHouseBill', {
+        content: {
+          transportTerms: DEFAULT_TRANSPORT_TERMS,
+          freightTerms: DEFAULT_FREIGHT_TERMS,
+          ...cargoDefaults,
+        },
+      });
+    } else {
+      form.setFieldValue('seaHouseBill', undefined);
+    }
+  };
+
+  return (
+    <Form.Item
+      name="seaDocumentStructure"
+      label="单证模式"
+      rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
+      style={{ marginBottom: 0 }}
+    >
+      <Radio.Group
+        disabled={disabled}
+        onChange={(event) =>
+          changeCreateMode(event.target.value as SeaDocumentStructure)
+        }
+      >
+        <Radio.Button value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}>
+          HOUSE（签发 HBL）
+        </Radio.Button>
+        <Radio.Button
+          value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+        >
+          DIRECT（直接交付 MBL）
+        </Radio.Button>
+      </Radio.Group>
+    </Form.Item>
   );
 }
 
@@ -1706,50 +1871,6 @@ export function SeaDocumentSectionComponent({
         )}
       </Card>
     );
-  };
-
-  const changeCreateMode = (nextMode: SeaDocumentStructure) => {
-    setLoadedStructure(nextMode);
-    form.setFieldValue('seaDocumentStructure', nextMode);
-
-    const goodsDescription = form.getFieldValue('goodsDescription');
-    const totalPackages = form.getFieldValue('totalPackages');
-    const totalPackageUnit = form.getFieldValue('totalPackageUnit');
-    const totalGrossWeightKg = form.getFieldValue('totalGrossWeightKg');
-    const totalVolumeCbm = form.getFieldValue('totalVolumeCbm');
-
-    const cargoDefaults = {
-      ...(goodsDescription ? { goodsDescriptionText: goodsDescription } : {}),
-      ...(totalPackages !== undefined ? { packageCount: totalPackages } : {}),
-      ...(totalPackageUnit ? { packageUnit: totalPackageUnit } : {}),
-      ...(totalGrossWeightKg !== undefined
-        ? { grossWeightKg: totalGrossWeightKg }
-        : {}),
-      ...(totalVolumeCbm !== undefined ? { volumeCbm: totalVolumeCbm } : {}),
-    };
-
-    const currentMbl = (form.getFieldValue('seaMasterBillContent') ??
-      {}) as Record<string, unknown>;
-    form.setFieldValue('seaMasterBillContent', {
-      transportTerms: DEFAULT_TRANSPORT_TERMS,
-      freightTerms: DEFAULT_FREIGHT_TERMS,
-      ...cargoDefaults,
-      ...currentMbl,
-    });
-
-    if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      form.setFieldValue('seaHouseBill', {
-        content: {
-          transportTerms: DEFAULT_TRANSPORT_TERMS,
-          freightTerms: DEFAULT_FREIGHT_TERMS,
-          ...cargoDefaults,
-        },
-      });
-      setActiveTabKey('hbl');
-    } else {
-      form.setFieldValue('seaHouseBill', undefined);
-      setActiveTabKey('mbl');
-    }
   };
 
   const handleSaveHouseBill = async () => {
@@ -2157,30 +2278,17 @@ export function SeaDocumentSectionComponent({
             </Col>
           </Row>
         ) : (
-          <Form.Item
-            name="seaDocumentStructure"
-            label="单证模式"
-            rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
-            style={{ marginBottom: 0 }}
-          >
-            <Radio.Group
-              disabled={disabled}
-              onChange={(event) =>
-                changeCreateMode(event.target.value as SeaDocumentStructure)
-              }
-            >
-              <Radio.Button
-                value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
-              >
-                HOUSE（签发 HBL）
-              </Radio.Button>
-              <Radio.Button
-                value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
-              >
-                DIRECT（直接交付 MBL）
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+          <SeaCreateDocumentModeField
+            disabled={disabled}
+            onModeChange={(nextMode) => {
+              setLoadedStructure(nextMode);
+              setActiveTabKey(
+                nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                  ? 'hbl'
+                  : 'mbl',
+              );
+            }}
+          />
         )}
 
         {docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (

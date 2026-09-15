@@ -4,6 +4,7 @@ import {
   SearchOutlined,
   UpOutlined,
 } from '@ant-design/icons';
+import type { SelectProps } from 'antd';
 import {
   App,
   Button,
@@ -16,7 +17,6 @@ import {
   Select,
   Space,
 } from 'antd';
-import type { SelectProps } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import type {
@@ -449,8 +449,7 @@ export function OrderListSearchFilter({
                   <Select
                     mode="multiple"
                     allowClear
-                    showSearch
-                    optionFilterProp="label"
+                    showSearch={{ optionFilterProp: 'label' }}
                     placeholder="选择标签筛选订单"
                     options={options.tags}
                   />

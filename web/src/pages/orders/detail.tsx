@@ -1,9 +1,7 @@
 import {
-  CheckOutlined,
   CopyOutlined,
   DollarOutlined,
   ReloadOutlined,
-  UndoOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
@@ -14,9 +12,7 @@ import {
   Empty,
   type MenuProps,
   Result,
-  Space,
   Spin,
-  Typography,
 } from 'antd';
 import React, {
   useCallback,
@@ -27,17 +23,12 @@ import React, {
   useState,
 } from 'react';
 import { resolveTabKey } from '@/components/layout/routeUtils';
-import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
   OrderFormTemplateActions,
   OrderFormTemplateSection,
 } from '@/components/ui/order-template/types';
-import {
-  OrderAllowedAction,
-  OrderClosureStatus,
-  OrderTerminationStatus,
-} from '@/enums.generated';
+import { OrderAllowedAction } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { searchShippingLineOptions } from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
@@ -66,8 +57,6 @@ import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
 } from './use-order-lock-state';
-
-const { Text } = Typography;
 
 /** 未提供类型扩展时，详情页只渲染通用布局。 */
 const EmptyDetailFeatures: React.ComponentType<OrderDetailFeaturesProps> = ({
@@ -431,14 +420,6 @@ export default function OrderDetailPage() {
     );
   }
 
-  const progressStage =
-    order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
-      ? '已完结'
-      : order.terminationStatus ===
-          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
-        ? '已退关'
-        : '进行中';
-
   const hasAction = (action: number) =>
     order.allowedActions?.includes(action) === true;
 
@@ -578,6 +559,9 @@ export default function OrderDetailPage() {
                   moreMenuItems={moreMenuItems}
                   hasAction={hasAction}
                   onSave={() => formRef.current?.submit()}
+                  onReset={() =>
+                    templateActionsRef.current?.resetTo(initialValues)
+                  }
                   onConfirmTermination={confirmTermination}
                   onConfirmClosure={confirmClosure}
                   onOpenReleasePod={() => {
@@ -605,39 +589,6 @@ export default function OrderDetailPage() {
                 ...(features.appendSections ?? []),
                 ...appendSections,
               ]}
-              footer={
-                <StickyFooterBar
-                  info={
-                    <Space>
-                      <Text strong>{order.orderNo}</Text>
-                      <Text type="secondary">{progressStage}</Text>
-                    </Space>
-                  }
-                >
-                  {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
-                    !businessWritesDisabled && (
-                      <Button
-                        icon={<UndoOutlined />}
-                        onClick={() =>
-                          templateActionsRef.current?.resetTo(initialValues)
-                        }
-                      >
-                        重置修改
-                      </Button>
-                    )}
-                  {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
-                    !businessWritesDisabled && (
-                      <Button
-                        type="primary"
-                        icon={<CheckOutlined />}
-                        loading={saving}
-                        onClick={() => formRef.current?.submit()}
-                      >
-                        保存修改
-                      </Button>
-                    )}
-                </StickyFooterBar>
-              }
             />
 
             {features.overlays}

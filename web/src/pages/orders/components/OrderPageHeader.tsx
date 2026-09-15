@@ -15,6 +15,7 @@ export interface OrderPageHeaderProps {
   tags?: ReactNode;
   extra?: ReactNode;
   subTitle?: ReactNode;
+  actions?: ReactNode;
 }
 
 export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
@@ -26,6 +27,7 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
   tags,
   extra,
   subTitle,
+  actions,
 }) => {
   const listPath = `/orders/${orderKind}`;
   const detailPath = orderId ? `/orders/${orderKind}/${orderId}` : listPath;
@@ -82,6 +84,7 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
       breadcrumbs={breadcrumbs}
       tags={tags}
       extra={extra}
+      actions={actions}
     />
   );
 };

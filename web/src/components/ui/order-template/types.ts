@@ -40,6 +40,8 @@ export interface OrderFormTemplateProps<T> {
   submitText?: string;
   /** 重置按钮文案。 */
   resetText?: string;
+  /** 提交按钮配置；设为 false 时彻底隐藏底部提交栏（如已在顶部页头提供操作按钮时） */
+  submitter?: false;
   /** 底部额外操作栏插槽 */
   footer?: ReactNode;
   /** 稳定菜单页签 Key；只有显式提供时才注册页签关闭守卫。 */

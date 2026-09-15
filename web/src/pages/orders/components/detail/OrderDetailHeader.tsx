@@ -4,11 +4,11 @@ import {
   DownOutlined,
   FileDoneOutlined,
   SaveOutlined,
+  UndoOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import { Button, Dropdown, type MenuProps, Tooltip } from 'antd';
 import React, { type ReactNode } from 'react';
-import { DocumentDetailLayout } from '@/components/ui/document-detail-layout';
 import {
   OrderAllowedAction,
   OrderClosureStatus,
@@ -31,6 +31,7 @@ type OrderDetailHeaderProps = {
   moreMenuItems: MenuProps['items'];
   hasAction: (action: number) => boolean;
   onSave: () => void;
+  onReset?: () => void;
   onConfirmTermination: (targetStatus: number) => void;
   onConfirmClosure: (targetStatus: number) => void;
   onOpenReleasePod: () => void;
@@ -57,6 +58,7 @@ export default function OrderDetailHeader({
   moreMenuItems,
   hasAction,
   onSave,
+  onReset,
   onConfirmTermination,
   onConfirmClosure,
   onOpenReleasePod,
@@ -70,23 +72,20 @@ export default function OrderDetailHeader({
   onSynchronizeLockChange,
 }: OrderDetailHeaderProps) {
   return (
-    <>
-      <OrderPageHeader
-        page="detail"
-        orderKind={kind}
-        navigationTitle={navigationTitle}
-        orderId={orderId}
-        orderNo={order?.orderNo}
-        tags={
-          <OrderLockStatusTag
-            state={lockState}
-            loading={lockStateLoading}
-            error={lockStateError}
-          />
-        }
-      />
-      <DocumentDetailLayout
-        actions={
+    <OrderPageHeader
+      page="detail"
+      orderKind={kind}
+      navigationTitle={navigationTitle}
+      orderId={orderId}
+      orderNo={order?.orderNo}
+      tags={
+        <OrderLockStatusTag
+          state={lockState}
+          loading={lockStateLoading}
+          error={lockStateError}
+        />
+      }
+      actions={
         <>
           <OrderLockControl
             orderId={orderId}
@@ -114,6 +113,17 @@ export default function OrderDetailHeader({
                 </Button>
               </span>
             </Tooltip>
+          )}
+
+          {/* 重置修改按钮 */}
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && onReset && (
+            <Button
+              icon={<UndoOutlined />}
+              disabled={businessWritesDisabled || saving}
+              onClick={onReset}
+            >
+              重置修改
+            </Button>
           )}
 
           {hasAction(
@@ -238,9 +248,6 @@ export default function OrderDetailHeader({
           </Dropdown>
         </>
       }
-    >
-      {null}
-    </DocumentDetailLayout>
-  </>
-);
+    />
+  );
 }

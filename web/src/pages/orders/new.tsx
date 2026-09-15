@@ -1,8 +1,9 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { SaveOutlined } from '@ant-design/icons';
 import { history, useAccess, useModel, useParams } from '@umijs/max';
-import { App, Button, Card, Result } from 'antd';
-import React, { useCallback, useMemo, useRef } from 'react';
+import { App, Button, Card, Result, Space } from 'antd';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
@@ -22,6 +23,7 @@ import { useOrderCreateOptions } from './use-order-create-options';
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const [submitting, setSubmitting] = useState(false);
   // 创建幂等键：每次提交意图一个键；失败重试沿用同键，成功后重新生成，
   // 配合后端同键同意图重放返回原单，避免超时重试造成重复订单。
   const createIdempotencyKeyRef = useRef(generateUUID());
@@ -221,6 +223,7 @@ export default function NewOrderPage() {
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
+    setSubmitting(true);
     try {
       await orderServiceCreateOrder({
         ...definition.form.buildCreatePayload(values),
@@ -234,6 +237,8 @@ export default function NewOrderPage() {
       const err = error as Error;
       message.error(err.message || '创建订单失败');
       return false;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -251,6 +256,26 @@ export default function NewOrderPage() {
           orderKind={definition.kind}
           navigationTitle={definition.navigationTitle}
           subTitle="填写业务委托与配舱信息"
+          actions={
+            loading ? undefined : (
+              <Space size={8}>
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  loading={submitting}
+                  onClick={() => formRef.current?.submit()}
+                >
+                  创建订单
+                </Button>
+                <Button
+                  disabled={submitting}
+                  onClick={() => history.push(`/orders/${definition.kind}`)}
+                >
+                  取消
+                </Button>
+              </Space>
+            )
+          }
         />
       }
       sections={sections}
@@ -260,8 +285,7 @@ export default function NewOrderPage() {
         cargoCategoryOptions,
       })}
       onFinish={handleFinish}
-      submitText="创建订单"
-      resetText="重置表单"
+      submitter={false}
     />
   );
 }

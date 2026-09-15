@@ -27,7 +27,7 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
   const [searchValue, setSearchValue] = useState('');
 
   // 监听当前单位值，确保不在预置字典中的自定义值也能正确回显
-  const currentUnitVal = form ? Form.useWatch(unitName, form) : undefined;
+  const currentUnitVal = Form.useWatch(unitName, form);
 
   const mergedOptions = useMemo(() => {
     const list = [...unitOptions];

@@ -195,27 +195,43 @@ export function buildSeaExportCreatePayload(
     values.associate2OrganizationId,
   );
 
+  const resolvedMasterNo =
+    values.seaMasterBillMasterNo?.trim() ||
+    values.seaMasterBill?.masterNo?.trim();
+
   let seaMasterBill: API.SeaMasterBillInput | undefined;
-  if (values.seaMasterBill) {
+  if (resolvedMasterNo) {
     seaMasterBill = {
-      ...values.seaMasterBill,
-    };
-  } else if (values.seaMasterBillMasterNo || values.shippingLineId) {
-    seaMasterBill = {
-      masterNo: values.seaMasterBillMasterNo || '',
-      candidateId: values.seaMasterBillCandidateId || undefined,
+      ...(values.seaMasterBill || {}),
+      masterNo: resolvedMasterNo,
+      candidateId:
+        values.seaMasterBillCandidateId ||
+        values.seaMasterBill?.candidateId ||
+        undefined,
       expectedCandidateVersion:
         values.seaMasterBillExpectedCandidateVersion !== undefined &&
         values.seaMasterBillExpectedCandidateVersion !== null
           ? String(values.seaMasterBillExpectedCandidateVersion)
-          : undefined,
-      candidateTeId: values.seaMasterBillCandidateTeId || undefined,
+          : values.seaMasterBill?.expectedCandidateVersion !== undefined &&
+              values.seaMasterBill?.expectedCandidateVersion !== null
+            ? String(values.seaMasterBill.expectedCandidateVersion)
+            : undefined,
+      candidateTeId:
+        values.seaMasterBillCandidateTeId ||
+        values.seaMasterBill?.candidateTeId ||
+        undefined,
       expectedCandidateTeVersion:
         values.seaMasterBillExpectedCandidateTeVersion !== undefined &&
         values.seaMasterBillExpectedCandidateTeVersion !== null
           ? String(values.seaMasterBillExpectedCandidateTeVersion)
-          : undefined,
-      correctionReason: values.seaMasterBillCorrectionReason?.trim() || undefined,
+          : values.seaMasterBill?.expectedCandidateTeVersion !== undefined &&
+              values.seaMasterBill?.expectedCandidateTeVersion !== null
+            ? String(values.seaMasterBill.expectedCandidateTeVersion)
+            : undefined,
+      correctionReason:
+        values.seaMasterBillCorrectionReason?.trim() ||
+        values.seaMasterBill?.correctionReason?.trim() ||
+        undefined,
     };
   }
 
@@ -296,7 +312,9 @@ export function buildSeaExportCreatePayload(
     vesselVoyage: values.vesselVoyage?.trim() || undefined,
     etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
     eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
-    siCutoff: values.siCutoff ? dayjs(values.siCutoff).toISOString() : undefined,
+    siCutoff: values.siCutoff
+      ? dayjs(values.siCutoff).toISOString()
+      : undefined,
     docCutoff: values.docCutoff
       ? dayjs(values.docCutoff).toISOString()
       : undefined,
@@ -399,9 +417,7 @@ export function buildSeaExportDetailInitialValues(
     eta: order.eta ? dayjs(order.eta) : undefined,
     siCutoff: order.siCutoff ? dayjs(order.siCutoff) : undefined,
     docCutoff: order.docCutoff ? dayjs(order.docCutoff) : undefined,
-    customsCutoff: order.customsCutoff
-      ? dayjs(order.customsCutoff)
-      : undefined,
+    customsCutoff: order.customsCutoff ? dayjs(order.customsCutoff) : undefined,
     vgmCutoff: order.vgmCutoff ? dayjs(order.vgmCutoff) : undefined,
     goodsDescription: order.goodsDescription,
     specialRequirements: order.specialRequirements,
@@ -409,7 +425,9 @@ export function buildSeaExportDetailInitialValues(
     totalGrossWeightKg: order.totalGrossWeightKg,
     totalVolumeCbm: order.totalVolumeCbm,
     totalPackageUnit: order.totalPackageUnit || 'CTNS',
-    orderDate: order.orderDate ? dayjs(order.orderDate) : dayjs(order.createdAt),
+    orderDate: order.orderDate
+      ? dayjs(order.orderDate)
+      : dayjs(order.createdAt),
     notes: order.notes,
     bookingNotes: order.bookingNotes,
     allocationNotes: order.allocationNotes,
@@ -423,7 +441,8 @@ export function buildSeaExportDetailInitialValues(
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR]
         ?.organizationId,
     operatorUserId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]?.userId,
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]
+        ?.userId,
     operatorOrganizationId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]
         ?.organizationId,
@@ -433,15 +452,14 @@ export function buildSeaExportDetailInitialValues(
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES]
         ?.organizationId,
     customerServiceUserId:
-      personnelRoleMap[
-        OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE
-      ]?.userId,
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE]
+        ?.userId,
     customerServiceOrganizationId:
-      personnelRoleMap[
-        OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE
-      ]?.organizationId,
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE]
+        ?.organizationId,
     documentUserId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]?.userId,
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]
+        ?.userId,
     documentOrganizationId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]
         ?.organizationId,
@@ -452,7 +470,8 @@ export function buildSeaExportDetailInitialValues(
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL]
         ?.organizationId,
     associateUserId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]?.userId,
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]
+        ?.userId,
     associateOrganizationId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]
         ?.organizationId,
@@ -489,9 +508,7 @@ export function buildSeaExportUpdatePayload(
     tradeTerm:
       values.tradeTerm !== undefined ? Number(values.tradeTerm) : undefined,
     paymentTerm:
-      values.paymentTerm !== undefined
-        ? Number(values.paymentTerm)
-        : undefined,
+      values.paymentTerm !== undefined ? Number(values.paymentTerm) : undefined,
     shippingLineId: values.shippingLineId || undefined,
     bookingAgentId: values.bookingAgentId || undefined,
     foreignAgentId: values.foreignAgentId || undefined,
@@ -534,7 +551,9 @@ export function buildSeaExportUpdatePayload(
     vesselVoyage: values.vesselVoyage?.trim() || undefined,
     etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
     eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
-    siCutoff: values.siCutoff ? dayjs(values.siCutoff).toISOString() : undefined,
+    siCutoff: values.siCutoff
+      ? dayjs(values.siCutoff).toISOString()
+      : undefined,
     docCutoff: values.docCutoff
       ? dayjs(values.docCutoff).toISOString()
       : undefined,
@@ -576,20 +595,19 @@ export function buildSeaExportUpdatePayload(
         containerSpecId: request.containerSpecId as string,
         quantity: request.quantity as number,
       })),
-    seaMasterBill:
-      values.seaMasterBillMasterNo || values.shippingLineId
-        ? {
-            masterNo: values.seaMasterBillMasterNo || '',
-            candidateId: values.seaMasterBillCandidateId || undefined,
-            expectedCandidateVersion:
-              values.seaMasterBillExpectedCandidateVersion !== undefined &&
-              values.seaMasterBillExpectedCandidateVersion !== null
-                ? String(values.seaMasterBillExpectedCandidateVersion)
-                : undefined,
-            correctionReason:
-              values.seaMasterBillCorrectionReason?.trim() || undefined,
-          }
-        : undefined,
+    seaMasterBill: values.seaMasterBillMasterNo?.trim()
+      ? {
+          masterNo: values.seaMasterBillMasterNo.trim(),
+          candidateId: values.seaMasterBillCandidateId || undefined,
+          expectedCandidateVersion:
+            values.seaMasterBillExpectedCandidateVersion !== undefined &&
+            values.seaMasterBillExpectedCandidateVersion !== null
+              ? String(values.seaMasterBillExpectedCandidateVersion)
+              : undefined,
+          correctionReason:
+            values.seaMasterBillCorrectionReason?.trim() || undefined,
+        }
+      : undefined,
     seaDocument: values.seaDocument,
   };
 }

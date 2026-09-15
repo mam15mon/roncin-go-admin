@@ -1,6 +1,6 @@
-import { Col, Form, Row } from 'antd';
+import { Form, Space } from 'antd';
 import React from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { FormRow, SearchableSelect } from '@/components/ui';
 import type { TemplateProps } from '../../types';
 
 interface PersonnelAssignmentOption {
@@ -26,8 +26,8 @@ export function PersonnelAssignmentFields({
   disabled = false,
 }: PersonnelAssignmentFieldsProps) {
   const form = Form.useFormInstance();
-  const selectedUserID = Form.useWatch(userField);
-  const selectedOrganizationID = Form.useWatch(organizationField);
+  const selectedUserID = Form.useWatch(userField, form);
+  const selectedOrganizationID = Form.useWatch(organizationField, form);
   const organizationOptions = Array.from(
     new Map(
       options
@@ -61,54 +61,49 @@ export function PersonnelAssignmentFields({
   );
 
   return (
-    <Col span={24}>
-      <Row gutter={16} align="middle">
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name={organizationField}
-            label={`${label}所属公司`}
+    <Form.Item label={label} style={{ marginBottom: 0 }}>
+      <Space.Compact block style={{ width: '100%' }}>
+        <Form.Item noStyle name={organizationField}>
+          <SearchableSelect
             disabled={disabled}
             options={organizationOptions}
-            placeholder="请选择所属公司"
-            fieldProps={{
-              onChange: (value) => {
-                const currentMatched = options.some(
-                  (item) =>
-                    item.userId === selectedUserID &&
-                    item.organizationId === value,
-                );
-                if (!currentMatched) {
-                  form?.setFieldValue(userField, undefined);
-                }
-              },
+            placeholder="所属公司"
+            popupMatchSelectWidth={false}
+            allowClear={!disabled}
+            style={{ width: '48%' }}
+            onChange={(value) => {
+              const currentMatched = options.some(
+                (item) =>
+                  item.userId === selectedUserID &&
+                  item.organizationId === value,
+              );
+              if (!currentMatched) {
+                form?.setFieldValue(userField, undefined);
+              }
             }}
           />
-        </Col>
-        <Col className="col-5">
-          <ProFormSearchableSelect
-            name={userField}
-            label={label}
+        </Form.Item>
+        <Form.Item noStyle name={userField}>
+          <SearchableSelect
             disabled={disabled}
             options={userOptions}
-            placeholder="请选择人员"
-            fieldProps={{
-              onChange: (value) => {
-                if (!value) {
-                  return;
-                }
-                const matched = options.find((item) => item.userId === value);
-                if (matched?.organizationId) {
-                  form?.setFieldValue(
-                    organizationField,
-                    matched.organizationId,
-                  );
-                }
-              },
+            placeholder="选择人员"
+            popupMatchSelectWidth={false}
+            allowClear={!disabled}
+            style={{ width: '52%' }}
+            onChange={(value) => {
+              if (!value) {
+                return;
+              }
+              const matched = options.find((item) => item.userId === value);
+              if (matched?.organizationId) {
+                form?.setFieldValue(organizationField, matched.organizationId);
+              }
             }}
           />
-        </Col>
-      </Row>
-    </Col>
+        </Form.Item>
+      </Space.Compact>
+    </Form.Item>
   );
 }
 
@@ -119,7 +114,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
     key: 'internalInfo',
     title: '内部信息',
     content: (
-      <>
+      <FormRow cols={4}>
         <PersonnelAssignmentFields
           label="创建人员"
           userField="creatorUserId"
@@ -180,7 +175,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
           organizationField="associate2OrganizationId"
           options={personnelOptions}
         />
-      </>
+      </FormRow>
     ),
   };
 }

@@ -21,6 +21,20 @@
   - 截图整卡 + 对照区局部；
 - [ ] `gofmt` 不涉及；`git diff --check` 干净。
 
+## 追加（2026-09-15）：主数据模板弹窗标签上置
+- [x] `MasterDataTemplate.tsx` ModalForm：`layout="horizontal"` → `"vertical"`，删除 labelAlign/labelCol/wrapperCol，其余属性不变；
+- [x] 定向验证：MasterDataTemplate.test.tsx + useMasterDataCrud.test.tsx 绿（7/7）、biome 改动文件通过；
+- [x] 注意：该文件工作区另有其他任务线未提交改动，提交时只挑本改动 hunk，禁止混提。（已按 HEAD+本 hunk 选择性暂存，提交 b966d1e1）
+
 ## 风险与回滚
 - 根 vertical 会让业务信息/配舱信息卡也变标签上置（属设计预期）；若观感问题回滚 = layout 改回 horizontal。
 - 全部改动仅前端 sea 模板相关文件与 global.less；出现意外回滚 = revert 本任务提交。
+
+
+## 已批准追加阶段：按 MBL 集中录入
+- [ ] 保留工作区基线，读取字段与共用模板；记录本次改动文件。
+- [ ] 调整新建分节及基础/订舱/运输字段布局，保留详情入口。
+- [ ] 新建主单/分单连续展示，委托件重尺只挂载一次，补充信息可折叠核对。
+- [ ] 实现后补 HOUSE/DIRECT 切换与字段提交定向验证；定向 Biome 与 tsc --noEmit。
+- [ ] 浏览器截图/尺寸检查，独立审查，最终门禁一次。
+- [ ] 更新规范、按本轮增量提交，记录会话。本任务早期未完成项不冒充完成。

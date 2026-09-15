@@ -1,7 +1,7 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { message, Result } from 'antd';
+import { App, Result } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { OrderListTemplate } from '@/components/ui';
@@ -44,8 +44,8 @@ import {
 } from './list-documents-action';
 import { queryOrderList } from './list-query';
 import { useOrderListResources } from './list-resources';
-import { getOrderKindDefinition } from './order-kinds/registry';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
+import { getOrderKindDefinition } from './order-kinds/registry';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 export default function OrderListPage() {
@@ -68,6 +68,7 @@ export default function OrderListPage() {
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const access = useAccess();
+  const { message } = App.useApp();
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [tagRows, setTagRows] = useState<OrderListItem[]>([]);
   const [tagFilterOptions, setTagFilterOptions] = useState<
@@ -144,7 +145,9 @@ export default function OrderListPage() {
         }
         onCreateOrder={() => history.push(`/orders/${definition.kind}/new`)}
         onViewDetail={(item) =>
-          history.push(`/orders/${item.orderKind || definition.kind}/${item.id}`)
+          history.push(
+            `/orders/${item.orderKind || definition.kind}/${item.id}`,
+          )
         }
         onOpenFees={(item) =>
           item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
@@ -251,9 +254,18 @@ export default function OrderListPage() {
       <ConsolidationDrawer ref={consolidationDrawerRef} />
       <CargoItemDrawer
         ref={cargoItemDrawerRef}
-        canCreate={access.canOrder(definition.businessType, 'cargo_item.create')}
-        canUpdate={access.canOrder(definition.businessType, 'cargo_item.update')}
-        canRemove={access.canOrder(definition.businessType, 'cargo_item.delete')}
+        canCreate={access.canOrder(
+          definition.businessType,
+          'cargo_item.create',
+        )}
+        canUpdate={access.canOrder(
+          definition.businessType,
+          'cargo_item.update',
+        )}
+        canRemove={access.canOrder(
+          definition.businessType,
+          'cargo_item.delete',
+        )}
       />
       <ShippingDocumentDrawer
         ref={shippingDocumentDrawerRef}
@@ -262,12 +274,18 @@ export default function OrderListPage() {
       />
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canOrder(definition.businessType, 'release_pod.create')}
+        canManage={access.canOrder(
+          definition.businessType,
+          'release_pod.create',
+        )}
       />
       <OrderFeePanel ref={orderFeePanelRef} />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canOrder(definition.businessType, 'abnormal_case.create')}
+        canManage={access.canOrder(
+          definition.businessType,
+          'abnormal_case.create',
+        )}
         masterOptions={masterOptions}
       />
     </>
