@@ -1,7 +1,6 @@
 import {
   DeleteOutlined,
   EditOutlined,
-  KeyOutlined,
   PlusOutlined,
   ReloadOutlined,
   SafetyCertificateOutlined,
@@ -103,25 +102,6 @@ export default function RolesPanel() {
   };
 
   const columns: ProColumns<API.AdminRole>[] = [
-    {
-      title: '角色标识 / 编码',
-      dataIndex: 'code',
-      width: 220,
-      render: (_, r) => (
-        <Space size={8}>
-          <KeyOutlined style={{ color: '#1677ff', fontSize: 13 }} />
-          <span
-            style={{
-              fontWeight: 600,
-              fontFamily: 'monospace',
-              color: '#1e293b',
-            }}
-          >
-            {r.code}
-          </span>
-        </Space>
-      ),
-    },
     {
       title: '角色名称',
       dataIndex: 'name',
