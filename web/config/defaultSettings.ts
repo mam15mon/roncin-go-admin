@@ -21,17 +21,18 @@ const Settings: ProLayoutProps & {
   splitMenus: false,
   token: {
     sider: {
-      colorBgCollapsedButton: '#ffffff',
-      colorTextCollapsedButton: 'rgba(0, 0, 0, 0.45)',
+      colorBgCollapsedButton: '#001529',
+      colorTextCollapsedButton: 'rgba(255, 255, 255, 0.45)',
       colorTextCollapsedButtonHover: '#1677ff',
+      // 折叠态子菜单浮层保持纯白，规范见 AGENTS.md 侧边栏交互。
       colorBgMenuItemCollapsedElevated: '#ffffff',
-      colorBgMenuItemHover: 'rgba(0, 0, 0, 0.04)',
-      colorBgMenuItemSelected: '#e6f4ff',
-      colorTextMenu: 'rgba(0, 0, 0, 0.65)',
-      colorTextMenuSelected: '#1677ff',
-      colorTextMenuItemHover: 'rgba(0, 0, 0, 0.88)',
-      colorTextMenuTitle: 'rgba(0, 0, 0, 0.88)',
-      colorMenuBackground: '#ffffff',
+      colorBgMenuItemHover: 'rgba(255, 255, 255, 0.08)',
+      colorBgMenuItemSelected: '#1677ff',
+      colorTextMenu: 'rgba(255, 255, 255, 0.65)',
+      colorTextMenuSelected: '#ffffff',
+      colorTextMenuItemHover: '#ffffff',
+      colorTextMenuTitle: 'rgba(255, 255, 255, 0.88)',
+      colorMenuBackground: '#001529',
     },
     header: {
       colorBgHeader: '#ffffff',
