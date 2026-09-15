@@ -24,6 +24,8 @@
     "sync:airlines": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-airlines -apply",
     "sync:unlocode": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-unlocode -apply",
     "sync:shipping-lines": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-shipping-lines -apply",
+    "sync:exchange-rates-history": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/import-historical-exchange-rates -apply",
+    "sync:all": "pnpm run sync:shipping-lines && pnpm run sync:unlocode && pnpm run sync:airlines && pnpm run sync:airports && pnpm run sync:regions",
     "acceptance:se-order": "node --env-file-if-exists=.env.local scripts/acceptance-se-order.mjs",
     "acceptance:finance-bill-batch": "node --env-file-if-exists=.env.local scripts/acceptance-finance-bill-batch.mjs",
     "acceptance:finance-payable": "node --env-file-if-exists=.env.local scripts/acceptance-finance-payable.mjs",

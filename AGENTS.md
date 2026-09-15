@@ -222,6 +222,7 @@ pnpm run dev:web
 pnpm run dev:server
 pnpm run dev:permit
 pnpm run migrate:dev
+pnpm run sync:all
 pnpm run generate:web-client
 pnpm run generate:permission-keys
 pnpm run check:web
@@ -283,6 +284,9 @@ pnpm --dir web biome:lint
   迁移步骤同样执行该命令）在迁移完成后按 `internal/access` 的 Manifest 幂等
   同步 `permissions` 表，并为 `administrator` 角色补挂缺失权限。新增权限码
   不需要单独跑 `pnpm run dev:permit`，该脚本仅保留作开发期手工兜底。
+- 行业参考大数据（全球船公司、联合国海港、全球航司、全球机场、中国省市区行政区划）
+  源文件归档于 `server/seeds/`，新环境初始化或日常更新执行 `pnpm run sync:all`
+  一键幂等落库，不重复新增。
 - 迁移校验和按环境区分：`pnpm dev` 与 `pnpm run migrate:dev` 允许把已应用迁移
   的校验和重录为当前文件（开发期迁移文件在应用后继续修改属正常迭代）；
   `pnpm run migrate:server` 保持严格校验，禁止对生产库做任何自动修复。

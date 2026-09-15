@@ -1,21 +1,23 @@
 import {
+  AlertOutlined,
   ApartmentOutlined,
-  AuditOutlined,
   ClockCircleOutlined,
-  DingdingOutlined,
   HistoryOutlined,
   KeyOutlined,
+  NumberOutlined,
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { Alert, Space } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import {
+  type MultiTabCenterTabItem,
+  MultiTabCenterTemplate,
+} from '@/components/ui';
+import AbnormalCasesPanel from '@/pages/settings/components/AbnormalCasesPanel';
+import NumberRulesPanel from '@/pages/settings/components/NumberRulesPanel';
 import AuditPanel from './audit';
 import BackgroundTasksPanel from './background-tasks';
-import DingTalkInvitationsPanel from './dingtalk-invitations';
-import DingTalkRegistrationsPanel from './dingtalk-registrations';
 import OrganizationsPanel from './organizations';
 import PermissionsPanel from './permissions';
 import RolesPanel from './roles';
@@ -25,166 +27,98 @@ export default function Admin() {
   const access = useAccess();
   const location = useLocation();
 
-  const tabItems = useMemo(
-    () =>
-      [
-        access.canReadOrganizations
-          ? {
-              key: 'organizations',
-              tab: (
-                <Space size={6}>
-                  <ApartmentOutlined />
-                  <span>组织架构</span>
-                </Space>
-              ),
-              children: <OrganizationsPanel />,
-            }
-          : null,
-        access.canReadUsers
-          ? {
-              key: 'users',
-              tab: (
-                <Space size={6}>
-                  <UserOutlined />
-                  <span>用户管理</span>
-                </Space>
-              ),
-              children: <UsersPanel />,
-            }
-          : null,
-        access.canManageDingTalkInvitations
-          ? {
-              key: 'dingtalk-invitations',
-              tab: (
-                <Space size={6}>
-                  <DingdingOutlined />
-                  <span>钉钉邀请</span>
-                </Space>
-              ),
-              children: <DingTalkInvitationsPanel />,
-            }
-          : null,
-        access.canManageDingTalkInvitations
-          ? {
-              key: 'dingtalk-registrations',
-              tab: (
-                <Space size={6}>
-                  <AuditOutlined />
-                  <span>注册审批</span>
-                </Space>
-              ),
-              children: <DingTalkRegistrationsPanel />,
-            }
-          : null,
-        access.canReadRoles
-          ? {
-              key: 'roles',
-              tab: (
-                <Space size={6}>
-                  <SafetyCertificateOutlined />
-                  <span>角色权限</span>
-                </Space>
-              ),
-              children: <RolesPanel />,
-            }
-          : null,
-        access.canReadAudit
-          ? {
-              key: 'audit',
-              tab: (
-                <Space size={6}>
-                  <HistoryOutlined />
-                  <span>审计日志</span>
-                </Space>
-              ),
-              children: <AuditPanel />,
-            }
-          : null,
-        access.canReadTasks
-          ? {
-              key: 'background-tasks',
-              tab: (
-                <Space size={6}>
-                  <ClockCircleOutlined />
-                  <span>后台任务</span>
-                </Space>
-              ),
-              children: <BackgroundTasksPanel />,
-            }
-          : null,
-        access.canReadPermissions
-          ? {
-              key: 'permissions',
-              tab: (
-                <Space size={6}>
-                  <KeyOutlined />
-                  <span>权限字典</span>
-                </Space>
-              ),
-              children: <PermissionsPanel />,
-            }
-          : null,
-      ].filter(Boolean) as {
-        key: string;
-        tab: React.ReactNode;
-        children: React.ReactNode;
-      }[],
+  // 兼容旧路径重定向（原顶级 dingtalk-registrations / dingtalk-invitations 平滑收敛至用户管理子页签）
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const queryTab = params.get('tab');
+    if (queryTab === 'dingtalk-registrations') {
+      params.set('tab', 'users');
+      params.set('subTab', 'registrations');
+      history.replace(`${location.pathname}?${params.toString()}`);
+    } else if (queryTab === 'dingtalk-invitations') {
+      params.set('tab', 'users');
+      params.set('subTab', 'invitations');
+      history.replace(`${location.pathname}?${params.toString()}`);
+    }
+  }, [location.search, location.pathname]);
+
+  const tabItems: MultiTabCenterTabItem[] = useMemo(
+    () => [
+      {
+        key: 'organizations',
+        label: '组织架构',
+        icon: <ApartmentOutlined />,
+        visible: access.canReadOrganizations,
+        tooltip: '维护组织层级、多法人公司/网点架构及部门归属',
+        children: <OrganizationsPanel />,
+      },
+      {
+        key: 'users',
+        label: '用户管理',
+        icon: <UserOutlined />,
+        visible: access.canReadUsers || access.canManageDingTalkInvitations,
+        tooltip: '管理系统成员账号、审批钉钉注册申请及生成入职邀请码',
+        children: <UsersPanel />,
+      },
+      {
+        key: 'roles',
+        label: '角色权限',
+        icon: <SafetyCertificateOutlined />,
+        visible: access.canReadRoles,
+        tooltip: '配置角色功能权限树、数据范围权限及角色成员绑定',
+        children: <RolesPanel />,
+      },
+      {
+        key: 'number-rules',
+        label: '单据规则',
+        icon: <NumberOutlined />,
+        visible: access.canReadMasterDataNumberRules,
+        tooltip: '配置业务订单号、账单号、结算单等核心单据编号生成规则',
+        children: <NumberRulesPanel />,
+      },
+      {
+        key: 'abnormal-cases',
+        label: '业务异常',
+        icon: <AlertOutlined />,
+        visible: access.canReadMasterDataItems,
+        tooltip: '监控与维护业务运行中的异常定义与告警配置',
+        children: <AbnormalCasesPanel />,
+      },
+      {
+        key: 'audit',
+        label: '审计日志',
+        icon: <HistoryOutlined />,
+        visible: access.canReadAudit,
+        tooltip: '查看全平台业务操作轨迹、敏感数据变更与安全审计日志',
+        children: <AuditPanel />,
+      },
+      {
+        key: 'background-tasks',
+        label: '后台任务',
+        icon: <ClockCircleOutlined />,
+        visible: access.canReadTasks,
+        tooltip: '查看与管理异步批处理、报表导出及后台定时运行任务',
+        children: <BackgroundTasksPanel />,
+      },
+      {
+        key: 'permissions',
+        label: '权限字典',
+        icon: <KeyOutlined />,
+        visible: access.canReadPermissions,
+        tooltip: '只读查阅后端 Manifest 权限字典清单与依赖拓扑',
+        children: <PermissionsPanel />,
+      },
+    ],
     [access],
   );
 
-  const searchParams = useMemo(
-    () => new URLSearchParams(location.search),
-    [location.search],
-  );
-  const queryTab = searchParams.get('tab');
-
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    if (queryTab && tabItems.some((item) => item.key === queryTab)) {
-      return queryTab;
-    }
-    return tabItems[0]?.key || 'organizations';
-  });
-
-  useEffect(() => {
-    if (queryTab && tabItems.some((item) => item.key === queryTab)) {
-      setActiveTab(queryTab);
-    }
-  }, [queryTab, tabItems]);
-
-  const currentTabKey = tabItems.some((item) => item.key === activeTab)
-    ? activeTab
-    : (tabItems[0]?.key ?? '');
-
-  const activeContent = tabItems.find(
-    (item) => item.key === currentTabKey,
-  )?.children;
-
-  const handleTabChange = (key: string) => {
-    setActiveTab(key);
-    history.replace(`/admin?tab=${key}`);
-  };
-
   return (
-    <PageContainer
-      className="roncin-admin-page"
+    <MultiTabCenterTemplate
       title="系统管理"
-      tabList={tabItems.map((item) => ({
-        key: item.key,
-        tab: item.tab,
-      }))}
-      tabActiveKey={currentTabKey}
-      onTabChange={handleTabChange}
-    >
-      {tabItems.length > 0 ? (
-        activeContent
-      ) : (
-        <Alert
-          showIcon
-          type="warning"
-          title="暂无可用的管理权限"
-          description="请联系系统管理员为当前账号分配组织、用户或角色管理等相应权限。"
-        />
-      )}
-    </PageContainer>
+      subTitle="统一管理组织架构、用户账号、角色权限、单据规则及审计日志"
+      items={tabItems}
+      defaultActiveKey="organizations"
+      syncUrlQuery
+    />
   );
 }

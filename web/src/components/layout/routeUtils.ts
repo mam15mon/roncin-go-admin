@@ -16,7 +16,7 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/master-data': '主数据',
   '/settings': '参数设置',
   '/finance/fee-settings': '费用设置',
-  '/finance/exchange-rates': '汇率设置',
+  '/finance/exchange-rates': '汇率管理',
   '/finance/fees': '集运费用明细',
   '/finance/bills': '账单管理',
   '/finance/invoices': '开票记录',

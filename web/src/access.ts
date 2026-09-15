@@ -82,6 +82,7 @@ const permissions = {
   enterpriseResourceUpdate: 'business.enterprise_resource.update',
   enterpriseResourceDelete: 'business.enterprise_resource.delete',
   masterDataCurrencyRead: 'system.master_data.currency.read',
+  masterDataCurrencyUpdate: 'system.master_data.currency.update',
   masterDataAdministrativeRegionRead:
     'system.master_data.administrative_region.read',
   masterDataOptionRead: 'system.master_data.option.read',
@@ -210,6 +211,8 @@ export default function access(
       permissions.financeVerificationRead,
       permissions.financeNettingRead,
       permissions.financeCommissionRead,
+      permissions.financeExchangeRateRead,
+      permissions.financeFeeSettingRead,
     ].some(has),
     canReadFinanceFees: has(permissions.financeFeeRead),
     canManageFinanceFeeTags: has(permissions.financeFeeTag),
@@ -280,6 +283,11 @@ export default function access(
       has(permissions.partnerAssignmentOptionRead) && inOrganization,
     canReadMasterDataCurrencies:
       has(permissions.masterDataCurrencyRead) && inOrganization,
+    canUpdateMasterDataCurrencies:
+      (has(permissions.masterDataCurrencyUpdate) ||
+        has(permissions.financeFeeSettingUpdate) ||
+        has(permissions.financeFeeSettingCreate)) &&
+      inOrganization,
     canReadMasterDataAdministrativeRegions:
       has(permissions.masterDataAdministrativeRegionRead) && inOrganization,
     canReadMasterDataOptions:

@@ -1,13 +1,13 @@
 import {
-  AccountBookOutlined,
   ApartmentOutlined,
   ClockCircleOutlined,
   ContactsOutlined,
   DatabaseOutlined,
-  FormOutlined,
   DownOutlined,
+  FormOutlined,
   GlobalOutlined,
   HistoryOutlined,
+  NumberOutlined,
   SafetyCertificateOutlined,
   ShopOutlined,
   UserOutlined,
@@ -64,11 +64,11 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
       });
     }
 
-    if (access?.canReadParameterSettings) {
+    if (access?.canReadMasterDataNumberRules || access?.canAccessPlatform) {
       items.push({
-        key: '/settings',
-        icon: <AccountBookOutlined />,
-        label: '参数设置',
+        key: '/admin?tab=number-rules',
+        icon: <NumberOutlined />,
+        label: '单据规则',
       });
     }
 
@@ -101,7 +101,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     access?.canManageOrganizations,
     access?.canManageUsers,
     access?.canManageRoles,
-    access?.canReadParameterSettings,
+    access?.canReadMasterDataNumberRules,
     access?.canReadMasterData,
     access?.canReadAudit,
     access?.canReadTasks,
@@ -151,12 +151,8 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
   }
 
   const isSettingsActive =
-    location.pathname === '/settings' ||
-    location.pathname.startsWith('/settings/') ||
     location.pathname === '/master-data' ||
     location.pathname.startsWith('/master-data/') ||
-    location.pathname === '/finance/fee-settings' ||
-    location.pathname === '/finance/exchange-rates' ||
     location.pathname === '/admin' ||
     location.pathname.startsWith('/admin/');
 

@@ -41,6 +41,8 @@ vi.mock('@umijs/max', () => ({
   useAccess: () => accessState.value,
   useModel: (namespace: string) =>
     namespace === '@@initialState' ? initialStateState.model : {},
+  useLocation: () => ({ pathname: '/admin', search: '' }),
+  history: { replace: vi.fn() },
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -78,12 +80,13 @@ vi.mock('antd', () => ({
   ),
   Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Typography: { Text: ({ children }: any) => <span>{children}</span> },
   Tabs: ({
     items,
     activeKey,
     onChange,
   }: {
-    items: { key: string; label: string }[];
+    items: { key: string; label: React.ReactNode }[];
     activeKey?: string;
     onChange?: (key: string) => void;
   }) => (
@@ -99,6 +102,18 @@ vi.mock('antd', () => ({
         </button>
       ))}
     </div>
+  ),
+}));
+
+vi.mock('./dingtalk-invitations', () => ({
+  default: () => (
+    <div data-testid="dingtalk-invitations-subpanel">钉钉邀请子面板</div>
+  ),
+}));
+
+vi.mock('./dingtalk-registrations', () => ({
+  default: () => (
+    <div data-testid="dingtalk-registrations-subpanel">注册审批子面板</div>
   ),
 }));
 
