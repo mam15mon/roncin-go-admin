@@ -50,6 +50,7 @@ type AdminUser struct {
 	HasPassword           bool
 	RoleIDs               []uuid.UUID
 	RoleCodes             []string
+	RoleNames             []string
 	Organizations         []*AdminUserOrganizationSummary
 	CreatedAt             time.Time
 	UpdatedAt             time.Time

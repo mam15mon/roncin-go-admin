@@ -1,5 +1,22 @@
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildUserColumns } from './userColumns';
+
+type RoleColumnRender = (
+  dom: unknown,
+  entity: API.AdminUser,
+) => ReactNode | undefined;
+
+function getUserRoleColumnRender(
+  deps: Parameters<typeof buildUserColumns>[0],
+): ((entity: API.AdminUser) => ReactNode | undefined) | undefined {
+  const column = buildUserColumns(deps).find(
+    (item) => item.title === '已分配角色',
+  );
+  const columnRender = column?.render as RoleColumnRender | undefined;
+  return columnRender ? (entity) => columnRender(null, entity) : undefined;
+}
 
 const baseDeps = {
   roles: [],
@@ -12,6 +29,10 @@ const baseDeps = {
   onResetPassword: vi.fn(),
   onTerminate: vi.fn(),
 };
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('buildUserColumns 按页签隐藏操作列', () => {
   it('默认保留操作列与展示列', () => {
@@ -27,5 +48,42 @@ describe('buildUserColumns 按页签隐藏操作列', () => {
     expect(columns.some((column) => column.title === '已分配角色')).toBe(true);
     expect(columns.some((column) => column.title === '所属组织')).toBe(true);
     expect(columns.some((column) => column.title === '更新时间')).toBe(true);
+  });
+
+  it('已分配角色优先展示后端返回的角色名', () => {
+    const renderColumn = getUserRoleColumnRender(baseDeps);
+
+    render(
+      <>
+        {renderColumn?.({
+          id: 'user-2',
+          roleCodes: ['role_te22ck559e', 'operator'],
+          roleNames: ['财务', '调度操作员'],
+        } as API.AdminUser)}
+      </>,
+    );
+
+    expect(screen.getByText('财务')).toBeInTheDocument();
+    expect(screen.getByText('调度操作员')).toBeInTheDocument();
+    expect(screen.queryByText('role_te22ck559e')).not.toBeInTheDocument();
+  });
+
+  it('后端未返回角色名时回退角色字典，再回退角色码', () => {
+    const renderColumn = getUserRoleColumnRender({
+      ...baseDeps,
+      roles: [{ code: 'operator', name: '调度操作员' } as API.AdminRole],
+    });
+
+    render(
+      <>
+        {renderColumn?.({
+          id: 'user-3',
+          roleCodes: ['operator', 'role_unknown'],
+        } as API.AdminUser)}
+      </>,
+    );
+
+    expect(screen.getByText('调度操作员')).toBeInTheDocument();
+    expect(screen.getByText('role_unknown')).toBeInTheDocument();
   });
 });

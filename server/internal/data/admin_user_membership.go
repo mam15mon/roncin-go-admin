@@ -264,7 +264,20 @@ func membershipToBiz(item *ent.Membership) *biz.AdminUserMembership {
 			result.RoleNames = append(result.RoleNames, assignedRole.Name)
 		}
 	}
-	sort.Strings(result.RoleCodes)
-	sort.Strings(result.RoleNames)
+	sortRoleCodeNames(result.RoleCodes, result.RoleNames)
 	return result
+}
+
+// sortRoleCodeNames 按角色码升序排序并保持 code/name 下标一一对应，
+// 两个切片必须等长（由同一循环成对追加保证）。
+func sortRoleCodeNames(codes, names []string) {
+	type codeNamePair struct{ code, name string }
+	pairs := make([]codeNamePair, len(codes))
+	for i := range codes {
+		pairs[i] = codeNamePair{code: codes[i], name: names[i]}
+	}
+	sort.Slice(pairs, func(i, j int) bool { return pairs[i].code < pairs[j].code })
+	for i := range pairs {
+		codes[i], names[i] = pairs[i].code, pairs[i].name
+	}
 }

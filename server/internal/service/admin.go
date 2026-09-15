@@ -521,7 +521,7 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 }
 
 func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
-	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, RoleNames: value.RoleNames, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 	if includeOrganizations {
 		organizations := make([]*v1.AdminUserOrganizationSummary, 0, len(value.Organizations))
 		for _, organization := range value.Organizations {

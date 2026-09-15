@@ -1645,8 +1645,10 @@ type AdminUser struct {
 	Status                   AdminUserStatus                 `protobuf:"varint,17,opt,name=status,proto3,enum=admin.v1.AdminUserStatus" json:"status,omitempty"`
 	CurrentMembershipEnabled bool                            `protobuf:"varint,18,opt,name=current_membership_enabled,json=currentMembershipEnabled,proto3" json:"current_membership_enabled,omitempty"`
 	Organizations            []*AdminUserOrganizationSummary `protobuf:"bytes,19,rep,name=organizations,proto3" json:"organizations,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	// 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
+	RoleNames     []string `protobuf:"bytes,20,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AdminUser) Reset() {
@@ -1808,6 +1810,13 @@ func (x *AdminUser) GetCurrentMembershipEnabled() bool {
 func (x *AdminUser) GetOrganizations() []*AdminUserOrganizationSummary {
 	if x != nil {
 		return x.Organizations
+	}
+	return nil
+}
+
+func (x *AdminUser) GetRoleNames() []string {
+	if x != nil {
+		return x.RoleNames
 	}
 	return nil
 }
@@ -5602,7 +5611,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\busername\x18\x03 \x01(\tH\x00R\busername\x88\x01\x01B\v\n" +
 	"\t_username\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xd5\x06\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xf4\x06\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -5628,7 +5637,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x06R\x0edingtalkUserid\x88\x01\x01\x121\n" +
 	"\x06status\x18\x11 \x01(\x0e2\x19.admin.v1.AdminUserStatusR\x06status\x12<\n" +
 	"\x1acurrent_membership_enabled\x18\x12 \x01(\bR\x18currentMembershipEnabled\x12L\n" +
-	"\rorganizations\x18\x13 \x03(\v2&.admin.v1.AdminUserOrganizationSummaryR\rorganizationsB\b\n" +
+	"\rorganizations\x18\x13 \x03(\v2&.admin.v1.AdminUserOrganizationSummaryR\rorganizations\x12\x1d\n" +
+	"\n" +
+	"role_names\x18\x14 \x03(\tR\troleNamesB\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +

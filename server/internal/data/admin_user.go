@@ -462,9 +462,10 @@ func membershipToUser(item *ent.Membership) *biz.AdminUser {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)
 			result.RoleCodes = append(result.RoleCodes, assignedRole.Code)
+			result.RoleNames = append(result.RoleNames, assignedRole.Name)
 		}
 	}
-	sort.Strings(result.RoleCodes)
+	sortRoleCodeNames(result.RoleCodes, result.RoleNames)
 	for _, membershipRecord := range account.Edges.Memberships {
 		organizationRecord := membershipRecord.Edges.Organization
 		if organizationRecord == nil {

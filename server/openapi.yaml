@@ -7599,6 +7599,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/admin.v1.AdminUserOrganizationSummary'
+                roleNames:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
         admin.v1.AdminUserMembership:
             type: object
             properties:

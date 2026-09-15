@@ -284,6 +284,8 @@ declare namespace API {
     status?: number;
     currentMembershipEnabled?: boolean;
     organizations?: AdminUserOrganizationSummary[];
+    /** 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。 */
+    roleNames?: string[];
   };
 
   type AdminUserMembership = {

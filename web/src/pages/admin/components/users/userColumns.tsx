@@ -247,11 +247,14 @@ export function buildUserColumns({
             </Text>
           );
         }
+        // 角色名由后端按 role_codes 下标对应返回；跨组织角色不在当前
+        // 角色字典内时仍能显示名称，仅在后端未返回时回退角色码。
+        const names = record.roleNames ?? [];
         return (
           <Space wrap size={[4, 4]}>
-            {codes.map((code) => {
+            {codes.map((code, index) => {
               const matchedRole = roles.find((r) => r.code === code);
-              const label = matchedRole ? matchedRole.name : code;
+              const label = names[index] || matchedRole?.name || code;
               return (
                 <Tag
                   key={code}

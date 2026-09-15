@@ -396,6 +396,8 @@ message AdminUser {
   AdminUserStatus status = 17;
   bool current_membership_enabled = 18;
   repeated AdminUserOrganizationSummary organizations = 19;
+  // 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
+  repeated string role_names = 20;
 }
 
 // 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
