@@ -1,3 +1,4 @@
+import { RightOutlined } from '@ant-design/icons';
 import { App, Spin, Tag } from 'antd';
 import clsx from 'clsx';
 import React, { useState } from 'react';
@@ -109,22 +110,33 @@ export function OrganizationPicker({
               )}
               disabled={Boolean(switchingOrgId)}
               aria-label={`进入${option.organizationName}`}
+              title={option.organizationName}
               onClick={() => {
                 void handleSelect(option);
               }}
             >
-              <div className={styles.orgCardHeader}>
-                <span className={styles.orgName}>
-                  {option.organizationName}
+              <div className={styles.orgCardBody}>
+                <div className={styles.orgCardHeader}>
+                  <span className={styles.orgName}>
+                    {option.organizationName}
+                  </span>
+                  {option.isDefault && (
+                    <Tag color="blue" className={styles.defaultTag}>
+                      默认
+                    </Tag>
+                  )}
+                </div>
+                <span className={styles.orgCode}>
+                  {option.organizationCode}
                 </span>
-                {option.isDefault && (
-                  <Tag color="blue" className={styles.defaultTag}>
-                    默认
-                  </Tag>
+              </div>
+              <div className={styles.orgCardAction}>
+                {switching ? (
+                  <Spin size="small" className={styles.cardSpin} />
+                ) : (
+                  <RightOutlined className={styles.enterIcon} />
                 )}
               </div>
-              <span className={styles.orgCode}>{option.organizationCode}</span>
-              {switching && <Spin size="small" className={styles.cardSpin} />}
             </button>
           );
         })}
