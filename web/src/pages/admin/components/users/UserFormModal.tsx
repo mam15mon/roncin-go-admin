@@ -362,8 +362,13 @@ export default function UserFormModal({
                 title: '组织',
                 key: 'organization',
                 render: (_, membership) => {
-                  const org = organizations.find((item) => item.id === membership.organizationId);
-                  const fullName = formatOrganizationHierarchyName(org, organizations) || membership.organizationName || '-';
+                  const org = organizations.find(
+                    (item) => item.id === membership.organizationId,
+                  );
+                  const fullName =
+                    formatOrganizationHierarchyName(org, organizations) ||
+                    membership.organizationName ||
+                    '-';
                   return (
                     <div>
                       <Space size={6}>

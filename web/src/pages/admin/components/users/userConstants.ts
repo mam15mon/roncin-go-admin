@@ -64,7 +64,12 @@ export function formatOrganizationHierarchyName(
   }
   // 如果是总部或公司，直接展示自身名称
   const kindNum = typeof org.kind === 'number' ? org.kind : Number(org.kind);
-  if (kindNum === 1 || kindNum === 2 || String(org.kind).includes('COMPANY') || String(org.kind).includes('HEADQUARTERS')) {
+  if (
+    kindNum === 1 ||
+    kindNum === 2 ||
+    String(org.kind).includes('COMPANY') ||
+    String(org.kind).includes('HEADQUARTERS')
+  ) {
     return org.name || '';
   }
   // 部门/团队向上查找父级公司
@@ -74,12 +79,20 @@ export function formatOrganizationHierarchyName(
   while (current?.parentId) {
     if (visited.has(current.parentId)) break;
     visited.add(current.parentId);
-    const parent: API.AdminOrganization | undefined = organizations.find((item) => item.id === current?.parentId);
+    const parent: API.AdminOrganization | undefined = organizations.find(
+      (item) => item.id === current?.parentId,
+    );
     if (!parent) break;
     parts.unshift(parent.name || '');
-    const parentKind = typeof parent.kind === 'number' ? parent.kind : Number(parent.kind);
+    const parentKind =
+      typeof parent.kind === 'number' ? parent.kind : Number(parent.kind);
     // 溯源到公司或总部即停
-    if (parentKind === 1 || parentKind === 2 || String(parent.kind).includes('COMPANY') || String(parent.kind).includes('HEADQUARTERS')) {
+    if (
+      parentKind === 1 ||
+      parentKind === 2 ||
+      String(parent.kind).includes('COMPANY') ||
+      String(parent.kind).includes('HEADQUARTERS')
+    ) {
       break;
     }
     current = parent;

@@ -1,8 +1,5 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormSwitch,
-} from '@ant-design/pro-components';
+import { ModalForm, ProFormSwitch } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
@@ -13,8 +10,8 @@ import {
 } from '@/services/roncin/adminService';
 import { unwrapList } from '@/utils/api';
 import {
-  type UserMembershipFormValues,
   formatOrganizationHierarchyName,
+  type UserMembershipFormValues,
 } from './userConstants';
 
 interface UserMembershipModalProps {
