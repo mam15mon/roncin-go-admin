@@ -208,7 +208,7 @@ func TestAdminRepoUpdateOrganizationAuditErrorRollsBack(t *testing.T) {
 	mock.ExpectQuery(`SELECT "currencies"\."id" FROM "currencies"`).WithArgs("CNY").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
 	mock.ExpectExec(`UPDATE "organizations"`).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT "id", "created_at".*FROM "organizations"`).WithArgs(organizationID).WillReturnRows(
-		sqlmock.NewRows(organizationent.Columns).AddRow(organizationID, now, now, "HQ", "新名称", "headquarters", nil, true, "CNY", "新名称"),
+		sqlmock.NewRows(organizationent.Columns).AddRow(organizationID, now, now, "HQ", "新名称", "headquarters", nil, true, "CNY", "[]", "新名称"),
 	)
 	mock.ExpectExec(`INSERT INTO "audit_logs"`).WillReturnError(errors.New("写入审计失败"))
 	mock.ExpectRollback()

@@ -17,13 +17,32 @@ import (
 	"github.com/google/uuid"
 )
 
+// resolveRoleOrganizationID 解析组织对应的角色所属组织：
+// 总部与公司自身独立维护角色库；部门与团队公用其所属公司的角色与工作区，
+// 沿组织树向上回溯到最近的总部/公司祖先节点。
+func resolveRoleOrganizationID(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (uuid.UUID, error) {
+	nodes, err := loadOrganizationTree(ctx, client)
+	if err != nil {
+		return organizationID, err
+	}
+	effectiveID := workspaceAncestorID(authOrganizationNodes(nodes), organizationID)
+	if effectiveID == uuid.Nil {
+		return organizationID, nil
+	}
+	return effectiveID, nil
+}
+
 func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {
-	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().All(ctx)
+	roleOrgID, err := resolveRoleOrganizationID(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(roleOrgID)).WithPermissions().All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	sort.Slice(items, func(i, j int) bool { return items[i].Code < items[j].Code })
-	counts, err := roleAssignmentCounts(ctx, r.data.db, organizationID)
+	counts, err := roleAssignmentCounts(ctx, r.data.db, roleOrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -37,15 +56,19 @@ func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]
 }
 
 func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (*biz.AdminRole, error) {
+	roleOrgID, err := resolveRoleOrganizationID(ctx, r.data.db, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	item, err := r.data.db.Role.Query().
-		Where(role.IDEQ(id), role.OrganizationIDEQ(organizationID)).
+		Where(role.IDEQ(id), role.OrganizationIDEQ(roleOrgID)).
 		WithPermissions().
 		Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminRoleNotFound, nil)
 	}
 	roleItem := roleToBiz(item)
-	counts, err := roleAssignmentCounts(ctx, r.data.db, organizationID)
+	counts, err := roleAssignmentCounts(ctx, r.data.db, roleOrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,13 +135,26 @@ func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationI
 	return rolesPrivilegeProfiles(ctx, r.data.db, organizationID, roleIDs)
 }
 
-// actorRolesPrivilegeProfiles 查询某组织成员资格下启用角色的权限画像，
+// actorRolesPrivilegeProfiles 查询某组织或其所属工作台子树成员资格下启用角色的权限画像，
 // 供用户管理与钉钉邀请/注册审批的提权校验共用同一口径。
 func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	actorMembership, err := client.Membership.Query().
+	nodes, err := loadOrganizationTree(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	nodeMap := authOrganizationNodes(nodes)
+	workspaceID := workspaceAncestorID(nodeMap, organizationID)
+	if workspaceID == uuid.Nil {
+		workspaceID = organizationID
+	}
+	scopeIDs := workspaceMembershipScopeIDs(nodeMap, workspaceID)
+	if len(scopeIDs) == 0 {
+		scopeIDs = []uuid.UUID{organizationID}
+	}
+	actorMemberships, err := client.Membership.Query().
 		Where(
 			membership.UserIDEQ(actorID),
-			membership.OrganizationIDEQ(organizationID),
+			membership.OrganizationIDIn(scopeIDs...),
 			membership.EnabledEQ(true),
 			membership.HasUserWith(userent.EnabledEQ(true)),
 			membership.HasOrganizationWith(organization.EnabledEQ(true)),
@@ -128,29 +164,43 @@ func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organi
 				roleQuery.Where(role.EnabledEQ(true)).WithPermissions()
 			})
 		}).
-		Only(ctx)
+		All(ctx)
 	if err != nil {
-		return nil, mapEntError(err, biz.ErrAdminPrivilegeEscalation, nil)
+		return nil, err
+	}
+	if len(actorMemberships) == 0 {
+		return nil, biz.ErrAdminPrivilegeEscalation
 	}
 
-	profiles := make([]*biz.AdminRoleProfile, 0, len(actorMembership.Edges.RoleAssignments))
-	for _, assignment := range actorMembership.Edges.RoleAssignments {
-		assignedRole := assignment.Edges.Role
-		if assignedRole == nil {
-			continue
+	seenRoles := make(map[uuid.UUID]struct{})
+	profiles := make([]*biz.AdminRoleProfile, 0)
+	for _, m := range actorMemberships {
+		for _, assignment := range m.Edges.RoleAssignments {
+			assignedRole := assignment.Edges.Role
+			if assignedRole == nil {
+				continue
+			}
+			if _, ok := seenRoles[assignedRole.ID]; ok {
+				continue
+			}
+			seenRoles[assignedRole.ID] = struct{}{}
+			profiles = append(profiles, roleProfileToBiz(assignedRole))
 		}
-		profiles = append(profiles, roleProfileToBiz(assignedRole))
 	}
 	return profiles, nil
 }
 
-// rolesPrivilegeProfiles 查询目标组织内指定角色的权限画像（角色必须全部命中且启用）。
+// rolesPrivilegeProfiles 查询目标组织（或所属公司）内指定角色的权限画像（角色必须全部命中且启用）。
 func rolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
 	if len(roleIDs) == 0 {
 		return nil, nil
 	}
+	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	items, err := client.Role.Query().
-		Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
+		Where(role.OrganizationIDEQ(roleOrgID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
 		WithPermissions().
 		All(ctx)
 	if err != nil {
@@ -256,11 +306,15 @@ func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission
 	}
 	return result, nil
 }
-func rolesForOrganization(ctx context.Context, query *ent.RoleQuery, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*ent.Role, error) {
+func rolesForOrganization(ctx context.Context, client *ent.Client, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*ent.Role, error) {
 	if len(roleIDs) == 0 {
 		return nil, nil
 	}
-	roles, err := query.Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).All(ctx)
+	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	roles, err := client.Role.Query().Where(role.OrganizationIDEQ(roleOrgID), role.IDIn(roleIDs...), role.EnabledEQ(true)).All(ctx)
 	if err != nil {
 		return nil, err
 	}

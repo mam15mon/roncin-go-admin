@@ -86,4 +86,39 @@ describe('buildUserColumns 按页签隐藏操作列', () => {
     expect(screen.getByText('调度操作员')).toBeInTheDocument();
     expect(screen.getByText('role_unknown')).toBeInTheDocument();
   });
+
+  it('所属组织为部门时展示所属公司层级路径', () => {
+    const orgs = [
+      { id: 'company-1', name: '融迅（北京）供应链管理有限公司', kind: 2 },
+      { id: 'dept-1', name: '北京财务', kind: 3, parentId: 'company-1' },
+    ] as API.AdminOrganization[];
+
+    const columns = buildUserColumns({
+      ...baseDeps,
+      organizations: orgs,
+    });
+
+    const orgColumn = columns.find((col) => col.title === '所属组织');
+    expect(orgColumn).toBeTruthy();
+
+    const columnRender = orgColumn?.render as (
+      dom: unknown,
+      entity: API.AdminUser,
+    ) => ReactNode;
+
+    render(
+      <div>
+        {columnRender(null, {
+          id: 'user-ces',
+          organizations: [
+            { organizationId: 'dept-1', organizationName: '北京财务', primary: true },
+          ],
+        } as API.AdminUser)}
+      </div>,
+    );
+
+    expect(
+      screen.getByText('融迅（北京）供应链管理有限公司 / 北京财务'),
+    ).toBeInTheDocument();
+  });
 });

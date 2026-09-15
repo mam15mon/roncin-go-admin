@@ -25,6 +25,7 @@ import {
 import { unwrapList } from '@/utils/api';
 import UserMembershipModal from './UserMembershipModal';
 import {
+  formatOrganizationHierarchyName,
   organizationKindLabels,
   pendingExternalProvider,
   resolveAnchorOrganizationId,
@@ -241,7 +242,7 @@ export default function UserFormModal({
           label="所属组织"
           placeholder="请选择公司、部门或组"
           options={organizations.map((organization) => ({
-            label: `${organization.name} (${organization.code})`,
+            label: `${formatOrganizationHierarchyName(organization, organizations)} (${organization.code})`,
             value: organization.id,
             code: organization.code,
             name: organization.name,
@@ -360,22 +361,26 @@ export default function UserFormModal({
               {
                 title: '组织',
                 key: 'organization',
-                render: (_, membership) => (
-                  <div>
-                    <Space size={6}>
-                      <Text strong>{membership.organizationName || '-'}</Text>
-                      {membership.primary && <Tag color="blue">主要</Tag>}
-                    </Space>
+                render: (_, membership) => {
+                  const org = organizations.find((item) => item.id === membership.organizationId);
+                  const fullName = formatOrganizationHierarchyName(org, organizations) || membership.organizationName || '-';
+                  return (
                     <div>
-                      <Text type="secondary" style={{ fontSize: 11 }}>
-                        {organizationKindLabels[
-                          membership.organizationKind ?? 0
-                        ] ?? '组织'}{' '}
-                        · {membership.organizationCode || '-'}
-                      </Text>
+                      <Space size={6}>
+                        <Text strong>{fullName}</Text>
+                        {membership.primary && <Tag color="blue">主要</Tag>}
+                      </Space>
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {organizationKindLabels[
+                            membership.organizationKind ?? 0
+                          ] ?? '组织'}{' '}
+                          · {membership.organizationCode || '-'}
+                        </Text>
+                      </div>
                     </div>
-                  </div>
-                ),
+                  );
+                },
               },
               {
                 title: '角色',

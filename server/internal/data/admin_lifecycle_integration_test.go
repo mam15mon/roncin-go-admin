@@ -209,3 +209,106 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 func adminLifecycleAudit(organizationID uuid.UUID, action string) *biz.AuditEvent {
 	return &biz.AuditEvent{OrganizationID: &organizationID, Action: action, Result: "success", Details: map[string]string{}}
 }
+
+// TestAdminDepartmentInheritsCompanyRolesPostgres 验证部门/团队公用所属公司的角色与工作区：
+// 1. 查询部门角色（ListRoles）自动返回所属公司的角色库；
+// 2. 为部门成员分配角色（CreateUserMembership）及提权校验通过；
+// 3. 用户在部门下的成员关系在所属公司工作台下能正确收集角色画像（actorRolesPrivilegeProfiles）。
+func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
+
+	ctx := context.Background()
+	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
+
+	company, err := data.db.Organization.Create().
+		SetCode("CO-" + suffix).
+		SetName("分公司-" + suffix).
+		SetKind("company").
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建分公司: %v", err)
+	}
+
+	financeRole, err := data.db.Role.Create().
+		SetOrganizationID(company.ID).
+		SetCode("finance_" + suffix).
+		SetName("财务角色-" + suffix).
+		SetDataScope("organization").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建财务角色: %v", err)
+	}
+
+	dept, err := data.db.Organization.Create().
+		SetCode("DEPT-" + suffix).
+		SetName("财务部-" + suffix).
+		SetKind("department").
+		SetParentID(company.ID).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建财务部: %v", err)
+	}
+
+	adminRepo := NewAdminRepo(data)
+
+	// 1. 部门查询角色，应返回所属公司的角色
+	deptRoles, err := adminRepo.ListRoles(ctx, dept.ID)
+	if err != nil {
+		t.Fatalf("部门查询角色失败: %v", err)
+	}
+	foundRole := false
+	for _, r := range deptRoles {
+		if r.ID == financeRole.ID {
+			foundRole = true
+			break
+		}
+	}
+	if !foundRole {
+		t.Fatalf("部门角色列表中未包含所属公司的财务角色")
+	}
+
+	// 2. 查询单个角色详情（GetRole）在部门上下文中亦可读取
+	singleRole, err := adminRepo.GetRole(ctx, dept.ID, financeRole.ID)
+	if err != nil || singleRole.ID != financeRole.ID {
+		t.Fatalf("部门上下文读取单个角色失败: %v", err)
+	}
+
+	// 3. 提权画像校验（GetRolesPrivilegeProfiles）针对部门节点应成功返回所属公司角色画像
+	profiles, err := adminRepo.GetRolesPrivilegeProfiles(ctx, dept.ID, []uuid.UUID{financeRole.ID})
+	if err != nil || len(profiles) != 1 || profiles[0].ID != financeRole.ID {
+		t.Fatalf("部门上下文获取角色画像失败: %v, profiles = %v", err, profiles)
+	}
+
+	// 4. 创建用户并将成员关系加入部门，分配财务角色
+	userAccount, err := data.db.User.Create().
+		SetDisplayName("财务专员-" + suffix).
+		SetUsername("fin_user_" + suffix).
+		SetEnabled(true).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建用户失败: %v", err)
+	}
+
+	membershipBiz, err := adminRepo.CreateUserMembership(ctx, &biz.AdminUserMembership{
+		UserID:         userAccount.ID,
+		OrganizationID: dept.ID,
+		Primary:        true,
+	}, []uuid.UUID{financeRole.ID}, adminLifecycleAudit(company.ID, "admin.user.membership.create"))
+	if err != nil {
+		t.Fatalf("在部门下创建成员关系并分配角色失败: %v", err)
+	}
+	if membershipBiz.OrganizationID != dept.ID {
+		t.Fatalf("成员关系组织 ID 不匹配: got %v, want %v", membershipBiz.OrganizationID, dept.ID)
+	}
+
+	// 5. 验证操作人在公司工作台下能提取到该用户在部门内的有效角色画像
+	actorProfiles, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, company.ID, userAccount.ID)
+	if err != nil {
+		t.Fatalf("在公司工作台提取部门成员角色画像失败: %v", err)
+	}
+	if len(actorProfiles) != 1 || actorProfiles[0].ID != financeRole.ID {
+		t.Fatalf("提取的角色画像不符合预期: got %v, want roleID %v", actorProfiles, financeRole.ID)
+	}
+}

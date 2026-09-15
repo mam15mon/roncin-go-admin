@@ -44,3 +44,45 @@ export function resolveAnchorOrganizationId(
   if (enabled?.organizationId) return enabled.organizationId;
   return memberships[0]?.organizationId;
 }
+
+/**
+ * 格式化组织层级名称：
+ * 若组织为部门或组，向上溯源所属公司，拼接为 `${公司名} / ${部门名}`；
+ * 若组织为公司或总部，直接展示自身名称。
+ */
+export function formatOrganizationHierarchyName(
+  orgIdOrOrg: string | API.AdminOrganization | undefined,
+  organizations: API.AdminOrganization[],
+): string {
+  if (!orgIdOrOrg) return '';
+  const org =
+    typeof orgIdOrOrg === 'string'
+      ? organizations.find((item) => item.id === orgIdOrOrg)
+      : orgIdOrOrg;
+  if (!org) {
+    return typeof orgIdOrOrg === 'string' ? '' : orgIdOrOrg.name || '';
+  }
+  // 如果是总部或公司，直接展示自身名称
+  const kindNum = typeof org.kind === 'number' ? org.kind : Number(org.kind);
+  if (kindNum === 1 || kindNum === 2 || String(org.kind).includes('COMPANY') || String(org.kind).includes('HEADQUARTERS')) {
+    return org.name || '';
+  }
+  // 部门/团队向上查找父级公司
+  const parts: string[] = [org.name || ''];
+  let current: API.AdminOrganization | undefined = org;
+  const visited = new Set<string>([org.id || '']);
+  while (current?.parentId) {
+    if (visited.has(current.parentId)) break;
+    visited.add(current.parentId);
+    const parent: API.AdminOrganization | undefined = organizations.find((item) => item.id === current?.parentId);
+    if (!parent) break;
+    parts.unshift(parent.name || '');
+    const parentKind = typeof parent.kind === 'number' ? parent.kind : Number(parent.kind);
+    // 溯源到公司或总部即停
+    if (parentKind === 1 || parentKind === 2 || String(parent.kind).includes('COMPANY') || String(parent.kind).includes('HEADQUARTERS')) {
+      break;
+    }
+    current = parent;
+  }
+  return parts.join(' / ');
+}

@@ -55,7 +55,7 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 		} else if !exists {
 			return biz.ErrAdminOrganizationNotFound
 		}
-		roles, rolesErr := rolesForOrganization(ctx, tx.Role.Query(), input.OrganizationID, roleIDs)
+		roles, rolesErr := rolesForOrganization(ctx, tx.Client(), input.OrganizationID, roleIDs)
 		if rolesErr != nil {
 			return rolesErr
 		}
@@ -119,7 +119,7 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 				return biz.ErrAdminUserLastMembership
 			}
 		}
-		roles, rolesErr := rolesForOrganization(ctx, tx.Role.Query(), current.OrganizationID, roleIDs)
+		roles, rolesErr := rolesForOrganization(ctx, tx.Client(), current.OrganizationID, roleIDs)
 		if rolesErr != nil {
 			return rolesErr
 		}

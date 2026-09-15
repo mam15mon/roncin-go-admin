@@ -88,6 +88,7 @@ function UserMembersView() {
 
   const columns = buildUserColumns({
     roles,
+    organizations,
     showActions: listTab === 'active',
     canUpdateUsers: access.canUpdateUsers,
     canResetUserPasswords: access.canResetUserPasswords,

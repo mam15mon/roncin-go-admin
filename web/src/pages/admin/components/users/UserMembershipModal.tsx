@@ -12,7 +12,10 @@ import {
   adminServiceUpdateUserMembership,
 } from '@/services/roncin/adminService';
 import { unwrapList } from '@/utils/api';
-import type { UserMembershipFormValues } from './userConstants';
+import {
+  type UserMembershipFormValues,
+  formatOrganizationHierarchyName,
+} from './userConstants';
 
 interface UserMembershipModalProps {
   open: boolean;
@@ -115,7 +118,7 @@ export default function UserMembershipModal({
               ),
           )
           .map((organization) => ({
-            label: `${organization.name} (${organization.code})`,
+            label: `${formatOrganizationHierarchyName(organization, organizations)} (${organization.code})`,
             value: organization.id,
             code: organization.code,
             name: organization.name,

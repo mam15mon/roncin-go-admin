@@ -40,7 +40,7 @@ func (r *dingTalkRegistrationRepo) CreateInvitation(ctx context.Context, input *
 		}
 		if input.RoleID != nil {
 			// 初始角色必须属于目标组织且启用。
-			if _, queryErr := rolesForOrganization(ctx, tx.Role.Query(), input.OrganizationID, []uuid.UUID{*input.RoleID}); queryErr != nil {
+			if _, queryErr := rolesForOrganization(ctx, tx.Client(), input.OrganizationID, []uuid.UUID{*input.RoleID}); queryErr != nil {
 				return queryErr
 			}
 		}
@@ -284,7 +284,7 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 		var roles []*ent.Role
 		if invitation.RoleID != nil {
 			var roleErr error
-			roles, roleErr = rolesForOrganization(ctx, tx.Role.Query(), invitation.OrganizationID, []uuid.UUID{*invitation.RoleID})
+			roles, roleErr = rolesForOrganization(ctx, tx.Client(), invitation.OrganizationID, []uuid.UUID{*invitation.RoleID})
 			if roleErr != nil {
 				return roleErr
 			}
@@ -683,7 +683,7 @@ func (r *dingTalkRegistrationRepo) ApproveRegistration(ctx context.Context, deci
 		if queryErr != nil {
 			return queryErr
 		}
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), routingOrganization.ID, decision.RoleIDs)
+		roles, queryErr := rolesForOrganization(ctx, tx.Client(), routingOrganization.ID, decision.RoleIDs)
 		if queryErr != nil {
 			return queryErr
 		}

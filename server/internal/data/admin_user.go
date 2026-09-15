@@ -158,7 +158,7 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
 	var account *ent.User
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
+		roles, queryErr := rolesForOrganization(ctx, tx.Client(), organizationID, roleIDs)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -220,7 +220,7 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 			return biz.ErrAdminUserAuthorizationRequired
 		}
 		// 角色必须与锚定成员关系同组织（既有规则不变）：按锚定组织校验后写入该成员关系。
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), anchor.OrganizationID, roleIDs)
+		roles, queryErr := rolesForOrganization(ctx, tx.Client(), anchor.OrganizationID, roleIDs)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -334,7 +334,7 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		if !exists {
 			return biz.ErrAdminOrganizationNotFound
 		}
-		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), targetOrganizationID, roleIDs)
+		roles, queryErr := rolesForOrganization(ctx, tx.Client(), targetOrganizationID, roleIDs)
 		if queryErr != nil {
 			return queryErr
 		}

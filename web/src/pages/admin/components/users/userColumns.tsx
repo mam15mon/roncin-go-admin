@@ -9,11 +9,13 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import { adminUserStatusMeta, statusTag } from '@/constants/statusMeta';
+import { formatOrganizationHierarchyName } from './userConstants';
 
 const { Text } = Typography;
 
 interface UserColumnsDeps {
   roles: API.AdminRole[];
+  organizations?: API.AdminOrganization[];
   // 是否展示操作列（编辑/重置密码/办理离职）；离职页签隐藏整列，展示列保留。
   showActions?: boolean;
   canUpdateUsers: boolean;
@@ -28,6 +30,7 @@ interface UserColumnsDeps {
 
 export function buildUserColumns({
   roles,
+  organizations,
   showActions = true,
   canUpdateUsers,
   canResetUserPasswords,
@@ -97,8 +100,8 @@ export function buildUserColumns({
             width: 200,
             search: false,
             render: (_: unknown, record: API.AdminUser) => {
-              const organizations = record.organizations ?? [];
-              if (organizations.length === 0) {
+              const userOrgs = record.organizations ?? [];
+              if (userOrgs.length === 0) {
                 return (
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     -
@@ -106,11 +109,30 @@ export function buildUserColumns({
                 );
               }
               const primary =
-                organizations.find((item) => item.primary) ?? organizations[0];
+                userOrgs.find((item) => item.primary) ?? userOrgs[0];
+              const primaryOrg = organizations?.find(
+                (item) => item.id === primary.organizationId,
+              );
+              const primaryName =
+                (organizations
+                  ? formatOrganizationHierarchyName(primaryOrg, organizations)
+                  : '') || primary.organizationName;
               const label =
-                organizations.length > 1
-                  ? `${primary.organizationName} 等 ${organizations.length} 个组织`
-                  : primary.organizationName;
+                userOrgs.length > 1
+                  ? `${primaryName} 等 ${userOrgs.length} 个组织`
+                  : primaryName;
+              const tooltipText = userOrgs
+                .map((item) => {
+                  const o = organizations?.find(
+                    (org) => org.id === item.organizationId,
+                  );
+                  return (
+                    (organizations
+                      ? formatOrganizationHierarchyName(o, organizations)
+                      : '') || item.organizationName
+                  );
+                })
+                .join('、');
               return (
                 <Space size={4} style={{ minWidth: 0 }}>
                   <BankOutlined
@@ -119,13 +141,11 @@ export function buildUserColumns({
                   <Text
                     style={{
                       fontSize: 12,
-                      maxWidth: 150,
+                      maxWidth: 180,
                       display: 'inline-block',
                     }}
                     ellipsis={{
-                      tooltip: organizations
-                        .map((item) => item.organizationName)
-                        .join('、'),
+                      tooltip: tooltipText,
                     }}
                   >
                     {label}
