@@ -62,8 +62,8 @@ body,
 }
 
 // ----------------------------------------
-// 左侧全高深色侧边栏（深色导航 + 纯白内容企业级配色）
-// 侧栏自上而下 100vh 全高覆盖，顶部顶栏置于侧栏右侧
+// 左侧全高纯白极简侧边栏（纯白通透 + 浅蓝微胶囊现代设计）
+// 侧栏自上而下 100vh 全高覆盖，右侧极细线分割，与全站纯白高密度规范无缝融合
 // ----------------------------------------
 .ant-pro-layout,
 .ant-pro-layout-mix {
@@ -79,38 +79,38 @@ body,
     height: 100vh !important;
     max-height: 100vh !important;
     z-index: 101 !important;
-    background: #001529 !important;
-    border-right: none !important;
-    box-shadow: none !important;
+    background: #ffffff !important;
+    border-right: 1px solid #f0f0f0 !important;
+    box-shadow: 1px 0 0 0 rgba(0, 0, 0, 0.02) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
     .ant-pro-sider-logo {
       height: 48px;
-      padding: 0 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 14px;
+      border-bottom: 1px solid #f0f0f0;
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: #001529;
+      gap: 10px;
+      background: #ffffff;
       transition: all 0.2s ease;
       overflow: hidden;
 
       a {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         min-width: 0;
       }
 
       img,
       svg {
-        height: 22px;
+        height: 24px;
         width: auto;
         flex-shrink: 0;
       }
 
       h1 {
-        color: rgba(255, 255, 255, 0.88) !important;
+        color: #0f172a !important;
         font-size: 14px;
         font-weight: 600;
         letter-spacing: 0.2px;
@@ -121,22 +121,22 @@ body,
       }
     }
 
-    // 深色菜单项基础样式（展开模式）
+    // 纯白菜单项基础样式（展开模式）
     .ant-menu-light,
     .ant-menu-dark,
     .ant-menu {
-      background: #001529 !important;
-      padding: 4px 6px 50px 6px !important;
+      background: #ffffff !important;
+      padding: 6px 8px 50px 8px !important;
       border-inline-end: none !important;
 
       .ant-menu-item,
       .ant-menu-submenu-title {
-        height: 36px;
-        line-height: 36px;
+        height: 38px;
+        line-height: 38px;
         margin: 2px 0;
-        padding: 0 10px !important;
+        padding: 0 12px !important;
         border-radius: 6px;
-        color: rgba(255, 255, 255, 0.65) !important;
+        color: #475569 !important;
         font-size: 13px;
         font-weight: 500;
         transition: all 0.15s ease;
@@ -148,47 +148,62 @@ body,
           display: flex;
           align-items: center;
           width: 100%;
-          gap: 8px;
+          gap: 10px;
           color: inherit;
         }
 
         .anticon,
         .ant-pro-menu-item-icon {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.65) !important;
+          font-size: 15px;
+          color: #64748b !important;
           transition: color 0.15s ease;
           flex-shrink: 0;
         }
 
         &:hover {
-          background: rgba(255, 255, 255, 0.08) !important;
-          color: #ffffff !important;
+          background: rgba(0, 0, 0, 0.04) !important;
+          color: #0f172a !important;
 
           .anticon,
           .ant-pro-menu-item-icon {
-            color: #ffffff !important;
+            color: #0f172a !important;
           }
         }
 
         &.ant-menu-item-selected {
-          background: #1677ff !important;
-          color: #ffffff !important;
+          background: #e6f4ff !important;
+          color: #1677ff !important;
           font-weight: 600;
 
           .anticon,
           .ant-pro-menu-item-icon {
-            color: #ffffff !important;
+            color: #1677ff !important;
           }
         }
       }
 
+      // 子菜单展开时的背景微调（浅灰层次底）
+      .ant-menu-sub.ant-menu-inline {
+        background: #f8fafc !important;
+        border-radius: 6px;
+        margin: 2px 0;
+        padding: 2px 4px !important;
+
+        .ant-menu-item {
+          height: 34px;
+          line-height: 34px;
+          margin: 1px 0;
+          font-size: 12.5px;
+        }
+      }
+
       .ant-menu-submenu-selected > .ant-menu-submenu-title {
-        color: #ffffff !important;
+        color: #0f172a !important;
         font-weight: 600;
 
         .anticon,
         .ant-pro-menu-item-icon {
-          color: #ffffff !important;
+          color: #1677ff !important;
         }
       }
     }
@@ -267,7 +282,27 @@ body,
             padding: 0 !important;
             font-size: 16px !important;
             line-height: 1 !important;
-            color: inherit !important;
+            color: #64748b !important;
+          }
+
+          &:hover {
+            background: rgba(0, 0, 0, 0.04) !important;
+
+            .ant-pro-menu-item-icon,
+            .anticon,
+            [role='img'] {
+              color: #0f172a !important;
+            }
+          }
+
+          &.ant-menu-item-selected {
+            background: #e6f4ff !important;
+
+            .ant-pro-menu-item-icon,
+            .anticon,
+            [role='img'] {
+              color: #1677ff !important;
+            }
           }
 
           // 仅隐藏收起状态下的文本标题与展开箭头
@@ -296,14 +331,14 @@ body,
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      background: #001529 !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+      background: #ffffff !important;
+      border-top: 1px solid #f0f0f0 !important;
       z-index: 102 !important;
       cursor: pointer !important;
       transition: all 0.2s ease !important;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: rgba(0, 0, 0, 0.04) !important;
 
         .ant-pro-sider-collapsed-button,
         [class*="-collapsed-button"] {
@@ -337,7 +372,7 @@ body,
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        color: rgba(255, 255, 255, 0.45) !important;
+        color: rgba(0, 0, 0, 0.45) !important;
         cursor: pointer !important;
         transform: none !important;
         margin: 0 !important;
@@ -346,20 +381,20 @@ body,
         .anticon,
         svg {
           font-size: 14px !important;
-          color: rgba(255, 255, 255, 0.45) !important;
-          fill: rgba(255, 255, 255, 0.45) !important;
+          color: rgba(0, 0, 0, 0.45) !important;
+          fill: rgba(0, 0, 0, 0.45) !important;
           transition: color 0.15s ease, fill 0.15s ease !important;
         }
       }
     }
   }
 
-  // 顶部顶栏：置于侧边栏右侧（left: 180px, width: calc(100% - 180px)）
+  // 顶部顶栏：置于侧边栏右侧（left: 208px, width: calc(100% - 208px)）
   .ant-pro-layout-header,
   .ant-pro-fixed-header,
   .ant-pro-global-header-layout-mix {
-    left: 180px !important;
-    width: calc(100% - 180px) !important;
+    left: 208px !important;
+    width: calc(100% - 208px) !important;
     z-index: 100 !important;
     transition: all 0.2s ease !important;
   }
