@@ -21,6 +21,7 @@ func (Organization) Fields() []ent.Field {
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 		field.String("base_currency").Optional().Nillable().MinLen(3).MaxLen(3),
+		field.Strings("enabled_currencies").Optional(),
 		searchKeywordsField(),
 	}
 }

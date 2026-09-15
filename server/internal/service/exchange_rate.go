@@ -20,20 +20,29 @@ func NewExchangeRateService(usecase *biz.ExchangeRateUsecase) *ExchangeRateServi
 	return &ExchangeRateService{usecase: usecase}
 }
 
-func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v1.ListExchangeRateSettingsRequest) (*v1.ListExchangeRateSettingsResponse, error) {
+func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, request *v1.ListExchangeRateSettingsRequest) (*v1.ListExchangeRateSettingsResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	items, baseCurrency, err := s.usecase.List(ctx, principal.Organization.ID)
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	list, baseCurrency, err := s.usecase.List(ctx, principal.Organization.ID, biz.ExchangeRateListOptions{
+		Page:         page,
+		PageSize:     pageSize,
+		FromCurrency: request.GetFromCurrency(),
+	})
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.ExchangeRateSetting, 0, len(items))
-	for _, item := range items {
+	data := make([]*v1.ExchangeRateSetting, 0, len(list.Items))
+	for _, item := range list.Items {
 		data = append(data, exchangeRateToAPI(item))
 	}
-	return okList(ctx, &v1.ListExchangeRateSettingsResponse{Data: data, BaseCurrency: baseCurrency}), nil
+	return okList(ctx, &v1.ListExchangeRateSettingsResponse{
+		Data:         data,
+		BaseCurrency: baseCurrency,
+		Total:        int64(list.Total),
+	}), nil
 }
 
 func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, request *v1.CreateExchangeRateSettingRequest) (*v1.CreateExchangeRateSettingResponse, error) {

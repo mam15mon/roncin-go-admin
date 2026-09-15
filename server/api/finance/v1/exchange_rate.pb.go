@@ -214,6 +214,9 @@ func (x *ExchangeRateSetting) GetRate() string {
 
 type ListExchangeRateSettingsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	FromCurrency  string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -248,6 +251,27 @@ func (*ListExchangeRateSettingsRequest) Descriptor() ([]byte, []int) {
 	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *ListExchangeRateSettingsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListExchangeRateSettingsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListExchangeRateSettingsRequest) GetFromCurrency() string {
+	if x != nil {
+		return x.FromCurrency
+	}
+	return ""
+}
+
 type ListExchangeRateSettingsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -256,6 +280,7 @@ type ListExchangeRateSettingsResponse struct {
 	Data          []*ExchangeRateSetting `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	BaseCurrency  string                 `protobuf:"bytes,6,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	Total         int64                  `protobuf:"varint,7,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -330,6 +355,13 @@ func (x *ListExchangeRateSettingsResponse) GetBaseCurrency() string {
 		return x.BaseCurrency
 	}
 	return ""
+}
+
+func (x *ListExchangeRateSettingsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 type CreateExchangeRateSettingRequest struct {
@@ -2101,15 +2133,19 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAt\x12\x12\n" +
 	"\x04rate\x18\x0e \x01(\tR\x04rateB\x0f\n" +
-	"\r_effective_toJ\x04\b\x03\x10\x04J\x04\b\x06\x10\aR\trate_typeR\rtime_standard\"!\n" +
-	"\x1fListExchangeRateSettingsRequest\"\xdf\x01\n" +
+	"\r_effective_toJ\x04\b\x03\x10\x04J\x04\b\x06\x10\aR\trate_typeR\rtime_standard\"w\n" +
+	"\x1fListExchangeRateSettingsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12#\n" +
+	"\rfrom_currency\x18\x03 \x01(\tR\ffromCurrency\"\xf5\x01\n" +
 	" ListExchangeRateSettingsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x03(\v2\x1f.finance.v1.ExchangeRateSettingR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12#\n" +
-	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\x9a\x02\n" +
+	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\x12\x14\n" +
+	"\x05total\x18\a \x01(\x03R\x05total\"\x9a\x02\n" +
 	" CreateExchangeRateSettingRequest\x12(\n" +
 	"\rfrom_currency\x18\x02 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +
 	"\vto_currency\x18\x03 \x01(\tB\x03\xe0A\x02R\n" +

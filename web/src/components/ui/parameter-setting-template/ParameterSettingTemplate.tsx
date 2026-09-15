@@ -1,6 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useLocation } from '@umijs/max';
-import { Space, Tabs, Tooltip, Typography } from 'antd';
+import { Alert, Space, Tabs, Tooltip, Typography } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
 import type { MultiTabCenterTemplateProps } from './types';
 
@@ -28,7 +28,9 @@ export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
   }, [items]);
 
   // 2. 本地非受控激活状态
-  const [uncontrolledActiveKey, setUncontrolledActiveKey] = useState<string | undefined>(defaultActiveKey);
+  const [uncontrolledActiveKey, setUncontrolledActiveKey] = useState<
+    string | undefined
+  >(defaultActiveKey);
 
   // 3. 从 URL search 中解析当前 tab
   const queryActiveTab = useMemo(() => {
@@ -40,17 +42,32 @@ export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
   // 4. 计算当前应该高亮的 tab key
   const currentActiveKey = useMemo(() => {
     if (controlledActiveKey) return controlledActiveKey;
-    if (queryActiveTab && visibleItems.some((item) => item.key === queryActiveTab)) {
+    if (
+      queryActiveTab &&
+      visibleItems.some((item) => item.key === queryActiveTab)
+    ) {
       return queryActiveTab;
     }
-    if (uncontrolledActiveKey && visibleItems.some((item) => item.key === uncontrolledActiveKey)) {
+    if (
+      uncontrolledActiveKey &&
+      visibleItems.some((item) => item.key === uncontrolledActiveKey)
+    ) {
       return uncontrolledActiveKey;
     }
-    if (defaultActiveKey && visibleItems.some((item) => item.key === defaultActiveKey)) {
+    if (
+      defaultActiveKey &&
+      visibleItems.some((item) => item.key === defaultActiveKey)
+    ) {
       return defaultActiveKey;
     }
     return visibleItems[0]?.key;
-  }, [controlledActiveKey, queryActiveTab, uncontrolledActiveKey, defaultActiveKey, visibleItems]);
+  }, [
+    controlledActiveKey,
+    queryActiveTab,
+    uncontrolledActiveKey,
+    defaultActiveKey,
+    visibleItems,
+  ]);
 
   // 5. 处理 Tab 切换
   const handleTabChange = useCallback(
@@ -133,25 +150,40 @@ export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
         ...style,
       }}
     >
-      <div style={{ marginTop: 0 }}>
-        <Tabs
-          type={tabType}
-          activeKey={currentActiveKey}
-          onChange={handleTabChange}
-          items={tabItems}
-          tabBarStyle={{
-            position: 'sticky',
-            top: 84, // 48px Header + 36px TagsView
-            zIndex: 18,
-            marginBottom: 12,
-            backgroundColor: '#ffffff',
-            padding: '0 16px',
+      {visibleItems.length > 0 ? (
+        <div style={{ marginTop: 0 }}>
+          <Tabs
+            type={tabType}
+            destroyOnHidden
+            activeKey={currentActiveKey}
+            onChange={handleTabChange}
+            items={tabItems}
+            tabBarStyle={{
+              position: 'sticky',
+              top: 84, // 48px Header + 36px TagsView
+              zIndex: 18,
+              marginBottom: 12,
+              backgroundColor: '#ffffff',
+              padding: '0 16px',
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+            }}
+          />
+        </div>
+      ) : (
+        <Alert
+          showIcon
+          type="warning"
+          title="暂无可用的管理权限"
+          description="请联系系统管理员为当前账号分配相应的功能或数据访问权限。"
+          style={{
             borderRadius: 8,
-            border: '1px solid #f0f0f0',
-            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+            backgroundColor: '#ffffff',
+            border: '1px solid #ffe58f',
           }}
         />
-      </div>
+      )}
     </PageContainer>
   );
 };

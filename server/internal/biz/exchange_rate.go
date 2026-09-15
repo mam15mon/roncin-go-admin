@@ -125,9 +125,15 @@ type ResolvedRate struct {
 	SettingID *uuid.UUID
 }
 
+type ExchangeRateListOptions struct {
+	Page         int
+	PageSize     int
+	FromCurrency string
+}
+
 type ExchangeRateRepo interface {
 	ResolveContext(ctx context.Context, organizationID uuid.UUID) (*ExchangeRateContext, error)
-	List(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateSetting, error)
+	List(ctx context.Context, organizationID uuid.UUID, options ExchangeRateListOptions) ([]*ExchangeRateSetting, int64, error)
 	// UpsertWeeklyBatch 按自然周幂等写入汇率行（同作用域同货币对同周命中即覆盖更新，
 	// 不报唯一键冲突），source 标记行写入来源。
 	UpsertWeeklyBatch(ctx context.Context, source string, inputs []*ExchangeRateSetting, audit *AuditEvent) ([]*ExchangeRateSetting, error)
@@ -168,9 +174,10 @@ type ExchangeRateQuoteSet struct {
 // ExchangeRateQuoteProvider 由 data 层实现外部牌价抓取（HTTP），biz 层按组织本币
 // 编排主备源路由。
 type ExchangeRateQuoteProvider interface {
-	// FetchCNYBankQuotes 抓取外币→CNY 的中国银行牌价（新浪中行专线主源 +
-	// 中行官方牌价页兜底），报价已归一化为 1 外币折 CNY。
-	FetchCNYBankQuotes(ctx context.Context, currencies []string) (*ExchangeRateQuoteSet, error)
+	// FetchCNYBankQuotes 抓取外币→CNY 的中国银行牌价（新浪历史中行专线优先 +
+	// 新浪实时专线主源 + 中行官方牌价页兜底），报价已归一化为 1 外币折 CNY。
+	// 可选 targetDate 指定周一发盘日期（如 "2026-09-14"）。
+	FetchCNYBankQuotes(ctx context.Context, currencies []string, targetDate ...string) (*ExchangeRateQuoteSet, error)
 	// FetchDirectQuotes 抓取 currencies→baseCurrency 的国际直盘（Ask→ar、Bid→ap）。
 	FetchDirectQuotes(ctx context.Context, baseCurrency string, currencies []string) (*ExchangeRateQuoteSet, error)
 }
@@ -185,16 +192,25 @@ func NewExchangeRateUsecase(repo ExchangeRateRepo, quoteProvider ExchangeRateQuo
 	return &ExchangeRateUsecase{repo: repo, quoteProvider: quoteProvider, now: time.Now}
 }
 
-func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateSetting, string, error) {
-	if organizationID == uuid.Nil {
+func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUID, options ExchangeRateListOptions) (*PagedList[*ExchangeRateSetting], string, error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, "", ErrExchangeRateInvalidArgument
 	}
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
 		return nil, "", err
 	}
-	items, err := uc.repo.List(ctx, organizationID)
-	return items, rateContext.BaseCurrency, err
+	options.FromCurrency = strings.ToUpper(strings.TrimSpace(options.FromCurrency))
+	items, total, err := uc.repo.List(ctx, organizationID, options)
+	if err != nil {
+		return nil, "", err
+	}
+	return &PagedList[*ExchangeRateSetting]{
+		Items:    items,
+		Total:    int(total),
+		Page:     options.Page,
+		PageSize: options.PageSize,
+	}, rateContext.BaseCurrency, nil
 }
 
 func (uc *ExchangeRateUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *ExchangeRateSetting) (*ExchangeRateSetting, error) {
@@ -369,11 +385,16 @@ func (uc *ExchangeRateUsecase) FetchExchangeRates(ctx context.Context, organizat
 	if len(targets) == 0 {
 		return nil, ErrExchangeRateQuoteUnavailable
 	}
+	var targetDate string
+	mondayDate := from.Format("2006-01-02")
+	if !from.After(uc.now()) {
+		targetDate = mondayDate
+	}
 	var quotes *ExchangeRateQuoteSet
 	if rateContext.BaseCurrency == cnyCurrency {
-		quotes, err = uc.quoteProvider.FetchCNYBankQuotes(ctx, targets)
+		quotes, err = uc.quoteProvider.FetchCNYBankQuotes(ctx, targets, targetDate)
 	} else {
-		quotes, err = uc.fetchNonCNYQuotes(ctx, rateContext.BaseCurrency, targets)
+		quotes, err = uc.fetchNonCNYQuotes(ctx, rateContext.BaseCurrency, targets, targetDate)
 	}
 	if err != nil {
 		return nil, err
@@ -398,12 +419,12 @@ func (uc *ExchangeRateUsecase) FetchExchangeRates(ctx context.Context, organizat
 
 // fetchNonCNYQuotes 非本币组织的两级抓取：国际直盘首选；失败时基于中行牌价
 // 交叉换算备选（备用来源与换算路径在预览中明示）。
-func (uc *ExchangeRateUsecase) fetchNonCNYQuotes(ctx context.Context, baseCurrency string, currencies []string) (*ExchangeRateQuoteSet, error) {
+func (uc *ExchangeRateUsecase) fetchNonCNYQuotes(ctx context.Context, baseCurrency string, currencies []string, targetDate ...string) (*ExchangeRateQuoteSet, error) {
 	direct, directErr := uc.quoteProvider.FetchDirectQuotes(ctx, baseCurrency, currencies)
 	if directErr == nil {
 		return direct, nil
 	}
-	cnySet, cnyErr := uc.quoteProvider.FetchCNYBankQuotes(ctx, append(append([]string(nil), currencies...), baseCurrency))
+	cnySet, cnyErr := uc.quoteProvider.FetchCNYBankQuotes(ctx, append(append([]string(nil), currencies...), baseCurrency), targetDate...)
 	if cnyErr != nil {
 		return nil, ErrExchangeRateQuoteUnavailable
 	}

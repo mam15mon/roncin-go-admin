@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -19,6 +20,9 @@ const (
 	// sinaBankForexURL 新浪财经中行专线外汇接口：返回清洗规范的 JSON，数值已按
 	// 1 外币折合本币归一化（免除 /100 换算），需携带 Referer 突破防盗链。
 	sinaBankForexURL = "https://vip.stock.finance.sina.com.cn/forex/api/openapi.php/ForexService.getBankForex"
+	// sinaHistoricalBOCURL 新浪财经中行历史牌价接口：支持按指定日期和币种查询中行官方
+	// 历史汇买、汇卖与折算价，基准为 100 外币，需按 /100 归一化。
+	sinaHistoricalBOCURL = "https://biz.finance.sina.com.cn/forex/forex.php"
 	// sinaQuoteURL 新浪外汇行情接口：以 fx_s{from}{to} 直盘符号批量查询。
 	sinaQuoteURL = "https://hq.sinajs.cn/list="
 	// bocOfficialPriceURL 中国银行官方公开外汇牌价页（HTML 兜底源），
@@ -29,6 +33,14 @@ const (
 	// exchangeQuoteTimeout 外部牌价抓取超时；同步为交互式操作，不可长挂。
 	exchangeQuoteTimeout = 10 * time.Second
 )
+
+var isoToSinaHistoricalCurrency = map[string]string{
+	"USD": "USD", "GBP": "GBP", "EUR": "EUR", "MOP": "MOP",
+	"THB": "THP", "PHP": "PHP", "HKD": "HKD", "CHF": "CHF",
+	"SGD": "SGD", "SEK": "SEK", "DKK": "DKK", "NOK": "NOK",
+	"JPY": "JPY", "CAD": "CAD", "AUD": "AUD", "NZD": "NZD",
+	"KRW": "KRW",
+}
 
 // exchangeRateQuoteProvider 实现外部牌价抓取：CNY 本币走新浪中行专线主源 +
 // 中行官方牌价页兜底；国际直盘走新浪 fx_s 行情。抓取失败原样返回错误，
@@ -41,8 +53,20 @@ func NewExchangeRateQuoteProvider() biz.ExchangeRateQuoteProvider {
 	return &exchangeRateQuoteProvider{client: &http.Client{Timeout: exchangeQuoteTimeout}}
 }
 
-func (p *exchangeRateQuoteProvider) FetchCNYBankQuotes(ctx context.Context, currencies []string) (*biz.ExchangeRateQuoteSet, error) {
+func (p *exchangeRateQuoteProvider) FetchCNYBankQuotes(ctx context.Context, currencies []string, targetDate ...string) (*biz.ExchangeRateQuoteSet, error) {
 	wanted := currencySet(currencies)
+	var date string
+	if len(targetDate) > 0 {
+		date = strings.TrimSpace(targetDate[0])
+	}
+	// 若传入目标发盘日（如周二录当周，调取周一开盘牌价），优先通过新浪中行历史接口拉取开盘价。
+	if date != "" {
+		histQuotes, histErr := p.fetchSinaHistoricalBOCQuotes(ctx, currencies, date)
+		if histErr == nil && len(histQuotes) > 0 {
+			return &biz.ExchangeRateQuoteSet{Source: "新浪财经中行专线（周一开盘）", Quotes: histQuotes}, nil
+		}
+	}
+	// 实时主源：新浪中行专线
 	payload, err := p.fetch(ctx, sinaBankForexURL, sinaReferer)
 	if err == nil {
 		quotes, parseErr := parseSinaBankForexQuotes(payload, wanted)
@@ -60,6 +84,51 @@ func (p *exchangeRateQuoteProvider) FetchCNYBankQuotes(ctx context.Context, curr
 		return nil, fmt.Errorf("%w: 中行官方牌价解析失败", biz.ErrExchangeRateQuoteUnavailable)
 	}
 	return &biz.ExchangeRateQuoteSet{Source: "中国银行官方牌价", FallbackUsed: true, Quotes: quotes}, nil
+}
+
+func (p *exchangeRateQuoteProvider) fetchSinaHistoricalBOCQuotes(ctx context.Context, currencies []string, targetDate string) (map[string]biz.ExchangeRateQuote, error) {
+	wanted := currencySet(currencies)
+	type result struct {
+		code  string
+		quote biz.ExchangeRateQuote
+		ok    bool
+	}
+	var wg sync.WaitGroup
+	resChan := make(chan result, len(wanted))
+
+	for code := range wanted {
+		sinaCode, ok := isoToSinaHistoricalCurrency[code]
+		if !ok {
+			continue
+		}
+		wg.Add(1)
+		go func(c, sc string) {
+			defer wg.Done()
+			reqURL := fmt.Sprintf("%s?start_date=%s&end_date=%s&money_code=%s&type=0", sinaHistoricalBOCURL, targetDate, targetDate, sc)
+			payload, err := p.fetch(ctx, reqURL, sinaReferer)
+			if err != nil {
+				return
+			}
+			quote, found := parseSinaForexHistoricalTable(payload, targetDate)
+			if found {
+				resChan <- result{code: c, quote: quote, ok: true}
+			}
+		}(code, sinaCode)
+	}
+
+	wg.Wait()
+	close(resChan)
+
+	quotes := make(map[string]biz.ExchangeRateQuote)
+	for r := range resChan {
+		if r.ok {
+			quotes[r.code] = r.quote
+		}
+	}
+	if len(quotes) == 0 {
+		return nil, fmt.Errorf("无历史牌价命中")
+	}
+	return quotes, nil
 }
 
 func (p *exchangeRateQuoteProvider) FetchDirectQuotes(ctx context.Context, baseCurrency string, currencies []string) (*biz.ExchangeRateQuoteSet, error) {
@@ -109,31 +178,35 @@ func currencySet(codes []string) map[string]struct{} {
 // sinaBankForexResponse 新浪中行专线 JSON 结构（宽松解析：仅锚定所需字段）。
 type sinaBankForexResponse struct {
 	Result struct {
-		Data []map[string]any `json:"data"`
+		Data any `json:"data"`
 	} `json:"result"`
 }
 
-// parseSinaBankForexQuotes 解析新浪中行专线 JSON：筛选 bank=boc（中国银行）条目，
+// parseSinaBankForexQuotes 解析新浪中行专线 JSON：支持 real 线上字典结构
+// data.bank[CURRENCY][] 与数组结构；筛选 bank=boc（中国银行）条目，
 // xh_sell_price（现汇卖出价）→ 建议 ar_rate，xh_buy_price（现汇买入价）→ 建议
-// ap_rate；数值已归一化，直接使用。币种取自 symbol/code 字段前三位（如 USDCNY→USD）。
+// ap_rate；数值已归一化，直接使用。
 func parseSinaBankForexQuotes(payload []byte, wanted map[string]struct{}) (map[string]biz.ExchangeRateQuote, error) {
 	var parsed sinaBankForexResponse
 	if err := json.Unmarshal(payload, &parsed); err != nil {
 		return nil, err
 	}
 	quotes := make(map[string]biz.ExchangeRateQuote)
-	for _, item := range parsed.Result.Data {
+
+	extractItem := func(code string, item map[string]any) {
 		if !isBOCBankEntry(item) {
-			continue
+			return
 		}
-		code := bankForexCurrencyCode(item)
+		if code == "" {
+			code = bankForexCurrencyCode(item)
+		}
 		if _, ok := wanted[code]; !ok {
-			continue
+			return
 		}
 		sell, sellOK := bankForexDecimal(item, "xh_sell_price")
 		buy, buyOK := bankForexDecimal(item, "xh_buy_price")
 		if !sellOK || !buyOK || !sell.IsPositive() || !buy.IsPositive() {
-			continue
+			return
 		}
 		quotes[code] = biz.ExchangeRateQuote{
 			ARRate: sell,
@@ -142,6 +215,29 @@ func parseSinaBankForexQuotes(payload []byte, wanted map[string]struct{}) (map[s
 			Detail: "中国银行现汇买卖价（新浪中行专线，已归一化）",
 		}
 	}
+
+	switch data := parsed.Result.Data.(type) {
+	case []any:
+		for _, raw := range data {
+			if item, ok := raw.(map[string]any); ok {
+				extractItem("", item)
+			}
+		}
+	case map[string]any:
+		if bankMap, ok := data["bank"].(map[string]any); ok {
+			for curr, rawList := range bankMap {
+				code := strings.ToUpper(strings.TrimSpace(curr))
+				if list, ok := rawList.([]any); ok {
+					for _, raw := range list {
+						if item, ok := raw.(map[string]any); ok {
+							extractItem(code, item)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return quotes, nil
 }
 
@@ -292,4 +388,57 @@ func parseSinaDirectQuotes(payload []byte, baseCurrency string, wanted map[strin
 		}
 	}
 	return quotes, nil
+}
+
+var (
+	historicalTableRowPattern  = regexp.MustCompile(`(?is)<tr[^>]*>(.*?)</tr>`)
+	historicalTableCellPattern = regexp.MustCompile(`(?is)<td[^>]*>(.*?)</td>`)
+	historicalDatePattern      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+)
+
+// parseSinaForexHistoricalTable 解析新浪中行历史牌价页表格：
+// 优先精确匹配 targetDate 行；若 targetDate 恰逢节假日停盘，则回溯 targetDate 之前最新发布的交易日行情。
+// 报价基准为 100 外币，按 /100 归一化。
+func parseSinaForexHistoricalTable(payload []byte, targetDate string) (biz.ExchangeRateQuote, bool) {
+	var fallbackQuote biz.ExchangeRateQuote
+	var fallbackFound bool
+
+	for _, rowMatch := range historicalTableRowPattern.FindAllSubmatch(payload, -1) {
+		cellMatches := historicalTableCellPattern.FindAllSubmatch(rowMatch[1], -1)
+		if len(cellMatches) < 6 {
+			continue
+		}
+		cells := make([]string, len(cellMatches))
+		for i, c := range cellMatches {
+			text := bocTagPattern.ReplaceAll(c[1], nil)
+			cells[i] = bocWhitespacePattern.ReplaceAllString(string(text), "")
+		}
+		rowDate := cells[0]
+		if !historicalDatePattern.MatchString(rowDate) {
+			continue
+		}
+		buy, buyOK := bocNormalizedPrice(cells[1])
+		sell, sellOK := bocNormalizedPrice(cells[3])
+		conversion, convOK := bocNormalizedPrice(cells[5])
+		if !buyOK || !sellOK || !convOK {
+			continue
+		}
+		quote := biz.ExchangeRateQuote{
+			ARRate: sell,
+			APRate: buy,
+			Rate:   conversion,
+			Detail: fmt.Sprintf("中国银行官方牌价（%s 周一开盘，新浪中行专线，已归一化）", rowDate),
+		}
+		if rowDate == targetDate {
+			return quote, true
+		}
+		if rowDate < targetDate && !fallbackFound {
+			fallbackQuote = quote
+			fallbackFound = true
+		}
+	}
+	if fallbackFound {
+		return fallbackQuote, true
+	}
+	return biz.ExchangeRateQuote{}, false
 }

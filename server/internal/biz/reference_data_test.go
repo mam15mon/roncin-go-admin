@@ -3,6 +3,8 @@ package biz
 import (
 	"context"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 type referenceDataRepoStub struct {
@@ -15,7 +17,11 @@ func (stub *referenceDataRepoStub) SearchCurrencies(_ context.Context, options S
 	return &PagedList[*Currency]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (stub *referenceDataRepoStub) ListCurrencies(context.Context) ([]*Currency, error) {
+func (stub *referenceDataRepoStub) ListCurrencies(_ context.Context, _ uuid.UUID, _ bool) ([]*Currency, error) {
+	return nil, nil
+}
+
+func (stub *referenceDataRepoStub) SetCurrencyEnabled(_ context.Context, _ uuid.UUID, _ string, _ bool) (*Currency, error) {
 	return nil, nil
 }
 
@@ -83,6 +89,14 @@ func TestReferenceDataRejectsInvalidAdministrativeRegionQuery(t *testing.T) {
 }
 
 func stringPointer(value string) *string { return &value }
+
+func TestReferenceDataSetCurrencyEnabledValidation(t *testing.T) {
+	repo := &referenceDataRepoStub{}
+	usecase := NewReferenceDataUsecase(repo)
+	if _, err := usecase.SetCurrencyEnabled(context.Background(), uuid.New(), "   ", true); err != ErrReferenceDataInvalidArgument {
+		t.Fatalf("SetCurrencyEnabled() empty code error = %v, want ErrReferenceDataInvalidArgument", err)
+	}
+}
 
 func TestReferenceDataAdministrativeRegionFullListQuery(t *testing.T) {
 	repo := &referenceDataRepoStub{}

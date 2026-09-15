@@ -4243,6 +4243,7 @@ func (x *UpdateShippingLineResponse) GetTraceId() string {
 
 type ListCurrenciesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	EnabledOnly   bool                   `protobuf:"varint,1,opt,name=enabled_only,json=enabledOnly,proto3" json:"enabled_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4275,6 +4276,13 @@ func (x *ListCurrenciesRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListCurrenciesRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrenciesRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ListCurrenciesRequest) GetEnabledOnly() bool {
+	if x != nil {
+		return x.EnabledOnly
+	}
+	return false
 }
 
 type SearchCurrenciesRequest struct {
@@ -4338,17 +4346,18 @@ func (x *SearchCurrenciesRequest) GetPageSize() int32 {
 }
 
 type Currency struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Symbol        string                 `protobuf:"bytes,4,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	MinorUnit     int32                  `protobuf:"varint,5,opt,name=minor_unit,json=minorUnit,proto3" json:"minor_unit,omitempty"`
-	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code           string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name           string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Symbol         string                 `protobuf:"bytes,4,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	MinorUnit      int32                  `protobuf:"varint,5,opt,name=minor_unit,json=minorUnit,proto3" json:"minor_unit,omitempty"`
+	Enabled        *bool                  `protobuf:"varint,6,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	IsBaseCurrency *bool                  `protobuf:"varint,9,opt,name=is_base_currency,json=isBaseCurrency,proto3,oneof" json:"is_base_currency,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Currency) Reset() {
@@ -4417,8 +4426,8 @@ func (x *Currency) GetMinorUnit() int32 {
 }
 
 func (x *Currency) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
 	}
 	return false
 }
@@ -4433,6 +4442,141 @@ func (x *Currency) GetCreatedAt() string {
 func (x *Currency) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Currency) GetIsBaseCurrency() bool {
+	if x != nil && x.IsBaseCurrency != nil {
+		return *x.IsBaseCurrency
+	}
+	return false
+}
+
+type SetCurrencyEnabledRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Enabled       bool                   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetCurrencyEnabledRequest) Reset() {
+	*x = SetCurrencyEnabledRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetCurrencyEnabledRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetCurrencyEnabledRequest) ProtoMessage() {}
+
+func (x *SetCurrencyEnabledRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetCurrencyEnabledRequest.ProtoReflect.Descriptor instead.
+func (*SetCurrencyEnabledRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SetCurrencyEnabledRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *SetCurrencyEnabledRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type SetCurrencyEnabledResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Currency              `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetCurrencyEnabledResponse) Reset() {
+	*x = SetCurrencyEnabledResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetCurrencyEnabledResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetCurrencyEnabledResponse) ProtoMessage() {}
+
+func (x *SetCurrencyEnabledResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetCurrencyEnabledResponse.ProtoReflect.Descriptor instead.
+func (*SetCurrencyEnabledResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *SetCurrencyEnabledResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SetCurrencyEnabledResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SetCurrencyEnabledResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SetCurrencyEnabledResponse) GetData() *Currency {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SetCurrencyEnabledResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
 	}
 	return ""
 }
@@ -4453,7 +4597,7 @@ type ListCurrenciesResponse struct {
 
 func (x *ListCurrenciesResponse) Reset() {
 	*x = ListCurrenciesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4465,7 +4609,7 @@ func (x *ListCurrenciesResponse) String() string {
 func (*ListCurrenciesResponse) ProtoMessage() {}
 
 func (x *ListCurrenciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4478,7 +4622,7 @@ func (x *ListCurrenciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrenciesResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrenciesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListCurrenciesResponse) GetSuccess() bool {
@@ -4553,7 +4697,7 @@ type SearchCurrenciesResponse struct {
 
 func (x *SearchCurrenciesResponse) Reset() {
 	*x = SearchCurrenciesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4565,7 +4709,7 @@ func (x *SearchCurrenciesResponse) String() string {
 func (*SearchCurrenciesResponse) ProtoMessage() {}
 
 func (x *SearchCurrenciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4578,7 +4722,7 @@ func (x *SearchCurrenciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchCurrenciesResponse.ProtoReflect.Descriptor instead.
 func (*SearchCurrenciesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *SearchCurrenciesResponse) GetSuccess() bool {
@@ -4650,7 +4794,7 @@ type ListAdministrativeRegionsRequest struct {
 
 func (x *ListAdministrativeRegionsRequest) Reset() {
 	*x = ListAdministrativeRegionsRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4662,7 +4806,7 @@ func (x *ListAdministrativeRegionsRequest) String() string {
 func (*ListAdministrativeRegionsRequest) ProtoMessage() {}
 
 func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4675,7 +4819,7 @@ func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAdministrativeRegionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAdministrativeRegionsRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListAdministrativeRegionsRequest) GetLevel() int32 {
@@ -4732,7 +4876,7 @@ type AdministrativeRegion struct {
 
 func (x *AdministrativeRegion) Reset() {
 	*x = AdministrativeRegion{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4744,7 +4888,7 @@ func (x *AdministrativeRegion) String() string {
 func (*AdministrativeRegion) ProtoMessage() {}
 
 func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4757,7 +4901,7 @@ func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdministrativeRegion.ProtoReflect.Descriptor instead.
 func (*AdministrativeRegion) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *AdministrativeRegion) GetId() string {
@@ -4853,7 +4997,7 @@ type ListAdministrativeRegionsResponse struct {
 
 func (x *ListAdministrativeRegionsResponse) Reset() {
 	*x = ListAdministrativeRegionsResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4865,7 +5009,7 @@ func (x *ListAdministrativeRegionsResponse) String() string {
 func (*ListAdministrativeRegionsResponse) ProtoMessage() {}
 
 func (x *ListAdministrativeRegionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4878,7 +5022,7 @@ func (x *ListAdministrativeRegionsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListAdministrativeRegionsResponse.ProtoReflect.Descriptor instead.
 func (*ListAdministrativeRegionsResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListAdministrativeRegionsResponse) GetSuccess() bool {
@@ -4945,7 +5089,7 @@ type ListNumberRulesRequest struct {
 
 func (x *ListNumberRulesRequest) Reset() {
 	*x = ListNumberRulesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4957,7 +5101,7 @@ func (x *ListNumberRulesRequest) String() string {
 func (*ListNumberRulesRequest) ProtoMessage() {}
 
 func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4970,7 +5114,7 @@ func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNumberRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListNumberRulesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
 }
 
 type CreateNumberRuleRequest struct {
@@ -4986,7 +5130,7 @@ type CreateNumberRuleRequest struct {
 
 func (x *CreateNumberRuleRequest) Reset() {
 	*x = CreateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4998,7 +5142,7 @@ func (x *CreateNumberRuleRequest) String() string {
 func (*CreateNumberRuleRequest) ProtoMessage() {}
 
 func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5011,7 +5155,7 @@ func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateNumberRuleRequest) GetDocumentType() DocumentType {
@@ -5063,7 +5207,7 @@ type UpdateNumberRuleRequest struct {
 
 func (x *UpdateNumberRuleRequest) Reset() {
 	*x = UpdateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5075,7 +5219,7 @@ func (x *UpdateNumberRuleRequest) String() string {
 func (*UpdateNumberRuleRequest) ProtoMessage() {}
 
 func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5088,7 +5232,7 @@ func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *UpdateNumberRuleRequest) GetId() string {
@@ -5151,7 +5295,7 @@ type NumberRule struct {
 
 func (x *NumberRule) Reset() {
 	*x = NumberRule{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5163,7 +5307,7 @@ func (x *NumberRule) String() string {
 func (*NumberRule) ProtoMessage() {}
 
 func (x *NumberRule) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5176,7 +5320,7 @@ func (x *NumberRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NumberRule.ProtoReflect.Descriptor instead.
 func (*NumberRule) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *NumberRule) GetId() string {
@@ -5262,7 +5406,7 @@ type ListNumberRulesResponse struct {
 
 func (x *ListNumberRulesResponse) Reset() {
 	*x = ListNumberRulesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5274,7 +5418,7 @@ func (x *ListNumberRulesResponse) String() string {
 func (*ListNumberRulesResponse) ProtoMessage() {}
 
 func (x *ListNumberRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5287,7 +5431,7 @@ func (x *ListNumberRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNumberRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListNumberRulesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListNumberRulesResponse) GetSuccess() bool {
@@ -5338,7 +5482,7 @@ type CreateNumberRuleResponse struct {
 
 func (x *CreateNumberRuleResponse) Reset() {
 	*x = CreateNumberRuleResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5350,7 +5494,7 @@ func (x *CreateNumberRuleResponse) String() string {
 func (*CreateNumberRuleResponse) ProtoMessage() {}
 
 func (x *CreateNumberRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5363,7 +5507,7 @@ func (x *CreateNumberRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNumberRuleResponse.ProtoReflect.Descriptor instead.
 func (*CreateNumberRuleResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *CreateNumberRuleResponse) GetSuccess() bool {
@@ -5414,7 +5558,7 @@ type UpdateNumberRuleResponse struct {
 
 func (x *UpdateNumberRuleResponse) Reset() {
 	*x = UpdateNumberRuleResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5426,7 +5570,7 @@ func (x *UpdateNumberRuleResponse) String() string {
 func (*UpdateNumberRuleResponse) ProtoMessage() {}
 
 func (x *UpdateNumberRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5439,7 +5583,7 @@ func (x *UpdateNumberRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNumberRuleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNumberRuleResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *UpdateNumberRuleResponse) GetSuccess() bool {
@@ -5960,24 +6104,38 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.masterdata.v1.ShippingLineR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x17\n" +
-	"\x15ListCurrenciesRequest\"d\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\":\n" +
+	"\x15ListCurrenciesRequest\x12!\n" +
+	"\fenabled_only\x18\x01 \x01(\bR\venabledOnly\"d\n" +
 	"\x17SearchCurrenciesRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xd1\x01\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xa6\x02\n" +
 	"\bCurrency\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
 	"\x06symbol\x18\x04 \x01(\tR\x06symbol\x12\x1d\n" +
 	"\n" +
-	"minor_unit\x18\x05 \x01(\x05R\tminorUnit\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x1d\n" +
+	"minor_unit\x18\x05 \x01(\x05R\tminorUnit\x12\x1d\n" +
+	"\aenabled\x18\x06 \x01(\bH\x00R\aenabled\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xef\x01\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12-\n" +
+	"\x10is_base_currency\x18\t \x01(\bH\x01R\x0eisBaseCurrency\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabledB\x13\n" +
+	"\x11_is_base_currency\"N\n" +
+	"\x19SetCurrencyEnabledRequest\x12\x17\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\"\xac\x01\n" +
+	"\x1aSetCurrencyEnabledResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x04 \x01(\v2\x17.masterdata.v1.CurrencyR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xef\x01\n" +
 	"\x16ListCurrenciesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -6136,32 +6294,33 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
 	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
 	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
-	"\x12BUSINESS_TYPE_RAIL\x10\x062\xbe \n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\xbb\x1f\n" +
 	"\x11MasterDataService\x12\x97\x01\n" +
 	"\tListItems\x12\x1f.masterdata.v1.ListItemsRequest\x1a .masterdata.v1.ListItemsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.item.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x9f\x01\n" +
 	"\n" +
 	"CreateItem\x12 .masterdata.v1.CreateItemRequest\x1a!.masterdata.v1.CreateItemResponse\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\xa4\x01\n" +
 	"\n" +
 	"UpdateItem\x12 .masterdata.v1.UpdateItemRequest\x1a!.masterdata.v1.UpdateItemResponse\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\xa3\x01\n" +
-	"\vImportItems\x12!.masterdata.v1.ImportItemsRequest\x1a\".masterdata.v1.ImportItemsResponse\"M\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.import \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\xa1\x01\n" +
-	"\vListOptions\x12!.masterdata.v1.ListOptionsRequest\x1a\".masterdata.v1.ListOptionsResponse\"K\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.option.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12\x97\x01\n" +
-	"\tListPorts\x12\x1f.masterdata.v1.ListPortsRequest\x1a .masterdata.v1.ListPortsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.port.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12\x9f\x01\n" +
+	"\vImportItems\x12!.masterdata.v1.ImportItemsRequest\x1a\".masterdata.v1.ImportItemsResponse\"M\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.import \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\x7f\n" +
+	"\vListOptions\x12!.masterdata.v1.ListOptionsRequest\x1a\".masterdata.v1.ListOptionsResponse\")\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12w\n" +
+	"\tListPorts\x12\x1f.masterdata.v1.ListPortsRequest\x1a .masterdata.v1.ListPortsResponse\"'\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12\x9f\x01\n" +
 	"\n" +
 	"CreatePort\x12 .masterdata.v1.CreatePortRequest\x1a!.masterdata.v1.CreatePortResponse\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/ports\x12\xa4\x01\n" +
 	"\n" +
-	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a!.masterdata.v1.UpdatePortResponse\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\xa6\x01\n" +
-	"\fListAirports\x12\".masterdata.v1.ListAirportsRequest\x1a#.masterdata.v1.ListAirportsResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airport.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12\xae\x01\n" +
+	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a!.masterdata.v1.UpdatePortResponse\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\x83\x01\n" +
+	"\fListAirports\x12\".masterdata.v1.ListAirportsRequest\x1a#.masterdata.v1.ListAirportsResponse\"*\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12\xae\x01\n" +
 	"\rCreateAirport\x12#.masterdata.v1.CreateAirportRequest\x1a$.masterdata.v1.CreateAirportResponse\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airport.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airports\x12\xb3\x01\n" +
-	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a$.masterdata.v1.UpdateAirportResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airport.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\xa6\x01\n" +
-	"\fListAirlines\x12\".masterdata.v1.ListAirlinesRequest\x1a#.masterdata.v1.ListAirlinesResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airline.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12\xae\x01\n" +
+	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a$.masterdata.v1.UpdateAirportResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airport.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\x83\x01\n" +
+	"\fListAirlines\x12\".masterdata.v1.ListAirlinesRequest\x1a#.masterdata.v1.ListAirlinesResponse\"*\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12\xae\x01\n" +
 	"\rCreateAirline\x12#.masterdata.v1.CreateAirlineRequest\x1a$.masterdata.v1.CreateAirlineResponse\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airline.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airlines\x12\xb3\x01\n" +
-	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a$.masterdata.v1.UpdateAirlineResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airline.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\xc1\x01\n" +
-	"\x11ListShippingLines\x12'.masterdata.v1.ListShippingLinesRequest\x1a(.masterdata.v1.ListShippingLinesResponse\"Y\x82\xb5\x18+\b\x03\x12%system.master_data.shipping_line.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc9\x01\n" +
+	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a$.masterdata.v1.UpdateAirlineResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airline.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\x98\x01\n" +
+	"\x11ListShippingLines\x12'.masterdata.v1.ListShippingLinesRequest\x1a(.masterdata.v1.ListShippingLinesResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc9\x01\n" +
 	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a).masterdata.v1.CreateShippingLineResponse\"^\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.create \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\xce\x01\n" +
-	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a).masterdata.v1.UpdateShippingLineResponse\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\xad\x01\n" +
-	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xba\x01\n" +
-	"\x10SearchCurrencies\x12&.masterdata.v1.SearchCurrenciesRequest\x1a'.masterdata.v1.SearchCurrenciesResponse\"U\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/reference/currencies/search\x12\xe7\x01\n" +
-	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a0.masterdata.v1.ListAdministrativeRegionsResponse\"g\x82\xb5\x183\b\x03\x12-system.master_data.administrative_region.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb7\x01\n" +
+	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a).masterdata.v1.UpdateShippingLineResponse\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\x89\x01\n" +
+	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"*\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\x96\x01\n" +
+	"\x10SearchCurrencies\x12&.masterdata.v1.SearchCurrenciesRequest\x1a'.masterdata.v1.SearchCurrenciesResponse\"1\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/reference/currencies/search\x12\xa6\x01\n" +
+	"\x12SetCurrencyEnabled\x12(.masterdata.v1.SetCurrencyEnabledRequest\x1a).masterdata.v1.SetCurrencyEnabledResponse\";\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/reference/currencies/{code}/status\x12\xb6\x01\n" +
+	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a0.masterdata.v1.ListAdministrativeRegionsResponse\"6\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb7\x01\n" +
 	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a&.masterdata.v1.ListNumberRulesResponse\"U\x82\xb5\x18)\b\x03\x12#system.master_data.number_rule.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\xbf\x01\n" +
 	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a'.masterdata.v1.CreateNumberRuleResponse\"Z\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\xc4\x01\n" +
 	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a'.masterdata.v1.UpdateNumberRuleResponse\"_\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.update \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}B?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
@@ -6179,7 +6338,7 @@ func file_masterdata_v1_masterdata_proto_rawDescGZIP() []byte {
 }
 
 var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
+var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_masterdata_v1_masterdata_proto_goTypes = []any{
 	(MasterDataImportMode)(0),                 // 0: masterdata.v1.MasterDataImportMode
 	(MasterDataKind)(0),                       // 1: masterdata.v1.MasterDataKind
@@ -6231,18 +6390,20 @@ var file_masterdata_v1_masterdata_proto_goTypes = []any{
 	(*ListCurrenciesRequest)(nil),             // 47: masterdata.v1.ListCurrenciesRequest
 	(*SearchCurrenciesRequest)(nil),           // 48: masterdata.v1.SearchCurrenciesRequest
 	(*Currency)(nil),                          // 49: masterdata.v1.Currency
-	(*ListCurrenciesResponse)(nil),            // 50: masterdata.v1.ListCurrenciesResponse
-	(*SearchCurrenciesResponse)(nil),          // 51: masterdata.v1.SearchCurrenciesResponse
-	(*ListAdministrativeRegionsRequest)(nil),  // 52: masterdata.v1.ListAdministrativeRegionsRequest
-	(*AdministrativeRegion)(nil),              // 53: masterdata.v1.AdministrativeRegion
-	(*ListAdministrativeRegionsResponse)(nil), // 54: masterdata.v1.ListAdministrativeRegionsResponse
-	(*ListNumberRulesRequest)(nil),            // 55: masterdata.v1.ListNumberRulesRequest
-	(*CreateNumberRuleRequest)(nil),           // 56: masterdata.v1.CreateNumberRuleRequest
-	(*UpdateNumberRuleRequest)(nil),           // 57: masterdata.v1.UpdateNumberRuleRequest
-	(*NumberRule)(nil),                        // 58: masterdata.v1.NumberRule
-	(*ListNumberRulesResponse)(nil),           // 59: masterdata.v1.ListNumberRulesResponse
-	(*CreateNumberRuleResponse)(nil),          // 60: masterdata.v1.CreateNumberRuleResponse
-	(*UpdateNumberRuleResponse)(nil),          // 61: masterdata.v1.UpdateNumberRuleResponse
+	(*SetCurrencyEnabledRequest)(nil),         // 50: masterdata.v1.SetCurrencyEnabledRequest
+	(*SetCurrencyEnabledResponse)(nil),        // 51: masterdata.v1.SetCurrencyEnabledResponse
+	(*ListCurrenciesResponse)(nil),            // 52: masterdata.v1.ListCurrenciesResponse
+	(*SearchCurrenciesResponse)(nil),          // 53: masterdata.v1.SearchCurrenciesResponse
+	(*ListAdministrativeRegionsRequest)(nil),  // 54: masterdata.v1.ListAdministrativeRegionsRequest
+	(*AdministrativeRegion)(nil),              // 55: masterdata.v1.AdministrativeRegion
+	(*ListAdministrativeRegionsResponse)(nil), // 56: masterdata.v1.ListAdministrativeRegionsResponse
+	(*ListNumberRulesRequest)(nil),            // 57: masterdata.v1.ListNumberRulesRequest
+	(*CreateNumberRuleRequest)(nil),           // 58: masterdata.v1.CreateNumberRuleRequest
+	(*UpdateNumberRuleRequest)(nil),           // 59: masterdata.v1.UpdateNumberRuleRequest
+	(*NumberRule)(nil),                        // 60: masterdata.v1.NumberRule
+	(*ListNumberRulesResponse)(nil),           // 61: masterdata.v1.ListNumberRulesResponse
+	(*CreateNumberRuleResponse)(nil),          // 62: masterdata.v1.CreateNumberRuleResponse
+	(*UpdateNumberRuleResponse)(nil),          // 63: masterdata.v1.UpdateNumberRuleResponse
 }
 var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	1,  // 0: masterdata.v1.ListItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
@@ -6273,71 +6434,74 @@ var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	41, // 25: masterdata.v1.ListShippingLinesResponse.data:type_name -> masterdata.v1.ShippingLine
 	41, // 26: masterdata.v1.CreateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
 	41, // 27: masterdata.v1.UpdateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
-	49, // 28: masterdata.v1.ListCurrenciesResponse.data:type_name -> masterdata.v1.Currency
-	49, // 29: masterdata.v1.SearchCurrenciesResponse.data:type_name -> masterdata.v1.Currency
-	53, // 30: masterdata.v1.ListAdministrativeRegionsResponse.data:type_name -> masterdata.v1.AdministrativeRegion
-	2,  // 31: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
-	3,  // 32: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 33: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	3,  // 34: masterdata.v1.UpdateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 35: masterdata.v1.UpdateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	2,  // 36: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
-	3,  // 37: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 38: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	58, // 39: masterdata.v1.ListNumberRulesResponse.data:type_name -> masterdata.v1.NumberRule
-	58, // 40: masterdata.v1.CreateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
-	58, // 41: masterdata.v1.UpdateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
-	6,  // 42: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListItemsRequest
-	8,  // 43: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateItemRequest
-	9,  // 44: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateItemRequest
-	11, // 45: masterdata.v1.MasterDataService.ImportItems:input_type -> masterdata.v1.ImportItemsRequest
-	13, // 46: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListOptionsRequest
-	19, // 47: masterdata.v1.MasterDataService.ListPorts:input_type -> masterdata.v1.ListPortsRequest
-	24, // 48: masterdata.v1.MasterDataService.CreatePort:input_type -> masterdata.v1.CreatePortRequest
-	25, // 49: masterdata.v1.MasterDataService.UpdatePort:input_type -> masterdata.v1.UpdatePortRequest
-	20, // 50: masterdata.v1.MasterDataService.ListAirports:input_type -> masterdata.v1.ListAirportsRequest
-	30, // 51: masterdata.v1.MasterDataService.CreateAirport:input_type -> masterdata.v1.CreateAirportRequest
-	31, // 52: masterdata.v1.MasterDataService.UpdateAirport:input_type -> masterdata.v1.UpdateAirportRequest
-	21, // 53: masterdata.v1.MasterDataService.ListAirlines:input_type -> masterdata.v1.ListAirlinesRequest
-	36, // 54: masterdata.v1.MasterDataService.CreateAirline:input_type -> masterdata.v1.CreateAirlineRequest
-	37, // 55: masterdata.v1.MasterDataService.UpdateAirline:input_type -> masterdata.v1.UpdateAirlineRequest
-	22, // 56: masterdata.v1.MasterDataService.ListShippingLines:input_type -> masterdata.v1.ListShippingLinesRequest
-	42, // 57: masterdata.v1.MasterDataService.CreateShippingLine:input_type -> masterdata.v1.CreateShippingLineRequest
-	43, // 58: masterdata.v1.MasterDataService.UpdateShippingLine:input_type -> masterdata.v1.UpdateShippingLineRequest
-	47, // 59: masterdata.v1.MasterDataService.ListCurrencies:input_type -> masterdata.v1.ListCurrenciesRequest
-	48, // 60: masterdata.v1.MasterDataService.SearchCurrencies:input_type -> masterdata.v1.SearchCurrenciesRequest
-	52, // 61: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
-	55, // 62: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
-	56, // 63: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
-	57, // 64: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
-	15, // 65: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.ListItemsResponse
-	16, // 66: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.CreateItemResponse
-	17, // 67: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.UpdateItemResponse
-	12, // 68: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.ImportItemsResponse
-	18, // 69: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.ListOptionsResponse
-	26, // 70: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.ListPortsResponse
-	27, // 71: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.CreatePortResponse
-	28, // 72: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.UpdatePortResponse
-	32, // 73: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.ListAirportsResponse
-	33, // 74: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.CreateAirportResponse
-	34, // 75: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.UpdateAirportResponse
-	38, // 76: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.ListAirlinesResponse
-	39, // 77: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.CreateAirlineResponse
-	40, // 78: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.UpdateAirlineResponse
-	44, // 79: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ListShippingLinesResponse
-	45, // 80: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.CreateShippingLineResponse
-	46, // 81: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.UpdateShippingLineResponse
-	50, // 82: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
-	51, // 83: masterdata.v1.MasterDataService.SearchCurrencies:output_type -> masterdata.v1.SearchCurrenciesResponse
-	54, // 84: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.ListAdministrativeRegionsResponse
-	59, // 85: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.ListNumberRulesResponse
-	60, // 86: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.CreateNumberRuleResponse
-	61, // 87: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.UpdateNumberRuleResponse
-	65, // [65:88] is the sub-list for method output_type
-	42, // [42:65] is the sub-list for method input_type
-	42, // [42:42] is the sub-list for extension type_name
-	42, // [42:42] is the sub-list for extension extendee
-	0,  // [0:42] is the sub-list for field type_name
+	49, // 28: masterdata.v1.SetCurrencyEnabledResponse.data:type_name -> masterdata.v1.Currency
+	49, // 29: masterdata.v1.ListCurrenciesResponse.data:type_name -> masterdata.v1.Currency
+	49, // 30: masterdata.v1.SearchCurrenciesResponse.data:type_name -> masterdata.v1.Currency
+	55, // 31: masterdata.v1.ListAdministrativeRegionsResponse.data:type_name -> masterdata.v1.AdministrativeRegion
+	2,  // 32: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
+	3,  // 33: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 34: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	3,  // 35: masterdata.v1.UpdateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 36: masterdata.v1.UpdateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	2,  // 37: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
+	3,  // 38: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 39: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	60, // 40: masterdata.v1.ListNumberRulesResponse.data:type_name -> masterdata.v1.NumberRule
+	60, // 41: masterdata.v1.CreateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	60, // 42: masterdata.v1.UpdateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	6,  // 43: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListItemsRequest
+	8,  // 44: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateItemRequest
+	9,  // 45: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateItemRequest
+	11, // 46: masterdata.v1.MasterDataService.ImportItems:input_type -> masterdata.v1.ImportItemsRequest
+	13, // 47: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListOptionsRequest
+	19, // 48: masterdata.v1.MasterDataService.ListPorts:input_type -> masterdata.v1.ListPortsRequest
+	24, // 49: masterdata.v1.MasterDataService.CreatePort:input_type -> masterdata.v1.CreatePortRequest
+	25, // 50: masterdata.v1.MasterDataService.UpdatePort:input_type -> masterdata.v1.UpdatePortRequest
+	20, // 51: masterdata.v1.MasterDataService.ListAirports:input_type -> masterdata.v1.ListAirportsRequest
+	30, // 52: masterdata.v1.MasterDataService.CreateAirport:input_type -> masterdata.v1.CreateAirportRequest
+	31, // 53: masterdata.v1.MasterDataService.UpdateAirport:input_type -> masterdata.v1.UpdateAirportRequest
+	21, // 54: masterdata.v1.MasterDataService.ListAirlines:input_type -> masterdata.v1.ListAirlinesRequest
+	36, // 55: masterdata.v1.MasterDataService.CreateAirline:input_type -> masterdata.v1.CreateAirlineRequest
+	37, // 56: masterdata.v1.MasterDataService.UpdateAirline:input_type -> masterdata.v1.UpdateAirlineRequest
+	22, // 57: masterdata.v1.MasterDataService.ListShippingLines:input_type -> masterdata.v1.ListShippingLinesRequest
+	42, // 58: masterdata.v1.MasterDataService.CreateShippingLine:input_type -> masterdata.v1.CreateShippingLineRequest
+	43, // 59: masterdata.v1.MasterDataService.UpdateShippingLine:input_type -> masterdata.v1.UpdateShippingLineRequest
+	47, // 60: masterdata.v1.MasterDataService.ListCurrencies:input_type -> masterdata.v1.ListCurrenciesRequest
+	48, // 61: masterdata.v1.MasterDataService.SearchCurrencies:input_type -> masterdata.v1.SearchCurrenciesRequest
+	50, // 62: masterdata.v1.MasterDataService.SetCurrencyEnabled:input_type -> masterdata.v1.SetCurrencyEnabledRequest
+	54, // 63: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
+	57, // 64: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
+	58, // 65: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
+	59, // 66: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
+	15, // 67: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.ListItemsResponse
+	16, // 68: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.CreateItemResponse
+	17, // 69: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.UpdateItemResponse
+	12, // 70: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.ImportItemsResponse
+	18, // 71: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.ListOptionsResponse
+	26, // 72: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.ListPortsResponse
+	27, // 73: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.CreatePortResponse
+	28, // 74: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.UpdatePortResponse
+	32, // 75: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.ListAirportsResponse
+	33, // 76: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.CreateAirportResponse
+	34, // 77: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.UpdateAirportResponse
+	38, // 78: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.ListAirlinesResponse
+	39, // 79: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.CreateAirlineResponse
+	40, // 80: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.UpdateAirlineResponse
+	44, // 81: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ListShippingLinesResponse
+	45, // 82: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.CreateShippingLineResponse
+	46, // 83: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.UpdateShippingLineResponse
+	52, // 84: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
+	53, // 85: masterdata.v1.MasterDataService.SearchCurrencies:output_type -> masterdata.v1.SearchCurrenciesResponse
+	51, // 86: masterdata.v1.MasterDataService.SetCurrencyEnabled:output_type -> masterdata.v1.SetCurrencyEnabledResponse
+	56, // 87: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.ListAdministrativeRegionsResponse
+	61, // 88: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.ListNumberRulesResponse
+	62, // 89: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.CreateNumberRuleResponse
+	63, // 90: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.UpdateNumberRuleResponse
+	67, // [67:91] is the sub-list for method output_type
+	43, // [43:67] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_masterdata_v1_masterdata_proto_init() }
@@ -6365,15 +6529,16 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[35].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[36].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[37].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[46].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[47].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[43].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[48].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[49].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_masterdata_v1_masterdata_proto_rawDesc), len(file_masterdata_v1_masterdata_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   56,
+			NumMessages:   58,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

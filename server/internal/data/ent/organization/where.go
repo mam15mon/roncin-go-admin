@@ -441,6 +441,16 @@ func BaseCurrencyContainsFold(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldContainsFold(FieldBaseCurrency, v))
 }
 
+// EnabledCurrenciesIsNil applies the IsNil predicate on the "enabled_currencies" field.
+func EnabledCurrenciesIsNil() predicate.Organization {
+	return predicate.Organization(sql.FieldIsNull(FieldEnabledCurrencies))
+}
+
+// EnabledCurrenciesNotNil applies the NotNil predicate on the "enabled_currencies" field.
+func EnabledCurrenciesNotNil() predicate.Organization {
+	return predicate.Organization(sql.FieldNotNull(FieldEnabledCurrencies))
+}
+
 // SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
 func SearchKeywordsEQ(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldSearchKeywords, v))

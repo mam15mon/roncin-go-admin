@@ -6,6 +6,7 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/google/uuid"
 )
@@ -27,11 +28,12 @@ func NewMasterDataService(usecase *biz.MasterDataUsecase, industryUsecase *biz.I
 	}
 }
 
-func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurrenciesRequest) (*v1.ListCurrenciesResponse, error) {
-	if _, err := requirePrincipal(ctx); err != nil {
+func (s *MasterDataService) ListCurrencies(ctx context.Context, request *v1.ListCurrenciesRequest) (*v1.ListCurrenciesResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
 		return nil, err
 	}
-	items, err := s.referenceDataUsecase.ListCurrencies(ctx)
+	items, err := s.referenceDataUsecase.ListCurrencies(ctx, principal.Organization.ID, request.GetEnabledOnly())
 	if err != nil {
 		return nil, err
 	}
@@ -39,11 +41,29 @@ func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurren
 	for _, item := range items {
 		data = append(data, &v1.Currency{
 			Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol,
-			MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled,
+			MinorUnit: int32(item.MinorUnit), Enabled: proto.Bool(item.Enabled), IsBaseCurrency: proto.Bool(item.IsBaseCurrency),
 			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
 		})
 	}
 	return okList(ctx, &v1.ListCurrenciesResponse{Data: data, Total: int32(len(data)), Page: 1, PageSize: int32(biz.MaxListPageSize)}), nil
+}
+
+func (s *MasterDataService) SetCurrencyEnabled(ctx context.Context, request *v1.SetCurrencyEnabledRequest) (*v1.SetCurrencyEnabledResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.referenceDataUsecase.SetCurrencyEnabled(ctx, principal.Organization.ID, request.GetCode(), request.GetEnabled())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.SetCurrencyEnabledResponse{
+		Data: &v1.Currency{
+			Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol,
+			MinorUnit: int32(item.MinorUnit), Enabled: proto.Bool(item.Enabled), IsBaseCurrency: proto.Bool(item.IsBaseCurrency),
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		},
+	}), nil
 }
 
 func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.SearchCurrenciesRequest) (*v1.SearchCurrenciesResponse, error) {
@@ -60,7 +80,7 @@ func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.Se
 	}
 	data := make([]*v1.Currency, 0, len(result.Items))
 	for _, item := range result.Items {
-		data = append(data, &v1.Currency{Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol, MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano)})
+		data = append(data, &v1.Currency{Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol, MinorUnit: int32(item.MinorUnit), Enabled: proto.Bool(item.Enabled), CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano)})
 	}
 	return okList(ctx, &v1.SearchCurrenciesResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }

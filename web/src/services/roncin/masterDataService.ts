@@ -365,13 +365,40 @@ export async function masterDataServiceListAdministrativeRegions(
 }
 
 /** 此处后端没有提供注释 GET /api/v1/reference/currencies */
-export async function masterDataServiceListCurrencies(options?: {
-  [key: string]: any;
-}) {
+export async function masterDataServiceListCurrencies(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListCurrenciesParams,
+  options?: { [key: string]: any }
+) {
   return request<API.ListCurrenciesResponse>("/api/v1/reference/currencies", {
     method: "GET",
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/reference/currencies/${param0}/status */
+export async function masterDataServiceSetCurrencyEnabled(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceSetCurrencyEnabledParams,
+  body: API.SetCurrencyEnabledRequest,
+  options?: { [key: string]: any }
+) {
+  const { code: param0, ...queryParams } = params;
+  return request<API.SetCurrencyEnabledResponse>(
+    `/api/v1/reference/currencies/${param0}/status`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
 }
 
 /** 此处后端没有提供注释 GET /api/v1/reference/currencies/search */

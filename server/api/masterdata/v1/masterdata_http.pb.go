@@ -34,6 +34,7 @@ const OperationMasterDataServiceListOptions = "/masterdata.v1.MasterDataService/
 const OperationMasterDataServiceListPorts = "/masterdata.v1.MasterDataService/ListPorts"
 const OperationMasterDataServiceListShippingLines = "/masterdata.v1.MasterDataService/ListShippingLines"
 const OperationMasterDataServiceSearchCurrencies = "/masterdata.v1.MasterDataService/SearchCurrencies"
+const OperationMasterDataServiceSetCurrencyEnabled = "/masterdata.v1.MasterDataService/SetCurrencyEnabled"
 const OperationMasterDataServiceUpdateAirline = "/masterdata.v1.MasterDataService/UpdateAirline"
 const OperationMasterDataServiceUpdateAirport = "/masterdata.v1.MasterDataService/UpdateAirport"
 const OperationMasterDataServiceUpdateItem = "/masterdata.v1.MasterDataService/UpdateItem"
@@ -59,6 +60,7 @@ type MasterDataServiceHTTPServer interface {
 	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
 	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
 	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*SearchCurrenciesResponse, error)
+	SetCurrencyEnabled(context.Context, *SetCurrencyEnabledRequest) (*SetCurrencyEnabledResponse, error)
 	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
 	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
 	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
@@ -88,6 +90,7 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("PUT", "/api/v1/master-data/shipping-lines/{id}", _MasterDataService_UpdateShippingLine0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/currencies", _MasterDataService_ListCurrencies0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/currencies/search", _MasterDataService_SearchCurrencies0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/reference/currencies/{code}/status", _MasterDataService_SetCurrencyEnabled0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/administrative-regions", _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/number-rules", _MasterDataService_CreateNumberRule0_HTTP_Handler(srv))
@@ -470,6 +473,28 @@ func _MasterDataService_SearchCurrencies0_HTTP_Handler(srv MasterDataServiceHTTP
 	}
 }
 
+func _MasterDataService_SetCurrencyEnabled0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetCurrencyEnabledRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceSetCurrencyEnabled)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetCurrencyEnabled(ctx, req.(*SetCurrencyEnabledRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetCurrencyEnabledResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListAdministrativeRegionsRequest
@@ -567,6 +592,7 @@ type MasterDataServiceHTTPClient interface {
 	ListPorts(ctx context.Context, req *ListPortsRequest, opts ...http.CallOption) (rsp *ListPortsResponse, err error)
 	ListShippingLines(ctx context.Context, req *ListShippingLinesRequest, opts ...http.CallOption) (rsp *ListShippingLinesResponse, err error)
 	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *SearchCurrenciesResponse, err error)
+	SetCurrencyEnabled(ctx context.Context, req *SetCurrencyEnabledRequest, opts ...http.CallOption) (rsp *SetCurrencyEnabledResponse, err error)
 	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
 	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *UpdateAirportResponse, err error)
 	UpdateItem(ctx context.Context, req *UpdateItemRequest, opts ...http.CallOption) (rsp *UpdateItemResponse, err error)
@@ -856,6 +882,23 @@ func (c *MasterDataServiceHTTPClientImpl) SearchCurrencies(ctx context.Context, 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) SetCurrencyEnabled(ctx context.Context, in *SetCurrencyEnabledRequest, opts ...http.CallOption) (*SetCurrencyEnabledResponse, error) {
+	var out SetCurrencyEnabledResponse
+	pattern := "/api/v1/reference/currencies/{code}/status"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceSetCurrencyEnabled),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

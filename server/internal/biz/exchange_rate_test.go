@@ -28,8 +28,8 @@ func (s *exchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*Exch
 	return s.rateContext, nil
 }
 
-func (*exchangeRateRepoStub) List(context.Context, uuid.UUID) ([]*ExchangeRateSetting, error) {
-	return nil, nil
+func (*exchangeRateRepoStub) List(context.Context, uuid.UUID, ExchangeRateListOptions) ([]*ExchangeRateSetting, int64, error) {
+	return nil, 0, nil
 }
 
 func (s *exchangeRateRepoStub) UpsertWeeklyBatch(_ context.Context, source string, inputs []*ExchangeRateSetting, _ *AuditEvent) ([]*ExchangeRateSetting, error) {
@@ -317,5 +317,40 @@ func TestParseExchangeRateLookupTimeAcceptsDateAndRFC3339(t *testing.T) {
 	}
 	if _, valid := parseExchangeRateLookupTime("2026-08-27 09:30:00"); valid {
 		t.Fatal("无时区空格分隔时间不应被接受")
+	}
+}
+
+func TestListExchangeRateSettingsPagination(t *testing.T) {
+	orgID := uuid.Must(uuid.NewV7())
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: orgID, BaseCurrency: "CNY"}}
+	usecase := NewExchangeRateUsecase(repo, nil)
+
+	// 空组织应拒绝
+	if _, _, err := usecase.List(context.Background(), uuid.Nil, ExchangeRateListOptions{Page: 1, PageSize: 20}); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("空组织应返回 ErrExchangeRateInvalidArgument，实际 %v", err)
+	}
+
+	// page <= 0 应拒绝
+	if _, _, err := usecase.List(context.Background(), orgID, ExchangeRateListOptions{Page: 0, PageSize: 20}); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("page=0 应返回 ErrExchangeRateInvalidArgument，实际 %v", err)
+	}
+
+	// pageSize <= 0 应拒绝
+	if _, _, err := usecase.List(context.Background(), orgID, ExchangeRateListOptions{Page: 1, PageSize: 0}); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("pageSize=0 应返回 ErrExchangeRateInvalidArgument，实际 %v", err)
+	}
+
+	// pageSize = MaxListPageSize (200) 合法
+	list, base, err := usecase.List(context.Background(), orgID, ExchangeRateListOptions{Page: 1, PageSize: MaxListPageSize})
+	if err != nil {
+		t.Fatalf("pageSize=200 应合法，实际 %v", err)
+	}
+	if base != "CNY" || list.PageSize != MaxListPageSize {
+		t.Fatalf("返回的分页结果不符合预期: base=%s pageSize=%d", base, list.PageSize)
+	}
+
+	// pageSize > MaxListPageSize (201) 必须拒绝
+	if _, _, err := usecase.List(context.Background(), orgID, ExchangeRateListOptions{Page: 1, PageSize: MaxListPageSize + 1}); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("pageSize=201 应返回 ErrExchangeRateInvalidArgument，实际 %v", err)
 	}
 }

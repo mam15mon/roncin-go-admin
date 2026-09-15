@@ -5917,7 +5917,7 @@ func init() {
 		}
 	}()
 	// organizationDescSearchKeywords is the schema descriptor for search_keywords field.
-	organizationDescSearchKeywords := organizationFields[6].Descriptor()
+	organizationDescSearchKeywords := organizationFields[7].Descriptor()
 	// organization.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	organization.DefaultSearchKeywords = organizationDescSearchKeywords.Default.(string)
 	// organizationDescID is the schema descriptor for id field.

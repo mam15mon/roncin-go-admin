@@ -159,4 +159,34 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 			t.Fatalf("下周应命中预设行 WEEKLY: %s/%s err=%v", future.Rate, future.Source, err)
 		}
 	})
+	t.Run("List 支持分页、总数统计与生效周倒序", func(t *testing.T) {
+		items, total, err := repo.List(ctx, branchID, biz.ExchangeRateListOptions{Page: 1, PageSize: 2})
+		if err != nil {
+			t.Fatalf("List 失败: %v", err)
+		}
+		if total < 3 {
+			t.Fatalf("应至少有 3 条汇率行，实际 %d", total)
+		}
+		if len(items) != 2 {
+			t.Fatalf("pageSize=2 时应返回 2 条，实际 %d", len(items))
+		}
+		// 验证倒序：第一条生效周 >= 第二条生效周
+		if items[0].EffectiveFrom < items[1].EffectiveFrom {
+			t.Fatalf("生效周应倒序排列，第一条 %s，第二条 %s", items[0].EffectiveFrom, items[1].EffectiveFrom)
+		}
+
+		// 验证币种过滤
+		usdItems, usdTotal, err := repo.List(ctx, branchID, biz.ExchangeRateListOptions{Page: 1, PageSize: 10, FromCurrency: "USD"})
+		if err != nil {
+			t.Fatalf("按 USD 过滤失败: %v", err)
+		}
+		if usdTotal == 0 || len(usdItems) == 0 {
+			t.Fatalf("应查出 USD 汇率行")
+		}
+		for _, item := range usdItems {
+			if item.FromCurrency != "USD" {
+				t.Fatalf("过滤结果币种应为 USD，实际 %s", item.FromCurrency)
+			}
+		}
+	})
 }

@@ -174,7 +174,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
         </Space>
       }
       open={open}
-      width={980}
+      width={1060}
       destroyOnHidden
       onCancel={handleClose}
       footer={
@@ -246,9 +246,9 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
             </p>
             <p className="ant-upload-hint" style={{ color: '#8c8c8c' }}>
               仅支持 .xlsx 格式文件，单文件最大 5MB，最多 500
-              条数据。请使用本页下载的 v2 模板（列：原币 / 本币 / 折本币汇率 /
-              生效开始 / 生效结束），旧版模板会被版本校验拒绝。
-              系统将自动进行两阶段严格校验（重叠检测、币种检查、精度及时间格式）。
+              条数据。请使用本页下载的标准模板（列：原币 / 本币 / 应收汇率 /
+              应付汇率 / 基准汇率 / 生效开始时间）。
+              任选目标自然周内时间，系统自动按自然周（周一至周日）生效并严格校验币种与点差。
             </p>
           </Upload.Dragger>
         </div>
@@ -309,23 +309,42 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 align: 'center',
               },
               {
-                title: '折本币汇率',
-                dataIndex: 'rate',
-                width: 110,
+                title: '应收汇率（卖出价）',
+                dataIndex: 'arRate',
+                width: 140,
                 align: 'right',
+                render: (val) => (
+                  <span style={{ fontWeight: 600, color: '#1677ff' }}>
+                    {val || '-'}
+                  </span>
+                ),
               },
               {
-                title: '生效开始时间',
+                title: '应付汇率（买入价）',
+                dataIndex: 'apRate',
+                width: 140,
+                align: 'right',
+                render: (val) => (
+                  <span style={{ fontWeight: 600, color: '#52c41a' }}>
+                    {val || '-'}
+                  </span>
+                ),
+              },
+              {
+                title: '基准汇率',
+                dataIndex: 'rate',
+                width: 105,
+                align: 'right',
+                render: (val) => (
+                  <span style={{ color: '#8c8c8c' }}>{val || '-'}</span>
+                ),
+              },
+              {
+                title: '生效周',
                 dataIndex: 'effectiveFrom',
-                width: 160,
-                render: (val) => formatDate(val),
-              },
-              {
-                title: '生效结束时间',
-                dataIndex: 'effectiveTo',
-                width: 160,
-                render: (val) =>
-                  val ? formatDate(val) : <Tag color="cyan">长期有效</Tag>,
+                width: 190,
+                render: (_, r) =>
+                  `${formatDate(r.effectiveFrom)} ~ ${formatDate(r.effectiveTo)}`,
               },
               {
                 title: '预检状态',

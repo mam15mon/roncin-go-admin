@@ -78,6 +78,7 @@ export const manifestPermissionKeys = [
   'business.partner.audit.read',
   'business.partner.assignment_option.read',
   'system.master_data.currency.read',
+  'system.master_data.currency.update',
   'system.master_data.administrative_region.read',
   'system.master_data.option.read',
   'system.master_data.item.read',

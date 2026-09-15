@@ -1723,6 +1723,7 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    isBaseCurrency?: boolean;
   };
 
   type CurrentUser = {
@@ -2081,6 +2082,12 @@ declare namespace API {
 
   type ExchangeRateServiceGetExchangeRateImportParams = {
     id: string;
+  };
+
+  type ExchangeRateServiceListExchangeRateSettingsParams = {
+    page?: number;
+    pageSize?: number;
+    fromCurrency?: string;
   };
 
   type ExchangeRateServiceUpdateExchangeRateSettingParams = {
@@ -3491,6 +3498,7 @@ declare namespace API {
     data?: ExchangeRateSetting[];
     traceId?: string;
     baseCurrency?: string;
+    total?: string;
   };
 
   type ListFeeLedgerResponse = {
@@ -4124,6 +4132,10 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type MasterDataServiceListCurrenciesParams = {
+    enabledOnly?: boolean;
+  };
+
   type MasterDataServiceListItemsParams = {
     page?: number;
     pageSize?: number;
@@ -4150,6 +4162,10 @@ declare namespace API {
     keyword?: string;
     page?: number;
     pageSize?: number;
+  };
+
+  type MasterDataServiceSetCurrencyEnabledParams = {
+    code: string;
   };
 
   type MasterDataServiceUpdateAirlineParams = {
@@ -6843,6 +6859,19 @@ declare namespace API {
     masterValue?: string;
     orderValue?: string;
     message?: string;
+  };
+
+  type SetCurrencyEnabledRequest = {
+    code: string;
+    enabled?: boolean;
+  };
+
+  type SetCurrencyEnabledResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Currency;
+    traceId?: string;
   };
 
   type SetMilestoneRequest = {

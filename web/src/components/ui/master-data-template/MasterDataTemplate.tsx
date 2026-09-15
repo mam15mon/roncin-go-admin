@@ -21,8 +21,8 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import {
-  App,
   Alert,
+  App,
   Badge,
   Button,
   Card,
@@ -30,7 +30,6 @@ import {
   Form,
   Input,
   Popconfirm,
-  Row,
   Select,
   Space,
   Statistic,
@@ -40,11 +39,17 @@ import {
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDate } from '@/utils/format';
-import type { BaseMasterDataItem, MasterDataTemplateProps } from './types';
+import type {
+  BaseMasterDataItem,
+  MasterDataStatItem,
+  MasterDataTemplateProps,
+} from './types';
 
 const { Text } = Typography;
 
-export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterDataItem>({
+export function MasterDataTemplate<
+  T extends BaseMasterDataItem = BaseMasterDataItem,
+>({
   title,
   subtitle,
   icon,
@@ -66,10 +71,15 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   onToggleActive,
   onSync,
   onExport,
+  customStats,
   extraStats = [],
   showStats = true,
+  nameWidth,
+  renderCode,
+  renderStatus,
   notice,
   canEditRecord,
+  showUpdatedAt = true,
   style,
   className,
 }: MasterDataTemplateProps<T>) {
@@ -80,7 +90,9 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   // Search & Filter state
   const [search, setSearch] = useState('');
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
-  const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>(
+    'all',
+  );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -113,7 +125,10 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         if (!matchCode && !matchName && !matchNameEn) {
           let matchAny = false;
           for (const key of Object.keys(item)) {
-            if (typeof item[key] === 'string' && item[key].toLowerCase().includes(q)) {
+            if (
+              typeof item[key] === 'string' &&
+              item[key].toLowerCase().includes(q)
+            ) {
               matchAny = true;
               break;
             }
@@ -141,22 +156,24 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     });
   }, [items, search, activeFilter, filterValues, serverMode]);
 
-  // Current display data source
+  // Client pagination
   const displayDataSource = useMemo(() => {
-    if (serverMode) return items;
+    if (serverMode) return filteredItems;
     const start = (page - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
-  }, [serverMode, items, filteredItems, page, pageSize]);
+  }, [serverMode, filteredItems, page, pageSize]);
 
-  // Stats calculation
+  // Totals for statistics
+  const totalCount = total !== undefined ? total : filteredItems.length;
+  const activeCount =
+    activeTotal !== undefined
+      ? activeTotal
+      : filteredItems.filter((i) => i.enabled).length;
+  const disabledCount =
+    disabledTotal !== undefined
+      ? disabledTotal
+      : filteredItems.filter((i) => !i.enabled).length;
   const filteredTotal = serverMode ? (total ?? 0) : filteredItems.length;
-  const activeCount = serverMode
-    ? (activeTotal ?? 0)
-    : items.filter((item) => item.enabled).length;
-  const disabledCount = serverMode
-    ? (disabledTotal ?? 0)
-    : items.length - activeCount;
-  const totalCount = serverMode ? activeCount + disabledCount : items.length;
   const currentSearch = search;
   const currentActiveFilter = serverMode
     ? query.enabled === undefined
@@ -167,9 +184,13 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   const currentPageSize = serverMode ? query.pageSize : pageSize;
 
   // Copy code to clipboard
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard?.writeText(code);
-    message.success(`已复制 ${codeLabel}: ${code}`);
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      message.success(`已复制：${code}`);
+    } catch {
+      message.error('复制失败，请手动选择复制');
+    }
   };
 
   // Open Create Dialog
@@ -197,25 +218,17 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   // Handle Form Submit
   const handleFormFinish = async (values: any) => {
     try {
-      if (editingItem) {
-        if (onUpdate) {
-          const res = await onUpdate(editingItem.id, values);
-          if (res === false) return false;
-        }
-        message.success(`${title}已更新`);
-      } else {
-        if (onCreate) {
-          const res = await onCreate(values);
-          if (res === false) return false;
-        }
-        message.success(`${title}已创建`);
+      if (editingItem && onUpdate) {
+        await onUpdate(editingItem.id, values);
+        message.success('更新成功');
+      } else if (onCreate) {
+        await onCreate(values);
+        message.success('创建成功');
       }
       setModalOpen(false);
-      actionRef.current?.reload();
-      return true;
+      if (onRefresh) await onRefresh();
     } catch (err: any) {
-      message.error(err?.message || '操作失败');
-      return false;
+      message.error(err.message || '操作失败');
     }
   };
 
@@ -257,136 +270,198 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     if (!onToggleActive) return;
     try {
       await onToggleActive(record);
-      actionRef.current?.reload();
     } catch (err: any) {
-      message.error(err?.message || '操作失败');
+      message.error(err?.message || '状态切换失败');
     }
   };
 
   // Build Columns
-  const proColumns: ProColumns<T>[] = useMemo(() => [
-    {
-      title: codeLabel,
-      dataIndex: 'code',
-      key: 'code',
-      width: 140,
-      render: (_, record) => (
-        <Space size={4}>
-          <Tag
-            style={{
-              fontFamily: 'monospace',
-              fontWeight: 600,
-              color: '#1677ff',
-              backgroundColor: '#e6f4ff',
-              borderColor: '#91caff',
-              margin: 0,
-              fontSize: 12,
-              padding: '1px 6px',
-            }}
-          >
-            {record.code}
-          </Tag>
-          <Tooltip title={`复制${codeLabel}`}>
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined style={{ fontSize: 11, color: '#8c8c8c' }} />}
-              onClick={() => handleCopyCode(record.code)}
-              style={{ width: 20, height: 20, padding: 0 }}
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-    {
-      title: '名称 (中/英文)',
-      dataIndex: 'name',
-      key: 'name',
-      render: (_, record) => {
-        const primaryName = record.name || record.nameEn || '-';
-        const secondaryName = record.name && record.nameEn ? record.nameEn : '';
-        return (
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 13, color: '#262626' }}>
-              {primaryName}
-            </div>
-            {secondaryName && (
-              <div style={{ fontSize: 11, color: '#8c8c8c', fontFamily: 'sans-serif' }}>
-                {secondaryName}
-              </div>
-            )}
-          </div>
-        );
+  const proColumns: ProColumns<T>[] = useMemo(
+    () => [
+      {
+        title: codeLabel,
+        dataIndex: 'code',
+        key: 'code',
+        width: 140,
+        render: (_, record) => {
+          const defaultDom = (
+            <Space size={4}>
+              <Tag
+                style={{
+                  fontFamily: 'monospace',
+                  fontWeight: 600,
+                  color: '#1677ff',
+                  backgroundColor: '#e6f4ff',
+                  borderColor: '#91caff',
+                  margin: 0,
+                  fontSize: 12,
+                  padding: '1px 6px',
+                }}
+              >
+                {record.code}
+              </Tag>
+              <Tooltip title={`复制${codeLabel}`}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={
+                    <CopyOutlined style={{ fontSize: 11, color: '#8c8c8c' }} />
+                  }
+                  onClick={() => handleCopyCode(record.code)}
+                  style={{ width: 20, height: 20, padding: 0 }}
+                />
+              </Tooltip>
+            </Space>
+          );
+          return renderCode ? renderCode(record, defaultDom) : defaultDom;
+        },
       },
-    },
-    ...(extraColumns as ProColumns<T>[]),
-    {
-      title: '状态',
-      dataIndex: 'enabled',
-      key: 'enabled',
-      width: 90,
-      render: (_, record) => (
-        <Badge
-          status={record.enabled ? 'success' : 'default'}
-          text={record.enabled ? '启用' : '停用'}
-        />
-      ),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      width: 160,
-      render: (_, record) => (
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {formatDate(record.updatedAt)}
-        </Text>
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 130,
-      align: 'right',
-      fixed: 'right',
-      render: (_, record) => {
-        // B 型基线行对非总部禁用编辑：不渲染编辑与停用/启用入口。
-        const canEditRow = !canEditRecord || canEditRecord(record);
-        return (
-          <Space size={6}>
-            {onUpdate && canEditRow && (
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                style={{ padding: 0 }}
-                onClick={() => handleOpenEdit(record)}
-              >
-                编辑
-              </Button>
-            )}
-            {onToggleActive && canEditRow && (
-              <Popconfirm
-                title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
-                onConfirm={() => handleToggleActive(record)}
-                okText="确定"
-                cancelText="取消"
-              >
+      {
+        title: '名称 (中/英文)',
+        dataIndex: 'name',
+        key: 'name',
+        width: nameWidth ?? (extraColumns.length > 0 ? 240 : undefined),
+        render: (_, record) => {
+          const primaryName = record.name || record.nameEn || '-';
+          const secondaryName =
+            record.name && record.nameEn ? record.nameEn : '';
+          return (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#262626' }}>
+                {primaryName}
+              </div>
+              {secondaryName && (
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: '#8c8c8c',
+                    fontFamily: 'sans-serif',
+                  }}
+                >
+                  {secondaryName}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      ...(extraColumns as ProColumns<T>[]),
+      {
+        title: '状态',
+        dataIndex: 'enabled',
+        key: 'enabled',
+        width: 100,
+        render: (_, record) => {
+          const defaultDom = (
+            <Badge
+              status={record.enabled ? 'success' : 'default'}
+              text={record.enabled ? '启用' : '停用'}
+            />
+          );
+          return renderStatus ? renderStatus(record, defaultDom) : defaultDom;
+        },
+      },
+      ...(showUpdatedAt
+        ? [
+            {
+              title: '更新时间',
+              dataIndex: 'updatedAt',
+              key: 'updatedAt',
+              width: 160,
+              render: (_: any, record: T) => (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {formatDate(record.updatedAt)}
+                </Text>
+              ),
+            } as ProColumns<T>,
+          ]
+        : []),
+      {
+        title: '操作',
+        key: 'action',
+        width: 130,
+        align: 'right',
+        fixed: 'right',
+        render: (_, record) => {
+          // B 型基线行对非总部禁用编辑：不渲染编辑与停用/启用入口。
+          const canEditRow = !canEditRecord || canEditRecord(record);
+          return (
+            <Space size={6}>
+              {onUpdate && canEditRow && (
                 <Button
                   type="link"
                   size="small"
-                  danger={record.enabled}
+                  icon={<EditOutlined />}
                   style={{ padding: 0 }}
+                  onClick={() => handleOpenEdit(record)}
                 >
-                  {record.enabled ? '停用' : '启用'}
+                  编辑
                 </Button>
-              </Popconfirm>
-            )}
-          </Space>
-        );
+              )}
+              {onToggleActive && canEditRow && (
+                <Popconfirm
+                  title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
+                  onConfirm={() => handleToggleActive(record)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button
+                    type="link"
+                    size="small"
+                    danger={record.enabled}
+                    style={{ padding: 0 }}
+                  >
+                    {record.enabled ? '停用' : '启用'}
+                  </Button>
+                </Popconfirm>
+              )}
+            </Space>
+          );
+        },
       },
-    },
-  ], [codeLabel, extraColumns, onUpdate, onToggleActive, canEditRecord]);
+    ],
+    [
+      codeLabel,
+      extraColumns,
+      onUpdate,
+      onToggleActive,
+      canEditRecord,
+      showUpdatedAt,
+      nameWidth,
+      renderCode,
+      renderStatus,
+    ],
+  );
+
+  // Unified Statistics Items (Custom or Base + Extra)
+  const allStats: MasterDataStatItem[] = useMemo(() => {
+    if (customStats && customStats.length > 0) {
+      return customStats;
+    }
+    const list: MasterDataStatItem[] = [
+      {
+        label: `全部${title.replace(/管理|维护/g, '')}`,
+        value: totalCount,
+        color: '#262626',
+      },
+      {
+        label: '启用中',
+        value: activeCount,
+        color: '#52c41a',
+        prefix: <CheckCircleOutlined style={{ fontSize: 14 }} />,
+      },
+      {
+        label: '已停用',
+        value: disabledCount,
+        color: '#ff4d4f',
+        prefix: <CloseCircleOutlined style={{ fontSize: 14 }} />,
+      },
+    ];
+    if (extraStats && extraStats.length > 0) {
+      list.push(...extraStats);
+    }
+    return list;
+  }, [customStats, title, totalCount, activeCount, disabledCount, extraStats]);
 
   return (
     <div style={{ minHeight: '100%' }}>
@@ -399,11 +474,20 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           message={notice}
         />
       )}
-      {/* 1. Stats Row: 6-column grid per row (xs=12, sm=8, md=4, lg=4, xl=4) */}
-      {showStats && (
-        <Row gutter={[10, 10]} style={{ marginBottom: 12 }}>
-          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
+      {/* 1. Stats Grid: 现代 CSS Grid 消除 Row gutter 负外边距外凸，确保与 Tab 卡片和表格卡片 100% 垂直平齐 */}
+      {showStats && allStats.length > 0 && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(auto-fit, minmax(160px, 1fr))`,
+            gap: 10,
+            marginBottom: 12,
+            width: '100%',
+          }}
+        >
+          {allStats.map((stat, idx) => (
             <Card
+              key={stat.label || idx}
               size="small"
               variant="borderless"
               style={{
@@ -416,77 +500,24 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               styles={{ body: { padding: '8px 12px' } }}
             >
               <Statistic
-                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>全部{title.replace(/管理|维护/g, '')}</span>}
-                value={totalCount}
-                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#262626' } }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
-            <Card
-              size="small"
-              variant="borderless"
-              style={{
-                borderRadius: 8,
-                backgroundColor: '#ffffff',
-                border: '1px solid #f0f0f0',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
-                height: '100%',
-              }}
-              styles={{ body: { padding: '8px 12px' } }}
-            >
-              <Statistic
-                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>启用中</span>}
-                value={activeCount}
-                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#52c41a' } }}
-                prefix={<CheckCircleOutlined style={{ fontSize: 14 }} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={8} md={4} lg={4} xl={4}>
-            <Card
-              size="small"
-              variant="borderless"
-              style={{
-                borderRadius: 8,
-                backgroundColor: '#ffffff',
-                border: '1px solid #f0f0f0',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
-                height: '100%',
-              }}
-              styles={{ body: { padding: '8px 12px' } }}
-            >
-              <Statistic
-                title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>已停用</span>}
-                value={disabledCount}
-                styles={{ content: { fontSize: 18, fontWeight: 600, color: '#ff4d4f' } }}
-                prefix={<CloseCircleOutlined style={{ fontSize: 14 }} />}
-              />
-            </Card>
-          </Col>
-          {extraStats.map((stat, idx) => (
-            <Col xs={12} sm={8} md={4} lg={4} xl={4} key={stat.label || idx}>
-              <Card
-                size="small"
-                variant="borderless"
-                style={{
-                  borderRadius: 8,
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #f0f0f0',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
-                  height: '100%',
+                title={
+                  <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                    {stat.label}
+                  </span>
+                }
+                value={stat.value}
+                styles={{
+                  content: {
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: stat.color || '#262626',
+                  },
                 }}
-                styles={{ body: { padding: '8px 12px' } }}
-              >
-                <Statistic
-                  title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>{stat.label}</span>}
-                  value={stat.value}
-                  styles={{ content: { fontSize: 18, fontWeight: 600, color: stat.color || '#1677ff' } }}
-                />
-              </Card>
-            </Col>
+                prefix={stat.prefix}
+              />
+            </Card>
           ))}
-        </Row>
+        </div>
       )}
 
       {/* 2. Unified ProTable Card: Integrated Filters, Actions, and High-Density Table */}
@@ -500,7 +531,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
           ...style,
         }}
-        styles={{ body: { padding: '10px 14px' } }}
+        styles={{ body: { padding: '12px 16px' } }}
       >
         <ProTable<T>
           actionRef={actionRef}
@@ -602,51 +633,53 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               </Button>
             </Space>
           }
-          toolBarRender={() => [
-            <Tag
-              key="total"
-              color="blue"
-              style={{
-                borderRadius: 10,
-                margin: 0,
-                padding: '2px 8px',
-                fontSize: 12,
-                fontWeight: 500,
-              }}
-            >
-              共 {filteredTotal} 条
-            </Tag>,
-            onSync && (
-              <Button
-                key="sync"
-                icon={<CloudSyncOutlined />}
-                loading={syncing}
-                onClick={handleSyncTrigger}
+          toolBarRender={() =>
+            [
+              <Tag
+                key="total"
+                color="blue"
+                style={{
+                  borderRadius: 10,
+                  margin: 0,
+                  padding: '2px 8px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
               >
-                同步官方数据
-              </Button>
-            ),
-            onExport && (
-              <Button
-                key="export"
-                icon={<CloudDownloadOutlined />}
-                onClick={onExport}
-              >
-                导出数据
-              </Button>
-            ),
-            onCreate && (
-              <Button
-                key="create"
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleOpenCreate}
-                style={{ fontWeight: 500 }}
-              >
-                新增{title.replace(/管理|维护/g, '')}
-              </Button>
-            ),
-          ].filter(Boolean)}
+                共 {filteredTotal} 条
+              </Tag>,
+              onSync && (
+                <Button
+                  key="sync"
+                  icon={<CloudSyncOutlined />}
+                  loading={syncing}
+                  onClick={handleSyncTrigger}
+                >
+                  同步官方数据
+                </Button>
+              ),
+              onExport && (
+                <Button
+                  key="export"
+                  icon={<CloudDownloadOutlined />}
+                  onClick={onExport}
+                >
+                  导出数据
+                </Button>
+              ),
+              onCreate && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleOpenCreate}
+                  style={{ fontWeight: 500 }}
+                >
+                  新增{title.replace(/管理|维护/g, '')}
+                </Button>
+              ),
+            ].filter(Boolean)
+          }
           options={{
             reload: onRefresh ? () => handleRefresh() : false,
             density: true,
@@ -674,7 +707,11 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
 
       {/* 3. Dynamic Create / Edit Modal Form */}
       <ModalForm
-        title={editingItem ? `编辑${title.replace(/管理|维护/g, '')} - ${editingItem.code}` : `新增${title.replace(/管理|维护/g, '')}`}
+        title={
+          editingItem
+            ? `编辑${title.replace(/管理|维护/g, '')} - ${editingItem.code}`
+            : `新增${title.replace(/管理|维护/g, '')}`
+        }
         open={modalOpen}
         form={form}
         onOpenChange={setModalOpen}
@@ -699,7 +736,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   label={field.label}
                   options={field.options}
                   placeholder={field.placeholder || `请选择${field.label}`}
-                  rules={field.rules || (field.required ? [{ required: true, message: `请选择${field.label}` }] : undefined)}
+                  rules={
+                    field.rules ||
+                    (field.required
+                      ? [{ required: true, message: `请选择${field.label}` }]
+                      : undefined)
+                  }
                   disabled={disabled}
                   extra={field.extra}
                 />
@@ -714,7 +756,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   name={field.name}
                   label={field.label}
                   placeholder={field.placeholder || `请输入${field.label}`}
-                  rules={field.rules || (field.required ? [{ required: true, message: `请输入${field.label}` }] : undefined)}
+                  rules={
+                    field.rules ||
+                    (field.required
+                      ? [{ required: true, message: `请输入${field.label}` }]
+                      : undefined)
+                  }
                   disabled={disabled}
                   extra={field.extra}
                 />
@@ -729,7 +776,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   name={field.name}
                   label={field.label}
                   placeholder={field.placeholder || `请输入${field.label}`}
-                  rules={field.rules || (field.required ? [{ required: true, message: `请输入${field.label}` }] : undefined)}
+                  rules={
+                    field.rules ||
+                    (field.required
+                      ? [{ required: true, message: `请输入${field.label}` }]
+                      : undefined)
+                  }
                   fieldProps={{ rows: 3 }}
                   disabled={disabled}
                   extra={field.extra}
@@ -745,7 +797,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   name={field.name}
                   label={field.label}
                   options={field.options}
-                  rules={field.rules || (field.required ? [{ required: true, message: `请选择${field.label}` }] : undefined)}
+                  rules={
+                    field.rules ||
+                    (field.required
+                      ? [{ required: true, message: `请选择${field.label}` }]
+                      : undefined)
+                  }
                   disabled={disabled}
                   extra={field.extra}
                 />
@@ -760,7 +817,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   name={field.name}
                   label={field.label}
                   options={field.options}
-                  rules={field.rules || (field.required ? [{ required: true, message: `请选择${field.label}` }] : undefined)}
+                  rules={
+                    field.rules ||
+                    (field.required
+                      ? [{ required: true, message: `请选择${field.label}` }]
+                      : undefined)
+                  }
                   disabled={disabled}
                   extra={field.extra}
                 />
@@ -775,7 +837,12 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                 name={field.name}
                 label={field.label}
                 placeholder={field.placeholder || `请输入${field.label}`}
-                rules={field.rules || (field.required ? [{ required: true, message: `请输入${field.label}` }] : undefined)}
+                rules={
+                  field.rules ||
+                  (field.required
+                    ? [{ required: true, message: `请输入${field.label}` }]
+                    : undefined)
+                }
                 disabled={disabled}
                 extra={field.extra}
               />

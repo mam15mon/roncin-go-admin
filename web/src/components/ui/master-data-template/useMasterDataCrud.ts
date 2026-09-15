@@ -8,7 +8,9 @@ export interface UseMasterDataCrudOptions<
   TApiItem = any,
 > {
   entityName: string;
-  fetchList: (query: MasterDataListQuery) => Promise<{ data?: TApiItem[]; total?: number }>;
+  fetchList: (
+    query: MasterDataListQuery,
+  ) => Promise<{ data?: TApiItem[]; total?: number }>;
   mapItem: (apiItem: TApiItem) => TItem;
   createItem: (values: any) => Promise<{ data?: TApiItem }>;
   updateItem: (
@@ -35,7 +37,10 @@ export function useMasterDataCrud<
   const [total, setTotal] = useState(0);
   const [activeTotal, setActiveTotal] = useState(0);
   const [disabledTotal, setDisabledTotal] = useState(0);
-  const [query, setQuery] = useState<MasterDataListQuery>({ page: 1, pageSize: 10 });
+  const [query, setQuery] = useState<MasterDataListQuery>({
+    page: 1,
+    pageSize: 10,
+  });
 
   const reload = useCallback(async () => {
     setLoading(true);

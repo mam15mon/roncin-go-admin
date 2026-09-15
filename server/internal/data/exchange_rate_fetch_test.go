@@ -47,6 +47,37 @@ func TestParseSinaBankForexQuotesRejectsGarbage(t *testing.T) {
 	}
 }
 
+// 线上真实返回字典结构：data.bank[CURRENCY][]
+const sinaBankForexRealMapFixture = `{"result":{"status":{"code":0},"data":{
+  "bank": {
+    "USD": [
+      {"bank":"icbc","xh_sell_price":"6.7900","xh_buy_price":"6.6900"},
+      {"bank":"boc","xh_sell_price":"6.72620000","xh_buy_price":"6.69800000"}
+    ],
+    "EUR": [
+      {"bank":"boc","xh_sell_price":"7.77510000","xh_buy_price":"7.71860000"}
+    ]
+  }
+}}}`
+
+func TestParseSinaBankForexQuotesMapStructure(t *testing.T) {
+	quotes, err := parseSinaBankForexQuotes([]byte(sinaBankForexRealMapFixture), currencySet([]string{"USD", "EUR"}))
+	if err != nil {
+		t.Fatalf("解析新浪中行专线字典结构失败: %v", err)
+	}
+	if len(quotes) != 2 {
+		t.Fatalf("应命中 2 个币种，实际 %d", len(quotes))
+	}
+	usd := quotes["USD"]
+	if usd.ARRate.StringFixed(4) != "6.7262" || usd.APRate.StringFixed(4) != "6.6980" {
+		t.Fatalf("USD 卖出/买入价不符: %#v", usd)
+	}
+	eur := quotes["EUR"]
+	if eur.ARRate.StringFixed(4) != "7.7751" || eur.APRate.StringFixed(4) != "7.7186" {
+		t.Fatalf("EUR 卖出/买入价不符: %#v", eur)
+	}
+}
+
 // 中行官方牌价页 HTML fixture：`<table id="priceTable">`，列序为 货币名称/现汇买入价/
 // 现钞买入价/现汇卖出价/现钞卖出价/中行折算价/发布时间，报价基准为 100 外币。
 const bocOfficialPriceFixture = `<html><body>
@@ -122,5 +153,48 @@ func TestParseSinaDirectQuotesIgnoresWrongBase(t *testing.T) {
 	}
 	if len(quotes) != 0 {
 		t.Fatalf("目标本币不符的行情应被忽略，实际 %#v", quotes)
+	}
+}
+
+const sinaForexHistoricalFixture = `<html><body>
+<table>
+<tr class="head">
+	<td>日期</td><td>中行汇买价(元)</td><td>中行钞买价(元)</td><td>中行钞卖价/汇卖价</td><td>央行中间价</td><td>中行折算价</td>
+</tr>
+<tr>
+	<td>2026-09-15</td><td>669.8900</td><td>669.8900</td><td>672.7100</td><td>676.7000</td><td>676.7000</td>
+</tr>
+<tr class="blue">
+	<td>2026-09-14</td><td>669.7700</td><td>669.7700</td><td>672.5800</td><td>676.9800</td><td>676.9800</td>
+</tr>
+<tr>
+	<td>2026-09-12</td><td>669.7400</td><td>669.7400</td><td>672.5500</td><td>--</td><td>677.4300</td>
+</tr>
+</table></body></html>`
+
+func TestParseSinaForexHistoricalTableExact(t *testing.T) {
+	quote, ok := parseSinaForexHistoricalTable([]byte(sinaForexHistoricalFixture), "2026-09-14")
+	if !ok {
+		t.Fatal("应成功命中 2026-09-14")
+	}
+	if quote.ARRate.StringFixed(4) != "6.7258" {
+		t.Fatalf("ARRate(卖出价)应为 6.7258, 实际 %s", quote.ARRate.StringFixed(4))
+	}
+	if quote.APRate.StringFixed(4) != "6.6977" {
+		t.Fatalf("APRate(买入价)应为 6.6977, 实际 %s", quote.APRate.StringFixed(4))
+	}
+	if quote.Rate.StringFixed(4) != "6.7698" {
+		t.Fatalf("Rate(折算价)应为 6.7698, 实际 %s", quote.Rate.StringFixed(4))
+	}
+}
+
+func TestParseSinaForexHistoricalTableHolidayFallback(t *testing.T) {
+	// 查询 2026-09-13 (周日休市)，应回溯获取最近交易日 2026-09-12
+	quote, ok := parseSinaForexHistoricalTable([]byte(sinaForexHistoricalFixture), "2026-09-13")
+	if !ok {
+		t.Fatal("休市应回溯获取最近交易日")
+	}
+	if quote.Rate.StringFixed(4) != "6.7743" {
+		t.Fatalf("回溯日折算价应为 6.7743, 实际 %s", quote.Rate.StringFixed(4))
 	}
 }

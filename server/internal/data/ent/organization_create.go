@@ -167,6 +167,12 @@ func (_c *OrganizationCreate) SetNillableBaseCurrency(v *string) *OrganizationCr
 	return _c
 }
 
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (_c *OrganizationCreate) SetEnabledCurrencies(v []string) *OrganizationCreate {
+	_c.mutation.SetEnabledCurrencies(v)
+	return _c
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_c *OrganizationCreate) SetSearchKeywords(v string) *OrganizationCreate {
 	_c.mutation.SetSearchKeywords(v)
@@ -1246,6 +1252,10 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		_spec.SetField(organization.FieldBaseCurrency, field.TypeString, value)
 		_node.BaseCurrency = &value
 	}
+	if value, ok := _c.mutation.EnabledCurrencies(); ok {
+		_spec.SetField(organization.FieldEnabledCurrencies, field.TypeJSON, value)
+		_node.EnabledCurrencies = value
+	}
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
@@ -2319,6 +2329,24 @@ func (u *OrganizationUpsert) ClearBaseCurrency() *OrganizationUpsert {
 	return u
 }
 
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (u *OrganizationUpsert) SetEnabledCurrencies(v []string) *OrganizationUpsert {
+	u.Set(organization.FieldEnabledCurrencies, v)
+	return u
+}
+
+// UpdateEnabledCurrencies sets the "enabled_currencies" field to the value that was provided on create.
+func (u *OrganizationUpsert) UpdateEnabledCurrencies() *OrganizationUpsert {
+	u.SetExcluded(organization.FieldEnabledCurrencies)
+	return u
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (u *OrganizationUpsert) ClearEnabledCurrencies() *OrganizationUpsert {
+	u.SetNull(organization.FieldEnabledCurrencies)
+	return u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (u *OrganizationUpsert) SetSearchKeywords(v string) *OrganizationUpsert {
 	u.Set(organization.FieldSearchKeywords, v)
@@ -2469,6 +2497,27 @@ func (u *OrganizationUpsertOne) UpdateBaseCurrency() *OrganizationUpsertOne {
 func (u *OrganizationUpsertOne) ClearBaseCurrency() *OrganizationUpsertOne {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.ClearBaseCurrency()
+	})
+}
+
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (u *OrganizationUpsertOne) SetEnabledCurrencies(v []string) *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetEnabledCurrencies(v)
+	})
+}
+
+// UpdateEnabledCurrencies sets the "enabled_currencies" field to the value that was provided on create.
+func (u *OrganizationUpsertOne) UpdateEnabledCurrencies() *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateEnabledCurrencies()
+	})
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (u *OrganizationUpsertOne) ClearEnabledCurrencies() *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.ClearEnabledCurrencies()
 	})
 }
 
@@ -2791,6 +2840,27 @@ func (u *OrganizationUpsertBulk) UpdateBaseCurrency() *OrganizationUpsertBulk {
 func (u *OrganizationUpsertBulk) ClearBaseCurrency() *OrganizationUpsertBulk {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.ClearBaseCurrency()
+	})
+}
+
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (u *OrganizationUpsertBulk) SetEnabledCurrencies(v []string) *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetEnabledCurrencies(v)
+	})
+}
+
+// UpdateEnabledCurrencies sets the "enabled_currencies" field to the value that was provided on create.
+func (u *OrganizationUpsertBulk) UpdateEnabledCurrencies() *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateEnabledCurrencies()
+	})
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (u *OrganizationUpsertBulk) ClearEnabledCurrencies() *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.ClearEnabledCurrencies()
 	})
 }
 

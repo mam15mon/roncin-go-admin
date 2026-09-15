@@ -10,19 +10,24 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrReferenceDataInvalidArgument = errors.BadRequest("REFERENCE_DATA_INVALID_ARGUMENT", "基础字典查询参数不合法")
+var (
+	ErrReferenceDataInvalidArgument = errors.BadRequest("REFERENCE_DATA_INVALID_ARGUMENT", "基础字典查询参数不合法")
+	ErrCurrencyBaseCannotBeDisabled = errors.BadRequest("CURRENCY_BASE_CANNOT_BE_DISABLED", "本位币不可禁用")
+	ErrCurrencyNotFound             = errors.NotFound("CURRENCY_NOT_FOUND", "货币币种不存在")
+)
 
 var administrativeRegionCodePattern = regexp.MustCompile(`^\d{12}$`)
 
 type Currency struct {
-	ID        uuid.UUID
-	Code      string
-	Name      string
-	Symbol    string
-	MinorUnit int
-	Enabled   bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID             uuid.UUID
+	Code           string
+	Name           string
+	Symbol         string
+	MinorUnit      int
+	Enabled        bool
+	IsBaseCurrency bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type AdministrativeRegion struct {
@@ -48,8 +53,9 @@ type AdministrativeRegionQuery struct {
 }
 
 type ReferenceDataRepo interface {
-	ListCurrencies(context.Context) ([]*Currency, error)
+	ListCurrencies(ctx context.Context, organizationID uuid.UUID, enabledOnly bool) ([]*Currency, error)
 	SearchCurrencies(context.Context, SelectorListOptions) (*PagedList[*Currency], error)
+	SetCurrencyEnabled(ctx context.Context, organizationID uuid.UUID, code string, enabled bool) (*Currency, error)
 	ListAdministrativeRegions(context.Context, AdministrativeRegionQuery) (*PagedList[*AdministrativeRegion], error)
 }
 
@@ -61,8 +67,16 @@ func NewReferenceDataUsecase(repo ReferenceDataRepo) *ReferenceDataUsecase {
 	return &ReferenceDataUsecase{repo: repo}
 }
 
-func (uc *ReferenceDataUsecase) ListCurrencies(ctx context.Context) ([]*Currency, error) {
-	return uc.repo.ListCurrencies(ctx)
+func (uc *ReferenceDataUsecase) ListCurrencies(ctx context.Context, organizationID uuid.UUID, enabledOnly bool) ([]*Currency, error) {
+	return uc.repo.ListCurrencies(ctx, organizationID, enabledOnly)
+}
+
+func (uc *ReferenceDataUsecase) SetCurrencyEnabled(ctx context.Context, organizationID uuid.UUID, code string, enabled bool) (*Currency, error) {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if code == "" {
+		return nil, ErrReferenceDataInvalidArgument
+	}
+	return uc.repo.SetCurrencyEnabled(ctx, organizationID, code, enabled)
 }
 
 func (uc *ReferenceDataUsecase) SearchCurrencies(ctx context.Context, options SelectorListOptions) (*PagedList[*Currency], error) {

@@ -18,7 +18,7 @@ type quoteProviderStub struct {
 	directErr error
 }
 
-func (s *quoteProviderStub) FetchCNYBankQuotes(context.Context, []string) (*ExchangeRateQuoteSet, error) {
+func (s *quoteProviderStub) FetchCNYBankQuotes(context.Context, []string, ...string) (*ExchangeRateQuoteSet, error) {
 	return s.cnySet, s.cnyErr
 }
 

@@ -33,6 +33,8 @@ const (
 	FieldEnabled = "enabled"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
 	FieldBaseCurrency = "base_currency"
+	// FieldEnabledCurrencies holds the string denoting the enabled_currencies field in the database.
+	FieldEnabledCurrencies = "enabled_currencies"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -575,6 +577,7 @@ var Columns = []string{
 	FieldParentID,
 	FieldEnabled,
 	FieldBaseCurrency,
+	FieldEnabledCurrencies,
 	FieldSearchKeywords,
 }
 

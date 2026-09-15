@@ -100,7 +100,11 @@ message ExchangeRateSetting {
   string rate = 14;
 }
 
-message ListExchangeRateSettingsRequest {}
+message ListExchangeRateSettingsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string from_currency = 3;
+}
 
 message ListExchangeRateSettingsResponse {
   bool success = 1;
@@ -109,6 +113,7 @@ message ListExchangeRateSettingsResponse {
   repeated ExchangeRateSetting data = 4;
   string trace_id = 5;
   string base_currency = 6;
+  int64 total = 7;
 }
 
 message CreateExchangeRateSettingRequest {

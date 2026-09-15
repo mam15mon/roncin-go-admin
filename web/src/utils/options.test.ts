@@ -105,6 +105,7 @@ describe('候选项工具', () => {
     ]);
 
     expect(listCurrencies).toHaveBeenCalledTimes(1);
+    expect(listCurrencies).toHaveBeenCalledWith({ enabledOnly: true });
     expect(first).toEqual([
       {
         label: 'CNY - 人民币',

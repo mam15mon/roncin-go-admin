@@ -83,9 +83,9 @@ export async function searchShippingLineOptions(
     .filter((option) => option.value !== '');
 }
 
-export function getCurrencies(): Promise<API.Currency[]> {
-  if (!currenciesRequest) {
-    currenciesRequest = masterDataServiceListCurrencies()
+export function getCurrencies(forceRefresh = false): Promise<API.Currency[]> {
+  if (!currenciesRequest || forceRefresh) {
+    currenciesRequest = masterDataServiceListCurrencies({ enabledOnly: true })
       .then(unwrapList)
       .catch((error) => {
         currenciesRequest = undefined;
@@ -98,7 +98,7 @@ export function getCurrencies(): Promise<API.Currency[]> {
 export async function getCurrencyOptions(): Promise<SelectOption[]> {
   const currencies = await getCurrencies();
   return currencies
-    .filter((currency) => currency.enabled !== false && currency.code)
+    .filter((currency) => Boolean(currency.enabled) && currency.code)
     .map((currency) => ({
       label: currency.name
         ? `${currency.code} - ${currency.name}`

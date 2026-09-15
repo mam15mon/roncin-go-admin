@@ -96536,6 +96536,8 @@ type OrganizationMutation struct {
 	kind                                    *organization.Kind
 	enabled                                 *bool
 	base_currency                           *string
+	enabled_currencies                      *[]string
+	appendenabled_currencies                []string
 	search_keywords                         *string
 	clearedFields                           map[string]struct{}
 	parent                                  *uuid.UUID
@@ -97135,6 +97137,71 @@ func (m *OrganizationMutation) BaseCurrencyCleared() bool {
 func (m *OrganizationMutation) ResetBaseCurrency() {
 	m.base_currency = nil
 	delete(m.clearedFields, organization.FieldBaseCurrency)
+}
+
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (m *OrganizationMutation) SetEnabledCurrencies(s []string) {
+	m.enabled_currencies = &s
+	m.appendenabled_currencies = nil
+}
+
+// EnabledCurrencies returns the value of the "enabled_currencies" field in the mutation.
+func (m *OrganizationMutation) EnabledCurrencies() (r []string, exists bool) {
+	v := m.enabled_currencies
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabledCurrencies returns the old "enabled_currencies" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldEnabledCurrencies(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabledCurrencies is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabledCurrencies requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabledCurrencies: %w", err)
+	}
+	return oldValue.EnabledCurrencies, nil
+}
+
+// AppendEnabledCurrencies adds s to the "enabled_currencies" field.
+func (m *OrganizationMutation) AppendEnabledCurrencies(s []string) {
+	m.appendenabled_currencies = append(m.appendenabled_currencies, s...)
+}
+
+// AppendedEnabledCurrencies returns the list of values that were appended to the "enabled_currencies" field in this mutation.
+func (m *OrganizationMutation) AppendedEnabledCurrencies() ([]string, bool) {
+	if len(m.appendenabled_currencies) == 0 {
+		return nil, false
+	}
+	return m.appendenabled_currencies, true
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (m *OrganizationMutation) ClearEnabledCurrencies() {
+	m.enabled_currencies = nil
+	m.appendenabled_currencies = nil
+	m.clearedFields[organization.FieldEnabledCurrencies] = struct{}{}
+}
+
+// EnabledCurrenciesCleared returns if the "enabled_currencies" field was cleared in this mutation.
+func (m *OrganizationMutation) EnabledCurrenciesCleared() bool {
+	_, ok := m.clearedFields[organization.FieldEnabledCurrencies]
+	return ok
+}
+
+// ResetEnabledCurrencies resets all changes to the "enabled_currencies" field.
+func (m *OrganizationMutation) ResetEnabledCurrencies() {
+	m.enabled_currencies = nil
+	m.appendenabled_currencies = nil
+	delete(m.clearedFields, organization.FieldEnabledCurrencies)
 }
 
 // SetSearchKeywords sets the "search_keywords" field.
@@ -100366,7 +100433,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, organization.FieldCreatedAt)
 	}
@@ -100390,6 +100457,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.base_currency != nil {
 		fields = append(fields, organization.FieldBaseCurrency)
+	}
+	if m.enabled_currencies != nil {
+		fields = append(fields, organization.FieldEnabledCurrencies)
 	}
 	if m.search_keywords != nil {
 		fields = append(fields, organization.FieldSearchKeywords)
@@ -100418,6 +100488,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.Enabled()
 	case organization.FieldBaseCurrency:
 		return m.BaseCurrency()
+	case organization.FieldEnabledCurrencies:
+		return m.EnabledCurrencies()
 	case organization.FieldSearchKeywords:
 		return m.SearchKeywords()
 	}
@@ -100445,6 +100517,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldEnabled(ctx)
 	case organization.FieldBaseCurrency:
 		return m.OldBaseCurrency(ctx)
+	case organization.FieldEnabledCurrencies:
+		return m.OldEnabledCurrencies(ctx)
 	case organization.FieldSearchKeywords:
 		return m.OldSearchKeywords(ctx)
 	}
@@ -100512,6 +100586,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBaseCurrency(v)
 		return nil
+	case organization.FieldEnabledCurrencies:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabledCurrencies(v)
+		return nil
 	case organization.FieldSearchKeywords:
 		v, ok := value.(string)
 		if !ok {
@@ -100555,6 +100636,9 @@ func (m *OrganizationMutation) ClearedFields() []string {
 	if m.FieldCleared(organization.FieldBaseCurrency) {
 		fields = append(fields, organization.FieldBaseCurrency)
 	}
+	if m.FieldCleared(organization.FieldEnabledCurrencies) {
+		fields = append(fields, organization.FieldEnabledCurrencies)
+	}
 	return fields
 }
 
@@ -100574,6 +100658,9 @@ func (m *OrganizationMutation) ClearField(name string) error {
 		return nil
 	case organization.FieldBaseCurrency:
 		m.ClearBaseCurrency()
+		return nil
+	case organization.FieldEnabledCurrencies:
+		m.ClearEnabledCurrencies()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization nullable field %s", name)
@@ -100606,6 +100693,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldBaseCurrency:
 		m.ResetBaseCurrency()
+		return nil
+	case organization.FieldEnabledCurrencies:
+		m.ResetEnabledCurrencies()
 		return nil
 	case organization.FieldSearchKeywords:
 		m.ResetSearchKeywords()

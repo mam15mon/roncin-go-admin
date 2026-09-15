@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
@@ -155,6 +156,24 @@ func (_u *OrganizationUpdate) SetNillableBaseCurrency(v *string) *OrganizationUp
 // ClearBaseCurrency clears the value of the "base_currency" field.
 func (_u *OrganizationUpdate) ClearBaseCurrency() *OrganizationUpdate {
 	_u.mutation.ClearBaseCurrency()
+	return _u
+}
+
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (_u *OrganizationUpdate) SetEnabledCurrencies(v []string) *OrganizationUpdate {
+	_u.mutation.SetEnabledCurrencies(v)
+	return _u
+}
+
+// AppendEnabledCurrencies appends value to the "enabled_currencies" field.
+func (_u *OrganizationUpdate) AppendEnabledCurrencies(v []string) *OrganizationUpdate {
+	_u.mutation.AppendEnabledCurrencies(v)
+	return _u
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (_u *OrganizationUpdate) ClearEnabledCurrencies() *OrganizationUpdate {
+	_u.mutation.ClearEnabledCurrencies()
 	return _u
 }
 
@@ -2359,6 +2378,17 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.BaseCurrencyCleared() {
 		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.EnabledCurrencies(); ok {
+		_spec.SetField(organization.FieldEnabledCurrencies, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEnabledCurrencies(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, organization.FieldEnabledCurrencies, value)
+		})
+	}
+	if _u.mutation.EnabledCurrenciesCleared() {
+		_spec.ClearField(organization.FieldEnabledCurrencies, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)
@@ -5096,6 +5126,24 @@ func (_u *OrganizationUpdateOne) ClearBaseCurrency() *OrganizationUpdateOne {
 	return _u
 }
 
+// SetEnabledCurrencies sets the "enabled_currencies" field.
+func (_u *OrganizationUpdateOne) SetEnabledCurrencies(v []string) *OrganizationUpdateOne {
+	_u.mutation.SetEnabledCurrencies(v)
+	return _u
+}
+
+// AppendEnabledCurrencies appends value to the "enabled_currencies" field.
+func (_u *OrganizationUpdateOne) AppendEnabledCurrencies(v []string) *OrganizationUpdateOne {
+	_u.mutation.AppendEnabledCurrencies(v)
+	return _u
+}
+
+// ClearEnabledCurrencies clears the value of the "enabled_currencies" field.
+func (_u *OrganizationUpdateOne) ClearEnabledCurrencies() *OrganizationUpdateOne {
+	_u.mutation.ClearEnabledCurrencies()
+	return _u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_u *OrganizationUpdateOne) SetSearchKeywords(v string) *OrganizationUpdateOne {
 	_u.mutation.SetSearchKeywords(v)
@@ -7327,6 +7375,17 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 	}
 	if _u.mutation.BaseCurrencyCleared() {
 		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.EnabledCurrencies(); ok {
+		_spec.SetField(organization.FieldEnabledCurrencies, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEnabledCurrencies(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, organization.FieldEnabledCurrencies, value)
+		})
+	}
+	if _u.mutation.EnabledCurrenciesCleared() {
+		_spec.ClearField(organization.FieldEnabledCurrencies, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)

@@ -2751,6 +2751,21 @@ paths:
             tags:
                 - ExchangeRateService
             operationId: ExchangeRateService_ListExchangeRateSettings
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: fromCurrency
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -7420,6 +7435,11 @@ paths:
             tags:
                 - MasterDataService
             operationId: MasterDataService_ListCurrencies
+            parameters:
+                - name: enabledOnly
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -7454,6 +7474,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.SearchCurrenciesResponse'
+    /api/v1/reference/currencies/{code}/status:
+        put:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_SetCurrencyEnabled
+            parameters:
+                - name: code
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.SetCurrencyEnabledRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.SetCurrencyEnabledResponse'
 components:
     schemas:
         admin.v1.AdminAuditLog:
@@ -12744,6 +12788,8 @@ components:
                     type: string
                 baseCurrency:
                     type: string
+                total:
+                    type: string
         finance.v1.ListFeeLedgerResponse:
             type: object
             properties:
@@ -14129,6 +14175,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                isBaseCurrency:
+                    type: boolean
         masterdata.v1.ImportItemsRequest:
             required:
                 - kind
@@ -14530,6 +14578,29 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        masterdata.v1.SetCurrencyEnabledRequest:
+            required:
+                - code
+            type: object
+            properties:
+                code:
+                    type: string
+                enabled:
+                    type: boolean
+        masterdata.v1.SetCurrencyEnabledResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/masterdata.v1.Currency'
+                traceId:
+                    type: string
         masterdata.v1.ShippingLine:
             type: object
             properties:

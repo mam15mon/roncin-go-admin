@@ -59,29 +59,47 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 }
 
 // List 返回调用方组织行 + 集团基线行；维护入口按行归属呈现（基线行对非总部只读）。
-func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateSetting, error) {
+// 分页按最新生效周降序优先，便于财务首屏查看最新汇率。
+func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.ExchangeRateListOptions) ([]*biz.ExchangeRateSetting, int64, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	items, err := client.ExchangeRateSetting.Query().
-		Where(exchangerateent.Or(
+	predicates := []predicate.ExchangeRateSetting{
+		exchangerateent.Or(
 			exchangerateent.OrganizationIDEQ(organizationID),
 			exchangerateent.OrganizationIDIsNil(),
-		)).
-		Order(exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
+		),
+	}
+	if options.FromCurrency != "" {
+		predicates = append(predicates, exchangerateent.FromCurrencyEQ(options.FromCurrency))
+	}
+	query := client.ExchangeRateSetting.Query().Where(predicates...)
+	total, err := query.Clone().Count(ctx)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+	items, err := query.
+		Order(
+			exchangerateent.ByEffectiveFrom(entsql.OrderDesc()),
+			exchangerateent.ByFromCurrency(),
+			exchangerateent.ByID(),
+		).
+		Offset((options.Page - 1) * options.PageSize).
+		Limit(options.PageSize).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
 	}
 	result := make([]*biz.ExchangeRateSetting, 0, len(items))
 	for _, item := range items {
 		converted, err := exchangeRateToBiz(item)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		result = append(result, converted)
 	}
-	return result, nil
+	return result, int64(total), nil
 }
 
 // UpsertWeeklyBatch 按自然周幂等写入汇率行：同作用域同货币对同周（effective_from

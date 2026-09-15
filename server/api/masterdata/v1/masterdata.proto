@@ -39,12 +39,12 @@ service MasterDataService {
   }
 
   rpc ListOptions(ListOptionsRequest) returns (ListOptionsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.option.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
   rpc ListPorts(ListPortsRequest) returns (ListPortsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/ports"};
   }
 
@@ -59,7 +59,7 @@ service MasterDataService {
   }
 
   rpc ListAirports(ListAirportsRequest) returns (ListAirportsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/airports"};
   }
 
@@ -74,7 +74,7 @@ service MasterDataService {
   }
 
   rpc ListAirlines(ListAirlinesRequest) returns (ListAirlinesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/airlines"};
   }
 
@@ -89,7 +89,7 @@ service MasterDataService {
   }
 
   rpc ListShippingLines(ListShippingLinesRequest) returns (ListShippingLinesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/shipping-lines"};
   }
 
@@ -104,17 +104,22 @@ service MasterDataService {
   }
 
   rpc ListCurrencies(ListCurrenciesRequest) returns (ListCurrenciesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
 
   rpc SearchCurrencies(SearchCurrenciesRequest) returns (SearchCurrenciesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/reference/currencies/search"};
   }
 
+  rpc SetCurrencyEnabled(SetCurrencyEnabledRequest) returns (SetCurrencyEnabledResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {put: "/api/v1/reference/currencies/{code}/status" body: "*"};
+  }
+
   rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (ListAdministrativeRegionsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.administrative_region.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/reference/administrative-regions"};
   }
 
@@ -642,7 +647,9 @@ message UpdateShippingLineResponse {
   string trace_id = 5;
 }
 
-message ListCurrenciesRequest {}
+message ListCurrenciesRequest {
+  bool enabled_only = 1;
+}
 message SearchCurrenciesRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
 
 message Currency {
@@ -651,9 +658,23 @@ message Currency {
   string name = 3;
   string symbol = 4;
   int32 minor_unit = 5;
-  bool enabled = 6;
+  optional bool enabled = 6;
   string created_at = 7;
   string updated_at = 8;
+  optional bool is_base_currency = 9;
+}
+
+message SetCurrencyEnabledRequest {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  bool enabled = 2;
+}
+
+message SetCurrencyEnabledResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Currency data = 4;
+  string trace_id = 5;
 }
 
 message ListCurrenciesResponse {

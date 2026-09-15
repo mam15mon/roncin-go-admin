@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -34,6 +35,8 @@ type Organization struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
 	BaseCurrency *string `json:"base_currency,omitempty"`
+	// EnabledCurrencies holds the value of the "enabled_currencies" field.
+	EnabledCurrencies []string `json:"enabled_currencies,omitempty"`
 	// SearchKeywords holds the value of the "search_keywords" field.
 	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -707,6 +710,8 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case organization.FieldParentID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case organization.FieldEnabledCurrencies:
+			values[i] = new([]byte)
 		case organization.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case organization.FieldCode, organization.FieldName, organization.FieldKind, organization.FieldBaseCurrency, organization.FieldSearchKeywords:
@@ -785,6 +790,14 @@ func (_m *Organization) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.BaseCurrency = new(string)
 				*_m.BaseCurrency = value.String
+			}
+		case organization.FieldEnabledCurrencies:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field enabled_currencies", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.EnabledCurrencies); err != nil {
+					return fmt.Errorf("unmarshal field enabled_currencies: %w", err)
+				}
 			}
 		case organization.FieldSearchKeywords:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1150,6 +1163,9 @@ func (_m *Organization) String() string {
 		builder.WriteString("base_currency=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("enabled_currencies=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EnabledCurrencies))
 	builder.WriteString(", ")
 	builder.WriteString("search_keywords=")
 	builder.WriteString(_m.SearchKeywords)

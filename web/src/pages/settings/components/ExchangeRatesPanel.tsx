@@ -196,21 +196,6 @@ export function ExchangeRatesPanel() {
         `${formatDate(record.effectiveFrom)} ~ ${formatDate(record.effectiveTo)}`,
     },
     {
-      title: '归属',
-      dataIndex: 'organizationId',
-      width: 110,
-      render: (_, record) =>
-        record.organizationId ? (
-          <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
-            本组织行
-          </Tag>
-        ) : (
-          <Tag color="purple" style={{ margin: 0, fontSize: 11 }}>
-            集团基线行
-          </Tag>
-        ),
-    },
-    {
       title: '状态',
       dataIndex: 'isActive',
       width: 80,
@@ -303,17 +288,29 @@ export function ExchangeRatesPanel() {
         rowKey="id"
         columns={columns}
         search={false}
-        pagination={false}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100', '200'],
+          showTotal: (total) => `共 ${total} 条`,
+        }}
         cardProps={false}
         tableAlertRender={false}
         tableAlertOptionRender={false}
-        request={async () => {
+        request={async (params) => {
           const [rateResponse, currencyResponse] = await Promise.all([
-            exchangeRateServiceListExchangeRateSettings(),
-            getCurrencies(),
+            exchangeRateServiceListExchangeRateSettings({
+              page: params.current,
+              pageSize: params.pageSize,
+            }),
+            currencies.length > 0
+              ? Promise.resolve(currencies)
+              : getCurrencies(),
           ]);
           setBaseCurrency(rateResponse.baseCurrency ?? '');
-          setCurrencies(currencyResponse);
+          if (currencies.length === 0) {
+            setCurrencies(currencyResponse);
+          }
           return toTableRequest(rateResponse);
         }}
         toolBarRender={() => [

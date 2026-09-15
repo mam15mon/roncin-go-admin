@@ -4430,6 +4430,7 @@ var (
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"headquarters", "company", "department", "team"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "base_currency", Type: field.TypeString, Nullable: true, Size: 3},
+		{Name: "enabled_currencies", Type: field.TypeJSON, Nullable: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -4441,7 +4442,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "organizations_organizations_children",
-				Columns:    []*schema.Column{OrganizationsColumns[9]},
+				Columns:    []*schema.Column{OrganizationsColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -4460,7 +4461,7 @@ var (
 			{
 				Name:    "organization_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrganizationsColumns[9]},
+				Columns: []*schema.Column{OrganizationsColumns[10]},
 			},
 		},
 	}
