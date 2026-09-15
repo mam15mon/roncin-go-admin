@@ -93,6 +93,7 @@ const (
 	EnterpriseResourceDelete    = "business.enterprise_resource.delete"
 
 	MasterDataCurrencyRead             = "system.master_data.currency.read"
+	MasterDataCurrencyUpdate           = "system.master_data.currency.update"
 	MasterDataAdministrativeRegionRead = "system.master_data.administrative_region.read"
 	MasterDataOptionRead               = "system.master_data.option.read"
 	MasterDataItemRead                 = "system.master_data.item.read"
@@ -184,7 +185,7 @@ const (
 )
 
 var manifest = append([]Permission{
-	{Key: PlatformAccess, Name: "访问管理后台", Group: "系统管理 · 平台", Description: "登录并访问管理后台"},
+	{Key: PlatformAccess, Name: "访问工作台", Group: "系统管理 · 平台", Description: "登录并进入工作台，是使用系统的基础权限"},
 	{Key: OrganizationRead, Name: "查看组织", Group: "系统管理 · 组织", Description: "查看公司、部门和组的组织架构"},
 	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组", Requires: []string{OrganizationRead}},
 	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态", Requires: []string{OrganizationRead}},
@@ -261,6 +262,7 @@ var manifest = append([]Permission{
 	{Key: PartnerAuditRead, Name: "查看单位操作记录", Group: "业务资料 · 往来单位 · 审计", Description: "查看往来单位操作记录"},
 	{Key: PartnerAssignmentOptionRead, Name: "查看责任人选项", Group: "业务资料 · 往来单位 · 责任人", Description: "查看往来单位责任人候选项"},
 	{Key: MasterDataCurrencyRead, Name: "查看币种", Group: "主数据 · 公共字典", Description: "查看币种字典"},
+	{Key: MasterDataCurrencyUpdate, Name: "管理币种启用状态", Group: "主数据 · 公共字典", Description: "配置组织适用的结算币种启用状态", Requires: []string{MasterDataCurrencyRead}},
 	{Key: MasterDataAdministrativeRegionRead, Name: "查看行政区划", Group: "主数据 · 公共字典", Description: "查看行政区划字典"},
 	{Key: MasterDataOptionRead, Name: "查看订单选项", Group: "主数据 · 公共字典", Description: "查看订单表单的聚合选项"},
 	{Key: MasterDataItemRead, Name: "查看目录项", Group: "主数据 · 基础目录", Description: "查看主数据基础目录项"},

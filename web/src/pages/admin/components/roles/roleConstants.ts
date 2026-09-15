@@ -1,3 +1,6 @@
+// 新建角色默认勾选的基础权限：没有它用户登录后没有任何可进页面。
+export const ROLE_BASE_PERMISSION_KEY = 'system.platform.access';
+
 export const dataScopeOptions = [
   {
     label: '全部组织',

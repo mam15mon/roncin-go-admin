@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -15,6 +15,11 @@ const accessState = vi.hoisted(() => ({
 // 操作列渲染的目标角色由用例注入，用于断言删除入口的角色规则。
 const operationRow = vi.hoisted(() => ({
   value: {} as API.AdminRole,
+}));
+
+// 表单弹窗 props 由用例捕获，用于断言权限树初始勾选。
+const formModalProps = vi.hoisted(() => ({
+  value: {} as Record<string, unknown>,
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -47,11 +52,13 @@ vi.mock('antd', () => ({
   Button: ({
     children,
     disabled,
+    onClick,
   }: {
     children: React.ReactNode;
     disabled?: boolean;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
   }) => (
-    <button type="button" disabled={disabled}>
+    <button type="button" disabled={disabled} onClick={onClick}>
       {children}
     </button>
   ),
@@ -69,7 +76,10 @@ vi.mock('@/services/roncin/adminService', () => ({
 }));
 
 vi.mock('./components/roles/RoleFormModal', () => ({
-  default: () => null,
+  default: (props: Record<string, unknown>) => {
+    formModalProps.value = props;
+    return null;
+  },
 }));
 
 import RolesPanel from './roles';
@@ -127,5 +137,23 @@ describe('RolesPanel 角色配置权限', () => {
     render(<RolesPanel />);
 
     expect(screen.getByRole('button', { name: '删除' })).toBeEnabled();
+  });
+
+  it('新建角色默认勾选访问工作台基础权限', async () => {
+    accessState.value = {
+      ...accessState.value,
+      canCreateRoles: true,
+      canReadPermissions: true,
+      canReadOrganizations: true,
+    };
+    render(<RolesPanel />);
+
+    fireEvent.click(screen.getByRole('button', { name: '新增角色' }));
+
+    await waitFor(() => {
+      expect(formModalProps.value.selectedPermissionKeys).toEqual([
+        'system.platform.access',
+      ]);
+    });
   });
 });

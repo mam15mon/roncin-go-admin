@@ -13,7 +13,7 @@ import {
 const mockPermissions = [
   {
     key: 'system.platform.access',
-    name: '访问管理后台',
+    name: '访问工作台',
     group: '系统管理 · 平台',
   },
   {
@@ -86,7 +86,7 @@ const mockPermissions = [
 describe('isReadPermission', () => {
   it('正确识别各类只读权限', () => {
     expect(isReadPermission('system.user.read', '查看用户')).toBe(true);
-    expect(isReadPermission('system.platform.access', '访问管理后台')).toBe(
+    expect(isReadPermission('system.platform.access', '访问工作台')).toBe(
       true,
     );
     expect(

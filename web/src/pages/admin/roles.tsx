@@ -28,6 +28,7 @@ import {
 } from './components/roles/permissionTree';
 import RoleFormModal from './components/roles/RoleFormModal';
 import {
+  ROLE_BASE_PERMISSION_KEY,
   dataScopeMap,
   dataScopeOptions,
 } from './components/roles/roleConstants';
@@ -75,7 +76,8 @@ export default function RolesPanel() {
 
   const openCreate = () => {
     setEditing(undefined);
-    setSelectedPermissionKeys([]);
+    // 默认勾选基础权限，避免漏勾后该角色用户登录无任何可进页面。
+    setSelectedPermissionKeys([ROLE_BASE_PERMISSION_KEY]);
     setPermissionKeyword('');
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
