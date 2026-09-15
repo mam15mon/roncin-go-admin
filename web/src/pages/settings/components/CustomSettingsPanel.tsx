@@ -28,6 +28,13 @@ import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
+type PolicyWithUpdater = API.BilledFeeEditPolicy | API.CreditLimitControlPolicy;
+
+/** 操作人优先展示姓名；姓名不可考时回退展示用户 ID。 */
+function policyOperatorLabel(policy: PolicyWithUpdater | undefined): string {
+  return policy?.updatedByName || policy?.updatedBy || '';
+}
+
 /** 账单创建后允许修改费用的字段枚举映射 */
 export const BILLED_FEE_EDITABLE_FIELD = {
   FEE_NAME: 1,
@@ -216,9 +223,8 @@ export function CustomSettingsPanel() {
                   {billedFeePolicy?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       最近修改时间：{formatDate(billedFeePolicy.updatedAt)}
-                      {billedFeePolicy.updatedBy
-                        ? `（操作人：${billedFeePolicy.updatedBy}）`
-                        : ''}
+                      {policyOperatorLabel(billedFeePolicy) &&
+                        `（操作人：${policyOperatorLabel(billedFeePolicy)}）`}
                     </Text>
                   )}
                 </Space>
@@ -320,9 +326,8 @@ export function CustomSettingsPanel() {
                   {creditPolicy?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       最近修改时间：{formatDate(creditPolicy.updatedAt)}
-                      {creditPolicy.updatedBy
-                        ? `（操作人：${creditPolicy.updatedBy}）`
-                        : ''}
+                      {policyOperatorLabel(creditPolicy) &&
+                        `（操作人：${policyOperatorLabel(creditPolicy)}）`}
                     </Text>
                   )}
                 </Space>

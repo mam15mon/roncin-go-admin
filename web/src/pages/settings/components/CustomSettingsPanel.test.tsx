@@ -320,4 +320,45 @@ describe('CustomSettingsPanel', () => {
       expect(screen.getByText('直接干预模式')).toBeInTheDocument();
     });
   });
+
+  it('最近修改操作人优先展示姓名，姓名缺失时回退用户 ID', async () => {
+    const fallbackUserId = '01a09ead-242d-7318-9a75-eca6447ce258';
+    mockGetBilledFeeEditPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        enabled: true,
+        editableFields: [],
+        version: '1',
+        updatedAt: '2026-09-15T05:59:47Z',
+        updatedBy: fallbackUserId,
+        updatedByName: '张三',
+      },
+    });
+    mockGetCreditLimitControlPolicy.mockResolvedValueOnce({
+      success: true,
+      canUpdate: true,
+      data: {
+        organizationId: 'org-headquarter',
+        allowSelectionWhenCreditExceeded: true,
+        version: '3',
+        updatedAt: '2026-09-15T05:59:47Z',
+        updatedBy: fallbackUserId,
+      },
+    });
+
+    render(
+      <App>
+        <CustomSettingsPanel />
+      </App>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/（操作人：张三）/)).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(new RegExp(`（操作人：${fallbackUserId}`)),
+    ).toBeInTheDocument();
+  });
 });

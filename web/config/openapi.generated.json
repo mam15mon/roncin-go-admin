@@ -15824,6 +15824,10 @@
           },
           "updatedBy": {
             "type": "string"
+          },
+          "updatedByName": {
+            "type": "string",
+            "description": "操作人显示名，按 updated_by 解析；用户不可考时为空。"
           }
         }
       },
@@ -17427,6 +17431,10 @@
           },
           "updatedBy": {
             "type": "string"
+          },
+          "updatedByName": {
+            "type": "string",
+            "description": "操作人显示名，按 updated_by 解析；用户不可考时为空。"
           }
         },
         "description": "CreditLimitControlPolicy 是组织级信用额度管控策略：\n allow_selection_when_credit_exceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；\n false 为直接干预模式，超额客户在选择器中禁用且服务端在订单、应收费用写入时拦截。"

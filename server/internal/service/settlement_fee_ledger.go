@@ -295,6 +295,10 @@ func creditLimitControlPolicyToAPI(policy *biz.CreditLimitControlPolicy) *v1.Cre
 		value := policy.UpdatedBy.String()
 		result.UpdatedBy = &value
 	}
+	if policy.UpdatedByName != "" {
+		value := policy.UpdatedByName
+		result.UpdatedByName = &value
+	}
 	return result
 }
 
@@ -352,6 +356,10 @@ func billedFeeEditPolicyToAPI(policy *biz.BilledFeeEditPolicy) *v1.BilledFeeEdit
 	if policy.UpdatedBy != nil {
 		value := policy.UpdatedBy.String()
 		result.UpdatedBy = &value
+	}
+	if policy.UpdatedByName != "" {
+		value := policy.UpdatedByName
+		result.UpdatedByName = &value
 	}
 	return result
 }

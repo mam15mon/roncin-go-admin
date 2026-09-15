@@ -9799,6 +9799,9 @@ components:
                     type: string
                 updatedBy:
                     type: string
+                updatedByName:
+                    type: string
+                    description: 操作人显示名，按 updated_by 解析；用户不可考时为空。
         finance.v1.BillingUnit:
             type: object
             properties:
@@ -10887,6 +10890,9 @@ components:
                     type: string
                 updatedBy:
                     type: string
+                updatedByName:
+                    type: string
+                    description: 操作人显示名，按 updated_by 解析；用户不可考时为空。
             description: |-
                 CreditLimitControlPolicy 是组织级信用额度管控策略：
                  allow_selection_when_credit_exceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；

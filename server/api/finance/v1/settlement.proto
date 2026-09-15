@@ -420,6 +420,8 @@ message BilledFeeEditPolicy {
   uint64 version = 4;
   optional string updated_at = 5;
   optional string updated_by = 6;
+  // 操作人显示名，按 updated_by 解析；用户不可考时为空。
+  optional string updated_by_name = 7;
 }
 
 message GetBilledFeeEditPolicyRequest {}
@@ -458,6 +460,8 @@ message CreditLimitControlPolicy {
   uint64 version = 3;
   optional string updated_at = 4;
   optional string updated_by = 5;
+  // 操作人显示名，按 updated_by 解析；用户不可考时为空。
+  optional string updated_by_name = 6;
 }
 
 message GetCreditLimitControlPolicyRequest {

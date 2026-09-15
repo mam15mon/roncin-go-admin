@@ -35,6 +35,7 @@ type BilledFeeEditPolicy struct {
 	Version        uint64
 	UpdatedAt      *time.Time
 	UpdatedBy      *uuid.UUID
+	UpdatedByName  string
 }
 
 func (p *BilledFeeEditPolicy) Allows(field BilledFeeEditableField) bool {
@@ -65,6 +66,7 @@ type CreditLimitControlPolicy struct {
 	Version                          uint64
 	UpdatedAt                        *time.Time
 	UpdatedBy                        *uuid.UUID
+	UpdatedByName                    string
 }
 
 type FinanceCustomSettingUsecase struct{ repo FinanceCustomSettingRepo }

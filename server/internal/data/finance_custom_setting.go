@@ -24,7 +24,7 @@ func (r *financeCustomSettingRepo) GetBilledFeeEditPolicy(ctx context.Context, o
 	if err != nil {
 		return nil, err
 	}
-	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).Only(ctx)
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).WithUpdatedByUser().Only(ctx)
 	if ent.IsNotFound(err) {
 		return &biz.BilledFeeEditPolicy{OrganizationID: ownerID, EditableFields: []biz.BilledFeeEditableField{}}, nil
 	}
@@ -43,7 +43,7 @@ func (r *financeCustomSettingRepo) GetCreditLimitControlPolicy(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).Only(ctx)
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).WithUpdatedByUser().Only(ctx)
 	if ent.IsNotFound(err) {
 		return &biz.CreditLimitControlPolicy{OrganizationID: ownerID, AllowSelectionWhenCreditExceeded: true}, nil
 	}
@@ -62,7 +62,6 @@ func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	var saved *ent.FinanceCustomSetting
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
 		switch {
@@ -70,7 +69,7 @@ func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Cont
 			if expectedVersion != 0 {
 				return biz.ErrFinanceCustomSettingConflict
 			}
-			saved, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).
+			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).
 				SetCreditLimitSelectionAllowed(policy.AllowSelectionWhenCreditExceeded).
 				SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
 			if queryErr != nil {
@@ -81,7 +80,7 @@ func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Cont
 		case current.Version != expectedVersion:
 			return biz.ErrFinanceCustomSettingConflict
 		default:
-			saved, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).
+			_, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).
 				SetCreditLimitSelectionAllowed(policy.AllowSelectionWhenCreditExceeded).
 				SetVersion(current.Version + 1).SetUpdatedBy(actorID).Save(ctx)
 		}
@@ -93,7 +92,8 @@ func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	return creditLimitControlPolicyToBiz(saved), nil
+	// 完整业务响应在事务提交后用普通上下文重读，操作人姓名等关联数据取自已提交状态。
+	return r.GetCreditLimitControlPolicy(ctx, organizationID)
 }
 
 func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.BilledFeeEditPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.BilledFeeEditPolicy, error) {
@@ -105,7 +105,6 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	var saved *ent.FinanceCustomSetting
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
 		flags := billedFeeFieldFlags(policy.EditableFields)
@@ -114,7 +113,7 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 			if expectedVersion != 0 {
 				return biz.ErrFinanceCustomSettingConflict
 			}
-			saved, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).SetBilledFeeEditEnabled(policy.Enabled).
+			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).SetBilledFeeEditEnabled(policy.Enabled).
 				SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
 				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
 				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
@@ -127,7 +126,7 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 		case current.Version != expectedVersion:
 			return biz.ErrFinanceCustomSettingConflict
 		default:
-			saved, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).SetBilledFeeEditEnabled(policy.Enabled).
+			_, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).SetBilledFeeEditEnabled(policy.Enabled).
 				SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
 				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
 				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
@@ -141,7 +140,8 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return financeCustomSettingToPolicy(saved), nil
+	// 完整业务响应在事务提交后用普通上下文重读，操作人姓名等关联数据取自已提交状态。
+	return r.GetBilledFeeEditPolicy(ctx, organizationID)
 }
 
 func billedFeeFieldFlags(fields []biz.BilledFeeEditableField) map[biz.BilledFeeEditableField]bool {
@@ -167,12 +167,20 @@ func financeCustomSettingToPolicy(item *ent.FinanceCustomSetting) *biz.BilledFee
 		}
 	}
 	updatedAt, updatedBy := item.UpdatedAt, item.UpdatedBy
-	return &biz.BilledFeeEditPolicy{OrganizationID: item.OrganizationID, Enabled: item.BilledFeeEditEnabled, EditableFields: fields, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy}
+	return &biz.BilledFeeEditPolicy{OrganizationID: item.OrganizationID, Enabled: item.BilledFeeEditEnabled, EditableFields: fields, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy, UpdatedByName: updatedByUserName(item)}
+}
+
+// updatedByUserName 取策略操作人显示名；边未加载或用户不可考时返回空串，由传输层决定是否下发。
+func updatedByUserName(item *ent.FinanceCustomSetting) string {
+	if item.Edges.UpdatedByUser == nil {
+		return ""
+	}
+	return item.Edges.UpdatedByUser.DisplayName
 }
 
 func creditLimitControlPolicyToBiz(item *ent.FinanceCustomSetting) *biz.CreditLimitControlPolicy {
 	updatedAt, updatedBy := item.UpdatedAt, item.UpdatedBy
-	return &biz.CreditLimitControlPolicy{OrganizationID: item.OrganizationID, AllowSelectionWhenCreditExceeded: item.CreditLimitSelectionAllowed, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy}
+	return &biz.CreditLimitControlPolicy{OrganizationID: item.OrganizationID, AllowSelectionWhenCreditExceeded: item.CreditLimitSelectionAllowed, Version: item.Version, UpdatedAt: &updatedAt, UpdatedBy: &updatedBy, UpdatedByName: updatedByUserName(item)}
 }
 
 var _ biz.FinanceCustomSettingRepo = (*financeCustomSettingRepo)(nil)

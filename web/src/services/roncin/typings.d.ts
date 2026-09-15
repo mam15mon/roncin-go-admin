@@ -666,6 +666,8 @@ declare namespace API {
     version?: string;
     updatedAt?: string;
     updatedBy?: string;
+    /** 操作人显示名，按 updated_by 解析；用户不可考时为空。 */
+    updatedByName?: string;
   };
 
   type BillExpectedVersion = {
@@ -1706,6 +1708,8 @@ declare namespace API {
     version?: string;
     updatedAt?: string;
     updatedBy?: string;
+    /** 操作人显示名，按 updated_by 解析；用户不可考时为空。 */
+    updatedByName?: string;
   };
 
   type Currency = {

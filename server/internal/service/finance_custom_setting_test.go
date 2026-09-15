@@ -68,3 +68,23 @@ func TestGetBilledFeeEditPolicyReturnsCurrentOrganizationUpdateCapability(t *tes
 		t.Fatalf("缺少账单更新权限错误 = %v，期望 %v", err, biz.ErrPermissionDenied)
 	}
 }
+
+func TestPolicyToAPICarriesUpdatedByName(t *testing.T) {
+	actorID := uuid.New()
+	billed := billedFeeEditPolicyToAPI(&biz.BilledFeeEditPolicy{OrganizationID: uuid.New(), Enabled: true, Version: 1, UpdatedBy: &actorID, UpdatedByName: "张三"})
+	if billed.GetUpdatedByName() != "张三" {
+		t.Fatalf("账单费用修改策略操作人姓名 = %q，期望 %q", billed.GetUpdatedByName(), "张三")
+	}
+	billedNoName := billedFeeEditPolicyToAPI(&biz.BilledFeeEditPolicy{OrganizationID: uuid.New()})
+	if billedNoName.UpdatedByName != nil {
+		t.Fatalf("操作人不可考时不应下发姓名，实际 %#v", billedNoName.UpdatedByName)
+	}
+	credit := creditLimitControlPolicyToAPI(&biz.CreditLimitControlPolicy{OrganizationID: uuid.New(), AllowSelectionWhenCreditExceeded: true, Version: 2, UpdatedBy: &actorID, UpdatedByName: "李四"})
+	if credit.GetUpdatedByName() != "李四" {
+		t.Fatalf("信用额度管控策略操作人姓名 = %q，期望 %q", credit.GetUpdatedByName(), "李四")
+	}
+	creditNoName := creditLimitControlPolicyToAPI(&biz.CreditLimitControlPolicy{OrganizationID: uuid.New(), AllowSelectionWhenCreditExceeded: true})
+	if creditNoName.UpdatedByName != nil {
+		t.Fatalf("操作人不可考时不应下发姓名，实际 %#v", creditNoName.UpdatedByName)
+	}
+}

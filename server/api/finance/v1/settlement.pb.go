@@ -2142,9 +2142,11 @@ type BilledFeeEditPolicy struct {
 	Enabled        bool                     `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	EditableFields []BilledFeeEditableField `protobuf:"varint,3,rep,packed,name=editable_fields,json=editableFields,proto3,enum=finance.v1.BilledFeeEditableField" json:"editable_fields,omitempty"`
 	// 未保存过策略时为 0；首次保存需携带 expected_version=0。
-	Version       uint64  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
-	UpdatedAt     *string `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
-	UpdatedBy     *string `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3,oneof" json:"updated_by,omitempty"`
+	Version   uint64  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt *string `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	UpdatedBy *string `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3,oneof" json:"updated_by,omitempty"`
+	// 操作人显示名，按 updated_by 解析；用户不可考时为空。
+	UpdatedByName *string `protobuf:"bytes,7,opt,name=updated_by_name,json=updatedByName,proto3,oneof" json:"updated_by_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2217,6 +2219,13 @@ func (x *BilledFeeEditPolicy) GetUpdatedAt() string {
 func (x *BilledFeeEditPolicy) GetUpdatedBy() string {
 	if x != nil && x.UpdatedBy != nil {
 		return *x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *BilledFeeEditPolicy) GetUpdatedByName() string {
+	if x != nil && x.UpdatedByName != nil {
+		return *x.UpdatedByName
 	}
 	return ""
 }
@@ -2486,9 +2495,11 @@ type CreditLimitControlPolicy struct {
 	OrganizationId                   string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	AllowSelectionWhenCreditExceeded bool                   `protobuf:"varint,2,opt,name=allow_selection_when_credit_exceeded,json=allowSelectionWhenCreditExceeded,proto3" json:"allow_selection_when_credit_exceeded,omitempty"`
 	// 未保存过策略时为 0；首次保存需携带 expected_version=0。
-	Version       uint64  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
-	UpdatedAt     *string `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
-	UpdatedBy     *string `protobuf:"bytes,5,opt,name=updated_by,json=updatedBy,proto3,oneof" json:"updated_by,omitempty"`
+	Version   uint64  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt *string `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	UpdatedBy *string `protobuf:"bytes,5,opt,name=updated_by,json=updatedBy,proto3,oneof" json:"updated_by,omitempty"`
+	// 操作人显示名，按 updated_by 解析；用户不可考时为空。
+	UpdatedByName *string `protobuf:"bytes,6,opt,name=updated_by_name,json=updatedByName,proto3,oneof" json:"updated_by_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2554,6 +2565,13 @@ func (x *CreditLimitControlPolicy) GetUpdatedAt() string {
 func (x *CreditLimitControlPolicy) GetUpdatedBy() string {
 	if x != nil && x.UpdatedBy != nil {
 		return *x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *CreditLimitControlPolicy) GetUpdatedByName() string {
+	if x != nil && x.UpdatedByName != nil {
+		return *x.UpdatedByName
 	}
 	return ""
 }
@@ -18600,7 +18618,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FeeLedgerPreferenceR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa5\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe6\x02\n" +
 	"\x13BilledFeeEditPolicy\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12K\n" +
@@ -18609,9 +18627,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\tH\x00R\tupdatedAt\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"updated_by\x18\x06 \x01(\tH\x01R\tupdatedBy\x88\x01\x01B\r\n" +
+	"updated_by\x18\x06 \x01(\tH\x01R\tupdatedBy\x88\x01\x01\x12+\n" +
+	"\x0fupdated_by_name\x18\a \x01(\tH\x02R\rupdatedByName\x88\x01\x01B\r\n" +
 	"\v_updated_atB\r\n" +
-	"\v_updated_by\"\x1f\n" +
+	"\v_updated_byB\x12\n" +
+	"\x10_updated_by_name\"\x1f\n" +
 	"\x1dGetBilledFeeEditPolicyRequest\"\xd7\x01\n" +
 	"\x1eGetBilledFeeEditPolicyResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -18630,7 +18650,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.BilledFeeEditPolicyR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x93\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xd4\x02\n" +
 	"\x18CreditLimitControlPolicy\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12N\n" +
 	"$allow_selection_when_credit_exceeded\x18\x02 \x01(\bR allowSelectionWhenCreditExceeded\x12\x18\n" +
@@ -18638,9 +18658,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x04 \x01(\tH\x00R\tupdatedAt\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"updated_by\x18\x05 \x01(\tH\x01R\tupdatedBy\x88\x01\x01B\r\n" +
+	"updated_by\x18\x05 \x01(\tH\x01R\tupdatedBy\x88\x01\x01\x12+\n" +
+	"\x0fupdated_by_name\x18\x06 \x01(\tH\x02R\rupdatedByName\x88\x01\x01B\r\n" +
 	"\v_updated_atB\r\n" +
-	"\v_updated_by\"f\n" +
+	"\v_updated_byB\x12\n" +
+	"\x10_updated_by_name\"f\n" +
 	"\"GetCreditLimitControlPolicyRequest\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01B\x12\n" +
 	"\x10_organization_id\"\xe1\x01\n" +
