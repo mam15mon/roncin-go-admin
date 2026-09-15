@@ -68,9 +68,18 @@ vi.mock('@/components/ui', () => ({
             加载{props.label}
           </button>
         )}
-        {options.map((option) => (
+        {(props.options ?? options).map((option: any) => (
           <span key={option.value}>{option.label}</span>
         ))}
+        {props.fieldProps?.onSearch && (
+          <input
+            aria-label={`搜索${props.label}`}
+            onChange={(event) =>
+              props.fieldProps?.onSearch?.(event.target.value)
+            }
+          />
+        )}
+        {props.fieldProps?.loading ? <span>候选加载中</span> : null}
       </div>
     );
   },
@@ -109,6 +118,14 @@ const nettingCandidate = {
   confirmedAt: '2026-09-01 10:00:00',
 };
 
+const verificationCandidate = {
+  id: 'verification-a',
+  verificationNo: 'VR-A',
+  settlementPartyName: 'A单位',
+  amount: '200',
+  currency: 'CNY',
+};
+
 describe('提成预览 CNY 快照', () => {
   beforeEach(() => {
     modalState.props = undefined;
@@ -121,6 +138,12 @@ describe('提成预览 CNY 快照', () => {
       mock.mockReset();
     }
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
+    serviceMocks.listCommissionVerificationCandidates.mockResolvedValue({
+      data: [],
+    });
+    serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
+      data: [],
+    });
     serviceMocks.previewCommission.mockResolvedValue({
       data: {
         employeeName: '张三',
@@ -316,7 +339,7 @@ describe('提成预览 CNY 快照', () => {
     );
   });
 
-  it('未选公司不请求核销候选，慢 A 响应不会污染已切换的 B 公司', async () => {
+  it('核销候选未选公司不请求，慢 A 响应不会污染已切换的 B 公司', async () => {
     let resolveA: (value: unknown) => void = () => undefined;
     const slowA = new Promise((resolve) => {
       resolveA = resolve;
@@ -350,8 +373,9 @@ describe('提成预览 CNY 快照', () => {
     expect(
       serviceMocks.listCommissionVerificationCandidates,
     ).not.toHaveBeenCalled();
+
+    // 选择公司后自动拉取首批候选，无需手动触发。
     fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
-    fireEvent.click(screen.getByRole('button', { name: '加载有效应收核销' }));
     await waitFor(() =>
       expect(
         serviceMocks.listCommissionVerificationCandidates,
@@ -363,7 +387,6 @@ describe('提成预览 CNY 快照', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
-    fireEvent.click(screen.getByRole('button', { name: '加载有效应收核销' }));
     expect(await screen.findByText('VR-B｜B单位｜100 CNY')).toBeInTheDocument();
 
     await act(async () => {
@@ -381,6 +404,115 @@ describe('提成预览 CNY 快照', () => {
       await slowA;
     });
     expect(screen.queryByText('VR-A｜A单位｜200 CNY')).not.toBeInTheDocument();
+  });
+
+  it('核销候选输入关键字后防抖携带 keyword 重新拉取', async () => {
+    serviceMocks.listCommissionVerificationCandidates.mockImplementation(
+      ({ keyword }: { keyword?: string }) =>
+        Promise.resolve({
+          data: keyword
+            ? [{ ...verificationCandidate, verificationNo: 'VR-A-MATCH' }]
+            : [verificationCandidate],
+        }),
+    );
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    expect(await screen.findByText('VR-A｜A单位｜200 CNY')).toBeInTheDocument();
+    expect(
+      serviceMocks.listCommissionVerificationCandidates,
+    ).toHaveBeenCalledWith({
+      page: 1,
+      pageSize: 200,
+      organizationId: 'org-a',
+    });
+
+    fireEvent.change(screen.getByLabelText('搜索有效应收核销'), {
+      target: { value: 'A单位' },
+    });
+    // 防抖期内不发起搜索请求。
+    expect(
+      serviceMocks.listCommissionVerificationCandidates,
+    ).toHaveBeenCalledTimes(1);
+
+    await waitFor(() =>
+      expect(
+        serviceMocks.listCommissionVerificationCandidates,
+      ).toHaveBeenLastCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+        keyword: 'A单位',
+      }),
+    );
+    expect(
+      await screen.findByText('VR-A-MATCH｜A单位｜200 CNY'),
+    ).toBeInTheDocument();
+  });
+
+  it('对冲候选输入关键字后防抖携带 keyword，切换组织清空关键字并重拉', async () => {
+    serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
+      data: [nettingCandidate],
+    });
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    fireEvent.click(screen.getByRole('tab', { name: '对冲提成' }));
+    expect(await screen.findByText('NT-2026-001')).toBeInTheDocument();
+    expect(serviceMocks.listCommissionNettingCandidates).toHaveBeenCalledWith({
+      page: 1,
+      pageSize: 200,
+      organizationId: 'org-a',
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('搜索对冲单号 / 结算单位'), {
+      target: { value: '对冲' },
+    });
+    // 防抖期内不发起搜索请求。
+    expect(serviceMocks.listCommissionNettingCandidates).toHaveBeenCalledTimes(
+      1,
+    );
+
+    await waitFor(() =>
+      expect(
+        serviceMocks.listCommissionNettingCandidates,
+      ).toHaveBeenLastCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+        keyword: '对冲',
+      }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
+    expect(screen.getByPlaceholderText('搜索对冲单号 / 结算单位')).toHaveValue(
+      '',
+    );
+    await waitFor(() =>
+      expect(
+        serviceMocks.listCommissionNettingCandidates,
+      ).toHaveBeenLastCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-b',
+      }),
+    );
   });
 
   it('考核规则候选携带当前公司，并使用提成管理专用接口', async () => {

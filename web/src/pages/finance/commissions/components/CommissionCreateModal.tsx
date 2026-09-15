@@ -17,7 +17,7 @@ import {
   Typography,
 } from 'antd';
 import type { TableProps } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
@@ -97,7 +97,16 @@ export default function CommissionCreateModal({
     API.FinanceNetting[]
   >([]);
   const [nettingLoading, setNettingLoading] = useState(false);
+  const [nettingKeyword, setNettingKeyword] = useState('');
   const [selectedNetting, setSelectedNetting] = useState<API.FinanceNetting>();
+  const [verificationOptions, setVerificationOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationKeyword, setVerificationKeyword] = useState('');
+  // 候选请求序号：只允许最新一次请求写入候选，防止组织/关键字切换后的迟到响应污染。
+  const verificationRequestRef = useRef(0);
+  const nettingRequestRef = useRef(0);
 
   const resetPreview = () => {
     setPreview(undefined);
@@ -123,32 +132,94 @@ export default function CommissionCreateModal({
     };
   }, [message, open]);
 
-  // 对冲提成候选：进入对冲 Tab 且已选公司时加载已确认且有应收分摊的对冲单。
+  // 核销单候选：打开弹窗或切换组织立即拉取首批；输入关键字后 300ms 防抖走服务端搜索。
+  const loadVerificationOptions = useCallback(
+    async (targetOrganizationId: string, keyword?: string) => {
+      const sequence = ++verificationRequestRef.current;
+      setVerificationLoading(true);
+      try {
+        const response =
+          await settlementServiceListCommissionVerificationCandidates({
+            page: 1,
+            pageSize: 200,
+            organizationId: targetOrganizationId,
+            ...(keyword ? { keyword } : {}),
+          });
+        if (sequence !== verificationRequestRef.current) return;
+        setVerificationOptions(
+          unwrapList(response).map((item) => ({
+            label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
+            value: item.id as string,
+          })),
+        );
+      } catch {
+        if (sequence !== verificationRequestRef.current) return;
+        setVerificationOptions([]);
+        message.warning('有效应收核销候选加载失败');
+      } finally {
+        if (sequence === verificationRequestRef.current) {
+          setVerificationLoading(false);
+        }
+      }
+    },
+    [message],
+  );
+
+  useEffect(() => {
+    if (!open || !organizationId) return;
+    const keyword = verificationKeyword.trim();
+    if (!keyword) {
+      void loadVerificationOptions(organizationId);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void loadVerificationOptions(organizationId, keyword);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [loadVerificationOptions, open, organizationId, verificationKeyword]);
+
+  // 对冲提成候选：进入对冲 Tab 且已选公司时加载已确认且有应收分摊的对冲单；关键字搜索走防抖。
+  const loadNettingCandidates = useCallback(
+    async (targetOrganizationId: string, keyword?: string) => {
+      const sequence = ++nettingRequestRef.current;
+      setNettingLoading(true);
+      try {
+        const response =
+          await settlementServiceListCommissionNettingCandidates(
+            {
+              page: 1,
+              pageSize: 200,
+              organizationId: targetOrganizationId,
+              ...(keyword ? { keyword } : {}),
+            },
+          );
+        if (sequence !== nettingRequestRef.current) return;
+        setNettingCandidates(unwrapList(response));
+      } catch {
+        if (sequence !== nettingRequestRef.current) return;
+        setNettingCandidates([]);
+        message.warning('对冲提成候选加载失败');
+      } finally {
+        if (sequence === nettingRequestRef.current) {
+          setNettingLoading(false);
+        }
+      }
+    },
+    [message],
+  );
+
   useEffect(() => {
     if (!open || sourceType !== 'netting' || !organizationId) return;
-    let cancelled = false;
-    setNettingLoading(true);
-    settlementServiceListCommissionNettingCandidates({
-      page: 1,
-      pageSize: 200,
-      organizationId,
-    })
-      .then((response) => {
-        if (!cancelled) setNettingCandidates(unwrapList(response));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setNettingCandidates([]);
-          message.warning('对冲提成候选加载失败');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setNettingLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, open, sourceType, organizationId]);
+    const keyword = nettingKeyword.trim();
+    if (!keyword) {
+      void loadNettingCandidates(organizationId);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void loadNettingCandidates(organizationId, keyword);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [loadNettingCandidates, nettingKeyword, open, sourceType, organizationId]);
 
   const resetSourceSelection = () => {
     setSelectedNetting(undefined);
@@ -159,10 +230,18 @@ export default function CommissionCreateModal({
     });
   };
 
+  const resetCandidateState = () => {
+    setVerificationOptions([]);
+    setVerificationKeyword('');
+    setNettingKeyword('');
+    setNettingCandidates([]);
+  };
+
   const handleSourceTabChange = (key: string) => {
     const next = key as CommissionSourceTab;
     if (next === sourceType) return;
     setSourceType(next);
+    setNettingKeyword('');
     resetPreview();
     resetSourceSelection();
   };
@@ -192,7 +271,7 @@ export default function CommissionCreateModal({
           onOpenChange(false);
           setSourceType('verification');
           setSelectedNetting(undefined);
-          setNettingCandidates([]);
+          resetCandidateState();
           resetPreview();
         },
       }}
@@ -225,7 +304,7 @@ export default function CommissionCreateModal({
           onOpenChange(false);
           setSourceType('verification');
           setSelectedNetting(undefined);
-          setNettingCandidates([]);
+          resetCandidateState();
           resetPreview();
           onSuccess();
           return true;
@@ -246,6 +325,10 @@ export default function CommissionCreateModal({
         fieldProps={{
           onChange: (value) => {
             setOrganizationId(value);
+            // 切换组织后候选与关键字全部重置，立即拉取新组织首批。
+            setVerificationOptions([]);
+            setVerificationKeyword('');
+            setNettingKeyword('');
             resetPreview();
             resetSourceSelection();
             formRef.current?.setFieldsValue({ ruleId: undefined });
@@ -269,18 +352,11 @@ export default function CommissionCreateModal({
           label="有效应收核销"
           rules={[{ required: true, message: '请选择有效应收核销单' }]}
           disabled={!organizationId}
-          request={async () => {
-            if (!organizationId) return [];
-            const response =
-              await settlementServiceListCommissionVerificationCandidates({
-                page: 1,
-                pageSize: 200,
-                organizationId,
-              });
-            return unwrapList(response).map((item) => ({
-              label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
-              value: item.id,
-            }));
+          options={verificationOptions}
+          fieldProps={{
+            filterOption: false,
+            loading: verificationLoading,
+            onSearch: (value: string) => setVerificationKeyword(value),
           }}
         />
       ) : (
@@ -296,6 +372,14 @@ export default function CommissionCreateModal({
           >
             <Input />
           </Form.Item>
+          <Input
+            allowClear
+            disabled={!organizationId}
+            placeholder="搜索对冲单号 / 结算单位"
+            value={nettingKeyword}
+            onChange={(event) => setNettingKeyword(event.target.value)}
+            style={{ marginBottom: 8 }}
+          />
           <Table<API.FinanceNetting>
             size="small"
             bordered
