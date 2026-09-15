@@ -14,7 +14,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   OrderBusinessType,
@@ -82,6 +82,17 @@ const eventText: Record<number, string> = {
   [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_VOID]: '作废',
   [SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE]: '模式切换',
 };
+
+/** 历史列表单页条数，与后端列表分页上限一致。 */
+const HISTORY_PAGE_SIZE = 200;
+
+/** 只展示本单证的事件；模式切换影响全部单证，始终保留。 */
+function isRelevantEvent(event: API.SeaDocumentEvent, documentId: string) {
+  return (
+    event.documentId === documentId ||
+    event.eventType === SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE
+  );
+}
 
 function createIdempotencyKey() {
   return `sea-document-${generateUUID()}`;
@@ -164,7 +175,15 @@ export default function SeaDocumentHistoryActions({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [versions, setVersions] = useState<API.SeaDocumentVersion[]>([]);
+  const [versionsTotal, setVersionsTotal] = useState(0);
+  const [versionPage, setVersionPage] = useState(1);
+  const [versionsLoading, setVersionsLoading] = useState(false);
   const [events, setEvents] = useState<API.SeaDocumentEvent[]>([]);
+  // 事件按 documentId 过滤后展示，加载进度按接口原始返回条数计算。
+  const [eventsLoadedCount, setEventsLoadedCount] = useState(0);
+  const [eventsTotal, setEventsTotal] = useState(0);
+  const [eventPage, setEventPage] = useState(1);
+  const [eventsLoading, setEventsLoading] = useState(false);
   const [mode, setMode] = useState<ActionMode | null>(null);
   const [preview, setPreview] = useState<ChangePreview | null>(null);
   const [previewPayload, setPreviewPayload] = useState<PreviewPayload | null>(
@@ -183,45 +202,114 @@ export default function SeaDocumentHistoryActions({
     orderVersion && documentVersion && currentVersionId && !terminal,
   );
 
+  // 历史重置代次：loadHistory 递增后，进行中的加载更多响应全部作废。
+  const historyGenerationRef = useRef(0);
+
+  const fetchVersions = useCallback(
+    (page: number) =>
+      isHouse
+        ? seaDocumentServiceListSeaHouseBillVersions({
+            orderId,
+            houseBillId: documentId,
+            page,
+            pageSize: HISTORY_PAGE_SIZE,
+          })
+        : seaDocumentServiceListSeaMasterBillVersions({
+            orderId,
+            page,
+            pageSize: HISTORY_PAGE_SIZE,
+          }),
+    [documentId, isHouse, orderId],
+  );
+
+  const fetchEvents = useCallback(
+    (page: number) =>
+      seaDocumentServiceListSeaDocumentEvents({
+        orderId,
+        page,
+        pageSize: HISTORY_PAGE_SIZE,
+      }),
+    [orderId],
+  );
+
   const loadHistory = useCallback(async () => {
+    const generation = ++historyGenerationRef.current;
     setHistoryLoading(true);
+    setVersionPage(1);
+    setEventPage(1);
     try {
       const [versionResult, eventResult] = await Promise.all([
-        isHouse
-          ? seaDocumentServiceListSeaHouseBillVersions({
-              orderId,
-              houseBillId: documentId,
-              page: 1,
-              pageSize: 200,
-            })
-          : seaDocumentServiceListSeaMasterBillVersions({
-              orderId,
-              page: 1,
-              pageSize: 200,
-            }),
-        seaDocumentServiceListSeaDocumentEvents({
-          orderId,
-          page: 1,
-          pageSize: 200,
-        }),
+        fetchVersions(1),
+        fetchEvents(1),
       ]);
-      setVersions(versionResult.data ?? []);
+      if (generation !== historyGenerationRef.current) return;
+      const versionRows = versionResult.data ?? [];
+      setVersions(versionRows);
+      setVersionsTotal(Number(versionResult.total ?? versionRows.length));
+      const eventRows = eventResult.data ?? [];
       setEvents(
-        (eventResult.data ?? []).filter(
-          (event) =>
-            event.documentId === documentId ||
-            event.eventType ===
-              SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_MODE_CHANGE,
-        ),
+        eventRows.filter((event) => isRelevantEvent(event, documentId)),
       );
+      setEventsLoadedCount(eventRows.length);
+      setEventsTotal(Number(eventResult.total ?? eventRows.length));
     } catch (error: unknown) {
       message.error(
         error instanceof Error ? error.message : '读取单证历史失败',
       );
     } finally {
-      setHistoryLoading(false);
+      if (generation === historyGenerationRef.current) {
+        setHistoryLoading(false);
+      }
     }
-  }, [documentId, isHouse, message, orderId]);
+  }, [documentId, fetchEvents, fetchVersions, message]);
+
+  const loadMoreVersions = async () => {
+    const generation = historyGenerationRef.current;
+    const nextPage = versionPage + 1;
+    setVersionsLoading(true);
+    try {
+      const result = await fetchVersions(nextPage);
+      if (generation !== historyGenerationRef.current) return;
+      const rows = result.data ?? [];
+      setVersions((previous) => [...previous, ...rows]);
+      setVersionsTotal(Number(result.total ?? 0));
+      setVersionPage(nextPage);
+    } catch (error: unknown) {
+      message.error(
+        error instanceof Error ? error.message : '读取单证历史失败',
+      );
+    } finally {
+      if (generation === historyGenerationRef.current) {
+        setVersionsLoading(false);
+      }
+    }
+  };
+
+  const loadMoreEvents = async () => {
+    const generation = historyGenerationRef.current;
+    const nextPage = eventPage + 1;
+    setEventsLoading(true);
+    try {
+      const result = await fetchEvents(nextPage);
+      if (generation !== historyGenerationRef.current) return;
+      const rows = result.data ?? [];
+      setEvents((previous) => [
+        ...previous,
+        ...rows.filter((event) => isRelevantEvent(event, documentId)),
+      ]);
+      setEventsLoadedCount((previous) => previous + rows.length);
+      setEventsTotal(Number(result.total ?? 0));
+      setEventPage(nextPage);
+    } catch (error: unknown) {
+      message.error(
+        error instanceof Error ? error.message : '读取单证历史失败',
+      );
+    } finally {
+      if (generation === historyGenerationRef.current) {
+        setEventsLoading(false);
+      }
+    }
+  };
 
   const openHistory = async () => {
     setDrawerOpen(true);
@@ -428,6 +516,17 @@ export default function SeaDocumentHistoryActions({
             ),
           }}
         />
+        {versions.length < versionsTotal ? (
+          <Button
+            size="small"
+            block
+            style={{ marginTop: 8 }}
+            loading={versionsLoading}
+            onClick={loadMoreVersions}
+          >
+            {`加载更多（共 ${versionsTotal} 条）`}
+          </Button>
+        ) : null}
 
         <Typography.Title level={5} style={{ marginTop: 24 }}>
           业务事件
@@ -463,6 +562,17 @@ export default function SeaDocumentHistoryActions({
             },
           ]}
         />
+        {eventsLoadedCount < eventsTotal ? (
+          <Button
+            size="small"
+            block
+            style={{ marginTop: 8 }}
+            loading={eventsLoading}
+            onClick={loadMoreEvents}
+          >
+            {`加载更多（共 ${eventsTotal} 条）`}
+          </Button>
+        ) : null}
       </Drawer>
 
       <Modal

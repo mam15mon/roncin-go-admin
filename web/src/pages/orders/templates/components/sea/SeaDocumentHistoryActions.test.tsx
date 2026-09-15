@@ -3,6 +3,7 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  SeaDocumentEventType,
   SeaDocumentType,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
@@ -229,5 +230,164 @@ describe('SeaDocumentHistoryActions', () => {
     expect(
       screen.getByText('中远海运 / COSCO SHIPPING (COSU)'),
     ).toBeInTheDocument();
+  });
+
+  it('版本总数超过一页时展示加载更多并追加第二页，刷新时重置回第一页', async () => {
+    historyServiceMocks.listMasterBillVersions.mockImplementation(
+      ({ page }: { page: number }) =>
+        Promise.resolve({
+          data: [
+            {
+              id: `version-${page}`,
+              documentType: SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+              documentNo: 'COSU123456',
+              versionNo: `${page}`,
+              sourceEntityVersion: `${page}`,
+              content: {},
+            },
+          ],
+          total: 2,
+        }),
+    );
+    historyServiceMocks.listDocumentEvents.mockResolvedValue({
+      data: [],
+      total: 0,
+    });
+
+    render(
+      <App>
+        <SeaDocumentHistoryActions
+          orderId="00000000-0000-0000-0000-000000000001"
+          orderVersion="5"
+          documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
+          documentId="00000000-0000-0000-0000-000000000002"
+          documentNo="COSU123456"
+          documentVersion="1"
+          currentVersionId="00000000-0000-0000-0000-000000000003"
+          getAmendmentInput={() => ({ masterBillContent: {} })}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
+    expect(await screen.findByText('v1')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
+    );
+    await waitFor(() =>
+      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith({
+        orderId: '00000000-0000-0000-0000-000000000001',
+        page: 2,
+        pageSize: 200,
+      }),
+    );
+    expect(await screen.findByText('v2')).toBeInTheDocument();
+    expect(screen.getByText('v1')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /加载更多/ }),
+    ).not.toBeInTheDocument();
+
+    // 重新打开历史抽屉（loadHistory）时重置回第一页。
+    fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
+    await waitFor(() =>
+      expect(
+        historyServiceMocks.listMasterBillVersions,
+      ).toHaveBeenLastCalledWith({
+        orderId: '00000000-0000-0000-0000-000000000001',
+        page: 1,
+        pageSize: 200,
+      }),
+    );
+    expect(
+      await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
+    ).toBeInTheDocument();
+  });
+
+  it('事件总数超过一页时按原始返回条数判断加载更多并追加下一页', async () => {
+    historyServiceMocks.listMasterBillVersions.mockResolvedValue({
+      data: [
+        {
+          id: 'version-1',
+          documentType: SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,
+          documentNo: 'COSU123456',
+          versionNo: '1',
+          sourceEntityVersion: '1',
+          content: {},
+        },
+      ],
+      total: 1,
+    });
+    historyServiceMocks.listDocumentEvents.mockImplementation(
+      ({ page }: { page: number }) =>
+        Promise.resolve({
+          data:
+            page === 1
+              ? [
+                  {
+                    id: 'event-1',
+                    documentId: '00000000-0000-0000-0000-000000000002',
+                    eventType:
+                      SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_AMENDMENT,
+                    documentNo: 'COSU123456',
+                  },
+                ]
+              : [
+                  {
+                    id: 'event-2',
+                    documentId: 'another-document',
+                    eventType:
+                      SeaDocumentEventType.SEA_DOCUMENT_EVENT_TYPE_AMENDMENT,
+                    documentNo: 'OTHER-DOC',
+                  },
+                ],
+          total: 2,
+        }),
+    );
+
+    render(
+      <App>
+        <SeaDocumentHistoryActions
+          orderId="00000000-0000-0000-0000-000000000001"
+          orderVersion="5"
+          documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
+          documentId="00000000-0000-0000-0000-000000000002"
+          documentNo="COSU123456"
+          documentVersion="1"
+          currentVersionId="00000000-0000-0000-0000-000000000003"
+          getAmendmentInput={() => ({ masterBillContent: {} })}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
+    expect(await screen.findByText('COSU123456')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '加载更多（共 2 条）' }),
+    );
+    await waitFor(() =>
+      expect(historyServiceMocks.listDocumentEvents).toHaveBeenCalledWith({
+        orderId: '00000000-0000-0000-0000-000000000001',
+        page: 2,
+        pageSize: 200,
+      }),
+    );
+    // 第二页事件不属于本单证，展示层过滤但计入已加载数量，全部加载后按钮消失。
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: /加载更多/ }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('COSU123456')).toBeInTheDocument();
+    expect(screen.queryByText('OTHER-DOC')).not.toBeInTheDocument();
   });
 });
