@@ -19,30 +19,48 @@ import (
 
 // resolveRoleOrganizationID 解析组织对应的角色所属组织：
 // 总部与公司自身独立维护角色库；部门与团队公用其所属公司的角色与工作区，
-// 沿组织树向上回溯到最近的总部/公司祖先节点。
+// 沿组织树向上回溯到最近的总部/公司祖先节点。组织不存在、断链或成环时
+// 显式返回组织不存在错误，不回退为传入的组织 ID。
 func resolveRoleOrganizationID(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (uuid.UUID, error) {
 	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
-		return organizationID, err
+		return uuid.Nil, err
 	}
 	effectiveID := workspaceAncestorID(authOrganizationNodes(nodes), organizationID)
 	if effectiveID == uuid.Nil {
-		return organizationID, nil
+		return uuid.Nil, biz.ErrAdminOrganizationNotFound
 	}
 	return effectiveID, nil
 }
 
+// resolveRoleAnchorOrganizationID 校验角色写入的锚定组织：角色库只归属工作台
+// （总部/公司），部门/团队锚点一律拒绝，不做静默归一。
+func resolveRoleAnchorOrganizationID(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (uuid.UUID, error) {
+	resolved, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if resolved != organizationID {
+		return uuid.Nil, biz.ErrAdminRoleAnchorInvalid
+	}
+	return resolved, nil
+}
+
 func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {
-	roleOrgID, err := resolveRoleOrganizationID(ctx, r.data.db, organizationID)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(roleOrgID)).WithPermissions().All(ctx)
+	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Role.Query().Where(role.OrganizationIDEQ(roleOrgID)).WithPermissions().All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	sort.Slice(items, func(i, j int) bool { return items[i].Code < items[j].Code })
-	counts, err := roleAssignmentCounts(ctx, r.data.db, roleOrgID)
+	counts, err := roleAssignmentCounts(ctx, client, roleOrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +74,15 @@ func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]
 }
 
 func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (*biz.AdminRole, error) {
-	roleOrgID, err := resolveRoleOrganizationID(ctx, r.data.db, organizationID)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	item, err := r.data.db.Role.Query().
+	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Role.Query().
 		Where(role.IDEQ(id), role.OrganizationIDEQ(roleOrgID)).
 		WithPermissions().
 		Only(ctx)
@@ -68,7 +90,7 @@ func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (
 		return nil, mapEntError(err, biz.ErrAdminRoleNotFound, nil)
 	}
 	roleItem := roleToBiz(item)
-	counts, err := roleAssignmentCounts(ctx, r.data.db, roleOrgID)
+	counts, err := roleAssignmentCounts(ctx, client, roleOrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,13 +119,18 @@ func roleAssignmentCounts(ctx context.Context, client *ent.Client, organizationI
 	return counts, nil
 }
 
-// DeleteRole 在同一事务内删除角色：锁定角色行（ForUpdate，与并发分配的成员关系外键
-// 校验互斥）→ 复核成员关系分配数（防止业务校验与删除之间新增分配）→ 清除角色权限
-// 关联 → 删除角色 → 写审计。仍被其他数据引用时统一映射为业务错误。
+// DeleteRole 在同一事务内删除角色：事务内先校验锚定组织（只允许工作台）→ 锁定角色行
+// （ForUpdate，与并发分配的成员关系外键校验互斥）→ 复核成员关系分配数（防止业务校验
+// 与删除之间新增分配）→ 清除角色权限关联 → 删除角色 → 写审计。仍被其他数据引用时
+// 统一映射为业务错误。
 func (r *adminRepo) DeleteRole(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		roleOrgID, resolveErr := resolveRoleAnchorOrganizationID(ctx, tx.Client(), organizationID)
+		if resolveErr != nil {
+			return resolveErr
+		}
 		current, queryErr := tx.Role.Query().
-			Where(role.IDEQ(id), role.OrganizationIDEQ(organizationID)).
+			Where(role.IDEQ(id), role.OrganizationIDEQ(roleOrgID)).
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
@@ -128,15 +155,24 @@ func (r *adminRepo) DeleteRole(ctx context.Context, organizationID, id uuid.UUID
 }
 
 func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	return actorRolesPrivilegeProfiles(ctx, r.data.db, organizationID, actorID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return actorRolesPrivilegeProfiles(ctx, client, organizationID, actorID)
 }
 
 func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
-	return rolesPrivilegeProfiles(ctx, r.data.db, organizationID, roleIDs)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return rolesPrivilegeProfiles(ctx, client, organizationID, roleIDs)
 }
 
 // actorRolesPrivilegeProfiles 查询某组织或其所属工作台子树成员资格下启用角色的权限画像，
-// 供用户管理与钉钉邀请/注册审批的提权校验共用同一口径。
+// 供用户管理与钉钉邀请/注册审批的提权校验共用同一口径。无法解析出工作台（组织不存在、
+// 断链或成环）时显式返回组织不存在错误，不回退为原始组织。
 func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
 	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
@@ -145,11 +181,11 @@ func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organi
 	nodeMap := authOrganizationNodes(nodes)
 	workspaceID := workspaceAncestorID(nodeMap, organizationID)
 	if workspaceID == uuid.Nil {
-		workspaceID = organizationID
+		return nil, biz.ErrAdminOrganizationNotFound
 	}
 	scopeIDs := workspaceMembershipScopeIDs(nodeMap, workspaceID)
 	if len(scopeIDs) == 0 {
-		scopeIDs = []uuid.UUID{organizationID}
+		return nil, biz.ErrAdminOrganizationNotFound
 	}
 	actorMemberships, err := client.Membership.Query().
 		Where(
@@ -217,14 +253,22 @@ func rolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizatio
 }
 
 func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, input *biz.AdminRole, permissionKeys []string, audit *biz.AuditEvent) (*biz.AdminRole, error) {
-	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	permissions, err := permissionsByKeys(ctx, client.Permission.Query(), permissionKeys)
 	if err != nil {
 		return nil, err
 	}
 	var created *ent.Role
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		roleOrgID, resolveErr := resolveRoleAnchorOrganizationID(ctx, tx.Client(), organizationID)
+		if resolveErr != nil {
+			return resolveErr
+		}
 		var saveErr error
-		created, saveErr = tx.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+		created, saveErr = tx.Role.Create().SetOrganizationID(roleOrgID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrAdminRoleCodeExists)
 		}
@@ -234,7 +278,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().Only(ctx)
+	created, err = client.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -242,14 +286,22 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 }
 
 func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminRole, permissionKeys []string, audit *biz.AuditEvent) (*biz.AdminRole, error) {
-	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	permissions, err := permissionsByKeys(ctx, client.Permission.Query(), permissionKeys)
 	if err != nil {
 		return nil, err
 	}
 	var updated *ent.Role
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		roleOrgID, resolveErr := resolveRoleAnchorOrganizationID(ctx, tx.Client(), organizationID)
+		if resolveErr != nil {
+			return resolveErr
+		}
 		var saveErr error
-		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(roleOrgID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, biz.ErrAdminRoleNotFound, nil)
 		}
@@ -258,7 +310,7 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 	if err != nil {
 		return nil, err
 	}
-	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().Only(ctx)
+	updated, err = client.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +318,11 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 }
 
 func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission, error) {
-	items, err := r.data.db.Permission.Query().All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Permission.Query().All(ctx)
 	if err != nil {
 		return nil, err
 	}

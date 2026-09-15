@@ -49,7 +49,12 @@ func main() {
 				return syncErr
 			}
 			orderOptionsSummary, syncErr = data.SyncDefaultOrderOptions(ctx, conn)
-			return syncErr
+			if syncErr != nil {
+				return syncErr
+			}
+			// 角色库只归属工作台（总部/公司）：先把存量中锚定在部门/团队的角色改挂到
+			// 其所属工作台，再自检断言不存在部门/团队锚定行，违反即终止本次发版迁移。
+			return data.BackfillRoleWorkspaceAnchors(ctx, conn)
 		},
 		ChecksumRepaired: func(version, oldChecksum, newChecksum string) {
 			repairedCount++

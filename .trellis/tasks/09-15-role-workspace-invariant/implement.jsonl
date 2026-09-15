@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "工作台模型与组织树解析的既有口径，角色库解析必须同源"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "迁移与数据回填的封装规范"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "新增 ErrAdminRoleAnchorInvalid 的错误映射规范"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端验证纪律与定向测试口径"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "前端 kind 判定与类型口径"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向 vitest/biome 验证纪律"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "服务端解析口径与前端展示的跨层一致性"}

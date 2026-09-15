@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端质量核验基线"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "校验新业务错误映射与提示文案"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "校验迁移幂等与自检断言"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试与 lint 核验"}
