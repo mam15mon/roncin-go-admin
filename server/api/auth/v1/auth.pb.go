@@ -1757,9 +1757,11 @@ func (x *Organization) GetKind() OrganizationKind {
 }
 
 type RoleScope struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoleCode      string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
-	DataScope     string                 `protobuf:"bytes,2,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	RoleCode  string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
+	DataScope string                 `protobuf:"bytes,2,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
+	// 角色显示名，按授权角色解析；合成授权无对应角色时为空。
+	RoleName      string `protobuf:"bytes,3,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1804,6 +1806,13 @@ func (x *RoleScope) GetRoleCode() string {
 func (x *RoleScope) GetDataScope() string {
 	if x != nil {
 		return x.DataScope
+	}
+	return ""
+}
+
+func (x *RoleScope) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
 	}
 	return ""
 }
@@ -2088,11 +2097,12 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
 	"\rbase_currency\x18\x04 \x01(\tR\fbaseCurrency\x12-\n" +
-	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kind\"G\n" +
+	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kind\"d\n" +
 	"\tRoleScope\x12\x1b\n" +
 	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1d\n" +
 	"\n" +
-	"data_scope\x18\x02 \x01(\tR\tdataScope\"\x1c\n" +
+	"data_scope\x18\x02 \x01(\tR\tdataScope\x12\x1b\n" +
+	"\trole_name\x18\x03 \x01(\tR\broleName\"\x1c\n" +
 	"\x1aGetWeComLoginConfigRequest\"\x1f\n" +
 	"\x1dGetDingTalkLoginConfigRequest\"\x0f\n" +
 	"\rLogoutRequest\"\v\n" +

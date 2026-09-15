@@ -825,6 +825,7 @@ func roleGrantFromEntRole(role *ent.Role) (biz.RoleGrant, bool) {
 	grant := biz.RoleGrant{
 		RoleID:      role.ID,
 		RoleCode:    role.Code,
+		RoleName:    role.Name,
 		DataScope:   biz.DataScope(role.DataScope),
 		Permissions: make(map[string]struct{}, len(role.Edges.Permissions)),
 	}

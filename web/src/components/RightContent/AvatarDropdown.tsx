@@ -43,10 +43,12 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   const username = initialState.currentUser.username || '';
   const avatarUrl = initialState.currentUser.avatarUrl;
   const roleScopes = initialState.currentUser.roleScopes || [];
-  const firstRoleCode = roleScopes[0]?.roleCode;
+  const firstRoleScope = roleScopes[0];
+  // 角色优先展示后端解析的角色名，再退到内置标签，最后才暴露角色码。
   const primaryRole =
-    (firstRoleCode && ROLE_LABELS[firstRoleCode]) ||
-    firstRoleCode ||
+    firstRoleScope?.roleName ||
+    (firstRoleScope?.roleCode && ROLE_LABELS[firstRoleScope.roleCode]) ||
+    firstRoleScope?.roleCode ||
     '系统用户';
   const avatarLetter = displayName.slice(0, 1).toUpperCase();
 

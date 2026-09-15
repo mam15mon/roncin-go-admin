@@ -15,6 +15,7 @@ export const DEV_MOCK_USER: API.CurrentUser = {
     {
       roleCode: 'super_admin',
       dataScope: 'all',
+      roleName: '超级管理员',
     },
   ],
   permissions: [

@@ -54,7 +54,9 @@ func TestResolvePermissionOrganizationScopeKeepsRolePermissionAndScopeTogether(t
 
 func TestPrincipalPermissionsAreDerivedOnlyFromRoleGrants(t *testing.T) {
 	permission := "business.order.se.read"
-	principal := &Principal{RoleGrants: []RoleGrant{roleGrant("reader", DataScopeOrganization, []string{permission})}}
+	grant := roleGrant("reader", DataScopeOrganization, []string{permission})
+	grant.RoleName = "只读角色"
+	principal := &Principal{RoleGrants: []RoleGrant{grant}}
 
 	if !principal.HasPermission(permission) {
 		t.Fatal("RoleGrant 中的权限应通过授权检查")
@@ -62,7 +64,7 @@ func TestPrincipalPermissionsAreDerivedOnlyFromRoleGrants(t *testing.T) {
 	if got := principal.PermissionKeys(); !slices.Equal(got, []string{permission}) {
 		t.Fatalf("登录响应权限投影 = %#v，期望 %#v", got, []string{permission})
 	}
-	if got := principal.RoleScopes(); len(got) != 1 || got[0] != (RoleScope{RoleCode: "reader", DataScope: DataScopeOrganization}) {
+	if got := principal.RoleScopes(); len(got) != 1 || got[0] != (RoleScope{RoleCode: "reader", DataScope: DataScopeOrganization, RoleName: "只读角色"}) {
 		t.Fatalf("登录响应角色范围投影 = %#v", got)
 	}
 	if principal.HasPermission("finance.bill.read") {

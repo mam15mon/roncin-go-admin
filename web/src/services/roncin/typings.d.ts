@@ -5861,6 +5861,8 @@ declare namespace API {
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
+    /** 角色显示名，按授权角色解析；合成授权无对应角色时为空。 */
+    roleName?: string;
   };
 
   type SameBatchOrderSummary = {

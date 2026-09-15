@@ -8682,6 +8682,9 @@ components:
                     type: string
                 dataScope:
                     type: string
+                roleName:
+                    type: string
+                    description: 角色显示名，按授权角色解析；合成授权无对应角色时为空。
         auth.v1.SwitchOrganizationRequest:
             required:
                 - organizationId

@@ -79,6 +79,7 @@ type OrganizationChoice struct {
 type RoleScope struct {
 	RoleCode  string
 	DataScope DataScope
+	RoleName  string
 }
 
 // RoleGrant 保留角色、权限和数据范围之间的来源关系。
@@ -86,6 +87,7 @@ type RoleScope struct {
 type RoleGrant struct {
 	RoleID      uuid.UUID
 	RoleCode    string
+	RoleName    string
 	Permissions map[string]struct{}
 	DataScope   DataScope
 }
@@ -308,7 +310,7 @@ func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
 func (p *Principal) RoleScopes() []RoleScope {
 	result := make([]RoleScope, 0, len(p.RoleGrants))
 	for _, grant := range p.RoleGrants {
-		result = append(result, RoleScope{RoleCode: grant.RoleCode, DataScope: grant.DataScope})
+		result = append(result, RoleScope{RoleCode: grant.RoleCode, DataScope: grant.DataScope, RoleName: grant.RoleName})
 	}
 	sort.Slice(result, func(i, j int) bool {
 		if result[i].RoleCode == result[j].RoleCode {

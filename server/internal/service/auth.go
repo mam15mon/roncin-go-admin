@@ -249,7 +249,7 @@ func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	}
 	roleScopes := make([]*v1.RoleScope, 0, len(principal.RoleGrants))
 	for _, roleScope := range principal.RoleScopes() {
-		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope)})
+		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope), RoleName: roleScope.RoleName})
 	}
 	currentOrganization := principal.Organization
 	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: authOrganizationToAPI(currentOrganization), Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes}

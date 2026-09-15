@@ -96,7 +96,8 @@ export default function Welcome() {
                         style={{ padding: '2px 8px', fontSize: 12 }}
                       >
                         <SafetyCertificateOutlined style={{ marginRight: 4 }} />
-                        {scope.roleCode} · 数据范围: {scope.dataScope}
+                        {scope.roleName || scope.roleCode} · 数据范围:{' '}
+                        {scope.dataScope}
                       </Tag>
                     ))}
                   </Space>

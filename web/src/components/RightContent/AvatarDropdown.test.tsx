@@ -65,6 +65,45 @@ describe('AvatarDropdown Component', () => {
     expect(screen.getByText('测')).toBeInTheDocument();
   });
 
+  it('角色展示优先使用后端角色名，缺失时回退内置标签', async () => {
+    mockCurrentUser = {
+      username: 'testadmin',
+      displayName: '测试管理员',
+      currentOrganization: { id: 'org-1', name: '总部' },
+      roleScopes: [{ roleCode: 'role_te22ck559e', roleName: '华东操作组' }],
+    };
+
+    const { container } = render(<AvatarDropdown />);
+    const trigger = container.querySelector('.roncin-avatar-trigger');
+    expect(trigger).toBeInTheDocument();
+    if (!trigger) throw new Error('trigger not found');
+    fireEvent.mouseEnter(trigger);
+
+    await waitFor(() => {
+      expect(screen.getByText('华东操作组')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('role_te22ck559e')).not.toBeInTheDocument();
+
+    cleanup();
+    mockCurrentUser = {
+      username: 'testadmin',
+      displayName: '测试管理员',
+      currentOrganization: { id: 'org-1', name: '总部' },
+      roleScopes: [{ roleCode: 'admin' }],
+    };
+    const fallback = render(<AvatarDropdown />);
+    const fallbackTrigger = fallback.container.querySelector(
+      '.roncin-avatar-trigger',
+    );
+    expect(fallbackTrigger).toBeInTheDocument();
+    if (!fallbackTrigger) throw new Error('trigger not found');
+    fireEvent.mouseEnter(fallbackTrigger);
+
+    await waitFor(() => {
+      expect(screen.getByText('系统管理员')).toBeInTheDocument();
+    });
+  });
+
   it('退出登录成功时调用 clearOrderMasterDataCache() 全量清理订单会话缓存并跳转登录页', async () => {
     mockLogout.mockResolvedValueOnce({});
     mockCurrentUser = {
