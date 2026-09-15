@@ -39,6 +39,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { formatDate } from '@/utils/format';
 import type { BaseMasterDataItem, MasterDataTemplateProps } from './types';
 
 const { Text } = Typography;
@@ -338,7 +339,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       width: 160,
       render: (_, record) => (
         <Text type="secondary" style={{ fontSize: 12 }}>
-          {record.updatedAt || '-'}
+          {formatDate(record.updatedAt)}
         </Text>
       ),
     },

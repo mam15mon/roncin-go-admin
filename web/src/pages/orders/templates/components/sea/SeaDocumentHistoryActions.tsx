@@ -34,6 +34,7 @@ import {
   seaDocumentServicePreviewSeaDocumentVoid,
 } from '@/services/roncin/seaDocumentService';
 import { generateUUID } from '@/utils/uuid';
+import { formatDate } from '@/utils/format';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
   type SeaExternalConfirmationFormValues,
@@ -387,7 +388,12 @@ export default function SeaDocumentHistoryActions({
             },
             { title: '状态', dataIndex: 'status', width: 100 },
             { title: '原因', dataIndex: 'reason' },
-            { title: '形成时间', dataIndex: 'createdAt', width: 190 },
+            {
+              title: '形成时间',
+              dataIndex: 'createdAt',
+              width: 190,
+              render: (v: string) => formatDate(v),
+            },
           ]}
           expandable={{
             expandedRowRender: (row) => (
@@ -449,7 +455,12 @@ export default function SeaDocumentHistoryActions({
                   : '-',
             },
             { title: '原因', dataIndex: 'reason' },
-            { title: '时间', dataIndex: 'createdAt', width: 190 },
+            {
+              title: '时间',
+              dataIndex: 'createdAt',
+              width: 190,
+              render: (v: string) => formatDate(v),
+            },
           ]}
         />
       </Drawer>

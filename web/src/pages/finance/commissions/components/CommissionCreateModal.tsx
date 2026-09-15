@@ -31,6 +31,7 @@ import {
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import {
   type CreateValues,
@@ -64,7 +65,12 @@ const nettingCandidateColumns: TableProps<API.FinanceNetting>['columns'] = [
     render: (value: string, record) =>
       `${value ?? '0'} ${record.currency ?? ''}`,
   },
-  { title: '确认时间', dataIndex: 'confirmedAt', width: 160 },
+  {
+    title: '确认时间',
+    dataIndex: 'confirmedAt',
+    width: 160,
+    render: (value: string) => formatDate(value),
+  },
 ];
 
 export default function CommissionCreateModal({

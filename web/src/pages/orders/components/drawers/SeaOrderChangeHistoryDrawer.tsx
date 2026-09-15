@@ -20,6 +20,7 @@ import {
   seaOrderChangeServiceListSeaOrderChangeEvents,
   seaOrderChangeServiceGetSeaOrderChangeEvent,
 } from '@/services/roncin/seaOrderChangeService';
+import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
@@ -151,7 +152,7 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
                       <Tag color={event.eventType === 'SPLIT' ? 'purple' : 'blue'}>
                         {event.eventType === 'SPLIT' ? '部分拆票' : '整票改配'}
                       </Tag>
-                      <Text type="secondary">{event.createdAt}</Text>
+                      <Text type="secondary">{formatDate(event.createdAt)}</Text>
                       <Text type="secondary">{event.operatorName || '-'}</Text>
                     </Space>
                   }
@@ -253,6 +254,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerPr
       title: '发生时间',
       dataIndex: 'createdAt',
       width: 170,
+      render: (value: string) => formatDate(value),
     },
     {
       title: '操作人',
@@ -335,7 +337,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerPr
                   <Tag color="blue">整票改配</Tag>
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="发生时间">{currentDetail.createdAt}</Descriptions.Item>
+              <Descriptions.Item label="发生时间">{formatDate(currentDetail.createdAt)}</Descriptions.Item>
               <Descriptions.Item label="操作人">{currentDetail.operatorName || '-'}</Descriptions.Item>
               <Descriptions.Item label="原因/备注">{currentDetail.noteOrReason || '-'}</Descriptions.Item>
             </Descriptions>

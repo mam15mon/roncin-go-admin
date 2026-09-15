@@ -26,6 +26,7 @@ import {
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import VerificationWorkbench from './VerificationWorkbench';
 
@@ -425,7 +426,7 @@ export default function FinanceVerificationsPage() {
                 {detail.verificationDate}
               </Descriptions.Item>
               <Descriptions.Item label="创建时间">
-                {detail.createdAt || '-'}
+                {formatDate(detail.createdAt)}
               </Descriptions.Item>
               <Descriptions.Item label="备注" span={2}>
                 {detail.note || '-'}

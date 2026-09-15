@@ -28,6 +28,7 @@ import {
   settlementServiceReverseNetting,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 
 function nettingStatusTag(status?: number) {
@@ -468,21 +469,21 @@ export default function FinanceNettingsPage() {
                 {detail.batchNo || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="创建时间">
-                {detail.createdAt || '-'}
+                {formatDate(detail.createdAt)}
               </Descriptions.Item>
               {detail.confirmedAt ? (
                 <Descriptions.Item label="确认时间">
-                  {detail.confirmedAt}
+                  {formatDate(detail.confirmedAt)}
                 </Descriptions.Item>
               ) : null}
               {detail.reversedAt ? (
                 <Descriptions.Item label="反转时间">
-                  {detail.reversedAt}
+                  {formatDate(detail.reversedAt)}
                 </Descriptions.Item>
               ) : null}
               {detail.cancelledAt ? (
                 <Descriptions.Item label="取消时间">
-                  {detail.cancelledAt}
+                  {formatDate(detail.cancelledAt)}
                 </Descriptions.Item>
               ) : null}
               <Descriptions.Item label="备注" span={2}>
