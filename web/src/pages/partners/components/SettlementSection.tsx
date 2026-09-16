@@ -70,7 +70,21 @@ export const SETTLEMENT_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
   value: i + 1,
 }));
 
-// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐
+// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐。
+// 各列宽度集中在此配置：调整某列宽度只需改对应键值。
+const LABEL_COL_WIDTH = {
+  /** 第一列：对账方式/默认账期（取两行最长标签） */
+  statement: 132,
+  /** 第二列：结算方式/结算币种 */
+  method: 88,
+  /** 第三列：结算日期/利息规则 */
+  date: 88,
+  /** 账期列 */
+  terms: 56,
+  /** 信用额度列 */
+  credit: 118,
+} as const;
+
 const labelCol = (width: number) => ({ style: { width } });
 
 type SettlementSectionProps = {
@@ -104,7 +118,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="statementMode"
               label="对账方式"
-              labelCol={labelCol(132)}
+              labelCol={labelCol(LABEL_COL_WIDTH.statement)}
               options={STATEMENT_MODE_OPTIONS}
               rules={[{ required: true, message: '请选择对账方式' }]}
             />
@@ -115,7 +129,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="settlementMethod"
               label="结算方式"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.method)}
               options={SETTLEMENT_METHOD_OPTIONS}
               rules={[{ required: true, message: '请选择结算方式' }]}
             />
@@ -132,7 +146,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.date)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -174,7 +188,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(56)}
+              labelCol={labelCol(LABEL_COL_WIDTH.terms)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -208,7 +222,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(118)}
+              labelCol={labelCol(LABEL_COL_WIDTH.credit)}
               placeholder="输入信用额度"
               min={0}
               fieldProps={{
@@ -232,7 +246,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(132)}
+              labelCol={labelCol(LABEL_COL_WIDTH.statement)}
               placeholder="例如: 30"
               min={0}
               max={3650}
@@ -245,7 +259,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="settlementCurrency"
               label="结算币种"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.method)}
               options={currencyOptions}
               rules={[{ required: true, message: '请选择结算币种' }]}
             />
@@ -255,7 +269,7 @@ export default function SettlementSection({
           <Col xs={24} sm={12} md={6}>
             <Form.Item
               label="利息规则"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.date)}
               style={{ marginBottom: 0 }}
             >
               <Button

@@ -29,7 +29,25 @@ import { pcaCascaderOptions } from '@/utils/chinaDivision';
 
 const { Text } = Typography;
 
-// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐
+// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐。
+// 各列宽度集中在此配置：调整某列宽度只需改对应键值。
+const LABEL_COL_WIDTH = {
+  /** 主列：公司抬头/中文地址/英文名/英文地址/公司别名/人员矩阵 */
+  primary: 88,
+  /** 社会统一信用代码列 */
+  uscc: 144,
+  /** 性质列 */
+  nature: 48,
+  /** 单次合作（散客）列 */
+  casual: 112,
+  /** 类型列 */
+  customerType: 48,
+  /** 开发方式列 */
+  development: 72,
+  /** 业务类型列 */
+  businessType: 72,
+} as const;
+
 const labelCol = (width: number) => ({ style: { width } });
 
 export const BUSINESS_TYPE_OPTIONS = [
@@ -121,7 +139,7 @@ export default function BasicInfoSection({
             <ProFormText
               name="legalName"
               label="公司抬头"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               placeholder="请输入企业法人营业执照全称"
               rules={[{ required: true, message: '请输入公司抬头全称' }]}
             />
@@ -137,7 +155,7 @@ export default function BasicInfoSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(144)}
+              labelCol={labelCol(LABEL_COL_WIDTH.uscc)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -172,7 +190,7 @@ export default function BasicInfoSection({
             <ProFormText
               name="code"
               label="代码"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               placeholder="选填，仅用于搜索，如 CDRT"
               disabled={Boolean(partnerId)}
               rules={[
@@ -190,7 +208,7 @@ export default function BasicInfoSection({
           <Col span={24}>
             <Form.Item
               label="中文地址"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -217,7 +235,7 @@ export default function BasicInfoSection({
             <ProFormText
               name="nameEn"
               label="英文名"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               placeholder="请输入英文名称"
             />
           </Col>
@@ -229,7 +247,7 @@ export default function BasicInfoSection({
             <ProFormText
               name="addressEn"
               label="英文地址"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               placeholder="请输入英文地址"
             />
           </Col>
@@ -241,7 +259,7 @@ export default function BasicInfoSection({
             <ProFormSelect
               name="nature"
               label="性质"
-              labelCol={labelCol(48)}
+              labelCol={labelCol(LABEL_COL_WIDTH.nature)}
               options={[
                 { label: '客户', value: '客户' },
                 { label: '供应商', value: '供应商' },
@@ -255,7 +273,7 @@ export default function BasicInfoSection({
             <ProFormSwitch
               name="isCasual"
               label="单次合作 (散客)"
-              labelCol={labelCol(112)}
+              labelCol={labelCol(LABEL_COL_WIDTH.casual)}
               checkedChildren="散客"
               unCheckedChildren="正式"
             />
@@ -265,7 +283,7 @@ export default function BasicInfoSection({
             <ProFormCheckbox.Group
               name="customerTypes"
               label="类型"
-              labelCol={labelCol(48)}
+              labelCol={labelCol(LABEL_COL_WIDTH.customerType)}
               options={CUSTOMER_TYPE_OPTIONS}
               initialValue={[1]}
             />
@@ -275,7 +293,7 @@ export default function BasicInfoSection({
             <ProFormSelect
               name="developmentMethod"
               label="开发方式"
-              labelCol={labelCol(72)}
+              labelCol={labelCol(LABEL_COL_WIDTH.development)}
               options={DEVELOPMENT_METHOD_OPTIONS}
               initialValue="自主开发"
             />
@@ -285,7 +303,7 @@ export default function BasicInfoSection({
             <ProFormSelect
               name="businessTypes"
               label="业务类型"
-              labelCol={labelCol(72)}
+              labelCol={labelCol(LABEL_COL_WIDTH.businessType)}
               mode="multiple"
               options={BUSINESS_TYPE_OPTIONS}
               placeholder="请选择适用的业务类型"
@@ -308,7 +326,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="创建人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -341,7 +359,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="操作人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -378,7 +396,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="业务人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -411,7 +429,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="客服人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -444,7 +462,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="关联人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -477,7 +495,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="财务人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -510,7 +528,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="单证人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -543,7 +561,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="商务人员"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -580,7 +598,7 @@ export default function BasicInfoSection({
           <Col xs={24} md={12}>
             <Form.Item
               label="关联人员2"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -621,7 +639,7 @@ export default function BasicInfoSection({
           <Col span={24}>
             <Form.Item
               label="公司别名"
-              labelCol={labelCol(88)}
+              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
               <Space wrap align="center">
