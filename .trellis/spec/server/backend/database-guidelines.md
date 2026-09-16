@@ -162,6 +162,83 @@ err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
   （范本：`GetGenerationContext` 在事务上下文对核销单直接 `ForUpdate`）。
 - 驱动错误用 `ent.IsConstraintError` 统一判断并映射为业务错误。
 
+## 写入口校验读与读-改-写的锁内执行
+
+写入口对关联实体的校验读放在事务内、防护锁**之后**执行，不采用
+「锁外预检、锁内直写」结构：
+
+- 范本：`internal/data/order_fee.go` 的 `Add`/`Update`/`Transition`/`Remove`。
+  订单存在性由 `lockOrderForFeeMutation` 在 `FOR UPDATE` 后确认；结算方、币种
+  等引用校验用 `tx.*` 在锁后读取。锁外预检读存在两个问题：看不到同一共享事务
+  前序步骤写入的未提交数据；「校验通过 → 拿锁写入」之间引用行可被并发改动。
+- 删除锁外预检不改变用户可见错误：未命中映射统一由事务内
+  `mapEntError(..., biz.ErrOrderFeeNotFound, nil)` 承接（订单未找到由
+  `lockOrderForFeeMutation` 报出，与原锁外预检同码）。
+- 配置型读-改-写（读列表 → 内存计算 → 整体写回）必须 `WithTx` + 目标行
+  `ForUpdate`，且**先锁后读**权威数据。范本：`reference_data.go` 的
+  `SetCurrencyEnabled` 分公司路径——先锁组织行，再从锁定的行读
+  `enabled_currencies` 计算新列表；总部路径为单行原子更新，无需额外加锁。
+  先读后锁等于没锁：读到的仍是旧快照。
+- 锁互斥行为无法用 sqlmock 单测覆盖；此类改动的并发回归依赖
+  `RONCIN_INTEGRATION_DATABASE_SOURCE` 集成环境，至少在审查时人工核对
+  「加锁语句先于权威读取语句」的先后顺序。
+
+> **Warning**：`WithTx` 回调收到的 `ctx` 不携带事务标识。回调内经
+> `client(ctx)` 取客户端的辅助方法会落到连接池，仅当外层存在
+> `WithinTransaction` 时才并入事务。回调内需要事务内读时直接用 `tx` 查询，
+> 或给辅助函数增加 client 参数由调用方显式传入（范本：
+> `lockOrderForFeeMutation`、`ensureOrderBusinessEditable`）。
+
+#### Wrong
+
+```go
+// 锁外预检引用实体，锁内只做写入：预检读不到共享事务未提交数据，且存在校验空窗
+party, err := r.settlementParty(ctx, organizationID, input.SettlementPartyID)
+if err != nil {
+    return nil, err
+}
+err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+    if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
+        return lockErr
+    }
+    _, createErr := tx.OrderFee.Create()...Save(ctx)
+    return createErr
+})
+```
+
+#### Correct
+
+```go
+err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+    if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
+        return lockErr
+    }
+    party, queryErr := tx.Partner.Query().
+        Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).
+        Only(ctx) // 锁后用 tx 校验，未命中映射业务错误
+    if queryErr != nil {
+        return mapEntError(queryErr, biz.ErrOrderFeePartyInvalid, nil)
+    }
+    _, createErr := tx.OrderFee.Create()...Save(ctx)
+    return createErr
+})
+```
+
+#### Wrong（读-改-写先读后锁）
+
+```go
+org, _ := client.Organization.Query().Where(organizationent.IDEQ(orgID)).Only(ctx) // 未加锁先读
+locked, _ := tx.Organization.Query().Where(organizationent.IDEQ(orgID)).ForUpdate().Only(ctx)
+// 用 org（旧快照）计算 → 并发切换互相覆盖，锁形同虚设
+```
+
+#### Correct
+
+```go
+locked, orgErr := tx.Organization.Query().Where(organizationent.IDEQ(orgID)).ForUpdate().Only(ctx)
+current := locked.EnabledCurrencies // 从锁定行读取权威列表后再计算
+```
+
 ## 列表分页约定
 
 - 常规列表 `pageSize` 上限统一 **200**，默认值按接口交互需要设置；禁止出现
