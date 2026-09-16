@@ -181,7 +181,7 @@ describe('SeaDocumentSectionComponent', () => {
     executeMode.mockResolvedValue({ success: true });
   });
 
-  it('创建时显式选择模式，HOUSE 只录入一张 HBL，DIRECT 清除 HBL', async () => {
+  it('新建默认 HOUSE 分单制，切 DIRECT 清除 HBL，切回恢复', async () => {
     let form: FormInstance | undefined;
     render(
       <TestForm
@@ -191,13 +191,20 @@ describe('SeaDocumentSectionComponent', () => {
       />,
     );
 
-    expect(screen.getByText('请先选择单证模式')).toBeInTheDocument();
-    expect(
-      screen.queryByPlaceholderText('请输入分单号'),
-    ).not.toBeInTheDocument();
+    // 全员分单制：新建默认 HOUSE，出现 HBL 分单页签且无「请先选择模式」提示。
+    await waitFor(() => {
+      expect(
+        screen.getByRole('tab', { name: /分单 \(HBL\)/ }),
+      ).toBeInTheDocument();
+      expect(form?.getFieldValue('seaDocumentStructure')).toBe(
+        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+      );
+    });
+    expect(screen.queryByText('请先选择单证模式')).not.toBeInTheDocument();
     expect(screen.queryByText('未确定')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('radio', { name: 'HOUSE（签发 HBL）' }));
+    // HBL 页签懒渲染，点击后展示唯一分单录入。
+    fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
       expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument(),
     );
@@ -219,6 +226,12 @@ describe('SeaDocumentSectionComponent', () => {
     expect(form?.getFieldValue('seaHouseBill')).toBeUndefined();
     expect(form?.getFieldValue('seaDocumentStructure')).toBe(
       SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+    );
+
+    // 切回 HOUSE 恢复分单录入。
+    fireEvent.click(screen.getByRole('radio', { name: 'HOUSE（签发 HBL）' }));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument(),
     );
   });
 

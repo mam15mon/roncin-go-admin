@@ -1364,6 +1364,12 @@ export function SeaBillContentFormFields({
   );
 }
 
+/** 与服务端 NormalizeSeaHouseNo 同口径的展示层归一化：NFC + 去首尾空白 + 大写。
+ * 仅用于批次排重的即时提示（体验层），服务端事务内预查为权威。 */
+export function normalizeSeaHouseNoForCompare(value: string): string {
+  return value.normalize('NFC').trim().toUpperCase();
+}
+
 type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
 
 export function HouseBillIdentityFields({
@@ -1374,6 +1380,21 @@ export function HouseBillIdentityFields({
   disabled?: boolean;
 }) {
   const form = Form.useFormInstance();
+  // 批次分单号清单（候选响应）晚于分单号录入到达时补一次重复校验：
+  // form.setFieldValue 写入不触发 antd dependencies 重校验，这里显式补检；
+  // 分单号为空时不触发，避免提前抛出必填错误。
+  // 该字段无 Form.Item 注册，必须以 preserve 读取全量 store 值。
+  const batchHouseNos = Form.useWatch('seaMasterBillBatchHouseNos', {
+    form,
+    preserve: true,
+  });
+  useEffect(() => {
+    if (!batchHouseNos?.length) return;
+    const value = form.getFieldValue([fieldKey, 'houseNo']);
+    if (typeof value === 'string' && normalizeSeaHouseNoForCompare(value)) {
+      void form.validateFields([[fieldKey, 'houseNo']]).catch(() => undefined);
+    }
+  }, [batchHouseNos, fieldKey, form]);
   return (
     <Row gutter={[16, 0]}>
       <Col xs={24} md={8}>
@@ -1385,6 +1406,26 @@ export function HouseBillIdentityFields({
           layout="vertical"
           rules={[
             { required: true, whitespace: true, message: '分单号不能为空' },
+            ({ getFieldValue }) => ({
+              validator(_rule, value) {
+                const normalized = normalizeSeaHouseNoForCompare(
+                  typeof value === 'string' ? value : '',
+                );
+                if (!normalized) return Promise.resolve();
+                // 命中共享主单批次时与批次内兄弟票分单号（含作废）即时比对。
+                const batchHouseNos = (getFieldValue(
+                  'seaMasterBillBatchHouseNos',
+                ) ?? []) as string[];
+                if (batchHouseNos.includes(normalized)) {
+                  return Promise.reject(
+                    new Error(
+                      `分单号 ${normalized} 在该主单批次内已存在（含作废），请更换分单号`,
+                    ),
+                  );
+                }
+                return Promise.resolve();
+              },
+            }),
           ]}
           fieldProps={{ maxLength: 128 }}
         />
@@ -1614,6 +1655,7 @@ export function SeaCreateDocumentModeField({
   onModeChange?: (mode: SeaDocumentStructure) => void;
 }) {
   const form = Form.useFormInstance();
+  const initializedRef = useRef(false);
   const changeCreateMode = (nextMode: SeaDocumentStructure) => {
     onModeChange?.(nextMode);
     form.setFieldValue('seaDocumentStructure', nextMode);
@@ -1656,10 +1698,27 @@ export function SeaCreateDocumentModeField({
     }
   };
 
+  // 全员分单制下新建默认 HOUSE：初始渲染不经过 onChange 联动，这里补一次
+  // 分单内容默认值初始化（带入委托件重尺与条款默认），仅在分单内容为空时执行。
+  // Form.Item initialValue 未写入 store 时 getFieldValue 为 undefined，同样按 HOUSE 处理。
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    if (
+      form.getFieldValue('seaDocumentStructure') ===
+      SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+    ) {
+      return;
+    }
+    if (form.getFieldValue('seaHouseBill')) return;
+    changeCreateMode(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
+  }, []);
+
   return (
     <Form.Item
       name="seaDocumentStructure"
       label="单证模式"
+      initialValue={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
       rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
       style={{ marginBottom: 0 }}
     >
@@ -1724,13 +1783,19 @@ export function SeaDocumentSectionComponent({
   const watchedStructure = Form.useWatch('seaDocumentStructure', form) as
     | number
     | undefined;
+  // Form.Item initialValue 场景下 useWatch 可能滞后于 store，回退读取当前值。
+  const storedStructure = form.getFieldValue('seaDocumentStructure') as
+    | number
+    | undefined;
   const watchedHouseNo = Form.useWatch(['seaHouseBill', 'houseNo'], form) as
     | string
     | undefined;
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
   const docStructure = isDocumentStructure(watchedStructure)
     ? watchedStructure
-    : loadedStructure;
+    : isDocumentStructure(storedStructure)
+      ? storedStructure
+      : loadedStructure;
   activeOrderIdRef.current = orderId;
 
   const canReadReleasePods = access.canOrder(

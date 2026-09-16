@@ -81,6 +81,8 @@ export type CreateOrderFormValues = {
   seaMasterBillExpectedCandidateTeVersion?: number | string;
   seaMasterBillCorrectionReason?: string;
   seaMasterBill?: API.SeaMasterBillInput;
+  /** 命中共享主单批次时由候选响应写入的分单号清单（含作废），仅用于失焦即时排重提示，不提交。 */
+  seaMasterBillBatchHouseNos?: string[];
   operatorUserId?: string;
   operatorOrganizationId?: string;
   salesUserId?: string;

@@ -3,7 +3,6 @@ import {
   Alert,
   Button,
   Card,
-  Checkbox,
   Form,
   Input,
   Select,
@@ -79,6 +78,8 @@ export function SeaMasterBillFields({
   const [candidateMatched, setCandidateMatched] = useState(false);
   const [candidateMatching, setCandidateMatching] = useState(false);
   const [candidateMatchError, setCandidateMatchError] = useState<string>();
+  // 命中批次含直单成员：全员分单制下禁止加拼，横幅转红色阻断文案。
+  const [batchDirectBlocked, setBatchDirectBlocked] = useState(false);
 
   // 多成员 MBL 检查（锁定修改）
   const isMultiMemberLocked =
@@ -104,6 +105,8 @@ export function SeaMasterBillFields({
       setCandidateMatched(false);
       setCandidateMatching(false);
       setCandidateMatchError(undefined);
+      setBatchDirectBlocked(false);
+      form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
       return;
     }
 
@@ -119,6 +122,8 @@ export function SeaMasterBillFields({
       setCandidateMatched(false);
       setCandidateMatching(false);
       setCandidateMatchError(undefined);
+      setBatchDirectBlocked(false);
+      form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
       return;
     }
 
@@ -126,6 +131,7 @@ export function SeaMasterBillFields({
     form?.setFieldValue('seaMasterBillCandidateId', undefined);
     form?.setFieldValue('seaMasterBillCandidateTeId', undefined);
     form?.setFieldValue('seaMasterBillExpectedCandidateTeVersion', undefined);
+    form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
     form?.setFieldValue(
       'seaMasterBillExpectedCandidateVersion',
       currentMblVersion,
@@ -133,6 +139,7 @@ export function SeaMasterBillFields({
     setCandidate(null);
     setConflicts([]);
     setCandidateMatched(false);
+    setBatchDirectBlocked(false);
     setCandidateMatching(true);
     setCandidateMatchError(undefined);
 
@@ -159,6 +166,18 @@ export function SeaMasterBillFields({
           setCandidate(resp.candidate);
           setConflicts(resp.conflicts || []);
           setCandidateMatched(true);
+          // 批次内全部规范化分单号（含作废）写入表单，供分单号失焦即时排重提示；
+          // 服务端事务内预查为权威口径。
+          form?.setFieldValue(
+            'seaMasterBillBatchHouseNos',
+            resp.candidate.batchNormalizedHouseNos ?? [],
+          );
+          const hasDirectMember = (resp.candidate.members ?? []).some(
+            (member) =>
+              member.documentStructure ===
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+          );
+          setBatchDirectBlocked(hasDirectMember);
           const availableExecutions = resp.candidate.transportExecutions ?? [];
           if (availableExecutions.length === 1) {
             form?.setFieldValue(
@@ -170,10 +189,26 @@ export function SeaMasterBillFields({
               availableExecutions[0].version,
             );
           }
+          // 全员分单制：新建页命中全 HOUSE 批次且无航程冲突时自动关联，
+          // 候选 ID + 版本自动带入保存请求；服务端事务内复验兜底。
+          if (
+            !isDetail &&
+            !hasDirectMember &&
+            (resp.conflicts ?? []).length === 0 &&
+            availableExecutions.length >= 1
+          ) {
+            form?.setFieldValue('seaMasterBillCandidateId', resp.candidate.id);
+            form?.setFieldValue(
+              'seaMasterBillExpectedCandidateVersion',
+              resp.candidate.version,
+            );
+          }
         } else {
           setCandidate(null);
           setConflicts([]);
           setCandidateMatched(false);
+          setBatchDirectBlocked(false);
+          form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
           form?.setFieldValue('seaMasterBillCandidateId', undefined);
           form?.setFieldValue(
             'seaMasterBillExpectedCandidateVersion',
@@ -186,6 +221,7 @@ export function SeaMasterBillFields({
         setCandidate(null);
         setConflicts([]);
         setCandidateMatched(false);
+        setBatchDirectBlocked(false);
         setCandidateMatching(false);
         setCandidateMatchError(
           requestError.message || '主单候选查询失败，请重试后再保存',
@@ -211,7 +247,6 @@ export function SeaMasterBillFields({
     form,
   ]);
 
-  const isConfirmed = !!candidateId && !!candidateTeId;
   const selectedCandidateTe = candidate?.transportExecutions?.find(
     (item) => item.id === candidateTeId,
   );
@@ -245,6 +280,11 @@ export function SeaMasterBillFields({
                 }
                 if (conflicts.length > 0) {
                   throw new Error('航程信息与已有主单冲突，不能确认关联');
+                }
+                if (batchDirectBlocked) {
+                  throw new Error(
+                    '该主单已被直单订单占用，如需拼单请先将其转为分单',
+                  );
                 }
                 if (candidateMatched && isSingleMemberCorrection) {
                   throw new Error('新主单身份已存在，当前阶段不允许直接合并');
@@ -287,69 +327,37 @@ export function SeaMasterBillFields({
           <Card
             size="small"
             style={{
-              background: '#f6ffed',
-              borderColor: '#b7eb8f',
+              background: batchDirectBlocked ? '#fff2f0' : '#f6ffed',
+              borderColor: batchDirectBlocked ? '#ffccc7' : '#b7eb8f',
             }}
           >
             <Space direction="vertical" style={{ width: '100%' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: 8,
-                }}
-              >
-                <span style={{ fontWeight: 600, color: '#389e0d' }}>
-                  🔍 匹配到已有共享 MBL：{candidate.masterNo} (船公司:{' '}
-                  {candidate.shippingLineName || '-'} | 版本: v
-                  {candidate.version} | 成员: {candidate.memberCount} 票)
-                </span>
-                <Checkbox
-                  checked={isConfirmed}
-                  disabled={
-                    conflicts.length > 0 ||
-                    isSingleMemberCorrection ||
-                    !candidateTeId
-                  }
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      form?.setFieldValue(
-                        'seaMasterBillCandidateId',
-                        candidate.id,
-                      );
-                      form?.setFieldValue(
-                        'seaMasterBillExpectedCandidateVersion',
-                        candidate.version,
-                      );
-                    } else {
-                      form?.setFieldValue(
-                        'seaMasterBillCandidateId',
-                        undefined,
-                      );
-                      form?.setFieldValue(
-                        'seaMasterBillExpectedCandidateVersion',
-                        undefined,
-                      );
-                    }
-                  }}
-                >
-                  <strong
-                    style={{ color: isConfirmed ? '#1677ff' : '#cf1322' }}
-                  >
-                    {conflicts.length > 0
-                      ? '航程冲突，禁止关联'
-                      : isSingleMemberCorrection
-                        ? '新主单身份已存在，禁止直接合并'
-                        : '确认关联已有主单'}
-                  </strong>
-                </Checkbox>
-              </div>
+              {batchDirectBlocked ? (
+                <Alert
+                  type="error"
+                  showIcon
+                  message="该主单已被直单订单占用，如需拼单请先将其转为分单"
+                  description={`共享批次：${candidate.masterNo} | 成员：${candidate.memberCount ?? 0} 票（含直单订单）`}
+                />
+              ) : (
+                <div>
+                  <span style={{ fontWeight: 600, color: '#389e0d' }}>
+                    {isDetail
+                      ? '🔍 匹配到已有共享 MBL'
+                      : '✅ 已自动关联共享主单批次'}
+                    （{candidate.memberCount ?? 0} 票）：{candidate.masterNo}
+                  </span>
+                  <div style={{ fontSize: 12, color: '#595959', marginTop: 4 }}>
+                    船公司: {candidate.shippingLineName || '-'} | 版本: v
+                    {candidate.version}
+                  </div>
+                </div>
+              )}
 
               <Select
                 value={candidateTeId}
                 placeholder="请选择本票关联的实际航次"
+                disabled={batchDirectBlocked}
                 options={(candidate.transportExecutions ?? []).map((te) => ({
                   value: te.id,
                   label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
@@ -400,13 +408,6 @@ export function SeaMasterBillFields({
                     </ul>
                   }
                 />
-              )}
-
-              {!isConfirmed && (
-                <div style={{ color: '#fa8c16', fontSize: 12 }}>
-                  ⚠️
-                  提示：系统检测到已有相同主单。若不勾选“确认关联已有主单”，保存时将被服务端拦截。
-                </div>
               )}
             </Space>
           </Card>

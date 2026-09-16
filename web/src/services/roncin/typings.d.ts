@@ -6140,6 +6140,7 @@ declare namespace API {
     memberCount?: number;
     members?: SeaMasterBillMemberSummary[];
     transportExecutions?: SeaTransportExecution[];
+    batchNormalizedHouseNos?: string[];
   };
 
   type SeaMasterBillDetail = {
@@ -6168,6 +6169,7 @@ declare namespace API {
     orderId?: string;
     orderNo?: string;
     customerReferenceNo?: string;
+    documentStructure?: number;
   };
 
   type SeaMasterBillSummary = {
