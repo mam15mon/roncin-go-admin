@@ -35,7 +35,11 @@ func CreateDefaultNumberRules(ctx context.Context, tx *ent.Tx, organizationID uu
 }
 
 func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uuid.UUID) ([]*biz.NumberRule, error) {
-	items, err := r.data.db.NumberRule.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.NumberRule.Query().Where(
 		numberrule.OrganizationIDEQ(organizationID),
 		numberrule.DocumentTypeNEQ(numberrule.DocumentTypeColoadHouseBill),
 	).Order(numberrule.ByDocumentType()).All(ctx)

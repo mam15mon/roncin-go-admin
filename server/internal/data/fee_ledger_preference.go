@@ -34,7 +34,11 @@ func NewFeeLedgerPreferenceRepo(data *Data) biz.FeeLedgerPreferenceRepo {
 }
 
 func (repo *feeLedgerPreferenceRepo) Get(ctx context.Context, organizationID, userID uuid.UUID) (*biz.FeeLedgerPreference, error) {
-	entity, err := repo.data.db.FinanceFeeLedgerPreference.Query().Where(
+	client, err := repo.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	entity, err := client.FinanceFeeLedgerPreference.Query().Where(
 		financefeeledgerpreference.OrganizationIDEQ(organizationID),
 		financefeeledgerpreference.UserIDEQ(userID),
 	).Only(ctx)
@@ -52,7 +56,11 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 	if err != nil {
 		return nil, err
 	}
-	existing, err := repo.data.db.FinanceFeeLedgerPreference.Query().Where(
+	client, err := repo.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	existing, err := client.FinanceFeeLedgerPreference.Query().Where(
 		financefeeledgerpreference.OrganizationIDEQ(value.OrganizationID),
 		financefeeledgerpreference.UserIDEQ(value.UserID),
 	).Only(ctx)
@@ -60,7 +68,7 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 		if value.Version != 0 {
 			return nil, biz.ErrFeeLedgerPreferenceConflict
 		}
-		builder := repo.data.db.FinanceFeeLedgerPreference.Create().
+		builder := client.FinanceFeeLedgerPreference.Create().
 			SetOrganizationID(value.OrganizationID).
 			SetUserID(value.UserID).
 			SetColumns(columns).
@@ -83,7 +91,7 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 		return nil, biz.ErrFeeLedgerPreferenceConflict
 	}
 
-	builder := repo.data.db.FinanceFeeLedgerPreference.UpdateOneID(existing.ID).
+	builder := client.FinanceFeeLedgerPreference.UpdateOneID(existing.ID).
 		Where(financefeeledgerpreference.VersionEQ(value.Version)).
 		SetColumns(columns).
 		SetPageSize(value.PageSize).
@@ -102,7 +110,11 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 }
 
 func (repo *feeLedgerPreferenceRepo) Delete(ctx context.Context, organizationID, userID uuid.UUID, version uint64) error {
-	existing, err := repo.data.db.FinanceFeeLedgerPreference.Query().Where(
+	client, err := repo.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	existing, err := client.FinanceFeeLedgerPreference.Query().Where(
 		financefeeledgerpreference.OrganizationIDEQ(organizationID),
 		financefeeledgerpreference.UserIDEQ(userID),
 	).Only(ctx)
@@ -118,7 +130,7 @@ func (repo *feeLedgerPreferenceRepo) Delete(ctx context.Context, organizationID,
 	if version == 0 || version != existing.Version {
 		return biz.ErrFeeLedgerPreferenceConflict
 	}
-	affected, err := repo.data.db.FinanceFeeLedgerPreference.Delete().Where(
+	affected, err := client.FinanceFeeLedgerPreference.Delete().Where(
 		financefeeledgerpreference.IDEQ(existing.ID),
 		financefeeledgerpreference.VersionEQ(version),
 	).Exec(ctx)

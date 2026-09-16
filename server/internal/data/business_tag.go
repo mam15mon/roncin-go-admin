@@ -29,7 +29,11 @@ func NewBusinessTagRepo(data *Data) biz.BusinessTagRepo {
 }
 
 func (r *businessTagRepo) ListTagOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.BusinessTagSummary, int64, error) {
-	query := r.data.db.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeTAG), resourceent.EnabledEQ(true)).
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := client.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeTAG), resourceent.EnabledEQ(true)).
 		WithTag(func(q *ent.EnterpriseTagQuery) { q.WithGroup() })
 	if keyword != "" {
 		query.Where(resourceent.Or(
@@ -53,7 +57,11 @@ func (r *businessTagRepo) ListTagOptions(ctx context.Context, organizationID uui
 }
 
 func (r *businessTagRepo) LoadOrderTags(ctx context.Context, orderIDs []uuid.UUID) (map[uuid.UUID][]*biz.BusinessTagSummary, error) {
-	links, err := r.data.db.OrderEnterpriseTag.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	links, err := client.OrderEnterpriseTag.Query().
 		Where(ordertaglinkent.OrderIDIn(orderIDs...)).
 		WithTagResource(func(q *ent.EnterpriseResourceQuery) { q.WithTag(func(tq *ent.EnterpriseTagQuery) { tq.WithGroup() }) }).
 		Order(ordertaglinkent.ByCreatedAt()).
@@ -134,19 +142,23 @@ func (r *businessTagRepo) RemoveOrderTags(ctx context.Context, organizationID uu
 }
 
 func (r *businessTagRepo) CountTagUsages(ctx context.Context, organizationID, tagResourceID uuid.UUID) (int, int, int, int, error) {
-	partnerCount, err := r.data.db.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(tagResourceID)).Count(ctx)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
-	orderCount, err := r.data.db.OrderEnterpriseTag.Query().Where(ordertaglinkent.OrganizationIDEQ(organizationID), ordertaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
+	partnerCount, err := client.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(tagResourceID)).Count(ctx)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
-	feeCount, err := r.data.db.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.OrganizationIDEQ(organizationID), feetaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
+	orderCount, err := client.OrderEnterpriseTag.Query().Where(ordertaglinkent.OrganizationIDEQ(organizationID), ordertaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
-	billCount, err := r.data.db.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.OrganizationIDEQ(organizationID), billtaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
+	feeCount, err := client.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.OrganizationIDEQ(organizationID), feetaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+	billCount, err := client.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.OrganizationIDEQ(organizationID), billtaglinkent.TagResourceIDEQ(tagResourceID)).Count(ctx)
 	if err != nil {
 		return 0, 0, 0, 0, err
 	}
@@ -224,7 +236,11 @@ func enterpriseTagResourcesToSummaries(items []*ent.EnterpriseResource) []*biz.B
 }
 
 func (r *businessTagRepo) LoadOrderFeeTags(ctx context.Context, feeIDs []uuid.UUID) (map[uuid.UUID][]*biz.BusinessTagSummary, error) {
-	links, err := r.data.db.OrderFeeEnterpriseTag.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	links, err := client.OrderFeeEnterpriseTag.Query().
 		Where(feetaglinkent.OrderFeeIDIn(feeIDs...)).
 		WithTagResource(func(q *ent.EnterpriseResourceQuery) { q.WithTag(func(tq *ent.EnterpriseTagQuery) { tq.WithGroup() }) }).
 		Order(feetaglinkent.ByCreatedAt()).
@@ -362,7 +378,11 @@ func upsertOrderFeeTagLinks(ctx context.Context, tx *ent.Tx, organizationID uuid
 }
 
 func (r *businessTagRepo) LoadFinanceBillTags(ctx context.Context, billIDs []uuid.UUID) (map[uuid.UUID][]*biz.BusinessTagSummary, error) {
-	links, err := r.data.db.FinanceBillEnterpriseTag.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	links, err := client.FinanceBillEnterpriseTag.Query().
 		Where(billtaglinkent.FinanceBillIDIn(billIDs...)).
 		WithTagResource(func(q *ent.EnterpriseResourceQuery) { q.WithTag(func(tq *ent.EnterpriseTagQuery) { tq.WithGroup() }) }).
 		Order(billtaglinkent.ByCreatedAt()).

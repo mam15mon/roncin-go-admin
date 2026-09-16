@@ -124,7 +124,11 @@ func listAdminUsersQuery(client *ent.Client, predicates []predicate.User) *ent.U
 }
 
 func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
-	scope, err := adminWorkspaceScope(ctx, r.data.db, organizationID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	scope, err := adminWorkspaceScope(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +149,7 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 		predicates = append(predicates, userent.EnabledEQ(*options.Enabled))
 	}
 	scopeSet := adminUserScopeSet(scope)
-	query := listAdminUsersQuery(r.data.db, predicates)
+	query := listAdminUsersQuery(client, predicates)
 	return paginate(ctx, func(ctx context.Context) (int, error) {
 		return query.Clone().Count(ctx)
 	}, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
@@ -442,14 +446,18 @@ func (r *adminRepo) GetUser(ctx context.Context, organizationID, userID uuid.UUI
 // findUser 在工作台管理范围内按锚定规则选取成员关系并组装用户视图；范围内无任何
 // 成员关系时报「用户不存在或不在当前工作台范围」。
 func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {
-	scope, err := adminWorkspaceScope(ctx, r.data.db, organizationID)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	scope, err := adminWorkspaceScope(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
 	}
 	if len(scope) == 0 {
 		return nil, biz.ErrAdminUserNotFound
 	}
-	account, err := listAdminUsersQuery(r.data.db, []predicate.User{userent.IDEQ(userID)}).Only(ctx)
+	account, err := listAdminUsersQuery(client, []predicate.User{userent.IDEQ(userID)}).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminUserNotFound, nil)
 	}

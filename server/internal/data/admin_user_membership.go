@@ -17,14 +17,18 @@ import (
 )
 
 func (r *adminRepo) ListUserMemberships(ctx context.Context, userID uuid.UUID) ([]*biz.AdminUserMembership, error) {
-	exists, err := r.data.db.User.Query().Where(userent.IDEQ(userID)).Exist(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	exists, err := client.User.Query().Where(userent.IDEQ(userID)).Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
 		return nil, biz.ErrAdminUserNotFound
 	}
-	items, err := r.data.db.Membership.Query().
+	items, err := client.Membership.Query().
 		Where(membership.UserIDEQ(userID)).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
@@ -192,7 +196,11 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 	})
 }
 func (r *adminRepo) findUserMembership(ctx context.Context, userID, membershipID uuid.UUID) (*biz.AdminUserMembership, error) {
-	item, err := r.data.db.Membership.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Membership.Query().
 		Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).

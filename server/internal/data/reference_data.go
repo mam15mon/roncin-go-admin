@@ -30,8 +30,12 @@ type orgCurrencyContext struct {
 }
 
 func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organizationID uuid.UUID) (*orgCurrencyContext, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	if organizationID == uuid.Nil {
-		hq, err := r.data.db.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters), organizationent.EnabledEQ(true)).First(ctx)
+		hq, err := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters), organizationent.EnabledEQ(true)).First(ctx)
 		if err != nil {
 			return &orgCurrencyContext{
 				orgID:          uuid.Nil,
@@ -54,7 +58,7 @@ func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organ
 	baseCurrency := ""
 	var targetOrg *ent.Organization
 	for {
-		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
+		item, err := client.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +99,11 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context, organizationID u
 	}
 
 	// 全局所有启用的 ISO 4217 币种主库
-	items, err := r.data.db.Currency.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Currency.Query().
 		Where(currency.EnabledEQ(true)).
 		Order(ent.Asc(currency.FieldCode)).
 		All(ctx)
@@ -151,7 +159,11 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context, organizationID u
 }
 
 func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organizationID uuid.UUID, code string, enabled bool) (*biz.Currency, error) {
-	curr, err := r.data.db.Currency.Query().Where(currency.CodeEQ(code)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	curr, err := client.Currency.Query().Where(currency.CodeEQ(code)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrCurrencyNotFound
@@ -166,7 +178,7 @@ func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organization
 
 	if orgCtx.isHeadquarters {
 		// 总部操作：切换全局币种启用状态
-		updated, err := r.data.db.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
+		updated, err := client.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -208,7 +220,7 @@ func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organization
 	}
 	sort.Strings(newCurrencies)
 
-	if err := r.data.db.Organization.UpdateOneID(orgCtx.orgID).SetEnabledCurrencies(newCurrencies).Exec(ctx); err != nil {
+	if err := client.Organization.UpdateOneID(orgCtx.orgID).SetEnabledCurrencies(newCurrencies).Exec(ctx); err != nil {
 		return nil, err
 	}
 
@@ -226,7 +238,11 @@ func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organization
 }
 
 func (r *referenceDataRepo) SearchCurrencies(ctx context.Context, options biz.SelectorListOptions) (*biz.PagedList[*biz.Currency], error) {
-	query := r.data.db.Currency.Query().Where(currency.EnabledEQ(true))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.Currency.Query().Where(currency.EnabledEQ(true))
 	if options.Keyword != "" {
 		query.Where(currency.Or(currency.CodeContainsFold(options.Keyword), currency.NameContainsFold(options.Keyword), currency.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -238,7 +254,11 @@ func (r *referenceDataRepo) SearchCurrencies(ctx context.Context, options biz.Se
 }
 
 func (r *referenceDataRepo) ListAdministrativeRegions(ctx context.Context, query biz.AdministrativeRegionQuery) (*biz.PagedList[*biz.AdministrativeRegion], error) {
-	builder := r.data.db.AdministrativeRegion.Query().Where(administrativeregion.EnabledEQ(true))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	builder := client.AdministrativeRegion.Query().Where(administrativeregion.EnabledEQ(true))
 	if query.Level != 0 {
 		builder.Where(administrativeregion.LevelEQ(query.Level))
 	}

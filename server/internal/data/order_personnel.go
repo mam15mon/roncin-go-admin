@@ -21,7 +21,11 @@ func NewOrderPersonnelRepo(data *Data) biz.OrderPersonnelRepo {
 }
 
 func (r *orderPersonnelRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
-	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
 		return mapEntError(err, biz.ErrOrderPersonnelNotFound, nil)
 	}
 	return nil
@@ -31,7 +35,11 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.OrderPersonnel.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderPersonnel.Query().
 		Where(orderpersonnelent.OrderIDEQ(orderID)).
 		Order(orderpersonnelent.ByAssignedAt(), orderpersonnelent.ByRole()).
 		All(ctx)

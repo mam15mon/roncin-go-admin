@@ -82,7 +82,11 @@ func NewIndustryReferenceSyncStore(data *Data) *IndustryReferenceSyncStore {
 }
 
 func (s *IndustryReferenceSyncStore) CheckAirlines(ctx context.Context, source string, rows []AirlineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	items, err := s.data.db.Airline.Query().All(ctx)
+	client, err := s.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Airline.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有航司失败: %w", err)
 	}
@@ -90,7 +94,11 @@ func (s *IndustryReferenceSyncStore) CheckAirlines(ctx context.Context, source s
 }
 
 func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, source string, rows []AirportSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	items, err := s.data.db.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
+	client, err := s.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有机场失败: %w", err)
 	}
@@ -98,7 +106,11 @@ func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, source s
 }
 
 func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, source string, rows []PortSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	items, err := s.data.db.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
+	client, err := s.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有港口失败: %w", err)
 	}
@@ -106,7 +118,11 @@ func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, source stri
 }
 
 func (s *IndustryReferenceSyncStore) CheckShippingLines(ctx context.Context, source string, rows []ShippingLineSyncRecord) ([]IndustryReferenceSyncConflict, error) {
-	items, err := s.data.db.ShippingLine.Query().All(ctx)
+	client, err := s.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.ShippingLine.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有船公司失败: %w", err)
 	}

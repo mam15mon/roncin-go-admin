@@ -55,7 +55,11 @@ func CreateDefaultCountries(ctx context.Context, tx *ent.Tx) error {
 }
 
 func (r *masterDataRepo) List(ctx context.Context, _ uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
-	query := r.data.db.MasterDataItem.Query()
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.MasterDataItem.Query()
 	if options.Kind != "" {
 		query.Where(masterdataent.KindEQ(masterdataent.Kind(options.Kind)))
 	}
@@ -71,7 +75,11 @@ func (r *masterDataRepo) List(ctx context.Context, _ uuid.UUID, options biz.Mast
 }
 
 func (r *masterDataRepo) ListEnabled(ctx context.Context, _ uuid.UUID) ([]*biz.MasterDataItem, error) {
-	items, err := r.data.db.MasterDataItem.Query().Where(masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.MasterDataItem.Query().Where(masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
 	if err != nil {
 		return nil, err
 	}

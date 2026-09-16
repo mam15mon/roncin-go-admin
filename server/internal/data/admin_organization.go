@@ -14,7 +14,11 @@ import (
 )
 
 func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganization, error) {
-	items, err := r.data.db.Organization.Query().All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Organization.Query().All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +35,11 @@ func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganiza
 }
 
 func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.AdminOrganization, error) {
-	item, err := r.data.db.Organization.Get(ctx, id)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Organization.Get(ctx, id)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminOrganizationNotFound, nil)
 	}
@@ -160,9 +168,13 @@ func organizationToBizWithCurrency(item *ent.Organization, items []*ent.Organiza
 
 func (r *adminRepo) organizationToBiz(ctx context.Context, item *ent.Organization) (*biz.AdminOrganization, error) {
 	result := organizationToBiz(item)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	current := item
 	for result.BaseCurrency == "" && current.ParentID != nil {
-		parent, err := r.data.db.Organization.Get(ctx, *current.ParentID)
+		parent, err := client.Organization.Get(ctx, *current.ParentID)
 		if err != nil {
 			return nil, err
 		}

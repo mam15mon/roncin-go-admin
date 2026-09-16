@@ -17,10 +17,14 @@ type orderMilestoneRepo struct{ data *Data }
 func NewOrderMilestoneRepo(data *Data) biz.OrderMilestoneRepo { return &orderMilestoneRepo{data: data} }
 
 func (r *orderMilestoneRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderMilestone, error) {
-	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
-	items, err := r.data.db.OrderMilestone.Query().Where(ordermilestoneent.OrderIDEQ(orderID)).Order(ordermilestoneent.ByOccurredAt(), ordermilestoneent.ByType()).All(ctx)
+	items, err := client.OrderMilestone.Query().Where(ordermilestoneent.OrderIDEQ(orderID)).Order(ordermilestoneent.ByOccurredAt(), ordermilestoneent.ByType()).All(ctx)
 	if err != nil {
 		return nil, err
 	}

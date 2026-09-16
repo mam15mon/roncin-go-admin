@@ -21,7 +21,11 @@ func NewOrderAbnormalCaseRepo(data *Data) biz.OrderAbnormalCaseRepo {
 }
 
 func (r *orderAbnormalCaseRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
-	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
 		return mapEntError(err, biz.ErrOrderAbnormalCaseNotFound, nil)
 	}
 	return nil
@@ -29,7 +33,11 @@ func (r *orderAbnormalCaseRepo) order(ctx context.Context, organizationID, order
 
 func (r *orderAbnormalCaseRepo) validateAbnormalCaseKind(ctx context.Context, _ uuid.UUID, abnormalCaseID uuid.UUID) error {
 	// A 型主数据全局唯一，无组织过滤。
-	count, err := r.data.db.MasterDataItem.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	count, err := client.MasterDataItem.Query().
 		Where(
 			masterdataitement.IDEQ(abnormalCaseID),
 			masterdataitement.KindEQ(masterdataitement.KindAbnormalCase),
@@ -49,7 +57,11 @@ func (r *orderAbnormalCaseRepo) List(ctx context.Context, organizationID, orderI
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.OrderAbnormalCase.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderAbnormalCase.Query().
 		Where(orderabnormalcaseent.OrderIDEQ(orderID)).
 		Order(orderabnormalcaseent.ByMarkedAt(), orderabnormalcaseent.ByCreatedAt()).
 		All(ctx)

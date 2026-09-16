@@ -15,7 +15,11 @@ import (
 )
 
 func (r *adminRepo) ListAuditLogs(ctx context.Context, organizationID uuid.UUID, options biz.AdminAuditLogListOptions) (*biz.AdminAuditLogList, error) {
-	query := r.data.db.AuditLog.Query().Where(auditlog.OrganizationIDEQ(organizationID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.AuditLog.Query().Where(auditlog.OrganizationIDEQ(organizationID))
 	if options.Action != "" {
 		query.Where(auditlog.ActionContains(options.Action))
 	}
@@ -62,7 +66,7 @@ func (r *adminRepo) ListAuditLogs(ctx context.Context, organizationID uuid.UUID,
 		for id := range userIDs {
 			ids = append(ids, id)
 		}
-		users, userErr := r.data.db.User.Query().Where(userent.IDIn(ids...)).All(ctx)
+		users, userErr := client.User.Query().Where(userent.IDIn(ids...)).All(ctx)
 		if userErr != nil {
 			return nil, userErr
 		}

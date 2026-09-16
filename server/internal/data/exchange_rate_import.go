@@ -69,7 +69,11 @@ func (r *exchangeRateRepo) CreateImportPreview(ctx context.Context, batch *biz.E
 }
 
 func (r *exchangeRateRepo) GetImport(ctx context.Context, organizationID, id uuid.UUID) (*biz.ExchangeRateImportBatch, error) {
-	item, err := r.data.db.ExchangeRateImportBatch.Query().Where(importent.IDEQ(id), importent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.ExchangeRateImportBatch.Query().Where(importent.IDEQ(id), importent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrExchangeRateImportNotFound, nil)
 	}
@@ -77,7 +81,11 @@ func (r *exchangeRateRepo) GetImport(ctx context.Context, organizationID, id uui
 }
 
 func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ownerOrganizationID, actorID uuid.UUID, previewTokenHash, idempotencyKey string, now time.Time, audit *biz.AuditEvent) (*biz.ExchangeRateImportBatch, error) {
-	preview, err := r.data.db.ExchangeRateImportBatch.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	preview, err := client.ExchangeRateImportBatch.Query().Where(
 		importent.OrganizationIDEQ(organizationID), importent.OwnerOrganizationIDEQ(ownerOrganizationID),
 		importent.CreatedByEQ(actorID), importent.PreviewTokenHashEQ(previewTokenHash),
 	).Only(ctx)
@@ -209,7 +217,11 @@ func (r *exchangeRateRepo) enabledExchangeRateCurrencies(ctx context.Context, ro
 			values = append(values, code)
 		}
 	}
-	items, err := r.data.db.Currency.Query().Where(currencyent.CodeIn(values...), currencyent.EnabledEQ(true)).Select(currencyent.FieldCode).Strings(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.Currency.Query().Where(currencyent.CodeIn(values...), currencyent.EnabledEQ(true)).Select(currencyent.FieldCode).Strings(ctx)
 	if err != nil {
 		return nil, err
 	}

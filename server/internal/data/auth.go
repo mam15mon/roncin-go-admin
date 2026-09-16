@@ -29,7 +29,11 @@ type authRepo struct{ data *Data }
 func NewAuthRepo(data *Data) biz.AuthRepo { return &authRepo{data: data} }
 
 func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Credential, error) {
-	account, err := r.data.db.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrInvalidCredentials, nil)
 	}
@@ -37,7 +41,11 @@ func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Cr
 }
 
 func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
-	return r.data.db.LoginRateLimitBucket.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return false, err
+	}
+	return client.LoginRateLimitBucket.Query().Where(
 		loginratelimitbucket.KeyHashIn(keyHashes...),
 		loginratelimitbucket.WindowStartedAtGT(now.Add(-window)),
 		loginratelimitbucket.AttemptsGTE(maxAttempts),
@@ -101,7 +109,11 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 	}
 	wecomUserID := strings.TrimSpace(identity.UserID)
 	wecomName := strings.TrimSpace(identity.Name)
-	account, err := r.data.db.User.Query().Where(user.WecomUseridEQ(wecomUserID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	account, err := client.User.Query().Where(user.WecomUseridEQ(wecomUserID)).Only(ctx)
 	if err == nil {
 		if account.WecomName == nil || *account.WecomName != wecomName {
 			account, err = account.Update().SetWecomName(wecomName).Save(ctx)
@@ -151,7 +163,11 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrDingTalkNotRegistered, nil)
 	}
@@ -173,13 +189,17 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 	unionID := strings.TrimSpace(identity.UnionID)
 	dingTalkUserID := strings.TrimSpace(identity.UserID)
 	dingtalkName := strings.TrimSpace(identity.Name)
-	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	account, err := client.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
 	if err == nil {
 		account, err = updateDingTalkProfile(ctx, account, identity)
 		if err != nil {
 			return nil, false, err
 		}
-		hasActiveMembership, queryErr := r.data.db.Membership.Query().Where(
+		hasActiveMembership, queryErr := client.Membership.Query().Where(
 			membership.UserIDEQ(account.ID),
 			membership.EnabledEQ(true),
 			membership.HasOrganizationWith(organization.EnabledEQ(true)),
@@ -590,11 +610,15 @@ func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz
 // 工作台节点（部门/小组 → 所属公司，总部 → 总部）；primary 缺失或其工作台不可用时
 // 回退第一个可用工作台。primary 标记语义不变，只影响默认落点。
 func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) (*biz.Credential, error) {
-	refs, err := r.loadEnabledMembershipRefs(ctx, r.data.db, account.ID)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	nodes, err := loadOrganizationTree(ctx, r.data.db)
+	refs, err := r.loadEnabledMembershipRefs(ctx, client, account.ID)
+	if err != nil {
+		return nil, err
+	}
+	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
 	}
@@ -850,7 +874,11 @@ func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearL
 }
 
 func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.Time) (*biz.Session, error) {
-	stored, err := r.data.db.Session.Query().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now), sessionent.HasUserWith(user.EnabledEQ(true)), sessionent.HasOrganizationWith(organization.EnabledEQ(true))).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	stored, err := client.Session.Query().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now), sessionent.HasUserWith(user.EnabledEQ(true)), sessionent.HasOrganizationWith(organization.EnabledEQ(true))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}

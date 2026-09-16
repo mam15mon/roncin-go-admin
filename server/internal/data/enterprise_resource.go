@@ -45,7 +45,11 @@ func enterpriseResourceQuery(client *ent.Client) *ent.EnterpriseResourceQuery {
 }
 
 func (r *enterpriseResourceRepo) SearchPartnerOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.EnterpriseResourcePartnerOption, int64, error) {
-	query := r.data.db.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := client.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true))
 	if keyword != "" {
 		query.Where(partnerent.Or(
 			partnerent.CodeContainsFold(keyword), partnerent.LegalNameContainsFold(keyword), partnerent.SearchKeywordsContainsFold(keyword),
@@ -69,7 +73,11 @@ func (r *enterpriseResourceRepo) SearchPartnerOptions(ctx context.Context, organ
 }
 
 func (r *enterpriseResourceRepo) SearchAssigneeOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.EnterpriseResourceAssigneeOption, int64, error) {
-	query := r.data.db.Membership.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := client.Membership.Query().Where(
 		membershipent.OrganizationIDEQ(organizationID), membershipent.EnabledEQ(true), membershipent.HasUserWith(userent.EnabledEQ(true)),
 	)
 	if keyword != "" {
@@ -93,7 +101,11 @@ func (r *enterpriseResourceRepo) SearchAssigneeOptions(ctx context.Context, orga
 }
 
 func (r *enterpriseResourceRepo) ListRegionOptions(ctx context.Context, level int, parentCode *string, page, pageSize int) ([]*biz.EnterpriseResourceRegionOption, int64, error) {
-	query := r.data.db.AdministrativeRegion.Query().Where(regionent.LevelEQ(level), regionent.EnabledEQ(true))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := client.AdministrativeRegion.Query().Where(regionent.LevelEQ(level), regionent.EnabledEQ(true))
 	if parentCode != nil {
 		query.Where(regionent.ParentCodeEQ(*parentCode))
 	}
@@ -116,7 +128,11 @@ func (r *enterpriseResourceRepo) ImageUsage(ctx context.Context, organizationID 
 	var result []struct {
 		Total *int64 `json:"total"`
 	}
-	err := r.data.db.EnterpriseResourceImage.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return 0, err
+	}
+	err = client.EnterpriseResourceImage.Query().
 		Where(imageent.HasResourceWith(resourceent.OrganizationIDEQ(organizationID))).
 		Aggregate(ent.As(ent.Sum(imageent.FieldFileSize), "total")).
 		Scan(ctx, &result)
@@ -130,7 +146,11 @@ func (r *enterpriseResourceRepo) ImageUsage(ctx context.Context, organizationID 
 }
 
 func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.EnterpriseResourceListOptions) ([]*biz.EnterpriseResource, int64, error) {
-	query := enterpriseResourceQuery(r.data.db).Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	query := enterpriseResourceQuery(client).Where(
 		resourceent.OrganizationIDEQ(organizationID),
 		resourceent.ResourceTypeEQ(resourceent.ResourceType(options.ResourceType)),
 	)
@@ -191,7 +211,11 @@ func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.U
 }
 
 func (r *enterpriseResourceRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.EnterpriseResource, error) {
-	item, err := enterpriseResourceQuery(r.data.db).Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := enterpriseResourceQuery(client).Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 	}
@@ -505,7 +529,11 @@ func (r *enterpriseResourceRepo) BatchAssignees(ctx context.Context, organizatio
 }
 
 func (r *enterpriseResourceRepo) ListTagGroups(ctx context.Context, organizationID uuid.UUID) ([]*biz.EnterpriseTagGroup, error) {
-	items, err := r.data.db.EnterpriseTagGroup.Query().Where(taggroupent.OrganizationIDEQ(organizationID)).Order(taggroupent.BySortOrder(), taggroupent.ByName()).All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.EnterpriseTagGroup.Query().Where(taggroupent.OrganizationIDEQ(organizationID)).Order(taggroupent.BySortOrder(), taggroupent.ByName()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -574,7 +602,11 @@ func (r *enterpriseResourceRepo) DeleteTagGroup(ctx context.Context, organizatio
 	})
 }
 func (r *enterpriseResourceRepo) FindImportConflicts(ctx context.Context, organizationID uuid.UUID, inputs []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
-	return findEnterpriseResourceImportConflicts(ctx, r.data.db.EnterpriseResourceParty, organizationID, inputs)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return findEnterpriseResourceImportConflicts(ctx, client.EnterpriseResourceParty, organizationID, inputs)
 }
 
 func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*biz.EnterpriseResource, overwriteConflicts bool, audit *biz.AuditEvent) ([]*biz.EnterpriseResource, int, int, []*biz.EnterpriseResourceImportConflict, error) {

@@ -38,7 +38,11 @@ func NewOrderFeeRepo(data *Data) biz.OrderFeeRepo {
 }
 
 func (r *orderFeeRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
-	exists, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Exist(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	exists, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -49,7 +53,11 @@ func (r *orderFeeRepo) order(ctx context.Context, organizationID, orderID uuid.U
 }
 
 func (r *orderFeeRepo) settlementParty(ctx context.Context, organizationID, partyID uuid.UUID) (*ent.Partner, error) {
-	item, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.Partner.Query().Where(partnerent.IDEQ(partyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeePartyInvalid, nil)
 	}
@@ -57,7 +65,11 @@ func (r *orderFeeRepo) settlementParty(ctx context.Context, organizationID, part
 }
 
 func (r *orderFeeRepo) validateCurrency(ctx context.Context, code string) error {
-	exists, err := r.data.db.Currency.Query().Where(currencyent.CodeEQ(code), currencyent.EnabledEQ(true)).Exist(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	exists, err := client.Currency.Query().Where(currencyent.CodeEQ(code), currencyent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
@@ -71,7 +83,11 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.OrderFee.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderFee.Query().
 		Where(orderfeeent.OrderIDEQ(orderID)).
 		WithSettlementParty().
 		Order(orderfeeent.ByDirection(), orderfeeent.ByCreatedAt(), orderfeeent.ByID()).
@@ -91,7 +107,11 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 }
 
 func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.OrderFee, error) {
-	item, err := r.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
@@ -99,7 +119,11 @@ func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid
 }
 
 func (r *orderFeeRepo) BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.BilledFeeBillContext, error) {
-	line, err := r.data.db.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true), financebilllineent.OrderIDEQ(orderID)).WithBill(func(query *ent.FinanceBillQuery) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	line, err := client.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true), financebilllineent.OrderIDEQ(orderID)).WithBill(func(query *ent.FinanceBillQuery) {
 		query.Where(financebillent.OrganizationIDEQ(organizationID))
 	}).Only(ctx)
 	if err != nil {
@@ -113,7 +137,11 @@ func (r *orderFeeRepo) BilledBillContext(ctx context.Context, organizationID, or
 }
 
 func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*biz.OrderFee, error) {
-	item, err := r.data.db.OrderFee.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.OrderFee.Query().
 		Where(
 			orderfeeent.OrderIDEQ(orderID),
 			orderfeeent.IdempotencyKeyEQ(idempotencyKey),
@@ -135,7 +163,11 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	if err != nil {
 		return nil, err
 	}
-	businessOrder, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).WithCustomer().Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	businessOrder, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).WithCustomer().Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
@@ -143,28 +175,28 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	if err != nil {
 		return nil, err
 	}
-	parties, err := r.data.db.Partner.Query().
+	parties, err := client.Partner.Query().
 		Where(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).
 		Order(partnerent.ByLegalName(), partnerent.ByCode()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	currencies, err := r.data.db.Currency.Query().
+	currencies, err := client.Currency.Query().
 		Where(currencyent.EnabledEQ(true)).
 		Order(currencyent.ByCode()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	billingUnits, err := r.data.db.BillingUnit.Query().
+	billingUnits, err := client.BillingUnit.Query().
 		Where(billingunitent.EnabledEQ(true)).
 		Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	feeSettings, err := r.data.db.FeeSetting.Query().
+	feeSettings, err := client.FeeSetting.Query().
 		Where(feeSettingBaselineScope(organizationID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().
 		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
@@ -223,7 +255,11 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 // financeLockCommissionNos 返回仍使订单处于财务锁定的提成单号：与台账净额口径
 // 一致，有效提成净额 ≤ 0（已被全额冲减）时不视为锁定，费用编辑锁释放。
 func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizationID, orderID uuid.UUID) ([]string, error) {
-	items, err := r.data.db.FinanceCommissionLine.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.FinanceCommissionLine.Query().Where(
 		commissionlineent.OrganizationIDEQ(organizationID),
 		commissionlineent.OrderIDEQ(orderID),
 		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
@@ -234,7 +270,7 @@ func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizatio
 	if len(items) == 0 {
 		return nil, nil
 	}
-	adjustments, err := r.data.db.FinanceCommissionAdjustment.Query().Where(
+	adjustments, err := client.FinanceCommissionAdjustment.Query().Where(
 		commissionadjustmentent.OrganizationIDEQ(organizationID),
 		commissionadjustmentent.OrderIDEQ(orderID),
 		commissionadjustmentent.StatusIn(commissionadjustmentent.StatusCONFIRMED, commissionadjustmentent.StatusPAID),
@@ -290,7 +326,11 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	if err != nil {
 		return nil, err
 	}
-	feeSetting, err := r.data.db.FeeSetting.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	feeSetting, err := client.FeeSetting.Query().
 		Where(feesettingent.IDEQ(feeSettingID), feesettingent.Or(feesettingent.OrganizationIDEQ(organizationID), feesettingent.OrganizationIDIsNil()), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().Only(ctx)
 	if err != nil {
@@ -298,14 +338,14 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	}
 	defaultBillingUnit, billingErr := feeSetting.Edges.BillingUnitOrErr()
 	taxableService, taxableErr := feeSetting.Edges.TaxableServiceOrErr()
-	defaultCurrencyEnabled, err := r.data.db.Currency.Query().Where(currencyent.CodeEQ(feeSetting.DefaultCurrency), currencyent.EnabledEQ(true)).Exist(ctx)
+	defaultCurrencyEnabled, err := client.Currency.Query().Where(currencyent.CodeEQ(feeSetting.DefaultCurrency), currencyent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if billingErr != nil || taxableErr != nil || !defaultBillingUnit.Enabled || !taxableService.Enabled || !defaultCurrencyEnabled || !feeSettingApplies(feeSetting, applicability) {
 		return nil, biz.ErrOrderFeeSettingInvalid
 	}
-	billingUnit, err := r.data.db.BillingUnit.Query().
+	billingUnit, err := client.BillingUnit.Query().
 		Where(billingunitent.IDEQ(billingUnitID), billingunitent.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeBillingUnitInvalid, nil)
@@ -324,11 +364,15 @@ func (r *orderFeeRepo) loadApplicability(ctx context.Context, organizationID, or
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	serviceTypes, err := r.data.db.OrderServiceType.Query().Where(orderservicetypeent.OrderIDEQ(orderID)).All(ctx)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	abnormalCases, err := r.data.db.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(orderID), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).All(ctx)
+	serviceTypes, err := client.OrderServiceType.Query().Where(orderservicetypeent.OrderIDEQ(orderID)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	abnormalCases, err := client.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(orderID), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -671,7 +715,11 @@ func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, 
 	if err != nil {
 		return nil, err
 	}
-	loaded, err := r.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(updated.ID)).WithSettlementParty().Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	loaded, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(updated.ID)).WithSettlementParty().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
