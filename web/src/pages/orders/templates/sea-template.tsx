@@ -203,7 +203,7 @@ function getSeaCreateTemplateSections(props: TemplateProps): TemplateSection[] {
     },
     {
       key: 'houseBillContent',
-      title: 'HBL 分单内容（HOUSE）',
+      title: 'HBL 分单内容',
       content: <SeaCreateHouseBillFields disabled={props.readonly} />,
     },
     {

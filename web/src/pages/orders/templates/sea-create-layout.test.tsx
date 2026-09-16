@@ -82,7 +82,7 @@ describe('SE 新建 MBL 连续录入', () => {
       '订舱与主单识别',
       '航线与船期',
       'MBL 主单内容',
-      'HBL 分单内容（HOUSE）',
+      'HBL 分单内容',
       '补充与内部信息',
     ]);
     expect(
@@ -128,7 +128,7 @@ describe('SE 新建 MBL 连续录入', () => {
       />,
     );
     const master = screen.getByRole('region', { name: 'MBL 主单内容' });
-    const house = screen.getByRole('region', { name: 'HBL 分单内容（HOUSE）' });
+    const house = screen.getByRole('region', { name: 'HBL 分单内容' });
     expect(
       within(master).getByPlaceholderText('请输入发货人英文名称与详细地址'),
     ).toBeVisible();
