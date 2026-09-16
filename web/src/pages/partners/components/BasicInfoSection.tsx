@@ -225,7 +225,7 @@ export default function BasicInfoSection({
 
         {/* Row 5: 性质, 散客标识, 类型, 开发方式, 业务类型 */}
         <Row gutter={[16, 12]} align="middle" style={{ marginTop: 4 }}>
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={3}>
             <ProFormSelect
               name="nature"
               label="性质"
@@ -247,7 +247,7 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={5}>
             <ProFormCheckbox.Group
               name="customerTypes"
               label="类型"

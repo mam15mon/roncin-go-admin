@@ -114,6 +114,12 @@ export default function PartnerDetailPage() {
     {},
   );
 
+  // 表单导航浮层折叠状态：展开时内容区预留右侧空间，避免浮层盖住表单字段；
+  // 窄屏（<1500px）默认折叠，保证输入区完整可用。
+  const [navCollapsed, setNavCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1500,
+  );
+
   // Detect roleType from pathname
   const { roleType, roleLabel, listUrl } = useMemo(() => {
     const path = location.pathname;
@@ -645,6 +651,10 @@ export default function PartnerDetailPage() {
           layout="horizontal"
           grid
           rowProps={{ gutter: [16, 12] }}
+          style={{
+            paddingRight: navCollapsed ? 0 : 164,
+            transition: 'padding-right 0.25s ease',
+          }}
         >
           <Col span={24}>
             {/* Section 1: 基础信息 */}
@@ -824,6 +834,8 @@ export default function PartnerDetailPage() {
       {!loading && (
         <FormAnchorNav
           sectionErrors={sectionErrors}
+          defaultCollapsed={navCollapsed}
+          onCollapsedChange={setNavCollapsed}
           items={[
             { key: 'basic', title: '基础信息' },
             { key: 'settlement', title: '财务结算' },

@@ -27,6 +27,8 @@ export interface FormAnchorNavProps {
   targetOffset?: number;
   /** 是否默认折叠为迷你图标浮标，默认 false */
   defaultCollapsed?: boolean;
+  /** 折叠状态变化回调，供页面联动腾出浮层空间 */
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export interface ScrollToErrorOptions {

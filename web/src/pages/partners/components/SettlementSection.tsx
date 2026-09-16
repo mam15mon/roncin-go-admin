@@ -140,6 +140,8 @@ export default function SettlementSection({
                     borderRight: 0,
                     borderRadius: '6px 0 0 6px',
                     color: '#595959',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                 >
                   每月

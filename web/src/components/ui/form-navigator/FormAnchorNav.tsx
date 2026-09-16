@@ -19,8 +19,14 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
   className,
   targetOffset = 84,
   defaultCollapsed = false,
+  onCollapsedChange,
 }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+
+  const updateCollapsed = (next: boolean) => {
+    setCollapsed(next);
+    onCollapsedChange?.(next);
+  };
   const [internalActiveKey, setInternalActiveKey] = useState<string>(
     items[0]?.key || '',
   );
@@ -116,7 +122,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
                   <OrderedListOutlined />
                 )
               }
-              onClick={() => setCollapsed(false)}
+              onClick={() => updateCollapsed(false)}
               style={{
                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.12)',
                 backgroundColor: '#ffffff',
@@ -182,7 +188,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
               style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)' }}
             />
           }
-          onClick={() => setCollapsed(true)}
+          onClick={() => updateCollapsed(true)}
           style={{ width: 22, height: 22, padding: 0 }}
         />
       </div>

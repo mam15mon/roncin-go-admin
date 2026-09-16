@@ -5,11 +5,17 @@ import {
   PhoneOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { ProFormSwitch, ProFormText } from '@ant-design/pro-components';
 import {
-  ProFormSwitch,
-  ProFormText,
-} from '@ant-design/pro-components';
-import { App, Button, Card, Col, Popconfirm, Space, Tag, Typography } from 'antd';
+  App,
+  Button,
+  Card,
+  Col,
+  Popconfirm,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import React from 'react';
 import { SubEntityCardGrid } from '@/components/ui/sub-entity-card-grid';
 
@@ -67,6 +73,7 @@ export default function ContactCardList({
   return (
     <SubEntityCardGrid<ContactItem>
       entityName="联系人"
+      title="联系人"
       items={contacts}
       modalWidth={480}
       colSpan={{ xs: 24, sm: 12, md: 8, lg: 6 }}
@@ -159,9 +166,7 @@ export default function ContactCardList({
             )}
             {item.phone && (
               <div>
-                <PhoneOutlined
-                  style={{ color: '#8c8c8c', marginRight: 4 }}
-                />
+                <PhoneOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
                 <span style={{ fontFamily: 'monospace' }}>{item.phone}</span>
               </div>
             )}
@@ -173,9 +178,7 @@ export default function ContactCardList({
                   whiteSpace: 'nowrap',
                 }}
               >
-                <MailOutlined
-                  style={{ color: '#8c8c8c', marginRight: 4 }}
-                />
+                <MailOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
                 <span>{item.email}</span>
               </div>
             )}
