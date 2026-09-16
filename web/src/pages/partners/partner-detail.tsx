@@ -649,8 +649,6 @@ export default function PartnerDetailPage() {
           formRef={formRef}
           submitter={false}
           layout="horizontal"
-          grid
-          rowProps={{ gutter: [16, 12] }}
           style={{
             paddingRight: navCollapsed ? 0 : 164,
             transition: 'padding-right 0.25s ease',
