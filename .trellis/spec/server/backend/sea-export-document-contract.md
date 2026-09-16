@@ -12,7 +12,11 @@
 - `OrderShippingDocument` 不再承载 SE 的 HBL。禁止从第一张 HBL 推断 MBL、创建
   虚拟 HBL，或把 MBL 内容复制到每张 HBL。
 - 一个活动操作票最多关联一个当前 MBL；一张 MBL 可以关联多张操作票；一个
-  操作票可以有多张真实 HBL，但这些 HBL 必须属于该操作票当前活动 MBL。
+  操作票最多拥有一张真实 HBL，且该 HBL 必须属于其当前活动 MBL。
+- 一票一分是 2026-09 业务确认的口径（所有分单独立建订单、独立建账单）：
+  「一主多分」由多张操作票共享同一 `SeaMasterBill` 承载，契约不提供一订单
+  多 HBL 形态；旧 `repeated house_bills`、分单 POST/DELETE 接口与
+  `house_bill_count` / `house_nos` 摘要均已 reserved 移除。
 
 ### 2. Signatures
 
@@ -21,16 +25,21 @@
   - `CreateOrderRequest.sea_master_bill: SeaMasterBillInput`。
   - `CreateOrderRequest.sea_document: SeaOrderDocumentInput`。
   - `UpdateOrderRequest.sea_master_bill: SeaMasterBillInput`。
-  - `UpdateOrderRequest.sea_document: SeaOrderDocumentInput`；普通整单更新不得提交
-    HBL 集合变更。
+  - `UpdateOrderRequest.sea_document: SeaOrderDocumentInput`；普通整单更新不得
+    提交分单变更（分单只经单证命令维护）。
 - 单证命令：
-  - `GET /api/v1/orders/{order_id}/sea-documents`。
-  - `POST /api/v1/orders/{order_id}/sea-documents/mark-direct`。
-  - `POST /api/v1/orders/{order_id}/sea-documents/cancel-direct`。
-  - `POST /api/v1/orders/{order_id}/sea-documents/house-bills`。
-  - `PUT /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`。
-  - `DELETE /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`。
+  - `GET /api/v1/orders/{order_id}/sea-documents`（聚合读取返回单数 `house_bill`）。
+  - `PUT /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`（更新唯一
+    活动 HBL）。
   - `PUT /api/v1/orders/{order_id}/sea-documents/master-bill-content`。
+  - `POST /api/v1/orders/{order_id}/sea-documents/mode-change/preview` 与
+    `POST .../mode-change`：DIRECT/HOUSE 互转。DIRECT→HOUSE 随切换创建唯一
+    HBL；HOUSE→DIRECT 将唯一活动 HBL 置为 VOIDED，不硬删除。
+  - `POST .../amendments/preview` 与 `POST .../amendments`（改单）；
+    `POST .../voids/preview` 与 `POST .../voids`（作废）。
+  - 版本与事件：`GET .../versions/{version_id}`、`GET .../master-bill/versions`、
+    `GET .../house-bills/{house_bill_id}/versions`、`GET .../events`。
+  - 旧 `mark-direct` / `cancel-direct` 与分单 POST/DELETE 接口已随单值收敛移除。
 - 放货记录命令：
   - `GET /api/v1/orders/{order_id}/release-pods`。
   - `POST /api/v1/orders/{order_id}/release-pods`。
@@ -39,11 +48,12 @@
   - `DELETE /api/v1/orders/{order_id}/release-pods/{id}`。
 - 放货记录单证字段：旧模型使用 `shipping_document_id`；SE 使用
   `sea_document_type + sea_document_id`，其中类型只允许 `MASTER_BILL | HOUSE_BILL`。
-- HBL 硬删除请求可显式提交 `remove_related_release_pods=true`；该请求还需要
-  `SE release_pod.delete` 的组织范围权限。
+- HBL 不提供硬删除；退出分单只能经 HOUSE→DIRECT 模式切换作废，历史版本与
+  已关联 ReleasePod 记录全部保留。
 - 并发字段：
-  - 结构变更和 HBL 命令携带 `expected_link_version`。
-  - HBL 更新/删除同时携带 `expected_version`。
+  - HBL 更新与模式切换携带 `expected_link_version`。
+  - HBL 更新携带 `expected_version`；模式切换额外携带 `expected_order_version`、
+    `expected_house_bill_version` 与 `expected_current_version_id`。
   - MBL 内容修改携带 `expected_mbl_version`。
 - 数据库唯一键：
   - `sea_master_bills(organization_id, shipping_line_id, normalized_master_no)`。
@@ -84,11 +94,11 @@
   Unicode 空白、ASCII 小写转大写；不得删除内部空白/标点、改变年份或前导零。
 - 单证结构只允许：
   - `UNDETERMINED`：无 HBL，尚未明确直单。
-  - `DIRECT`：明确无 HBL；禁止直接新增 HBL。
-  - `HOUSE`：至少一张真实 HBL。
-- `DIRECT -> HOUSE` 禁止一步完成。必须先执行 `cancel-direct` 回到
-  `UNDETERMINED`，再新增第一张 HBL；删除最后一张 HBL 必须显式提交
-  `return_to_undetermined=true`，不得静默变成 DIRECT。
+  - `DIRECT`：明确无 HBL。
+  - `HOUSE`：恰好一张真实 HBL。
+- 结构互转只经模式切换命令完成（预览 + 执行，需外部确认与幂等键）：
+  DIRECT→HOUSE 随切换提交唯一 HBL；HOUSE→DIRECT 将唯一活动 HBL 作废。
+  不存在新增第二张 HBL、硬删除或回到 `UNDETERMINED` 的路径。
 - HBL 签发主体无默认值：
   - `SELF_ORGANIZATION`：沿订单所属组织向上解析最近的 `company` 或
     `headquarters`，保存真实 Organization ID。系统不存在“一家公司下选择多个
@@ -98,7 +108,7 @@
   - `OTHER_PARTNER`：必须显式传入同组织且启用的真实 Partner ID。
 - 已有 `CUSTOMER_PARTNER` HBL 时，普通订单保存不得把客户改成其他主体；用户先
   调整 HBL 签发主体，系统不自动改写历史语义。
-- MBL 与每张 HBL 分别维护完整提单内容，内容字段可空。阶段 2 不根据订单件重尺
+- MBL 与 HBL 分别维护完整提单内容，内容字段可空。阶段 2 不根据订单件重尺
   做守恒校验，也不自动镜像订单字段。
 - 命中已有 MBL 时只返回候选；写请求必须携带候选 ID 和版本明确确认，服务端在
   事务内重新锁定并校验。共享航程字段为承运人、起运港、卸货港、中转港、船名、
@@ -112,9 +122,9 @@
   猜测单证类型。
 - 海运单证页只有具备 `release_pod.read` 权限时才请求和展示关联记录；按真实
   MBL/HBL ID 分组展示放货编号、回单编号和状态，并明确区分空态与加载失败。
-- HBL 硬删除在既有锁序后按 UUID 排序锁定关联 ReleasePod。任一记录为
-  `RETURNED` 时完全阻断；全为 `PENDING/SIGNED` 时必须得到显式级联确认。确认后
-  先删除关联记录，再删除 HBL，并在同一事务写操作日志；日志失败必须全部回滚。
+- HOUSE→DIRECT 模式切换在既有锁序内把唯一活动 HBL 置为 VOIDED 并递增版本；
+  不删除 HBL 行与其关联 ReleasePod，历史关系继续可查。切换与 MBL/HBL 命令
+  一样在同一事务写操作日志，日志失败全部回滚。
 - MBL/HBL 作废不是硬删除，不得清空或级联删除已关联 ReleasePod；历史关系继续
   保留。
 - 创建、结构切换、MBL 内容修改和 HBL 命令必须在同一事务写操作日志；日志失败
@@ -136,12 +146,7 @@
 | 同组织、同船公司、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
 | 候选身份、版本或共享航程变化 | 409 对应 MBL 冲突错误，事务回滚 |
 | 单证聚合找不到活动 Link | 400 `SEA_DOCUMENT_NO_ACTIVE_LINK`，不得构造虚假默认响应 |
-| DIRECT 直接新增 HBL | 409 `SEA_DOCUMENT_DIRECT_ADD_HBL_BLOCKED` |
-| 删除最后一张 HBL 未明确回到未确定 | 400 `SEA_DOCUMENT_DELETE_LAST_HBL_CONFIRMATION_REQUIRED` |
-| HBL 有 PENDING/SIGNED ReleasePod，但未确认级联删除 | 400 `SEA_HOUSE_BILL_RELEASE_POD_CONFIRMATION_REQUIRED`，零变更 |
-| HBL 的任一 ReleasePod 已 RETURNED | 409 `SEA_HOUSE_BILL_RETURNED_RELEASE_POD_BLOCKED`，HBL 和全部记录均保留 |
-| SE 提交旧单证引用、非 SE 提交 Sea 引用、Sea 类型/ID 不完整或归属错误 | 400 `ORDER_RELEASE_POD_DOCUMENT_INVALID` |
-| 级联删除缺少 `release_pod.delete` 组织权限 | 403 权限错误，不进入仓储事务 |
+| HOUSE→DIRECT 缺外部确认、幂等键，或 HBL 预期版本/当前版本 ID 不一致 | 400/409 对应单证冲突错误，事务回滚 |
 | Link、MBL 或 HBL 预期版本不一致 | 409 `SEA_DOCUMENT_STRUCTURE_CONFLICT`、`SEA_MASTER_BILL_CONFLICT` 或 `SEA_HOUSE_BILL_CONFLICT` |
 | HBL 号为空或超过 128 个字符 | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |
 | 同一真实签发主体的规范化 HBL 号重复 | 409 `SEA_HOUSE_BILL_EXISTS`，由数据库唯一索引兜底 |
@@ -158,21 +163,20 @@
   后才进入 `DIRECT`。
 - Good：历史订单引用的 ShippingLine 后来被停用，用户不更换船公司而修改其他字段；
   系统保留历史引用，不把停用误判为身份变更。
-- Good：用户取消 DIRECT，再新增 `  hbl/001  `；原号按输入保存，唯一检索键为
+- Good：DIRECT 订单经模式切换提交 `  hbl/001  `；原号按输入保存，唯一检索键为
   `HBL/001`，结构在同一事务变为 `HOUSE`。
 - Good：HBL 选择“本公司”，订单属于部门，系统保存其最近公司/总部的 Organization
   ID，页面显示解析后的名称，不显示品牌选择器。
-- Good：删除有关联待签收/已签收记录的 HBL，页面列出放货编号和回单编号；用户
-  一次确认后，HBL、关联记录和操作日志原子完成。
+- Good：HOUSE 订单经模式切换退回 DIRECT，页面预览列出影响（唯一 HBL 作废）；
+  用户一次确认后，结构、HBL 状态和操作日志原子完成，放单记录保留可查。
 - Base：MBL/HBL 内容全部留空仍可保存；阶段 2 不要求用户实际使用全部单证字段。
 - Base：ReleasePod 不关联任何单证；三个外键均为空，列表正常展示。
-- Bad：DIRECT 页面直接显示“添加 HBL”并让后端自动转 HOUSE；必须先执行独立取消
-  动作，留下单独操作日志。
+- Bad：在普通整单更新或编辑表单里夹带分单增删；分单只经单证命令维护，
+  一切结构变化都经模式切换并留下操作日志。
 - Bad：创建 payload 静默过滤不完整 HBL；必须保留用户输入并由表单/服务端明确
   拒绝。
 - Bad：查询故障被伪装成“未命中”或“无活动 Link”；必须原样返回错误，禁止创建
   新 MBL 或合成默认结构。
-- Bad：删除 HBL 时用数据库 FK 自动置空、只删 HBL，或已回单后仍允许级联删除。
 - Bad：把 ShippingLine 当成 Partner carrier，或在没有订舱代理时把船公司 UUID 写入
   应付费用的 `settlement_party_id`。
 
@@ -190,19 +194,18 @@
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
   死锁；批量摘要必须按 `(order_id, active_master_bill_id)` 过滤历史 HBL。
 - Data/PostgreSQL：ReleasePod 的 MBL/HBL 当前归属、跨组织/跨订单拒绝、三引用
-  CHECK、Sea 外键 `NO ACTION`；HBL 删除未确认 400、已回单 409、确认后原子删除，
-  以及操作日志失败后 HBL/记录/Link 全部回滚。
-- Data/PostgreSQL：从完整订单创建入口验证初始 HOUSE、HBL 数量和 `order.create`
+  CHECK、Sea 外键 `NO ACTION`；模式切换 DIRECT↔HOUSE 的预览/执行、唯一 HBL
+  创建与作废，以及操作日志失败后结构/版本/业务行全部回滚。
+- Data/PostgreSQL：从完整订单创建入口验证初始单证结构与 `order.create`
   操作日志详情。
 - Frontend：SE 船公司和 MBL 号必填且无 MBL 签发方输入；创建、详情、候选、拆票和
   改配都只传 ShippingLine；共享 MBL 同时禁用船公司与 MBL 号；候选请求失败阻止
-  保存；DIRECT 无添加入口；取消后可添加；最后 HBL 删除确认；原号不 trim；不静默
-  过滤；加载失败清空旧订单状态；区块默认展开。
+  保存；结构互转只经模式切换预览与确认；原号不 trim；不静默过滤；加载失败清空
+  旧订单状态；区块默认展开。
 - Frontend：船公司选择器调用 ShippingLine 服务端关键字查询；详情即使历史船公司已停用，
   也能回显当前名称；应付结算方只默认订舱代理，不回退到船公司。
 - Frontend：无 `release_pod.read` 权限时零请求；有权限时 MBL/HBL 分组、空态和
-  错误态；有关联记录时合并最后一张 HBL 与级联确认；取消时零删除请求；已回单
-  展示阻断记录。
+  错误态。
 - Migration：独立 Schema 从阶段 1 真实迁移到阶段 2，并核对四个 ShippingLine 外键、
   `NO ACTION`、TE 非空、MBL 唯一索引、Partner role CHECK 和 revision；保留已有
   ShippingLine。存在旧 SE/TE/MBL/MBL Version 数据或非法 Partner role 时，迁移必须
