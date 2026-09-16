@@ -106,4 +106,37 @@ describe('Partners 列表页', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('合作类型')).not.toBeInTheDocument();
   });
+
+  it('列表页展示导出 Excel 与导入 Excel 按钮，并在操作列提供转角色按钮', async () => {
+    routeState.pathname = '/partners/customers';
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'p-1',
+          code: 'CUST-001',
+          legalName: '测试转换角色公司',
+          enabled: true,
+          roles: [{ type: 1, enabled: true }],
+        },
+      ],
+      total: 1,
+    } as never);
+
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+
+    expect(await screen.findByText('测试转换角色公司')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /导出 Excel/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /导入 Excel/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /转角色/ }),
+    ).toBeInTheDocument();
+  });
 });

@@ -50,7 +50,8 @@
     "decimal.js": "10.6.0",
     "highlight.js": "^11.11.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@ant-design/cli": "^6.6.2",

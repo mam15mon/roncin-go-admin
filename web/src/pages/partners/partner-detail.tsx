@@ -278,6 +278,14 @@ export default function PartnerDetailPage() {
                 profile.addressEn ||
                 (isForeign ? p.registeredAddress : undefined),
               nature: profile.nature || roleLabel,
+              roleTypes:
+                (p.roles ?? [])
+                  .filter((r) => r.enabled)
+                  .map((r) => r.type as number).length > 0
+                  ? (p.roles ?? [])
+                      .filter((r) => r.enabled)
+                      .map((r) => r.type as number)
+                  : [roleType],
               customerTypes: profile.customerTypes || [1],
               developmentMethod: profile.developmentMethod || '自主开发',
               businessTypes: profile.businessTypes || [1],
@@ -330,6 +338,7 @@ export default function PartnerDetailPage() {
         enabled: true,
         isCasual: false,
         nature: roleLabel,
+        roleTypes: [roleType],
         customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
         developmentMethod: '自主开发',
         businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
@@ -537,11 +546,14 @@ export default function PartnerDetailPage() {
         isActive: true,
       };
 
-      const roleInput: API.PartnerRoleInput = {
-        type: roleType,
-        enabled: values.enabled ?? true,
-        settlementRule: settlementRuleInput,
-      };
+      const selectedRoleTypes: number[] = values.roleTypes || [roleType];
+      const roleInputs: API.PartnerRoleInput[] = selectedRoleTypes.map(
+        (type) => ({
+          type,
+          enabled: true,
+          settlementRule: type === roleType ? settlementRuleInput : undefined,
+        }),
+      );
 
       if (partnerId) {
         await partnerServiceUpdatePartner(
@@ -556,7 +568,7 @@ export default function PartnerDetailPage() {
             registeredAddress: effectiveAddress,
             enabled: values.enabled ?? true,
             isCasual: isForeign ? false : Boolean(values.isCasual),
-            roles: [roleInput],
+            roles: roleInputs,
             profile,
             assignments,
             contacts: contactInputs,
@@ -573,7 +585,7 @@ export default function PartnerDetailPage() {
             : values.unifiedSocialCreditCode?.trim(),
           registeredAddress: effectiveAddress,
           isCasual: isForeign ? false : Boolean(values.isCasual),
-          roles: [roleInput],
+          roles: roleInputs,
           profile,
           assignments,
           contacts: contactInputs,

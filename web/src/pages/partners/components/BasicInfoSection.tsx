@@ -308,29 +308,38 @@ export default function BasicInfoSection({
           </Row>
         )}
 
-        {/* Row 5: 性质, 散客标识, 类型, 开发方式, 业务类型 */}
+        {/* Row 5: 业务角色, 散客标识, 类型, 开发方式, 业务类型 */}
         <Row gutter={[16, 12]} align="middle" style={{ marginTop: 12 }}>
-          <Col xs={24} sm={12} md={isForeignAgent ? 4 : 3}>
-            <ProFormSelect
-              name="nature"
-              label="性质"
+          <Col xs={24} sm={12} md={isCustomer ? 6 : 7}>
+            <ProFormCheckbox.Group
+              name="roleTypes"
+              label="业务角色"
               labelCol={labelCol(LABEL_COL_WIDTH.nature)}
               options={[
-                { label: '客户', value: '客户' },
-                { label: '供应商', value: '供应商' },
-                { label: '国外代理', value: '国外代理' },
+                {
+                  label: '客户',
+                  value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+                },
+                {
+                  label: '供应商',
+                  value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+                },
+                {
+                  label: '国外代理',
+                  value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
+                },
               ]}
-              initialValue={roleLabel}
-              disabled
+              initialValue={[roleType]}
+              rules={[{ required: true, message: '请至少选择一个业务角色' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          {!isForeignAgent && (
+          {isCustomer && (
             <Col xs={24} sm={12} md={4}>
               <ProFormSwitch
                 name="isCasual"
-                label="单次合作 (散客)"
+                label="散客标识"
                 labelCol={labelCol(LABEL_COL_WIDTH.casual)}
                 checkedChildren="散客"
                 unCheckedChildren="正式"
@@ -340,7 +349,7 @@ export default function BasicInfoSection({
           )}
 
           {isCustomer && (
-            <Col xs={24} sm={12} md={5}>
+            <Col xs={24} sm={12} md={4}>
               <ProFormCheckbox.Group
                 name="customerTypes"
                 label="类型"
@@ -352,7 +361,7 @@ export default function BasicInfoSection({
             </Col>
           )}
 
-          <Col xs={24} sm={12} md={isCustomer ? 5 : 8}>
+          <Col xs={24} sm={12} md={isCustomer ? 4 : 6}>
             <ProFormSelect
               name="developmentMethod"
               label="开发方式"
@@ -363,7 +372,7 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} sm={12} md={isCustomer ? 9 : 16}>
+          <Col xs={24} sm={12} md={isCustomer ? 6 : 11}>
             <ProFormSelect
               name="businessTypes"
               label="业务类型"
