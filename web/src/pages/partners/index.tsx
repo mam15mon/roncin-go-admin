@@ -368,7 +368,7 @@ export default function Partners() {
     >
       <SearchFilterTemplate
         layout="bar"
-        keywordPlaceholder={`搜索${currentView.title}代码、名称、拼音或税号...`}
+        keywordPlaceholder={`搜索单位编码、名称、拼音或税号...`}
         quickFilters={[
           {
             name: 'enabled',
@@ -559,7 +559,7 @@ export default function Partners() {
               value: PartnerImportMode.PARTNER_IMPORT_MODE_CREATE_ONLY,
             },
             {
-              label: '存在则更新 (Upsert 按编码匹配覆盖)',
+              label: '存在则更新 (Upsert 按单位编码匹配覆盖)',
               value: PartnerImportMode.PARTNER_IMPORT_MODE_UPSERT,
             },
           ]}

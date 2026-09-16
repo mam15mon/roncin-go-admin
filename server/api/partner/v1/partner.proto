@@ -390,6 +390,8 @@ message UpdatePartnerRequest {
   PartnerProfile profile = 9;
   repeated PartnerAssignmentInput assignments = 10;
   optional bool is_casual = 11;
+  // 单位编码：全量覆盖语义，空串表示清空；组织内唯一
+  string code = 12;
 }
 
 enum PartnerImportMode {

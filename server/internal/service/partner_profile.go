@@ -135,7 +135,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 		return nil, biz.ErrPartnerNotFound
 	}
 	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.Partner{
-		LegalName: request.GetLegalName(), UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(),
+		Code: request.GetCode(), LegalName: request.GetLegalName(), UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(),
 		RegisteredAddress: request.GetRegisteredAddress(), Enabled: request.GetEnabled(),
 		IsCasual: request.GetIsCasual(),
 		Roles:    partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),

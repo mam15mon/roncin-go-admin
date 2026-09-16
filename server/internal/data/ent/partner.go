@@ -26,7 +26,7 @@ type Partner struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
-	// 客商代码；选填，仅用于操作人员搜索
+	// 客商单位编码；选填，仅用于操作人员搜索，创建后可修改
 	Code *string `json:"code,omitempty"`
 	// LegalName holds the value of the "legal_name" field.
 	LegalName string `json:"legal_name,omitempty"`

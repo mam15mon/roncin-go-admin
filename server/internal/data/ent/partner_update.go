@@ -71,6 +71,26 @@ func (_u *PartnerUpdate) SetNillableOrganizationID(v *uuid.UUID) *PartnerUpdate 
 	return _u
 }
 
+// SetCode sets the "code" field.
+func (_u *PartnerUpdate) SetCode(v string) *PartnerUpdate {
+	_u.mutation.SetCode(v)
+	return _u
+}
+
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableCode(v *string) *PartnerUpdate {
+	if v != nil {
+		_u.SetCode(*v)
+	}
+	return _u
+}
+
+// ClearCode clears the value of the "code" field.
+func (_u *PartnerUpdate) ClearCode() *PartnerUpdate {
+	_u.mutation.ClearCode()
+	return _u
+}
+
 // SetLegalName sets the "legal_name" field.
 func (_u *PartnerUpdate) SetLegalName(v string) *PartnerUpdate {
 	_u.mutation.SetLegalName(v)
@@ -986,6 +1006,11 @@ func (_u *PartnerUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerUpdate) check() error {
+	if v, ok := _u.mutation.Code(); ok {
+		if err := partner.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Partner.code": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.LegalName(); ok {
 		if err := partner.LegalNameValidator(v); err != nil {
 			return &ValidationError{Name: "legal_name", err: fmt.Errorf(`ent: validator failed for field "Partner.legal_name": %w`, err)}
@@ -1026,6 +1051,9 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Code(); ok {
+		_spec.SetField(partner.FieldCode, field.TypeString, value)
 	}
 	if _u.mutation.CodeCleared() {
 		_spec.ClearField(partner.FieldCode, field.TypeString)
@@ -2055,6 +2083,26 @@ func (_u *PartnerUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *PartnerUpda
 	return _u
 }
 
+// SetCode sets the "code" field.
+func (_u *PartnerUpdateOne) SetCode(v string) *PartnerUpdateOne {
+	_u.mutation.SetCode(v)
+	return _u
+}
+
+// SetNillableCode sets the "code" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableCode(v *string) *PartnerUpdateOne {
+	if v != nil {
+		_u.SetCode(*v)
+	}
+	return _u
+}
+
+// ClearCode clears the value of the "code" field.
+func (_u *PartnerUpdateOne) ClearCode() *PartnerUpdateOne {
+	_u.mutation.ClearCode()
+	return _u
+}
+
 // SetLegalName sets the "legal_name" field.
 func (_u *PartnerUpdateOne) SetLegalName(v string) *PartnerUpdateOne {
 	_u.mutation.SetLegalName(v)
@@ -2983,6 +3031,11 @@ func (_u *PartnerUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerUpdateOne) check() error {
+	if v, ok := _u.mutation.Code(); ok {
+		if err := partner.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Partner.code": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.LegalName(); ok {
 		if err := partner.LegalNameValidator(v); err != nil {
 			return &ValidationError{Name: "legal_name", err: fmt.Errorf(`ent: validator failed for field "Partner.legal_name": %w`, err)}
@@ -3040,6 +3093,9 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Code(); ok {
+		_spec.SetField(partner.FieldCode, field.TypeString, value)
 	}
 	if _u.mutation.CodeCleared() {
 		_spec.ClearField(partner.FieldCode, field.TypeString)

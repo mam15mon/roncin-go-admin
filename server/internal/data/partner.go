@@ -258,6 +258,11 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 			SetRegisteredAddress(input.RegisteredAddress).
 			SetEnabled(input.Enabled).
 			SetIsCasual(input.IsCasual)
+		if input.Code == "" {
+			update.ClearCode()
+		} else {
+			update.SetCode(input.Code)
+		}
 		if input.UnifiedSocialCreditCode == "" {
 			update.ClearUnifiedSocialCreditCode()
 		} else {
@@ -265,6 +270,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		}
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return mapEntConstraints(updateErr,
+				entConstraintMapping{name: "partner_org_code_key", domainErr: biz.ErrPartnerCodeExists},
 				entConstraintMapping{name: "partner_org_name_key", domainErr: biz.ErrPartnerNameExists},
 				entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
 			)

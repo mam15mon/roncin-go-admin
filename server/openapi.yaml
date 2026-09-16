@@ -21322,6 +21322,9 @@ components:
                         $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
                 isCasual:
                     type: boolean
+                code:
+                    type: string
+                    description: 单位编码：全量覆盖语义，空串表示清空；组织内唯一
         partner.v1.UpdatePartnerResponse:
             type: object
             properties:

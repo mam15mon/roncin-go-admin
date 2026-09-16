@@ -1146,6 +1146,24 @@ func (u *PartnerUpsert) UpdateOrganizationID() *PartnerUpsert {
 	return u
 }
 
+// SetCode sets the "code" field.
+func (u *PartnerUpsert) SetCode(v string) *PartnerUpsert {
+	u.Set(partner.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *PartnerUpsert) UpdateCode() *PartnerUpsert {
+	u.SetExcluded(partner.FieldCode)
+	return u
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *PartnerUpsert) ClearCode() *PartnerUpsert {
+	u.SetNull(partner.FieldCode)
+	return u
+}
+
 // SetLegalName sets the "legal_name" field.
 func (u *PartnerUpsert) SetLegalName(v string) *PartnerUpsert {
 	u.Set(partner.FieldLegalName, v)
@@ -1262,9 +1280,6 @@ func (u *PartnerUpsertOne) UpdateNewValues() *PartnerUpsertOne {
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(partner.FieldCreatedAt)
 		}
-		if _, exists := u.create.mutation.Code(); exists {
-			s.SetIgnore(partner.FieldCode)
-		}
 	}))
 	return u
 }
@@ -1321,6 +1336,27 @@ func (u *PartnerUpsertOne) SetOrganizationID(v uuid.UUID) *PartnerUpsertOne {
 func (u *PartnerUpsertOne) UpdateOrganizationID() *PartnerUpsertOne {
 	return u.Update(func(s *PartnerUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *PartnerUpsertOne) SetCode(v string) *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *PartnerUpsertOne) UpdateCode() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *PartnerUpsertOne) ClearCode() *PartnerUpsertOne {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearCode()
 	})
 }
 
@@ -1622,9 +1658,6 @@ func (u *PartnerUpsertBulk) UpdateNewValues() *PartnerUpsertBulk {
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(partner.FieldCreatedAt)
 			}
-			if _, exists := b.mutation.Code(); exists {
-				s.SetIgnore(partner.FieldCode)
-			}
 		}
 	}))
 	return u
@@ -1682,6 +1715,27 @@ func (u *PartnerUpsertBulk) SetOrganizationID(v uuid.UUID) *PartnerUpsertBulk {
 func (u *PartnerUpsertBulk) UpdateOrganizationID() *PartnerUpsertBulk {
 	return u.Update(func(s *PartnerUpsert) {
 		s.UpdateOrganizationID()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *PartnerUpsertBulk) SetCode(v string) *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *PartnerUpsertBulk) UpdateCode() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// ClearCode clears the value of the "code" field.
+func (u *PartnerUpsertBulk) ClearCode() *PartnerUpsertBulk {
+	return u.Update(func(s *PartnerUpsert) {
+		s.ClearCode()
 	})
 }
 

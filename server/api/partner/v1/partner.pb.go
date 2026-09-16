@@ -2163,8 +2163,10 @@ type UpdatePartnerRequest struct {
 	Profile                 *PartnerProfile           `protobuf:"bytes,9,opt,name=profile,proto3" json:"profile,omitempty"`
 	Assignments             []*PartnerAssignmentInput `protobuf:"bytes,10,rep,name=assignments,proto3" json:"assignments,omitempty"`
 	IsCasual                *bool                     `protobuf:"varint,11,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// 单位编码：全量覆盖语义，空串表示清空；组织内唯一
+	Code          string `protobuf:"bytes,12,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdatePartnerRequest) Reset() {
@@ -2272,6 +2274,13 @@ func (x *UpdatePartnerRequest) GetIsCasual() bool {
 		return *x.IsCasual
 	}
 	return false
+}
+
+func (x *UpdatePartnerRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
 }
 
 type PartnerImportItemInput struct {
@@ -7621,7 +7630,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	" \x01(\bH\x01R\bisCasual\x88\x01\x01B\a\n" +
 	"\x05_codeB\f\n" +
 	"\n" +
-	"_is_casual\"\xab\x04\n" +
+	"_is_casual\"\xbf\x04\n" +
 	"\x14UpdatePartnerRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\"\n" +
 	"\n" +
@@ -7635,7 +7644,8 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\aprofile\x18\t \x01(\v2\x1a.partner.v1.PartnerProfileR\aprofile\x12D\n" +
 	"\vassignments\x18\n" +
 	" \x03(\v2\".partner.v1.PartnerAssignmentInputR\vassignments\x12 \n" +
-	"\tis_casual\x18\v \x01(\bH\x00R\bisCasual\x88\x01\x01B\f\n" +
+	"\tis_casual\x18\v \x01(\bH\x00R\bisCasual\x88\x01\x01\x12\x12\n" +
+	"\x04code\x18\f \x01(\tR\x04codeB\f\n" +
 	"\n" +
 	"_is_casual\"\xe7\x03\n" +
 	"\x16PartnerImportItemInput\x12\x17\n" +

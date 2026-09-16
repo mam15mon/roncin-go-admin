@@ -7885,6 +7885,8 @@ declare namespace API {
     profile?: PartnerProfile;
     assignments?: PartnerAssignmentInput[];
     isCasual?: boolean;
+    /** 单位编码：全量覆盖语义，空串表示清空；组织内唯一 */
+    code?: string;
   };
 
   type UpdatePartnerResponse = {
