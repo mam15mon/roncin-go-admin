@@ -52,33 +52,6 @@ func (r *orderFeeRepo) order(ctx context.Context, organizationID, orderID uuid.U
 	return nil
 }
 
-func (r *orderFeeRepo) settlementParty(ctx context.Context, organizationID, partyID uuid.UUID) (*ent.Partner, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := client.Partner.Query().Where(partnerent.IDEQ(partyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderFeePartyInvalid, nil)
-	}
-	return item, nil
-}
-
-func (r *orderFeeRepo) validateCurrency(ctx context.Context, code string) error {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return err
-	}
-	exists, err := client.Currency.Query().Where(currencyent.CodeEQ(code), currencyent.EnabledEQ(true)).Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return biz.ErrOrderFeeCurrencyInvalid
-	}
-	return nil
-}
-
 func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderFee, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err

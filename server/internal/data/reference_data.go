@@ -175,12 +175,8 @@ func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organization
 		}
 
 		if orgCtx.isHeadquarters {
-			// 总部操作：锁定并切换全局币种启用状态
-			lockedCurr, queryErr := tx.Currency.Query().Where(currency.IDEQ(curr.ID)).ForUpdate().Only(ctx)
-			if queryErr != nil {
-				return queryErr
-			}
-			updated, saveErr := tx.Currency.UpdateOneID(lockedCurr.ID).SetEnabled(enabled).Save(ctx)
+			// 总部操作：切换单行启用状态，UPDATE 本身原子生效，无需预锁
+			updated, saveErr := tx.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
 			if saveErr != nil {
 				return saveErr
 			}
