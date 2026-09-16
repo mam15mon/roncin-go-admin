@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import type { FormInstance } from 'antd';
 import { App, Form } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -622,5 +628,50 @@ describe('SeaDocumentSectionComponent', () => {
       expect(content?.grossWeightKg).toBe(12000.5);
       expect(content?.volumeCbm).toBe(32.4);
     });
+  });
+
+  it('件重尺对照表格汇总行实时比对委托与实际差额', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          totalPackages: 500,
+          totalPackageUnit: 'PLTS',
+          totalGrossWeightKg: 12000,
+          totalVolumeCbm: 32.4,
+          seaMasterBillContent: {
+            packageCount: 502,
+            packageUnit: 'PLTS',
+            grossWeightKg: 11880,
+            volumeCbm: 32.4,
+          },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    // 件数与毛重不一致：逐项展示带符号差额；体积一致不单独展示
+    await waitFor(() => {
+      expect(screen.getByText('件数：实际+2 PLTS')).toBeInTheDocument();
+    });
+    expect(screen.getByText('毛重：实际-120 KGS')).toBeInTheDocument();
+    expect(screen.queryByText(/^体积：/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('✓ 委托与实际件重尺一致'),
+    ).not.toBeInTheDocument();
+
+    // 修正为一致后，汇总收敛为一条绿色提示
+    act(() => {
+      capturedForm?.setFieldsValue({
+        seaMasterBillContent: { packageCount: 500, grossWeightKg: 12000 },
+      });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('✓ 委托与实际件重尺一致')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/^件数：实际/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^毛重：实际/)).not.toBeInTheDocument();
   });
 });
