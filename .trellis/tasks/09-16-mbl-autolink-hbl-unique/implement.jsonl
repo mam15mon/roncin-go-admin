@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "共享主单与分单契约真相源：候选确认、事务内复验、加锁顺序、单值分单与一票一分口径"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务封装、唯一索引兜底与驱动错误映射规范"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "新增批次排重/强制校验业务错误码的映射规范"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端验证纪律与定向集成测试口径"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "前端枚举与生成常量口径（模式锁定、必填校验）"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向 vitest/biome 验证纪律"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "前端自动关联/锁模式与服务端校验的跨层一致性"}

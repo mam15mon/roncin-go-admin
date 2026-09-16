@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "核验不破坏共享 MBL 既有契约（复验、锁序、单值分单）"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端质量核验基线"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "校验新业务错误映射与中文提示"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试与 lint 核验"}
