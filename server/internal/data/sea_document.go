@@ -343,7 +343,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 
 		if _, err := updater.Save(ctx); err != nil {
 			if ent.IsConstraintError(err) {
-				return biz.ErrSeaHouseBillExists
+				return biz.ErrSeaHouseBillBatchNoDuplicate
 			}
 			return err
 		}

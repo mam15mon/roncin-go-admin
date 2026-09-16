@@ -1137,6 +1137,181 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		}
 	})
 
+	// M2. 批次内一号一案（与共享主单批次排重同口径）：目标批次含作废行重号阻断
+	t.Run("拆票新票与目标批次作废行重号阻断", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "021", splitFixtureOptions{withVoidedHBL: true})
+		if f.voidedHBL == nil {
+			t.Fatal("fixture 缺少历史 VOIDED HBL")
+		}
+
+		splitInput := f.standardSplitInput("split-batchdup-void-021", "fp-batchdup-void-021", splitFixtureOptions{})
+		// 新票分单号改用同目标批次内已有作废行的号：一号一案，含作废行禁止复用。
+		splitInput.Results[1].HouseBill.HouseNo = f.voidedHBL.HouseNo
+
+		preview, err := env.uc.PreviewSplit(ctx, env.orgID, splitInput)
+		if err != nil {
+			t.Fatalf("拆票预览失败: %v", err)
+		}
+		if preview.IsValid {
+			t.Fatalf("预览应标记目标批次作废行重号: %+v", preview.ValidationErrors)
+		}
+		foundExists := false
+		for _, ve := range preview.ValidationErrors {
+			if ve.Reason == "HOUSE_BILL_EXISTS" {
+				foundExists = true
+			}
+		}
+		if !foundExists {
+			t.Fatalf("预览应包含 HOUSE_BILL_EXISTS（含作废行）: %+v", preview.ValidationErrors)
+		}
+
+		if _, splitErr := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, splitInput); kratoserrors.Reason(splitErr) != "SEA_HOUSE_BILL_EXISTS" {
+			t.Fatalf("与目标批次作废行重号应阻断拆票，实际: %v", splitErr)
+		} else if md := kratoserrors.FromError(splitErr).Metadata; md["reason"] != "HOUSE_BILL_DUPLICATE" || md["house_no"] != f.voidedHBL.HouseNo || md["master_bill_id"] != env.mblID.String() {
+			t.Fatalf("批次排重阻断元数据异常: %v", md)
+		}
+		// 失败零写入：不残留拆票事件
+		eventExists, _ := env.data.db.SeaOrderSplitEvent.Query().Where(seaorderspliteventent.IdempotencyKeyEQ("split-batchdup-void-021")).Exist(ctx)
+		if eventExists {
+			t.Fatal("失败事务不应残留拆票事件")
+		}
+	})
+
+	// M3. 跨批次放行：不同结果票同号但目标主单不同 → 拆票成功
+	t.Run("不同结果票同号跨目标主单拆票放行", func(t *testing.T) {
+		f := createTestSplitFixture(t, env, "022", splitFixtureOptions{})
+
+		// 候选目标：既有 MBL 批次（带承载订单）
+		candidateTE, err := env.data.db.SeaTransportExecution.Create().
+			SetOrganizationID(env.orgID).
+			SetShippingLineID(env.carrierID).
+			SetVesselName("PACIFIC GLORY").
+			SetVoyageNo("2026E").
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建候选TE失败: %v", err)
+		}
+		candidateMBLNo := "CANDMBL" + uuid.NewString()[:6]
+		candidateMBL, err := env.data.db.SeaMasterBill.Create().
+			SetOrganizationID(env.orgID).
+			SetMasterNo(candidateMBLNo).
+			SetNormalizedMasterNo(candidateMBLNo).
+			SetShippingLineID(env.carrierID).
+			SetStatus(seamasterbillent.StatusDRAFT).
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建候选MBL失败: %v", err)
+		}
+		carrierOrder, err := env.data.db.Order.Create().
+			SetIdempotencyKey(uuid.NewString()).
+			SetOrganizationID(env.orgID).
+			SetOrderNo("SE-CAND-" + uuid.NewString()[:8]).
+			SetCustomerID(env.customerID).
+			SetBusinessType(orderent.BusinessTypeSE).
+			SetTradeDirection(orderent.TradeDirectionExport).
+			SetTradeTerm(orderent.TradeTermFOB).
+			SetPaymentTerm(orderent.PaymentTermPREPAID).
+			SetFlowStatus(orderent.FlowStatusDRAFT).
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建候选承载订单失败: %v", err)
+		}
+		if _, err := env.data.db.SeaMasterBillOrderLink.Create().
+			SetOrganizationID(env.orgID).
+			SetOrderID(carrierOrder.ID).
+			SetMasterBillID(candidateMBL.ID).
+			SetTransportExecutionID(candidateTE.ID).
+			SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+			SetStatus(seamasterbillorderlinkent.StatusACTIVE).
+			SetVersion(1).
+			Save(ctx); err != nil {
+			t.Fatalf("创建候选 Link 失败: %v", err)
+		}
+
+		// 两个新票同号，分别挂候选既有批次与全新批次：跨批次重号合法。
+		sameHouseNo := "HBL-XBATCH-" + uuid.NewString()[:6]
+		splitInput := f.standardSplitInput("split-xbatch-022", "fp-xbatch-022", splitFixtureOptions{})
+		splitInput.Targets = []*biz.SeaOrderSplitTargetInput{
+			{ClientTargetKey: "target-current", TargetType: biz.SplitTargetTypeCurrent},
+			{
+				ClientTargetKey: "target-cand", TargetType: biz.SplitTargetTypeCandidate,
+				CandidateID: &candidateMBL.ID, CandidateVersion: &candidateMBL.Version,
+				CandidateTEID: &candidateTE.ID, CandidateTEVersion: &candidateTE.Version,
+				ShippingLineID: &env.carrierID,
+				VesselName:     "PACIFIC GLORY",
+				VoyageNo:       "2026E",
+			},
+			{
+				ClientTargetKey: "target-new", TargetType: biz.SplitTargetTypeNew,
+				MasterNo: "NEWPLIT" + uuid.NewString()[:6], ShippingLineID: &env.carrierID,
+				VesselName: "EVER GIVEN", VoyageNo: "001W",
+			},
+		}
+		splitInput.Results[1].ClientTargetKey = "target-cand"
+		splitInput.Results[1].HouseBill.HouseNo = sameHouseNo
+		splitInput.Results[1].CargoAllocations = []*biz.SeaOrderSplitCargoAllocationInput{
+			{CargoItemID: f.cargoItem.ID, PackageCount: 20, GrossWeightKg: decimalRequire("400"), VolumeCbm: decimalRequire("3")},
+		}
+		splitInput.Results[1].ContainerIDs = []uuid.UUID{f.cntr2.ID}
+		splitInput.Results[1].AttachmentReferenceIDs = []uuid.UUID{f.attRef.ID}
+		splitInput.Results = append(splitInput.Results, &biz.SeaOrderSplitResultInput{
+			ClientResultKey: "res-new-2",
+			ResultRole:      biz.ResultRoleCreated,
+			ClientTargetKey: "target-new",
+			HouseBill:       &biz.SeaOrderSplitHouseBillInput{HouseNo: sameHouseNo, IssuerSource: string(biz.SeaHouseBillIssuerSourceSelfOrganization)},
+			CargoAllocations: []*biz.SeaOrderSplitCargoAllocationInput{
+				{CargoItemID: f.cargoItem.ID, PackageCount: 20, GrossWeightKg: decimalRequire("400"), VolumeCbm: decimalRequire("3")},
+			},
+		})
+		splitInput.Confirmation = &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "船代确认拆票改配"}
+		splitInput.ExpectedVersions.CandidateMBLVersions = map[uuid.UUID]uint64{candidateMBL.ID: candidateMBL.Version}
+		splitInput.ExpectedVersions.CandidateTEVersions = map[uuid.UUID]uint64{candidateTE.ID: candidateTE.Version}
+
+		preview, err := env.uc.PreviewSplit(ctx, env.orgID, splitInput)
+		if err != nil {
+			t.Fatalf("拆票预览失败: %v", err)
+		}
+		if !preview.IsValid {
+			t.Fatalf("跨批次同号预览应放行: %+v", preview.ValidationErrors)
+		}
+
+		splitEvt, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, splitInput)
+		if err != nil {
+			t.Fatalf("不同结果票同号但目标主单不同应拆票成功: %v", err)
+		}
+		mblByResultKey := make(map[string]uuid.UUID)
+		for _, r := range splitEvt.Results {
+			if r.ResultRole == biz.ResultRoleCreated {
+				mblByResultKey[r.ClientResultKey] = r.FinalMasterBillID
+			}
+		}
+		if mblByResultKey["res-new-1"] == uuid.Nil || mblByResultKey["res-new-2"] == uuid.Nil {
+			t.Fatalf("拆票事件缺少新票结果: %+v", splitEvt.Results)
+		}
+		if mblByResultKey["res-new-1"] != candidateMBL.ID || mblByResultKey["res-new-2"] == candidateMBL.ID || mblByResultKey["res-new-1"] == mblByResultKey["res-new-2"] {
+			t.Fatalf("两张同号新票应挂在不同主单批次: %+v", mblByResultKey)
+		}
+		// 两批次内各自存在同号 HBL（跨批次合法复用落库）
+		normalizedSameHouseNo, normErr := biz.NormalizeSeaHouseNo(sameHouseNo)
+		if normErr != nil {
+			t.Fatalf("分单号归一化失败: %v", normErr)
+		}
+		for key, mblID := range mblByResultKey {
+			count, qErr := env.data.db.SeaHouseBill.Query().
+				Where(
+					seahousebillent.MasterBillIDEQ(mblID),
+					seahousebillent.NormalizedHouseNoEQ(normalizedSameHouseNo),
+				).
+				Count(ctx)
+			if qErr != nil || count != 1 {
+				t.Fatalf("结果票 %s 的目标批次应恰有一张同号 HBL: count=%d err=%v", key, count, qErr)
+			}
+		}
+	})
+
 	// N. 草稿费用整行克隆与 ResultSnapshot 映射
 	t.Run("DRAFT费用整行克隆与快照映射", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "013", splitFixtureOptions{})

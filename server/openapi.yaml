@@ -18211,6 +18211,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.SeaTransportExecution'
+                batchNormalizedHouseNos:
+                    type: array
+                    items:
+                        type: string
             description: SeaMasterBillCandidate 匹配到的已有主单候选。
         order.v1.SeaMasterBillDetail:
             type: object
@@ -18264,6 +18268,9 @@ components:
                     type: string
                 customerReferenceNo:
                     type: string
+                documentStructure:
+                    type: integer
+                    format: enum
             description: SeaMasterBillMemberSummary 共享主单成员操作票摘要。
         order.v1.SeaMasterBillSummary:
             type: object

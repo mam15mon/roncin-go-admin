@@ -280,12 +280,13 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 		return nil
 	}
 	res := &v1.SeaMasterBillCandidate{
-		Id:               item.ID.String(),
-		Version:          item.Version,
-		MasterNo:         item.MasterNo,
-		ShippingLineId:   item.ShippingLineID.String(),
-		ShippingLineName: stringPtrIfNotEmpty(item.ShippingLineName),
-		MemberCount:      int32(item.MemberCount),
+		Id:                      item.ID.String(),
+		Version:                 item.Version,
+		MasterNo:                item.MasterNo,
+		ShippingLineId:          item.ShippingLineID.String(),
+		ShippingLineName:        stringPtrIfNotEmpty(item.ShippingLineName),
+		MemberCount:             int32(item.MemberCount),
+		BatchNormalizedHouseNos: item.BatchNormalizedHouseNos,
 	}
 	for _, execution := range item.TransportExecutions {
 		res.TransportExecutions = append(res.TransportExecutions, seaTransportExecutionToAPI(execution))
@@ -295,6 +296,7 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 			OrderId:             m.OrderID.String(),
 			OrderNo:             m.OrderNo,
 			CustomerReferenceNo: stringPtrIfNotEmpty(m.CustomerReferenceNo),
+			DocumentStructure:   seaDocumentStructureToAPI(m.DocumentStructure),
 		})
 	}
 	return res

@@ -18,7 +18,23 @@ var (
 	ErrSeaMasterBillVoyageConflict       = errors.Conflict("SEA_MASTER_BILL_VOYAGE_CONFLICT", "海运主单航程信息与本票不一致")
 	ErrSeaMasterBillStatusConflict       = errors.Conflict("SEA_MASTER_BILL_STATUS_CONFLICT", "海运主单状态或版本已被修改，请刷新后重试")
 	ErrSeaMasterBillCorrectionBlocked    = errors.Conflict("SEA_MASTER_BILL_CORRECTION_BLOCKED", "共享主单禁止直接修改主单号或签发主体")
+
+	// 共享主单批次规则错误（全员分单制 + 批次内一号一案）。
+	ErrSeaOrderBatchRequiresHouse        = errors.BadRequest("SEA_ORDER_BATCH_REQUIRES_HOUSE", "该主单已存在共享批次，本单必须签发分单")
+	ErrSeaMasterBillBatchDirectBlocked   = errors.Conflict("SEA_MASTER_BILL_BATCH_DIRECT_BLOCKED", "该主单已被直单订单占用，如需拼单请先将其转为分单")
+	ErrSeaDocumentBatchMemberExitBlocked = errors.Conflict("SEA_DOCUMENT_BATCH_MEMBER_EXIT_BLOCKED", "共享主单批次存在其他成员订单，不能转为直单")
+	ErrSeaHouseBillBatchNoDuplicate      = errors.Conflict("SEA_HOUSE_BILL_BATCH_NO_DUPLICATE", "分单号在该主单批次内已存在")
 )
+
+// SeaHouseBillBatchNoDuplicateError 返回携带冲突分单号的批次排重错误。
+// reason 保持稳定供前端识别，消息中列出具体冲突分单号便于人工定位。
+func SeaHouseBillBatchNoDuplicateError(houseNos []string) *errors.Error {
+	detail := strings.Join(houseNos, "、")
+	if detail == "" {
+		return ErrSeaHouseBillBatchNoDuplicate
+	}
+	return errors.Conflict("SEA_HOUSE_BILL_BATCH_NO_DUPLICATE", "分单号 "+detail+" 在该主单批次内已存在")
+}
 
 var seaMasterNoInputRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
 
@@ -152,18 +168,20 @@ type SeaMasterBillMemberSummary struct {
 	OrderID             uuid.UUID
 	OrderNo             string
 	CustomerReferenceNo string
+	DocumentStructure   SeaDocumentStructure
 }
 
 // SeaMasterBillCandidate 已有共享主单候选。
 type SeaMasterBillCandidate struct {
-	ID                  uuid.UUID
-	Version             uint64
-	MasterNo            string
-	ShippingLineID      uuid.UUID
-	ShippingLineName    string
-	TransportExecutions []*SeaTransportExecution
-	MemberCount         int
-	Members             []*SeaMasterBillMemberSummary
+	ID                      uuid.UUID
+	Version                 uint64
+	MasterNo                string
+	ShippingLineID          uuid.UUID
+	ShippingLineName        string
+	TransportExecutions     []*SeaTransportExecution
+	MemberCount             int
+	Members                 []*SeaMasterBillMemberSummary
+	BatchNormalizedHouseNos []string
 }
 
 // SeaMasterBillMatchResult 候选匹配结果。

@@ -58,13 +58,12 @@ func (SeaHouseBill) Indexes() []ent.Index {
 			Unique().
 			StorageKey("idx_sea_house_bills_current_order_unique").
 			Annotations(entsql.IndexWhere("status IN ('DRAFT', 'CONFIRMED', 'RELEASED')")),
-		index.Fields("organization_id", "issuer_organization_id", "normalized_house_no").
+		// 分单号唯一性收敛为「同一主单批次内一号一案」：跨签发主体、含作废行
+		// （不过滤状态）；master_bill_id 为 Required 非空列，无需 WHERE 过滤。
+		// 原组织+签发主体的两个全局部分唯一索引已撤销，外部主体分单号允许跨批次
+		// 合法复用。
+		index.Fields("master_bill_id", "normalized_house_no").
 			Unique().
-			StorageKey("idx_sea_house_bills_self_org_unique").
-			Annotations(entsql.IndexWhere("issuer_source = 'SELF_ORGANIZATION'")),
-		index.Fields("organization_id", "issuer_partner_id", "normalized_house_no").
-			Unique().
-			StorageKey("idx_sea_house_bills_partner_unique").
-			Annotations(entsql.IndexWhere("issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')")),
+			StorageKey("idx_sea_house_bills_batch_no_unique"),
 	}
 }

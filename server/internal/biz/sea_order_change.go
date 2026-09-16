@@ -684,6 +684,21 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 	}
 	originalCount := 0
 	createdCount := 0
+	// 请求内分单号去重按目标批次分组（与批次内一号一案同口径）：同目标批次
+	// 同号拒绝；目标批次不同放行（跨批次重号合法）。CURRENT 目标统一占位一个
+	// 批次键（同请求内所有 CURRENT 结果共享当前母单批次）；NEW 目标为全新
+	// 批次，按目标键区分。
+	targetBatchKeys := make(map[string]string, len(targets))
+	for _, target := range targets {
+		switch target.TargetType {
+		case SplitTargetTypeCurrent:
+			targetBatchKeys[target.ClientTargetKey] = "current"
+		case SplitTargetTypeCandidate:
+			targetBatchKeys[target.ClientTargetKey] = "mbl:" + target.CandidateID.String()
+		default: // NEW：全新批次
+			targetBatchKeys[target.ClientTargetKey] = "new:" + target.ClientTargetKey
+		}
+	}
 	seenHouseNos := make(map[string]struct{})
 	for _, res := range results {
 		if res == nil {
@@ -704,10 +719,11 @@ func validateSplitTargetsAndResults(targets []*SeaOrderSplitTargetInput, results
 			if err != nil {
 				return err
 			}
-			if _, seen := seenHouseNos[normalizedHouseNo]; seen {
+			houseKey := targetBatchKeys[res.ClientTargetKey] + "|" + normalizedHouseNo
+			if _, seen := seenHouseNos[houseKey]; seen {
 				return ErrSeaHouseBillExists
 			}
-			seenHouseNos[normalizedHouseNo] = struct{}{}
+			seenHouseNos[houseKey] = struct{}{}
 			if res.HouseBill.IssuerSource == "" {
 				return ErrSeaOrderSplitInvalidArgument
 			}

@@ -5531,20 +5531,9 @@ var (
 				},
 			},
 			{
-				Name:    "idx_sea_house_bills_self_org_unique",
+				Name:    "idx_sea_house_bills_batch_no_unique",
 				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[27], SeaHouseBillsColumns[4]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "issuer_source = 'SELF_ORGANIZATION'",
-				},
-			},
-			{
-				Name:    "idx_sea_house_bills_partner_unique",
-				Unique:  true,
-				Columns: []*schema.Column{SeaHouseBillsColumns[26], SeaHouseBillsColumns[28], SeaHouseBillsColumns[4]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')",
-				},
+				Columns: []*schema.Column{SeaHouseBillsColumns[30], SeaHouseBillsColumns[4]},
 			},
 		},
 	}

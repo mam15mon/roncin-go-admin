@@ -5576,6 +5576,7 @@ type SeaMasterBillMemberSummary struct {
 	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	OrderNo             string                 `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
 	CustomerReferenceNo *string                `protobuf:"bytes,3,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	DocumentStructure   SeaDocumentStructure   `protobuf:"varint,4,opt,name=document_structure,json=documentStructure,proto3,enum=order.v1.SeaDocumentStructure" json:"document_structure,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -5631,19 +5632,27 @@ func (x *SeaMasterBillMemberSummary) GetCustomerReferenceNo() string {
 	return ""
 }
 
+func (x *SeaMasterBillMemberSummary) GetDocumentStructure() SeaDocumentStructure {
+	if x != nil {
+		return x.DocumentStructure
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
 // SeaMasterBillCandidate 匹配到的已有主单候选。
 type SeaMasterBillCandidate struct {
-	state               protoimpl.MessageState        `protogen:"open.v1"`
-	Id                  string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Version             uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
-	MasterNo            string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	ShippingLineId      string                        `protobuf:"bytes,4,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
-	ShippingLineName    *string                       `protobuf:"bytes,5,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
-	MemberCount         int32                         `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
-	Members             []*SeaMasterBillMemberSummary `protobuf:"bytes,8,rep,name=members,proto3" json:"members,omitempty"`
-	TransportExecutions []*SeaTransportExecution      `protobuf:"bytes,9,rep,name=transport_executions,json=transportExecutions,proto3" json:"transport_executions,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                   protoimpl.MessageState        `protogen:"open.v1"`
+	Id                      string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Version                 uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	MasterNo                string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	ShippingLineId          string                        `protobuf:"bytes,4,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ShippingLineName        *string                       `protobuf:"bytes,5,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
+	MemberCount             int32                         `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	Members                 []*SeaMasterBillMemberSummary `protobuf:"bytes,8,rep,name=members,proto3" json:"members,omitempty"`
+	TransportExecutions     []*SeaTransportExecution      `protobuf:"bytes,9,rep,name=transport_executions,json=transportExecutions,proto3" json:"transport_executions,omitempty"`
+	BatchNormalizedHouseNos []string                      `protobuf:"bytes,10,rep,name=batch_normalized_house_nos,json=batchNormalizedHouseNos,proto3" json:"batch_normalized_house_nos,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *SeaMasterBillCandidate) Reset() {
@@ -5728,6 +5737,13 @@ func (x *SeaMasterBillCandidate) GetMembers() []*SeaMasterBillMemberSummary {
 func (x *SeaMasterBillCandidate) GetTransportExecutions() []*SeaTransportExecution {
 	if x != nil {
 		return x.TransportExecutions
+	}
+	return nil
+}
+
+func (x *SeaMasterBillCandidate) GetBatchNormalizedHouseNos() []string {
+	if x != nil {
+		return x.BatchNormalizedHouseNos
 	}
 	return nil
 }
@@ -6933,12 +6949,13 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\fmaster_value\x18\x02 \x01(\tR\vmasterValue\x12\x1f\n" +
 	"\vorder_value\x18\x03 \x01(\tR\n" +
 	"orderValue\x12\x18\n" +
-	"\amessage\x18\x04 \x01(\tR\amessage\"\xa5\x01\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\"\xf4\x01\n" +
 	"\x1aSeaMasterBillMemberSummary\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x127\n" +
-	"\x15customer_reference_no\x18\x03 \x01(\tH\x00R\x13customerReferenceNo\x88\x01\x01B\x18\n" +
-	"\x16_customer_reference_no\"\xa5\x03\n" +
+	"\x15customer_reference_no\x18\x03 \x01(\tH\x00R\x13customerReferenceNo\x88\x01\x01\x12M\n" +
+	"\x12document_structure\x18\x04 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructureB\x18\n" +
+	"\x16_customer_reference_no\"\xe2\x03\n" +
 	"\x16SeaMasterBillCandidate\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x1b\n" +
@@ -6947,7 +6964,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12shipping_line_name\x18\x05 \x01(\tH\x00R\x10shippingLineName\x88\x01\x01\x12!\n" +
 	"\fmember_count\x18\a \x01(\x05R\vmemberCount\x12>\n" +
 	"\amembers\x18\b \x03(\v2$.order.v1.SeaMasterBillMemberSummaryR\amembers\x12R\n" +
-	"\x14transport_executions\x18\t \x03(\v2\x1f.order.v1.SeaTransportExecutionR\x13transportExecutionsB\x15\n" +
+	"\x14transport_executions\x18\t \x03(\v2\x1f.order.v1.SeaTransportExecutionR\x13transportExecutions\x12;\n" +
+	"\x1abatch_normalized_house_nos\x18\n" +
+	" \x03(\tR\x17batchNormalizedHouseNosB\x15\n" +
 	"\x13_shipping_line_nameJ\x04\b\x06\x10\aR\x13transport_execution\"\x95\x04\n" +
 	"\"MatchSeaMasterBillCandidateRequest\x12-\n" +
 	"\x10shipping_line_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eshippingLineId\x12 \n" +
@@ -7279,41 +7298,42 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	18, // 66: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
 	32, // 67: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
 	23, // 68: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	52, // 69: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
-	48, // 70: order.v1.SeaMasterBillCandidate.transport_executions:type_name -> order.v1.SeaTransportExecution
-	53, // 71: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
-	51, // 72: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
-	9,  // 73: order.v1.SameBatchOrderSummary.flow_status:type_name -> order.v1.OrderFlowStatus
-	56, // 74: order.v1.ListSameBatchOrdersResponse.data:type_name -> order.v1.SameBatchOrderSummary
-	54, // 75: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
-	27, // 76: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	28, // 77: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	29, // 78: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	30, // 79: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
-	31, // 80: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
-	57, // 81: order.v1.OrderService.ListSameBatchOrders:input_type -> order.v1.ListSameBatchOrdersRequest
-	33, // 82: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	34, // 83: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	35, // 84: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	36, // 85: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
-	37, // 86: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
-	55, // 87: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
-	38, // 88: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
-	44, // 89: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	46, // 90: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
-	47, // 91: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
-	45, // 92: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
-	58, // 93: order.v1.OrderService.ListSameBatchOrders:output_type -> order.v1.ListSameBatchOrdersResponse
-	39, // 94: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
-	40, // 95: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
-	41, // 96: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
-	42, // 97: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
-	43, // 98: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
-	87, // [87:99] is the sub-list for method output_type
-	75, // [75:87] is the sub-list for method input_type
-	75, // [75:75] is the sub-list for extension type_name
-	75, // [75:75] is the sub-list for extension extendee
-	0,  // [0:75] is the sub-list for field type_name
+	60, // 69: order.v1.SeaMasterBillMemberSummary.document_structure:type_name -> order.v1.SeaDocumentStructure
+	52, // 70: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
+	48, // 71: order.v1.SeaMasterBillCandidate.transport_executions:type_name -> order.v1.SeaTransportExecution
+	53, // 72: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
+	51, // 73: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
+	9,  // 74: order.v1.SameBatchOrderSummary.flow_status:type_name -> order.v1.OrderFlowStatus
+	56, // 75: order.v1.ListSameBatchOrdersResponse.data:type_name -> order.v1.SameBatchOrderSummary
+	54, // 76: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
+	27, // 77: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	28, // 78: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	29, // 79: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	30, // 80: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
+	31, // 81: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
+	57, // 82: order.v1.OrderService.ListSameBatchOrders:input_type -> order.v1.ListSameBatchOrdersRequest
+	33, // 83: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	34, // 84: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	35, // 85: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	36, // 86: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
+	37, // 87: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
+	55, // 88: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
+	38, // 89: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	44, // 90: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	46, // 91: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	47, // 92: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
+	45, // 93: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
+	58, // 94: order.v1.OrderService.ListSameBatchOrders:output_type -> order.v1.ListSameBatchOrdersResponse
+	39, // 95: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	40, // 96: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	41, // 97: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	42, // 98: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
+	43, // 99: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
+	88, // [88:100] is the sub-list for method output_type
+	76, // [76:88] is the sub-list for method input_type
+	76, // [76:76] is the sub-list for extension type_name
+	76, // [76:76] is the sub-list for extension extendee
+	0,  // [0:76] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }

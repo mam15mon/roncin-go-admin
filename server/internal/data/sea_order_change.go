@@ -666,12 +666,46 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		FeeCount:       int32(len(splitCtx.DraftFees)),
 	}
 
-	// 3. 校验 HBL 分单号
+	// 3. 校验 HBL 分单号（与 ExecuteSplit 批次内一号一案同口径：请求内按目标
+	// 批次去重；目标为已有主单时按（目标主单, 规范化分单号）查重，含作废行；
+	// 新主单目标为全新空批次，无需查库。组织级排重已随全局唯一索引撤销移除，
+	// 跨批次重号合法。）
+	targetBatchKeys := make(map[string]string)
+	targetBatchMbls := make(map[string]*uuid.UUID)
+	for _, target := range input.Targets {
+		switch target.TargetType {
+		case biz.SplitTargetTypeCurrent:
+			if splitCtx.CurrentMasterBill != nil {
+				mblID := splitCtx.CurrentMasterBill.MasterBillID
+				targetBatchKeys[target.ClientTargetKey] = "mbl:" + mblID.String()
+				targetBatchMbls[target.ClientTargetKey] = &mblID
+			} else {
+				targetBatchKeys[target.ClientTargetKey] = "current:" + target.ClientTargetKey
+			}
+		case biz.SplitTargetTypeCandidate:
+			if target.CandidateID != nil {
+				mblID := *target.CandidateID
+				targetBatchKeys[target.ClientTargetKey] = "mbl:" + mblID.String()
+				targetBatchMbls[target.ClientTargetKey] = &mblID
+			} else {
+				targetBatchKeys[target.ClientTargetKey] = "candidate:" + target.ClientTargetKey
+			}
+		default: // NEW：全新批次
+			targetBatchKeys[target.ClientTargetKey] = "new:" + target.ClientTargetKey
+		}
+	}
 	seenHouseNos := make(map[string]string)
 	if splitCtx.CurrentHouseBill != nil {
 		normCurrent, err := biz.NormalizeSeaHouseNo(splitCtx.CurrentHouseBill.HouseNo)
 		if err == nil {
-			seenHouseNos[normCurrent] = "ORIGINAL"
+			for _, res := range input.Results {
+				if res.ResultRole == biz.ResultRoleOriginal {
+					if batchKey, ok := targetBatchKeys[res.ClientTargetKey]; ok {
+						seenHouseNos[batchKey+"|"+normCurrent] = "ORIGINAL"
+					}
+					break
+				}
+			}
 		}
 	}
 	for _, res := range input.Results {
@@ -694,27 +728,31 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 							ClientResultKey: res.ClientResultKey,
 						})
 					} else {
-						if prevRes, seen := seenHouseNos[normNo]; seen {
+						batchKey := targetBatchKeys[res.ClientTargetKey]
+						if prevRes, seen := seenHouseNos[batchKey+"|"+normNo]; seen {
 							preview.IsValid = false
 							preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
 								Reason:          "HOUSE_BILL_DUPLICATE",
-								Message:         fmt.Sprintf("分单号 %s 重复 (与 %s 冲突)", res.HouseBill.HouseNo, prevRes),
+								Message:         fmt.Sprintf("分单号 %s 在目标批次内重复 (与 %s 冲突)", res.HouseBill.HouseNo, prevRes),
 								ClientResultKey: res.ClientResultKey,
 							})
 						} else {
-							seenHouseNos[normNo] = res.ClientResultKey
-							exists, qErr := client.SeaHouseBill.Query().Where(
-								seahousebillent.OrganizationIDEQ(organizationID),
-								seahousebillent.NormalizedHouseNoEQ(normNo),
-								seahousebillent.StatusIn(seahousebillent.StatusDRAFT, seahousebillent.StatusCONFIRMED, seahousebillent.StatusRELEASED),
-							).Exist(ctx)
-							if qErr == nil && exists {
-								preview.IsValid = false
-								preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
-									Reason:          "HOUSE_BILL_EXISTS",
-									Message:         fmt.Sprintf("分单号 %s 在系统中已存在", res.HouseBill.HouseNo),
-									ClientResultKey: res.ClientResultKey,
-								})
+							seenHouseNos[batchKey+"|"+normNo] = res.ClientResultKey
+							// 目标为已有主单批次时与库中既有行（含作废）比对。
+							if batchMblID := targetBatchMbls[res.ClientTargetKey]; batchMblID != nil {
+								exists, qErr := client.SeaHouseBill.Query().Where(
+									seahousebillent.OrganizationIDEQ(organizationID),
+									seahousebillent.MasterBillIDEQ(*batchMblID),
+									seahousebillent.NormalizedHouseNoEQ(normNo),
+								).Exist(ctx)
+								if qErr == nil && exists {
+									preview.IsValid = false
+									preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
+										Reason:          "HOUSE_BILL_EXISTS",
+										Message:         fmt.Sprintf("分单号 %s 在该主单批次内已存在（含作废）", res.HouseBill.HouseNo),
+										ClientResultKey: res.ClientResultKey,
+									})
+								}
 							}
 						}
 					}
@@ -1756,14 +1794,11 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		// 锁后重算全部分配、守恒、结构、不跨箱与费用完整性
 		// -------------------------------------------------------------------
 
-		// 1. HBL 新票分单号唯一性重验
-		seenHouseNos := make(map[string]string)
-		if curHBL != nil {
-			normCurrent, err := biz.NormalizeSeaHouseNo(curHBL.HouseNo)
-			if err == nil {
-				seenHouseNos[normCurrent] = "ORIGINAL"
-			}
-		}
+		// 1. HBL 新票分单号基础校验（HOUSE 结构必填、号合法、签发来源必填）。
+		// 批次内排重（含作废行、请求内同目标批次去重）在「处理 HBL」阶段执行：
+		// 此时 resultFinalMblMap 已完备，才能拿到各结果票的目标主单；此处的
+		// 组织级排重已随全局唯一索引撤销一并移除（组织+签发主体全局唯一不再
+		// 是契约，跨批次重号合法）。
 		for _, res := range input.Results {
 			if res.ResultRole == biz.ResultRoleCreated {
 				if lockedActiveLink.DocumentStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
@@ -1773,29 +1808,8 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 							"client_result_key": res.ClientResultKey,
 						})
 					}
-					normNo, err := biz.NormalizeSeaHouseNo(res.HouseBill.HouseNo)
-					if err != nil {
+					if _, err := biz.NormalizeSeaHouseNo(res.HouseBill.HouseNo); err != nil {
 						return err
-					}
-					if prevRes, seen := seenHouseNos[normNo]; seen {
-						return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
-							"reason":            "HOUSE_BILL_DUPLICATE",
-							"house_no":          res.HouseBill.HouseNo,
-							"conflict_result":   prevRes,
-							"client_result_key": res.ClientResultKey,
-						})
-					}
-					seenHouseNos[normNo] = res.ClientResultKey
-					exists, qErr := tx.SeaHouseBill.Query().Where(
-						seahousebillent.OrganizationIDEQ(organizationID),
-						seahousebillent.NormalizedHouseNoEQ(normNo),
-						seahousebillent.StatusIn(seahousebillent.StatusDRAFT, seahousebillent.StatusCONFIRMED, seahousebillent.StatusRELEASED),
-					).Exist(ctx)
-					if qErr != nil {
-						return qErr
-					}
-					if exists {
-						return biz.ErrSeaHouseBillExists
 					}
 					if res.HouseBill.IssuerSource == "" {
 						return biz.ErrSeaOrderSplitInvalidArgument
@@ -2699,9 +2713,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 
 		// -------------------------------------------------------------------
-		// 处理 HBL
+		// 处理 HBL（批次内一号一案：此处 resultFinalMblMap 已完备，按目标批次
+		// 排重，含作废行；请求内同目标批次同号拒绝、跨目标批次放行。并发竞态
+		// 由 (master_bill_id, normalized_house_no) 唯一索引兜底。）
 		// -------------------------------------------------------------------
 		resultHouseBillMap := make(map[string]*ent.SeaHouseBill)
+		resultBatchHouseNos := make(map[string]string)
 		for _, res := range input.Results {
 			targetOrderID := resultOrderMap[res.ClientResultKey]
 			finalMblID := resultFinalMblMap[res.ClientResultKey]
@@ -2709,6 +2726,27 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			if res.ResultRole == biz.ResultRoleOriginal {
 				if curHBL != nil {
 					if curHBL.MasterBillID != finalMblID {
+						// 原票改挂新批次前按（目标主单, 现有分单号）查重，
+						// 排除自身、不过滤状态：新批次已有同号行（含作废）
+						// 即阻断改挂。
+						duplicateExists, err := tx.SeaHouseBill.Query().
+							Where(
+								seahousebillent.OrganizationIDEQ(organizationID),
+								seahousebillent.MasterBillIDEQ(finalMblID),
+								seahousebillent.NormalizedHouseNoEQ(curHBL.NormalizedHouseNo),
+								seahousebillent.IDNEQ(curHBL.ID),
+							).
+							Exist(ctx)
+						if err != nil {
+							return err
+						}
+						if duplicateExists {
+							return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
+								"reason":         "HOUSE_BILL_DUPLICATE",
+								"house_no":       curHBL.HouseNo,
+								"master_bill_id": finalMblID.String(),
+							})
+						}
 						updatedHBL, err := tx.SeaHouseBill.UpdateOneID(curHBL.ID).
 							SetMasterBillID(finalMblID).
 							SetVersion(curHBL.Version + 1).
@@ -2734,6 +2772,38 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					if err != nil {
 						return err
 					}
+					// 请求内批次排重：同请求两个结果票同号且目标同一批次拒绝；
+					// 目标批次不同放行（跨批次重号合法）。
+					batchHouseKey := finalMblID.String() + "|" + normNo
+					if prevKey, seen := resultBatchHouseNos[batchHouseKey]; seen {
+						return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
+							"reason":            "HOUSE_BILL_DUPLICATE",
+							"house_no":          res.HouseBill.HouseNo,
+							"master_bill_id":    finalMblID.String(),
+							"conflict_result":   prevKey,
+							"client_result_key": res.ClientResultKey,
+						})
+					}
+					// 目标批次既有行查重（含作废，一号一案）。
+					duplicateExists, err := tx.SeaHouseBill.Query().
+						Where(
+							seahousebillent.OrganizationIDEQ(organizationID),
+							seahousebillent.MasterBillIDEQ(finalMblID),
+							seahousebillent.NormalizedHouseNoEQ(normNo),
+						).
+						Exist(ctx)
+					if err != nil {
+						return err
+					}
+					if duplicateExists {
+						return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
+							"reason":            "HOUSE_BILL_DUPLICATE",
+							"house_no":          res.HouseBill.HouseNo,
+							"master_bill_id":    finalMblID.String(),
+							"client_result_key": res.ClientResultKey,
+						})
+					}
+					resultBatchHouseNos[batchHouseKey] = res.ClientResultKey
 					hbInput := &biz.SeaHouseBillInput{
 						HouseNo:         res.HouseBill.HouseNo,
 						IssuerSource:    biz.SeaHouseBillIssuerSource(res.HouseBill.IssuerSource),
@@ -3671,6 +3741,31 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			preview.IsValid = false
 			preview.Errors = append(preview.Errors, "改配目标与当前 MBL/实际航次组合不符合船公司变更规则")
 		}
+		// 批次内排重（含作废行，一号一案）：预览与执行同口径，本单分单号在目标
+		// 批次已存在时提前阻断，避免预览通过、提交才被拒的体验裂缝。
+		orderHBLs, hblErr := client.SeaHouseBill.Query().
+			Where(seahousebillent.OrderIDEQ(order.ID)).
+			All(ctx)
+		if hblErr != nil {
+			return nil, hblErr
+		}
+		for _, h := range orderHBLs {
+			conflictExists, conflictErr := client.SeaHouseBill.Query().
+				Where(
+					seahousebillent.MasterBillIDEQ(candMBL.ID),
+					seahousebillent.NormalizedHouseNoEQ(h.NormalizedHouseNo),
+					seahousebillent.IDNEQ(h.ID),
+				).
+				Exist(ctx)
+			if conflictErr != nil {
+				return nil, conflictErr
+			}
+			if conflictExists {
+				preview.IsValid = false
+				preview.Errors = append(preview.Errors,
+					"分单号 "+h.HouseNo+" 在目标主单批次内已存在（含作废），请更换改配目标或先调整分单号")
+			}
+		}
 		targetSummary, err = mblToSummary(ctx, client, organizationID, candMBL, candidateTE)
 		if err != nil {
 			return nil, err
@@ -4126,11 +4221,35 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		if err != nil {
 			return err
 		}
+		// 批次内排重（含作废行，一号一案）：改挂前与目标批次既有分单比对并排除
+		// 自身，冲突给出明确业务错误；唯一索引作并发兜底。
+		for _, h := range hbls {
+			conflictExists, err := tx.SeaHouseBill.Query().
+				Where(
+					seahousebillent.MasterBillIDEQ(targetMBLID),
+					seahousebillent.NormalizedHouseNoEQ(h.NormalizedHouseNo),
+					seahousebillent.IDNEQ(h.ID),
+				).
+				Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if conflictExists {
+				return biz.MetadataError(biz.ErrSeaHouseBillExists, map[string]string{
+					"reason":         "HOUSE_BILL_DUPLICATE",
+					"house_no":       h.HouseNo,
+					"master_bill_id": targetMBLID.String(),
+				})
+			}
+		}
 		for _, h := range hbls {
 			if _, err := tx.SeaHouseBill.UpdateOneID(h.ID).
 				SetMasterBillID(targetMBLID).
 				SetVersion(h.Version + 1).
 				Save(ctx); err != nil {
+				if ent.IsConstraintError(err) {
+					return biz.ErrSeaHouseBillExists
+				}
 				return err
 			}
 		}

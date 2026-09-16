@@ -296,6 +296,19 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 	if current == input.TargetMode {
 		return nil, biz.ErrSeaDocumentModeChangeConflict
 	}
+	// 与 ExecuteModeChange 同口径：批次内还有其他活动成员票时禁止转为直单，
+	// 预览阶段同样拒绝，避免「预览可执行而执行被阻断」的漂移。
+	if input.TargetMode == biz.SeaDocumentStructureDirect {
+		batchMembers, err := querySeaMasterBillActiveMemberLinks(ctx, client, orgID, link.MasterBillID, false)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range batchMembers {
+			if member.OrderID != order.ID {
+				return nil, biz.ErrSeaDocumentBatchMemberExitBlocked
+			}
+		}
+	}
 	differences := []*biz.SeaDocumentFieldDifference{{Field: "document_structure", Label: "单证模式", BeforeValue: string(current), AfterValue: string(input.TargetMode)}}
 	var base *biz.SeaDocumentVersion
 	// HOUSE 起点的模式切换会把当前唯一活动 HBL 置为 VOIDED：影响收集必须携带该
@@ -322,6 +335,22 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 	} else {
 		if input.NewHouseBill == nil {
 			return nil, biz.ErrSeaDocumentInvalidArgument
+		}
+		normalizedNewHouseNo, err := biz.NormalizeSeaHouseNo(input.NewHouseBill.HouseNo)
+		if err != nil {
+			return nil, err
+		}
+		// 与 ExecuteModeChange 同口径：批次内排重预查（含作废行，一号一案），
+		// 重复分单号在预览阶段即拒绝。
+		duplicateExists, err := client.SeaHouseBill.Query().Where(
+			seahousebillent.MasterBillIDEQ(link.MasterBillID),
+			seahousebillent.NormalizedHouseNoEQ(normalizedNewHouseNo),
+		).Exist(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if duplicateExists {
+			return nil, biz.SeaHouseBillBatchNoDuplicateError([]string{normalizedNewHouseNo})
 		}
 		if _, _, err := resolveHouseBillIssuerForDiff(ctx, client, orgID, input.OrderID, input.NewHouseBill); err != nil {
 			return nil, err
@@ -894,6 +923,20 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 		if previousMode == input.TargetMode {
 			return biz.ErrSeaDocumentModeChangeConflict
 		}
+		// 共享主单批次规则：批次内还有其他活动成员票时禁止转为直单，防止经模式
+		// 切换绕过全员分单制；批次仅剩本票时允许退出。MBL 已按锁序锁定，
+		// 成员 Link 按主键排序加锁。
+		if input.TargetMode == biz.SeaDocumentStructureDirect {
+			batchMembers, err := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), orgID, mbl.ID, true)
+			if err != nil {
+				return err
+			}
+			for _, member := range batchMembers {
+				if member.OrderID != order.ID {
+					return biz.ErrSeaDocumentBatchMemberExitBlocked
+				}
+			}
+		}
 		if err := validateConfirmationAttachment(ctx, tx.Client(), orgID, order.ID, input.Confirmation); err != nil {
 			return err
 		}
@@ -979,6 +1022,18 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 			if err != nil {
 				return err
 			}
+			// 批次内排重预查（含作废行，一号一案）：先给出含冲突分单号的友好报错，
+			// 唯一索引仅作并发兜底。跨批次重号不受限制。
+			duplicateExists, err := tx.SeaHouseBill.Query().Where(
+				seahousebillent.MasterBillIDEQ(mbl.ID),
+				seahousebillent.NormalizedHouseNoEQ(normalized),
+			).Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if duplicateExists {
+				return biz.SeaHouseBillBatchNoDuplicateError([]string{normalized})
+			}
 			issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), orgID, order.OrganizationID, order.CustomerID, input.NewHouseBill)
 			if err != nil {
 				return err
@@ -997,7 +1052,7 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 			hbl, err := hblBuilder.Save(ctx)
 			if err != nil {
 				if ent.IsConstraintError(err) {
-					return biz.ErrSeaHouseBillExists
+					return biz.ErrSeaHouseBillBatchNoDuplicate
 				}
 				return err
 			}

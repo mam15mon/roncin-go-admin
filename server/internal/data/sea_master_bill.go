@@ -12,6 +12,7 @@ import (
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
+	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
@@ -22,6 +23,23 @@ type seaMasterBillRepo struct {
 
 func NewSeaMasterBillRepo(data *Data) biz.SeaMasterBillRepo {
 	return &seaMasterBillRepo{data: data}
+}
+
+// querySeaMasterBillActiveMemberLinks 查询共享主单批次的活动成员票。
+// 口径与候选查询 member_count 同源：该 MBL 上 status = 'ACTIVE' 的 Link
+// （订单无删除路径，外键必在）。lock 为 true 时按主键排序后加行锁，
+// 固定加锁顺序防止死锁；调用方必须已按锁序（Order -> MBL -> Link）锁定 MBL。
+func querySeaMasterBillActiveMemberLinks(ctx context.Context, client *ent.Client, organizationID, masterBillID uuid.UUID, lock bool) ([]*ent.SeaMasterBillOrderLink, error) {
+	query := client.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.MasterBillIDEQ(masterBillID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		)
+	if lock {
+		query = query.Order(seamasterbillorderlink.ByID()).ForUpdate()
+	}
+	return query.All(ctx)
 }
 
 func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
@@ -86,8 +104,15 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 				OrderID:             link.Edges.Order.ID,
 				OrderNo:             link.Edges.Order.OrderNo,
 				CustomerReferenceNo: link.Edges.Order.CustomerReferenceNo,
+				DocumentStructure:   biz.SeaDocumentStructure(link.DocumentStructure),
 			})
 		}
+	}
+
+	// 批次内全部规范化分单号（含作废行，不过滤状态），供前端失焦即时排重提示。
+	batchHouseNos, err := listSeaMasterBillBatchNormalizedHouseNos(ctx, client, organizationID, mbl.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	shippingLineName, err := r.getShippingLineName(ctx, client, organizationID, mbl.ShippingLineID)
@@ -96,14 +121,15 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 	}
 
 	candidate := &biz.SeaMasterBillCandidate{
-		ID:                  mbl.ID,
-		Version:             mbl.Version,
-		MasterNo:            mbl.MasterNo,
-		ShippingLineID:      mbl.ShippingLineID,
-		ShippingLineName:    shippingLineName,
-		TransportExecutions: transportExecutions,
-		MemberCount:         len(members),
-		Members:             members,
+		ID:                      mbl.ID,
+		Version:                 mbl.Version,
+		MasterNo:                mbl.MasterNo,
+		ShippingLineID:          mbl.ShippingLineID,
+		ShippingLineName:        shippingLineName,
+		TransportExecutions:     transportExecutions,
+		MemberCount:             len(members),
+		Members:                 members,
+		BatchNormalizedHouseNos: batchHouseNos,
 	}
 
 	var conflicts []*biz.SeaVoyageConflict
@@ -238,6 +264,26 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 	}
 
 	return result, nil
+}
+
+// listSeaMasterBillBatchNormalizedHouseNos 聚合主单批次内全部规范化分单号。
+// 含作废行（不过滤状态，一号一案），供候选查询与前端即时排重提示使用。
+func listSeaMasterBillBatchNormalizedHouseNos(ctx context.Context, client *ent.Client, organizationID, masterBillID uuid.UUID) ([]string, error) {
+	rows, err := client.SeaHouseBill.Query().
+		Where(
+			seahousebillent.OrganizationIDEQ(organizationID),
+			seahousebillent.MasterBillIDEQ(masterBillID),
+		).
+		Order(seahousebillent.ByID()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	houseNos := make([]string, 0, len(rows))
+	for _, row := range rows {
+		houseNos = append(houseNos, row.NormalizedHouseNo)
+	}
+	return houseNos, nil
 }
 
 func (r *seaMasterBillRepo) getShippingLineName(ctx context.Context, client *ent.Client, organizationID, shippingLineID uuid.UUID) (string, error) {

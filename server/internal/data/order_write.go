@@ -765,21 +765,35 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			return biz.ErrSeaMasterBillStatusConflict
 		}
 
-		activeLinks, err := tx.SeaMasterBillOrderLink.Query().
-			Where(
-				seamasterbillorderlink.OrganizationIDEQ(organizationID),
-				seamasterbillorderlink.MasterBillIDEQ(targetMBL.ID),
-				seamasterbillorderlink.TransportExecutionIDEQ(candidateTEID),
-				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
-			).
-			Order(seamasterbillorderlink.ByID()).
-			ForUpdate().
-			All(ctx)
+		activeLinks, err := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), organizationID, targetMBL.ID, true)
 		if err != nil {
 			return err
 		}
-		if len(activeLinks) == 0 {
+		teLinkCount := 0
+		for _, link := range activeLinks {
+			if link.TransportExecutionID == candidateTEID {
+				teLinkCount++
+			}
+		}
+		if teLinkCount == 0 {
 			return biz.ErrSeaMasterBillStatusConflict
+		}
+		// 共享主单批次规则（全员分单制）：批次存在其他活动成员票时，
+		// 任一直单成员即禁止加拼（直单票独占主单）；全 HOUSE 批次要求本单
+		// 必须为 HOUSE 且分单号非空。本单为新建订单，尚无活动 Link，不会
+		// 出现在成员列表中。
+		if len(activeLinks) > 0 {
+			for _, member := range activeLinks {
+				if member.DocumentStructure == seamasterbillorderlink.DocumentStructureDIRECT {
+					return biz.ErrSeaMasterBillBatchDirectBlocked
+				}
+			}
+			seaDocument := input.SeaDocumentInput
+			if documentStructure != seamasterbillorderlink.DocumentStructureHOUSE ||
+				seaDocument == nil || seaDocument.HouseBill == nil ||
+				strings.TrimSpace(seaDocument.HouseBill.HouseNo) == "" {
+				return biz.ErrSeaOrderBatchRequiresHouse
+			}
 		}
 		targetTE, err := tx.SeaTransportExecution.Query().
 			Where(seatransportexecution.IDEQ(candidateTEID), seatransportexecution.OrganizationIDEQ(organizationID)).
@@ -1356,6 +1370,20 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		if err != nil {
 			return err
 		}
+		// 批次内排重预查（含作废行，一号一案）：先给出含冲突分单号的友好报错，
+		// 唯一索引仅作并发兜底。跨批次重号不受限制。
+		duplicateExists, err := tx.SeaHouseBill.Query().
+			Where(
+				seahousebill.MasterBillIDEQ(mbl.ID),
+				seahousebill.NormalizedHouseNoEQ(normalized),
+			).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if duplicateExists {
+			return biz.SeaHouseBillBatchNoDuplicateError([]string{normalized})
+		}
 		if hbInput.Content != nil {
 			if _, err := biz.ValidateSeaBillContent(hbInput.Content); err != nil {
 				return err
@@ -1387,7 +1415,7 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		setSeaHouseBillContentCreate(builder, hbInput.Content)
 		if _, err := builder.Save(ctx); err != nil {
 			if ent.IsConstraintError(err) {
-				return biz.ErrSeaHouseBillExists
+				return biz.ErrSeaHouseBillBatchNoDuplicate
 			}
 			return err
 		}

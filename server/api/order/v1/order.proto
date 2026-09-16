@@ -804,6 +804,7 @@ message SeaMasterBillMemberSummary {
   string order_id = 1;
   string order_no = 2;
   optional string customer_reference_no = 3;
+  SeaDocumentStructure document_structure = 4;
 }
 
 // SeaMasterBillCandidate 匹配到的已有主单候选。
@@ -818,6 +819,7 @@ message SeaMasterBillCandidate {
   int32 member_count = 7;
   repeated SeaMasterBillMemberSummary members = 8;
   repeated SeaTransportExecution transport_executions = 9;
+  repeated string batch_normalized_house_nos = 10;
 }
 
 // MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。
