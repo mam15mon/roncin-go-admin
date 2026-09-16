@@ -42,9 +42,9 @@ export default function InvoiceProfilesPanel({
 }: InvoiceProfilesPanelProps) {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const formRef = useRef<
-    ProFormInstance<InvoiceProfileFormValues> | undefined
-  >(undefined);
+  const formRef = useRef<ProFormInstance<InvoiceProfileFormValues> | undefined>(
+    undefined,
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] =
     useState<API.PartnerInvoiceProfile>();
@@ -212,7 +212,9 @@ export default function InvoiceProfilesPanel({
         />
         <Space size={24} style={{ marginBottom: 8 }}>
           <ProFormSwitch name="isDefault" label="设为默认抬头" />
-          {editingProfile && <ProFormSwitch name="enabled" label="启用该抬头" />}
+          {editingProfile && (
+            <ProFormSwitch name="enabled" label="启用该抬头" />
+          )}
         </Space>
         <ProFormText
           name="invoiceTitle"

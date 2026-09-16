@@ -17,7 +17,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
   onErrorClick,
   style,
   className,
-  targetOffset = 84,
+  targetOffset = 146,
   defaultCollapsed = false,
   onCollapsedChange,
 }) => {
@@ -98,8 +98,8 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
         className={`roncin-form-anchor-nav-collapsed ${className || ''}`}
         style={{
           position: 'fixed',
-          right: 12,
-          top: 140,
+          right: 16,
+          top: 156,
           zIndex: 88,
           ...style,
         }}
@@ -141,7 +141,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
       style={{
         position: 'fixed',
         right: 16,
-        top: 130,
+        top: 156,
         width: 140,
         maxHeight: 'calc(100vh - 200px)',
         backgroundColor: 'rgba(255, 255, 255, 0.94)',

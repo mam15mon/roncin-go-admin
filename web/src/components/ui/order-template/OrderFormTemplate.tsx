@@ -70,6 +70,8 @@ export function OrderFormTemplate<T>({
   const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
     {},
   );
+  // 表单导航展开时内容区预留 164px 右侧空间，避免遮挡输入控件
+  const [navCollapsed, setNavCollapsed] = useState(true);
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
@@ -247,6 +249,10 @@ export function OrderFormTemplate<T>({
           readonly={readonly}
           grid
           layout="vertical"
+          style={{
+            paddingRight: navCollapsed ? 0 : 164,
+            transition: 'padding-right 0.25s ease',
+          }}
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
             if (!internalDirty) {
@@ -322,6 +328,8 @@ export function OrderFormTemplate<T>({
         <FormAnchorNav
           items={anchorItems}
           sectionErrors={sectionErrors}
+          defaultCollapsed={true}
+          onCollapsedChange={setNavCollapsed}
           onErrorClick={handleErrorClick}
         />
       )}

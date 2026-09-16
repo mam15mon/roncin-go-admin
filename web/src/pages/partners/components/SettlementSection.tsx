@@ -121,6 +121,7 @@ export default function SettlementSection({
               labelCol={labelCol(LABEL_COL_WIDTH.statement)}
               options={STATEMENT_MODE_OPTIONS}
               rules={[{ required: true, message: '请选择对账方式' }]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
@@ -132,6 +133,7 @@ export default function SettlementSection({
               labelCol={labelCol(LABEL_COL_WIDTH.method)}
               options={SETTLEMENT_METHOD_OPTIONS}
               rules={[{ required: true, message: '请选择结算方式' }]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
@@ -225,6 +227,7 @@ export default function SettlementSection({
               labelCol={labelCol(LABEL_COL_WIDTH.credit)}
               placeholder="输入信用额度"
               min={0}
+              formItemProps={{ style: { marginBottom: 0 } }}
               fieldProps={{
                 precision: 2,
                 addonAfter: '元',
@@ -233,7 +236,7 @@ export default function SettlementSection({
           </Col>
         </Row>
 
-        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
+        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 12 }}>
           {/* 默认账期天数 */}
           <Col xs={24} sm={12} md={4}>
             <ProFormDigit
@@ -250,6 +253,7 @@ export default function SettlementSection({
               placeholder="例如: 30"
               min={0}
               max={3650}
+              formItemProps={{ style: { marginBottom: 0 } }}
               fieldProps={{ precision: 0 }}
             />
           </Col>
@@ -262,6 +266,7 @@ export default function SettlementSection({
               labelCol={labelCol(LABEL_COL_WIDTH.method)}
               options={currencyOptions}
               rules={[{ required: true, message: '请选择结算币种' }]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 

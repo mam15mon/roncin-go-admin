@@ -51,7 +51,9 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
   const [loading, setLoading] = useState(false);
   const [contracts, setContracts] = useState<API.PartnerContract[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingContract, setEditingContract] = useState<API.PartnerContract | undefined>(undefined);
+  const [editingContract, setEditingContract] = useState<
+    API.PartnerContract | undefined
+  >(undefined);
   const [form] = Form.useForm();
 
   const fetchContracts = async () => {
@@ -223,14 +225,31 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                     }}
                   >
                     <div style={{ flex: 1, paddingRight: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: 13, color: '#262626', wordBreak: 'break-all' }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          color: '#262626',
+                          wordBreak: 'break-all',
+                        }}
+                      >
                         {item.name}
                       </div>
                       <Space size={6} style={{ marginTop: 2 }}>
-                        <Tag style={{ fontFamily: 'monospace', fontSize: 11, padding: '0 4px', margin: 0 }}>
+                        <Tag
+                          style={{
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            padding: '0 4px',
+                            margin: 0,
+                          }}
+                        >
                           {item.contractNo}
                         </Tag>
-                        <Tag color={statusMeta.color} style={{ fontSize: 11, padding: '0 4px', margin: 0 }}>
+                        <Tag
+                          color={statusMeta.color}
+                          style={{ fontSize: 11, padding: '0 4px', margin: 0 }}
+                        >
                           {statusMeta.text}
                         </Tag>
                       </Space>
@@ -254,7 +273,9 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                           <Button
                             type="text"
                             size="small"
-                            icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                            icon={
+                              <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                            }
                             style={{ padding: '0 4px', height: 22 }}
                           />
                         </Popconfirm>
@@ -265,7 +286,9 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                   {/* Details */}
                   <div style={{ color: '#595959' }}>
                     <div>
-                      <CalendarOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
+                      <CalendarOutlined
+                        style={{ color: '#8c8c8c', marginRight: 4 }}
+                      />
                       <span style={{ color: '#8c8c8c' }}>有效期: </span>
                       <span>
                         {formatDate(item.startDate, 'date')} 至{' '}

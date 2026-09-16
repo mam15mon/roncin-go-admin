@@ -157,7 +157,7 @@ export function scrollToFirstFormError(
   const {
     errorFields = [],
     container = document.body,
-    headerOffset = 84,
+    headerOffset = 146,
     onExpandSection,
     notify,
   } = options;

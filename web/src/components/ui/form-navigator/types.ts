@@ -23,7 +23,7 @@ export interface FormAnchorNavProps {
   /** 容器自定义样式 */
   style?: CSSProperties;
   className?: string;
-  /** 吸顶偏移量，用于点击跳转时避开固定页头，默认 84 */
+  /** 吸顶偏移量，用于点击跳转时避开固定页头，默认 146 */
   targetOffset?: number;
   /** 是否默认折叠为迷你图标浮标，默认 false */
   defaultCollapsed?: boolean;
@@ -36,7 +36,7 @@ export interface ScrollToErrorOptions {
   errorFields?: Array<{ name: (string | number)[]; errors: string[] }>;
   /** 目标查找容器，默认 document */
   container?: HTMLElement | null;
-  /** 吸顶导航高度偏移量（像素），默认 84 */
+  /** 吸顶导航高度偏移量（像素），默认 146 */
   headerOffset?: number;
   /** 当错误字段在折叠卡片内时的展开回调 */
   onExpandSection?: (sectionKey: string) => void;

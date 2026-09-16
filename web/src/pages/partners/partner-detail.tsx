@@ -12,7 +12,7 @@ import {
   useParams,
   useSearchParams,
 } from '@umijs/max';
-import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
+import { App, Button, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FormAnchorNav,
@@ -110,15 +110,13 @@ export default function PartnerDetailPage() {
     'remark',
     'logs',
   ]);
+  // 表单导航分节错误统计
   const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
     {},
   );
 
-  // 表单导航浮层折叠状态：展开时内容区预留右侧空间，避免浮层盖住表单字段；
-  // 窄屏（<1500px）默认折叠，保证输入区完整可用。
-  const [navCollapsed, setNavCollapsed] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 1500,
-  );
+  // 表单导航浮层折叠状态：展开时内容区预留 164px 右侧空间，避免遮挡控件
+  const [navCollapsed, setNavCollapsed] = useState(true);
 
   // Detect roleType from pathname
   const { roleType, roleLabel, listUrl } = useMemo(() => {
@@ -261,20 +259,24 @@ export default function PartnerDetailPage() {
             setContacts(loadedContacts);
 
             // Credit Limit conversion
-            const creditAmount = currentRule?.creditLimitMinor
-              ? Number(currentRule.creditLimitMinor) / 100
-              : undefined;
+            const creditAmount = currentRule?.creditLimitMinor;
+            const isForeign =
+              roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
 
             formRef.current?.setFieldsValue({
               code: p.code,
               legalName: p.legalName,
-              unifiedSocialCreditCode: p.unifiedSocialCreditCode,
+              unifiedSocialCreditCode: isForeign
+                ? undefined
+                : p.unifiedSocialCreditCode,
               enabled: p.enabled ?? true,
-              isCasual: p.isCasual ?? false,
+              isCasual: isForeign ? false : (p.isCasual ?? false),
               regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
               addressDetail: profile.addressDetail || p.registeredAddress,
-              nameEn: profile.nameEn,
-              addressEn: profile.addressEn,
+              nameEn: profile.nameEn || (isForeign ? p.legalName : undefined),
+              addressEn:
+                profile.addressEn ||
+                (isForeign ? p.registeredAddress : undefined),
               nature: profile.nature || roleLabel,
               customerTypes: profile.customerTypes || [1],
               developmentMethod: profile.developmentMethod || '自主开发',
@@ -432,16 +434,24 @@ export default function PartnerDetailPage() {
       const cityCode = regionCodes[1] || '';
       const districtCode = regionCodes[2] || '';
 
+      const isForeign =
+        roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
+      const effectiveAddress = isForeign
+        ? values.addressEn?.trim()
+        : values.addressDetail?.trim();
+
       const profile: API.PartnerProfile = {
-        nameEn: values.nameEn?.trim(),
+        nameEn: isForeign
+          ? values.nameEn?.trim() || values.legalName.trim()
+          : values.nameEn?.trim(),
         addressEn: values.addressEn?.trim(),
-        provinceCode,
-        cityCode,
-        districtCode,
-        addressDetail: values.addressDetail?.trim(),
+        provinceCode: isForeign ? '' : provinceCode,
+        cityCode: isForeign ? '' : cityCode,
+        districtCode: isForeign ? '' : districtCode,
+        addressDetail: effectiveAddress,
         nature: values.nature || roleLabel,
         developmentMethod: values.developmentMethod,
-        customerTypes: values.customerTypes || [1],
+        customerTypes: isForeign ? [] : values.customerTypes || [1],
         businessTypes: values.businessTypes || [1],
         remark: values.remark?.trim(),
       };
@@ -499,14 +509,25 @@ export default function PartnerDetailPage() {
         values.creditLimit !== undefined && values.creditLimit !== null
           ? String(Math.round(Number(values.creditLimit) * 100))
           : '0';
+      const settlementMethod = Number(values.settlementMethod || 1);
+      // 票结/预付不适用结算日、账期与结算基准，后端要求这三项不下发
+      const isTermFree =
+        settlementMethod ===
+          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET ||
+        settlementMethod ===
+          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID;
 
       const settlementRuleInput: API.PartnerSettlementRuleInput = {
         statementMode: Number(values.statementMode || 1),
-        settlementMethod: Number(values.settlementMethod || 1),
-        settlementBase: Number(values.settlementBase || 1),
-        settlementDay: Number(values.settlementDay || 25),
+        settlementMethod,
+        ...(isTermFree
+          ? {}
+          : {
+              settlementDay: Number(values.settlementDay || 25),
+              settlementBase: Number(values.settlementBase || 1),
+              settlementCycleDays: Number(values.creditDays || 30),
+            }),
         settlementCurrency: values.settlementCurrency || 'CNY',
-        settlementCycleDays: Number(values.creditDays || 30),
         creditLimitMinor,
         creditCurrency: values.settlementCurrency || 'CNY',
         paymentTermsDays: values.paymentTermsDays,
@@ -524,11 +545,14 @@ export default function PartnerDetailPage() {
           { id: partnerId },
           {
             id: partnerId,
+            code: values.code?.trim() ?? '',
             legalName: values.legalName.trim(),
-            unifiedSocialCreditCode: values.unifiedSocialCreditCode?.trim(),
-            registeredAddress: values.addressDetail?.trim(),
+            unifiedSocialCreditCode: isForeign
+              ? undefined
+              : values.unifiedSocialCreditCode?.trim(),
+            registeredAddress: effectiveAddress,
             enabled: values.enabled ?? true,
-            isCasual: Boolean(values.isCasual),
+            isCasual: isForeign ? false : Boolean(values.isCasual),
             roles: [roleInput],
             profile,
             assignments,
@@ -541,9 +565,11 @@ export default function PartnerDetailPage() {
         const createRes = await partnerServiceCreatePartner({
           code: values.code?.trim() || '',
           legalName: values.legalName.trim(),
-          unifiedSocialCreditCode: values.unifiedSocialCreditCode?.trim(),
-          registeredAddress: values.addressDetail?.trim(),
-          isCasual: Boolean(values.isCasual),
+          unifiedSocialCreditCode: isForeign
+            ? undefined
+            : values.unifiedSocialCreditCode?.trim(),
+          registeredAddress: effectiveAddress,
+          isCasual: isForeign ? false : Boolean(values.isCasual),
           roles: [roleInput],
           profile,
           assignments,
@@ -618,11 +644,10 @@ export default function PartnerDetailPage() {
                   {partner.code}
                 </Tag>
               ) : null}
-              {partner.isCasual ? (
-                <Tag color="warning">散客</Tag>
-              ) : (
-                <Tag color="default">正式</Tag>
-              )}
+              {partner.isCasual && <Tag color="warning">散客</Tag>}
+              <Tag color={partner.enabled ? 'success' : 'default'}>
+                {partner.enabled ? '正常启用' : '已停用'}
+              </Tag>
             </Space>
           ) : undefined
         }
@@ -654,38 +679,36 @@ export default function PartnerDetailPage() {
             transition: 'padding-right 0.25s ease',
           }}
         >
-          <Col span={24}>
-            {/* Section 1: 基础信息 */}
-            <BasicInfoSection
-              collapsed={!activeCollapseKeys.includes('basic')}
-              onCollapseChange={(collapsed) =>
-                toggleSection('basic', collapsed)
-              }
-              partnerId={partnerId}
-              roleLabel={roleLabel}
-              userSelectOptions={userSelectOptions}
-              orgSelectOptions={orgSelectOptions}
-              aliases={aliases}
-              newAliasInput={newAliasInput}
-              setNewAliasInput={setNewAliasInput}
-              onAddAlias={handleAddAlias}
-              onRemoveAlias={handleRemoveAlias}
-              onTianyanchaVerify={handleTianyanchaVerify}
-              onUserChange={handleUserChange}
-            />
+          {/* Section 1: 基础信息 */}
+          <BasicInfoSection
+            collapsed={!activeCollapseKeys.includes('basic')}
+            onCollapseChange={(collapsed) => toggleSection('basic', collapsed)}
+            roleLabel={roleLabel}
+            roleType={roleType}
+            userSelectOptions={userSelectOptions}
+            orgSelectOptions={orgSelectOptions}
+            aliases={aliases}
+            newAliasInput={newAliasInput}
+            setNewAliasInput={setNewAliasInput}
+            onAddAlias={handleAddAlias}
+            onRemoveAlias={handleRemoveAlias}
+            onTianyanchaVerify={handleTianyanchaVerify}
+            onUserChange={handleUserChange}
+          />
 
-            {/* Section 2: 财务结算规则 */}
-            <SettlementSection
-              collapsed={!activeCollapseKeys.includes('settlement')}
-              onCollapseChange={(collapsed) =>
-                toggleSection('settlement', collapsed)
-              }
-              currencyOptions={currencyOptions}
-              interestRule={interestRule}
-              onOpenInterestModal={() => setInterestModalOpen(true)}
-            />
+          {/* Section 2: 财务结算规则 */}
+          <SettlementSection
+            collapsed={!activeCollapseKeys.includes('settlement')}
+            onCollapseChange={(collapsed) =>
+              toggleSection('settlement', collapsed)
+            }
+            currencyOptions={currencyOptions}
+            interestRule={interestRule}
+            onOpenInterestModal={() => setInterestModalOpen(true)}
+          />
 
-            {/* Section 3: 账户信息 */}
+          {/* Section 3: 账户信息（依赖已保存档案，新建模式不展示） */}
+          {partnerId && (
             <SectionCard
               key="accounts"
               id="section-accounts"
@@ -704,23 +727,25 @@ export default function PartnerDetailPage() {
                 canUpdate={access.canUpdatePartnerAccounts}
               />
             </SectionCard>
+          )}
 
-            {/* Section 4: 联系方式 */}
-            <SectionCard
-              key="contacts"
-              id="section-contacts"
-              sectionKey="contacts"
-              title="联系方式"
-              collapsible
-              collapsed={!activeCollapseKeys.includes('contacts')}
-              onCollapseChange={(collapsed) =>
-                toggleSection('contacts', collapsed)
-              }
-            >
-              <ContactCardList contacts={contacts} onChange={setContacts} />
-            </SectionCard>
+          {/* Section 4: 联系方式 */}
+          <SectionCard
+            key="contacts"
+            id="section-contacts"
+            sectionKey="contacts"
+            title="联系方式"
+            collapsible
+            collapsed={!activeCollapseKeys.includes('contacts')}
+            onCollapseChange={(collapsed) =>
+              toggleSection('contacts', collapsed)
+            }
+          >
+            <ContactCardList contacts={contacts} onChange={setContacts} />
+          </SectionCard>
 
-            {/* Section 5: 常用信息 (Shipping Presets) */}
+          {/* Section 5: 常用信息 (Shipping Presets，依赖已保存档案，新建模式不展示) */}
+          {partnerId && (
             <SectionCard
               key="presets"
               id="section-presets"
@@ -734,8 +759,10 @@ export default function PartnerDetailPage() {
             >
               <ShippingPresetSection partnerId={partnerId} />
             </SectionCard>
+          )}
 
-            {/* Section 6: 合同管理 */}
+          {/* Section 6: 合同管理（依赖已保存档案，新建模式不展示） */}
+          {partnerId && (
             <SectionCard
               key="contracts"
               id="section-contracts"
@@ -749,43 +776,39 @@ export default function PartnerDetailPage() {
             >
               <ContractCardList partnerId={partnerId} />
             </SectionCard>
+          )}
 
-            {/* Section 7: 客户备注 */}
+          {/* Section 7: 客户备注 */}
+          <SectionCard
+            key="remark"
+            id="section-remark"
+            sectionKey="remark"
+            title="客户备注"
+            collapsible
+            collapsed={!activeCollapseKeys.includes('remark')}
+            onCollapseChange={(collapsed) => toggleSection('remark', collapsed)}
+          >
+            <ProFormTextArea
+              name="remark"
+              placeholder="可以添加客户信息录入时的备注信息"
+              fieldProps={{ rows: 3 }}
+            />
+          </SectionCard>
+
+          {/* Section 8: 操作记录 */}
+          {partnerId && (
             <SectionCard
-              key="remark"
-              id="section-remark"
-              sectionKey="remark"
-              title="客户备注"
+              key="logs"
+              id="section-logs"
+              sectionKey="logs"
+              title="操作记录"
               collapsible
-              collapsed={!activeCollapseKeys.includes('remark')}
-              onCollapseChange={(collapsed) =>
-                toggleSection('remark', collapsed)
-              }
+              collapsed={!activeCollapseKeys.includes('logs')}
+              onCollapseChange={(collapsed) => toggleSection('logs', collapsed)}
             >
-              <ProFormTextArea
-                name="remark"
-                placeholder="可以添加客户信息录入时的备注信息"
-                fieldProps={{ rows: 3 }}
-              />
+              <AuditLogSection partnerId={partnerId} />
             </SectionCard>
-
-            {/* Section 8: 操作记录 */}
-            {partnerId && (
-              <SectionCard
-                key="logs"
-                id="section-logs"
-                sectionKey="logs"
-                title="操作记录"
-                collapsible
-                collapsed={!activeCollapseKeys.includes('logs')}
-                onCollapseChange={(collapsed) =>
-                  toggleSection('logs', collapsed)
-                }
-              >
-                <AuditLogSection partnerId={partnerId} />
-              </SectionCard>
-            )}
-          </Col>
+          )}
         </ProForm>
       </Spin>
 
@@ -832,15 +855,15 @@ export default function PartnerDetailPage() {
       {!loading && (
         <FormAnchorNav
           sectionErrors={sectionErrors}
-          defaultCollapsed={navCollapsed}
+          defaultCollapsed={true}
           onCollapsedChange={setNavCollapsed}
           items={[
             { key: 'basic', title: '基础信息' },
             { key: 'settlement', title: '财务结算' },
-            { key: 'accounts', title: '账户信息' },
+            ...(partnerId ? [{ key: 'accounts', title: '账户信息' }] : []),
             { key: 'contacts', title: '联系方式' },
-            { key: 'presets', title: '常用信息' },
-            { key: 'contracts', title: '合同管理' },
+            ...(partnerId ? [{ key: 'presets', title: '常用信息' }] : []),
+            ...(partnerId ? [{ key: 'contracts', title: '合同管理' }] : []),
             { key: 'remark', title: '客户备注' },
             ...(partnerId ? [{ key: 'logs', title: '操作记录' }] : []),
           ]}

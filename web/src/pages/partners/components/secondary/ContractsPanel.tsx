@@ -187,8 +187,7 @@ export default function ContractsPanel({
                     : undefined,
               }
             : {
-                status:
-                  PartnerContractStatus.PARTNER_CONTRACT_STATUS_PENDING,
+                status: PartnerContractStatus.PARTNER_CONTRACT_STATUS_PENDING,
               }
         }
         modalProps={{

@@ -43,12 +43,48 @@ import { unwrapList } from '@/utils/api';
 const { Text, Paragraph } = Typography;
 
 export const PRESET_TYPES = [
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER, label: '发货人 (Shipper)', icon: <SendOutlined />, short: '发货人', isParty: true },
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_CONSIGNEE, label: '收货人 (Consignee)', icon: <ContainerOutlined />, short: '收货人', isParty: true },
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY, label: '通知人 (Notify)', icon: <UsergroupAddOutlined />, short: '通知人', isParty: true },
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_ENGLISH_CARGO_NAME, label: '英文品名 (Cargo Name)', icon: <FileTextOutlined />, short: '英文品名', isParty: false },
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_HS_CODE, label: 'HS编码 (HS Code)', icon: <NumberOutlined />, short: 'HS', isParty: false },
-  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_MARKS, label: '唛头 (Shipping Marks)', icon: <TagsOutlined />, short: '唛头', isParty: false },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER,
+    label: '发货人 (Shipper)',
+    icon: <SendOutlined />,
+    short: '发货人',
+    isParty: true,
+  },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_CONSIGNEE,
+    label: '收货人 (Consignee)',
+    icon: <ContainerOutlined />,
+    short: '收货人',
+    isParty: true,
+  },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY,
+    label: '通知人 (Notify)',
+    icon: <UsergroupAddOutlined />,
+    short: '通知人',
+    isParty: true,
+  },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_ENGLISH_CARGO_NAME,
+    label: '英文品名 (Cargo Name)',
+    icon: <FileTextOutlined />,
+    short: '英文品名',
+    isParty: false,
+  },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_HS_CODE,
+    label: 'HS编码 (HS Code)',
+    icon: <NumberOutlined />,
+    short: 'HS',
+    isParty: false,
+  },
+  {
+    key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_MARKS,
+    label: '唛头 (Shipping Marks)',
+    icon: <TagsOutlined />,
+    short: '唛头',
+    isParty: false,
+  },
 ];
 
 const PRESET_TYPE_MAP = new Map<number, (typeof PRESET_TYPES)[number]>(
@@ -70,7 +106,9 @@ export default function ShippingPresetSection({
   const [currentType, setCurrentType] = useState<number>(
     PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER,
   );
-  const [editingPreset, setEditingPreset] = useState<API.PartnerShippingPreset | undefined>(undefined);
+  const [editingPreset, setEditingPreset] = useState<
+    API.PartnerShippingPreset | undefined
+  >(undefined);
   const [form] = Form.useForm();
 
   const fetchPresets = async () => {
@@ -328,11 +366,25 @@ export default function ShippingPresetSection({
                         marginBottom: 6,
                       }}
                     >
-                      <Space size={6} align="start" style={{ flex: 1, paddingRight: 8 }}>
-                        <Tag color="blue" style={{ fontSize: 11, padding: '0 4px', margin: 0 }}>
+                      <Space
+                        size={6}
+                        align="start"
+                        style={{ flex: 1, paddingRight: 8 }}
+                      >
+                        <Tag
+                          color="blue"
+                          style={{ fontSize: 11, padding: '0 4px', margin: 0 }}
+                        >
                           {meta?.short}
                         </Tag>
-                        <Text strong style={{ fontSize: 13, color: '#262626', wordBreak: 'break-all' }}>
+                        <Text
+                          strong
+                          style={{
+                            fontSize: 13,
+                            color: '#262626',
+                            wordBreak: 'break-all',
+                          }}
+                        >
                           {preset.title}
                         </Text>
                       </Space>
@@ -353,7 +405,9 @@ export default function ShippingPresetSection({
                           <Button
                             type="text"
                             size="small"
-                            icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                            icon={
+                              <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                            }
                             style={{ padding: '0 4px', height: 22 }}
                           />
                         </Popconfirm>
@@ -372,7 +426,11 @@ export default function ShippingPresetSection({
                           {preset.party?.address && (
                             <Paragraph
                               ellipsis={{ rows: 2 }}
-                              style={{ margin: 0, color: '#595959', fontSize: 12 }}
+                              style={{
+                                margin: 0,
+                                color: '#595959',
+                                fontSize: 12,
+                              }}
                             >
                               <span style={{ color: '#8c8c8c' }}>地址: </span>
                               {preset.party.address}
@@ -381,13 +439,16 @@ export default function ShippingPresetSection({
                           {preset.party?.contactName && (
                             <div>
                               <span style={{ color: '#8c8c8c' }}>联系人: </span>
-                              {preset.party.contactName} {preset.party.phone && `(${preset.party.phone})`}
+                              {preset.party.contactName}{' '}
+                              {preset.party.phone && `(${preset.party.phone})`}
                             </div>
                           )}
                           {preset.party?.taxIdentifier && (
                             <div>
                               <span style={{ color: '#8c8c8c' }}>税号: </span>
-                              <span style={{ fontFamily: 'monospace' }}>{preset.party.taxIdentifier}</span>
+                              <span style={{ fontFamily: 'monospace' }}>
+                                {preset.party.taxIdentifier}
+                              </span>
                             </div>
                           )}
                         </>
@@ -395,8 +456,16 @@ export default function ShippingPresetSection({
                         <>
                           {preset.text?.code && (
                             <div>
-                              <span style={{ color: '#8c8c8c' }}>编码/HS: </span>
-                              <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#1677ff' }}>
+                              <span style={{ color: '#8c8c8c' }}>
+                                编码/HS:{' '}
+                              </span>
+                              <span
+                                style={{
+                                  fontFamily: 'monospace',
+                                  fontWeight: 600,
+                                  color: '#1677ff',
+                                }}
+                              >
                                 {preset.text.code}
                               </span>
                             </div>
@@ -404,7 +473,12 @@ export default function ShippingPresetSection({
                           {preset.text?.content && (
                             <Paragraph
                               ellipsis={{ rows: 3 }}
-                              style={{ margin: 0, color: '#262626', whiteSpace: 'pre-wrap', fontSize: 12 }}
+                              style={{
+                                margin: 0,
+                                color: '#262626',
+                                whiteSpace: 'pre-wrap',
+                                fontSize: 12,
+                              }}
                             >
                               {preset.text.content}
                             </Paragraph>
@@ -413,7 +487,10 @@ export default function ShippingPresetSection({
                       )}
                       {preset.isDefault && (
                         <div style={{ marginTop: 4 }}>
-                          <Tag color="green" style={{ fontSize: 10, padding: '0 4px' }}>
+                          <Tag
+                            color="green"
+                            style={{ fontSize: 10, padding: '0 4px' }}
+                          >
                             默认带出
                           </Tag>
                         </div>

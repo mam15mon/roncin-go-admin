@@ -24,7 +24,11 @@ import {
 } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
-import { PartnerBusinessType, PartnerCustomerType } from '@/enums.generated';
+import {
+  PartnerBusinessType,
+  PartnerCustomerType,
+  PartnerRoleType,
+} from '@/enums.generated';
 import { pcaCascaderOptions } from '@/utils/chinaDivision';
 
 const { Text } = Typography;
@@ -34,6 +38,8 @@ const { Text } = Typography;
 const LABEL_COL_WIDTH = {
   /** 主列：公司抬头/中文地址/英文名/英文地址/公司别名/人员矩阵 */
   primary: 88,
+  /** 境外代理标签列 */
+  foreignPrimary: 120,
   /** 社会统一信用代码列 */
   uscc: 144,
   /** 性质列 */
@@ -95,8 +101,8 @@ export const DEVELOPMENT_METHOD_OPTIONS = [
 type BasicInfoSectionProps = {
   collapsed: boolean;
   onCollapseChange: (collapsed: boolean) => void;
-  partnerId?: string;
   roleLabel: string;
+  roleType?: number;
   userSelectOptions: { label: string; value: string }[];
   orgSelectOptions: { label: string; value: string }[];
   aliases: string[];
@@ -111,8 +117,8 @@ type BasicInfoSectionProps = {
 export default function BasicInfoSection({
   collapsed,
   onCollapseChange,
-  partnerId,
   roleLabel,
+  roleType,
   userSelectOptions,
   orgSelectOptions,
   aliases,
@@ -123,6 +129,10 @@ export default function BasicInfoSection({
   onTianyanchaVerify,
   onUserChange,
 }: BasicInfoSectionProps) {
+  const isForeignAgent =
+    roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT ||
+    roleLabel === '国外代理';
+
   return (
     <SectionCard
       id="section-basic"
@@ -133,129 +143,168 @@ export default function BasicInfoSection({
       onCollapseChange={onCollapseChange}
     >
       <div>
-        {/* Row 1: Legal Name, USCC, Code */}
+        {/* Row 1: Legal Name, USCC (仅国内企业), Code */}
         <Row gutter={[16, 12]} align="middle">
-          <Col xs={24} lg={10}>
+          <Col xs={24} lg={isForeignAgent ? 18 : 10}>
             <ProFormText
               name="legalName"
-              label="公司抬头"
-              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
-              placeholder="请输入企业法人营业执照全称"
-              rules={[{ required: true, message: '请输入公司抬头全称' }]}
+              label={isForeignAgent ? '公司抬头 (英文)' : '公司抬头'}
+              labelCol={labelCol(
+                isForeignAgent
+                  ? LABEL_COL_WIDTH.foreignPrimary
+                  : LABEL_COL_WIDTH.primary,
+              )}
+              placeholder={
+                isForeignAgent
+                  ? '请输入境外公司法定英文全称（公司抬头），如 PACIFIC LOGISTICS INC.'
+                  : '请输入企业法人营业执照全称'
+              }
+              rules={[
+                {
+                  required: true,
+                  message: isForeignAgent
+                    ? '公司抬头 (英文) 为必填项'
+                    : '公司抬头为必填项',
+                },
+              ]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          <Col xs={24} lg={9}>
-            <Form.Item
-              label={
-                <Space size={4}>
-                  <span>社会统一信用代码</span>
-                  <Tooltip title="18位纳税人统一社会信用代码">
-                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                  </Tooltip>
-                </Space>
-              }
-              labelCol={labelCol(LABEL_COL_WIDTH.uscc)}
-              style={{ marginBottom: 0 }}
-            >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item
-                  name="unifiedSocialCreditCode"
-                  noStyle
-                  rules={[
-                    {
-                      pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
-                      message: '请输入正确的18位统一社会信用代码',
-                    },
-                  ]}
-                >
-                  <Input
-                    placeholder="91510108MAKB..."
-                    allowClear
-                    style={{ fontFamily: 'monospace' }}
-                  />
-                </Form.Item>
-                <Button
-                  type="primary"
-                  icon={<SafetyCertificateOutlined />}
-                  onClick={onTianyanchaVerify}
-                >
-                  校验公司信息
-                </Button>
-              </Space.Compact>
-            </Form.Item>
-          </Col>
+          {!isForeignAgent && (
+            <Col xs={24} lg={9}>
+              <Form.Item
+                label={
+                  <Space size={4}>
+                    <span>社会统一信用代码</span>
+                    <Tooltip title="18位纳税人统一社会信用代码">
+                      <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                    </Tooltip>
+                  </Space>
+                }
+                labelCol={labelCol(LABEL_COL_WIDTH.uscc)}
+                style={{ marginBottom: 0 }}
+              >
+                <Space.Compact style={{ width: '100%' }}>
+                  <Form.Item
+                    name="unifiedSocialCreditCode"
+                    noStyle
+                    rules={[
+                      {
+                        pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
+                        message: '请输入正确的18位统一社会信用代码',
+                      },
+                    ]}
+                  >
+                    <Input
+                      placeholder="91510108MAKB..."
+                      allowClear
+                      style={{ fontFamily: 'monospace' }}
+                    />
+                  </Form.Item>
+                  <Button
+                    type="primary"
+                    icon={<SafetyCertificateOutlined />}
+                    onClick={onTianyanchaVerify}
+                  >
+                    校验公司信息
+                  </Button>
+                </Space.Compact>
+              </Form.Item>
+            </Col>
+          )}
 
-          <Col xs={24} lg={5}>
+          <Col xs={24} lg={isForeignAgent ? 6 : 5}>
             <ProFormText
               name="code"
-              label="代码"
+              label="单位编码"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
-              placeholder="选填，仅用于搜索，如 CDRT"
-              disabled={Boolean(partnerId)}
+              placeholder={
+                isForeignAgent ? '选填，如 PAC-LAX' : '选填，仅用于搜索，如 CDRT'
+              }
               rules={[
                 {
                   pattern: /^[A-Za-z0-9_-]+$/,
                   message: '仅支持字母数字',
                 },
               ]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
         </Row>
 
-        {/* Row 2: 中文地址 */}
-        <Row gutter={[16, 12]} style={{ marginTop: 8 }}>
-          <Col span={24}>
-            <Form.Item
-              label="中文地址"
-              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
-              style={{ marginBottom: 0 }}
-            >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="regionCodes" noStyle>
-                  <Cascader
-                    options={pcaCascaderOptions}
-                    placeholder="省 / 市 / 区"
-                    style={{ width: 280 }}
-                    allowClear
-                    showSearch
-                  />
+        {/* Row 2: 英文地址 (国外代理主地址) / 中文地址 (国内客户/供应商) */}
+        {!isForeignAgent ? (
+          <>
+            <Row gutter={[16, 12]} style={{ marginTop: 12 }}>
+              <Col span={24}>
+                <Form.Item
+                  label="中文地址"
+                  labelCol={labelCol(LABEL_COL_WIDTH.primary)}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Space.Compact style={{ width: '100%' }}>
+                    <Form.Item name="regionCodes" noStyle>
+                      <Cascader
+                        options={pcaCascaderOptions}
+                        placeholder="省 / 市 / 区"
+                        style={{ width: 280 }}
+                        allowClear
+                        showSearch
+                      />
+                    </Form.Item>
+                    <Form.Item name="addressDetail" noStyle>
+                      <Input placeholder="请输入详细地址" allowClear />
+                    </Form.Item>
+                  </Space.Compact>
                 </Form.Item>
-                <Form.Item name="addressDetail" noStyle>
-                  <Input placeholder="请输入详细地址" allowClear />
-                </Form.Item>
-              </Space.Compact>
-            </Form.Item>
-          </Col>
-        </Row>
+              </Col>
+            </Row>
 
-        {/* Row 3: 英文名 */}
-        <Row gutter={[16, 12]} style={{ marginTop: 8 }}>
-          <Col span={24}>
-            <ProFormText
-              name="nameEn"
-              label="英文名"
-              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
-              placeholder="请输入英文名称"
-            />
-          </Col>
-        </Row>
+            {/* Row 3: 英文名 */}
+            <Row gutter={[16, 12]} style={{ marginTop: 12 }}>
+              <Col span={24}>
+                <ProFormText
+                  name="nameEn"
+                  label="英文名"
+                  labelCol={labelCol(LABEL_COL_WIDTH.primary)}
+                  placeholder="请输入英文名称"
+                  formItemProps={{ style: { marginBottom: 0 } }}
+                />
+              </Col>
+            </Row>
 
-        {/* Row 4: 英文地址 */}
-        <Row gutter={[16, 12]}>
-          <Col span={24}>
-            <ProFormText
-              name="addressEn"
-              label="英文地址"
-              labelCol={labelCol(LABEL_COL_WIDTH.primary)}
-              placeholder="请输入英文地址"
-            />
-          </Col>
-        </Row>
+            {/* Row 4: 英文地址 */}
+            <Row gutter={[16, 12]} style={{ marginTop: 12 }}>
+              <Col span={24}>
+                <ProFormText
+                  name="addressEn"
+                  label="英文地址"
+                  labelCol={labelCol(LABEL_COL_WIDTH.primary)}
+                  placeholder="请输入英文地址"
+                  formItemProps={{ style: { marginBottom: 0 } }}
+                />
+              </Col>
+            </Row>
+          </>
+        ) : (
+          <Row gutter={[16, 12]} style={{ marginTop: 12 }}>
+            <Col span={24}>
+              <ProFormText
+                name="addressEn"
+                label="英文地址"
+                labelCol={labelCol(LABEL_COL_WIDTH.foreignPrimary)}
+                placeholder="请输入境外公司注册/办公详细英文地址，如 Suite 200, 100 Main St, Los Angeles, CA 90001, USA"
+                rules={[{ required: true, message: '请输入境外英文地址' }]}
+                formItemProps={{ style: { marginBottom: 0 } }}
+              />
+            </Col>
+          </Row>
+        )}
 
         {/* Row 5: 性质, 散客标识, 类型, 开发方式, 业务类型 */}
-        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 4 }}>
-          <Col xs={24} sm={12} md={3}>
+        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 12 }}>
+          <Col xs={24} sm={12} md={isForeignAgent ? 4 : 3}>
             <ProFormSelect
               name="nature"
               label="性质"
@@ -263,43 +312,52 @@ export default function BasicInfoSection({
               options={[
                 { label: '客户', value: '客户' },
                 { label: '供应商', value: '供应商' },
+                { label: '国外代理', value: '国外代理' },
               ]}
               initialValue={roleLabel}
               disabled
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          <Col xs={24} sm={12} md={4}>
-            <ProFormSwitch
-              name="isCasual"
-              label="单次合作 (散客)"
-              labelCol={labelCol(LABEL_COL_WIDTH.casual)}
-              checkedChildren="散客"
-              unCheckedChildren="正式"
-            />
-          </Col>
+          {!isForeignAgent && (
+            <Col xs={24} sm={12} md={4}>
+              <ProFormSwitch
+                name="isCasual"
+                label="单次合作 (散客)"
+                labelCol={labelCol(LABEL_COL_WIDTH.casual)}
+                checkedChildren="散客"
+                unCheckedChildren="正式"
+                formItemProps={{ style: { marginBottom: 0 } }}
+              />
+            </Col>
+          )}
 
-          <Col xs={24} sm={12} md={5}>
-            <ProFormCheckbox.Group
-              name="customerTypes"
-              label="类型"
-              labelCol={labelCol(LABEL_COL_WIDTH.customerType)}
-              options={CUSTOMER_TYPE_OPTIONS}
-              initialValue={[1]}
-            />
-          </Col>
+          {!isForeignAgent && (
+            <Col xs={24} sm={12} md={5}>
+              <ProFormCheckbox.Group
+                name="customerTypes"
+                label="类型"
+                labelCol={labelCol(LABEL_COL_WIDTH.customerType)}
+                options={CUSTOMER_TYPE_OPTIONS}
+                initialValue={[1]}
+                formItemProps={{ style: { marginBottom: 0 } }}
+              />
+            </Col>
+          )}
 
-          <Col xs={24} sm={12} md={5}>
+          <Col xs={24} sm={12} md={isForeignAgent ? 6 : 5}>
             <ProFormSelect
               name="developmentMethod"
               label="开发方式"
               labelCol={labelCol(LABEL_COL_WIDTH.development)}
               options={DEVELOPMENT_METHOD_OPTIONS}
               initialValue="自主开发"
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          <Col xs={24} md={7}>
+          <Col xs={24} sm={12} md={isForeignAgent ? 14 : 7}>
             <ProFormSelect
               name="businessTypes"
               label="业务类型"
@@ -308,6 +366,7 @@ export default function BasicInfoSection({
               options={BUSINESS_TYPE_OPTIONS}
               placeholder="请选择适用的业务类型"
               initialValue={[1]}
+              formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
         </Row>

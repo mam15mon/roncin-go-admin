@@ -275,6 +275,8 @@ export default function Partners() {
       width: 200,
       search: false,
       copyable: true,
+      hideInTable:
+        currentView.roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
       render: (code) =>
         code ? (
           <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{code}</Text>
@@ -362,8 +364,13 @@ export default function Partners() {
 
   return (
     <PageContainer
-      title={currentView.title}
-      subTitle={currentView.description}
+      title={false}
+      breadcrumbRender={false}
+      header={{
+        title: false,
+        breadcrumb: undefined,
+        style: { padding: 0 },
+      }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <SearchFilterTemplate
