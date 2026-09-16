@@ -74,4 +74,36 @@ describe('Partners 列表页', () => {
     const placeholders = screen.getAllByText('合作类型');
     expect(placeholders.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('国外代理列表页隐藏合作类型列与散客筛选', async () => {
+    routeState.pathname = '/partners/foreign-agents';
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'fa-1',
+          code: 'AGT-001',
+          legalName: 'Apex Global Logistics Ltd.',
+          enabled: true,
+          roles: [{ type: 3, enabled: true }],
+        },
+      ],
+      total: 1,
+    } as never);
+
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+
+    expect(
+      await screen.findByText('Apex Global Logistics Ltd.'),
+    ).toBeInTheDocument();
+
+    // 国外代理不应有合作类型表头与快捷筛选
+    expect(
+      screen.queryByRole('columnheader', { name: '合作类型' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('合作类型')).not.toBeInTheDocument();
+  });
 });

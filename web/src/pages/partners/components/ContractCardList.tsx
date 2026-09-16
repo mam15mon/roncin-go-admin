@@ -44,9 +44,13 @@ const contractStatusOptions = Object.entries(partnerContractStatusMeta).map(
 
 interface ContractCardListProps {
   partnerId?: string;
+  roleLabel?: string;
 }
 
-export default function ContractCardList({ partnerId }: ContractCardListProps) {
+export default function ContractCardList({
+  partnerId,
+  roleLabel,
+}: ContractCardListProps) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [contracts, setContracts] = useState<API.PartnerContract[]>([]);
@@ -75,7 +79,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
 
   const handleOpenAdd = () => {
     if (!partnerId) {
-      message.info('请先保存客户基本信息后再添加合同');
+      message.info(`请先保存${roleLabel || '企业'}基本信息后再添加合同`);
       return;
     }
     setEditingContract(undefined);
@@ -362,7 +366,9 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
 
       {/* Contract Modal */}
       <ModalForm
-        title={editingContract ? '编辑合同信息' : '添加客户合同'}
+        title={
+          editingContract ? '编辑合同信息' : `添加${roleLabel || '企业'}合同`
+        }
         open={modalOpen}
         form={form}
         onOpenChange={setModalOpen}

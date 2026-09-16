@@ -132,6 +132,10 @@ export default function BasicInfoSection({
   const isForeignAgent =
     roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT ||
     roleLabel === '国外代理';
+  const isSupplier =
+    roleType === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER ||
+    roleLabel === '供应商';
+  const isCustomer = !isForeignAgent && !isSupplier;
 
   return (
     <SectionCard
@@ -220,7 +224,9 @@ export default function BasicInfoSection({
               label="单位编码"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               placeholder={
-                isForeignAgent ? '选填，如 PAC-LAX' : '选填，仅用于搜索，如 CDRT'
+                isForeignAgent
+                  ? '选填，如 PAC-LAX'
+                  : '选填，仅用于搜索，如 CDRT'
               }
               rules={[
                 {
@@ -333,7 +339,7 @@ export default function BasicInfoSection({
             </Col>
           )}
 
-          {!isForeignAgent && (
+          {isCustomer && (
             <Col xs={24} sm={12} md={5}>
               <ProFormCheckbox.Group
                 name="customerTypes"
@@ -346,7 +352,7 @@ export default function BasicInfoSection({
             </Col>
           )}
 
-          <Col xs={24} sm={12} md={isForeignAgent ? 6 : 5}>
+          <Col xs={24} sm={12} md={isCustomer ? 5 : 8}>
             <ProFormSelect
               name="developmentMethod"
               label="开发方式"
@@ -357,7 +363,7 @@ export default function BasicInfoSection({
             />
           </Col>
 
-          <Col xs={24} sm={12} md={isForeignAgent ? 14 : 7}>
+          <Col xs={24} sm={12} md={isCustomer ? 9 : 16}>
             <ProFormSelect
               name="businessTypes"
               label="业务类型"
@@ -384,7 +390,14 @@ export default function BasicInfoSection({
           {/* Slot 1: 创建人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              label="创建人员"
+              label={
+                <Space size={4}>
+                  <span>创建人员</span>
+                  <Tooltip title="系统根据登录会话自动关联记录，不支持手动指定或修改">
+                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                  </Tooltip>
+                </Space>
+              }
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
@@ -392,22 +405,19 @@ export default function BasicInfoSection({
                 <Form.Item name="assignCreatorUser" noStyle>
                   <Select
                     showSearch
-                    placeholder="请选择"
+                    placeholder="系统自动记录"
                     options={userSelectOptions}
                     style={{ width: '50%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignCreatorUser', 'assignCreatorOrg', val)
-                    }
+                    disabled
                   />
                 </Form.Item>
                 <Form.Item name="assignCreatorOrg" noStyle>
                   <Select
                     showSearch
-                    placeholder="请选择"
+                    placeholder="系统自动记录"
                     options={orgSelectOptions}
                     style={{ width: '50%' }}
-                    allowClear
+                    disabled
                   />
                 </Form.Item>
               </Space.Compact>

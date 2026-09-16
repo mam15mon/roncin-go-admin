@@ -93,10 +93,12 @@ const PRESET_TYPE_MAP = new Map<number, (typeof PRESET_TYPES)[number]>(
 
 interface ShippingPresetSectionProps {
   partnerId?: string;
+  roleLabel?: string;
 }
 
 export default function ShippingPresetSection({
   partnerId,
+  roleLabel,
 }: ShippingPresetSectionProps) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
@@ -118,7 +120,7 @@ export default function ShippingPresetSection({
       const res = await partnerServiceListPartnerShippingPresets({ partnerId });
       setPresets(unwrapList(res));
     } catch {
-      message.error('加载单证常用信息失败');
+      message.error('加载单证预设失败');
     } finally {
       setLoading(false);
     }
@@ -130,7 +132,9 @@ export default function ShippingPresetSection({
 
   const handleOpenAdd = (type: number) => {
     if (!partnerId) {
-      message.info('请先保存客户基本信息后再添加常用单证预设');
+      message.info(
+        `请先保存${roleLabel || '企业'}基本信息后再添加常用单证预设`,
+      );
       return;
     }
     setCurrentType(type);

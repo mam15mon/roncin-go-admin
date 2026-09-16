@@ -436,6 +436,8 @@ export default function PartnerDetailPage() {
 
       const isForeign =
         roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
+      const isSupplier =
+        roleType === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER;
       const effectiveAddress = isForeign
         ? values.addressEn?.trim()
         : values.addressDetail?.trim();
@@ -451,7 +453,8 @@ export default function PartnerDetailPage() {
         addressDetail: effectiveAddress,
         nature: values.nature || roleLabel,
         developmentMethod: values.developmentMethod,
-        customerTypes: isForeign ? [] : values.customerTypes || [1],
+        customerTypes:
+          isForeign || isSupplier ? [] : values.customerTypes || [1],
         businessTypes: values.businessTypes || [1],
         remark: values.remark?.trim(),
       };
@@ -705,6 +708,7 @@ export default function PartnerDetailPage() {
             currencyOptions={currencyOptions}
             interestRule={interestRule}
             onOpenInterestModal={() => setInterestModalOpen(true)}
+            roleLabel={roleLabel}
           />
 
           {/* Section 3: 账户信息（依赖已保存档案，新建模式不展示） */}
@@ -757,7 +761,10 @@ export default function PartnerDetailPage() {
                 toggleSection('presets', collapsed)
               }
             >
-              <ShippingPresetSection partnerId={partnerId} />
+              <ShippingPresetSection
+                partnerId={partnerId}
+                roleLabel={roleLabel}
+              />
             </SectionCard>
           )}
 
@@ -774,23 +781,23 @@ export default function PartnerDetailPage() {
                 toggleSection('contracts', collapsed)
               }
             >
-              <ContractCardList partnerId={partnerId} />
+              <ContractCardList partnerId={partnerId} roleLabel={roleLabel} />
             </SectionCard>
           )}
 
-          {/* Section 7: 客户备注 */}
+          {/* Section 7: 备注 */}
           <SectionCard
             key="remark"
             id="section-remark"
             sectionKey="remark"
-            title="客户备注"
+            title={`${roleLabel}备注`}
             collapsible
             collapsed={!activeCollapseKeys.includes('remark')}
             onCollapseChange={(collapsed) => toggleSection('remark', collapsed)}
           >
             <ProFormTextArea
               name="remark"
-              placeholder="可以添加客户信息录入时的备注信息"
+              placeholder={`可以添加${roleLabel}信息录入时的备注信息`}
               fieldProps={{ rows: 3 }}
             />
           </SectionCard>
@@ -806,7 +813,7 @@ export default function PartnerDetailPage() {
               collapsed={!activeCollapseKeys.includes('logs')}
               onCollapseChange={(collapsed) => toggleSection('logs', collapsed)}
             >
-              <AuditLogSection partnerId={partnerId} />
+              <AuditLogSection partnerId={partnerId} roleLabel={roleLabel} />
             </SectionCard>
           )}
         </ProForm>
@@ -864,7 +871,7 @@ export default function PartnerDetailPage() {
             { key: 'contacts', title: '联系方式' },
             ...(partnerId ? [{ key: 'presets', title: '常用信息' }] : []),
             ...(partnerId ? [{ key: 'contracts', title: '合同管理' }] : []),
-            { key: 'remark', title: '客户备注' },
+            { key: 'remark', title: `${roleLabel}备注` },
             ...(partnerId ? [{ key: 'logs', title: '操作记录' }] : []),
           ]}
           onSelect={(key) => {

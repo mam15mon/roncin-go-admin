@@ -101,9 +101,13 @@ function renderDetailValue(key: string, value: any): React.ReactNode {
 
 interface AuditLogSectionProps {
   partnerId?: string;
+  roleLabel?: string;
 }
 
-export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
+export default function AuditLogSection({
+  partnerId,
+  roleLabel,
+}: AuditLogSectionProps) {
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<API.PartnerAuditLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -153,7 +157,7 @@ export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
     return (
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description="保存客户档案后将自动记录操作与修改日志"
+        description={`保存${roleLabel || '企业'}档案后将自动记录操作与修改日志`}
         style={{ padding: '16px 0' }}
       />
     );

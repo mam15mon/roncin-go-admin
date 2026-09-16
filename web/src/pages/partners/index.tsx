@@ -28,7 +28,6 @@ import React, { useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import {
-  partnerServiceExportPartners,
   partnerServiceImportPartners,
   partnerServiceListPartners,
   partnerServiceSetSupplierBlacklist,
@@ -138,10 +137,15 @@ export default function Partners() {
     setImportModalOpen(true);
   };
 
+  const isCustomerView =
+    currentView.roleType === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
+
   const handleExport = async () => {
     try {
       setExporting(true);
-      const response = await partnerServiceExportPartners({
+      const response = await partnerServiceListPartners({
+        page: 1,
+        pageSize: 200,
         role: currentView.roleType,
       });
       const data = unwrapList(response);
@@ -150,12 +154,12 @@ export default function Partners() {
         return;
       }
       const headers = [
-        'code',
-        'legal_name',
-        'unified_social_credit_code',
-        'registered_address',
-        'enabled',
-        'roles',
+        '单位编码',
+        '企业名称',
+        '统一社会信用代码',
+        '注册地址',
+        '启用状态',
+        '业务角色',
       ];
       const escapeCsvCell = (val: unknown): string => {
         if (val === null || val === undefined) return '';
@@ -170,13 +174,27 @@ export default function Partners() {
         }
         return str;
       };
+      const formatRolesForCsv = (roles?: API.PartnerRole[]): string => {
+        if (!roles || roles.length === 0) return '';
+        return roles
+          .map((r) => {
+            const label = roleLabels[r.type ?? 0] ?? '未知';
+            const statusSuffix = !r.enabled
+              ? '(停用)'
+              : r.blacklisted
+                ? '(黑名单)'
+                : '';
+            return `${label}${statusSuffix}`;
+          })
+          .join(';');
+      };
       const rows = data.map((item) => [
         escapeCsvCell(item.code ?? ''),
         escapeCsvCell(item.legalName ?? ''),
         escapeCsvCell(item.unifiedSocialCreditCode ?? ''),
         escapeCsvCell(item.registeredAddress ?? ''),
-        escapeCsvCell(item.enabled ?? false),
-        escapeCsvCell(item.roles ?? []),
+        escapeCsvCell(item.enabled ? '启用' : '停用'),
+        escapeCsvCell(formatRolesForCsv(item.roles)),
       ]);
       const csvContent =
         '\uFEFF' +
@@ -242,6 +260,7 @@ export default function Partners() {
       dataIndex: 'isCasual',
       width: 100,
       search: false,
+      hideInTable: !isCustomerView,
       render: (_, record) =>
         record.isCasual ? (
           <Tag color="warning">散客</Tag>
@@ -276,7 +295,8 @@ export default function Partners() {
       search: false,
       copyable: true,
       hideInTable:
-        currentView.roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
+        currentView.roleType ===
+        PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
       render: (code) =>
         code ? (
           <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{code}</Text>
@@ -323,34 +343,33 @@ export default function Partners() {
           >
             账户/合同
           </Button>
-          {access.canManagePartners && (
-            <>
+          {(access.canManagePartners || access.canUpdatePartners) && (
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              style={{ padding: 0 }}
+              onClick={() => openEdit(record)}
+            >
+              编辑
+            </Button>
+          )}
+          {(access.canManagePartners || access.canBlacklistPartners) &&
+            record.roles?.some(
+              (role) =>
+                role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+            ) && (
               <Button
                 type="link"
                 size="small"
-                icon={<EditOutlined />}
+                danger
+                icon={<StopOutlined />}
                 style={{ padding: 0 }}
-                onClick={() => openEdit(record)}
+                onClick={() => openBlacklist(record)}
               >
-                编辑
+                黑名单
               </Button>
-              {record.roles?.some(
-                (role) =>
-                  role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
-              ) && (
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<StopOutlined />}
-                  style={{ padding: 0 }}
-                  onClick={() => openBlacklist(record)}
-                >
-                  黑名单
-                </Button>
-              )}
-            </>
-          )}
+            )}
         </Space>
       ),
     },
@@ -386,15 +405,19 @@ export default function Partners() {
               { label: '停用', value: false },
             ],
           },
-          {
-            name: 'isCasual',
-            placeholder: '合作类型',
-            width: 120,
-            options: [
-              { label: '正式伙伴', value: false },
-              { label: '散客', value: true },
-            ],
-          },
+          ...(isCustomerView
+            ? [
+                {
+                  name: 'isCasual',
+                  placeholder: '合作类型',
+                  width: 120,
+                  options: [
+                    { label: '正式伙伴', value: false },
+                    { label: '散客', value: true },
+                  ],
+                },
+              ]
+            : []),
         ]}
         onSearch={(values) => {
           setSearchParams(values);
@@ -413,15 +436,17 @@ export default function Partners() {
             >
               刷新
             </Button>
-            <Button
-              key="export"
-              icon={<ExportOutlined />}
-              loading={exporting}
-              onClick={handleExport}
-            >
-              导出 CSV
-            </Button>
-            {access.canManagePartners && (
+            {(access.canManagePartners || access.canExportPartners) && (
+              <Button
+                key="export"
+                icon={<ExportOutlined />}
+                loading={exporting}
+                onClick={handleExport}
+              >
+                导出 CSV
+              </Button>
+            )}
+            {(access.canManagePartners || access.canImportPartners) && (
               <Button
                 key="import"
                 icon={<ImportOutlined />}
@@ -430,7 +455,7 @@ export default function Partners() {
                 导入数据
               </Button>
             )}
-            {access.canManagePartners && (
+            {(access.canManagePartners || access.canCreatePartners) && (
               <Button
                 key="create"
                 type="primary"

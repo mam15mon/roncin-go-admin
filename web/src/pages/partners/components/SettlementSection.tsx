@@ -93,6 +93,7 @@ type SettlementSectionProps = {
   currencyOptions: { label: string; value: string }[];
   interestRule: InterestRuleValues;
   onOpenInterestModal: () => void;
+  roleLabel?: string;
 };
 
 export default function SettlementSection({
@@ -101,7 +102,9 @@ export default function SettlementSection({
   currencyOptions,
   interestRule,
   onOpenInterestModal,
+  roleLabel,
 }: SettlementSectionProps) {
+  const isSupplier = roleLabel === '供应商';
   return (
     <SectionCard
       id="section-settlement"
@@ -212,39 +215,41 @@ export default function SettlementSection({
             </Form.Item>
           </Col>
 
-          {/* 信用额度(本币) */}
-          <Col xs={24} sm={12} md={6}>
-            <ProFormDigit
-              name="creditLimit"
-              label={
-                <Space size={4}>
-                  <span>信用额度(本币)</span>
-                  <Tooltip title="本币最大允许未核销应收账款额度">
-                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                  </Tooltip>
-                </Space>
-              }
-              labelCol={labelCol(LABEL_COL_WIDTH.credit)}
-              placeholder="输入信用额度"
-              min={0}
-              formItemProps={{ style: { marginBottom: 0 } }}
-              fieldProps={{
-                precision: 2,
-                addonAfter: '元',
-              }}
-            />
-          </Col>
+          {/* 信用额度(本币) - 仅客户适用（应收信用敞口管控） */}
+          {!isSupplier && (
+            <Col xs={24} sm={12} md={6}>
+              <ProFormDigit
+                name="creditLimit"
+                label={
+                  <Space size={4}>
+                    <span>信用额度(本币)</span>
+                    <Tooltip title="本币最大允许未核销应收账款额度">
+                      <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                    </Tooltip>
+                  </Space>
+                }
+                labelCol={labelCol(LABEL_COL_WIDTH.credit)}
+                placeholder="输入信用额度"
+                min={0}
+                formItemProps={{ style: { marginBottom: 0 } }}
+                fieldProps={{
+                  precision: 2,
+                  addonAfter: '元',
+                }}
+              />
+            </Col>
+          )}
         </Row>
 
         <Row gutter={[16, 12]} align="middle" style={{ marginTop: 12 }}>
           {/* 默认账期天数 */}
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={isSupplier ? 6 : 4}>
             <ProFormDigit
               name="paymentTermsDays"
               label={
                 <Space size={4}>
                   <span>默认账期(天)</span>
-                  <Tooltip title="应收账单创建时按该天数默认带出账期（账单日 + N 天），可调整；留空表示未配置">
+                  <Tooltip title="账单创建时按该天数默认带出账期（账单日 + N 天），可调整；留空表示未配置">
                     <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
                   </Tooltip>
                 </Space>
@@ -259,7 +264,7 @@ export default function SettlementSection({
           </Col>
 
           {/* 结算币种 */}
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={isSupplier ? 6 : 4}>
             <ProFormSelect
               name="settlementCurrency"
               label="结算币种"
@@ -270,24 +275,26 @@ export default function SettlementSection({
             />
           </Col>
 
-          {/* 利息规则 */}
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              label="利息规则"
-              labelCol={labelCol(LABEL_COL_WIDTH.date)}
-              style={{ marginBottom: 0 }}
-            >
-              <Button
-                type="link"
-                onClick={onOpenInterestModal}
-                style={{ padding: 0, fontWeight: 500 }}
+          {/* 利息规则 - 仅客户应收适用 */}
+          {!isSupplier && (
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item
+                label="利息规则"
+                labelCol={labelCol(LABEL_COL_WIDTH.date)}
+                style={{ marginBottom: 0 }}
               >
-                {interestRule.enabled
-                  ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
-                  : '编辑规则'}
-              </Button>
-            </Form.Item>
-          </Col>
+                <Button
+                  type="link"
+                  onClick={onOpenInterestModal}
+                  style={{ padding: 0, fontWeight: 500 }}
+                >
+                  {interestRule.enabled
+                    ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
+                    : '编辑规则'}
+                </Button>
+              </Form.Item>
+            </Col>
+          )}
         </Row>
       </div>
     </SectionCard>
