@@ -58,10 +58,10 @@
 - 数据库唯一键：
   - `sea_master_bills(organization_id, shipping_line_id, normalized_master_no)`。
   - `sea_master_bill_order_links(order_id) WHERE status = 'ACTIVE'`。
-  - 本公司 HBL：`(organization_id, issuer_organization_id, normalized_house_no)`，
-    条件为 `issuer_source = 'SELF_ORGANIZATION'`。
-  - 外部主体 HBL：`(organization_id, issuer_partner_id, normalized_house_no)`，条件为
-    `issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')`。
+  - HBL 批次唯一：`sea_house_bills(master_bill_id, normalized_house_no)`，**不过滤
+    状态**（作废行一并锁号，一号一案）。2026-09 全员分单制口径确立时，撤销了旧的
+    「组织+签发主体+号」两个全局部分唯一索引——分单号只在同一主单批次内排重，
+    跨批次（尤其外部主体分单号）允许合法复用。
 - `order_release_pods` 持有三个可空真实外键：`shipping_document_id`、
   `sea_master_bill_id`、`sea_house_bill_id`；CHECK
   `num_nonnulls(...) <= 1`，Sea MBL/HBL 外键删除策略均为 `NO ACTION`。
@@ -99,6 +99,17 @@
 - 结构互转只经模式切换命令完成（预览 + 执行，需外部确认与幂等键）：
   DIRECT→HOUSE 随切换提交唯一 HBL；HOUSE→DIRECT 将唯一活动 HBL 作废。
   不存在新增第二张 HBL、硬删除或回到 `UNDETERMINED` 的路径。
+- 共享主单批次规则（2026-09 全员分单制，业务确认）：
+  - 批次 = 同一 `SeaMasterBill` 上全部活动成员票。确认关联已有批次时，任一成员
+    为 `DIRECT` 即阻断加拼（直单票独占主单）；全 HOUSE 批次要求本单必须为
+    `HOUSE` 且分单号非空。
+  - 批次还有其他活动成员时，成员禁止经模式切换转 `DIRECT`；仅剩自己时允许。
+  - 分单号在批次内跨签发主体、含作废行唯一；**跨批次允许重号**（旧全局唯一索引
+    已撤销）。创建与模式切换在事务内按 `(master_bill_id, normalized_house_no)`
+    预查给出含冲突号的友好报错，唯一索引作并发兜底；拆票结果票按其目标主单
+    同口径校验。
+  - 前端新建页命中候选时自动携带候选确认（ID+版本）入批，并以候选响应的
+    `batch_normalized_house_nos` 做分单号即时排重提示；服务端事务内校验为权威。
 - HBL 签发主体无默认值：
   - `SELF_ORGANIZATION`：沿订单所属组织向上解析最近的 `company` 或
     `headquarters`，保存真实 Organization ID。系统不存在“一家公司下选择多个
@@ -149,7 +160,10 @@
 | HOUSE→DIRECT 缺外部确认、幂等键，或 HBL 预期版本/当前版本 ID 不一致 | 400/409 对应单证冲突错误，事务回滚 |
 | Link、MBL 或 HBL 预期版本不一致 | 409 `SEA_DOCUMENT_STRUCTURE_CONFLICT`、`SEA_MASTER_BILL_CONFLICT` 或 `SEA_HOUSE_BILL_CONFLICT` |
 | HBL 号为空或超过 128 个字符 | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |
-| 同一真实签发主体的规范化 HBL 号重复 | 409 `SEA_HOUSE_BILL_EXISTS`，由数据库唯一索引兜底 |
+| 同一批次内（跨签发主体、含作废行）规范化 HBL 号重复 | 409 `SEA_HOUSE_BILL_BATCH_NO_DUPLICATE`（事务内预查，含冲突号）；数据库批次唯一索引兜底时映射同错误；拆票结果票冲突映射 400 `SEA_ORDER_SPLIT_INVALID_ARGUMENT`（`HOUSE_BILL_DUPLICATE`） |
+| 确认关联的批次存在直单成员 | 409 `SEA_MASTER_BILL_BATCH_DIRECT_BLOCKED`（直单禁拼） |
+| 确认关联的全 HOUSE 批次但本单非 HOUSE 或分单号为空 | 400 `SEA_ORDER_BATCH_REQUIRES_HOUSE` |
+| 批次还有其他活动成员时成员模式切换转 DIRECT | 409 `SEA_DOCUMENT_BATCH_MEMBER_EXIT_BLOCKED` |
 | SELF/CUSTOMER 请求额外 Partner ID，或 OTHER 未选择 Partner | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |
 | SELF 无法解析到 company/headquarters | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT`，不得创建占位主体 |
 | 已有 CUSTOMER HBL 时修改订单客户 | 409 `ORDER_CUSTOMER_CHANGE_WITH_HOUSE_BILL_BLOCKED` |
@@ -187,8 +201,11 @@
 - Service/HTTP：请求 UUID、枚举和必填对象转换；可空 UUID 不输出全零 UUID；静态
   路由不能被 `/orders/{id}` 吞掉；错误 reason 可供前端稳定识别。
 - Data/PostgreSQL：创建/单成员更正后 Order、TE、MBL 的 ShippingLine 三方一致；共享 MBL 的 shipping line
-  修改被原子阻断；同船公司同号并发唯一、不同船公司同号可并存；一票第二条 ACTIVE
-  被部分唯一索引拒绝。
+  修改被原子阻断；同船公司同号并发唯一、不同船公司同号可并存；同一订单第二条
+  活动 HBL 被部分唯一索引拒绝。
+- Data/PostgreSQL：批次规则——命中全 HOUSE 批次自动入批与候选并发 409；含直单
+  成员批次阻断加拼；批次成员转直单按剩余成员阻断/放行；批次内排重（含作废行）
+  友好报错且跨批次重号放行；存量重号使迁移 fail-fast。
 - Data/PostgreSQL：新选/更换 ShippingLine 校验组织和启用状态；未更换的停用历史引用
   可保留；拆票/改配 CANDIDATE 在 Preview 与 Execute 均拒绝停用引用。
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
