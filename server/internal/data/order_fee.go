@@ -399,20 +399,23 @@ func feeSettingApplies(feeSetting *ent.FeeSetting, applicability *orderFeeApplic
 }
 
 func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderFee, audit *biz.AuditEvent) (*biz.OrderFee, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
-	party, err := r.settlementParty(ctx, organizationID, input.SettlementPartyID)
-	if err != nil {
-		return nil, err
-	}
-	if err := r.validateCurrency(ctx, input.Currency); err != nil {
-		return nil, err
-	}
 	var created *ent.OrderFee
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	var partyLegalName string
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
 			return lockErr
+		}
+		party, queryErr := tx.Partner.Query().Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderFeePartyInvalid, nil)
+		}
+		partyLegalName = party.LegalName
+		validCurrency, currencyErr := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx)
+		if currencyErr != nil {
+			return currencyErr
+		}
+		if !validCurrency {
+			return biz.ErrOrderFeeCurrencyInvalid
 		}
 		var createErr error
 		created, createErr = tx.OrderFee.Create().
@@ -455,7 +458,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
-	input.SettlementPartyName = party.LegalName
+	input.SettlementPartyName = partyLegalName
 	input.OrderID = orderID
 	input.CreatedAt = created.CreatedAt
 	input.UpdatedAt = created.UpdatedAt
@@ -463,9 +466,6 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 }
 
 func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
 	var item *ent.OrderFee
 	var activeLine *ent.FinanceBillLine
 	var activeBill *ent.FinanceBill
@@ -677,9 +677,6 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 }
 
 func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to biz.OrderFeeStatus, reason *string, audit *biz.AuditEvent) (*biz.OrderFee, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
 	var updated *ent.OrderFee
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
@@ -727,9 +724,6 @@ func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, 
 }
 
 func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) error {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return err
-	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
 			return lockErr

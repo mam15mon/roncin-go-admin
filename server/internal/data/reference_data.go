@@ -159,82 +159,102 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context, organizationID u
 }
 
 func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organizationID uuid.UUID, code string, enabled bool) (*biz.Currency, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	curr, err := client.Currency.Query().Where(currency.CodeEQ(code)).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrCurrencyNotFound
-		}
-		return nil, err
-	}
-
-	orgCtx, err := r.resolveOrgCurrencyContext(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	if orgCtx.isHeadquarters {
-		// 总部操作：切换全局币种启用状态
-		updated, err := client.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
+	var result *biz.Currency
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		curr, err := tx.Currency.Query().Where(currency.CodeEQ(code)).Only(ctx)
 		if err != nil {
-			return nil, err
+			if ent.IsNotFound(err) {
+				return biz.ErrCurrencyNotFound
+			}
+			return err
 		}
-		return &biz.Currency{
-			ID:             updated.ID,
-			Code:           updated.Code,
-			Name:           updated.Name,
-			Symbol:         updated.Symbol,
-			MinorUnit:      updated.MinorUnit,
-			Enabled:        updated.Enabled,
-			IsBaseCurrency: (updated.Code == orgCtx.baseCurrency),
-			CreatedAt:      updated.CreatedAt,
-			UpdatedAt:      updated.UpdatedAt,
-		}, nil
-	}
 
-	// 分公司操作：
-	// 校验：本位币绝对不可禁用
-	if !enabled && code == orgCtx.baseCurrency {
-		return nil, biz.ErrCurrencyBaseCannotBeDisabled
-	}
+		orgCtx, err := r.resolveOrgCurrencyContext(ctx, organizationID)
+		if err != nil {
+			return err
+		}
 
-	currentMap := make(map[string]bool)
-	for _, c := range orgCtx.enabledCurrencies {
-		currentMap[strings.ToUpper(c)] = true
-	}
-	currentMap[orgCtx.baseCurrency] = true
+		if orgCtx.isHeadquarters {
+			// 总部操作：锁定并切换全局币种启用状态
+			lockedCurr, queryErr := tx.Currency.Query().Where(currency.IDEQ(curr.ID)).ForUpdate().Only(ctx)
+			if queryErr != nil {
+				return queryErr
+			}
+			updated, saveErr := tx.Currency.UpdateOneID(lockedCurr.ID).SetEnabled(enabled).Save(ctx)
+			if saveErr != nil {
+				return saveErr
+			}
+			result = &biz.Currency{
+				ID:             updated.ID,
+				Code:           updated.Code,
+				Name:           updated.Name,
+				Symbol:         updated.Symbol,
+				MinorUnit:      updated.MinorUnit,
+				Enabled:        updated.Enabled,
+				IsBaseCurrency: (updated.Code == orgCtx.baseCurrency),
+				CreatedAt:      updated.CreatedAt,
+				UpdatedAt:      updated.UpdatedAt,
+			}
+			return nil
+		}
 
-	if enabled {
-		currentMap[code] = true
-	} else {
-		delete(currentMap, code)
-	}
-	currentMap[orgCtx.baseCurrency] = true
+		// 分公司操作：
+		// 校验：本位币绝对不可禁用
+		if !enabled && code == orgCtx.baseCurrency {
+			return biz.ErrCurrencyBaseCannotBeDisabled
+		}
 
-	newCurrencies := make([]string, 0, len(currentMap))
-	for k := range currentMap {
-		newCurrencies = append(newCurrencies, k)
-	}
-	sort.Strings(newCurrencies)
+		// 锁定分公司组织行，消除并发修改 enabled_currencies 时的读-改-写竞态
+		lockedOrg, orgErr := tx.Organization.Query().Where(organizationent.IDEQ(orgCtx.orgID)).ForUpdate().Only(ctx)
+		if orgErr != nil {
+			return orgErr
+		}
 
-	if err := client.Organization.UpdateOneID(orgCtx.orgID).SetEnabledCurrencies(newCurrencies).Exec(ctx); err != nil {
+		currentCurrencies := lockedOrg.EnabledCurrencies
+		if len(currentCurrencies) == 0 {
+			currentCurrencies = defaultCompanyEnabledCurrencies(orgCtx.baseCurrency)
+		}
+
+		currentMap := make(map[string]bool)
+		for _, c := range currentCurrencies {
+			currentMap[strings.ToUpper(c)] = true
+		}
+		currentMap[orgCtx.baseCurrency] = true
+
+		if enabled {
+			currentMap[code] = true
+		} else {
+			delete(currentMap, code)
+		}
+		currentMap[orgCtx.baseCurrency] = true
+
+		newCurrencies := make([]string, 0, len(currentMap))
+		for k := range currentMap {
+			newCurrencies = append(newCurrencies, k)
+		}
+		sort.Strings(newCurrencies)
+
+		if err := tx.Organization.UpdateOneID(lockedOrg.ID).SetEnabledCurrencies(newCurrencies).Exec(ctx); err != nil {
+			return err
+		}
+
+		result = &biz.Currency{
+			ID:             curr.ID,
+			Code:           curr.Code,
+			Name:           curr.Name,
+			Symbol:         curr.Symbol,
+			MinorUnit:      curr.MinorUnit,
+			Enabled:        enabled,
+			IsBaseCurrency: (curr.Code == orgCtx.baseCurrency),
+			CreatedAt:      curr.CreatedAt,
+			UpdatedAt:      time.Now(),
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
-
-	return &biz.Currency{
-		ID:             curr.ID,
-		Code:           curr.Code,
-		Name:           curr.Name,
-		Symbol:         curr.Symbol,
-		MinorUnit:      curr.MinorUnit,
-		Enabled:        enabled,
-		IsBaseCurrency: (curr.Code == orgCtx.baseCurrency),
-		CreatedAt:      curr.CreatedAt,
-		UpdatedAt:      time.Now(),
-	}, nil
+	return result, nil
 }
 
 func (r *referenceDataRepo) SearchCurrencies(ctx context.Context, options biz.SelectorListOptions) (*biz.PagedList[*biz.Currency], error) {
