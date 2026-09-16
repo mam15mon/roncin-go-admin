@@ -38,8 +38,11 @@ RequireBaselineWrite(ctx, principal)          // B 型 NULL 基线行写入
 - **写入**：A 型与 B 型 NULL 行仅总部（拦截器双校验）；B 型 org 行仅归属组织（不可迁移
   归属）；C 型归归属组织。前端按钮经 `access.isHeadquartersOrganization` × 权限码组合
   门控，与服务端同源，页面不写第二套规则。
-- **主数据读路径禁止** `resolveHeadquartersOrganizationID`（该函数仅存于写路径组织身份
-  判定，收敛在 `data/organization_currency.go`）。
+- **主数据读路径禁止** `resolveHeadquartersOrganizationID`。该函数的合法用度只有两类：
+  写路径组织身份判定（`data/organization_currency.go`），以及解析**总部单例策略**的归属
+  组织（`data/finance_custom_setting.go` 的已计费费用编辑管控/信用额度管控、
+  `data/order_fee.go` 的已计费账单锁定校验——这些配置业务上即总部拥有，解析到总部是
+  归属语义而非主数据共享语义）。新增调用点前先确认属于这两类，否则用 B 型谓词工厂。
 - 汇率特例（B 型）：`effective_from` 即当周周一，周窗口由服务端派生；`ar_rate`/`ap_rate`
   按费用收支方向取值；解析顺序 当周 org 行→回溯最近历史周（INHERITED_LAST_WEEK）→NULL
   基线直连/套算→MANUAL，不阻断单据；跨组织资金流按原币记账，不做系统折算。
