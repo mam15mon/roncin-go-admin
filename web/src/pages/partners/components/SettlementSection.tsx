@@ -70,6 +70,9 @@ export const SETTLEMENT_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
   value: i + 1,
 }));
 
+// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐
+const labelCol = (width: number) => ({ style: { width } });
+
 type SettlementSectionProps = {
   collapsed: boolean;
   onCollapseChange: (collapsed: boolean) => void;
@@ -101,6 +104,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="statementMode"
               label="对账方式"
+              labelCol={labelCol(132)}
               options={STATEMENT_MODE_OPTIONS}
               rules={[{ required: true, message: '请选择对账方式' }]}
             />
@@ -111,6 +115,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="settlementMethod"
               label="结算方式"
+              labelCol={labelCol(88)}
               options={SETTLEMENT_METHOD_OPTIONS}
               rules={[{ required: true, message: '请选择结算方式' }]}
             />
@@ -127,6 +132,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
+              labelCol={labelCol(88)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -168,6 +174,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
+              labelCol={labelCol(56)}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -201,6 +208,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
+              labelCol={labelCol(118)}
               placeholder="输入信用额度"
               min={0}
               fieldProps={{
@@ -224,6 +232,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
+              labelCol={labelCol(132)}
               placeholder="例如: 30"
               min={0}
               max={3650}
@@ -236,6 +245,7 @@ export default function SettlementSection({
             <ProFormSelect
               name="settlementCurrency"
               label="结算币种"
+              labelCol={labelCol(88)}
               options={currencyOptions}
               rules={[{ required: true, message: '请选择结算币种' }]}
             />
@@ -243,7 +253,11 @@ export default function SettlementSection({
 
           {/* 利息规则 */}
           <Col xs={24} sm={12} md={6}>
-            <Form.Item label="利息规则" style={{ marginBottom: 0 }}>
+            <Form.Item
+              label="利息规则"
+              labelCol={labelCol(88)}
+              style={{ marginBottom: 0 }}
+            >
               <Button
                 type="link"
                 onClick={onOpenInterestModal}
