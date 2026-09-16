@@ -56,13 +56,11 @@ export const SectionCard: React.FC<SectionCardProps> = ({
           flexShrink: 0,
         }}
       />
-      <Text strong style={{ fontSize: 14, color: 'rgba(0, 0, 0, 0.88)' }}>
+      <Text strong style={{ fontSize: 13.5, color: '#0f172a' }}>
         {title}
       </Text>
       {collapsible && (
-        <span
-          style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', marginLeft: 2 }}
-        >
+        <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 2 }}>
           {isCollapsed ? <RightOutlined /> : <DownOutlined />}
         </span>
       )}
@@ -88,16 +86,17 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         width: '100%',
         marginBottom: 12,
         backgroundColor: '#ffffff',
-        borderRadius: 6,
-        border: '1px solid #f0f0f0',
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        borderRadius: 8,
+        border: '1px solid #e2e8f0',
+        boxShadow:
+          '0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02)',
         ...style,
       }}
       styles={{
         header: {
           padding: '10px 14px',
           minHeight: 40,
-          borderBottom: isCollapsed ? 'none' : '1px solid #f0f0f0',
+          borderBottom: isCollapsed ? 'none' : '1px solid #f1f5f9',
         },
         body: {
           padding: '14px 16px',

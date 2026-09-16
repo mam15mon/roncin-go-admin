@@ -20,8 +20,8 @@ export const StickyFooterBar: React.FC<StickyFooterBarProps> = ({
         justifyContent: info ? 'space-between' : 'center',
         padding: '10px 24px',
         backgroundColor: '#ffffff',
-        borderTop: '1px solid #f0f0f0',
-        boxShadow: '0 -2px 8px 0 rgba(0, 0, 0, 0.04)',
+        borderTop: '1px solid #e2e8f0',
+        boxShadow: '0 -1px 4px 0 rgba(0, 0, 0, 0.03)',
         marginTop: 16,
         ...style,
       }}

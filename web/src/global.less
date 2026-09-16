@@ -621,8 +621,8 @@ body,
   top: 48px;
   z-index: 19;
   height: 36px;
-  background: #f1f3f4;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   padding: 0 8px;
@@ -657,12 +657,12 @@ body,
   max-width: 220px;
   border-radius: 6px;
   background: transparent;
-  color: rgba(0, 0, 0, 0.7);
+  color: #64748b;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   .roncin-chrome-tab-icon {
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.5);
+    color: #94a3b8;
     flex-shrink: 0;
     margin-right: 6px;
     transition: color 0.15s ease;
@@ -685,7 +685,7 @@ body,
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    color: rgba(0, 0, 0, 0.45);
+    color: #94a3b8;
     background: transparent;
     border: none;
     padding: 0;
@@ -697,7 +697,7 @@ body,
 
     &:hover {
       background: rgba(0, 0, 0, 0.08);
-      color: rgba(0, 0, 0, 0.88);
+      color: #0f172a;
     }
   }
 
@@ -709,17 +709,17 @@ body,
     transform: translateY(-50%);
     width: 1px;
     height: 12px;
-    background: rgba(0, 0, 0, 0.12);
+    background: #e2e8f0;
     transition: opacity 0.15s ease;
   }
 
   // 悬浮状态（未激活）
   &:hover:not(.roncin-chrome-tab-active) {
-    background: rgba(0, 0, 0, 0.06);
-    color: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
 
     .roncin-chrome-tab-icon {
-      color: rgba(0, 0, 0, 0.75);
+      color: #475569;
     }
 
     .roncin-chrome-tab-divider {
@@ -727,19 +727,20 @@ body,
     }
   }
 
-  // 激活状态（真实 Chrome 纯白圆角浮动卡片）
+  // 激活状态（现代纯白圆角浮动卡片）
   &-active {
     background: #ffffff !important;
     color: #1677ff !important;
-    font-weight: 500 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
 
     .roncin-chrome-tab-icon {
       color: #1677ff !important;
     }
 
     .roncin-chrome-tab-title {
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .roncin-chrome-tab-divider {
@@ -800,11 +801,11 @@ body,
 // PageHeaderShell 单行纯白高密度吸顶页头：面包屑与标题合并为一行，标题为末级
 .roncin-page-header-shell {
   background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #e2e8f0;
   margin-bottom: 12px;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  padding: 6px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  padding: 8px 16px;
 
   .roncin-page-header-main-row {
     display: flex;
@@ -955,26 +956,26 @@ body,
 
 // Card 紧凑高密度与清晰边框
 .ant-card {
-  border: 1px solid #f0f0f0 !important;
-  border-radius: 6px !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02) !important;
   background: #ffffff !important;
 
   .ant-card-head {
-    min-height: 38px !important;
-    padding: 0 12px !important;
-    border-bottom: 1px solid #f0f0f0 !important;
+    min-height: 40px !important;
+    padding: 0 14px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
     font-size: 13px !important;
     font-weight: 600 !important;
-    color: rgba(0, 0, 0, 0.88) !important;
+    color: #0f172a !important;
 
     .ant-card-head-title {
-      padding: 8px 0 !important;
+      padding: 9px 0 !important;
     }
   }
 
   .ant-card-body {
-    padding: 12px !important;
+    padding: 14px 16px !important;
   }
 }
 
@@ -983,10 +984,11 @@ body,
   // 搜索卡片
   .ant-pro-table-search {
     margin-bottom: 8px !important;
-    border: 1px solid #f0f0f0 !important;
-    border-radius: 6px !important;
-    padding: 10px 12px 2px 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px 14px 2px 14px !important;
     background: #ffffff !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02) !important;
 
     .ant-form-item {
       margin-bottom: 8px !important;
@@ -1001,27 +1003,28 @@ body,
     .ant-pro-table-list-toolbar-title {
       font-size: 14px !important;
       font-weight: 600 !important;
-      color: rgba(0, 0, 0, 0.88) !important;
+      color: #0f172a !important;
     }
   }
 }
 
-// Table 浅灰表头与自适应多档密度支持（紧凑 / 中等 / 默认）
+// Table 浅灰 Slate 表头与自适应多档密度支持（紧凑 / 中等 / 默认）
 .ant-table-wrapper {
   .ant-table {
-    border: 1px solid #f0f0f0 !important;
-    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
     overflow: hidden;
 
     .ant-table-header .ant-table-thead > tr > th,
     .ant-table-content .ant-table-thead > tr > th {
-      background: #fafafa !important;
-      color: rgba(0, 0, 0, 0.88) !important;
+      background: #f8fafc !important;
+      color: #475569 !important;
       font-weight: 600 !important;
       font-size: 12px !important;
-      border-bottom: 1px solid #f0f0f0 !important;
+      border-bottom: 1px solid #e2e8f0 !important;
       white-space: nowrap !important;
       line-height: 1.3 !important;
+      letter-spacing: 0.15px;
 
       &::before {
         display: none !important;
@@ -1030,16 +1033,21 @@ body,
 
     .ant-table-tbody > tr > td {
       font-size: 13px !important;
-      border-bottom: 1px solid #f0f0f0 !important;
-      color: rgba(0, 0, 0, 0.88);
+      border-bottom: 1px solid #f1f5f9 !important;
+      color: #0f172a !important;
       white-space: nowrap !important;
       line-height: 1.3 !important;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: background-color 0.15s ease;
     }
 
     .ant-table-tbody > tr:hover > td {
-      background: #f5f5f5 !important;
+      background: #f8fafc !important;
+    }
+
+    .ant-table-tbody > tr.ant-table-row-selected > td {
+      background: #eff6ff !important;
     }
   }
 
@@ -1092,54 +1100,202 @@ body,
   }
 }
 
-// 表单与控件
+// ----------------------------------------
+// 全局高级按钮质感体系（微阴影 + 内高光 + 现代字重）
+// ----------------------------------------
+.ant-btn {
+  font-weight: 500;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  // 主按钮：轻微微质感内高光，告别单薄大蓝块
+  &.ant-btn-primary:not(:disabled):not(.ant-btn-dangerous) {
+    box-shadow: 0 1px 2px 0 rgba(22, 119, 255, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.18) !important;
+
+    &:hover {
+      background: #2563eb !important;
+      border-color: #2563eb !important;
+      box-shadow: 0 2px 4px 0 rgba(22, 119, 255, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+    }
+
+    &:active {
+      background: #1d4ed8 !important;
+      border-color: #1d4ed8 !important;
+      transform: translateY(0.5px);
+    }
+  }
+
+  // 次级/默认按钮：纯净白底 + Slate-200 极细边框 + 微微下沉阴影
+  &.ant-btn-default:not(:disabled):not(.ant-btn-dangerous) {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+
+    &:hover {
+      background: #f8fafc !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+
+    &:active {
+      background: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+      transform: translateY(0.5px);
+    }
+  }
+
+  // 危险按钮：克制优雅红，无过激刺眼大红底
+  &.ant-btn-dangerous.ant-btn-primary:not(:disabled) {
+    box-shadow: 0 1px 2px 0 rgba(239, 68, 68, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.18) !important;
+  }
+}
+
+// ----------------------------------------
+// 表单与现代输入控件（现代精致外环 Ring + 极细 Slate 边框）
+// ----------------------------------------
 .ant-form {
   .ant-form-item {
     margin-bottom: 12px;
 
     .ant-form-item-label > label {
       font-size: 13px;
-      color: rgba(0, 0, 0, 0.88);
+      color: #334155;
       font-weight: 500;
     }
   }
 }
 
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-color: #e2e8f0 !important;
+  border-radius: 6px !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
+
+  &:hover {
+    border-color: #cbd5e1 !important;
+  }
+
+  &:focus,
+  &.ant-input-focused,
+  &.ant-select-focused .ant-select-selector,
+  &.ant-picker-focused {
+    border-color: #1677ff !important;
+    box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12) !important;
+  }
+
+  &::placeholder {
+    color: #94a3b8 !important;
+  }
+}
+
+// ----------------------------------------
+// 全局现代软质标签（Soft Badges / Tags）
+// 告别传统 1px 生硬亮框，采用 Linear / Stripe 级低饱和胶囊色调
+// ----------------------------------------
+.ant-tag {
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+  padding: 1px 8px !important;
+  margin-inline-end: 6px !important;
+
+  // 蓝色 / 进行中 / 默认预设
+  &.ant-tag-blue,
+  &.ant-tag-processing {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #dbeafe !important;
+  }
+
+  // 绿色 / 成功 / 已完成
+  &.ant-tag-green,
+  &.ant-tag-success {
+    background: #ecfdf5 !important;
+    color: #047857 !important;
+    border-color: #d1fae5 !important;
+  }
+
+  // 红色 / 异常 / 拒绝
+  &.ant-tag-red,
+  &.ant-tag-error {
+    background: #fef2f2 !important;
+    color: #b91c1c !important;
+    border-color: #fee2e2 !important;
+  }
+
+  // 橙黄色 / 待办 / 警告
+  &.ant-tag-orange,
+  &.ant-tag-warning,
+  &.ant-tag-gold {
+    background: #fffbeb !important;
+    color: #b45309 !important;
+    border-color: #fef3c7 !important;
+  }
+
+  // 紫色 / 极客蓝
+  &.ant-tag-purple,
+  &.ant-tag-geekblue {
+    background: #f5f3ff !important;
+    color: #6d28d9 !important;
+    border-color: #ede9fe !important;
+  }
+
+  // 青色 / Cyan
+  &.ant-tag-cyan {
+    background: #ecfeff !important;
+    color: #0e7490 !important;
+    border-color: #cffafe !important;
+  }
+
+  // 默认 / 浅灰 / 草稿 / 待生效
+  &:not([class*='ant-tag-']):not(.ant-tag-checkable) {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+  }
+}
+
 // Modal / Drawer 克制圆角与清晰边框
 .ant-modal-content {
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   padding: 16px !important;
-  border: 1px solid #f0f0f0 !important;
-  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
 
   .ant-modal-header {
     margin-bottom: 12px !important;
     padding-bottom: 10px !important;
-    border-bottom: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
 
     .ant-modal-title {
       font-size: 15px !important;
       font-weight: 600 !important;
-      color: rgba(0, 0, 0, 0.88) !important;
+      color: #0f172a !important;
     }
   }
 
   .ant-modal-footer {
     margin-top: 12px !important;
     padding-top: 10px !important;
-    border-top: 1px solid #f0f0f0 !important;
+    border-top: 1px solid #f1f5f9 !important;
   }
 }
 
 .ant-drawer-content {
   .ant-drawer-header {
     padding: 12px 16px !important;
-    border-bottom: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
 
     .ant-drawer-title {
       font-size: 15px !important;
       font-weight: 600 !important;
-      color: rgba(0, 0, 0, 0.88) !important;
+      color: #0f172a !important;
     }
   }
 
