@@ -675,6 +675,103 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'purple',
     objectType: '财务设置',
   },
+
+  'enterprise_resource.create': {
+    title: '新增企业资源',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.update': {
+    title: '修改企业资源',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.delete': {
+    title: '删除企业资源',
+    category: '企业资源',
+    color: 'volcano',
+    objectType: '企业资源',
+  },
+  'enterprise_tag.create': {
+    title: '新增企业标签',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业标签',
+  },
+  'enterprise_tag.update': {
+    title: '修改企业标签',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业标签',
+  },
+  'enterprise_tag.delete': {
+    title: '删除企业标签',
+    category: '企业资源',
+    color: 'volcano',
+    objectType: '企业标签',
+  },
+  'enterprise_tag_group.create': {
+    title: '创建标签组',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '标签组',
+  },
+  'enterprise_tag_group.update': {
+    title: '修改标签组',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '标签组',
+  },
+  'enterprise_tag_group.delete': {
+    title: '删除标签组',
+    category: '企业资源',
+    color: 'volcano',
+    objectType: '标签组',
+  },
+  'enterprise_resource.partner.batch_link': {
+    title: '批量关联企业',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.partner.batch_unlink': {
+    title: '批量解除企业关联',
+    category: '企业资源',
+    color: 'orange',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.address_type.batch_assign': {
+    title: '批量分配地址类型',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.address_type.batch_remove': {
+    title: '批量移除地址类型',
+    category: '企业资源',
+    color: 'orange',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.assignee.batch_assign': {
+    title: '批量关联人员',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.assignee.batch_remove': {
+    title: '批量移除人员',
+    category: '企业资源',
+    color: 'orange',
+    objectType: '企业资源',
+  },
+  'enterprise_resource.import': {
+    title: '批量导入企业资源',
+    category: '企业资源',
+    color: 'cyan',
+    objectType: '企业资源',
+  },
 };
 
 const resourceTypeLabels: Record<string, string> = {
@@ -683,24 +780,123 @@ const resourceTypeLabels: Record<string, string> = {
   role: '角色',
   order: '订单',
   partner: '往来单位',
+  enterprise_resource: '企业资源',
   background_task: '后台任务',
 };
 
 const detailLabels: Record<string, string> = {
+  // 订单类
   'order.no': '订单编号',
+  'fee.code': '费用编号',
+
+  // 往来单位类
   'partner.code': '单位编号',
+  'partner.id': '单位 ID',
+  'account.id': '账户 ID',
+  'contract.id': '合同 ID',
+  'profile.id': '开票资料 ID',
+  'rule.id': '规则 ID',
+  'preset.id': '预设 ID',
+  legal_name: '单位名称',
+  roles: '身份角色',
+  to_roles: '变更后角色',
+  roles_added: '新增角色',
+  roles_removed: '移除角色',
+  blacklisted: '黑名单状态',
+  is_casual: '客户类型',
+  registered_address: '注册地址',
+  unified_social_credit_code: '统一社会信用代码',
+  contact_name: '联系人',
+  contact_phone: '联系电话',
+  phone: '电话',
+  email: '邮箱',
+  bank_name: '开户银行',
+  bank_account: '银行账号',
+  account_name: '账户名称',
+  currency: '币种',
+  contract_no: '合同编号',
+  contract_name: '合同名称',
+
+  // 企业资源类
+  short_name: '简称/名称',
+  company_name: '企业名称',
+  business_code: '企业代码',
+  address: '地址',
+  address_detail: '详细地址',
+  country_code: '国家代码',
+  tax_identifier: '税号',
+  aeo_code: 'AEO代码',
+  remark_type: '备注类型',
+  address_types: '地址类型',
+  assignee_ids: '关联人员',
+  partner_ids: '关联企业',
+  'resource.ids': '资源列表',
+  'partner.ids': '企业列表',
+
+  // 通用字段
   'master_data.code': '资料编号',
   'master_data.kind': '资料类型',
-  'fee.code': '费用编号',
   standard_code: '业务代码',
   resource_id: '业务对象 ID',
   role_id: '角色 ID',
   organization_id: '企业 ID',
   kind: '资料类型',
   code: '业务编号',
+  name: '名称',
   status: '状态',
-  reason: '原因',
+  reason: '原因说明',
+  enabled: '启用状态',
+  sort_order: '排序',
+  mode: '模式',
+  file_name: '文件名',
+  file_size: '文件大小',
+  mime_type: '文件类型',
+  count: '数量',
+  created_count: '新增数量',
+  updated_count: '更新数量',
+  conflict_count: '冲突数量',
 };
+
+export const partnerRoleLabels: Record<string, string> = {
+  customer: '客户',
+  supplier: '供应商',
+  shipping_line: '船公司',
+  booking_agent: '订舱代理',
+  foreign_agent: '国外代理',
+  customs_broker: '报关行',
+  trucking_company: '拖车公司',
+  warehouse: '仓库',
+};
+
+export type RoleBadge = {
+  key: string;
+  label: string;
+  enabled: boolean;
+};
+
+export function parseRoleBadges(rolesStr?: string): RoleBadge[] {
+  if (!rolesStr || typeof rolesStr !== 'string') return [];
+  return rolesStr
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [roleKey, enabledStr] = item.split(':');
+      const enabled = enabledStr !== 'false';
+      return {
+        key: roleKey,
+        label: partnerRoleLabels[roleKey] || roleKey,
+        enabled,
+      };
+    });
+}
+
+const technicalKeyPattern =
+  /(^id$|[._]id$|ID$|^trace_?id$|^request_?id$|^user_?id$|^org_?id$|^organization_?id$|^resource\.ids$|^partner\.ids$)/i;
+
+export function isTechnicalAuditKey(key: string): boolean {
+  return technicalKeyPattern.test(key);
+}
 
 export function auditActionPresentation(
   action?: string,

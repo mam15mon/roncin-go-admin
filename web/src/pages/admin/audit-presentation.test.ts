@@ -3,6 +3,8 @@ import {
   auditActionPresentation,
   auditActorName,
   auditBusinessObject,
+  isTechnicalAuditKey,
+  parseRoleBadges,
 } from './audit-presentation';
 
 describe('审计日志业务化展示', () => {
@@ -51,5 +53,38 @@ describe('审计日志业务化展示', () => {
       category: '其他',
       color: 'default',
     });
+  });
+
+  it('正确识别企业资源相关操作', () => {
+    const create = auditActionPresentation('enterprise_resource.create');
+    expect(create.title).toBe('新增企业资源');
+    expect(create.category).toBe('企业资源');
+
+    const link = auditActionPresentation(
+      'enterprise_resource.partner.batch_link',
+    );
+    expect(link.title).toBe('批量关联企业');
+    expect(link.category).toBe('企业资源');
+
+    const tagGroup = auditActionPresentation('enterprise_tag_group.create');
+    expect(tagGroup.title).toBe('创建标签组');
+  });
+
+  it('正确解析客商身份角色与技术字段', () => {
+    const badges = parseRoleBadges(
+      'customer:true,supplier:true,foreign_agent:false',
+    );
+    expect(badges).toEqual([
+      { key: 'customer', label: '客户', enabled: true },
+      { key: 'supplier', label: '供应商', enabled: true },
+      { key: 'foreign_agent', label: '国外代理', enabled: false },
+    ]);
+
+    expect(isTechnicalAuditKey('partner.id')).toBe(true);
+    expect(isTechnicalAuditKey('resource_id')).toBe(true);
+    expect(isTechnicalAuditKey('trace_id')).toBe(true);
+    expect(isTechnicalAuditKey('legal_name')).toBe(false);
+    expect(isTechnicalAuditKey('partner.code')).toBe(false);
+    expect(isTechnicalAuditKey('roles')).toBe(false);
   });
 });
