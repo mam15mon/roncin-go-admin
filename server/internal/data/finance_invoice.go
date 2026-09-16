@@ -264,7 +264,8 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 		for _, link := range invoice.Links {
 			ids = append(ids, link.BillID)
 		}
-		bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(invoice.OrganizationID)).ForUpdate().All(ctx)
+		// 锁序与 lockAndReleaseInvoiceActiveBills 保持一致：账单多行锁定必须按 ID 升序，防止并发开票交叉死锁。
+		bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(invoice.OrganizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
