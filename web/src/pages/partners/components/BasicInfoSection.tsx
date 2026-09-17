@@ -300,7 +300,6 @@ export default function BasicInfoSection({
                 label="英文地址"
                 labelCol={labelCol(LABEL_COL_WIDTH.foreignPrimary)}
                 placeholder="请输入境外公司注册/办公详细英文地址，如 Suite 200, 100 Main St, Los Angeles, CA 90001, USA"
-                rules={[{ required: true, message: '请输入境外英文地址' }]}
                 formItemProps={{ style: { marginBottom: 0 } }}
               />
             </Col>
