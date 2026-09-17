@@ -31,8 +31,6 @@ describe('buildSeaExportCreateDefaults', () => {
   const creator = {
     userId: 'user-1',
     displayName: '张三',
-    organizationId: 'org-1',
-    organizationName: '总公司',
   };
 
   it('按传统货代口径生成默认运输、贸易条款与推荐服务', () => {
@@ -82,21 +80,19 @@ describe('buildSeaExportCreateDefaults', () => {
     expect(none.cargoCategoryIds).toBeUndefined();
   });
 
-  it('回填当前创建人及其组织；缺少创建人时保持 undefined', () => {
+  it('回填当前创建人；缺少创建人时保持 undefined', () => {
     const withCreator = buildSeaExportCreateDefaults({
       creator,
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
     });
     expect(withCreator.creatorUserId).toBe('user-1');
-    expect(withCreator.creatorOrganizationId).toBe('org-1');
 
     const withoutCreator = buildSeaExportCreateDefaults({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
     });
     expect(withoutCreator.creatorUserId).toBeUndefined();
-    expect(withoutCreator.creatorOrganizationId).toBeUndefined();
   });
 });
 
@@ -112,19 +108,12 @@ describe('buildSeaExportCreatePayload', () => {
       cargoReadyAt: dayjs('2026-08-29T01:00:00.000Z'),
       orderDate: '2026-08-29T02:00:00.000Z',
       operatorUserId: 'operator-1',
-      operatorOrganizationId: 'org-1',
       salesUserId: 'sales-1',
-      salesOrganizationId: 'org-2',
       customerServiceUserId: 'service-1',
-      customerServiceOrganizationId: 'org-3',
       associateUserId: 'associate-1',
-      associateOrganizationId: 'org-4',
       documentUserId: 'document-1',
-      documentOrganizationId: 'org-5',
       commercialUserId: 'commercial-1',
-      commercialOrganizationId: 'org-6',
       associate2UserId: 'associate-2',
-      associate2OrganizationId: 'org-7',
       seaDocumentStructure: 3,
       seaHouseBill: { houseNo: '  HBL-001  ', issuerSource: 1 },
     });
@@ -144,37 +133,30 @@ describe('buildSeaExportCreatePayload', () => {
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
           userId: 'operator-1',
-          organizationId: 'org-1',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
           userId: 'sales-1',
-          organizationId: 'org-2',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
           userId: 'service-1',
-          organizationId: 'org-3',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
           userId: 'associate-1',
-          organizationId: 'org-4',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
           userId: 'document-1',
-          organizationId: 'org-5',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
           userId: 'commercial-1',
-          organizationId: 'org-6',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
           userId: 'associate-2',
-          organizationId: 'org-7',
         },
       ],
       shippingDocuments: undefined,
@@ -199,7 +181,7 @@ describe('buildSeaExportCreatePayload', () => {
     });
   });
 
-  it('忽略空白可选字段和不完整的岗位人员', () => {
+  it('忽略空白可选字段并按人员装配岗位', () => {
     const result = buildSeaExportCreatePayload({
       customerId: 'customer-1',
       customerReferenceNo: '   ',
@@ -209,7 +191,12 @@ describe('buildSeaExportCreatePayload', () => {
     });
 
     expect(result.customerReferenceNo).toBeUndefined();
-    expect(result.personnelAssignments).toEqual([]);
+    expect(result.personnelAssignments).toEqual([
+      {
+        role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
+        userId: 'operator-1',
+      },
+    ]);
     expect(result.shippingDocuments).toBeUndefined();
   });
 
@@ -324,11 +311,8 @@ describe('buildSeaExportDetailInitialValues', () => {
     expect(result).toEqual(
       expect.objectContaining({
         creatorUserId: 'creator',
-        creatorOrganizationId: 'org-creator',
         operatorUserId: 'operator',
-        operatorOrganizationId: 'org-operator',
         commercialUserId: 'commercial',
-        commercialOrganizationId: 'org-commercial',
       }),
     );
   });
@@ -505,21 +489,13 @@ describe('SE 适配器完整固定夹具等价', () => {
       seaMasterBillExpectedCandidateTeVersion: 5,
       seaMasterBillCorrectionReason: ' 更正主单号 ',
       operatorUserId: 'operator-1',
-      operatorOrganizationId: 'org-1',
       salesUserId: 'sales-1',
-      salesOrganizationId: 'org-2',
       customerServiceUserId: 'cs-1',
-      customerServiceOrganizationId: 'org-3',
       associateUserId: 'assoc-1',
-      associateOrganizationId: 'org-4',
       documentUserId: 'doc-1',
-      documentOrganizationId: 'org-5',
       commercialUserId: 'comm-1',
-      commercialOrganizationId: 'org-6',
       associate2UserId: 'assoc2-1',
-      associate2OrganizationId: 'org-7',
       creatorUserId: 'creator-1',
-      creatorOrganizationId: 'org-8',
       seaDocumentStructure: 3,
       seaMasterBillContent: { remark: 'MBL 备注' } as API.SeaBillContent,
       seaHouseBill: {
@@ -585,37 +561,30 @@ describe('SE 适配器完整固定夹具等价', () => {
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
           userId: 'operator-1',
-          organizationId: 'org-1',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
           userId: 'sales-1',
-          organizationId: 'org-2',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
           userId: 'cs-1',
-          organizationId: 'org-3',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
           userId: 'assoc-1',
-          organizationId: 'org-4',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
           userId: 'doc-1',
-          organizationId: 'org-5',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
           userId: 'comm-1',
-          organizationId: 'org-6',
         },
         {
           role: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
           userId: 'assoc2-1',
-          organizationId: 'org-7',
         },
       ],
       shippingDocuments: undefined,
@@ -635,6 +604,8 @@ describe('SE 适配器完整固定夹具等价', () => {
         masterBillContent: { remark: 'MBL 备注' },
         houseBill: {
           houseNo: ' HBL-001 ',
+          id: undefined,
+          issuerPartnerId: undefined,
           issuerSource: 1,
           note: 'note',
           content: { remark: 'HBL 备注' },
@@ -777,21 +748,13 @@ describe('SE 适配器完整固定夹具等价', () => {
         { id: 'req-1', containerSpecId: 'spec-1', quantity: 2 },
       ],
       creatorUserId: 'creator-1',
-      creatorOrganizationId: 'org-8',
       operatorUserId: 'operator-1',
-      operatorOrganizationId: 'org-1',
       salesUserId: 'sales-1',
-      salesOrganizationId: 'org-2',
       customerServiceUserId: 'cs-1',
-      customerServiceOrganizationId: 'org-3',
       documentUserId: 'doc-1',
-      documentOrganizationId: 'org-5',
       commercialUserId: 'comm-1',
-      commercialOrganizationId: 'org-6',
       associateUserId: 'assoc-1',
-      associateOrganizationId: 'org-4',
       associate2UserId: 'assoc2-1',
-      associate2OrganizationId: 'org-7',
       seaMasterBillMasterNo: 'COSCO999901',
       seaMasterBillCandidateId: undefined,
       seaMasterBillExpectedCandidateVersion: '7',

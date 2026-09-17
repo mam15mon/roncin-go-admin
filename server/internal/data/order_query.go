@@ -205,14 +205,10 @@ func applyOrderPersonnelFilter(query *ent.OrderQuery, role orderpersonnelent.Rol
 	if filter.UserID == nil {
 		return
 	}
-	predicates := []entpredicate.OrderPersonnel{
+	query.Where(orderent.HasPersonnelWith(
 		orderpersonnelent.RoleEQ(role),
 		orderpersonnelent.UserIDEQ(*filter.UserID),
-	}
-	if filter.OrganizationID != nil {
-		predicates = append(predicates, orderpersonnelent.OrganizationIDEQ(*filter.OrganizationID))
-	}
-	query.Where(orderent.HasPersonnelWith(predicates...))
+	))
 }
 
 func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID uuid.UUID, check biz.OrderReferenceCheck) (*biz.OrderReferenceMatch, error) {
@@ -407,27 +403,34 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	query := client.Membership.Query().Where(
+	membershipScope := []entpredicate.Membership{
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
-		membershipent.HasUserWith(userent.EnabledEQ(true)),
 		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
+	}
+	query := client.User.Query().Where(
+		userent.EnabledEQ(true),
+		userent.HasMembershipsWith(membershipScope...),
 	)
 	if options.Keyword != "" {
-		query.Where(membershipent.Or(
-			membershipent.HasUserWith(userent.Or(userent.UsernameContainsFold(options.Keyword), userent.DisplayNameContainsFold(options.Keyword), userent.SearchKeywordsContainsFold(options.Keyword))),
-			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
+		query.Where(userent.Or(
+			userent.UsernameContainsFold(options.Keyword),
+			userent.DisplayNameContainsFold(options.Keyword),
+			userent.SearchKeywordsContainsFold(options.Keyword),
+			userent.HasMembershipsWith(
+				membershipent.OrganizationIDIn(organizationIDs...),
+				membershipent.EnabledEQ(true),
+				membershipent.HasOrganizationWith(
+					organizationent.EnabledEQ(true),
+					organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword)),
+				),
+			),
 		))
 	}
-	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
-		return query.WithUser().WithOrganization().
-			Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
-			Offset(offset).Limit(limit).All(ctx)
-	}, options.Page, options.PageSize, infalliblePageConverter(func(membership *ent.Membership) *biz.OrderPersonnelOption {
-		return &biz.OrderPersonnelOption{
-			UserID: membership.UserID, DisplayName: membership.Edges.User.DisplayName,
-			OrganizationID: membership.OrganizationID, OrganizationName: membership.Edges.Organization.Name,
-		}
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
+		return query.Order(userent.ByDisplayName(), userent.ByID()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.User) *biz.OrderPersonnelOption {
+		return &biz.OrderPersonnelOption{UserID: item.ID, DisplayName: item.DisplayName}
 	}))
 }
 

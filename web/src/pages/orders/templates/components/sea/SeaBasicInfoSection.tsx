@@ -208,7 +208,7 @@ function SeaCarrierField({
 
 export function extractPersonnelFromPartnerAssignments(
   assignments: API.PartnerAssignment[] | undefined,
-  personnelOptions?: Array<{ userId?: string; organizationId?: string }>,
+  _personnelOptions?: Array<{ userId?: string }>,
 ): Record<string, string | undefined> {
   if (!assignments || assignments.length === 0) {
     return {};
@@ -219,14 +219,7 @@ export function extractPersonnelFromPartnerAssignments(
       .filter((a) => a.role === role)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[index];
     if (!item?.userId) return undefined;
-    const matchedOpt = personnelOptions?.find(
-      (opt) => opt.userId === item.userId,
-    );
-    const organizationId = item.organizationId || matchedOpt?.organizationId;
-    return {
-      userId: item.userId,
-      organizationId,
-    };
+    return { userId: item.userId };
   };
 
   const operator = findAssignment(
@@ -256,45 +249,24 @@ export function extractPersonnelFromPartnerAssignments(
   const updates: Record<string, string | undefined> = {};
   if (operator?.userId) {
     updates.operatorUserId = operator.userId;
-    if (operator.organizationId) {
-      updates.operatorOrganizationId = operator.organizationId;
-    }
   }
   if (sales?.userId) {
     updates.salesUserId = sales.userId;
-    if (sales.organizationId) {
-      updates.salesOrganizationId = sales.organizationId;
-    }
   }
   if (customerService?.userId) {
     updates.customerServiceUserId = customerService.userId;
-    if (customerService.organizationId) {
-      updates.customerServiceOrganizationId = customerService.organizationId;
-    }
   }
   if (commercial?.userId) {
     updates.commercialUserId = commercial.userId;
-    if (commercial.organizationId) {
-      updates.commercialOrganizationId = commercial.organizationId;
-    }
   }
   if (contact1?.userId) {
     updates.associateUserId = contact1.userId;
-    if (contact1.organizationId) {
-      updates.associateOrganizationId = contact1.organizationId;
-    }
   }
   if (contact2?.userId) {
     updates.associate2UserId = contact2.userId;
-    if (contact2.organizationId) {
-      updates.associate2OrganizationId = contact2.organizationId;
-    }
   }
   if (doc?.userId) {
     updates.documentUserId = doc.userId;
-    if (doc.organizationId) {
-      updates.documentOrganizationId = doc.organizationId;
-    }
   }
 
   return updates;
@@ -310,7 +282,7 @@ export function SeaCustomerField({
   searchCustomers: (keyword?: string) => Promise<PartnerSelectOption[]>;
   readonly?: boolean;
   setCustomerCode: (code?: string) => void;
-  personnelOptions?: Array<{ userId?: string; organizationId?: string }>;
+  personnelOptions?: Array<{ userId?: string }>;
   onCustomerChange?: (option?: PartnerSelectOption) => void;
 }) {
   const form = Form.useFormInstance();

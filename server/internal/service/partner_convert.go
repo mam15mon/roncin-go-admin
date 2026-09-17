@@ -233,9 +233,9 @@ func partnerAssignmentsFromAPI(items []*v1.PartnerAssignmentInput) []*biz.Partne
 			continue
 		}
 		userID, _ := uuid.Parse(item.GetUserId())
-		organizationID, _ := uuid.Parse(item.GetOrganizationId())
+		// 归属组织由后端派生为客户档案所属组织，写契约不再携带组织字段。
 		result = append(result, &biz.PartnerAssignment{
-			Role: partnerAssignmentRoleFromAPI(item.GetRole()), UserID: userID, OrganizationID: organizationID,
+			Role: partnerAssignmentRoleFromAPI(item.GetRole()), UserID: userID,
 		})
 	}
 	return result

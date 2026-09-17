@@ -1,7 +1,4 @@
-import type {
-  OrderListFilterParams,
-  OrderListItem,
-} from '@/components/ui';
+import type { OrderListFilterParams, OrderListItem } from '@/components/ui';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import {
   OrderClosureStatus,
@@ -63,13 +60,9 @@ export async function queryOrderList(
     consigneeShortName: params.consignee,
     shipperShortName: params.shipper,
     operatorId: params.operatorId,
-    operatorOrganizationId: params.operatorDeptId,
     salesId: params.salesId,
-    salesOrganizationId: params.salesDeptId,
     customerServiceId: params.customerServiceId,
-    customerServiceOrganizationId: params.customerServiceDeptId,
     creatorId: params.creatorId,
-    creatorOrganizationId: params.creatorDeptId,
     tagIds: params.tagIds,
     isLocked:
       params.isLocked === 'locked'
@@ -87,9 +80,7 @@ export async function queryOrderList(
 
   const page = unwrapPage(response);
   const items: OrderListItem[] = page.data.map((order) => {
-    const originPort = ctx.ports.find(
-      (p) => p.id === order.originLocationId,
-    );
+    const originPort = ctx.ports.find((p) => p.id === order.originLocationId);
     const destPort = ctx.ports.find(
       (p) => p.id === order.destinationLocationId,
     );
@@ -101,14 +92,10 @@ export async function queryOrderList(
     );
 
     const originName =
-      originPort?.nameZh ||
-      originAirport?.nameZh ||
-      order.originLocationId;
+      originPort?.nameZh || originAirport?.nameZh || order.originLocationId;
     const originCode = originPort?.unLocode || originAirport?.iataCode;
     const destName =
-      destPort?.nameZh ||
-      destAirport?.nameZh ||
-      order.destinationLocationId;
+      destPort?.nameZh || destAirport?.nameZh || order.destinationLocationId;
     const destCode = destPort?.unLocode || destAirport?.iataCode;
 
     const containerSummary = (order.containerRequests ?? [])
@@ -135,8 +122,7 @@ export async function queryOrderList(
               : order.hasActiveException
                 ? '异常挂起'
                 : '正常运作',
-      customerName:
-        ctx.customerMap[order.customerId ?? ''] || order.customerId,
+      customerName: ctx.customerMap[order.customerId ?? ''] || order.customerId,
       customerReferenceNo: order.customerReferenceNo,
       createdAt: order.createdAt,
       vesselVoyage: order.vesselVoyage,
@@ -149,12 +135,10 @@ export async function queryOrderList(
       packageUnit: order.totalPackageUnit,
       grossWeightKg: order.totalGrossWeightKg,
       volumeCbm: order.totalVolumeCbm,
-      paymentTerm: paymentTermOptions.find(
-        (o) => o.value === order.paymentTerm,
-      )?.label,
-      tradeTerm: tradeTermOptions.find(
-        (o) => o.value === order.tradeTerm,
-      )?.label,
+      paymentTerm: paymentTermOptions.find((o) => o.value === order.paymentTerm)
+        ?.label,
+      tradeTerm: tradeTermOptions.find((o) => o.value === order.tradeTerm)
+        ?.label,
       contractNo: order.contractNo,
       shipperName: order.shipperShortName,
       consigneeName: order.consigneeShortName,
@@ -162,8 +146,11 @@ export async function queryOrderList(
       isLocked: Boolean(order.lockedAt),
       tags: order.tags,
       notes: order.notes,
-      statusName:
-        statusText(orderFlowStatusMeta, order.flowStatus ?? 0, '未知状态'),
+      statusName: statusText(
+        orderFlowStatusMeta,
+        order.flowStatus ?? 0,
+        '未知状态',
+      ),
       abnormalLevel: order.hasActiveException ? 'high' : 'normal',
       rawRecord: order,
     };

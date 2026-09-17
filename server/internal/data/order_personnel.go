@@ -6,10 +6,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 type orderPersonnelRepo struct {
@@ -53,7 +54,7 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.OrderPersonnel, error) {
+func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.OrderPersonnel, error) {
 	var created *ent.OrderPersonnel
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
@@ -63,7 +64,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
 			return err
 		}
-		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -71,29 +72,30 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		for _, organization := range organizations {
 			parentByID[organization.ID] = organization.ParentID
 		}
-		if !organizationWithinRoot(parentByID, organizationID, memberOrganizationID) {
-			return biz.ErrOrderPersonnelUserInvalid
+		subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
+		for _, organization := range organizations {
+			if organization.Enabled && organizationWithinRoot(parentByID, organizationID, organization.ID) {
+				subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
+			}
 		}
-		m, queryErr := tx.Membership.Query().
+		user, queryErr := tx.User.Query().
 			Where(
-				membership.OrganizationIDEQ(memberOrganizationID),
-				membership.UserIDEQ(userID),
-				membership.EnabledEQ(true),
+				userent.IDEQ(userID),
+				userent.EnabledEQ(true),
+				userent.HasMembershipsWith(
+					membershipent.OrganizationIDIn(subtreeOrganizationIDs...),
+					membershipent.EnabledEQ(true),
+				),
 			).
-			WithUser().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderPersonnelUserInvalid, nil)
-		}
-		user, userErr := m.Edges.UserOrErr()
-		if userErr != nil || !user.Enabled {
-			return biz.ErrOrderPersonnelUserInvalid
 		}
 		var saveErr error
 		created, saveErr = tx.OrderPersonnel.Create().
 			SetOrderID(orderID).
 			SetUserID(userID).
-			SetOrganizationID(memberOrganizationID).
+			SetOrganizationID(organizationID).
 			SetRole(orderpersonnelent.Role(role)).
 			Save(ctx)
 		if saveErr != nil {

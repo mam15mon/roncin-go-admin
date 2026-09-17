@@ -30,18 +30,17 @@ func TestOrderDateRangeFromAPIUsesInclusiveEndDate(t *testing.T) {
 	}
 }
 
-func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
+func TestOrderPersonnelFilterFromAPIOnlyAcceptsEmployee(t *testing.T) {
 	userID := uuid.New()
-	organizationID := uuid.New()
-	result, err := orderPersonnelFilterFromAPI(userID.String(), organizationID.String())
+	result, err := orderPersonnelFilterFromAPI(userID.String())
 	if err != nil {
 		t.Fatalf("orderPersonnelFilterFromAPI() error = %v", err)
 	}
-	if result.UserID == nil || *result.UserID != userID || result.OrganizationID == nil || *result.OrganizationID != organizationID {
+	if result.UserID == nil || *result.UserID != userID {
 		t.Fatalf("personnel filter = %#v", result)
 	}
-	if _, err := orderPersonnelFilterFromAPI("", organizationID.String()); err == nil {
-		t.Fatal("仅传部门时应返回参数错误")
+	if _, err := orderPersonnelFilterFromAPI("invalid"); err == nil {
+		t.Fatal("非法人员标识应返回参数错误")
 	}
 }
 

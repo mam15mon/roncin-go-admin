@@ -29,6 +29,37 @@ var (
 	ErrPartnerImportInvalidArgument   = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
 )
 
+// partnerCommissionRoleLabels 提成相关责任岗位的中文标签，用于缺配开单错误提示。
+var partnerCommissionRoleLabels = map[PartnerAssignmentRole]string{
+	PartnerAssignmentSales:           "销售",
+	PartnerAssignmentOperator:        "操作",
+	PartnerAssignmentCustomerService: "客服",
+}
+
+// partnerCommissionAssignmentRoleOrder 缺配错误提示中岗位的固定展示顺序。
+var partnerCommissionAssignmentRoleOrder = []PartnerAssignmentRole{
+	PartnerAssignmentSales,
+	PartnerAssignmentOperator,
+	PartnerAssignmentCustomerService,
+}
+
+// NewPartnerCommissionAssignmentMissing 构造开单缺配错误：客户档案缺少提成相关
+// 责任人员时阻止创建订单/草稿更换客户，消息列出实际缺失的岗位。
+func NewPartnerCommissionAssignmentMissing(missing []PartnerAssignmentRole) error {
+	missingSet := make(map[PartnerAssignmentRole]struct{}, len(missing))
+	for _, role := range missing {
+		missingSet[role] = struct{}{}
+	}
+	labels := make([]string, 0, len(missingSet))
+	for _, role := range partnerCommissionAssignmentRoleOrder {
+		if _, ok := missingSet[role]; ok {
+			labels = append(labels, partnerCommissionRoleLabels[role])
+		}
+	}
+	return errors.BadRequest("PARTNER_COMMISSION_ASSIGNMENT_MISSING",
+		"客户档案缺少"+strings.Join(labels, "、")+"责任人，请先到客户档案补全责任人员后再开单")
+}
+
 type PartnerRoleType string
 
 const (
@@ -150,11 +181,8 @@ type PartnerAssignment struct {
 }
 
 type PartnerAssignmentOption struct {
-	UserID            uuid.UUID
-	DisplayName       string
-	OrganizationID    uuid.UUID
-	OrganizationName  string
-	MembershipEnabled bool
+	UserID      uuid.UUID
+	DisplayName string
 }
 
 type Partner struct {
@@ -535,12 +563,14 @@ func normalizeUniqueValues[T comparable](values []T, valid func(T) bool) ([]T, e
 	return result, nil
 }
 
+// normalizePartnerAssignments 校验责任人员写入：归属组织不再由客户端提供，
+// 由 data 层统一派生为客户档案所属组织，因此这里只按岗位与人员去重。
 func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignment, error) {
 	counts := make(map[PartnerAssignmentRole]int, len(input))
-	seenMembers := make(map[string]struct{}, len(input))
+	seenUsers := make(map[uuid.UUID]struct{}, len(input))
 	result := make([]*PartnerAssignment, 0, len(input))
 	for _, item := range input {
-		if item == nil || !item.Role.Valid() || item.Role == PartnerAssignmentCreator || item.UserID == uuid.Nil || item.OrganizationID == uuid.Nil {
+		if item == nil || !item.Role.Valid() || item.Role == PartnerAssignmentCreator || item.UserID == uuid.Nil {
 			return nil, ErrPartnerInvalidArgument
 		}
 		counts[item.Role]++
@@ -551,11 +581,10 @@ func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignme
 		} else if counts[item.Role] > 1 {
 			return nil, ErrPartnerInvalidArgument
 		}
-		memberKey := item.UserID.String() + ":" + item.OrganizationID.String()
-		if _, exists := seenMembers[memberKey]; exists {
+		if _, exists := seenUsers[item.UserID]; exists {
 			return nil, ErrPartnerInvalidArgument
 		}
-		seenMembers[memberKey] = struct{}{}
+		seenUsers[item.UserID] = struct{}{}
 		copy := *item
 		if copy.Role == PartnerAssignmentInternalContact {
 			copy.SortOrder = counts[item.Role]

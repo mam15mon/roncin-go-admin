@@ -31,10 +31,7 @@ import {
   PartnerSettlementMethod,
   PartnerStatementMode,
 } from '@/enums.generated';
-import {
-  adminServiceListOrganizations,
-  adminServiceListUsers,
-} from '@/services/roncin/adminService';
+import { adminServiceListUsers } from '@/services/roncin/adminService';
 import {
   partnerServiceCreatePartner,
   partnerServiceGetPartner,
@@ -97,9 +94,6 @@ export default function PartnerDetailPage() {
 
   // Options state
   const [users, setUsers] = useState<API.AdminUser[]>([]);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
-  );
   const [assignmentOptions, setAssignmentOptions] = useState<
     API.PartnerAssignmentOption[]
   >([]);
@@ -201,21 +195,17 @@ export default function PartnerDetailPage() {
   // Load auxiliary options
   useEffect(() => {
     const fetchOptions = async () => {
-      const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled([
+      const [usersRes, curRes, assignRes] = await Promise.allSettled([
         adminServiceListUsers(
           { page: 1, pageSize: 200 },
           { skipErrorHandler: true },
         ),
-        adminServiceListOrganizations({ skipErrorHandler: true }),
         getCurrencyOptions(),
         partnerServiceListPartnerAssignmentOptions({ skipErrorHandler: true }),
       ]);
 
       if (usersRes.status === 'fulfilled' && usersRes.value.data) {
         setUsers(usersRes.value.data);
-      }
-      if (orgsRes.status === 'fulfilled' && orgsRes.value.data) {
-        setOrganizations(orgsRes.value.data);
       }
       if (assignRes.status === 'fulfilled' && assignRes.value.data) {
         setAssignmentOptions(assignRes.value.data);
@@ -226,7 +216,6 @@ export default function PartnerDetailPage() {
 
       const failedLabels = [
         usersRes.status === 'rejected' ? '用户' : '',
-        orgsRes.status === 'rejected' ? '组织' : '',
         curRes.status === 'rejected' ? '币种' : '',
         assignRes.status === 'rejected' ? '人员归属' : '',
       ].filter(Boolean);
@@ -237,17 +226,6 @@ export default function PartnerDetailPage() {
 
     fetchOptions();
   }, [message]);
-
-  // Map user ID to organization ID for auto-fill
-  const userOrgMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const opt of assignmentOptions) {
-      if (opt.userId && opt.organizationId && !map.has(opt.userId)) {
-        map.set(opt.userId, opt.organizationId);
-      }
-    }
-    return map;
-  }, [assignmentOptions]);
 
   // Load partner detail when editing
   useEffect(() => {
@@ -317,10 +295,7 @@ export default function PartnerDetailPage() {
               .sort(
                 (left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
               )[index];
-            return {
-              userId: item?.userId,
-              organizationId: item?.organizationId,
-            };
+            return { userId: item?.userId };
           };
 
           const regionCodes: string[] = [];
@@ -381,25 +356,16 @@ export default function PartnerDetailPage() {
             businessTypes: profile.businessTypes || [1],
             remark: profile.remark,
 
-            // 9 Assignment slots (User + Organization pairs)
+            // 责任人员只选择人员，归属公司由服务端固定为档案所属公司。
             assignCreatorUser: findAssignment(1).userId,
-            assignCreatorOrg: findAssignment(1).organizationId,
             assignOperatorUser: findAssignment(2).userId,
-            assignOperatorOrg: findAssignment(2).organizationId,
             assignSalesUser: findAssignment(3).userId,
-            assignSalesOrg: findAssignment(3).organizationId,
             assignServiceUser: findAssignment(4).userId,
-            assignServiceOrg: findAssignment(4).organizationId,
             assignFinanceUser: findAssignment(5).userId,
-            assignFinanceOrg: findAssignment(5).organizationId,
             assignCommercialUser: findAssignment(6).userId,
-            assignCommercialOrg: findAssignment(6).organizationId,
             assignContactUser: findAssignment(7).userId,
-            assignContactOrg: findAssignment(7).organizationId,
             assignContact2User: findAssignment(7, 1).userId,
-            assignContact2Org: findAssignment(7, 1).organizationId,
             assignDocUser: findAssignment(8).userId,
-            assignDocOrg: findAssignment(8).organizationId,
 
             // Settlement Info
             ...(currentRule
@@ -460,30 +426,6 @@ export default function PartnerDetailPage() {
       value: u.id ?? '',
     }));
   }, [assignmentOptions, users]);
-
-  const orgSelectOptions = useMemo(
-    () =>
-      organizations.map((o) => ({
-        label: `${o.name} (${o.code})`,
-        value: o.id ?? '',
-      })),
-    [organizations],
-  );
-
-  // Auto fill org when user is selected
-  const handleUserChange = (
-    userFieldName: string,
-    orgFieldName: string,
-    selectedUserId?: string,
-  ) => {
-    formRef.current?.setFieldValue(userFieldName, selectedUserId);
-    if (selectedUserId) {
-      const defaultOrg = userOrgMap.get(selectedUserId);
-      if (defaultOrg && !formRef.current?.getFieldValue(orgFieldName)) {
-        formRef.current?.setFieldValue(orgFieldName, defaultOrg);
-      }
-    }
-  };
 
   // Tianyancha Verify
   const handleTianyanchaVerify = () => {
@@ -563,36 +505,23 @@ export default function PartnerDetailPage() {
       const assignments: API.PartnerAssignmentInput[] = [];
       const seenMembers = new Set<string>();
 
-      const addAssignment = (
-        role: number,
-        userField: string,
-        orgField: string,
-      ) => {
+      const addAssignment = (role: number, userField: string) => {
         const userId = values[userField];
-        const orgId =
-          values[orgField] || (userId ? userOrgMap.get(userId) : undefined);
-        if (userId && orgId) {
-          const key = `${userId}:${orgId}`;
-          if (!seenMembers.has(key)) {
-            seenMembers.add(key);
-            assignments.push({
-              role,
-              userId,
-              organizationId: orgId,
-            });
-          }
+        if (userId && !seenMembers.has(userId)) {
+          seenMembers.add(userId);
+          assignments.push({ role, userId });
         }
       };
 
       // 注意：Creator (role: 1) 由服务端从会话自动记录，API 显式传入会触发 ErrPartnerInvalidArgument
-      addAssignment(2, 'assignOperatorUser', 'assignOperatorOrg');
-      addAssignment(3, 'assignSalesUser', 'assignSalesOrg');
-      addAssignment(4, 'assignServiceUser', 'assignServiceOrg');
-      addAssignment(5, 'assignFinanceUser', 'assignFinanceOrg');
-      addAssignment(6, 'assignCommercialUser', 'assignCommercialOrg');
-      addAssignment(7, 'assignContactUser', 'assignContactOrg');
-      addAssignment(7, 'assignContact2User', 'assignContact2Org'); // 内部联系人2同为 role: 7
-      addAssignment(8, 'assignDocUser', 'assignDocOrg');
+      addAssignment(2, 'assignOperatorUser');
+      addAssignment(3, 'assignSalesUser');
+      addAssignment(4, 'assignServiceUser');
+      addAssignment(5, 'assignFinanceUser');
+      addAssignment(6, 'assignCommercialUser');
+      addAssignment(7, 'assignContactUser');
+      addAssignment(7, 'assignContact2User'); // 内部联系人2同为 role: 7
+      addAssignment(8, 'assignDocUser');
 
       const contactInputs: API.PartnerContactInput[] = contacts.map((c) => ({
         name: c.name,
@@ -828,7 +757,6 @@ export default function PartnerDetailPage() {
             roleLabel={roleLabel}
             roleType={roleType}
             userSelectOptions={userSelectOptions}
-            orgSelectOptions={orgSelectOptions}
             aliases={aliases}
             onAliasesChange={setAliases}
             newAliasInput={newAliasInput}
@@ -836,7 +764,6 @@ export default function PartnerDetailPage() {
             onAddAlias={handleAddAlias}
             onRemoveAlias={handleRemoveAlias}
             onTianyanchaVerify={handleTianyanchaVerify}
-            onUserChange={handleUserChange}
             creatorMeta={creatorMeta}
           />
 

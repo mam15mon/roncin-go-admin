@@ -1129,13 +1129,13 @@ func (x *PartnerAssignment) GetSortOrder() int32 {
 	return 0
 }
 
+// 责任人员归属组织由后端一律派生为客户档案所属组织，写契约不再接收组织字段。
 type PartnerAssignmentInput struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Role           PartnerAssignmentRole  `protobuf:"varint,1,opt,name=role,proto3,enum=partner.v1.PartnerAssignmentRole" json:"role,omitempty"`
-	UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          PartnerAssignmentRole  `protobuf:"varint,1,opt,name=role,proto3,enum=partner.v1.PartnerAssignmentRole" json:"role,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PartnerAssignmentInput) Reset() {
@@ -1182,22 +1182,13 @@ func (x *PartnerAssignmentInput) GetUserId() string {
 	return ""
 }
 
-func (x *PartnerAssignmentInput) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
+// 责任人员候选收敛为纯人员语义：同一人员的多部门成员关系按人员去重后仅返回一条。
 type PartnerAssignmentOption struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	UserId            string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName       string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	OrganizationId    string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName  string                 `protobuf:"bytes,4,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	MembershipEnabled bool                   `protobuf:"varint,5,opt,name=membership_enabled,json=membershipEnabled,proto3" json:"membership_enabled,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PartnerAssignmentOption) Reset() {
@@ -1242,27 +1233,6 @@ func (x *PartnerAssignmentOption) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
-}
-
-func (x *PartnerAssignmentOption) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *PartnerAssignmentOption) GetOrganizationName() string {
-	if x != nil {
-		return x.OrganizationName
-	}
-	return ""
-}
-
-func (x *PartnerAssignmentOption) GetMembershipEnabled() bool {
-	if x != nil {
-		return x.MembershipEnabled
-	}
-	return false
 }
 
 type ListPartnerAssignmentOptionsRequest struct {
@@ -7532,17 +7502,13 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\a \x01(\x05R\tsortOrder\"\xa0\x01\n" +
+	"sort_order\x18\a \x01(\x05R\tsortOrder\"r\n" +
 	"\x16PartnerAssignmentInput\x12:\n" +
 	"\x04role\x18\x01 \x01(\x0e2!.partner.v1.PartnerAssignmentRoleB\x03\xe0A\x02R\x04role\x12\x1c\n" +
-	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\x12,\n" +
-	"\x0forganization_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xda\x01\n" +
+	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\"U\n" +
 	"\x17PartnerAssignmentOption\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12'\n" +
-	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x04 \x01(\tR\x10organizationName\x12-\n" +
-	"\x12membership_enabled\x18\x05 \x01(\bR\x11membershipEnabled\"%\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"%\n" +
 	"#ListPartnerAssignmentOptionsRequest\"r\n" +
 	"%SearchPartnerAssignmentOptionsRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +

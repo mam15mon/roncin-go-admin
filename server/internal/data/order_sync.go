@@ -181,7 +181,7 @@ func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, 
 }
 
 func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, orderID uuid.UUID, orderNo string, assignments []*biz.OrderPersonnel) error {
-	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -189,27 +189,28 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 	for _, organization := range organizations {
 		parentByID[organization.ID] = organization.ParentID
 	}
-	for _, assignment := range assignments {
-		if !organizationWithinRoot(parentByID, rootOrganizationID, assignment.OrganizationID) {
-			return biz.ErrOrderPersonnelUserInvalid
+	subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
+	for _, organization := range organizations {
+		if organization.Enabled && organizationWithinRoot(parentByID, rootOrganizationID, organization.ID) {
+			subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
 		}
-		membership, err := tx.Membership.Query().Where(
-			membershipent.UserIDEQ(assignment.UserID),
-			membershipent.OrganizationIDEQ(assignment.OrganizationID),
-			membershipent.EnabledEQ(true),
-			membershipent.HasUserWith(userent.EnabledEQ(true)),
-		).WithUser().Only(ctx)
+	}
+	for _, assignment := range assignments {
+		user, err := tx.User.Query().Where(
+			userent.IDEQ(assignment.UserID),
+			userent.EnabledEQ(true),
+			userent.HasMembershipsWith(
+				membershipent.OrganizationIDIn(subtreeOrganizationIDs...),
+				membershipent.EnabledEQ(true),
+			),
+		).Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderPersonnelUserInvalid, nil)
-		}
-		user, err := membership.Edges.UserOrErr()
-		if err != nil {
-			return err
 		}
 		if _, err := tx.OrderPersonnel.Create().
 			SetOrderID(orderID).
 			SetUserID(assignment.UserID).
-			SetOrganizationID(assignment.OrganizationID).
+			SetOrganizationID(rootOrganizationID).
 			SetRole(orderpersonnelent.Role(assignment.Role)).
 			Save(ctx); err != nil {
 			return err

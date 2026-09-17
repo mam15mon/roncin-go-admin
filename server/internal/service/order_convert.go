@@ -133,15 +133,11 @@ func personnelAssignmentsFromAPI(values []*v1.OrderPersonnelAssignmentInput) ([]
 		if err != nil {
 			return nil, biz.ErrOrderInvalidArgument
 		}
-		organizationID, err := uuid.Parse(value.GetOrganizationId())
-		if err != nil {
-			return nil, biz.ErrOrderInvalidArgument
-		}
 		role, err := protoRoleToBiz(value.GetRole())
 		if err != nil {
 			return nil, biz.ErrOrderInvalidArgument
 		}
-		result = append(result, &biz.OrderPersonnel{UserID: userID, OrganizationID: organizationID, Role: role})
+		result = append(result, &biz.OrderPersonnel{UserID: userID, Role: role})
 	}
 	return result, nil
 }

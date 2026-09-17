@@ -58,7 +58,7 @@ type OrderPersonnel struct {
 
 type OrderPersonnelRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error)
-	Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error)
+	Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error)
 	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
@@ -77,8 +77,8 @@ func (uc *OrderPersonnelUsecase) List(ctx context.Context, organizationID, order
 	return uc.repo.List(ctx, organizationID, orderID)
 }
 
-func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, actorID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || userID == uuid.Nil || memberOrganizationID == uuid.Nil {
+func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, actorID, orderID, userID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || userID == uuid.Nil {
 		return nil, ErrOrderPersonnelInvalidArgument
 	}
 	if !role.Valid() {
@@ -96,11 +96,11 @@ func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, act
 		Details: map[string]string{
 			"order.id":        orderID.String(),
 			"user.id":         userID.String(),
-			"organization.id": memberOrganizationID.String(),
+			"organization.id": organizationID.String(),
 			"role":            string(role),
 		},
 	}
-	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, memberOrganizationID, role, notification, audit)
+	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, role, notification, audit)
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ import {
   Select,
   Space,
 } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import type {
   OrderListFilterOptions,
@@ -114,66 +114,20 @@ function RemoteSelect({
   );
 }
 
-interface PersonnelDepartmentFilterProps {
-  form: ReturnType<typeof Form.useForm>[0];
+interface PersonnelFilterProps {
   label: string;
   userField: keyof OrderListFilterParams;
-  organizationField: keyof OrderListFilterParams;
   loadUsers?: (keyword?: string) => Promise<OrderSelectOption[]>;
-  personnel: OrderPersonnelFilterOption[];
 }
 
-function PersonnelDepartmentFilter({
-  form,
+function PersonnelFilter({
   label,
   userField,
-  organizationField,
   loadUsers,
-  personnel,
-}: PersonnelDepartmentFilterProps) {
-  const userID = Form.useWatch(userField, form) as string | undefined;
-  const organizationOptions = useMemo(() => {
-    const seen = new Set<string>();
-    return personnel
-      .filter((item) => item.userId === userID)
-      .filter((item) => {
-        if (seen.has(item.organizationId)) return false;
-        seen.add(item.organizationId);
-        return true;
-      })
-      .map((item) => ({
-        label: item.organizationName,
-        value: item.organizationId,
-      }));
-  }, [personnel, userID]);
-
-  useEffect(() => {
-    if (organizationOptions.length === 1) {
-      form.setFieldValue(organizationField, organizationOptions[0].value);
-    }
-  }, [form, organizationField, organizationOptions]);
-
+}: PersonnelFilterProps) {
   return (
-    <Form.Item label={label}>
-      <Space.Compact block>
-        <Form.Item name={userField} noStyle>
-          <RemoteSelect
-            style={{ width: '58%' }}
-            placeholder="选择员工"
-            loadOptions={loadUsers}
-            onChange={() => form.setFieldValue(organizationField, undefined)}
-          />
-        </Form.Item>
-        <Form.Item name={organizationField} noStyle>
-          <Select
-            allowClear
-            disabled={!userID}
-            style={{ width: '42%' }}
-            placeholder="所属部门"
-            options={organizationOptions}
-          />
-        </Form.Item>
-      </Space.Compact>
+    <Form.Item label={label} name={userField}>
+      <RemoteSelect placeholder="选择员工" loadOptions={loadUsers} />
     </Form.Item>
   );
 }
@@ -186,7 +140,6 @@ export function OrderListSearchFilter({
 }: OrderListSearchFilterProps) {
   const [form] = Form.useForm();
   const [collapsed, setCollapsed] = useState(true);
-  const [personnel, setPersonnel] = useState<OrderPersonnelFilterOption[]>([]);
   const personnelCacheRef = useRef(
     new Map<string, Promise<OrderPersonnelFilterOption[]>>(),
   );
@@ -200,18 +153,6 @@ export function OrderListSearchFilter({
           personnelCacheRef.current.set(keyword, request);
         }
         const result = await request;
-        setPersonnel((current) => {
-          const merged = new Map(
-            current.map((item) => [
-              `${item.userId}:${item.organizationId}`,
-              item,
-            ]),
-          );
-          for (const item of result) {
-            merged.set(`${item.userId}:${item.organizationId}`, item);
-          }
-          return [...merged.values()];
-        });
         const seen = new Set<string>();
         return result
           .filter((item) => {
@@ -249,13 +190,9 @@ export function OrderListSearchFilter({
       lockedAtRange: formatRange(rawValues.lockedAtRange),
       statusTimeRange: formatRange(rawValues.statusTimeRange),
       operatorId: rawValues.operatorId || undefined,
-      operatorDeptId: rawValues.operatorDeptId || undefined,
       salesId: rawValues.salesId || undefined,
-      salesDeptId: rawValues.salesDeptId || undefined,
       customerServiceId: rawValues.customerServiceId || undefined,
-      customerServiceDeptId: rawValues.customerServiceDeptId || undefined,
       creatorId: rawValues.creatorId || undefined,
-      creatorDeptId: rawValues.creatorDeptId || undefined,
       stage: rawValues.stage === 'all' ? undefined : rawValues.stage,
       shareStatus:
         rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
@@ -265,10 +202,10 @@ export function OrderListSearchFilter({
   };
 
   const filterRows = [
-    ['操作人员', 'operatorId', 'operatorDeptId'],
-    ['业务人员', 'salesId', 'salesDeptId'],
-    ['客服人员', 'customerServiceId', 'customerServiceDeptId'],
-    ['订单创建人员', 'creatorId', 'creatorDeptId'],
+    ['操作人员', 'operatorId'],
+    ['业务人员', 'salesId'],
+    ['客服人员', 'customerServiceId'],
+    ['订单创建人员', 'creatorId'],
   ] as const;
 
   return (
@@ -407,15 +344,12 @@ export function OrderListSearchFilter({
             </Row>
 
             <Row gutter={[12, 0]}>
-              {filterRows.map(([label, userField, organizationField]) => (
+              {filterRows.map(([label, userField]) => (
                 <Col xs={24} sm={12} lg={6} key={userField}>
-                  <PersonnelDepartmentFilter
-                    form={form}
+                  <PersonnelFilter
                     label={label}
                     userField={userField}
-                    organizationField={organizationField}
                     loadUsers={loadPersonnelUsers}
-                    personnel={personnel}
                   />
                 </Col>
               ))}

@@ -1,22 +1,22 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { Tag, Typography } from 'antd';
 import React, { forwardRef } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
-  SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
+  SubEntityDrawerTemplate,
 } from '@/components/ui/sub-entity-drawer';
-import {
-  orderPersonnelRoleOptions,
-  orderPersonnelRoleValueEnum,
-} from '../../common';
 import {
   orderPersonnelServiceAssignPersonnel,
   orderPersonnelServiceListPersonnel,
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
 import { formatDate } from '@/utils/format';
+import {
+  orderPersonnelRoleOptions,
+  orderPersonnelRoleValueEnum,
+} from '../../common';
 
 const { Text } = Typography;
 
@@ -29,7 +29,6 @@ type PersonnelDrawerProps = {
 
 type PersonnelFormValues = {
   userId: string;
-  organizationId: string;
   role: number;
 };
 
@@ -51,8 +50,7 @@ const columns: ProColumns<API.OrderPersonnel>[] = [
     valueType: 'select',
     valueEnum: orderPersonnelRoleValueEnum,
     render: (_, record) =>
-      record.role !== undefined &&
-      orderPersonnelRoleValueEnum[record.role] ? (
+      record.role !== undefined && orderPersonnelRoleValueEnum[record.role] ? (
         <Tag color="blue" variant="filled">
           {orderPersonnelRoleValueEnum[record.role]?.text}
         </Tag>
@@ -80,9 +78,7 @@ const PersonnelDrawer = forwardRef<PersonnelDrawerRef, PersonnelDrawerProps>(
         ref={ref}
         entityName="协作人员"
         drawerTitle={(order) =>
-          order
-            ? `订单协作团队 - ${order.orderNo || order.id}`
-            : '订单协作团队'
+          order ? `订单协作团队 - ${order.orderNo || order.id}` : '订单协作团队'
         }
         drawerWidth={820}
         canCreate={canAssign}
@@ -100,7 +96,6 @@ const PersonnelDrawer = forwardRef<PersonnelDrawerRef, PersonnelDrawerProps>(
             {
               orderId: order.id as string,
               userId: values.userId.trim(),
-              organizationId: values.organizationId.trim(),
               role: Number(values.role),
             },
           )
@@ -119,12 +114,6 @@ const PersonnelDrawer = forwardRef<PersonnelDrawerRef, PersonnelDrawerProps>(
               label="用户 UUID"
               placeholder="请输入组织内用户 UUID"
               rules={[{ required: true, message: '请输入用户 UUID' }]}
-            />
-            <ProFormText
-              name="organizationId"
-              label="所属公司 UUID"
-              placeholder="请输入人员所属公司 UUID"
-              rules={[{ required: true, message: '请输入人员所属公司 UUID' }]}
             />
             <ProFormSearchableSelect
               name="role"

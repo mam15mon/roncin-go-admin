@@ -1,5 +1,4 @@
 import {
-  ApartmentOutlined,
   QuestionCircleOutlined,
   SafetyCertificateOutlined,
   UserOutlined,
@@ -97,7 +96,6 @@ type BasicInfoSectionProps = {
   roleLabel: string;
   roleType?: number;
   userSelectOptions: { label: string; value: string }[];
-  orgSelectOptions?: { label: string; value: string }[];
   aliases: string[];
   onAliasesChange?: (aliases: string[]) => void;
   newAliasInput?: string;
@@ -105,7 +103,6 @@ type BasicInfoSectionProps = {
   onAddAlias?: () => void;
   onRemoveAlias?: (alias: string) => void;
   onTianyanchaVerify: () => void;
-  onUserChange: (userField: string, orgField: string, userId?: string) => void;
   creatorMeta?: React.ReactNode;
 };
 
@@ -115,11 +112,9 @@ export default function BasicInfoSection({
   roleLabel,
   roleType,
   userSelectOptions,
-  orgSelectOptions = [],
   aliases,
   onAliasesChange,
   onTianyanchaVerify,
-  onUserChange,
   creatorMeta,
 }: BasicInfoSectionProps) {
   const isForeignAgent =
@@ -418,35 +413,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignOperatorUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange(
-                        'assignOperatorUser',
-                        'assignOperatorOrg',
-                        val,
-                      )
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignOperatorOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignOperatorUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -457,31 +433,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignSalesUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignSalesUser', 'assignSalesOrg', val)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignSalesOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignSalesUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -492,31 +453,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignServiceUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignServiceUser', 'assignServiceOrg', val)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignServiceOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignServiceUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -527,31 +473,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignContactUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignContactUser', 'assignContactOrg', val)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignContactOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignContactUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -562,31 +493,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignFinanceUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignFinanceUser', 'assignFinanceOrg', val)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignFinanceOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignFinanceUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -597,31 +513,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignDocUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange('assignDocUser', 'assignDocOrg', val)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignDocOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignDocUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -632,35 +533,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignCommercialUser" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange(
-                        'assignCommercialUser',
-                        'assignCommercialOrg',
-                        val,
-                      )
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignCommercialOrg" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignCommercialUser" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
@@ -671,35 +553,16 @@ export default function BasicInfoSection({
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Space.Compact style={{ width: '100%' }}>
-                <Form.Item name="assignContact2User" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="选择人员"
-                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
-                    options={userSelectOptions}
-                    style={{ width: '52%' }}
-                    allowClear
-                    onChange={(val) =>
-                      onUserChange(
-                        'assignContact2User',
-                        'assignContact2Org',
-                        val,
-                      )
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="assignContact2Org" noStyle>
-                  <Select
-                    showSearch
-                    placeholder="归属组织/公司"
-                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
-                    options={orgSelectOptions}
-                    style={{ width: '48%' }}
-                    allowClear
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item name="assignContact2User" noStyle>
+                <Select
+                  showSearch
+                  placeholder="选择人员"
+                  prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                  options={userSelectOptions}
+                  style={{ width: '100%' }}
+                  allowClear
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
         </Row>

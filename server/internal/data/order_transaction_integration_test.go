@@ -26,6 +26,7 @@ import (
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -39,6 +40,7 @@ import (
 type orderPostgresFixture struct {
 	t              *testing.T
 	data           *Data
+	headquartersID uuid.UUID
 	organizationID uuid.UUID
 	partnerID      uuid.UUID
 	shippingLineID uuid.UUID
@@ -668,19 +670,27 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 	t.Helper()
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
-	organization, err := data.db.Organization.Create().
+	headquarters, err := data.db.Organization.Create().
 		SetCode("ORDER-TX-" + suffix).
-		SetName("订单事务集成测试组织-" + suffix).
-		// 生产组织树的根节点必须是总部（kind=headquarters）；订单创建路径会读取
-		// 总部级财务自定义设置（信用额度管控策略），夹具与该不变量保持一致。
+		SetName("订单事务集成测试总部-" + suffix).
 		SetKind("headquarters").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试组织: %v", err)
+		t.Fatalf("创建测试总部: %v", err)
+	}
+	organization, err := data.db.Organization.Create().
+		SetCode("ORDER-COMPANY-" + suffix).
+		SetName("订单事务集成测试公司-" + suffix).
+		SetKind("company").
+		SetParentID(headquarters.ID).
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试公司: %v", err)
 	}
 	fixture := &orderPostgresFixture{
-		t: t, data: data, organizationID: organization.ID, suffix: suffix,
+		t: t, data: data, headquartersID: headquarters.ID, organizationID: organization.ID, suffix: suffix,
 	}
 	t.Cleanup(fixture.cleanup)
 
@@ -734,6 +744,20 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试成员关系: %v", err)
+	}
+	for _, role := range []partnerassignmentent.Role{
+		partnerassignmentent.RoleSALES,
+		partnerassignmentent.RoleOPERATOR,
+		partnerassignmentent.RoleCUSTOMER_SERVICE,
+	} {
+		if _, err = data.db.PartnerAssignment.Create().
+			SetPartnerID(partner.ID).
+			SetUserID(actor.ID).
+			SetOrganizationID(organization.ID).
+			SetRole(role).
+			Save(ctx); err != nil {
+			t.Fatalf("创建测试提成责任人 %s: %v", role, err)
+		}
 	}
 
 	if _, err = data.db.NumberRule.Create().
@@ -943,6 +967,10 @@ func (f *orderPostgresFixture) cleanup() {
 			_, err := f.data.db.Membership.Delete().Where(membershipent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
+		{name: "客户责任人", run: func() error {
+			_, err := f.data.db.PartnerAssignment.Delete().Where(partnerassignmentent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			return err
+		}},
 		{name: "用户", run: func() error {
 			_, err := f.data.db.User.Delete().Where(userent.IDEQ(f.actorID)).Exec(ctx)
 			return err
@@ -961,6 +989,10 @@ func (f *orderPostgresFixture) cleanup() {
 		}},
 		{name: "组织", run: func() error {
 			_, err := f.data.db.Organization.Delete().Where(organizationent.IDEQ(f.organizationID)).Exec(ctx)
+			return err
+		}},
+		{name: "总部", run: func() error {
+			_, err := f.data.db.Organization.Delete().Where(organizationent.IDEQ(f.headquartersID)).Exec(ctx)
 			return err
 		}},
 	}

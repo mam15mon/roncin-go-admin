@@ -5,7 +5,10 @@ import { PartnerRoleType } from '@/enums.generated';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { unwrapList } from '@/utils/api';
-import { searchPartnerOptions, searchShippingLineOptions } from '@/utils/options';
+import {
+  searchPartnerOptions,
+  searchShippingLineOptions,
+} from '@/utils/options';
 import {
   getCachedAirports,
   getCachedPorts,
@@ -228,11 +231,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     const requestOrgId = organizationId;
     const requestTransportMode = locationTransportMode;
     // 港口联想只属于海运运输方式，其余类型直接关闭。
-    if (
-      !requestOrgId ||
-      !resourcesEnabled ||
-      requestTransportMode !== 'sea'
-    ) {
+    if (!requestOrgId || !resourcesEnabled || requestTransportMode !== 'sea') {
       return [];
     }
     const response = await masterDataServiceListPorts({
@@ -294,7 +293,11 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     const requestOrgId = organizationId;
     const requestTransportMode = locationTransportMode;
     const requestBusinessType = personnelBusinessType;
-    if (!requestOrgId || !resourcesEnabled || requestBusinessType === undefined) {
+    if (
+      !requestOrgId ||
+      !resourcesEnabled ||
+      requestBusinessType === undefined
+    ) {
       return [];
     }
     const response = await orderServiceListPersonnelOptions({
@@ -311,18 +314,10 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       return [];
     }
     return unwrapList(response)
-      .filter(
-        (item) =>
-          item.userId &&
-          item.displayName &&
-          item.organizationId &&
-          item.organizationName,
-      )
+      .filter((item) => item.userId && item.displayName)
       .map((item) => ({
         userId: item.userId as string,
         displayName: item.displayName as string,
-        organizationId: item.organizationId as string,
-        organizationName: item.organizationName as string,
       }));
   };
 

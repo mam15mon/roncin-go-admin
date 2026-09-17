@@ -19,6 +19,7 @@
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
 | [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属总部/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
+| [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 总部仅治理、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Registration Approval](./dingtalk-registration-approval.md) | 钉钉注册双通道：邀请自动激活（降级红线）、认领审批、按目标组织路由通知、手机号与令牌安全 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |

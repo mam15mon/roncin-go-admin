@@ -84,21 +84,13 @@ export type CreateOrderFormValues = {
   /** 命中共享主单批次时由候选响应写入的分单号清单（含作废），仅用于失焦即时排重提示，不提交。 */
   seaMasterBillBatchHouseNos?: string[];
   operatorUserId?: string;
-  operatorOrganizationId?: string;
   salesUserId?: string;
-  salesOrganizationId?: string;
   customerServiceUserId?: string;
-  customerServiceOrganizationId?: string;
   associateUserId?: string;
-  associateOrganizationId?: string;
   documentUserId?: string;
-  documentOrganizationId?: string;
   commercialUserId?: string;
-  commercialOrganizationId?: string;
   associate2UserId?: string;
-  associate2OrganizationId?: string;
   creatorUserId?: string;
-  creatorOrganizationId?: string;
   seaDocumentStructure?: number;
   seaMasterBillContent?: API.SeaBillContent;
   seaHouseBill?: API.SeaHouseBillInput;
@@ -143,7 +135,6 @@ export function buildSeaExportCreateDefaults(
         ? [defaultCargoCategoryId]
         : undefined,
     creatorUserId: context.creator?.userId,
-    creatorOrganizationId: context.creator?.organizationId,
   };
 }
 
@@ -152,49 +143,38 @@ export function buildSeaExportCreatePayload(
   values: CreateOrderFormValues,
 ): API.CreateOrderRequest {
   const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
-  const addPersonnel = (
-    role: OrderPersonnelRole,
-    userId?: string,
-    organizationId?: string,
-  ) => {
-    if (userId && organizationId) {
-      personnelAssignments.push({ role, userId, organizationId });
+  const addPersonnel = (role: OrderPersonnelRole, userId?: string) => {
+    if (userId) {
+      personnelAssignments.push({ role, userId });
     }
   };
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
     values.operatorUserId,
-    values.operatorOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
     values.salesUserId,
-    values.salesOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
     values.customerServiceUserId,
-    values.customerServiceOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
     values.associateUserId,
-    values.associateOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
     values.documentUserId,
-    values.documentOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
     values.commercialUserId,
-    values.commercialOrganizationId,
   );
   addPersonnel(
     OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
     values.associate2UserId,
-    values.associate2OrganizationId,
   );
 
   const resolvedMasterNo =
@@ -365,15 +345,11 @@ export function buildSeaExportDetailInitialValues(
 ): Partial<OrderDetailFormValues> {
   if (!order) return {};
 
-  const personnelRoleMap: Record<
-    number,
-    { userId?: string; organizationId?: string }
-  > = {};
+  const personnelRoleMap: Record<number, { userId?: string }> = {};
   for (const p of personnel) {
     if (p.role !== undefined) {
       personnelRoleMap[p.role] = {
         userId: p.userId,
-        organizationId: p.organizationId,
       };
     }
   }
@@ -439,50 +415,26 @@ export function buildSeaExportDetailInitialValues(
     containerRequests: order.containerRequests,
     creatorUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR]?.userId,
-    creatorOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR]
-        ?.organizationId,
     operatorUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]
         ?.userId,
-    operatorOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]
-        ?.organizationId,
     salesUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES]?.userId,
-    salesOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES]
-        ?.organizationId,
     customerServiceUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE]
         ?.userId,
-    customerServiceOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE]
-        ?.organizationId,
     documentUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]
         ?.userId,
-    documentOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]
-        ?.organizationId,
     commercialUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL]
         ?.userId,
-    commercialOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL]
-        ?.organizationId,
     associateUserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]
         ?.userId,
-    associateOrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]
-        ?.organizationId,
     associate2UserId:
       personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
         ?.userId,
-    associate2OrganizationId:
-      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
-        ?.organizationId,
     seaMasterBillMasterNo: order.seaMasterBill?.masterNo,
     seaMasterBillCandidateId: undefined,
     seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,

@@ -1,6 +1,6 @@
+import { SaveOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { SaveOutlined } from '@ant-design/icons';
 import { history, useAccess, useModel, useParams } from '@umijs/max';
 import { App, Button, Card, Result, Space } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -119,21 +119,15 @@ export default function NewOrderPage() {
       checkInternalReferenceNo: () =>
         checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL),
       personnelOptions,
-      creator:
-        initialState?.currentUser?.id &&
-        initialState.currentUser.currentOrganization?.id
-          ? {
-              userId: initialState.currentUser.id,
-              displayName:
-                initialState.currentUser.displayName ||
-                initialState.currentUser.username ||
-                initialState.currentUser.id,
-              organizationId: initialState.currentUser.currentOrganization.id,
-              organizationName:
-                initialState.currentUser.currentOrganization.name ||
-                initialState.currentUser.currentOrganization.id,
-            }
-          : undefined,
+      creator: initialState?.currentUser?.id
+        ? {
+            userId: initialState.currentUser.id,
+            displayName:
+              initialState.currentUser.displayName ||
+              initialState.currentUser.username ||
+              initialState.currentUser.id,
+          }
+        : undefined,
     }),
     [
       serviceTypeOptions,

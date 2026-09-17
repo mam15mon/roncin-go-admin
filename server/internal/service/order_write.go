@@ -15,6 +15,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
+	}
 	input, err := orderFromCreateRequest(request)
 	if err != nil {
 		return nil, err

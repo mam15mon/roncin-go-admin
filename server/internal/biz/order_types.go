@@ -220,8 +220,7 @@ type OrderDateRange struct {
 }
 
 type OrderPersonnelFilter struct {
-	UserID         *uuid.UUID
-	OrganizationID *uuid.UUID
+	UserID *uuid.UUID
 }
 
 type Order struct {
@@ -394,10 +393,8 @@ type OrderReferenceMatch struct {
 }
 
 type OrderPersonnelOption struct {
-	UserID           uuid.UUID
-	DisplayName      string
-	OrganizationID   uuid.UUID
-	OrganizationName string
+	UserID      uuid.UUID
+	DisplayName string
 }
 
 type SameBatchOrderSummary struct {

@@ -386,7 +386,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
 	normalizedPersonnel := make([]*OrderPersonnel, 0, len(output.PersonnelAssignments))
 	for _, assignment := range output.PersonnelAssignments {
-		if assignment == nil || !assignment.Role.Valid() || assignment.Role == OrderPersonnelRoleCreator || assignment.UserID == uuid.Nil || assignment.OrganizationID == uuid.Nil {
+		if assignment == nil || !assignment.Role.Valid() || assignment.Role == OrderPersonnelRoleCreator || assignment.UserID == uuid.Nil {
 			return nil, ErrOrderInvalidArgument
 		}
 		roleCounts[assignment.Role]++

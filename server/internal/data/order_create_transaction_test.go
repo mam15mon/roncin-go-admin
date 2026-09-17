@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,7 +15,40 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 )
+
+func TestOrderCommissionSnapshotRejectsMissingRoles(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("创建 sqlmock 失败: %v", err)
+	}
+	driver := entsql.OpenDB(dialect.Postgres, db)
+	client := ent.NewClient(ent.Driver(driver))
+	t.Cleanup(func() {
+		_ = client.Close()
+		_ = db.Close()
+	})
+	mock.ExpectBegin()
+	tx, err := client.Tx(t.Context())
+	if err != nil {
+		t.Fatalf("开启事务失败: %v", err)
+	}
+	mock.ExpectQuery(`SELECT .* FROM "partner_assignments"`).
+		WillReturnRows(sqlmock.NewRows(partnerassignment.Columns))
+	err = snapshotOrderCommissionAttributions(t.Context(), tx, uuid.New(), uuid.New(), uuid.New(), time.Now())
+	if err == nil || !strings.Contains(err.Error(), "销售、操作、客服") {
+		t.Fatalf("缺失全部提成岗位时应显式拒绝并列出岗位，实际: %v", err)
+	}
+	mock.ExpectRollback()
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("事务回滚失败: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("快照查询及回滚未符合预期: %v", err)
+	}
+}
 
 func TestOrderCreateRollsBackAllocatedNumberWhenValidationFails(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -33,6 +67,8 @@ func TestOrderCreateRollsBackAllocatedNumberWhenValidationFails(t *testing.T) {
 	now := time.Now().UTC()
 
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "organizations"\."id" FROM "organizations".*"kind".*"enabled"`).
+		WillReturnRows(sqlmock.NewRows([]string{organization.FieldID}).AddRow(organizationID))
 	mock.ExpectQuery(`SELECT "number_rules"\..*FROM "number_rules".*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows(numberrule.Columns).AddRow(
 			ruleID, now, now, organizationID, "order", "", "yyyyMMdd", 5, "daily", true,

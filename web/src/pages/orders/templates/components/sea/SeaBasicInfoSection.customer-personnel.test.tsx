@@ -106,19 +106,12 @@ describe('extractPersonnelFromPartnerAssignments', () => {
 
     expect(result).toEqual({
       operatorUserId: 'user-op',
-      operatorOrganizationId: 'org-op',
       salesUserId: 'user-sales',
-      salesOrganizationId: 'org-sales',
       customerServiceUserId: 'user-cs',
-      customerServiceOrganizationId: 'org-cs',
       commercialUserId: 'user-comm',
-      commercialOrganizationId: 'org-comm',
       associateUserId: 'user-contact-1',
-      associateOrganizationId: 'org-contact-1',
       associate2UserId: 'user-contact-2',
-      associate2OrganizationId: 'org-contact-2',
       documentUserId: 'user-doc',
-      documentOrganizationId: 'org-doc',
     });
 
     // 确保创建人和财务人员未泄漏到订单表单字段
@@ -126,7 +119,7 @@ describe('extractPersonnelFromPartnerAssignments', () => {
     expect(result).not.toHaveProperty('financeUserId');
   });
 
-  it('当 assignment 缺少 organizationId 时，从 personnelOptions 兜底回补', () => {
+  it('assignment 只按人员回填，不传播组织归属', () => {
     const assignments: API.PartnerAssignment[] = [
       {
         role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
@@ -148,7 +141,6 @@ describe('extractPersonnelFromPartnerAssignments', () => {
 
     expect(result).toEqual({
       operatorUserId: 'user-op',
-      operatorOrganizationId: 'org-op-fallback',
     });
   });
 });
@@ -210,11 +202,11 @@ describe('SeaCustomerField 联动带出内部信息', () => {
 
     await waitFor(() => {
       expect(formInstance.getFieldValue('salesUserId')).toBe('sales-1');
-      expect(formInstance.getFieldValue('salesOrganizationId')).toBe('org-sales');
       expect(formInstance.getFieldValue('operatorUserId')).toBe('operator-1');
-      expect(formInstance.getFieldValue('operatorOrganizationId')).toBe(
-        'org-operator',
-      );
+      expect(formInstance.getFieldValue('salesOrganizationId')).toBeUndefined();
+      expect(
+        formInstance.getFieldValue('operatorOrganizationId'),
+      ).toBeUndefined();
     });
   });
 

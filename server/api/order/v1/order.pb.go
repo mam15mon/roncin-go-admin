@@ -2052,14 +2052,14 @@ func (x *OrderContainerRequest) GetUpdatedAt() string {
 	return ""
 }
 
-// OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
+// OrderPersonnelAssignmentInput 新建订单时的协作人员配置；业务归属公司由后端
+// 从订单组织派生，客户端不再提交人员实际挂靠的部门/团队。
 type OrderPersonnelAssignmentInput struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Role           OrderPersonnelRole     `protobuf:"varint,3,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role          OrderPersonnelRole     `protobuf:"varint,3,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderPersonnelAssignmentInput) Reset() {
@@ -2099,13 +2099,6 @@ func (x *OrderPersonnelAssignmentInput) GetUserId() string {
 	return ""
 }
 
-func (x *OrderPersonnelAssignmentInput) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
 func (x *OrderPersonnelAssignmentInput) GetRole() OrderPersonnelRole {
 	if x != nil {
 		return x.Role
@@ -2113,15 +2106,13 @@ func (x *OrderPersonnelAssignmentInput) GetRole() OrderPersonnelRole {
 	return OrderPersonnelRole_ORDER_PERSONNEL_ROLE_UNSPECIFIED
 }
 
-// OrderPersonnelOption 订单人员及其所属公司候选项。
+// OrderPersonnelOption 订单协作人员候选；同一人员的多条部门 Membership 去重。
 type OrderPersonnelOption struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	UserId           string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName      string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	OrganizationId   string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName string                 `protobuf:"bytes,4,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderPersonnelOption) Reset() {
@@ -2164,20 +2155,6 @@ func (x *OrderPersonnelOption) GetUserId() string {
 func (x *OrderPersonnelOption) GetDisplayName() string {
 	if x != nil {
 		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *OrderPersonnelOption) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *OrderPersonnelOption) GetOrganizationName() string {
-	if x != nil {
-		return x.OrganizationName
 	}
 	return ""
 }
@@ -2468,46 +2445,42 @@ func (x *GetOrderRequest) GetId() string {
 
 // ListOrdersRequest 获取订单列表请求。
 type ListOrdersRequest struct {
-	state                         protoimpl.MessageState  `protogen:"open.v1"`
-	Page                          int32                   `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize                      int32                   `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword                       string                  `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	FlowStatus                    *OrderFlowStatus        `protobuf:"varint,4,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus,oneof" json:"flow_status,omitempty"`
-	BusinessType                  *BusinessType           `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
-	CustomerId                    string                  `protobuf:"bytes,6,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	TerminationStatus             *OrderTerminationStatus `protobuf:"varint,7,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus,oneof" json:"termination_status,omitempty"`
-	ClosureStatus                 *OrderClosureStatus     `protobuf:"varint,8,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus,oneof" json:"closure_status,omitempty"`
-	HasActiveException            *bool                   `protobuf:"varint,9,opt,name=has_active_exception,json=hasActiveException,proto3,oneof" json:"has_active_exception,omitempty"`
-	NumberType                    *OrderNumberFilterType  `protobuf:"varint,10,opt,name=number_type,json=numberType,proto3,enum=order.v1.OrderNumberFilterType,oneof" json:"number_type,omitempty"`
-	NumberKeyword                 string                  `protobuf:"bytes,11,opt,name=number_keyword,json=numberKeyword,proto3" json:"number_keyword,omitempty"`
-	CreatedAtFrom                 string                  `protobuf:"bytes,12,opt,name=created_at_from,json=createdAtFrom,proto3" json:"created_at_from,omitempty"`
-	CreatedAtTo                   string                  `protobuf:"bytes,13,opt,name=created_at_to,json=createdAtTo,proto3" json:"created_at_to,omitempty"`
-	EtdFrom                       string                  `protobuf:"bytes,14,opt,name=etd_from,json=etdFrom,proto3" json:"etd_from,omitempty"`
-	EtdTo                         string                  `protobuf:"bytes,15,opt,name=etd_to,json=etdTo,proto3" json:"etd_to,omitempty"`
-	EtaFrom                       string                  `protobuf:"bytes,16,opt,name=eta_from,json=etaFrom,proto3" json:"eta_from,omitempty"`
-	EtaTo                         string                  `protobuf:"bytes,17,opt,name=eta_to,json=etaTo,proto3" json:"eta_to,omitempty"`
-	StatusTimeFrom                string                  `protobuf:"bytes,18,opt,name=status_time_from,json=statusTimeFrom,proto3" json:"status_time_from,omitempty"`
-	StatusTimeTo                  string                  `protobuf:"bytes,19,opt,name=status_time_to,json=statusTimeTo,proto3" json:"status_time_to,omitempty"`
-	LockedAtFrom                  string                  `protobuf:"bytes,20,opt,name=locked_at_from,json=lockedAtFrom,proto3" json:"locked_at_from,omitempty"`
-	LockedAtTo                    string                  `protobuf:"bytes,21,opt,name=locked_at_to,json=lockedAtTo,proto3" json:"locked_at_to,omitempty"`
-	OriginLocationId              string                  `protobuf:"bytes,22,opt,name=origin_location_id,json=originLocationId,proto3" json:"origin_location_id,omitempty"`
-	DestinationLocationId         string                  `protobuf:"bytes,23,opt,name=destination_location_id,json=destinationLocationId,proto3" json:"destination_location_id,omitempty"`
-	ShippingLineId                string                  `protobuf:"bytes,24,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
-	ConsigneeShortName            string                  `protobuf:"bytes,25,opt,name=consignee_short_name,json=consigneeShortName,proto3" json:"consignee_short_name,omitempty"`
-	ShipperShortName              string                  `protobuf:"bytes,26,opt,name=shipper_short_name,json=shipperShortName,proto3" json:"shipper_short_name,omitempty"`
-	OperatorId                    string                  `protobuf:"bytes,27,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	OperatorOrganizationId        string                  `protobuf:"bytes,28,opt,name=operator_organization_id,json=operatorOrganizationId,proto3" json:"operator_organization_id,omitempty"`
-	SalesId                       string                  `protobuf:"bytes,29,opt,name=sales_id,json=salesId,proto3" json:"sales_id,omitempty"`
-	SalesOrganizationId           string                  `protobuf:"bytes,30,opt,name=sales_organization_id,json=salesOrganizationId,proto3" json:"sales_organization_id,omitempty"`
-	CustomerServiceId             string                  `protobuf:"bytes,31,opt,name=customer_service_id,json=customerServiceId,proto3" json:"customer_service_id,omitempty"`
-	CustomerServiceOrganizationId string                  `protobuf:"bytes,32,opt,name=customer_service_organization_id,json=customerServiceOrganizationId,proto3" json:"customer_service_organization_id,omitempty"`
-	CreatorId                     string                  `protobuf:"bytes,33,opt,name=creator_id,json=creatorId,proto3" json:"creator_id,omitempty"`
-	CreatorOrganizationId         string                  `protobuf:"bytes,34,opt,name=creator_organization_id,json=creatorOrganizationId,proto3" json:"creator_organization_id,omitempty"`
-	TagIds                        []string                `protobuf:"bytes,35,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	IsLocked                      *bool                   `protobuf:"varint,37,opt,name=is_locked,json=isLocked,proto3,oneof" json:"is_locked,omitempty"`
-	IsShared                      *bool                   `protobuf:"varint,38,opt,name=is_shared,json=isShared,proto3,oneof" json:"is_shared,omitempty"`
-	unknownFields                 protoimpl.UnknownFields
-	sizeCache                     protoimpl.SizeCache
+	state                 protoimpl.MessageState  `protogen:"open.v1"`
+	Page                  int32                   `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize              int32                   `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword               string                  `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	FlowStatus            *OrderFlowStatus        `protobuf:"varint,4,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus,oneof" json:"flow_status,omitempty"`
+	BusinessType          *BusinessType           `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
+	CustomerId            string                  `protobuf:"bytes,6,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	TerminationStatus     *OrderTerminationStatus `protobuf:"varint,7,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus,oneof" json:"termination_status,omitempty"`
+	ClosureStatus         *OrderClosureStatus     `protobuf:"varint,8,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus,oneof" json:"closure_status,omitempty"`
+	HasActiveException    *bool                   `protobuf:"varint,9,opt,name=has_active_exception,json=hasActiveException,proto3,oneof" json:"has_active_exception,omitempty"`
+	NumberType            *OrderNumberFilterType  `protobuf:"varint,10,opt,name=number_type,json=numberType,proto3,enum=order.v1.OrderNumberFilterType,oneof" json:"number_type,omitempty"`
+	NumberKeyword         string                  `protobuf:"bytes,11,opt,name=number_keyword,json=numberKeyword,proto3" json:"number_keyword,omitempty"`
+	CreatedAtFrom         string                  `protobuf:"bytes,12,opt,name=created_at_from,json=createdAtFrom,proto3" json:"created_at_from,omitempty"`
+	CreatedAtTo           string                  `protobuf:"bytes,13,opt,name=created_at_to,json=createdAtTo,proto3" json:"created_at_to,omitempty"`
+	EtdFrom               string                  `protobuf:"bytes,14,opt,name=etd_from,json=etdFrom,proto3" json:"etd_from,omitempty"`
+	EtdTo                 string                  `protobuf:"bytes,15,opt,name=etd_to,json=etdTo,proto3" json:"etd_to,omitempty"`
+	EtaFrom               string                  `protobuf:"bytes,16,opt,name=eta_from,json=etaFrom,proto3" json:"eta_from,omitempty"`
+	EtaTo                 string                  `protobuf:"bytes,17,opt,name=eta_to,json=etaTo,proto3" json:"eta_to,omitempty"`
+	StatusTimeFrom        string                  `protobuf:"bytes,18,opt,name=status_time_from,json=statusTimeFrom,proto3" json:"status_time_from,omitempty"`
+	StatusTimeTo          string                  `protobuf:"bytes,19,opt,name=status_time_to,json=statusTimeTo,proto3" json:"status_time_to,omitempty"`
+	LockedAtFrom          string                  `protobuf:"bytes,20,opt,name=locked_at_from,json=lockedAtFrom,proto3" json:"locked_at_from,omitempty"`
+	LockedAtTo            string                  `protobuf:"bytes,21,opt,name=locked_at_to,json=lockedAtTo,proto3" json:"locked_at_to,omitempty"`
+	OriginLocationId      string                  `protobuf:"bytes,22,opt,name=origin_location_id,json=originLocationId,proto3" json:"origin_location_id,omitempty"`
+	DestinationLocationId string                  `protobuf:"bytes,23,opt,name=destination_location_id,json=destinationLocationId,proto3" json:"destination_location_id,omitempty"`
+	ShippingLineId        string                  `protobuf:"bytes,24,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ConsigneeShortName    string                  `protobuf:"bytes,25,opt,name=consignee_short_name,json=consigneeShortName,proto3" json:"consignee_short_name,omitempty"`
+	ShipperShortName      string                  `protobuf:"bytes,26,opt,name=shipper_short_name,json=shipperShortName,proto3" json:"shipper_short_name,omitempty"`
+	OperatorId            string                  `protobuf:"bytes,27,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	SalesId               string                  `protobuf:"bytes,29,opt,name=sales_id,json=salesId,proto3" json:"sales_id,omitempty"`
+	CustomerServiceId     string                  `protobuf:"bytes,31,opt,name=customer_service_id,json=customerServiceId,proto3" json:"customer_service_id,omitempty"`
+	CreatorId             string                  `protobuf:"bytes,33,opt,name=creator_id,json=creatorId,proto3" json:"creator_id,omitempty"`
+	TagIds                []string                `protobuf:"bytes,35,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	IsLocked              *bool                   `protobuf:"varint,37,opt,name=is_locked,json=isLocked,proto3,oneof" json:"is_locked,omitempty"`
+	IsShared              *bool                   `protobuf:"varint,38,opt,name=is_shared,json=isShared,proto3,oneof" json:"is_shared,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ListOrdersRequest) Reset() {
@@ -2729,23 +2702,9 @@ func (x *ListOrdersRequest) GetOperatorId() string {
 	return ""
 }
 
-func (x *ListOrdersRequest) GetOperatorOrganizationId() string {
-	if x != nil {
-		return x.OperatorOrganizationId
-	}
-	return ""
-}
-
 func (x *ListOrdersRequest) GetSalesId() string {
 	if x != nil {
 		return x.SalesId
-	}
-	return ""
-}
-
-func (x *ListOrdersRequest) GetSalesOrganizationId() string {
-	if x != nil {
-		return x.SalesOrganizationId
 	}
 	return ""
 }
@@ -2757,23 +2716,9 @@ func (x *ListOrdersRequest) GetCustomerServiceId() string {
 	return ""
 }
 
-func (x *ListOrdersRequest) GetCustomerServiceOrganizationId() string {
-	if x != nil {
-		return x.CustomerServiceOrganizationId
-	}
-	return ""
-}
-
 func (x *ListOrdersRequest) GetCreatorId() string {
 	if x != nil {
 		return x.CreatorId
-	}
-	return ""
-}
-
-func (x *ListOrdersRequest) GetCreatorOrganizationId() string {
-	if x != nil {
-		return x.CreatorOrganizationId
 	}
 	return ""
 }
@@ -6428,16 +6373,13 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\xa2\x01\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"t\n" +
 	"\x1dOrderPersonnelAssignmentInput\x12\x1c\n" +
-	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"\xa8\x01\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x125\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"R\n" +
 	"\x14OrderPersonnelOption\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12'\n" +
-	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x04 \x01(\tR\x10organizationName\"\x90\x01\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"\x90\x01\n" +
 	"\x15OrderServiceSelection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12-\n" +
@@ -6466,7 +6408,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\a_reasonB\x0e\n" +
 	"\f_operator_id\"&\n" +
 	"\x0fGetOrderRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xe7\r\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xf8\v\n" +
 	"\x11ListOrdersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
@@ -6500,15 +6442,11 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14consignee_short_name\x18\x19 \x01(\tR\x12consigneeShortName\x12,\n" +
 	"\x12shipper_short_name\x18\x1a \x01(\tR\x10shipperShortName\x12\x1f\n" +
 	"\voperator_id\x18\x1b \x01(\tR\n" +
-	"operatorId\x128\n" +
-	"\x18operator_organization_id\x18\x1c \x01(\tR\x16operatorOrganizationId\x12\x19\n" +
-	"\bsales_id\x18\x1d \x01(\tR\asalesId\x122\n" +
-	"\x15sales_organization_id\x18\x1e \x01(\tR\x13salesOrganizationId\x12.\n" +
-	"\x13customer_service_id\x18\x1f \x01(\tR\x11customerServiceId\x12G\n" +
-	" customer_service_organization_id\x18  \x01(\tR\x1dcustomerServiceOrganizationId\x12\x1d\n" +
+	"operatorId\x12\x19\n" +
+	"\bsales_id\x18\x1d \x01(\tR\asalesId\x12.\n" +
+	"\x13customer_service_id\x18\x1f \x01(\tR\x11customerServiceId\x12\x1d\n" +
 	"\n" +
-	"creator_id\x18! \x01(\tR\tcreatorId\x126\n" +
-	"\x17creator_organization_id\x18\" \x01(\tR\x15creatorOrganizationId\x12\x17\n" +
+	"creator_id\x18! \x01(\tR\tcreatorId\x12\x17\n" +
 	"\atag_ids\x18# \x03(\tR\x06tagIds\x12 \n" +
 	"\tis_locked\x18% \x01(\bH\x06R\bisLocked\x88\x01\x01\x12 \n" +
 	"\tis_shared\x18& \x01(\bH\aR\bisShared\x88\x01\x01B\x0e\n" +

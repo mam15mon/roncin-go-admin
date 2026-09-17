@@ -1,4 +1,4 @@
-import { Form, Space } from 'antd';
+import { Form } from 'antd';
 import React from 'react';
 import { FormRow, SearchableSelect } from '@/components/ui';
 import type { TemplateProps } from '../../types';
@@ -6,14 +6,11 @@ import type { TemplateProps } from '../../types';
 interface PersonnelAssignmentOption {
   userId?: string;
   displayName?: string;
-  organizationId?: string;
-  organizationName?: string;
 }
 
 interface PersonnelAssignmentFieldsProps {
   label: string;
   userField: string;
-  organizationField: string;
   options: PersonnelAssignmentOption[];
   disabled?: boolean;
 }
@@ -21,35 +18,13 @@ interface PersonnelAssignmentFieldsProps {
 export function PersonnelAssignmentFields({
   label,
   userField,
-  organizationField,
   options,
   disabled = false,
 }: PersonnelAssignmentFieldsProps) {
-  const form = Form.useFormInstance();
-  const selectedUserID = Form.useWatch(userField, form);
-  const selectedOrganizationID = Form.useWatch(organizationField, form);
-  const organizationOptions = Array.from(
-    new Map(
-      options
-        .filter((option) => option.organizationId)
-        .map((option) => [
-          option.organizationId as string,
-          {
-            label: option.organizationName || option.organizationId,
-            value: option.organizationId as string,
-          },
-        ]),
-    ).values(),
-  );
   const userOptions = Array.from(
     new Map(
       options
-        .filter(
-          (option) =>
-            option.userId &&
-            (!selectedOrganizationID ||
-              option.organizationId === selectedOrganizationID),
-        )
+        .filter((option) => option.userId)
         .map((option) => [
           option.userId as string,
           {
@@ -61,54 +36,29 @@ export function PersonnelAssignmentFields({
   );
 
   return (
-    <Form.Item label={label} style={{ marginBottom: 0 }}>
-      <Space.Compact block style={{ width: '100%' }}>
-        <Form.Item noStyle name={organizationField}>
-          <SearchableSelect
-            disabled={disabled}
-            options={organizationOptions}
-            placeholder="所属公司"
-            popupMatchSelectWidth={false}
-            allowClear={!disabled}
-            style={{ width: '48%' }}
-            onChange={(value) => {
-              const currentMatched = options.some(
-                (item) =>
-                  item.userId === selectedUserID &&
-                  item.organizationId === value,
-              );
-              if (!currentMatched) {
-                form?.setFieldValue(userField, undefined);
-              }
-            }}
-          />
-        </Form.Item>
-        <Form.Item noStyle name={userField}>
-          <SearchableSelect
-            disabled={disabled}
-            options={userOptions}
-            placeholder="选择人员"
-            popupMatchSelectWidth={false}
-            allowClear={!disabled}
-            style={{ width: '52%' }}
-            onChange={(value) => {
-              if (!value) {
-                return;
-              }
-              const matched = options.find((item) => item.userId === value);
-              if (matched?.organizationId) {
-                form?.setFieldValue(organizationField, matched.organizationId);
-              }
-            }}
-          />
-        </Form.Item>
-      </Space.Compact>
+    <Form.Item label={label} name={userField} style={{ marginBottom: 0 }}>
+      <SearchableSelect
+        disabled={disabled}
+        options={userOptions}
+        placeholder="选择人员"
+        popupMatchSelectWidth={false}
+        allowClear={!disabled}
+      />
     </Form.Item>
   );
 }
 
 export function buildSeaPersonnelSection(props: TemplateProps) {
   const { personnelOptions, creator } = props;
+  const fields = [
+    ['操作人员', 'operatorUserId'],
+    ['业务人员', 'salesUserId'],
+    ['客服人员', 'customerServiceUserId'],
+    ['关联人员', 'associateUserId'],
+    ['单证人员', 'documentUserId'],
+    ['商务人员', 'commercialUserId'],
+    ['关联人员 2', 'associate2UserId'],
+  ] as const;
 
   return {
     key: 'internalInfo',
@@ -118,63 +68,21 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
         <PersonnelAssignmentFields
           label="创建人员"
           userField="creatorUserId"
-          organizationField="creatorOrganizationId"
           options={
             creator
-              ? [
-                  {
-                    userId: creator.userId,
-                    displayName: creator.displayName,
-                    organizationId: creator.organizationId,
-                    organizationName: creator.organizationName,
-                  },
-                ]
+              ? [{ userId: creator.userId, displayName: creator.displayName }]
               : []
           }
           disabled
         />
-        <PersonnelAssignmentFields
-          label="操作人员"
-          userField="operatorUserId"
-          organizationField="operatorOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="业务人员"
-          userField="salesUserId"
-          organizationField="salesOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="客服人员"
-          userField="customerServiceUserId"
-          organizationField="customerServiceOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="关联人员"
-          userField="associateUserId"
-          organizationField="associateOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="单证人员"
-          userField="documentUserId"
-          organizationField="documentOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="商务人员"
-          userField="commercialUserId"
-          organizationField="commercialOrganizationId"
-          options={personnelOptions}
-        />
-        <PersonnelAssignmentFields
-          label="关联人员 2"
-          userField="associate2UserId"
-          organizationField="associate2OrganizationId"
-          options={personnelOptions}
-        />
+        {fields.map(([label, userField]) => (
+          <PersonnelAssignmentFields
+            key={userField}
+            label={label}
+            userField={userField}
+            options={personnelOptions}
+          />
+        ))}
       </FormRow>
     ),
   };

@@ -275,18 +275,16 @@ message PartnerAssignment {
   int32 sort_order = 7;
 }
 
+// 责任人员归属组织由后端一律派生为客户档案所属组织，写契约不再接收组织字段。
 message PartnerAssignmentInput {
   PartnerAssignmentRole role = 1 [(google.api.field_behavior) = REQUIRED];
   string user_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+// 责任人员候选收敛为纯人员语义：同一人员的多部门成员关系按人员去重后仅返回一条。
 message PartnerAssignmentOption {
   string user_id = 1;
   string display_name = 2;
-  string organization_id = 3;
-  string organization_name = 4;
-  bool membership_enabled = 5;
 }
 
 message ListPartnerAssignmentOptionsRequest {}

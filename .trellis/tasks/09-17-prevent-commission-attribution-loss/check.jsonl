@@ -1,0 +1,5 @@
+{"file": "AGENTS.md", "reason": "对照仓库约束核查：契约生成顺序、事务边界、生成物不手改、提交规范"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "核查 proto 删字段后服务端、前端生成物、表单提交全链路是否一致收敛"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端质量门禁与生成物检查"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "核查缺配错误映射与中文消息、事务回滚语义"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试与 tsc/biome 门禁"}

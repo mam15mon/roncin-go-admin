@@ -100,8 +100,6 @@ func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, optio
 	for _, item := range result.Items {
 		data = append(data, &v1.PartnerAssignmentOption{
 			UserId: item.UserID.String(), DisplayName: item.DisplayName,
-			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
-			MembershipEnabled: item.MembershipEnabled,
 		})
 	}
 	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil
@@ -111,6 +109,9 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
 	}
 	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.Partner{
 		Code: request.GetCode(), LegalName: request.GetLegalName(),
@@ -167,6 +168,9 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
 	}
 	items := make([]*biz.Partner, 0, len(request.GetItems()))
 	for _, item := range request.GetItems() {

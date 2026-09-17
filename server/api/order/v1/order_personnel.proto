@@ -67,7 +67,6 @@ message AssignPersonnelRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string user_id = 2 [(google.api.field_behavior) = REQUIRED];
   OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RemovePersonnelRequest 移除订单协作人员请求。

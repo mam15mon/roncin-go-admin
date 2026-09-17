@@ -8,8 +8,6 @@ export interface OrderSelectOption {
 export interface OrderPersonnelFilterOption {
   userId: string;
   displayName: string;
-  organizationId: string;
-  organizationName: string;
 }
 
 export interface OrderListFilterOptions {
@@ -53,13 +51,9 @@ export interface OrderListFilterParams {
 
   // 人员与组织架构类
   operatorId?: string; // 操作人员
-  operatorDeptId?: string;
   salesId?: string; // 业务人员
-  salesDeptId?: string;
   customerServiceId?: string; // 客服人员
-  customerServiceDeptId?: string;
   creatorId?: string; // 订单创建人员
-  creatorDeptId?: string;
 
   // 状态与标记类
   stage?: string; // 进程（未退关、已完结等）
@@ -165,7 +159,9 @@ export interface OrderListTemplateProps {
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */
-  actionRef?: React.MutableRefObject<ActionType | undefined> | React.RefObject<ActionType | undefined>;
+  actionRef?:
+    | React.MutableRefObject<ActionType | undefined>
+    | React.RefObject<ActionType | undefined>;
   /** 页面副标题 */
   subTitle?: string;
 

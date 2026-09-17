@@ -367,7 +367,6 @@ declare namespace API {
     orderId: string;
     userId: string;
     role: number;
-    organizationId: string;
   };
 
   type AssignPersonnelResponse = {
@@ -4720,15 +4719,12 @@ declare namespace API {
 
   type OrderPersonnelAssignmentInput = {
     userId: string;
-    organizationId: string;
     role: number;
   };
 
   type OrderPersonnelOption = {
     userId?: string;
     displayName?: string;
-    organizationId?: string;
-    organizationName?: string;
   };
 
   type OrderPersonnelServiceAssignPersonnelParams = {
@@ -4833,13 +4829,9 @@ declare namespace API {
     consigneeShortName?: string;
     shipperShortName?: string;
     operatorId?: string;
-    operatorOrganizationId?: string;
     salesId?: string;
-    salesOrganizationId?: string;
     customerServiceId?: string;
-    customerServiceOrganizationId?: string;
     creatorId?: string;
-    creatorOrganizationId?: string;
     tagIds?: string[];
     isLocked?: boolean;
     isShared?: boolean;
@@ -5071,15 +5063,11 @@ declare namespace API {
   type PartnerAssignmentInput = {
     role: number;
     userId: string;
-    organizationId: string;
   };
 
   type PartnerAssignmentOption = {
     userId?: string;
     displayName?: string;
-    organizationId?: string;
-    organizationName?: string;
-    membershipEnabled?: boolean;
   };
 
   type PartnerAssociations = {

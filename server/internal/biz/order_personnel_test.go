@@ -28,14 +28,14 @@ func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, order
 	}, nil
 }
 
-func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error) {
+func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error) {
 	s.notification = notification
 	s.assignedAudit = audit
 	s.assigned = &OrderPersonnel{
 		ID:             uuid.New(),
 		OrderID:        orderID,
 		UserID:         userID,
-		OrganizationID: memberOrganizationID,
+		OrganizationID: organizationID,
 		Role:           role,
 		AssignedAt:     time.Now(),
 	}
@@ -79,36 +79,32 @@ func TestOrderPersonnelRoleValid(t *testing.T) {
 func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
 	repo := &orderPersonnelRepoStub{}
 	usecase := NewOrderPersonnelUsecase(repo)
-	organizationID, actorID, orderID, userID, memberOrganizationID := uuid.New(), uuid.New(), uuid.New(), uuid.New(), uuid.New()
+	organizationID, actorID, orderID, userID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Empty IDs
-	if _, err := usecase.Assign(context.Background(), uuid.Nil, actorID, orderID, userID, memberOrganizationID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
+	if _, err := usecase.Assign(context.Background(), uuid.Nil, actorID, orderID, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil orgID, got %v", err)
 	}
-	if _, err := usecase.Assign(context.Background(), organizationID, uuid.Nil, orderID, userID, memberOrganizationID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
+	if _, err := usecase.Assign(context.Background(), organizationID, uuid.Nil, orderID, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil actorID, got %v", err)
 	}
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, uuid.Nil, userID, memberOrganizationID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
+	if _, err := usecase.Assign(context.Background(), organizationID, actorID, uuid.Nil, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil orderID, got %v", err)
 	}
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, uuid.Nil, memberOrganizationID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
+	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, uuid.Nil, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil userID, got %v", err)
 	}
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, uuid.Nil, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil member organization ID, got %v", err)
-	}
-
 	// Invalid role
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, memberOrganizationID, OrderPersonnelRole("UNKNOWN")); err != ErrOrderPersonnelInvalidArgument {
+	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, OrderPersonnelRole("UNKNOWN")); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for invalid role, got %v", err)
 	}
 
 	// Success
-	created, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, memberOrganizationID, OrderPersonnelRoleSales)
+	created, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, OrderPersonnelRoleSales)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if created == nil || created.Role != OrderPersonnelRoleSales || created.OrderID != orderID || created.UserID != userID || created.OrganizationID != memberOrganizationID {
+	if created == nil || created.Role != OrderPersonnelRoleSales || created.OrderID != orderID || created.UserID != userID || created.OrganizationID != organizationID {
 		t.Fatalf("unexpected created personnel: %#v", created)
 	}
 	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateOrderPersonnelAssign {

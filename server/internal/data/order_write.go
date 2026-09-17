@@ -36,6 +36,9 @@ import (
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
 	var createdID uuid.UUID
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
+			return companyErr
+		}
 		allocatedAt := time.Now().UTC()
 		rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, biz.DocumentTypeOrder, allocatedAt)
 		if err != nil {
@@ -168,8 +171,27 @@ func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organi
 	if err != nil {
 		return err
 	}
-	if len(assignments) == 0 {
-		return nil
+	// 提成相关岗位（销售/操作/客服）缺人时阻止开单：归属组织已收敛为客户档案
+	// 所属组织，快照严格等值匹配必然命中已配置人员，缺配属于必须显式暴露的配置问题。
+	coveredRoles := make(map[partnerassignmentent.Role]struct{}, len(assignments))
+	for _, item := range assignments {
+		coveredRoles[item.Role] = struct{}{}
+	}
+	missingRoles := make([]biz.PartnerAssignmentRole, 0, 3)
+	for _, check := range []struct {
+		role    biz.PartnerAssignmentRole
+		entRole partnerassignmentent.Role
+	}{
+		{biz.PartnerAssignmentSales, partnerassignmentent.RoleSALES},
+		{biz.PartnerAssignmentOperator, partnerassignmentent.RoleOPERATOR},
+		{biz.PartnerAssignmentCustomerService, partnerassignmentent.RoleCUSTOMER_SERVICE},
+	} {
+		if _, ok := coveredRoles[check.entRole]; !ok {
+			missingRoles = append(missingRoles, check.role)
+		}
+	}
+	if len(missingRoles) > 0 {
+		return biz.NewPartnerCommissionAssignmentMissing(missingRoles)
 	}
 	builders := make([]*ent.OrderCommissionAttributionCreate, 0, len(assignments))
 	seenAttributions := make(map[string]struct{}, len(assignments))

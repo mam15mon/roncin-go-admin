@@ -2,9 +2,44 @@ package biz
 
 import (
 	"context"
+	"errors"
+	"strings"
+	"testing"
 
 	"github.com/google/uuid"
 )
+
+func TestRequireOperatingCompany(t *testing.T) {
+	t.Run("公司工作台允许创建经营根数据", func(t *testing.T) {
+		if err := RequireOperatingCompany(principalContext(companyPrincipal())); err != nil {
+			t.Fatalf("公司工作台不应被拦截: %v", err)
+		}
+	})
+
+	t.Run("总部工作台禁止持有经营根数据", func(t *testing.T) {
+		err := RequireOperatingCompany(principalContext(headquartersPrincipal()))
+		if !errors.Is(err, ErrOperatingCompanyRequired) {
+			t.Fatalf("总部工作台应返回 ErrOperatingCompanyRequired，实际: %v", err)
+		}
+	})
+
+	t.Run("缺少主体时保持鉴权错误", func(t *testing.T) {
+		if err := RequireOperatingCompany(context.Background()); err == nil || errors.Is(err, ErrOperatingCompanyRequired) {
+			t.Fatalf("缺少主体时应返回原始鉴权错误，实际: %v", err)
+		}
+	})
+}
+
+func TestPartnerCommissionAssignmentMissingListsOnlyMissingRoles(t *testing.T) {
+	err := NewPartnerCommissionAssignmentMissing([]PartnerAssignmentRole{
+		PartnerAssignmentCustomerService,
+		PartnerAssignmentSales,
+		PartnerAssignmentSales,
+	})
+	if err == nil || !strings.Contains(err.Error(), "客户档案缺少销售、客服责任人") || strings.Contains(err.Error(), "销售、销售") {
+		t.Fatalf("缺配岗位提示应去重且按固定顺序展示，实际: %v", err)
+	}
+}
 
 // headquartersPrincipal 构造总部根节点身份且持有指定权限码集合的测试主体。
 func headquartersPrincipal(permissions ...string) *Principal {

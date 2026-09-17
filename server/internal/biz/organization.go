@@ -2,7 +2,28 @@ package biz
 
 import (
 	"context"
+
+	"github.com/go-kratos/kratos/v3/errors"
 )
+
+var ErrOperatingCompanyRequired = errors.Forbidden(
+	"OPERATING_COMPANY_REQUIRED",
+	"总部仅用于集团管理，请切换到具体公司后再维护经营数据",
+)
+
+// RequireOperatingCompany 拦截以当前工作台为归属的新建经营数据：总部只承担
+// 集团治理，客户、订单等经营根数据只能归属公司。带显式目标公司的跨组织接口
+// 继续按各自权限范围校验，不使用本门禁。
+func RequireOperatingCompany(ctx context.Context) error {
+	principal, err := RequirePrincipal(ctx)
+	if err != nil {
+		return err
+	}
+	if principal.Organization.Kind != OrganizationKindCompany {
+		return ErrOperatingCompanyRequired
+	}
+	return nil
+}
 
 // RequireGlobalMasterDataWrite 拦截 A 型全局主数据的写路径：要求当前主体沿组织树
 // 解析到根且根节点为总部（kind == headquarters），并持有对应全局治理权限码。

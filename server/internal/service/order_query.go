@@ -194,16 +194,16 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	}
 	options.ConsigneeShortName = request.GetConsigneeShortName()
 	options.ShipperShortName = request.GetShipperShortName()
-	if options.Operator, err = orderPersonnelFilterFromAPI(request.GetOperatorId(), request.GetOperatorOrganizationId()); err != nil {
+	if options.Operator, err = orderPersonnelFilterFromAPI(request.GetOperatorId()); err != nil {
 		return nil, err
 	}
-	if options.Sales, err = orderPersonnelFilterFromAPI(request.GetSalesId(), request.GetSalesOrganizationId()); err != nil {
+	if options.Sales, err = orderPersonnelFilterFromAPI(request.GetSalesId()); err != nil {
 		return nil, err
 	}
-	if options.CustomerService, err = orderPersonnelFilterFromAPI(request.GetCustomerServiceId(), request.GetCustomerServiceOrganizationId()); err != nil {
+	if options.CustomerService, err = orderPersonnelFilterFromAPI(request.GetCustomerServiceId()); err != nil {
 		return nil, err
 	}
-	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId(), request.GetCreatorOrganizationId()); err != nil {
+	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId()); err != nil {
 		return nil, err
 	}
 	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrOrderInvalidArgument)
@@ -267,19 +267,12 @@ func listOptionalUUID(value string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func orderPersonnelFilterFromAPI(userID, organizationID string) (biz.OrderPersonnelFilter, error) {
+func orderPersonnelFilterFromAPI(userID string) (biz.OrderPersonnelFilter, error) {
 	user, err := listOptionalUUID(userID)
 	if err != nil {
 		return biz.OrderPersonnelFilter{}, err
 	}
-	organization, err := listOptionalUUID(organizationID)
-	if err != nil {
-		return biz.OrderPersonnelFilter{}, err
-	}
-	if user == nil && organization != nil {
-		return biz.OrderPersonnelFilter{}, biz.ErrOrderInvalidArgument
-	}
-	return biz.OrderPersonnelFilter{UserID: user, OrganizationID: organization}, nil
+	return biz.OrderPersonnelFilter{UserID: user}, nil
 }
 
 func orderOrganizationScopesForOperation(principal *biz.Principal, operation access.OrderOperation, writable bool, onlyBusinessType biz.OrderBusinessType) ([]biz.OrderOrganizationScope, error) {
@@ -440,7 +433,6 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 	for _, item := range result.Items {
 		data = append(data, &v1.OrderPersonnelOption{
 			UserId: item.UserID.String(), DisplayName: item.DisplayName,
-			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		})
 	}
 	return okList(ctx, &v1.ListPersonnelOptionsResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil

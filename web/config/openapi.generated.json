@@ -7465,21 +7465,7 @@
             }
           },
           {
-            "name": "operatorOrganizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "salesId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "salesOrganizationId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -7493,21 +7479,7 @@
             }
           },
           {
-            "name": "customerServiceOrganizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "creatorId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "creatorOrganizationId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -23643,8 +23615,7 @@
         "required": [
           "orderId",
           "userId",
-          "role",
-          "organizationId"
+          "role"
         ],
         "type": "object",
         "properties": {
@@ -23657,9 +23628,6 @@
           "role": {
             "type": "integer",
             "format": "enum"
-          },
-          "organizationId": {
-            "type": "string"
           }
         },
         "description": "AssignPersonnelRequest 分配订单协作人员请求。"
@@ -26684,7 +26652,6 @@
       "order.v1.OrderPersonnelAssignmentInput": {
         "required": [
           "userId",
-          "organizationId",
           "role"
         ],
         "type": "object",
@@ -26692,15 +26659,12 @@
           "userId": {
             "type": "string"
           },
-          "organizationId": {
-            "type": "string"
-          },
           "role": {
             "type": "integer",
             "format": "enum"
           }
         },
-        "description": "OrderPersonnelAssignmentInput 新建订单时的协作人员配置。"
+        "description": "OrderPersonnelAssignmentInput 新建订单时的协作人员配置；业务归属公司由后端\n 从订单组织派生，客户端不再提交人员实际挂靠的部门/团队。"
       },
       "order.v1.OrderPersonnelOption": {
         "type": "object",
@@ -26710,15 +26674,9 @@
           },
           "displayName": {
             "type": "string"
-          },
-          "organizationId": {
-            "type": "string"
-          },
-          "organizationName": {
-            "type": "string"
           }
         },
-        "description": "OrderPersonnelOption 订单人员及其所属公司候选项。"
+        "description": "OrderPersonnelOption 订单协作人员候选；同一人员的多条部门 Membership 去重。"
       },
       "order.v1.OrderReferenceCheck": {
         "type": "object",
@@ -31811,8 +31769,7 @@
       "partner.v1.PartnerAssignmentInput": {
         "required": [
           "role",
-          "userId",
-          "organizationId"
+          "userId"
         ],
         "type": "object",
         "properties": {
@@ -31822,11 +31779,9 @@
           },
           "userId": {
             "type": "string"
-          },
-          "organizationId": {
-            "type": "string"
           }
-        }
+        },
+        "description": "责任人员归属组织由后端一律派生为客户档案所属组织，写契约不再接收组织字段。"
       },
       "partner.v1.PartnerAssignmentOption": {
         "type": "object",
@@ -31836,17 +31791,9 @@
           },
           "displayName": {
             "type": "string"
-          },
-          "organizationId": {
-            "type": "string"
-          },
-          "organizationName": {
-            "type": "string"
-          },
-          "membershipEnabled": {
-            "type": "boolean"
           }
-        }
+        },
+        "description": "责任人员候选收敛为纯人员语义：同一人员的多部门成员关系按人员去重后仅返回一条。"
       },
       "partner.v1.PartnerAttachment": {
         "type": "object",

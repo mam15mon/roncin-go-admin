@@ -53,15 +53,11 @@ func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1
 	if err != nil {
 		return nil, biz.ErrOrderPersonnelInvalidArgument
 	}
-	memberOrganizationID, err := uuid.Parse(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrOrderPersonnelInvalidArgument
-	}
 	role, err := protoRoleToBiz(request.GetRole())
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Assign(ctx, principal.Organization.ID, principal.UserID, orderID, userID, memberOrganizationID, role)
+	created, err := s.usecase.Assign(ctx, principal.Organization.ID, principal.UserID, orderID, userID, role)
 	if err != nil {
 		return nil, err
 	}

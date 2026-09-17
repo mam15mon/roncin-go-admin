@@ -375,19 +375,17 @@ message OrderContainerRequest {
   string updated_at = 6;
 }
 
-// OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
+// OrderPersonnelAssignmentInput 新建订单时的协作人员配置；业务归属公司由后端
+// 从订单组织派生，客户端不再提交人员实际挂靠的部门/团队。
 message OrderPersonnelAssignmentInput {
   string user_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
   OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderPersonnelOption 订单人员及其所属公司候选项。
+// OrderPersonnelOption 订单协作人员候选；同一人员的多条部门 Membership 去重。
 message OrderPersonnelOption {
   string user_id = 1;
   string display_name = 2;
-  string organization_id = 3;
-  string organization_name = 4;
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -452,13 +450,9 @@ message ListOrdersRequest {
   string consignee_short_name = 25;
   string shipper_short_name = 26;
   string operator_id = 27;
-  string operator_organization_id = 28;
   string sales_id = 29;
-  string sales_organization_id = 30;
   string customer_service_id = 31;
-  string customer_service_organization_id = 32;
   string creator_id = 33;
-  string creator_organization_id = 34;
   repeated string tag_ids = 35;
   optional bool is_locked = 37;
   optional bool is_shared = 38;

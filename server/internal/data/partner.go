@@ -117,28 +117,34 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	query := client.Membership.Query().Where(
+	membershipScope := []entpredicate.Membership{
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
-		membershipent.HasUserWith(userent.EnabledEQ(true)),
 		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
+	}
+	query := client.User.Query().Where(
+		userent.EnabledEQ(true),
+		userent.HasMembershipsWith(membershipScope...),
 	)
 	if options.Keyword != "" {
-		query.Where(membershipent.Or(
-			membershipent.HasUserWith(userent.Or(userent.UsernameContainsFold(options.Keyword), userent.DisplayNameContainsFold(options.Keyword), userent.SearchKeywordsContainsFold(options.Keyword))),
-			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
+		query.Where(userent.Or(
+			userent.UsernameContainsFold(options.Keyword),
+			userent.DisplayNameContainsFold(options.Keyword),
+			userent.SearchKeywordsContainsFold(options.Keyword),
+			userent.HasMembershipsWith(
+				membershipent.OrganizationIDIn(organizationIDs...),
+				membershipent.EnabledEQ(true),
+				membershipent.HasOrganizationWith(
+					organizationent.EnabledEQ(true),
+					organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword)),
+				),
+			),
 		))
 	}
-	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
-		return query.WithUser().WithOrganization().
-			Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
-			Offset(offset).Limit(limit).All(ctx)
-	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.Membership) *biz.PartnerAssignmentOption {
-		return &biz.PartnerAssignmentOption{
-			UserID: item.UserID, DisplayName: item.Edges.User.DisplayName,
-			OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name,
-			MembershipEnabled: item.Enabled,
-		}
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
+		return query.Order(userent.ByDisplayName(), userent.ByID()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.User) *biz.PartnerAssignmentOption {
+		return &biz.PartnerAssignmentOption{UserID: item.ID, DisplayName: item.DisplayName}
 	}))
 }
 
@@ -205,6 +211,9 @@ func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partner
 func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.Partner, error) {
 	var created *ent.Partner
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
+			return companyErr
+		}
 		create := tx.Partner.Create().
 			SetOrganizationID(organizationID).
 			SetLegalName(input.LegalName).
@@ -351,6 +360,9 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner, audit *biz.AuditEvent) (*biz.PartnerImportResult, error) {
 	result := &biz.PartnerImportResult{}
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
+			return companyErr
+		}
 		for _, input := range inputs {
 			existing, queryErr := tx.Partner.Query().
 				Where(partnerent.OrganizationIDEQ(organizationID), partnerent.CodeEQ(input.Code)).
@@ -582,6 +594,9 @@ func validatePartnerProfileRegions(ctx context.Context, tx *ent.Tx, profile *biz
 	return nil
 }
 
+// replacePartnerAssignments 重建客户责任人员：归属组织一律派生为 rootOrganizationID
+// （客户档案所属公司）；人员是否可担任按「当前公司子树内
+// 任一启用组织持有启用 Membership 且用户启用」判定，子树外或停用成员关系拒绝。
 func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganizationID, partnerID uuid.UUID, assignments []*biz.PartnerAssignment) error {
 	if _, err := tx.PartnerAssignment.Delete().Where(
 		partnerassignmentent.PartnerIDEQ(partnerID),
@@ -592,7 +607,7 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 	if len(assignments) == 0 {
 		return nil
 	}
-	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -600,12 +615,16 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 	for _, organization := range organizations {
 		parentByID[organization.ID] = organization.ParentID
 	}
-	for _, assignment := range assignments {
-		if !organizationWithinRoot(parentByID, rootOrganizationID, assignment.OrganizationID) {
-			return biz.ErrPartnerInvalidArgument
+	// parentByID 必须先完整建立再计算子树，避免遍历顺序影响祖先查找。
+	subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
+	for _, organization := range organizations {
+		if organization.Enabled && organizationWithinRoot(parentByID, rootOrganizationID, organization.ID) {
+			subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
 		}
+	}
+	for _, assignment := range assignments {
 		validMembership, err := tx.Membership.Query().Where(
-			membershipent.UserIDEQ(assignment.UserID), membershipent.OrganizationIDEQ(assignment.OrganizationID), membershipent.EnabledEQ(true),
+			membershipent.UserIDEQ(assignment.UserID), membershipent.OrganizationIDIn(subtreeOrganizationIDs...), membershipent.EnabledEQ(true),
 			membershipent.HasUserWith(userent.EnabledEQ(true)),
 		).Exist(ctx)
 		if err != nil {
@@ -615,7 +634,7 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 			return biz.ErrPartnerInvalidArgument
 		}
 		if _, err := tx.PartnerAssignment.Create().SetPartnerID(partnerID).SetUserID(assignment.UserID).
-			SetOrganizationID(assignment.OrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).
+			SetOrganizationID(rootOrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).
 			SetSortOrder(assignment.SortOrder).Save(ctx); err != nil {
 			return mapEntConstraint(err, "partnerassignment_partner_id_role_sort_order", biz.ErrPartnerInvalidArgument)
 		}

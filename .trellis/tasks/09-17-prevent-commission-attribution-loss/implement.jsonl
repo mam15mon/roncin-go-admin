@@ -1,0 +1,9 @@
+{"file": "AGENTS.md", "reason": "仓库协作规范唯一真相源：分层边界、事务并发、契约生成链路、pnpm 命令"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "本任务跨 proto→service→biz→data→前端 全链路，需按跨层数据流思考"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "责任分配校验归属 data 层、业务错误归属 biz 层的分层依据"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "WithTx 事务封装、幂等迁移 SQL、唯一索引约束处理"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "组织树投影、子树判定与组织 kind 口径（工作台=总部/公司）"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "新增缺配开单业务错误的领域错误映射方式"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "生成物禁止手改、make -C server api 与定向测试命令"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "generate:web-client 生成物边界与前端类型对齐"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向 vitest/biome/tsc 验证最小集"}
