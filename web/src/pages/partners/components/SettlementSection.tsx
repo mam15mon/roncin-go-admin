@@ -70,22 +70,9 @@ export const SETTLEMENT_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
   value: i + 1,
 }));
 
-// 同列标签统一等宽（右对齐），保证多行控件的左缘上下成列对齐。
-// 各列宽度集中在此配置：调整某列宽度只需改对应键值。
-const LABEL_COL_WIDTH = {
-  /** 第一列：对账方式/默认账期（取两行最长标签） */
-  statement: 132,
-  /** 第二列：结算方式/结算币种 */
-  method: 88,
-  /** 第三列：结算日期/利息规则 */
-  date: 88,
-  /** 账期列 */
-  terms: 56,
-  /** 信用额度列 */
-  credit: 118,
-} as const;
-
-const labelCol = (width: number) => ({ style: { width } });
+// 统一 3 列网格标签宽度（右对齐），保证各行输入框对齐线一致且无标签折行。
+const UNIFORM_LABEL_WIDTH = 110;
+const labelCol = { style: { width: UNIFORM_LABEL_WIDTH } };
 
 type SettlementSectionProps = {
   collapsed: boolean;
@@ -115,33 +102,46 @@ export default function SettlementSection({
       onCollapseChange={onCollapseChange}
     >
       <div>
-        <Row gutter={[16, 12]} align="middle">
-          {/* 对账方式 */}
-          <Col xs={24} sm={12} md={4}>
+        {/* 标准 3 列网格 (span=8) 自上而下排列，垂直动线清晰 */}
+        <Row gutter={[20, 12]} align="middle">
+          {/* Row 1 - Col 1: 对账方式 */}
+          <Col xs={24} sm={12} md={8}>
             <ProFormSelect
               name="statementMode"
               label="对账方式"
-              labelCol={labelCol(LABEL_COL_WIDTH.statement)}
+              labelCol={labelCol}
               options={STATEMENT_MODE_OPTIONS}
               rules={[{ required: true, message: '请选择对账方式' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          {/* 结算方式 */}
-          <Col xs={24} sm={12} md={4}>
+          {/* Row 1 - Col 2: 结算方式 */}
+          <Col xs={24} sm={12} md={8}>
             <ProFormSelect
               name="settlementMethod"
               label="结算方式"
-              labelCol={labelCol(LABEL_COL_WIDTH.method)}
+              labelCol={labelCol}
               options={SETTLEMENT_METHOD_OPTIONS}
               rules={[{ required: true, message: '请选择结算方式' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
 
-          {/* 结算日期 */}
-          <Col xs={24} sm={12} md={5}>
+          {/* Row 1 - Col 3: 结算币种 */}
+          <Col xs={24} sm={12} md={8}>
+            <ProFormSelect
+              name="settlementCurrency"
+              label="结算币种"
+              labelCol={labelCol}
+              options={currencyOptions}
+              rules={[{ required: true, message: '请选择结算币种' }]}
+              formItemProps={{ style: { marginBottom: 0 } }}
+            />
+          </Col>
+
+          {/* Row 2 - Col 1: 结算日期 */}
+          <Col xs={24} sm={12} md={8}>
             <Form.Item
               label={
                 <Space size={4}>
@@ -151,7 +151,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(LABEL_COL_WIDTH.date)}
+              labelCol={labelCol}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -182,8 +182,8 @@ export default function SettlementSection({
             </Form.Item>
           </Col>
 
-          {/* 账期 */}
-          <Col xs={24} sm={12} md={5}>
+          {/* Row 2 - Col 2: 账期 */}
+          <Col xs={24} sm={12} md={8}>
             <Form.Item
               label={
                 <Space size={4}>
@@ -193,7 +193,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(LABEL_COL_WIDTH.terms)}
+              labelCol={labelCol}
               style={{ marginBottom: 0 }}
             >
               <Space.Compact style={{ width: '100%' }}>
@@ -215,35 +215,8 @@ export default function SettlementSection({
             </Form.Item>
           </Col>
 
-          {/* 信用额度(本币) - 仅客户适用（应收信用敞口管控） */}
-          {!isSupplier && (
-            <Col xs={24} sm={12} md={6}>
-              <ProFormDigit
-                name="creditLimit"
-                label={
-                  <Space size={4}>
-                    <span>信用额度(本币)</span>
-                    <Tooltip title="本币最大允许未核销应收账款额度">
-                      <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                    </Tooltip>
-                  </Space>
-                }
-                labelCol={labelCol(LABEL_COL_WIDTH.credit)}
-                placeholder="输入信用额度"
-                min={0}
-                formItemProps={{ style: { marginBottom: 0 } }}
-                fieldProps={{
-                  precision: 2,
-                  addonAfter: '元',
-                }}
-              />
-            </Col>
-          )}
-        </Row>
-
-        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 12 }}>
-          {/* 默认账期天数 */}
-          <Col xs={24} sm={12} md={isSupplier ? 6 : 4}>
+          {/* Row 2 - Col 3: 默认账期天数 */}
+          <Col xs={24} sm={12} md={8}>
             <ProFormDigit
               name="paymentTermsDays"
               label={
@@ -254,7 +227,7 @@ export default function SettlementSection({
                   </Tooltip>
                 </Space>
               }
-              labelCol={labelCol(LABEL_COL_WIDTH.statement)}
+              labelCol={labelCol}
               placeholder="例如: 30"
               min={0}
               max={3650}
@@ -263,35 +236,56 @@ export default function SettlementSection({
             />
           </Col>
 
-          {/* 结算币种 */}
-          <Col xs={24} sm={12} md={isSupplier ? 6 : 4}>
-            <ProFormSelect
-              name="settlementCurrency"
-              label="结算币种"
-              labelCol={labelCol(LABEL_COL_WIDTH.method)}
-              options={currencyOptions}
-              rules={[{ required: true, message: '请选择结算币种' }]}
-              formItemProps={{ style: { marginBottom: 0 } }}
-            />
-          </Col>
-
-          {/* 利息规则 - 仅客户应收适用 */}
+          {/* Row 3 - Col 1: 信用额度(本币) - 仅客户适用（应收信用敞口管控） */}
           {!isSupplier && (
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={8}>
+              <ProFormDigit
+                name="creditLimit"
+                label={
+                  <Space size={4}>
+                    <span>信用额度(本币)</span>
+                    <Tooltip title="本币最大允许未核销应收账款额度">
+                      <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                    </Tooltip>
+                  </Space>
+                }
+                labelCol={labelCol}
+                placeholder="输入信用额度"
+                min={0}
+                formItemProps={{ style: { marginBottom: 0 } }}
+                fieldProps={{
+                  precision: 2,
+                  addonAfter: '元',
+                }}
+              />
+            </Col>
+          )}
+
+          {/* Row 3 - Col 2: 利息规则 - 仅客户应收适用 */}
+          {!isSupplier && (
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="利息规则"
-                labelCol={labelCol(LABEL_COL_WIDTH.date)}
+                labelCol={labelCol}
                 style={{ marginBottom: 0 }}
               >
-                <Button
-                  type="link"
-                  onClick={onOpenInterestModal}
-                  style={{ padding: 0, fontWeight: 500 }}
+                <div
+                  style={{
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
                 >
-                  {interestRule.enabled
-                    ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
-                    : '编辑规则'}
-                </Button>
+                  <Button
+                    type="link"
+                    onClick={onOpenInterestModal}
+                    style={{ padding: 0, fontWeight: 500 }}
+                  >
+                    {interestRule.enabled
+                      ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
+                      : '编辑规则'}
+                  </Button>
+                </div>
               </Form.Item>
             </Col>
           )}

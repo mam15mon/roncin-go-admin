@@ -21,6 +21,7 @@ import {
   Button,
   Card,
   Col,
+  Dropdown,
   Empty,
   Form,
   Popconfirm,
@@ -278,46 +279,48 @@ export default function ShippingPresetSection({
     currentType <=
     PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY;
   const currentPresetMeta = PRESET_TYPE_MAP.get(currentType);
+  const currentTypeNum = Number(activeTab);
+  const currentTabMeta = PRESET_TYPE_MAP.get(currentTypeNum);
+
+  const tabExtraAction = (
+    <Space size={8}>
+      {activeTab === 'all' ? (
+        <Dropdown
+          menu={{
+            items: PRESET_TYPES.map((t) => ({
+              key: String(t.key),
+              icon: t.icon,
+              label: `新增${t.short}`,
+              onClick: () => handleOpenAdd(t.key),
+            })),
+          }}
+        >
+          <Button type="primary" size="small" icon={<PlusOutlined />}>
+            新增预设
+          </Button>
+        </Dropdown>
+      ) : (
+        <Button
+          type="primary"
+          size="small"
+          icon={<PlusOutlined />}
+          onClick={() => handleOpenAdd(currentTypeNum)}
+        >
+          + 新增{currentTabMeta?.short || '预设'}
+        </Button>
+      )}
+    </Space>
+  );
 
   return (
     <div>
-      {/* 6 Quick Action Buttons (Exact Match to Competitor Design) */}
-      <div style={{ marginBottom: 16 }}>
-        <Row gutter={[12, 12]}>
-          {PRESET_TYPES.map((type) => (
-            <Col xs={12} sm={8} md={4} key={type.key}>
-              <Button
-                block
-                style={{
-                  height: 40,
-                  borderRadius: 6,
-                  borderColor: '#91caff',
-                  backgroundColor: '#e6f4ff',
-                  color: '#1677ff',
-                  fontWeight: 500,
-                  fontSize: 13,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s',
-                }}
-                icon={<PlusOutlined style={{ fontSize: 12 }} />}
-                onClick={() => handleOpenAdd(type.key)}
-              >
-                添加{type.short}
-              </Button>
-            </Col>
-          ))}
-        </Row>
-      </div>
-
-      {/* Preset List / Card View with Tabs */}
+      {/* Preset List / Card View with Tabs & Right-Aligned Add Action */}
       <Spin spinning={loading}>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           size="small"
+          tabBarExtraContent={tabExtraAction}
           items={[
             { key: 'all', label: `全部预设 (${activePresets.length})` },
             ...PRESET_TYPES.map((t) => ({
@@ -330,7 +333,7 @@ export default function ShippingPresetSection({
         {filteredPresets.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="暂无常用单证预设，点击上方按钮快捷录入"
+            description="暂无常用单证预设，点击右上角按钮快捷录入"
             style={{ padding: '20px 0' }}
           />
         ) : (

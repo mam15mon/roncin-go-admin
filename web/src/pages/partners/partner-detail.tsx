@@ -43,6 +43,7 @@ import {
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { getCurrencyOptions } from '@/utils/options';
 import AuditLogSection from './components/AuditLogSection';
 import BasicInfoSection from './components/BasicInfoSection';
@@ -286,6 +287,9 @@ export default function PartnerDetailPage() {
                       .filter((r) => r.enabled)
                       .map((r) => r.type as number)
                   : [roleType],
+              customerType:
+                profile.customerTypes?.[0] ||
+                PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
               customerTypes: profile.customerTypes || [1],
               developmentMethod: profile.developmentMethod || '自主开发',
               businessTypes: profile.businessTypes || [1],
@@ -339,6 +343,7 @@ export default function PartnerDetailPage() {
         isCasual: false,
         nature: roleLabel,
         roleTypes: [roleType],
+        customerType: PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
         customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
         developmentMethod: '自主开发',
         businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
@@ -463,7 +468,11 @@ export default function PartnerDetailPage() {
         nature: values.nature || roleLabel,
         developmentMethod: values.developmentMethod,
         customerTypes:
-          isForeign || isSupplier ? [] : values.customerTypes || [1],
+          isForeign || isSupplier
+            ? []
+            : values.customerType !== undefined && values.customerType !== null
+              ? [Number(values.customerType)]
+              : values.customerTypes || [1],
         businessTypes: values.businessTypes || [1],
         remark: values.remark?.trim(),
       };
@@ -477,7 +486,8 @@ export default function PartnerDetailPage() {
         orgField: string,
       ) => {
         const userId = values[userField];
-        const orgId = values[orgField];
+        const orgId =
+          values[orgField] || (userId ? userOrgMap.get(userId) : undefined);
         if (userId && orgId) {
           const key = `${userId}:${orgId}`;
           if (!seenMembers.has(key)) {
@@ -635,6 +645,16 @@ export default function PartnerDetailPage() {
     );
   };
 
+  const creatorAssignment = partner?.assignments?.find((a) => a.role === 1);
+  const creatorUser = users.find((u) => u.id === creatorAssignment?.userId);
+  const creatorName =
+    creatorUser?.displayName || creatorUser?.username || '系统';
+  const creatorMeta = partner?.createdAt
+    ? `创建人: ${creatorName} | 创建时间: ${formatDate(partner.createdAt)}`
+    : isCreate
+      ? '创建人: 当前用户 (自动关联)'
+      : undefined;
+
   return (
     <PageContainer
       title={false}
@@ -703,12 +723,14 @@ export default function PartnerDetailPage() {
             userSelectOptions={userSelectOptions}
             orgSelectOptions={orgSelectOptions}
             aliases={aliases}
+            onAliasesChange={setAliases}
             newAliasInput={newAliasInput}
             setNewAliasInput={setNewAliasInput}
             onAddAlias={handleAddAlias}
             onRemoveAlias={handleRemoveAlias}
             onTianyanchaVerify={handleTianyanchaVerify}
             onUserChange={handleUserChange}
+            creatorMeta={creatorMeta}
           />
 
           {/* Section 2: 财务结算规则 */}
