@@ -111,7 +111,6 @@ export default function SettlementSection({
               label="对账方式"
               labelCol={labelCol}
               options={STATEMENT_MODE_OPTIONS}
-              rules={[{ required: true, message: '请选择对账方式' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
@@ -123,7 +122,6 @@ export default function SettlementSection({
               label="结算方式"
               labelCol={labelCol}
               options={SETTLEMENT_METHOD_OPTIONS}
-              rules={[{ required: true, message: '请选择结算方式' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
@@ -135,7 +133,6 @@ export default function SettlementSection({
               label="结算币种"
               labelCol={labelCol}
               options={currencyOptions}
-              rules={[{ required: true, message: '请选择结算币种' }]}
               formItemProps={{ style: { marginBottom: 0 } }}
             />
           </Col>
