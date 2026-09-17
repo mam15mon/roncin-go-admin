@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 51
+- **Total Sessions**: 52
 - **Last Active**: 2026-09-17
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1360 | Active |
+| `journal-1.md` | ~1382 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 52 | 2026-09-17 | 完成往来单位角色级黑名单 | `1f626541` | `main` |
 | 51 | 2026-09-17 | 收敛经营归属并修复提成责任人丢失 | `7156ec6a` | `main` |
 | 50 | 2026-09-13 | 前端 Sentry 报错捕获与关键操作防重/订单幂等 | `200f797c`, `30898140`, `c1e6b018`, `605d02bf`, `7808fa2a` | `feat/frontend-error-idempotency` |
 | 49 | 2026-09-13 | 移除角色可访问组织功能：立项、全链路删除与收尾 | `c5dc87b3`, `fcc705cd`, `e5e688c7`, `7c2cd735` | `feat/remove-role-org-access` |
