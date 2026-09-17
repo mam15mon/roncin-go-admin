@@ -31,13 +31,11 @@
 - reason、requested_by、requested_at；
 - status：PENDING、APPROVED、REJECTED；
 - version；
-- decided_by、decided_at、decision_reason；
-- 审批通过后唯一关联的 order_fee_id。
+- decided_by、decided_at、decision_reason。
 
 数据库约束：
 
 - organization_id + idempotency_key 唯一；
-- order_fee_id 可空且唯一；
 - 费用快照创建后不可变；
 - PENDING 只能进入一个终态；
 - 发起时订单必须存在业务锁、财务锁或二者之一；普通未锁订单继续使用普通新增费用；
@@ -142,7 +140,7 @@
 4. 在锁内校验结算对象、费用项、币种和汇率，创建 CONFIRMED 费用；
 5. 查询包含该订单的 CONFIRMED 或 PAID 提成父单，按父单 UUID 升序 FOR UPDATE；
 6. 计算并创建 DECREASE + DRAFT 调整；
-7. 更新申请为 APPROVED，记录费用、审批人和时间；
+7. 更新申请为 APPROVED，记录审批人和时间；生成费用通过 supplement_request_id 反向关联申请；
 8. 写审计和通知 outbox 后提交。
 
 任何一步失败全部回滚，不允许“费用成功但调整缺失”。驳回只写申请终态和审计。
