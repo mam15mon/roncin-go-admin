@@ -10,10 +10,11 @@
 
 ## 1. Schema、领域对象与迁移
 
-- 新增 OrderFeeSupplementRequest Ent Schema、边、PENDING/APPROVED/REJECTED/WITHDRAWN 状态枚举、版本字段和唯一索引。
+- 新增 OrderFeeSupplementRequest Ent Schema、边、PENDING/APPROVED/REJECTED/WITHDRAWN 状态枚举、BUSINESS/FINANCIAL/BOTH 锁依据、可空业务锁代次、版本字段、CHECK 和唯一索引。
 - 给 OrderFee 增加补录申请来源关联。
 - 给 FinanceCommissionAdjustment 增加 LOCKED_FEE_SUPPLEMENT 来源及补录申请关联。
-- 给 FinanceCommissionLine 增加不可变的历史总应收、总应付分母快照，确保历史影响计算不查询当前规则或当前订单总应收。
+- 给 FinanceCommissionLine 增加历史总应收/总应付分母、READY/UNAVAILABLE 状态、NATIVE/MIGRATED 来源、回填算法版本、证据哈希和不可用原因码；新提成原生固化，存量行只从原提成计算快照形成时点的不可变事实确定性回填，禁止读取迁移时点当前汇总或当前规则配置。
+- 迁移对可回填行复算并核对已存提成结果后标记 READY；无法还原或复算不一致的行标记 UNAVAILABLE 并输出迁移报告，不填猜测值、不改原提成金额、不自动清库。
 - 在 internal/biz 增加补录申请领域对象、命令、错误和仓储接口；扩展调整来源类型。
 - 生成 Ent 代码与正式迁移，保证数据库 CHECK、外键删除策略和唯一约束与 Schema 同源。
 - 先完成实现，再补 Schema 元数据及真实 PostgreSQL 迁移测试；禁止 TDD。
@@ -25,14 +26,16 @@
 - Biz 用例负责状态机、参数规则、审计语义和共享事务编排。
 - Data 层实现申请持久化、直接解锁资格复用、专用费用创建和固定锁序。
 - 审批通过在同一共享事务中完成费用、冲减草稿、申请终态、审计和通知 outbox。
+- 发起时在 Order 行锁内判定并固化 BUSINESS/FINANCIAL/BOTH；审批时复核提交时的原始依据，BUSINESS 要求同一业务锁代次，FINANCIAL 要求财务锁仍有效，BOTH 只需二者至少一项仍有效。原依据全部失效时返回 LOCK_BASIS_CHANGED，并根据当前是否仍有新锁分别提示重新申请补录或改走普通新增；不得自动嫁接提交后新出现的锁。
+- 审批创建费用前检查全部受影响 CONFIRMED/PAID 提成行 snapshot_status；任一不是 READY 时返回 COMMISSION_SNAPSHOT_UNAVAILABLE 并整体回滚，不允许只创建费用或跳过某张提成。
 - 审批生成的 CONFIRMED 费用不增加建账特例，验证现有建账候选、单张/批量建账及可取消账单恢复 CONFIRMED 的链路能够识别 supplement_request_id 来源。
 - 实现专用作废命令：Order → 申请/费用 → 提成父单 → 调整固定锁序；只允许最新有效、CONFIRMED、无活动账单行且关联调整全为 DRAFT/CANCELLED 的补录，原子取消 DRAFT 调整和费用。APPROVED 申请保持不变；普通 RemoveFee 门禁不放宽。
 - 普通费用入口保持原门禁，禁止增加公开的 skipLock、force 或布尔绕过参数。
 
 针对性验证：
 
-- 未锁订单拒绝走补录入口；
-- 业务锁、财务锁和双锁订单允许提交；
+- 业务锁和财务锁均不存在时拒绝补录并提示普通新增；仅业务锁、仅财务锁和双锁订单均允许提交；
+- BUSINESS 申请只在同一业务锁代次仍有效时可审批；FINANCIAL 申请只在原财务锁依据仍有效时可审批；BOTH 申请在同一业务锁代次或财务锁任一仍有效时可审批；原依据全部失效但出现新锁时拒绝并提示重新申请，当前已无锁时拒绝并提示普通新增；
 - 无 fee.create 不可提交，无实时 lock grant 不可审批；
 - 合格发起人可以自行审批；
 - 版本冲突、旧锁代次、重复幂等键和并发审批均稳定失败或返回原结果；
@@ -84,6 +87,7 @@
 - 多员工、多父提成分别生成，金额与来源可追溯；
 - 两张原提成单的影响由各自历史已实现收入和分母决定；一张余额不足不顺延到另一张；
 - 修改或停用当前规则后仍使用原提成快照得出同一结果，且复算路径不查询规则表；未来即使规则允许删除也不依赖动态规则内容；
+- 存量 READY + MIGRATED 行的回填只取原提成计算快照形成时点的事实，原提成后新增普通费用和当前规则变化不影响结果；无法确定唯一截止时点或历史事实已被覆盖的行标记 UNAVAILABLE，命中补录审批时费用、建议、申请终态和 outbox 零写入；
 - 锁后补录应收在 API 与领域边界均被拒绝，补录应付不改变历史总应收分母；
 - 连续两笔补录应付按各原提成行逐次舍入后的差额计提；前一次建议被忽略也不重复计算前一次成本；
 - 零差额不生成；

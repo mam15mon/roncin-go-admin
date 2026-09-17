@@ -27,7 +27,7 @@
 
 补录申请保存审批所需的不可变费用快照：
 
-- organization_id、order_id、lock_generation；
+- organization_id、order_id、lock_basis（BUSINESS、FINANCIAL、BOTH）和可空 business_lock_generation；
 - idempotency_key；
 - 应付方向、费用项、结算对象、计费单位、数量、单价、税率、币种、费用发生日期和备注；
 - reason、requested_by、requested_at；
@@ -41,9 +41,10 @@
 - 费用快照创建后不可变；
 - PENDING 只能进入一个终态；
 - WITHDRAWN 只能由 requested_by 在 PENDING 状态携带 expectedVersion 触发；审批、驳回和撤回统一锁定申请行并比较版本，竞争失败的一方返回状态冲突；
-- 发起时订单必须存在业务锁、财务锁或二者之一；普通未锁订单继续使用普通新增费用；
+- 发起时在 Order 行锁内计算业务锁与提成净额财务锁，二者均不存在时拒绝；仅业务锁、仅财务锁和双锁分别固化为 BUSINESS、FINANCIAL、BOTH，普通无锁订单继续使用普通新增费用；
+- 数据库 CHECK 保证 BUSINESS/BOTH 必须保存大于零的 business_lock_generation，FINANCIAL 必须不保存该字段；不得用客户端传入的锁类型或锁代次覆盖服务端判定；
 - 创建和审批均要求方向为 PAYABLE，锁内复核快照，不允许客户端把方向改成 RECEIVABLE；
-- 审批时锁代次必须仍与申请一致，否则返回冲突并要求重新申请。
+- 审批时按申请固化的 lock_basis 复核原始锁依据：BUSINESS 要求同一业务锁代次仍然有效；FINANCIAL 要求提成有效净额形成的财务锁仍然存在；BOTH 只要同一业务锁代次或财务锁至少一项仍有效即可。原始锁依据全部失效时返回 LOCK_BASIS_CHANGED；若订单当前仍被另一项新锁锁定则提示重新发起补录，当前已无任何锁则提示改走普通费用新增。不得把旧申请自动嫁接到提交后新出现的业务锁代次或财务锁。
 
 ### 2.2 复用 OrderFee
 
@@ -160,7 +161,7 @@
 固定执行顺序：
 
 1. FOR UPDATE 锁定订单；
-2. FOR UPDATE 锁定与订单匹配的补录申请，校验 version、status 和 lock_generation；审批、驳回、撤回均复用这条锁序，确保并发时只有一个 PENDING 终态迁移成功；
+2. FOR UPDATE 锁定与订单匹配的补录申请，校验 version、status，并按 lock_basis 复核 business_lock_generation 或实时财务锁；审批、驳回、撤回均复用这条锁序，确保并发时只有一个 PENDING 终态迁移成功；
 3. 实时校验审批人的 lock grant 与组织范围；
 4. 在锁内校验结算对象、费用项、币种和汇率，创建 CONFIRMED 费用；
 5. 查询包含该订单的 CONFIRMED 或 PAID 提成父单，按父单 UUID 升序 FOR UPDATE；
@@ -196,7 +197,7 @@
 只处理包含目标订单提成线且父单为 CONFIRMED 或 PAID 的提成。查询结果按父单 UUID 固定顺序锁定，但金额不按这个顺序分配：
 
 - 每条原提成订单行是独立的历史 earning event；分别使用该行冻结的人员、计提口径、比例、规则版本、计算版本、已实现收入、历史总应收和历史总应付计算本次补录的边际差额；
-- FinanceCommissionLine 增加不可变的 total_receivable_snapshot、total_payable_snapshot（numeric(28,8)）；原提成主单的 rule_name、rule_version、calculation_version，以及订单行的 calculation_basis、rate_percent、realized_revenue、allocated_cost、realized_profit、commission_amount 与上述分母共同构成复算输入；
+- FinanceCommissionLine 增加可空的 total_receivable_snapshot、total_payable_snapshot（numeric(28,8)），以及 snapshot_status（READY、UNAVAILABLE）、snapshot_source（NATIVE、MIGRATED）和可空的 snapshot_backfill_version、snapshot_evidence_hash、snapshot_unavailable_reason_code；数据库 CHECK 保证 READY 必须有完整分母，READY + MIGRATED 必须有回填算法版本和证据哈希，UNAVAILABLE 不得伪填估算分母且必须有稳定原因码。新生成提成行固定写 READY + NATIVE；原提成主单的 rule_name、rule_version、calculation_version，以及订单行的 calculation_basis、rate_percent、realized_revenue、allocated_cost、realized_profit、commission_amount 与上述分母共同构成复算输入；
 - 锁后复算调用按 calculation_version 路由的纯函数，禁止调用会根据 rule_id 查询 FinanceCommissionRule 的 calculateCommission/loadCommissionCalculationSource；当前规则修改、停用或删除不影响历史复算；
 - 本次补录应付的本位币金额只增加历史 total_payable，不改变历史 total_receivable；原提成行确认时已纳入快照的费用不再叠加，禁止使用当前订单费用重建历史总应收；
 - 对每条原提成行，按原快照分母及其确认后至本次审批前已生效且未作废的补录应付计算 before，再计入本笔费用计算 after；在逐次提成金额均按 8 位舍入后取非负差额。补录申请和订单费用的关联、批准顺序及费用是否 CANCELLED 作为边界，不根据冲减建议是否确认或忽略倒推成本事实；
@@ -225,7 +226,10 @@
 
 - Ent Schema 是数据库真相源；新增表、字段、枚举、CHECK、外键和索引必须生成正式迁移；
 - Proto 先行，生成 Go、OpenAPI 和前端客户端，禁止手改生成物；
-- 项目尚未上线，不做旧数据双读或兼容分支；新增历史分母字段前盘点现存提成行，若有必须继续参与补录复算的已确认/已发放行，须用可审阅迁移还原分母并验证，不得填写猜测值、自动清库或静默跳过；
+- 项目尚未上线，不做旧数据双读或兼容分支；但本功能面向历史订单，新增历史分母字段前必须盘点现存 CONFIRMED/PAID 提成行；
+- 回填以原提成行首次计算并写入 commission_amount 的“计算快照形成时点”为唯一截止时点，只能使用原提成行、其 calculation_version，以及该时点已生效且仍可追溯的不可变费用、账单行、核销和对冲事实，按历史版本纯计算器确定性还原。无法确定唯一截止时点，或依赖事实曾被原地修改且没有历史版本时，直接判为 UNAVAILABLE；不得读取迁移时点当前订单费用汇总，不得查询当前 FinanceCommissionRule，也不得用规则是否仍存在作为可回填判断；
+- 可确定性还原的行写 READY + MIGRATED，并记录回填算法版本与证据集合哈希；回填后重新计算原 allocated_cost、realized_profit、commission_amount 并与已存值按 8 位精度校验，不一致时标记 UNAVAILABLE，不得覆盖原提成金额或填写猜测分母；
+- 无法还原的行写 UNAVAILABLE 并输出不含敏感报文的迁移报告。补录审批在创建费用前锁定并检查全部受影响的 CONFIRMED/PAID 提成行，任一 snapshot_status != READY 时返回稳定冲突 COMMISSION_SNAPSHOT_UNAVAILABLE，费用、调整、申请终态、审计和通知 outbox 全部不写入；不得静默跳过该行转人工待办；
 - 人工调整、核销冲减和对冲冲减行为保持不变；
 - 上线后若关闭功能，只关闭创建和审批入口，保留申请、费用和调整的读取与审计；
 - 不自动删除任何已批准补录或提成调整事实。
