@@ -1,6 +1,8 @@
 import {
+  ApartmentOutlined,
   QuestionCircleOutlined,
   SafetyCertificateOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import {
   ProFormRadio,
@@ -113,6 +115,7 @@ export default function BasicInfoSection({
   roleLabel,
   roleType,
   userSelectOptions,
+  orgSelectOptions = [],
   aliases,
   onAliasesChange,
   onTianyanchaVerify,
@@ -412,196 +415,292 @@ export default function BasicInfoSection({
           {/* Slot 1: 操作人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignOperatorUser"
               label="操作人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择操作人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignOperatorUser', 'assignOperatorOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignOperatorOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignOperatorUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange(
+                        'assignOperatorUser',
+                        'assignOperatorOrg',
+                        val,
+                      )
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignOperatorOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 2: 业务人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignSalesUser"
               label="业务人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择业务人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignSalesUser', 'assignSalesOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignSalesOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignSalesUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignSalesUser', 'assignSalesOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignSalesOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 3: 客服人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignServiceUser"
               label="客服人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择客服人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignServiceUser', 'assignServiceOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignServiceOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignServiceUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignServiceUser', 'assignServiceOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignServiceOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 4: 关联人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignContactUser"
               label="关联人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择关联人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignContactUser', 'assignContactOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignContactOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignContactUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignContactUser', 'assignContactOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignContactOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 5: 财务人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignFinanceUser"
               label="财务人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择财务人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignFinanceUser', 'assignFinanceOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignFinanceOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignFinanceUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignFinanceUser', 'assignFinanceOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignFinanceOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 6: 单证人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignDocUser"
               label="单证人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择单证人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignDocUser', 'assignDocOrg', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignDocOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignDocUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignDocUser', 'assignDocOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignDocOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 7: 商务人员 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignCommercialUser"
               label="商务人员"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择商务人员"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange(
-                    'assignCommercialUser',
-                    'assignCommercialOrg',
-                    val,
-                  )
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignCommercialOrg" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignCommercialUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange(
+                        'assignCommercialUser',
+                        'assignCommercialOrg',
+                        val,
+                      )
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignCommercialOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
 
           {/* Slot 8: 关联人员2 */}
           <Col xs={24} md={12}>
             <Form.Item
-              name="assignContact2User"
               label="关联人员2"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
             >
-              <Select
-                showSearch
-                placeholder="请选择关联人员2"
-                options={userSelectOptions}
-                style={{ width: '100%' }}
-                allowClear
-                onChange={(val) =>
-                  onUserChange('assignContact2User', 'assignContact2Org', val)
-                }
-              />
-            </Form.Item>
-            <Form.Item name="assignContact2Org" noStyle>
-              <Input type="hidden" />
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignContact2User" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="选择人员"
+                    prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
+                    options={userSelectOptions}
+                    style={{ width: '52%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange(
+                        'assignContact2User',
+                        'assignContact2Org',
+                        val,
+                      )
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignContact2Org" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="归属组织/公司"
+                    prefix={<ApartmentOutlined style={{ color: '#8c8c8c' }} />}
+                    options={orgSelectOptions}
+                    style={{ width: '48%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
         </Row>
