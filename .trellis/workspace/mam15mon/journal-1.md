@@ -1336,3 +1336,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 51: 收敛经营归属并修复提成责任人丢失
+<!-- trellis-session: v=2 fp=1913dc63b45af2bf -->
+
+**Date**: 2026-09-17
+**Task**: 收敛经营归属并修复提成责任人丢失
+**Branch**: `main`
+
+### Summary
+
+总部改为纯治理节点；客户、订单及人员经营归属统一收敛到公司；人员资格按公司子树 Membership 校验；开单缺销售、操作或客服时事务回滚；同步前后端契约、迁移、测试与开发库数据。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7156ec6a` | fix: 收敛经营归属并防止提成责任人丢失 |
+
+### Status
+
+[OK] **Completed**
