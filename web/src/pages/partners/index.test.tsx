@@ -108,7 +108,7 @@ describe('Partners 列表页', () => {
     expect(screen.queryByText('合作类型')).not.toBeInTheDocument();
   });
 
-  it('列表页展示导出 Excel 与导入 Excel 按钮，并在操作列提供转角色按钮', async () => {
+  it('列表页展示导出 Excel 与导入 Excel 按钮，并在操作列提供编辑与更多操作菜单', async () => {
     routeState.pathname = '/partners/customers';
     vi.mocked(partnerServiceListPartners).mockResolvedValue({
       data: [
@@ -136,7 +136,14 @@ describe('Partners 列表页', () => {
     expect(
       screen.getByRole('button', { name: /导入 Excel/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /转角色/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /编辑/ })).toBeInTheDocument();
+
+    const moreBtn = screen.getByRole('button', { name: /更多/ });
+    expect(moreBtn).toBeInTheDocument();
+    fireEvent.click(moreBtn);
+
+    expect(await screen.findByText('转角色')).toBeInTheDocument();
+    expect(screen.getByText('账户/合同')).toBeInTheDocument();
   });
 
   it('客户、供应商、国外代理列表点击新建分别跳转到对应的 /create 地址', async () => {

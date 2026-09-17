@@ -1,5 +1,6 @@
 import {
   ContactsOutlined,
+  DownOutlined,
   EditOutlined,
   FileExcelOutlined,
   FolderOpenOutlined,
@@ -22,7 +23,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { App, Button, Space, Tag, Typography } from 'antd';
+import { App, Button, Dropdown, type MenuProps, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { SearchFilterTemplate } from '@/components/ui';
@@ -327,59 +328,73 @@ export default function Partners() {
     {
       title: '操作',
       valueType: 'option',
-      width: 260,
+      width: 120,
       fixed: 'right',
-      render: (_, record) => (
-        <Space size={8}>
-          <Button
-            type="link"
-            size="small"
-            icon={<FolderOpenOutlined />}
-            style={{ padding: 0 }}
-            onClick={() => setSecondaryPartner(record)}
-          >
-            账户/合同
-          </Button>
-          {(access.canManagePartners || access.canUpdatePartners) && (
-            <Button
-              type="link"
-              size="small"
-              icon={<SwapOutlined />}
-              style={{ padding: 0 }}
-              onClick={() => setRoleSwitchPartner(record)}
-            >
-              转角色
-            </Button>
-          )}
-          {(access.canManagePartners || access.canUpdatePartners) && (
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              style={{ padding: 0 }}
-              onClick={() => openEdit(record)}
-            >
-              编辑
-            </Button>
-          )}
-          {(access.canManagePartners || access.canBlacklistPartners) &&
-            record.roles?.some(
-              (role) =>
-                role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
-            ) && (
+      render: (_, record) => {
+        const moreItems: MenuProps['items'] = [];
+
+        moreItems.push({
+          key: 'secondary',
+          icon: <FolderOpenOutlined />,
+          label: '账户/合同',
+          onClick: () => setSecondaryPartner(record),
+        });
+
+        if (access.canManagePartners || access.canUpdatePartners) {
+          moreItems.push({
+            key: 'role-switch',
+            icon: <SwapOutlined />,
+            label: '转角色',
+            onClick: () => setRoleSwitchPartner(record),
+          });
+        }
+
+        if (
+          (access.canManagePartners || access.canBlacklistPartners) &&
+          record.roles?.some(
+            (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+          )
+        ) {
+          moreItems.push({
+            type: 'divider',
+          });
+          moreItems.push({
+            key: 'blacklist',
+            icon: <StopOutlined />,
+            label: '黑名单',
+            danger: true,
+            onClick: () => openBlacklist(record),
+          });
+        }
+
+        return (
+          <Space size={8}>
+            {(access.canManagePartners || access.canUpdatePartners) && (
               <Button
                 type="link"
                 size="small"
-                danger
-                icon={<StopOutlined />}
+                icon={<EditOutlined />}
                 style={{ padding: 0 }}
-                onClick={() => openBlacklist(record)}
+                onClick={() => openEdit(record)}
               >
-                黑名单
+                编辑
               </Button>
             )}
-        </Space>
-      ),
+            {moreItems.length > 0 && (
+              <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0 }}
+                  onClick={(e) => e.preventDefault()}
+                >
+                  更多 <DownOutlined style={{ fontSize: 10 }} />
+                </Button>
+              </Dropdown>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
