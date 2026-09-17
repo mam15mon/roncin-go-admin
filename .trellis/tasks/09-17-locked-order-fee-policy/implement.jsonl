@@ -1,0 +1,13 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"后端分层、生成流程和开发前检查入口"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、固定锁序、乐观锁、唯一约束与真实 PostgreSQL 验证"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"业务锁门禁、锁代次和直接解锁资格的唯一契约"}
+{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"提成有效净额、调整状态与费用财务锁口径"}
+{"file":".trellis/spec/server/backend/exchange-rate-single-rate.md","reason":"锁后外币费用按发生日期和方向固化汇率"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"状态冲突、权限和驱动错误映射"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"业务审计、通知与敏感信息边界"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"Proto、Ent 生成物、权限和验证门禁"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"订单费用页与提成列表的页面模板、权限和实例隔离规范"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"服务端分页、请求刷新和订单身份切换状态管理"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"OpenAPI 客户端与权限生成物不可手改"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome、tsc 与最终门禁"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Schema 到 Proto、Biz、Data、Service、Web 的端到端数据流"}

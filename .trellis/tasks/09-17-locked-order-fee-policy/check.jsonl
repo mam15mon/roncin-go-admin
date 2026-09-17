@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核审批事务原子性、加锁顺序、版本校验和幂等唯一键"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"复核普通锁门禁未放宽且审批资格同源"}
+{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"复核系统冲减调整与订单财务锁净额口径一致"}
+{"file":".trellis/spec/server/backend/exchange-rate-single-rate.md","reason":"复核费用发生日与汇率快照没有漂移"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核分层、生成物、迁移和真实 PostgreSQL 测试"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"复核订单费用和提成页面交互、权限及页面复用隔离"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"复核生成客户端、枚举和权限键使用"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核定向测试与最终前端门禁"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"复核跨层字段与状态流完整贯通"}
