@@ -10,7 +10,7 @@
 
 ## 1. Schema、领域对象与迁移
 
-- 新增 OrderFeeSupplementRequest Ent Schema、边、PENDING/APPROVED/REJECTED/WITHDRAWN 状态枚举、BUSINESS/FINANCIAL/BOTH 锁依据、可空业务锁代次、版本字段、CHECK 和唯一索引。
+- 新增 OrderFeeSupplementRequest Ent Schema、边、PENDING/APPROVED/REJECTED/WITHDRAWN 状态枚举、BUSINESS/FINANCIAL/BOTH 锁依据、可空业务锁代次、可空财务锁证据哈希与净额快照、版本字段、CHECK 和唯一索引。
 - 给 OrderFee 增加补录申请来源关联。
 - 给 FinanceCommissionAdjustment 增加 LOCKED_FEE_SUPPLEMENT 来源及补录申请关联。
 - 给 FinanceCommissionLine 增加历史总应收/总应付分母、READY/UNAVAILABLE 状态、NATIVE/MIGRATED 来源、回填算法版本、证据哈希和不可用原因码；新提成原生固化，存量行只从原提成计算快照形成时点的不可变事实确定性回填，禁止读取迁移时点当前汇总或当前规则配置。
@@ -24,9 +24,10 @@
 - 在订单费用 Proto 源文件增加创建、列表、通过、驳回、发起人撤回及【作废补录费用】接口和 DTO；创建与审批双重拒绝 RECEIVABLE。
 - Service 只做 UUID、版本、分页和 DTO 转换；权限注解分别使用 fee.create/read 与目标订单 lock 操作。
 - Biz 用例负责状态机、参数规则、审计语义和共享事务编排。
-- Data 层实现申请持久化、直接解锁资格复用、专用费用创建和固定锁序。
+- Data 层实现申请持久化、直接解锁资格复用、专用费用创建和固定锁序；财务锁证据计算复用现有净额口径，对参与净额的提成行和调整行做固定排序与版本化规范编码，不另写一套锁定公式。
 - 审批通过在同一共享事务中完成费用、冲减草稿、申请终态、审计和通知 outbox。
-- 发起时在 Order 行锁内判定并固化 BUSINESS/FINANCIAL/BOTH；审批时复核提交时的原始依据，BUSINESS 要求同一业务锁代次，FINANCIAL 要求财务锁仍有效，BOTH 只需二者至少一项仍有效。原依据全部失效时返回 LOCK_BASIS_CHANGED，并根据当前是否仍有新锁分别提示重新申请补录或改走普通新增；不得自动嫁接提交后新出现的锁。
+- 发起时在 Order 行锁内判定并固化 BUSINESS/FINANCIAL/BOTH；财务锁依据固化当时净额及参与事实的规范化证据哈希。审批时复核提交时的原始依据，BUSINESS 要求同一业务锁代次，FINANCIAL 要求当前净额仍大于零且证据哈希一致，BOTH 只需二者至少一项匹配。原依据全部失效时返回 LOCK_BASIS_CHANGED，并根据当前是否仍有新锁分别提示重新申请补录或改走普通新增；不得自动嫁接提交后新出现的锁。
+- 所有会改变财务锁净额或证据集合的提成/调整状态迁移统一先按 UUID 排序锁定受影响 Order，再锁提成父单和调整，避免补录审批复核证据后被并发改写；补齐反向并发测试和既有财务锁投影一致性测试。
 - 审批创建费用前检查全部受影响 CONFIRMED/PAID 提成行 snapshot_status；任一不是 READY 时返回 COMMISSION_SNAPSHOT_UNAVAILABLE 并整体回滚，不允许只创建费用或跳过某张提成。
 - 审批生成的 CONFIRMED 费用不增加建账特例，验证现有建账候选、单张/批量建账及可取消账单恢复 CONFIRMED 的链路能够识别 supplement_request_id 来源。
 - 实现专用作废命令：Order → 申请/费用 → 提成父单 → 调整固定锁序；只允许最新有效、CONFIRMED、无活动账单行且关联调整全为 DRAFT/CANCELLED 的补录，原子取消 DRAFT 调整和费用。APPROVED 申请保持不变；普通 RemoveFee 门禁不放宽。
@@ -35,7 +36,8 @@
 针对性验证：
 
 - 业务锁和财务锁均不存在时拒绝补录并提示普通新增；仅业务锁、仅财务锁和双锁订单均允许提交；
-- BUSINESS 申请只在同一业务锁代次仍有效时可审批；FINANCIAL 申请只在原财务锁依据仍有效时可审批；BOTH 申请在同一业务锁代次或财务锁任一仍有效时可审批；原依据全部失效但出现新锁时拒绝并提示重新申请，当前已无锁时拒绝并提示普通新增；
+- BUSINESS 申请只在同一业务锁代次仍有效时可审批；FINANCIAL 申请只在当前净额大于零且财务证据哈希一致时可审批；BOTH 申请在同一业务锁代次或财务证据任一匹配时可审批；原依据全部失效但出现新锁时拒绝并提示重新申请，当前已无锁时拒绝并提示普通新增；
+- 财务锁净额保持大于零但参与提成/调整事实改变时，FINANCIAL 申请因证据变更拒绝；财务锁释放后由新提成重新形成时不得承接旧申请；证据复核与并发提成/调整状态迁移只能一方先提交且结果可串行解释；
 - 无 fee.create 不可提交，无实时 lock grant 不可审批；
 - 合格发起人可以自行审批；
 - 版本冲突、旧锁代次、重复幂等键和并发审批均稳定失败或返回原结果；

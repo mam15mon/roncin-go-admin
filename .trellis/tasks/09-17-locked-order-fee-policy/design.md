@@ -27,7 +27,7 @@
 
 补录申请保存审批所需的不可变费用快照：
 
-- organization_id、order_id、lock_basis（BUSINESS、FINANCIAL、BOTH）和可空 business_lock_generation；
+- organization_id、order_id、lock_basis（BUSINESS、FINANCIAL、BOTH）、可空 business_lock_generation、可空 financial_lock_evidence_hash 和 financial_lock_net_amount_snapshot；
 - idempotency_key；
 - 应付方向、费用项、结算对象、计费单位、数量、单价、税率、币种、费用发生日期和备注；
 - reason、requested_by、requested_at；
@@ -42,9 +42,11 @@
 - PENDING 只能进入一个终态；
 - WITHDRAWN 只能由 requested_by 在 PENDING 状态携带 expectedVersion 触发；审批、驳回和撤回统一锁定申请行并比较版本，竞争失败的一方返回状态冲突；
 - 发起时在 Order 行锁内计算业务锁与提成净额财务锁，二者均不存在时拒绝；仅业务锁、仅财务锁和双锁分别固化为 BUSINESS、FINANCIAL、BOTH，普通无锁订单继续使用普通新增费用；
-- 数据库 CHECK 保证 BUSINESS/BOTH 必须保存大于零的 business_lock_generation，FINANCIAL 必须不保存该字段；不得用客户端传入的锁类型或锁代次覆盖服务端判定；
+- 财务锁证据哈希由服务端对当时参与净额的 CONFIRMED/PAID 提成行与调整行，按“类型 + 主键 + 状态 + 符号化 8 位金额”排序后使用固定版本规范化编码计算；同时固化当时净额。任何参与事实新增、取消、确认、支付或金额变化都会改变哈希，禁止把客户端提供的摘要当作可信输入；
+- 数据库 CHECK 保证 BUSINESS 必须仅保存大于零的 business_lock_generation，FINANCIAL 必须仅保存非空证据哈希和大于零的净额快照，BOTH 必须同时保存两组依据；不得用客户端传入的锁类型、锁代次或财务证据覆盖服务端判定；
 - 创建和审批均要求方向为 PAYABLE，锁内复核快照，不允许客户端把方向改成 RECEIVABLE；
-- 审批时按申请固化的 lock_basis 复核原始锁依据：BUSINESS 要求同一业务锁代次仍然有效；FINANCIAL 要求提成有效净额形成的财务锁仍然存在；BOTH 只要同一业务锁代次或财务锁至少一项仍有效即可。原始锁依据全部失效时返回 LOCK_BASIS_CHANGED；若订单当前仍被另一项新锁锁定则提示重新发起补录，当前已无任何锁则提示改走普通费用新增。不得把旧申请自动嫁接到提交后新出现的业务锁代次或财务锁。
+- 审批时按申请固化的 lock_basis 复核原始锁依据：BUSINESS 要求同一业务锁代次仍然有效；FINANCIAL 要求当前财务净额仍大于零且规范化证据哈希与申请一致；BOTH 只要前述业务锁依据或财务锁依据至少一项仍匹配即可。原始锁依据全部失效时返回 LOCK_BASIS_CHANGED；若订单当前仍被另一项新锁锁定则提示重新发起补录，当前已无任何锁则提示改走普通费用新增。不得把旧申请自动嫁接到提交后新出现的业务锁代次或不同财务锁证据。
+- 财务锁证据的提交计算与审批复核必须复用 financeCommissionLockNetAmount 的符号口径，并在同一事务、Order 行锁内读取参与事实。所有会改变财务锁净额或证据集合的提成/调整状态迁移必须先按订单 UUID 排序锁定受影响 Order，再修改提成或调整，统一保持 Order → 提成父单 → 调整的锁序；否则仅保存哈希仍会存在审批检查后的并发穿透。
 
 ### 2.2 复用 OrderFee
 
@@ -161,7 +163,7 @@
 固定执行顺序：
 
 1. FOR UPDATE 锁定订单；
-2. FOR UPDATE 锁定与订单匹配的补录申请，校验 version、status，并按 lock_basis 复核 business_lock_generation 或实时财务锁；审批、驳回、撤回均复用这条锁序，确保并发时只有一个 PENDING 终态迁移成功；
+2. FOR UPDATE 锁定与订单匹配的补录申请，校验 version、status，并按 lock_basis 复核 business_lock_generation 或重新计算财务锁证据哈希；审批、驳回、撤回均复用这条锁序，确保并发时只有一个 PENDING 终态迁移成功；
 3. 实时校验审批人的 lock grant 与组织范围；
 4. 在锁内校验结算对象、费用项、币种和汇率，创建 CONFIRMED 费用；
 5. 查询包含该订单的 CONFIRMED 或 PAID 提成父单，按父单 UUID 升序 FOR UPDATE；
