@@ -60,6 +60,13 @@ import AccountsPanel from './components/secondary/AccountsPanel';
 
 const { Text } = Typography;
 
+export const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+export function isValidPartnerId(id?: string): boolean {
+  return typeof id === 'string' && UUID_REGEX.test(id);
+}
+
 export default function PartnerDetailPage() {
   const { message } = App.useApp();
   const access = useAccess();
@@ -143,8 +150,46 @@ export default function PartnerDetailPage() {
     };
   }, [location.pathname]);
 
-  const partnerId = params.id && params.id !== 'create' ? params.id : undefined;
-  const isCreate = !partnerId;
+  const rawId = params.id;
+  const isCreate = !rawId || rawId === 'create';
+  const hasValidUuid = isValidPartnerId(rawId);
+  const partnerId = !isCreate && hasValidUuid ? rawId : undefined;
+  const isInvalidId = !isCreate && Boolean(rawId) && !hasValidUuid;
+
+  const canReadSettlementRules = Boolean(
+    access.canReadPartnerSettlementRules || access.canManagePartners,
+  );
+  const canReadContracts = Boolean(
+    access.canReadPartnerContracts || access.canManagePartners,
+  );
+  const canReadShippingPresets = Boolean(
+    access.canReadPartnerShippingPresets || access.canManagePartners,
+  );
+  const canReadAudit = Boolean(
+    access.canReadPartnerAudit || access.canManagePartners,
+  );
+  const canReadAccounts = Boolean(
+    access.canReadPartnerAccounts || access.canManagePartners,
+  );
+
+  const canSave = isCreate
+    ? Boolean(access.canCreatePartners || access.canManagePartners)
+    : Boolean(access.canUpdatePartners || access.canManagePartners);
+
+  const canSaveSettlement = isCreate
+    ? Boolean(
+        access.canCreatePartnerSettlementRules || access.canManagePartners,
+      )
+    : Boolean(
+        access.canUpdatePartnerSettlementRules || access.canManagePartners,
+      );
+
+  useEffect(() => {
+    if (isInvalidId) {
+      message.error('无效的档案标识，已返回列表');
+      history.replace(listUrl);
+    }
+  }, [isInvalidId, listUrl, message]);
 
   // 创建模式读取 legalName 查询参数预填（订单表单快捷新增「添加公司详情」携带）；
   // 编辑模式忽略该参数，不覆盖已加载的公司抬头。
@@ -206,134 +251,7 @@ export default function PartnerDetailPage() {
 
   // Load partner detail when editing
   useEffect(() => {
-    if (partnerId) {
-      setLoading(true);
-      Promise.all([
-        partnerServiceGetPartner({ id: partnerId }),
-        partnerServiceListPartnerSettlementRules({ partnerId, roleType }),
-      ])
-        .then(([partnerRes, ruleRes]) => {
-          const p = partnerRes.data;
-          setPartner(p);
-          const rules = unwrapList(ruleRes);
-          const currentRule = rules[0];
-
-          if (p) {
-            const profile = p.profile || {};
-            const assignments = p.assignments || [];
-
-            const findAssignment = (role: number, index = 0) => {
-              const item = assignments
-                .filter((assignment) => assignment.role === role)
-                .sort(
-                  (left, right) =>
-                    (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
-                )[index];
-              return {
-                userId: item?.userId,
-                organizationId: item?.organizationId,
-              };
-            };
-
-            const regionCodes: string[] = [];
-            if (profile.provinceCode) regionCodes.push(profile.provinceCode);
-            if (profile.cityCode) regionCodes.push(profile.cityCode);
-            if (profile.districtCode) regionCodes.push(profile.districtCode);
-
-            // Aliases
-            const loadedAliases = (p.aliases || [])
-              .map((a) => a.aliasName || '')
-              .filter(Boolean);
-            setAliases(loadedAliases);
-
-            // Contacts
-            const loadedContacts: ContactItem[] = (p.contacts || []).map(
-              (c) => ({
-                id: c.id,
-                name: c.name || '',
-                phone: c.phone,
-                email: c.email,
-                note: c.note,
-                isPrimary: c.isPrimary,
-              }),
-            );
-            setContacts(loadedContacts);
-
-            // Credit Limit conversion
-            const creditAmount = currentRule?.creditLimitMinor;
-            const isForeign =
-              roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
-
-            formRef.current?.setFieldsValue({
-              code: p.code,
-              legalName: p.legalName,
-              unifiedSocialCreditCode: isForeign
-                ? undefined
-                : p.unifiedSocialCreditCode,
-              enabled: p.enabled ?? true,
-              isCasual: isForeign ? false : (p.isCasual ?? false),
-              regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
-              addressDetail: profile.addressDetail || p.registeredAddress,
-              nameEn: profile.nameEn || (isForeign ? p.legalName : undefined),
-              addressEn:
-                profile.addressEn ||
-                (isForeign ? p.registeredAddress : undefined),
-              nature: profile.nature || roleLabel,
-              roleTypes:
-                (p.roles ?? [])
-                  .filter((r) => r.enabled)
-                  .map((r) => r.type as number).length > 0
-                  ? (p.roles ?? [])
-                      .filter((r) => r.enabled)
-                      .map((r) => r.type as number)
-                  : [roleType],
-              customerType:
-                profile.customerTypes?.[0] ||
-                PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
-              customerTypes: profile.customerTypes || [1],
-              developmentMethod: profile.developmentMethod || '自主开发',
-              businessTypes: profile.businessTypes || [1],
-              remark: profile.remark,
-
-              // 9 Assignment slots (User + Organization pairs)
-              assignCreatorUser: findAssignment(1).userId,
-              assignCreatorOrg: findAssignment(1).organizationId,
-              assignOperatorUser: findAssignment(2).userId,
-              assignOperatorOrg: findAssignment(2).organizationId,
-              assignSalesUser: findAssignment(3).userId,
-              assignSalesOrg: findAssignment(3).organizationId,
-              assignServiceUser: findAssignment(4).userId,
-              assignServiceOrg: findAssignment(4).organizationId,
-              assignFinanceUser: findAssignment(5).userId,
-              assignFinanceOrg: findAssignment(5).organizationId,
-              assignCommercialUser: findAssignment(6).userId,
-              assignCommercialOrg: findAssignment(6).organizationId,
-              assignContactUser: findAssignment(7).userId,
-              assignContactOrg: findAssignment(7).organizationId,
-              assignContact2User: findAssignment(7, 1).userId,
-              assignContact2Org: findAssignment(7, 1).organizationId,
-              assignDocUser: findAssignment(8).userId,
-              assignDocOrg: findAssignment(8).organizationId,
-
-              // Settlement Info
-              statementMode: currentRule?.statementMode ?? 1,
-              settlementMethod: currentRule?.settlementMethod ?? 1,
-              settlementBase: currentRule?.settlementBase ?? 1,
-              settlementDay: currentRule?.settlementDay ?? 25,
-              settlementCurrency: currentRule?.settlementCurrency ?? 'CNY',
-              creditDays: currentRule?.settlementCycleDays ?? 30,
-              creditLimit: creditAmount,
-              paymentTermsDays: currentRule?.paymentTermsDays,
-            });
-          }
-        })
-        .catch(() => {
-          message.error('加载档案详情失败');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
+    if (!partnerId) {
       setPartner(undefined);
       setContacts([]);
       setAliases([]);
@@ -358,8 +276,168 @@ export default function PartnerDetailPage() {
         // 参数移除或变化时按新地址重建，不残留上一条地址的预填。
         legalName: prefillLegalName,
       });
+      return;
     }
-  }, [partnerId, roleType, roleLabel, prefillLegalName, message]);
+
+    let isMounted = true;
+    setLoading(true);
+
+    const loadPartnerData = async () => {
+      try {
+        const partnerRes = await partnerServiceGetPartner({ id: partnerId });
+        if (!isMounted) return;
+        const p = partnerRes.data;
+        setPartner(p);
+
+        let currentRule: API.PartnerSettlementRule | undefined;
+        if (canReadSettlementRules) {
+          try {
+            const ruleRes = await partnerServiceListPartnerSettlementRules({
+              partnerId,
+              roleType,
+            });
+            if (isMounted) {
+              const rules = unwrapList(ruleRes);
+              currentRule = rules[0];
+            }
+          } catch {
+            // 结算规则加载失败不阻断档案主体渲染
+          }
+        }
+
+        if (!isMounted) return;
+
+        if (p) {
+          const profile = p.profile || {};
+          const assignments = p.assignments || [];
+
+          const findAssignment = (role: number, index = 0) => {
+            const item = assignments
+              .filter((assignment) => assignment.role === role)
+              .sort(
+                (left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
+              )[index];
+            return {
+              userId: item?.userId,
+              organizationId: item?.organizationId,
+            };
+          };
+
+          const regionCodes: string[] = [];
+          if (profile.provinceCode) regionCodes.push(profile.provinceCode);
+          if (profile.cityCode) regionCodes.push(profile.cityCode);
+          if (profile.districtCode) regionCodes.push(profile.districtCode);
+
+          // Aliases
+          const loadedAliases = (p.aliases || [])
+            .map((a) => a.aliasName || '')
+            .filter(Boolean);
+          setAliases(loadedAliases);
+
+          // Contacts
+          const loadedContacts: ContactItem[] = (p.contacts || []).map((c) => ({
+            id: c.id,
+            name: c.name || '',
+            phone: c.phone,
+            email: c.email,
+            note: c.note,
+            isPrimary: c.isPrimary,
+          }));
+          setContacts(loadedContacts);
+
+          // Credit Limit conversion
+          const creditAmount = currentRule?.creditLimitMinor;
+          const isForeign =
+            roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
+
+          formRef.current?.setFieldsValue({
+            code: p.code,
+            legalName: p.legalName,
+            unifiedSocialCreditCode: isForeign
+              ? undefined
+              : p.unifiedSocialCreditCode,
+            enabled: p.enabled ?? true,
+            isCasual: isForeign ? false : (p.isCasual ?? false),
+            regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
+            addressDetail: profile.addressDetail || p.registeredAddress,
+            nameEn: profile.nameEn || (isForeign ? p.legalName : undefined),
+            addressEn:
+              profile.addressEn ||
+              (isForeign ? p.registeredAddress : undefined),
+            nature: profile.nature || roleLabel,
+            roleTypes:
+              (p.roles ?? [])
+                .filter((r) => r.enabled)
+                .map((r) => r.type as number).length > 0
+                ? (p.roles ?? [])
+                    .filter((r) => r.enabled)
+                    .map((r) => r.type as number)
+                : [roleType],
+            customerType:
+              profile.customerTypes?.[0] ||
+              PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
+            customerTypes: profile.customerTypes || [1],
+            developmentMethod: profile.developmentMethod || '自主开发',
+            businessTypes: profile.businessTypes || [1],
+            remark: profile.remark,
+
+            // 9 Assignment slots (User + Organization pairs)
+            assignCreatorUser: findAssignment(1).userId,
+            assignCreatorOrg: findAssignment(1).organizationId,
+            assignOperatorUser: findAssignment(2).userId,
+            assignOperatorOrg: findAssignment(2).organizationId,
+            assignSalesUser: findAssignment(3).userId,
+            assignSalesOrg: findAssignment(3).organizationId,
+            assignServiceUser: findAssignment(4).userId,
+            assignServiceOrg: findAssignment(4).organizationId,
+            assignFinanceUser: findAssignment(5).userId,
+            assignFinanceOrg: findAssignment(5).organizationId,
+            assignCommercialUser: findAssignment(6).userId,
+            assignCommercialOrg: findAssignment(6).organizationId,
+            assignContactUser: findAssignment(7).userId,
+            assignContactOrg: findAssignment(7).organizationId,
+            assignContact2User: findAssignment(7, 1).userId,
+            assignContact2Org: findAssignment(7, 1).organizationId,
+            assignDocUser: findAssignment(8).userId,
+            assignDocOrg: findAssignment(8).organizationId,
+
+            // Settlement Info
+            ...(currentRule
+              ? {
+                  statementMode: currentRule.statementMode ?? 1,
+                  settlementMethod: currentRule.settlementMethod ?? 1,
+                  settlementBase: currentRule.settlementBase ?? 1,
+                  settlementDay: currentRule.settlementDay ?? 25,
+                  settlementCurrency: currentRule.settlementCurrency ?? 'CNY',
+                  creditDays: currentRule.settlementCycleDays ?? 30,
+                  creditLimit: creditAmount,
+                  paymentTermsDays: currentRule.paymentTermsDays,
+                }
+              : {}),
+          });
+        }
+      } catch {
+        message.error('加载档案详情失败');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadPartnerData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    partnerId,
+    roleType,
+    roleLabel,
+    prefillLegalName,
+    canReadSettlementRules,
+    message,
+  ]);
 
   // User and Organization Select Options
   const userSelectOptions = useMemo(() => {
@@ -437,6 +515,11 @@ export default function PartnerDetailPage() {
 
   // Submit Handler (Atomic Save)
   const handleSubmit = async () => {
+    if (!canSave) {
+      message.error(isCreate ? '暂无创建权限' : '暂无编辑权限');
+      return;
+    }
+
     try {
       const values = await formRef.current?.validateFields();
       if (!values) return;
@@ -561,7 +644,10 @@ export default function PartnerDetailPage() {
         (type) => ({
           type,
           enabled: true,
-          settlementRule: type === roleType ? settlementRuleInput : undefined,
+          settlementRule:
+            canSaveSettlement && type === roleType
+              ? settlementRuleInput
+              : undefined,
         }),
       );
 
@@ -655,6 +741,25 @@ export default function PartnerDetailPage() {
       ? '创建人: 当前用户 (自动关联)'
       : undefined;
 
+  if (isInvalidId) {
+    return (
+      <PageContainer
+        title={false}
+        breadcrumbRender={false}
+        header={{
+          title: false,
+          breadcrumb: undefined,
+          style: { padding: 0 },
+        }}
+        style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
+      >
+        <div style={{ padding: 48, textAlign: 'center' }}>
+          <Spin tip="无效的档案标识，正在返回列表..." />
+        </div>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer
       title={false}
@@ -691,14 +796,16 @@ export default function PartnerDetailPage() {
             <Button onClick={() => history.push(listUrl)} disabled={saving}>
               取消
             </Button>
-            <Button
-              type="primary"
-              onClick={handleSubmit}
-              loading={saving}
-              icon={<CheckCircleOutlined />}
-            >
-              {saving ? '保存中...' : `保存${roleLabel}档案`}
-            </Button>
+            {canSave && (
+              <Button
+                type="primary"
+                onClick={handleSubmit}
+                loading={saving}
+                icon={<CheckCircleOutlined />}
+              >
+                {saving ? '保存中...' : `保存${roleLabel}档案`}
+              </Button>
+            )}
           </Space>
         }
       />
@@ -734,19 +841,21 @@ export default function PartnerDetailPage() {
           />
 
           {/* Section 2: 财务结算规则 */}
-          <SettlementSection
-            collapsed={!activeCollapseKeys.includes('settlement')}
-            onCollapseChange={(collapsed) =>
-              toggleSection('settlement', collapsed)
-            }
-            currencyOptions={currencyOptions}
-            interestRule={interestRule}
-            onOpenInterestModal={() => setInterestModalOpen(true)}
-            roleLabel={roleLabel}
-          />
+          {(isCreate || canReadSettlementRules) && (
+            <SettlementSection
+              collapsed={!activeCollapseKeys.includes('settlement')}
+              onCollapseChange={(collapsed) =>
+                toggleSection('settlement', collapsed)
+              }
+              currencyOptions={currencyOptions}
+              interestRule={interestRule}
+              onOpenInterestModal={() => setInterestModalOpen(true)}
+              roleLabel={roleLabel}
+            />
+          )}
 
-          {/* Section 3: 账户信息（依赖已保存档案，新建模式不展示） */}
-          {partnerId && (
+          {/* Section 3: 账户信息（依赖已保存档案与读权限，新建模式不展示） */}
+          {partnerId && canReadAccounts && (
             <SectionCard
               key="accounts"
               id="section-accounts"
@@ -760,9 +869,13 @@ export default function PartnerDetailPage() {
             >
               <AccountsPanel
                 partner={partner}
-                canRead={access.canReadPartnerAccounts}
-                canCreate={access.canCreatePartnerAccounts}
-                canUpdate={access.canUpdatePartnerAccounts}
+                canRead={canReadAccounts}
+                canCreate={
+                  access.canCreatePartnerAccounts || access.canManagePartners
+                }
+                canUpdate={
+                  access.canUpdatePartnerAccounts || access.canManagePartners
+                }
               />
             </SectionCard>
           )}
@@ -782,8 +895,8 @@ export default function PartnerDetailPage() {
             <ContactCardList contacts={contacts} onChange={setContacts} />
           </SectionCard>
 
-          {/* Section 5: 常用信息 (Shipping Presets，依赖已保存档案，新建模式不展示) */}
-          {partnerId && (
+          {/* Section 5: 常用信息 (Shipping Presets，依赖已保存档案与读权限，新建模式不展示) */}
+          {partnerId && canReadShippingPresets && (
             <SectionCard
               key="presets"
               id="section-presets"
@@ -798,12 +911,20 @@ export default function PartnerDetailPage() {
               <ShippingPresetSection
                 partnerId={partnerId}
                 roleLabel={roleLabel}
+                canCreate={
+                  access.canCreatePartnerShippingPresets ||
+                  access.canManagePartners
+                }
+                canUpdate={
+                  access.canUpdatePartnerShippingPresets ||
+                  access.canManagePartners
+                }
               />
             </SectionCard>
           )}
 
-          {/* Section 6: 合同管理（依赖已保存档案，新建模式不展示） */}
-          {partnerId && (
+          {/* Section 6: 合同管理（依赖已保存档案与读权限，新建模式不展示） */}
+          {partnerId && canReadContracts && (
             <SectionCard
               key="contracts"
               id="section-contracts"
@@ -815,7 +936,16 @@ export default function PartnerDetailPage() {
                 toggleSection('contracts', collapsed)
               }
             >
-              <ContractCardList partnerId={partnerId} roleLabel={roleLabel} />
+              <ContractCardList
+                partnerId={partnerId}
+                roleLabel={roleLabel}
+                canCreate={
+                  access.canCreatePartnerContracts || access.canManagePartners
+                }
+                canUpdate={
+                  access.canUpdatePartnerContracts || access.canManagePartners
+                }
+              />
             </SectionCard>
           )}
 
@@ -836,8 +966,8 @@ export default function PartnerDetailPage() {
             />
           </SectionCard>
 
-          {/* Section 8: 操作记录 */}
-          {partnerId && (
+          {/* Section 8: 操作记录（依赖已保存档案与读权限） */}
+          {partnerId && canReadAudit && (
             <SectionCard
               key="logs"
               id="section-logs"
@@ -869,15 +999,17 @@ export default function PartnerDetailPage() {
         <Button onClick={() => history.push(listUrl)} disabled={saving}>
           取消
         </Button>
-        <Button
-          type="primary"
-          onClick={handleSubmit}
-          loading={saving}
-          icon={<CheckCircleOutlined />}
-          style={{ minWidth: 120 }}
-        >
-          {saving ? '保存中...' : `保存${roleLabel}档案`}
-        </Button>
+        {canSave && (
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            loading={saving}
+            icon={<CheckCircleOutlined />}
+            style={{ minWidth: 120 }}
+          >
+            {saving ? '保存中...' : `保存${roleLabel}档案`}
+          </Button>
+        )}
       </StickyFooterBar>
 
       {/* Interest Rule Modal */}
@@ -900,13 +1032,23 @@ export default function PartnerDetailPage() {
           onCollapsedChange={setNavCollapsed}
           items={[
             { key: 'basic', title: '基础信息' },
-            { key: 'settlement', title: '财务结算' },
-            ...(partnerId ? [{ key: 'accounts', title: '账户信息' }] : []),
+            ...(isCreate || canReadSettlementRules
+              ? [{ key: 'settlement', title: '财务结算' }]
+              : []),
+            ...(partnerId && canReadAccounts
+              ? [{ key: 'accounts', title: '账户信息' }]
+              : []),
             { key: 'contacts', title: '联系方式' },
-            ...(partnerId ? [{ key: 'presets', title: '常用信息' }] : []),
-            ...(partnerId ? [{ key: 'contracts', title: '合同管理' }] : []),
+            ...(partnerId && canReadShippingPresets
+              ? [{ key: 'presets', title: '常用信息' }]
+              : []),
+            ...(partnerId && canReadContracts
+              ? [{ key: 'contracts', title: '合同管理' }]
+              : []),
             { key: 'remark', title: `${roleLabel}备注` },
-            ...(partnerId ? [{ key: 'logs', title: '操作记录' }] : []),
+            ...(partnerId && canReadAudit
+              ? [{ key: 'logs', title: '操作记录' }]
+              : []),
           ]}
           onSelect={(key) => {
             setActiveCollapseKeys((prev) =>

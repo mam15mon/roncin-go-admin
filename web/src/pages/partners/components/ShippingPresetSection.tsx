@@ -95,11 +95,15 @@ const PRESET_TYPE_MAP = new Map<number, (typeof PRESET_TYPES)[number]>(
 interface ShippingPresetSectionProps {
   partnerId?: string;
   roleLabel?: string;
+  canCreate?: boolean;
+  canUpdate?: boolean;
 }
 
 export default function ShippingPresetSection({
   partnerId,
   roleLabel,
+  canCreate = true,
+  canUpdate = true,
 }: ShippingPresetSectionProps) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
@@ -282,7 +286,7 @@ export default function ShippingPresetSection({
   const currentTypeNum = Number(activeTab);
   const currentTabMeta = PRESET_TYPE_MAP.get(currentTypeNum);
 
-  const tabExtraAction = (
+  const tabExtraAction = canCreate ? (
     <Space size={8}>
       {activeTab === 'all' ? (
         <Dropdown
@@ -310,7 +314,7 @@ export default function ShippingPresetSection({
         </Button>
       )}
     </Space>
-  );
+  ) : undefined;
 
   return (
     <div>
@@ -395,30 +399,32 @@ export default function ShippingPresetSection({
                           {preset.title}
                         </Text>
                       </Space>
-                      <Space size={4}>
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<EditOutlined style={{ color: '#1677ff' }} />}
-                          onClick={() => handleOpenEdit(preset)}
-                          style={{ padding: '0 4px', height: 22 }}
-                        />
-                        <Popconfirm
-                          title="确定要停用此预设吗？"
-                          onConfirm={() => handleDelete(preset)}
-                          okText="确定"
-                          cancelText="取消"
-                        >
+                      {canUpdate && (
+                        <Space size={4}>
                           <Button
                             type="text"
                             size="small"
-                            icon={
-                              <DeleteOutlined style={{ color: '#ff4d4f' }} />
-                            }
+                            icon={<EditOutlined style={{ color: '#1677ff' }} />}
+                            onClick={() => handleOpenEdit(preset)}
                             style={{ padding: '0 4px', height: 22 }}
                           />
-                        </Popconfirm>
-                      </Space>
+                          <Popconfirm
+                            title="确定要停用此预设吗？"
+                            onConfirm={() => handleDelete(preset)}
+                            okText="确定"
+                            cancelText="取消"
+                          >
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={
+                                <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                              }
+                              style={{ padding: '0 4px', height: 22 }}
+                            />
+                          </Popconfirm>
+                        </Space>
+                      )}
                     </div>
 
                     {/* Content */}

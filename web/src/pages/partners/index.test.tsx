@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -135,8 +136,57 @@ describe('Partners 列表页', () => {
     expect(
       screen.getByRole('button', { name: /导入 Excel/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /转角色/ }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /转角色/ })).toBeInTheDocument();
+  });
+
+  it('客户、供应商、国外代理列表点击新建分别跳转到对应的 /create 地址', async () => {
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [],
+      total: 0,
+    } as never);
+
+    // 1. 客户列表页 -> /partners/customers/create
+    routeState.pathname = '/partners/customers';
+    const { unmount: unmountCust } = render(
+      <App>
+        <Partners />
+      </App>,
+    );
+    const createCustBtn = await screen.findByRole('button', {
+      name: /新增客户/,
+    });
+    fireEvent.click(createCustBtn);
+    expect(history.push).toHaveBeenCalledWith('/partners/customers/create');
+    unmountCust();
+
+    // 2. 供应商列表页 -> /partners/suppliers/create
+    routeState.pathname = '/partners/suppliers';
+    const { unmount: unmountSupp } = render(
+      <App>
+        <Partners />
+      </App>,
+    );
+    const createSuppBtn = await screen.findByRole('button', {
+      name: /新增供应商/,
+    });
+    fireEvent.click(createSuppBtn);
+    expect(history.push).toHaveBeenCalledWith('/partners/suppliers/create');
+    unmountSupp();
+
+    // 3. 国外代理列表页 -> /partners/foreign-agents/create
+    routeState.pathname = '/partners/foreign-agents';
+    const { unmount: unmountAgent } = render(
+      <App>
+        <Partners />
+      </App>,
+    );
+    const createAgentBtn = await screen.findByRole('button', {
+      name: /新增国外代理/,
+    });
+    fireEvent.click(createAgentBtn);
+    expect(history.push).toHaveBeenCalledWith(
+      '/partners/foreign-agents/create',
+    );
+    unmountAgent();
   });
 });

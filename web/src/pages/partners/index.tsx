@@ -109,8 +109,9 @@ export default function Partners() {
   const location = useLocation();
   const access = useAccess();
   const actionRef = useRef<ActionType>(null);
-  const blacklistFormRef =
-    useRef<ProFormInstance<BlacklistFormValues> | undefined>(undefined);
+  const blacklistFormRef = useRef<
+    ProFormInstance<BlacklistFormValues> | undefined
+  >(undefined);
 
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [blacklistPartner, setBlacklistPartner] = useState<API.Partner | null>(
@@ -129,7 +130,7 @@ export default function Partners() {
     currentViewMeta['/partners/customers'];
 
   const openCreate = () => {
-    history.push(`${location.pathname}/new`);
+    history.push(`${location.pathname}/create`);
   };
 
   const openImport = () => {

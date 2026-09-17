@@ -16,6 +16,7 @@ import {
   Button,
   Card,
   Col,
+  Empty,
   Form,
   Popconfirm,
   Row,
@@ -45,11 +46,15 @@ const contractStatusOptions = Object.entries(partnerContractStatusMeta).map(
 interface ContractCardListProps {
   partnerId?: string;
   roleLabel?: string;
+  canCreate?: boolean;
+  canUpdate?: boolean;
 }
 
 export default function ContractCardList({
   partnerId,
   roleLabel,
+  canCreate = true,
+  canUpdate = true,
 }: ContractCardListProps) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
@@ -258,33 +263,35 @@ export default function ContractCardList({
                         </Tag>
                       </Space>
                     </div>
-                    <Space size={4}>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<EditOutlined style={{ color: '#1677ff' }} />}
-                        onClick={() => handleOpenEdit(item)}
-                        style={{ padding: '0 4px', height: 22 }}
-                      />
-                      {item.status !==
-                        PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED && (
-                        <Popconfirm
-                          title="确定要终止此合同吗？"
-                          onConfirm={() => handleTerminate(item)}
-                          okText="终止"
-                          cancelText="取消"
-                        >
-                          <Button
-                            type="text"
-                            size="small"
-                            icon={
-                              <DeleteOutlined style={{ color: '#ff4d4f' }} />
-                            }
-                            style={{ padding: '0 4px', height: 22 }}
-                          />
-                        </Popconfirm>
-                      )}
-                    </Space>
+                    {canUpdate && (
+                      <Space size={4}>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<EditOutlined style={{ color: '#1677ff' }} />}
+                          onClick={() => handleOpenEdit(item)}
+                          style={{ padding: '0 4px', height: 22 }}
+                        />
+                        {item.status !==
+                          PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED && (
+                          <Popconfirm
+                            title="确定要终止此合同吗？"
+                            onConfirm={() => handleTerminate(item)}
+                            okText="终止"
+                            cancelText="取消"
+                          >
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={
+                                <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                              }
+                              style={{ padding: '0 4px', height: 22 }}
+                            />
+                          </Popconfirm>
+                        )}
+                      </Space>
+                    )}
                   </div>
 
                   {/* Details */}
@@ -315,52 +322,63 @@ export default function ContractCardList({
           })}
 
           {/* Add Contract Card Button */}
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <div
-              onClick={handleOpenAdd}
-              style={{
-                height: '100%',
-                minHeight: 140,
-                border: '1px dashed #91caff',
-                borderRadius: 6,
-                backgroundColor: '#e6f4ff',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#bae0ff';
-                e.currentTarget.style.borderColor = '#1677ff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#e6f4ff';
-                e.currentTarget.style.borderColor = '#91caff';
-              }}
-            >
+          {canCreate && (
+            <Col xs={24} sm={12} md={8} lg={6}>
               <div
+                onClick={handleOpenAdd}
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  border: '2px solid #1677ff',
+                  height: '100%',
+                  minHeight: 140,
+                  border: '1px dashed #91caff',
+                  borderRadius: 6,
+                  backgroundColor: '#e6f4ff',
+                  cursor: 'pointer',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#1677ff',
-                  fontSize: 22,
+                  gap: 8,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#bae0ff';
+                  e.currentTarget.style.borderColor = '#1677ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e6f4ff';
+                  e.currentTarget.style.borderColor = '#91caff';
                 }}
               >
-                <PlusOutlined />
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    border: '2px solid #1677ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1677ff',
+                    fontSize: 22,
+                  }}
+                >
+                  <PlusOutlined />
+                </div>
+                <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
+                  添加合同
+                </Text>
               </div>
-              <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
-                添加合同
-              </Text>
-            </div>
-          </Col>
+            </Col>
+          )}
+
+          {contracts.length === 0 && !canCreate && (
+            <Col span={24}>
+              <Empty
+                description="暂无合同记录"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Col>
+          )}
         </Row>
       </Spin>
 
