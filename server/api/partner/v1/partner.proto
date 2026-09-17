@@ -60,10 +60,10 @@ service PartnerService {
     option (google.api.http) = {put: "/api/v1/partners/{partner_id}/invoice-profiles/{id}" body: "*"};
   }
 
-  rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (SetSupplierBlacklistResponse) {
+  rpc SetPartnerRoleBlacklist(SetPartnerRoleBlacklistRequest) returns (SetPartnerRoleBlacklistResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.blacklist" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
-      post: "/api/v1/partners/{id}/supplier-blacklist"
+      post: "/api/v1/partners/{id}/role-blacklist"
       body: "*"
     };
   }
@@ -572,10 +572,11 @@ message ListPartnerAuditLogsResponse {
   string trace_id = 8;
 }
 
-message SetSupplierBlacklistRequest {
+message SetPartnerRoleBlacklistRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  bool blacklisted = 2;
-  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+  PartnerRoleType role_type = 2 [(google.api.field_behavior) = REQUIRED];
+  bool blacklisted = 3;
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 enum PartnerAccountUsage {
@@ -909,7 +910,7 @@ message UpdatePartnerResponse {
   string trace_id = 5;
 }
 
-message SetSupplierBlacklistResponse {
+message SetPartnerRoleBlacklistResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

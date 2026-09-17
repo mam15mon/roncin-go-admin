@@ -106,7 +106,7 @@ func requestPartner(ctx context.Context, request any, partnerUsecase *biz.Partne
 		partnerID = value.GetId()
 	case *partnerv1.UpdatePartnerRequest:
 		partnerID = value.GetId()
-	case *partnerv1.SetSupplierBlacklistRequest:
+	case *partnerv1.SetPartnerRoleBlacklistRequest:
 		partnerID = value.GetId()
 	default:
 		return nil, false

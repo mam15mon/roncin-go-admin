@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"errors"
+	"sort"
 
 	"github.com/google/uuid"
 
@@ -26,18 +26,15 @@ import (
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
-func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order, currentShippingLineID *uuid.UUID) error {
-	if err := validatePartnerRole(ctx, tx, organizationID, input.CustomerID, partnerroleent.RoleTypeCustomer); err != nil {
-		if errors.Is(err, biz.ErrOrderInvalidArgument) {
-			return biz.ErrOrderCustomerInvalid
-		}
+func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order, existing *ent.Order) error {
+	if err := validateOrderPartnerReferences(ctx, tx, organizationID, input, existing); err != nil {
 		return err
 	}
 	if input.ShippingLineID != nil {
 		predicates := []predicate.ShippingLine{
 			shippinglineent.IDEQ(*input.ShippingLineID),
 		}
-		if currentShippingLineID == nil || *currentShippingLineID != *input.ShippingLineID {
+		if existing == nil || existing.ShippingLineID == nil || *existing.ShippingLineID != *input.ShippingLineID {
 			predicates = append(predicates, shippinglineent.EnabledEQ(true))
 		}
 		exists, err := tx.ShippingLine.Query().Where(predicates...).ForShare().Exist(ctx)
@@ -46,21 +43,6 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		}
 		if !exists {
 			return biz.ErrOrderInvalidArgument
-		}
-	}
-	if input.BookingAgentID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
-			return err
-		}
-	}
-	if input.ForeignAgentID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.ForeignAgentID, partnerroleent.RoleTypeForeignAgent); err != nil {
-			return err
-		}
-	}
-	if input.ShippingAgentID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.ShippingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
-			return err
 		}
 	}
 	if input.CargoCurrency != "" {
@@ -130,18 +112,90 @@ func validateAirportIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	return nil
 }
 
-func validatePartnerRole(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, roleType partnerroleent.RoleType) error {
-	exists, err := tx.PartnerRole.Query().Where(
-		partnerroleent.PartnerIDEQ(partnerID),
-		partnerroleent.RoleTypeEQ(roleType),
-		partnerroleent.EnabledEQ(true),
-		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)),
-	).Exist(ctx)
+type orderPartnerReference struct {
+	partnerID      uuid.UUID
+	roleType       partnerroleent.RoleType
+	checkBlacklist bool
+	invalidErr     error
+}
+
+func validateOrderPartnerReferences(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.Order, existing *ent.Order) error {
+	references := []orderPartnerReference{{
+		partnerID: input.CustomerID, roleType: partnerroleent.RoleTypeCustomer,
+		checkBlacklist: existing == nil || existing.CustomerID != input.CustomerID,
+		invalidErr:     biz.ErrOrderCustomerInvalid,
+	}}
+	appendOptional := func(inputID, existingID *uuid.UUID, roleType partnerroleent.RoleType) {
+		if inputID == nil {
+			return
+		}
+		references = append(references, orderPartnerReference{
+			partnerID: *inputID, roleType: roleType,
+			checkBlacklist: existing == nil || existingID == nil || *existingID != *inputID,
+			invalidErr:     biz.ErrOrderInvalidArgument,
+		})
+	}
+	var existingBookingAgentID, existingForeignAgentID, existingShippingAgentID *uuid.UUID
+	if existing != nil {
+		existingBookingAgentID = existing.BookingAgentID
+		existingForeignAgentID = existing.ForeignAgentID
+		existingShippingAgentID = existing.ShippingAgentID
+	}
+	appendOptional(input.BookingAgentID, existingBookingAgentID, partnerroleent.RoleTypeSupplier)
+	appendOptional(input.ForeignAgentID, existingForeignAgentID, partnerroleent.RoleTypeForeignAgent)
+	appendOptional(input.ShippingAgentID, existingShippingAgentID, partnerroleent.RoleTypeSupplier)
+
+	partnerIDsByValue := make(map[uuid.UUID]struct{}, len(references))
+	for _, reference := range references {
+		partnerIDsByValue[reference.partnerID] = struct{}{}
+	}
+	partnerIDs := make([]uuid.UUID, 0, len(partnerIDsByValue))
+	for partnerID := range partnerIDsByValue {
+		partnerIDs = append(partnerIDs, partnerID)
+	}
+	sort.Slice(partnerIDs, func(i, j int) bool { return partnerIDs[i].String() < partnerIDs[j].String() })
+	lockedPartners, err := tx.Partner.Query().Where(
+		partnerent.IDIn(partnerIDs...),
+		partnerent.OrganizationIDEQ(organizationID),
+		partnerent.EnabledEQ(true),
+	).Order(partnerent.ByID()).ForShare().All(ctx)
 	if err != nil {
 		return err
 	}
-	if !exists {
-		return biz.ErrOrderInvalidArgument
+	if len(lockedPartners) != len(partnerIDs) {
+		for _, reference := range references {
+			found := false
+			for _, partner := range lockedPartners {
+				if partner.ID == reference.partnerID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return reference.invalidErr
+			}
+		}
+	}
+
+	roles, err := tx.PartnerRole.Query().Where(
+		partnerroleent.PartnerIDIn(partnerIDs...),
+		partnerroleent.EnabledEQ(true),
+	).All(ctx)
+	if err != nil {
+		return err
+	}
+	rolesByKey := make(map[string]*ent.PartnerRole, len(roles))
+	for _, role := range roles {
+		rolesByKey[role.PartnerID.String()+":"+string(role.RoleType)] = role
+	}
+	for _, reference := range references {
+		role := rolesByKey[reference.partnerID.String()+":"+string(reference.roleType)]
+		if role == nil {
+			return reference.invalidErr
+		}
+		if reference.checkBlacklist && role.Blacklisted {
+			return biz.NewOrderPartnerRoleBlacklisted(biz.PartnerRoleType(reference.roleType))
+		}
 	}
 	return nil
 }

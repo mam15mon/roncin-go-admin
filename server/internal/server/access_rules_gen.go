@@ -304,7 +304,7 @@ var operationAccessRules = map[string]accessRule{
 	"/partner.v1.PartnerService/ListPartners":                                                   {mode: accessModePermission, permission: "business.partner.read", scope: biz.DataScopeOrganization},
 	"/partner.v1.PartnerService/RegisterPartnerAttachment":                                      {mode: accessModePermission, permission: "business.partner.attachment.register", scope: biz.DataScopeOrganization},
 	"/partner.v1.PartnerService/SearchPartnerAssignmentOptions":                                 {mode: accessModePermission, permission: "business.partner.assignment_option.read", scope: biz.DataScopeOrganization},
-	"/partner.v1.PartnerService/SetSupplierBlacklist":                                           {mode: accessModePermission, permission: "business.partner.blacklist", scope: biz.DataScopeOrganization},
+	"/partner.v1.PartnerService/SetPartnerRoleBlacklist":                                        {mode: accessModePermission, permission: "business.partner.blacklist", scope: biz.DataScopeOrganization},
 	"/partner.v1.PartnerService/UpdatePartner":                                                  {mode: accessModePermission, permission: "business.partner.update", scope: biz.DataScopeOrganization},
 	"/partner.v1.PartnerService/UpdatePartnerAccount":                                           {mode: accessModePermission, permission: "business.partner.account.update", scope: biz.DataScopeOrganization},
 	"/partner.v1.PartnerService/UpdatePartnerContract":                                          {mode: accessModePermission, permission: "business.partner.contract.update", scope: biz.DataScopeOrganization},

@@ -321,7 +321,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 	return &biz.PartnerUpdateResult{Partner: updated, PreviousRoles: previousRoles}, nil
 }
 
-func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate, audit *biz.AuditEvent) (*biz.PartnerBlacklistResult, error) {
+func (r *partnerRepo) SetPartnerRoleBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate, audit *biz.AuditEvent) (*biz.PartnerBlacklistResult, error) {
 	previouslyBlacklisted := false
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); queryErr != nil {
@@ -329,10 +329,10 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 		}
 		role, queryErr := tx.PartnerRole.Query().Where(
 			partnerroleent.PartnerIDEQ(id),
-			partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeSupplier),
+			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(input.RoleType)),
 		).Only(ctx)
 		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrPartnerSupplierRoleRequired, nil)
+			return mapEntError(queryErr, biz.ErrPartnerBlacklistRoleRequired, nil)
 		}
 		previouslyBlacklisted = role.Blacklisted
 		update := role.Update().SetBlacklisted(input.Blacklisted)
@@ -373,6 +373,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 				WithAliases(func(query *ent.PartnerAliasQuery) {
 					query.Order(partneraliasent.BySortOrder(), partneraliasent.ByAliasName())
 				}).
+				ForUpdate().
 				Only(ctx)
 			if queryErr != nil && !ent.IsNotFound(queryErr) {
 				return queryErr
@@ -694,8 +695,8 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 	for _, role := range existing {
 		requestedRole, keep := requestedByType[biz.PartnerRoleType(role.RoleType)]
 		if !keep {
-			if role.RoleType == partnerroleent.RoleTypeSupplier && role.Blacklisted {
-				return biz.ErrPartnerBlacklistedSupplierRole
+			if role.Blacklisted {
+				return biz.ErrPartnerBlacklistedRole
 			}
 			if _, err := role.Update().SetEnabled(false).Save(ctx); err != nil {
 				return err

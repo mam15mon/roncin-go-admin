@@ -11,6 +11,7 @@ import {
   auditActorName,
   auditBusinessObject,
   auditDetailLabel,
+  auditDetailValue,
 } from './audit-presentation';
 
 const { Text } = Typography;
@@ -196,7 +197,7 @@ export default function AuditPanel() {
                 ...details.map(([key, value]) => ({
                   key: `detail-${key}`,
                   label: auditDetailLabel(key),
-                  children: technicalText(String(value)),
+                  children: technicalText(auditDetailValue(key, value)),
                 })),
               ]}
             />

@@ -406,7 +406,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
 			return biz.ErrOrderBusinessUnsupported
 		}
-		if validateErr := validateOrderReferences(ctx, tx, organizationID, input, existing.ShippingLineID); validateErr != nil {
+		if validateErr := validateOrderReferences(ctx, tx, organizationID, input, existing); validateErr != nil {
 			return validateErr
 		}
 

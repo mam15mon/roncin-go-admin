@@ -6890,11 +6890,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.UpdatePartnerResponse'
-    /api/v1/partners/{id}/supplier-blacklist:
+    /api/v1/partners/{id}/role-blacklist:
         post:
             tags:
                 - PartnerService
-            operationId: PartnerService_SetSupplierBlacklist
+            operationId: PartnerService_SetPartnerRoleBlacklist
             parameters:
                 - name: id
                   in: path
@@ -6905,7 +6905,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/partner.v1.SetSupplierBlacklistRequest'
+                            $ref: '#/components/schemas/partner.v1.SetPartnerRoleBlacklistRequest'
                 required: true
             responses:
                 "200":
@@ -6913,7 +6913,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/partner.v1.SetSupplierBlacklistResponse'
+                                $ref: '#/components/schemas/partner.v1.SetPartnerRoleBlacklistResponse'
     /api/v1/partners/{partnerId}/accounts:
         get:
             tags:
@@ -21104,19 +21104,23 @@ components:
                 pageSize:
                     type: integer
                     format: int32
-        partner.v1.SetSupplierBlacklistRequest:
+        partner.v1.SetPartnerRoleBlacklistRequest:
             required:
                 - id
+                - roleType
                 - reason
             type: object
             properties:
                 id:
                     type: string
+                roleType:
+                    type: integer
+                    format: enum
                 blacklisted:
                     type: boolean
                 reason:
                     type: string
-        partner.v1.SetSupplierBlacklistResponse:
+        partner.v1.SetPartnerRoleBlacklistResponse:
             type: object
             properties:
                 success:

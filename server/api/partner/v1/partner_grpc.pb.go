@@ -28,7 +28,7 @@ const (
 	PartnerService_ListPartnerInvoiceProfiles_FullMethodName     = "/partner.v1.PartnerService/ListPartnerInvoiceProfiles"
 	PartnerService_CreatePartnerInvoiceProfile_FullMethodName    = "/partner.v1.PartnerService/CreatePartnerInvoiceProfile"
 	PartnerService_UpdatePartnerInvoiceProfile_FullMethodName    = "/partner.v1.PartnerService/UpdatePartnerInvoiceProfile"
-	PartnerService_SetSupplierBlacklist_FullMethodName           = "/partner.v1.PartnerService/SetSupplierBlacklist"
+	PartnerService_SetPartnerRoleBlacklist_FullMethodName        = "/partner.v1.PartnerService/SetPartnerRoleBlacklist"
 	PartnerService_ListPartnerAccounts_FullMethodName            = "/partner.v1.PartnerService/ListPartnerAccounts"
 	PartnerService_CreatePartnerAccount_FullMethodName           = "/partner.v1.PartnerService/CreatePartnerAccount"
 	PartnerService_UpdatePartnerAccount_FullMethodName           = "/partner.v1.PartnerService/UpdatePartnerAccount"
@@ -61,7 +61,7 @@ type PartnerServiceClient interface {
 	ListPartnerInvoiceProfiles(ctx context.Context, in *ListPartnerInvoiceProfilesRequest, opts ...grpc.CallOption) (*ListPartnerInvoiceProfilesResponse, error)
 	CreatePartnerInvoiceProfile(ctx context.Context, in *CreatePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*CreatePartnerInvoiceProfileResponse, error)
 	UpdatePartnerInvoiceProfile(ctx context.Context, in *UpdatePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*UpdatePartnerInvoiceProfileResponse, error)
-	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*SetSupplierBlacklistResponse, error)
+	SetPartnerRoleBlacklist(ctx context.Context, in *SetPartnerRoleBlacklistRequest, opts ...grpc.CallOption) (*SetPartnerRoleBlacklistResponse, error)
 	ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*ListPartnerAccountsResponse, error)
 	CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*CreatePartnerAccountResponse, error)
 	UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*UpdatePartnerAccountResponse, error)
@@ -179,10 +179,10 @@ func (c *partnerServiceClient) UpdatePartnerInvoiceProfile(ctx context.Context, 
 	return out, nil
 }
 
-func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*SetSupplierBlacklistResponse, error) {
+func (c *partnerServiceClient) SetPartnerRoleBlacklist(ctx context.Context, in *SetPartnerRoleBlacklistRequest, opts ...grpc.CallOption) (*SetPartnerRoleBlacklistResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetSupplierBlacklistResponse)
-	err := c.cc.Invoke(ctx, PartnerService_SetSupplierBlacklist_FullMethodName, in, out, cOpts...)
+	out := new(SetPartnerRoleBlacklistResponse)
+	err := c.cc.Invoke(ctx, PartnerService_SetPartnerRoleBlacklist_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ type PartnerServiceServer interface {
 	ListPartnerInvoiceProfiles(context.Context, *ListPartnerInvoiceProfilesRequest) (*ListPartnerInvoiceProfilesResponse, error)
 	CreatePartnerInvoiceProfile(context.Context, *CreatePartnerInvoiceProfileRequest) (*CreatePartnerInvoiceProfileResponse, error)
 	UpdatePartnerInvoiceProfile(context.Context, *UpdatePartnerInvoiceProfileRequest) (*UpdatePartnerInvoiceProfileResponse, error)
-	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
+	SetPartnerRoleBlacklist(context.Context, *SetPartnerRoleBlacklistRequest) (*SetPartnerRoleBlacklistResponse, error)
 	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error)
 	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*CreatePartnerAccountResponse, error)
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
@@ -427,8 +427,8 @@ func (UnimplementedPartnerServiceServer) CreatePartnerInvoiceProfile(context.Con
 func (UnimplementedPartnerServiceServer) UpdatePartnerInvoiceProfile(context.Context, *UpdatePartnerInvoiceProfileRequest) (*UpdatePartnerInvoiceProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerInvoiceProfile not implemented")
 }
-func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetSupplierBlacklist not implemented")
+func (UnimplementedPartnerServiceServer) SetPartnerRoleBlacklist(context.Context, *SetPartnerRoleBlacklistRequest) (*SetPartnerRoleBlacklistResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetPartnerRoleBlacklist not implemented")
 }
 func (UnimplementedPartnerServiceServer) ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAccounts not implemented")
@@ -664,20 +664,20 @@ func _PartnerService_UpdatePartnerInvoiceProfile_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PartnerService_SetSupplierBlacklist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetSupplierBlacklistRequest)
+func _PartnerService_SetPartnerRoleBlacklist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPartnerRoleBlacklistRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PartnerServiceServer).SetSupplierBlacklist(ctx, in)
+		return srv.(PartnerServiceServer).SetPartnerRoleBlacklist(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PartnerService_SetSupplierBlacklist_FullMethodName,
+		FullMethod: PartnerService_SetPartnerRoleBlacklist_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PartnerServiceServer).SetSupplierBlacklist(ctx, req.(*SetSupplierBlacklistRequest))
+		return srv.(PartnerServiceServer).SetPartnerRoleBlacklist(ctx, req.(*SetPartnerRoleBlacklistRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1032,8 +1032,8 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PartnerService_UpdatePartnerInvoiceProfile_Handler,
 		},
 		{
-			MethodName: "SetSupplierBlacklist",
-			Handler:    _PartnerService_SetSupplierBlacklist_Handler,
+			MethodName: "SetPartnerRoleBlacklist",
+			Handler:    _PartnerService_SetPartnerRoleBlacklist_Handler,
 		},
 		{
 			MethodName: "ListPartnerAccounts",

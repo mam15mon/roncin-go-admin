@@ -10,13 +10,16 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/DATA-DOG/go-sqlmock"
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 )
 
 func TestOrderCommissionSnapshotRejectsMissingRoles(t *testing.T) {
@@ -83,8 +86,8 @@ func TestOrderCreateRollsBackAllocatedNumberWhenValidationFails(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(numbersequence.Columns).AddRow(
 			sequenceID, now, now, ruleID, now.Format("20060102"), 2,
 		))
-	mock.ExpectQuery(`SELECT .* FROM "partner_roles"`).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .* FROM "partners".*FOR SHARE`).
+		WillReturnRows(sqlmock.NewRows(partner.Columns))
 	mock.ExpectRollback()
 
 	_, err = repo.Create(context.Background(), organizationID, actorID, &biz.Order{
@@ -120,9 +123,15 @@ func TestValidateOrderReferencesPreservesPartnerQueryError(t *testing.T) {
 		t.Fatalf("开启测试事务失败: %v", err)
 	}
 	databaseErr := errors.New("partner query failed")
+	organizationID, customerID := uuid.New(), uuid.New()
+	now := time.Now().UTC()
+	mock.ExpectQuery(`SELECT .* FROM "partners".*FOR SHARE`).
+		WillReturnRows(sqlmock.NewRows(partner.Columns).AddRow(
+			customerID, now, now, organizationID, nil, "测试客户", "测试客户", nil, "", true, false, "测试客户",
+		))
 	mock.ExpectQuery(`SELECT .* FROM "partner_roles"`).WillReturnError(databaseErr)
 
-	err = validateOrderReferences(t.Context(), tx, uuid.New(), &biz.Order{CustomerID: uuid.New()}, nil)
+	err = validateOrderReferences(t.Context(), tx, organizationID, &biz.Order{CustomerID: customerID}, nil)
 	if !errors.Is(err, databaseErr) {
 		t.Fatalf("合作方查询错误被改写: got %v, want %v", err, databaseErr)
 	}
@@ -133,5 +142,128 @@ func TestValidateOrderReferencesPreservesPartnerQueryError(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("未满足 sqlmock 期望: %v", err)
+	}
+}
+
+func TestValidateOrderPartnerReferencesBlacklistMatrix(t *testing.T) {
+	for _, testCase := range []struct {
+		name        string
+		build       func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order)
+		targetRole  partnerrole.RoleType
+		targetLabel string
+		wantErr     bool
+	}{
+		{
+			name: "新建订单拒绝黑名单客户",
+			build: func(_, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: targetID}, nil
+			},
+			targetRole: partnerrole.RoleTypeCustomer, targetLabel: "客户", wantErr: true,
+		},
+		{
+			name: "新建订单拒绝黑名单订舱代理",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: customerID, BookingAgentID: &targetID}, nil
+			},
+			targetRole: partnerrole.RoleTypeSupplier, targetLabel: "供应商", wantErr: true,
+		},
+		{
+			name: "新建订单拒绝黑名单国外代理",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: customerID, ForeignAgentID: &targetID}, nil
+			},
+			targetRole: partnerrole.RoleTypeForeignAgent, targetLabel: "国外代理", wantErr: true,
+		},
+		{
+			name: "新建订单拒绝黑名单船务代理",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: customerID, ShippingAgentID: &targetID}, nil
+			},
+			targetRole: partnerrole.RoleTypeSupplier, targetLabel: "供应商", wantErr: true,
+		},
+		{
+			name: "草稿换入黑名单订舱代理时拒绝",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				originalID := uuid.New()
+				return &biz.Order{CustomerID: customerID, BookingAgentID: &targetID}, &ent.Order{CustomerID: customerID, BookingAgentID: &originalID}
+			},
+			targetRole: partnerrole.RoleTypeSupplier, targetLabel: "供应商", wantErr: true,
+		},
+		{
+			name: "草稿保留原黑名单订舱代理时允许",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: customerID, BookingAgentID: &targetID}, &ent.Order{CustomerID: customerID, BookingAgentID: &targetID}
+			},
+			targetRole: partnerrole.RoleTypeSupplier,
+		},
+		{
+			name: "草稿清空原黑名单订舱代理时允许",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: customerID}, &ent.Order{CustomerID: customerID, BookingAgentID: &targetID}
+			},
+			targetRole: partnerrole.RoleTypeSupplier,
+		},
+		{
+			name: "同一档案客户正常但供应商黑名单时仍拒绝订舱代理",
+			build: func(_, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: targetID, BookingAgentID: &targetID}, nil
+			},
+			targetRole: partnerrole.RoleTypeSupplier, targetLabel: "供应商", wantErr: true,
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			if err != nil {
+				t.Fatalf("创建 sqlmock 失败: %v", err)
+			}
+			driver := entsql.OpenDB(dialect.Postgres, db)
+			client := ent.NewClient(ent.Driver(driver))
+			t.Cleanup(func() { _ = client.Close(); _ = db.Close() })
+			mock.ExpectBegin()
+			tx, err := client.Tx(t.Context())
+			if err != nil {
+				t.Fatalf("开启测试事务失败: %v", err)
+			}
+			organizationID, customerID, targetID := uuid.New(), uuid.New(), uuid.New()
+			input, existing := testCase.build(customerID, targetID)
+			now := time.Now().UTC()
+			partnerRows := sqlmock.NewRows(partner.Columns)
+			seenPartners := map[uuid.UUID]bool{}
+			for _, partnerID := range []uuid.UUID{input.CustomerID, targetID} {
+				if partnerID == uuid.Nil || seenPartners[partnerID] || (input.BookingAgentID == nil && input.ForeignAgentID == nil && input.ShippingAgentID == nil && partnerID == targetID && input.CustomerID != targetID) {
+					continue
+				}
+				seenPartners[partnerID] = true
+				partnerRows.AddRow(partnerID, now, now, organizationID, nil, "测试单位", "测试单位", nil, "", true, false, "测试单位")
+			}
+			mock.ExpectQuery(`SELECT .* FROM "partners".*FOR SHARE`).WillReturnRows(partnerRows)
+
+			roleRows := sqlmock.NewRows(partnerrole.Columns).
+				AddRow(uuid.New(), now, now, input.CustomerID, "customer", true, false, nil, nil, nil)
+			if input.BookingAgentID != nil || input.ForeignAgentID != nil || input.ShippingAgentID != nil {
+				roleRows.AddRow(uuid.New(), now, now, targetID, string(testCase.targetRole), true, true, "严重违约", now, uuid.New())
+			} else if input.CustomerID == targetID && testCase.targetRole == partnerrole.RoleTypeCustomer {
+				roleRows = sqlmock.NewRows(partnerrole.Columns).
+					AddRow(uuid.New(), now, now, targetID, "customer", true, true, "严重违约", now, uuid.New())
+			}
+			mock.ExpectQuery(`SELECT .* FROM "partner_roles"`).WillReturnRows(roleRows)
+
+			err = validateOrderPartnerReferences(t.Context(), tx, organizationID, input, existing)
+			if testCase.wantErr {
+				if kratoserrors.Reason(err) != "ORDER_PARTNER_ROLE_BLACKLISTED" || !strings.Contains(err.Error(), testCase.targetLabel+"已列入黑名单") {
+					t.Fatalf("黑名单错误 = %v", err)
+				}
+			}
+			if !testCase.wantErr && err != nil {
+				t.Fatalf("原关联保留或清空不应被拒绝: %v", err)
+			}
+			mock.ExpectRollback()
+			if err := tx.Rollback(); err != nil {
+				t.Fatalf("回滚测试事务失败: %v", err)
+			}
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Fatalf("未满足 sqlmock 期望: %v", err)
+			}
+		})
 	}
 }

@@ -18,19 +18,28 @@ import type {
 import {
   ModalForm,
   PageContainer,
+  ProFormSelect,
   ProFormSwitch,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { App, Button, Dropdown, type MenuProps, Space, Tag, Typography } from 'antd';
+import {
+  App,
+  Button,
+  Dropdown,
+  type MenuProps,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { SearchFilterTemplate } from '@/components/ui';
 import { PartnerRoleType } from '@/enums.generated';
 import {
   partnerServiceListPartners,
-  partnerServiceSetSupplierBlacklist,
+  partnerServiceSetPartnerRoleBlacklist,
 } from '@/services/roncin/partnerService';
 import { toTableRequest, unwrapList } from '@/utils/api';
 import PartnerExcelImportModal from './components/PartnerExcelImportModal';
@@ -87,6 +96,7 @@ const roleLabels: Record<number, string> = Object.fromEntries(
 );
 
 type BlacklistFormValues = {
+  roleType?: PartnerRoleType;
   blacklisted?: boolean;
   reason?: string;
 };
@@ -129,6 +139,15 @@ export default function Partners() {
   const currentView =
     currentViewMeta[location.pathname] ||
     currentViewMeta['/partners/customers'];
+  const defaultBlacklistRoleType = blacklistPartner?.roles?.some(
+    (role) => role.type === currentView.roleType,
+  )
+    ? currentView.roleType
+    : blacklistPartner?.roles?.find((role) => roleMap.has(role.type ?? 0))
+        ?.type;
+  const defaultBlacklistRole = blacklistPartner?.roles?.find(
+    (role) => role.type === defaultBlacklistRoleType,
+  );
 
   const openCreate = () => {
     history.push(`${location.pathname}/create`);
@@ -351,9 +370,7 @@ export default function Partners() {
 
         if (
           (access.canManagePartners || access.canBlacklistPartners) &&
-          record.roles?.some(
-            (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
-          )
+          record.roles?.some((role) => roleMap.has(role.type ?? 0))
         ) {
           moreItems.push({
             type: 'divider',
@@ -541,16 +558,12 @@ export default function Partners() {
       />
 
       <ModalForm<BlacklistFormValues>
-        title={`供应商黑名单管理 - ${blacklistPartner?.legalName ?? ''}`}
+        title={`角色黑名单管理 - ${blacklistPartner?.legalName ?? ''}`}
         open={blacklistModalOpen}
         formRef={blacklistFormRef}
         initialValues={{
-          blacklisted: Boolean(
-            blacklistPartner?.roles?.find(
-              (role) =>
-                role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
-            )?.blacklisted,
-          ),
+          roleType: defaultBlacklistRoleType,
+          blacklisted: Boolean(defaultBlacklistRole?.blacklisted),
         }}
         modalProps={{
           destroyOnClose: true,
@@ -558,25 +571,50 @@ export default function Partners() {
           onCancel: () => setBlacklistModalOpen(false),
         }}
         onOpenChange={setBlacklistModalOpen}
+        onValuesChange={(changedValues) => {
+          if (changedValues.roleType === undefined) return;
+          const role = blacklistPartner?.roles?.find(
+            (item) => item.type === changedValues.roleType,
+          );
+          blacklistFormRef.current?.setFieldValue(
+            'blacklisted',
+            Boolean(role?.blacklisted),
+          );
+        }}
         onFinish={async (values) => {
           if (!blacklistPartner?.id) return false;
-          await partnerServiceSetSupplierBlacklist(
+          if (!values.roleType) return false;
+          await partnerServiceSetPartnerRoleBlacklist(
             { id: blacklistPartner.id },
             {
               id: blacklistPartner.id,
+              roleType: values.roleType,
               blacklisted: values.blacklisted ?? false,
               reason: values.reason?.trim() ?? '',
             },
           );
           message.success(
-            values.blacklisted ? '已加入供应商黑名单' : '已移出供应商黑名单',
+            values.blacklisted
+              ? `已将${roleLabels[values.roleType]}角色加入黑名单`
+              : `已将${roleLabels[values.roleType]}角色移出黑名单`,
           );
           setBlacklistModalOpen(false);
           actionRef.current?.reload();
           return true;
         }}
       >
-        <ProFormSwitch name="blacklisted" label="列入供应商黑名单" />
+        <ProFormSelect
+          name="roleType"
+          label="目标角色"
+          options={(blacklistPartner?.roles ?? [])
+            .filter((role) => roleMap.has(role.type ?? 0))
+            .map((role) => ({
+              label: roleLabels[role.type ?? 0],
+              value: role.type,
+            }))}
+          rules={[{ required: true, message: '请选择目标角色' }]}
+        />
+        <ProFormSwitch name="blacklisted" label="列入该角色黑名单" />
         <ProFormTextArea
           name="reason"
           label="变更原因与说明"

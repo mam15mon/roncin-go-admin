@@ -2,10 +2,25 @@ package biz
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
+
+// NewOrderPartnerRoleBlacklisted 返回包含目标角色含义的开单门禁错误。
+func NewOrderPartnerRoleBlacklisted(role PartnerRoleType) error {
+	labels := map[PartnerRoleType]string{
+		PartnerRoleCustomer:     "客户",
+		PartnerRoleSupplier:     "供应商",
+		PartnerRoleForeignAgent: "国外代理",
+	}
+	label := labels[role]
+	if label == "" {
+		label = "往来单位角色"
+	}
+	return errors.BadRequest("ORDER_PARTNER_ROLE_BLACKLISTED", fmt.Sprintf("所选%s已列入黑名单，不能新增业务关联", label))
+}
 
 var (
 	ErrOrderNotFound                  = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")

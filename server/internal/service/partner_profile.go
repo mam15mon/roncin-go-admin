@@ -148,7 +148,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	return ok(ctx, &v1.UpdatePartnerResponse{Data: partnerToAPI(updated)}), nil
 }
 
-func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.SetSupplierBlacklistRequest) (*v1.SetSupplierBlacklistResponse, error) {
+func (s *PartnerService) SetPartnerRoleBlacklist(ctx context.Context, request *v1.SetPartnerRoleBlacklistRequest) (*v1.SetPartnerRoleBlacklistResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
@@ -157,11 +157,11 @@ func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.S
 	if err != nil {
 		return nil, biz.ErrPartnerNotFound
 	}
-	updated, err := s.usecase.SetSupplierBlacklist(ctx, principal.Organization.ID, principal.UserID, partnerID, request.GetBlacklisted(), request.GetReason())
+	updated, err := s.usecase.SetPartnerRoleBlacklist(ctx, principal.Organization.ID, principal.UserID, partnerID, partnerRoleTypeFromAPI(request.GetRoleType()), request.GetBlacklisted(), request.GetReason())
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.SetSupplierBlacklistResponse{Data: partnerToAPI(updated)}), nil
+	return ok(ctx, &v1.SetPartnerRoleBlacklistResponse{Data: partnerToAPI(updated)}), nil
 }
 
 func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.ImportPartnersResponse, error) {

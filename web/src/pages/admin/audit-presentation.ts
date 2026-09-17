@@ -488,6 +488,12 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'orange',
     objectType: '往来单位',
   },
+  'partner.role_blacklist.set': {
+    title: '设置角色黑名单',
+    category: '往来单位',
+    color: 'orange',
+    objectType: '往来单位',
+  },
 
   'finance.bill.create': {
     title: '创建账单',
@@ -803,6 +809,7 @@ const detailLabels: Record<string, string> = {
   roles_added: '新增角色',
   roles_removed: '移除角色',
   blacklisted: '黑名单状态',
+  role_type: '目标角色',
   is_casual: '客户类型',
   registered_address: '注册地址',
   unified_social_credit_code: '统一社会信用代码',
@@ -945,4 +952,17 @@ export function auditBusinessObject(record: API.AdminAuditLog): {
 
 export function auditDetailLabel(key: string): string {
   return detailLabels[key] ?? key;
+}
+
+export function auditDetailValue(key: string, value: unknown): string {
+  if (key === 'role_type') {
+    return (
+      {
+        customer: '客户',
+        supplier: '供应商',
+        foreign_agent: '国外代理',
+      }[String(value)] ?? String(value)
+    );
+  }
+  return String(value);
 }

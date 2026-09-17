@@ -3,7 +3,10 @@ import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import {
+  partnerServiceListPartners,
+  partnerServiceSetPartnerRoleBlacklist,
+} from '@/services/roncin/partnerService';
 import Partners from './index';
 
 const routeState = vi.hoisted(() => ({
@@ -22,12 +25,13 @@ vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceListPartners: vi.fn(),
   partnerServiceExportPartners: vi.fn(),
   partnerServiceImportPartners: vi.fn(),
-  partnerServiceSetSupplierBlacklist: vi.fn(),
+  partnerServiceSetPartnerRoleBlacklist: vi.fn(),
 }));
 
 describe('Partners 列表页', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    routeState.pathname = '/partners/customers';
   });
 
   it('表格渲染合作类型列与快捷筛选，并正确展示散客与正式标签', async () => {
@@ -195,5 +199,55 @@ describe('Partners 列表页', () => {
       '/partners/foreign-agents/create',
     );
     unmountAgent();
+  });
+
+  it('黑名单弹窗回退到档案已有角色并提交该角色当前状态', async () => {
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'p-blacklist',
+          code: 'PARTNER-001',
+          legalName: '多角色合作单位',
+          enabled: true,
+          roles: [{ type: 2, enabled: true, blacklisted: true }],
+        },
+      ],
+      total: 1,
+    } as never);
+    vi.mocked(partnerServiceSetPartnerRoleBlacklist).mockResolvedValue({
+      success: true,
+    });
+
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+
+    expect(await screen.findByText('多角色合作单位')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /更多/ }));
+    fireEvent.click(await screen.findByText('黑名单'));
+
+    expect(
+      await screen.findByText('角色黑名单管理 - 多角色合作单位'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('switch')).toBeChecked();
+
+    fireEvent.change(screen.getByLabelText('变更原因与说明'), {
+      target: { value: '  延续供应商限制  ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '确 定' }));
+
+    await vi.waitFor(() => {
+      expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledWith(
+        { id: 'p-blacklist' },
+        {
+          id: 'p-blacklist',
+          roleType: 2,
+          blacklisted: true,
+          reason: '延续供应商限制',
+        },
+      );
+    });
   });
 });

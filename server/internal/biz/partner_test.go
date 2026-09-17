@@ -63,7 +63,7 @@ func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID
 	return &PartnerUpdateResult{Partner: input}, nil
 }
 
-func (s *partnerRepoStub) SetSupplierBlacklist(_ context.Context, organizationID, id uuid.UUID, input PartnerBlacklistUpdate, audit *AuditEvent) (*PartnerBlacklistResult, error) {
+func (s *partnerRepoStub) SetPartnerRoleBlacklist(_ context.Context, organizationID, id uuid.UUID, input PartnerBlacklistUpdate, audit *AuditEvent) (*PartnerBlacklistResult, error) {
 	s.blacklistInput = input
 	s.auditEvent = audit
 	if s.blacklistResult != nil {
@@ -393,7 +393,7 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 	}
 }
 
-func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
+func TestPartnerSetPartnerRoleBlacklistRequiresValidRoleReasonAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 	organizationID := uuid.New()
 	actorID := uuid.New()
@@ -405,17 +405,20 @@ func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	usecase := NewPartnerUsecase(repo)
 	usecase.now = func() time.Time { return changedAt }
 
-	if _, err := usecase.SetSupplierBlacklist(context.Background(), organizationID, actorID, partnerID, true, "   "); err != ErrPartnerBlacklistReasonRequired {
+	if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, "invalid", true, "严重违约"); err != ErrPartnerInvalidRole {
+		t.Fatalf("invalid role error = %v, want ErrPartnerInvalidRole", err)
+	}
+	if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, true, "   "); err != ErrPartnerBlacklistReasonRequired {
 		t.Fatalf("empty reason error = %v, want ErrPartnerBlacklistReasonRequired", err)
 	}
-	updated, err := usecase.SetSupplierBlacklist(context.Background(), organizationID, actorID, partnerID, true, "  严重违约  ")
+	updated, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, true, "  严重违约  ")
 	if err != nil {
-		t.Fatalf("SetSupplierBlacklist() error = %v", err)
+		t.Fatalf("SetPartnerRoleBlacklist() error = %v", err)
 	}
-	if updated.ID != partnerID || !repo.blacklistInput.Blacklisted || repo.blacklistInput.Reason != "严重违约" || repo.blacklistInput.ChangedAt != changedAt || repo.blacklistInput.ChangedBy != actorID {
+	if updated.ID != partnerID || repo.blacklistInput.RoleType != PartnerRoleCustomer || !repo.blacklistInput.Blacklisted || repo.blacklistInput.Reason != "严重违约" || repo.blacklistInput.ChangedAt != changedAt || repo.blacklistInput.ChangedBy != actorID {
 		t.Fatalf("blacklist input = %#v, updated = %#v", repo.blacklistInput, updated)
 	}
-	if repo.auditEvent == nil || repo.auditEvent.Action != "partner.supplier_blacklist.set" || repo.auditEvent.Details["reason"] != "严重违约" || repo.auditEvent.Details["blacklisted"] != "true" {
+	if repo.auditEvent == nil || repo.auditEvent.Action != "partner.role_blacklist.set" || repo.auditEvent.Details["role_type"] != "customer" || repo.auditEvent.Details["reason"] != "严重违约" || repo.auditEvent.Details["blacklisted"] != "true" {
 		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }

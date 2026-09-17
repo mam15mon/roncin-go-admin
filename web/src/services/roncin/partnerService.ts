@@ -341,6 +341,28 @@ export async function partnerServiceUpdatePartnerInvoiceProfile(
   );
 }
 
+/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/role-blacklist */
+export async function partnerServiceSetPartnerRoleBlacklist(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceSetPartnerRoleBlacklistParams,
+  body: API.SetPartnerRoleBlacklistRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.SetPartnerRoleBlacklistResponse>(
+    `/api/v1/partners/${param0}/role-blacklist`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/${param0}/roles/${param1}/settlement-rules */
 export async function partnerServiceListPartnerSettlementRules(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -460,28 +482,6 @@ export async function partnerServiceUpdatePartnerShippingPreset(
     `/api/v1/partners/${param0}/shipping-presets/${param1}`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/supplier-blacklist */
-export async function partnerServiceSetSupplierBlacklist(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.PartnerServiceSetSupplierBlacklistParams,
-  body: API.SetSupplierBlacklistRequest,
-  options?: { [key: string]: any }
-) {
-  const { id: param0, ...queryParams } = params;
-  return request<API.SetSupplierBlacklistResponse>(
-    `/api/v1/partners/${param0}/supplier-blacklist`,
-    {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },

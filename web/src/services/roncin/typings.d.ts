@@ -5290,7 +5290,7 @@ declare namespace API {
     pageSize?: number;
   };
 
-  type PartnerServiceSetSupplierBlacklistParams = {
+  type PartnerServiceSetPartnerRoleBlacklistParams = {
     id: string;
   };
 
@@ -6881,13 +6881,14 @@ declare namespace API {
     traceId?: string;
   };
 
-  type SetSupplierBlacklistRequest = {
+  type SetPartnerRoleBlacklistRequest = {
     id: string;
+    roleType: number;
     blacklisted?: boolean;
     reason: string;
   };
 
-  type SetSupplierBlacklistResponse = {
+  type SetPartnerRoleBlacklistResponse = {
     success?: boolean;
     code?: number;
     message?: string;

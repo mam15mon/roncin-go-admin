@@ -3,6 +3,7 @@ import {
   auditActionPresentation,
   auditActorName,
   auditBusinessObject,
+  auditDetailValue,
   isTechnicalAuditKey,
   parseRoleBadges,
 } from './audit-presentation';
@@ -86,5 +87,8 @@ describe('审计日志业务化展示', () => {
     expect(isTechnicalAuditKey('legal_name')).toBe(false);
     expect(isTechnicalAuditKey('partner.code')).toBe(false);
     expect(isTechnicalAuditKey('roles')).toBe(false);
+    expect(auditDetailValue('role_type', 'customer')).toBe('客户');
+    expect(auditDetailValue('role_type', 'supplier')).toBe('供应商');
+    expect(auditDetailValue('role_type', 'foreign_agent')).toBe('国外代理');
   });
 });

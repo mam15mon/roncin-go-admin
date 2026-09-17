@@ -60,6 +60,15 @@ function renderDetailValue(key: string, value: any): React.ReactNode {
     );
   }
 
+  if (key === 'role_type') {
+    const labels: Record<string, string> = {
+      customer: '客户',
+      supplier: '供应商',
+      foreign_agent: '国外代理',
+    };
+    return labels[String(value)] ?? String(value);
+  }
+
   // 启用状态
   if (key === 'enabled') {
     const isEnabled = String(value) === 'true';

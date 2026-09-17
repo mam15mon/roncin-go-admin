@@ -25,7 +25,8 @@ var (
 	ErrPartnerAliasExists             = errors.Conflict("PARTNER_ALIAS_EXISTS", "往来单位别名重复")
 	ErrPartnerSupplierRoleRequired    = errors.BadRequest("PARTNER_SUPPLIER_ROLE_REQUIRED", "往来单位没有供应商角色")
 	ErrPartnerBlacklistReasonRequired = errors.BadRequest("PARTNER_BLACKLIST_REASON_REQUIRED", "黑名单变更原因不能为空")
-	ErrPartnerBlacklistedSupplierRole = errors.BadRequest("PARTNER_BLACKLISTED_SUPPLIER_ROLE", "清除黑名单前不能移除供应商角色")
+	ErrPartnerBlacklistedRole         = errors.BadRequest("PARTNER_BLACKLISTED_ROLE", "清除黑名单前不能移除已拉黑角色")
+	ErrPartnerBlacklistRoleRequired   = errors.BadRequest("PARTNER_BLACKLIST_ROLE_REQUIRED", "往来单位没有指定的黑名单角色")
 	ErrPartnerImportInvalidArgument   = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
 )
 
@@ -250,6 +251,7 @@ type PartnerUpdateResult struct {
 }
 
 type PartnerBlacklistUpdate struct {
+	RoleType    PartnerRoleType
 	Blacklisted bool
 	Reason      string
 	ChangedAt   time.Time
@@ -269,7 +271,7 @@ type PartnerRepo interface {
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner, *AuditEvent) (*PartnerUpdateResult, error)
-	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate, *AuditEvent) (*PartnerBlacklistResult, error)
+	SetPartnerRoleBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate, *AuditEvent) (*PartnerBlacklistResult, error)
 	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner, *AuditEvent) (*PartnerImportResult, error)
 }
 
@@ -421,15 +423,19 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 	return result.Partner, nil
 }
 
-func (uc *PartnerUsecase) SetSupplierBlacklist(ctx context.Context, organizationID, userID, id uuid.UUID, blacklisted bool, reason string) (*Partner, error) {
+func (uc *PartnerUsecase) SetPartnerRoleBlacklist(ctx context.Context, organizationID, userID, id uuid.UUID, roleType PartnerRoleType, blacklisted bool, reason string) (*Partner, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || userID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrPartnerNotFound
 	}
+	if !roleType.Valid() {
+		return nil, ErrPartnerInvalidRole
+	}
 	if reason == "" || utf8.RuneCountInString(reason) > 500 {
 		return nil, ErrPartnerBlacklistReasonRequired
 	}
-	result, err := uc.repo.SetSupplierBlacklist(ctx, organizationID, id, PartnerBlacklistUpdate{
+	result, err := uc.repo.SetPartnerRoleBlacklist(ctx, organizationID, id, PartnerBlacklistUpdate{
+		RoleType:    roleType,
 		Blacklisted: blacklisted,
 		Reason:      reason,
 		ChangedAt:   uc.now().UTC(),
@@ -437,12 +443,13 @@ func (uc *PartnerUsecase) SetSupplierBlacklist(ctx context.Context, organization
 	}, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
-		Action:         "partner.supplier_blacklist.set",
+		Action:         "partner.role_blacklist.set",
 		ResourceType:   "partner",
 		ResourceID:     id.String(),
 		Result:         "success",
 		Details: map[string]string{
 			"partner.id":  id.String(),
+			"role_type":   string(roleType),
 			"blacklisted": fmt.Sprintf("%t", blacklisted),
 			"reason":      reason,
 		},
