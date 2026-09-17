@@ -70,8 +70,11 @@ export function OrderFormTemplate<T>({
   const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
     {},
   );
-  // 表单导航展开时内容区预留 164px 右侧空间，避免遮挡输入控件
-  const [navCollapsed, setNavCollapsed] = useState(true);
+  // 表单导航展开时内容区预留 164px 右侧空间，避免遮挡输入控件；
+  // 窄屏（<1500px）默认折叠，保证输入区完整可用。
+  const [navCollapsed, setNavCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1500,
+  );
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
@@ -83,6 +86,10 @@ export function OrderFormTemplate<T>({
       title: s.title,
     }));
   }, [prependSections, sections, appendSections]);
+
+  // 导航是否实际渲染：只读、加载中或分节不足时不渲染，也不预留右侧空间
+  const anchorNavVisible =
+    showAnchorNav && !loading && !readonly && anchorItems.length > 1;
 
   // 完整草稿身份（tabKey + draftPathname + draftScope）只能由调用方显式提供；
   // 任一缺失时不生成草稿键，也不读写持久草稿。
@@ -250,7 +257,7 @@ export function OrderFormTemplate<T>({
           grid
           layout="vertical"
           style={{
-            paddingRight: navCollapsed ? 0 : 164,
+            paddingRight: navCollapsed || !anchorNavVisible ? 0 : 164,
             transition: 'padding-right 0.25s ease',
           }}
           initialValues={initialValues}
@@ -324,11 +331,11 @@ export function OrderFormTemplate<T>({
       )}
 
       {/* 5. 悬浮楼层导航与分节错误指示器 */}
-      {showAnchorNav && !loading && !readonly && anchorItems.length > 1 && (
+      {anchorNavVisible && (
         <FormAnchorNav
           items={anchorItems}
           sectionErrors={sectionErrors}
-          defaultCollapsed={true}
+          defaultCollapsed={navCollapsed}
           onCollapsedChange={setNavCollapsed}
           onErrorClick={handleErrorClick}
         />
