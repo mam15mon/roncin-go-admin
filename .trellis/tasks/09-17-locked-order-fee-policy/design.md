@@ -6,7 +6,7 @@
 
 - 普通费用新增、修改、流转、删除继续受现有统一门禁保护；
 - 新增“费用补录申请”聚合，只有审批通过才能创建锁后费用；
-- 补录只新增正数应付成本；应收方向由后端拒绝，不修改或删除既有费用；
+- 补录只新增正数应付成本；应收方向由后端拒绝，不修改或删除锁前既有费用；审批生成的补录费用仅允许通过本设计的受限专用动作作废；
 - 待处理冲减建议直接复用 FinanceCommissionAdjustment 的 DECREASE + DRAFT，不建设第二张建议表；
 - 财务确认继续走 DRAFT → CONFIRMED，实际少发后继续走 CONFIRMED → PAID；
 - 不建设员工负余额、月度发放批次、工资扣款、会计期间或总账。
@@ -15,6 +15,7 @@
 
 - 普通费用门禁位于 server/internal/data/order_fee.go；
 - 业务锁、锁定代次和 SE 单证快照位于 server/internal/data/order_lock.go；
+- 共享 MBL 活动成员、固定锁序与成员集合重验遵循 .trellis/spec/server/backend/order-lock-and-document-version.md 和 sea-export-document-contract.md；
 - 财务锁遵循 .trellis/spec/server/backend/finance-commission-lock.md；
 - 直接解锁资格遵循 .trellis/spec/server/backend/order-lock-and-document-version.md；
 - 调整实体和状态机位于 server/internal/data/ent/schema/finance_commission_adjustment.go 与 server/internal/data/finance_commission.go；
@@ -53,10 +54,20 @@
 - 增加可空、唯一的 supplement_request_id 关联；
 - 金额、税额、本位币金额与汇率快照复用现有计算；
 - 创建后进入普通账单、对账、开票、收付和利润链路。
+- 现有建账候选直接选择 CONFIRMED 且没有活动账单行的费用，业务锁/财务锁不额外屏蔽补录来源；建账转为 BILLED，符合现有取消条件的账单取消后恢复为 CONFIRMED。
 
 普通费用仓储不增加 skipLock 或 force 参数。新增内部专用仓储命令，并在事务中验证补录申请，避免形成通用绕过入口。
 
-### 2.3 复用 FinanceCommissionAdjustment
+### 2.3 补录费用作废边界
+
+- APPROVED 申请保持终态，不增加“撤回已批准申请”迁移；生成费用使用现有 CANCELLED 状态及 cancelled_by、cancelled_at、cancellation_reason 保存作废事实；
+- 专用作废命令只接受 source supplement、状态为 CONFIRMED、无活动 FinanceBillLine 的费用，并要求目标订单实时直接解锁资格、expectedVersion 和必填原因；普通 RemoveFee 仍受统一业务锁/财务锁门禁，不增加通用绕过；
+- 按批准时间和 ID 判断同订单是否存在更晚的有效补录费用；存在时返回稳定冲突，要求按倒序逐笔作废，避免撤销早期成本后让后续边际冲减失真；
+- 锁定该补录关联的提成父单及调整后，只允许关联调整处于 DRAFT 或 CANCELLED。DRAFT 在同一事务转为 CANCELLED，既有 CANCELLED 保持不变；任一关联调整为 CONFIRMED 或 PAID 时拒绝作废，不自动生成 INCREASE 恢复；
+- 费用为 BILLED 时先走现有账单取消。账单存在有效发票、核销或对冲时，继续由现有财务状态机阻止取消；先完成允许的下游撤销后，账单取消会把费用恢复为 CONFIRMED，再执行专用作废；
+- 作废与新补录审批共用 Order 行锁，与账单创建通过费用行锁竞争：账单先提交则作废看到 BILLED 并拒绝，作废先提交则建账看到 CANCELLED 并拒绝，不产生部分成功。
+
+### 2.4 复用 FinanceCommissionAdjustment
 
 待处理冲减建议直接落为现有提成调整记录：
 
@@ -93,7 +104,13 @@
 - 发起人本人合格时允许自行审批；
 - 审批不会修改订单 locked_at、lock_generation 或解锁状态。
 
-### 3.3 财务权限
+### 3.3 补录费用作废资格
+
+- CancelApprovedOrderFeeSupplement 使用目标订单 `lock` 操作的动态权限入口，与补录审批复用同一实时 lock grant 和组织范围，不依赖客户端传回的可作废标记；
+- 该资格不等于普通 `fee.delete`，只允许调用专用命令处理与 APPROVED 补录申请一对一关联的费用；普通 RemoveFee 仍按原权限和锁门禁执行；
+- 后端根据费用状态、活动账单行、后续有效补录和关联调整状态返回可作废能力及稳定阻断原因，前端只消费结果。
+
+### 3.4 财务权限
 
 - 查看与确认冲减继续使用 system.finance.commission.read/manage；
 - 前端只消费后端权限结果，不硬编码“财务角色”名称。
@@ -109,6 +126,7 @@
 - ApproveOrderFeeSupplementRequest；
 - RejectOrderFeeSupplementRequest；
 - WithdrawOrderFeeSupplementRequest。
+- CancelApprovedOrderFeeSupplement。
 
 订单费用页面行为：
 
@@ -117,6 +135,7 @@
 - 补录表单复用普通费用字段，额外要求补录原因；
 - 页面展示申请状态、发起人、审批人和生成的费用；
 - PENDING 且当前用户为发起人时显示【撤回申请】；撤回成功后状态为 WITHDRAWN，不再显示审批动作；
+- APPROVED 申请展示生成费用当前状态；后端返回可作废能力时显示【作废补录费用】，强制填写原因并明确提示“已建账需先取消账单、冲减已确认后不能直接作废”；
 - 后端返回可审批能力，前端据此显示通过或驳回；
 - 审批候选收到通知并跳转订单费用页；MVP 不新增全局审批中心。
 
@@ -159,6 +178,19 @@
 - 申请版本与状态机；
 - 订单级串行锁和提成父单固定加锁顺序。
 
+### 5.1 补录费用作废事务
+
+专用作废使用 biz.Transactor.WithinTransaction，固定顺序为：Order → 补录申请/费用 → 按 UUID 排序的提成父单 → 关联调整。
+
+1. Order FOR UPDATE 后实时复核直接解锁资格；这里只复用订单作为互斥点，不调用会禁止锁后专用动作的普通费用内容门禁；
+2. 锁定 APPROVED 申请和生成费用，比较 expectedVersion，确认费用为 CONFIRMED、来源匹配且无活动账单行；
+3. 查询同订单更晚批准且费用未 CANCELLED 的补录；存在时返回稳定冲突；
+4. 按父单 UUID 锁定该申请关联的全部提成父单和调整，发现 CONFIRMED/PAID 即整体拒绝；
+5. 将关联 DRAFT 调整转为 CANCELLED，再将费用转为 CANCELLED；APPROVED 申请不改终态；
+6. 写作废人、时间、原因、前一费用版本和审计后提交。
+
+任何一步失败全部回滚。该事务不删除费用、申请或调整，也不把系统作废原因伪装成财务主动【忽略建议】。
+
 ## 6. 提成影响计算
 
 只处理包含目标订单提成线且父单为 CONFIRMED 或 PAID 的提成。查询结果按父单 UUID 固定顺序锁定，但金额不按这个顺序分配：
@@ -167,7 +199,7 @@
 - FinanceCommissionLine 增加不可变的 total_receivable_snapshot、total_payable_snapshot（numeric(28,8)）；原提成主单的 rule_name、rule_version、calculation_version，以及订单行的 calculation_basis、rate_percent、realized_revenue、allocated_cost、realized_profit、commission_amount 与上述分母共同构成复算输入；
 - 锁后复算调用按 calculation_version 路由的纯函数，禁止调用会根据 rule_id 查询 FinanceCommissionRule 的 calculateCommission/loadCommissionCalculationSource；当前规则修改、停用或删除不影响历史复算；
 - 本次补录应付的本位币金额只增加历史 total_payable，不改变历史 total_receivable；原提成行确认时已纳入快照的费用不再叠加，禁止使用当前订单费用重建历史总应收；
-- 对每条原提成行，按原快照分母及其确认后至本次审批前已生效的补录应付计算 before，再计入本笔费用计算 after；在逐次提成金额均按 8 位舍入后取非负差额。补录申请和订单费用的关联及批准时间作为边界，不根据冲减建议是否确认或忽略倒推成本事实；
+- 对每条原提成行，按原快照分母及其确认后至本次审批前已生效且未作废的补录应付计算 before，再计入本笔费用计算 after；在逐次提成金额均按 8 位舍入后取非负差额。补录申请和订单费用的关联、批准顺序及费用是否 CANCELLED 作为边界，不根据冲减建议是否确认或忽略倒推成本事实；
 - REALIZED_PROFIT 按现有部分实现公式比较前后金额，负差生成调整草稿；
 - REALIZED_REVENUE 在实现收入未变化时不生成草稿；
 - 差额为零不生成；
@@ -186,6 +218,7 @@
 - 调整可追溯到补录申请、订单费用、原提成、审批人和财务确认人；
 - 被忽略建议额外记录取消人、取消时间和必填原因；补录申请撤回记录发起人、时间、原版本和稳定审计动作；
 - 业务审计记录申请快照、前后提成金额、建议金额及未形成员工欠款的超出金额；
+- 补录费用作废额外记录作废人、时间、原因、费用版本、被系统取消的 DRAFT 调整 ID；
 - 日志只记录 ID、状态、金额币种和稳定错误码，不记录完整敏感请求。
 
 ## 8. 迁移、兼容与回滚
@@ -205,12 +238,14 @@
 - 费用草稿确认或作废后，只在该订单已经存在至少一笔有效应收结清事实时重试；纯成本、从未产生应收或仅有作废应收的订单不因“当前余额为零”进入自动锁定。
 - 已确认应收的未结金额按订单关联的应收账单行减去有效核销分摊和已确认对冲分摊推导；未建账的已确认应收视为未结清。已反转核销、已反转对冲、已取消账单或失效分摊不计入已结清金额。
 - 资格要求订单至少有一笔有效应收结清事实、当前未结清已确认应收为零、不存在费用草稿，并满足现有订单状态及 SE 快照校验。不得把整张跨订单账单余额代替订单余额。
+- 非 SE 和只有一个活动成员的 SE 订单按单票检查。SE 当前 MBL 有多个活动成员时，把全部活动成员作为一个自动锁定组：已锁成员视为完成，所有尚未锁定成员必须分别满足上述资格；任一不满足时整组只记录原因，不锁任何剩余成员。纯成本或从未发生有效结清事实的成员会使该组继续依赖人工锁定兜底。
 
 ### 9.2 锁定来源与审计身份
 
 - Order 与 OrderLockRecord 增加 lock_source：MANUAL / AUTO_SETTLEMENT；锁定状态响应向前端返回来源。
 - 人工锁定保持 locked_by 必填，并展示实际锁定人；自动锁定的 locked_by 为空，页面固定展示【系统自动锁定】，不创建可登录的“系统用户”，也不复用触发人的权限或伪装 bootstrap admin。
 - 自动锁定记录 trigger_type（VERIFICATION、NETTING、FEE_CONFIRM、FEE_CANCEL）、trigger_resource_id 与 triggered_by；triggered_by 只表示导致本次检查的业务操作人，不表示其执行或批准了锁单。
+- 自动锁定为了固化 SE 快照而新建的 MBL、运输执行或 HBL 不可变版本，其 created_by 为空并保留 ORDER_LOCK 来源；触发操作人只记录在自动锁定触发审计中，不冒充版本创建人。复用既有版本时不改写原 created_by。
 - 数据库 CHECK 保证 MANUAL 必须有 locked_by 且自动触发字段为空，AUTO_SETTLEMENT 必须无 locked_by 且触发类型、资源与操作人完整；历史人工锁定迁移统一标记 MANUAL。
 
 ### 9.3 执行与失败边界
@@ -218,7 +253,9 @@
 - 自动与人工锁定共用一个不包含调用人授权判断的内部锁定核心，复用订单行锁、状态校验、SE 单证快照、锁代次、锁定记录与审计；人工命令在进入核心前继续校验调用人的 lock grant，自动命令只接受内部可信事件并执行自动资格重验。
 - 核销、对冲或费用状态流转先按自身事务提交；随后自动锁定使用独立事务，因此锁定失败不得回滚或改变原业务事实。触发接口不得把锁定失败伪装成原业务失败。
 - 本期不引入持久事件投递：若进程在原事务提交后、自动检查调用开始前中断，无法为这一次遗漏检查写审计；后续相关事件仍会重验，人工锁定保留兜底。若未来要求消除此窗口，应独立设计事务 outbox 与可靠消费，不得把锁定并回原财务事务。
-- 自动事务先锁定订单，再重验触发事实、应收结清、费用草稿、生命周期和当前锁状态；已经锁定时幂等结束。手动与自动锁定并发时最多产生一个锁代次和一份 SE 快照，败方重读后按已锁定成功处理。
+- 单票自动事务先锁定 Order，再重验触发事实、应收结清、费用草稿、生命周期和当前锁状态；已经锁定时幂等结束。共享 MBL 组级事务先只读定位活动成员，按 Order UUID 升序锁定全部成员，再锁 MBL、按 ID 排序的全部活动 Link、共享运输执行和各成员 HBL，并重验活动成员集合；集合改变返回结构冲突且整组零写入。组内锁定记录复用同一 MBL/运输执行版本，各自保存所属 HBL 快照。
+- 手动锁单继续使用现有单票语义；手动与组级自动锁定竞争时，组事务在取得全部 Order 锁后把已锁成员视为完成，并只在其他成员全部合格时原子锁定剩余成员。两个成员触发的组级自动检查因使用相同排序而串行收敛，每个成员最多增加一个锁代次和一份锁定记录。
+- 普通费用写、补录审批和补录费用作废已经以 Order 为首锁。反核销、反对冲需先只读解析受影响订单，按 UUID 锁定全部 Order，再锁来源单并重验版本、状态和有效分摊，随后执行提成联动；取得 Order 锁只为与自动锁定线性化，不调用业务内容门禁。反转先提交时自动锁定重验后放弃；自动锁定先提交时反转仍可成功，但不得自动解锁。
 - 每次自动检查均写成功、资格不满足或执行失败的结构化审计，包含稳定原因码、触发类型、触发资源和目标订单；失败不做全量定时扫描，仅由后续费用草稿确认/作废或有效应收核销/对冲事件再次检查，人工锁定保留兜底。
 - 反核销、反对冲只恢复财务余额并沿用现有提成冲减联动，不触发自动业务解锁；自动锁定记录、锁代次和 SE 快照保持不可变，后续修改仍走现有显式解锁申请/直接解锁流程。
 - 原补录费用、审批申请和提成冲减建议与自动锁定共用 Order 优先的互斥顺序；不得为自动锁定放宽普通订单写门禁或财务锁判定。

@@ -1,6 +1,7 @@
 {"file":".trellis/spec/server/backend/index.md","reason":"后端分层、生成流程和开发前检查入口"}
 {"file":".trellis/spec/server/backend/database-guidelines.md","reason":"共享事务、固定锁序、乐观锁、唯一约束与真实 PostgreSQL 验证"}
 {"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"业务锁门禁、锁代次和直接解锁资格的唯一契约"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"共享 MBL 活动成员集合、固定锁序与跨成员原子写入契约"}
 {"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"提成有效净额、调整状态与费用财务锁口径"}
 {"file":".trellis/spec/server/backend/exchange-rate-single-rate.md","reason":"锁后外币费用按发生日期和方向固化汇率"}
 {"file":".trellis/spec/server/backend/error-handling.md","reason":"状态冲突、权限和驱动错误映射"}

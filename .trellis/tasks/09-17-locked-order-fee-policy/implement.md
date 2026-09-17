@@ -20,11 +20,13 @@
 
 ## 2. 服务端补录申请与审批事务
 
-- 在订单费用 Proto 源文件增加创建、列表、通过、驳回、发起人撤回接口和 DTO；创建与审批双重拒绝 RECEIVABLE。
+- 在订单费用 Proto 源文件增加创建、列表、通过、驳回、发起人撤回及【作废补录费用】接口和 DTO；创建与审批双重拒绝 RECEIVABLE。
 - Service 只做 UUID、版本、分页和 DTO 转换；权限注解分别使用 fee.create/read 与目标订单 lock 操作。
 - Biz 用例负责状态机、参数规则、审计语义和共享事务编排。
 - Data 层实现申请持久化、直接解锁资格复用、专用费用创建和固定锁序。
 - 审批通过在同一共享事务中完成费用、冲减草稿、申请终态、审计和通知 outbox。
+- 审批生成的 CONFIRMED 费用不增加建账特例，验证现有建账候选、单张/批量建账及可取消账单恢复 CONFIRMED 的链路能够识别 supplement_request_id 来源。
+- 实现专用作废命令：Order → 申请/费用 → 提成父单 → 调整固定锁序；只允许最新有效、CONFIRMED、无活动账单行且关联调整全为 DRAFT/CANCELLED 的补录，原子取消 DRAFT 调整和费用。APPROVED 申请保持不变；普通 RemoveFee 门禁不放宽。
 - 普通费用入口保持原门禁，禁止增加公开的 skipLock、force 或布尔绕过参数。
 
 针对性验证：
@@ -37,6 +39,8 @@
 - 驳回不创建费用；
 - 只有发起人可按 expectedVersion 撤回 PENDING 申请；撤回与审批并发只有一个成功，撤回成功不创建费用或调整；
 - 通过创建且只创建一条 CONFIRMED 费用，订单仍保持锁定；
+- CONFIRMED 补录可正常单张/批量建账并转为 BILLED；符合现有取消条件的账单取消后恢复 CONFIRMED；
+- 无账单且建议为 DRAFT/CANCELLED 的最新有效补录可专用作废，费用与 DRAFT 建议原子转为 CANCELLED；存在更晚有效补录、活动账单行、CONFIRMED/PAID 建议或版本竞争时零写入；
 - 任一步错误时费用、调整、申请和审计全部回滚。
 
 ## 2.1 自动业务锁定（独立可验收工作流）
@@ -44,6 +48,8 @@
 - 扩展 Order / OrderLockRecord 的锁定来源与触发审计字段，生成迁移并把已有锁定事实标记为 MANUAL；更新锁状态 DTO，使自动锁定显示为【系统自动锁定】而不是触发人。
 - 抽取现有锁单事务的内部核心；人工入口保留 lock grant 校验，自动入口只接受内部可信触发并在 Order 行锁内重验有效结清事实、订单级未结应收、费用草稿、生命周期、版本和 SE 快照条件。禁止复用触发用户权限或伪装 bootstrap admin。
 - 在应收核销创建生效、应收对冲确认生效、费用草稿确认和费用草稿作废的成功提交后触发独立自动锁定事务；跨订单分摊收集全部受影响订单，去重排序后逐单检查。
+- 非共享订单逐单检查；共用 MBL 的 SE 订单提升为活动成员组级检查，按 UUID 锁定全部 Order，再锁 MBL、全部活动 Link、共享运输执行和成员 HBL，重验成员集合并以全有或全无方式锁定尚未锁成员。复用同一 MBL/运输执行版本，每个订单保留独立锁定记录与 HBL 快照。
+- 重构反核销和反对冲：锁来源单前只读定位受影响 Order，按 UUID 统一取得 Order 行锁，再锁来源单并重验版本、状态和有效分摊；该 Order 锁只做线性化，不得用业务锁阻止财务反转。
 - 自动事务失败不改变原财务动作；写入带稳定原因码的审计。资格暂不满足或执行失败只由后续上述事件重试，不增加全量定时扫描或后台补偿调度。
 - 固定 Order 优先锁序并用锁定状态幂等收敛自动与人工并发；最多形成一个锁代次和一份 SE 快照。
 
@@ -56,6 +62,8 @@
 - 自动锁失败不回滚核销、对冲或费用流转，后续事件可重试；
 - 自动与手动锁定并发只成功一次，SE 快照、锁定记录和锁代次均不重复。
 - 自动锁定后的反核销/反对冲不自动解锁、不改原锁定事实；显式解锁流程保持可用。
+- 反转先于自动锁定提交时，自动锁定锁内重验后放弃；自动锁定先提交时，反转仍成功但订单保持锁定；
+- 共用 MBL 任一未锁成员未结清、存在草稿或从未有有效结清事实时整组不自动锁；全部成员合格时整组原子锁定、共享版本只生成/复用一次；锁前后成员集合变化、两成员并发触发和手工/自动竞争均无部分锁定或死锁；
 
 ## 3. 提成影响与现有调整复用
 
@@ -91,6 +99,7 @@
 - 复用费用表单字段，增加必填补录原因和“不会修改原费用”的说明。
 - 补录表单固定为应付方向，不展示应收选项；服务端仍校验方向。
 - 展示申请历史、状态、发起人、审批人和生成费用；具备后端返回审批能力的用户可通过或驳回，发起人可撤回自己的 PENDING 申请。
+- APPROVED 申请展示生成费用的 CONFIRMED/BILLED/CANCELLED 状态；仅按后端能力显示【作废补录费用】，提交必填原因。BILLED、存在更晚补录或冲减已确认时展示服务端稳定阻断原因，不引导用户使用普通删除。
 - 订单身份变化时清理申请、弹窗和异步状态，遵循页面复用隔离规范。
 - 增加发起、自审、驳回、发起人撤回、撤回与审批竞争、锁状态和迟到响应的定向测试。
 
@@ -123,7 +132,7 @@
 
 开发期先运行受影响的定向测试：
 
-    go -C server test ./internal/biz ./internal/data ./internal/service -run 'Test.*(FeeSupplement|CommissionAdjustment|AutoOrderLock)' -count=1
+    go -C server test ./internal/biz ./internal/data ./internal/service -run 'Test.*(FeeSupplement|CommissionAdjustment|AutoOrderLock|SharedMBL)' -count=1
     pnpm --dir web exec vitest run src/pages/orders/fees.test.tsx src/pages/finance/commissions/index.test.tsx src/pages/orders/use-order-lock-state.test.ts src/pages/orders/components/detail/OrderLockControl.test.tsx
     git diff --check
 
@@ -131,7 +140,7 @@ Biome 定向检查不预写尚未创建的新文件名；实现时先用 `git di
 
 事务、锁、唯一约束和迁移必须注入专用测试库执行真实 PostgreSQL 用例，并确认是 PASS 而不是 SKIP：
 
-    RONCIN_INTEGRATION_DATABASE_SOURCE="<专用测试库连接串>" go -C server test -v ./internal/data -run 'Test.*(FeeSupplement|AutoOrderLock).*Postgres$' -count=1
+    RONCIN_INTEGRATION_DATABASE_SOURCE="<专用测试库连接串>" go -C server test -v ./internal/data -run 'Test.*(FeeSupplement|AutoOrderLock|SharedMBL).*Postgres$' -count=1
 
 任务最终验收执行一次：
 
@@ -168,6 +177,7 @@ Biome 定向检查不预写尚未创建的新文件名；实现时先用 `git di
 - 必须支持既有费用减额、负数费用、红字或已核销冲销；
 - 客户要求系统自动控制工资、打款或跨月员工余额；
 - 现有提成快照不足以复算锁后成本影响，且需要改变已批准计算口径；
+- 产品要求作废已进入 CONFIRMED/PAID 冲减的补录费用并自动正向恢复提成，或绕过现有账单/发票/核销/对冲撤销链直接红冲；
 - 产品范围改为首期同时支持补录应收，或要求跨期重分摊历史成本；
 - 自动锁定若被要求覆盖从未发生有效应收结清事件的零应收订单，或要求增加全量定时扫描/后台补偿调度；
 - 需要清空、重建或自动修复数据库。
