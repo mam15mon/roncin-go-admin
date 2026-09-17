@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
@@ -188,10 +189,12 @@ type FinanceNettingRepo interface {
 type FinanceNettingUsecase struct {
 	repo       FinanceNettingRepo
 	transactor Transactor
+	autoLock   *AutoOrderLockUsecase
+	logger     *slog.Logger
 }
 
-func NewFinanceNettingUsecase(repo FinanceNettingRepo, transactor Transactor) *FinanceNettingUsecase {
-	return &FinanceNettingUsecase{repo: repo, transactor: transactor}
+func NewFinanceNettingUsecase(repo FinanceNettingRepo, transactor Transactor, autoLock *AutoOrderLockUsecase, logger *slog.Logger) *FinanceNettingUsecase {
+	return &FinanceNettingUsecase{repo: repo, transactor: transactor, autoLock: autoLock, logger: logger}
 }
 
 func (uc *FinanceNettingUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceNettingFilter) (*FinanceNettingListResult, error) {
@@ -501,7 +504,32 @@ func (uc *FinanceNettingUsecase) Confirm(ctx context.Context, organizationIDs []
 	if err != nil {
 		return nil, err
 	}
+	// 应收对冲确认生效后触发一次结清自动锁定检查：独立事务，锁定失败不回滚
+	// 或改变已提交的对冲事实，也不伪装成本接口失败。
+	uc.triggerAutoLock(ctx, existing.OrganizationID, actorID, id)
 	return uc.repo.Get(ctx, organizationIDs, id)
+}
+
+// triggerAutoLock 在对冲确认事务成功提交后触发结清自动锁定检查。
+// 触发失败只记录警告日志，由后续有效结清事件重新检查。
+func (uc *FinanceNettingUsecase) triggerAutoLock(ctx context.Context, organizationID, actorID, nettingID uuid.UUID) {
+	if uc.autoLock == nil {
+		return
+	}
+	trigger := AutoOrderLockTrigger{
+		Type:           AutoLockTriggerNetting,
+		ResourceID:     nettingID,
+		OrganizationID: organizationID,
+		TriggeredBy:    actorID,
+	}
+	if err := uc.autoLock.RunSettlementLockCheck(ctx, trigger); err != nil {
+		if uc.logger != nil {
+			uc.logger.WarnContext(ctx, "应收对冲触发的自动锁定检查失败",
+				slog.String("netting_id", nettingID.String()),
+				slog.String("organization_id", organizationID.String()),
+				slog.String("error", err.Error()))
+		}
+	}
 }
 
 func (uc *FinanceNettingUsecase) Cancel(ctx context.Context, organizationIDs []uuid.UUID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceNetting, error) {

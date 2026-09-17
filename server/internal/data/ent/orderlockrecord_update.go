@@ -331,9 +331,6 @@ func (_u *OrderLockRecordUpdate) check() error {
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.order"`)
 	}
-	if _u.mutation.LockedByUserCleared() && len(_u.mutation.LockedByUserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.locked_by_user"`)
-	}
 	return nil
 }
 
@@ -348,6 +345,12 @@ func (_u *OrderLockRecordUpdate) sqlSave(ctx context.Context) (_node int, err er
 				ps[i](selector)
 			}
 		}
+	}
+	if _u.mutation.TriggerTypeCleared() {
+		_spec.ClearField(orderlockrecord.FieldTriggerType, field.TypeEnum)
+	}
+	if _u.mutation.TriggerResourceIDCleared() {
+		_spec.ClearField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)
@@ -856,9 +859,6 @@ func (_u *OrderLockRecordUpdateOne) check() error {
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.order"`)
 	}
-	if _u.mutation.LockedByUserCleared() && len(_u.mutation.LockedByUserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "OrderLockRecord.locked_by_user"`)
-	}
 	return nil
 }
 
@@ -890,6 +890,12 @@ func (_u *OrderLockRecordUpdateOne) sqlSave(ctx context.Context) (_node *OrderLo
 				ps[i](selector)
 			}
 		}
+	}
+	if _u.mutation.TriggerTypeCleared() {
+		_spec.ClearField(orderlockrecord.FieldTriggerType, field.TypeEnum)
+	}
+	if _u.mutation.TriggerResourceIDCleared() {
+		_spec.ClearField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)

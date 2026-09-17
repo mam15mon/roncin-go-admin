@@ -706,8 +706,10 @@ type OrderLockStateData struct {
 	ActiveUnlockRequest     *OrderUnlockRequestData `protobuf:"bytes,15,opt,name=active_unlock_request,json=activeUnlockRequest,proto3,oneof" json:"active_unlock_request,omitempty"`
 	CurrentLockRecord       *OrderLockRecordData    `protobuf:"bytes,16,opt,name=current_lock_record,json=currentLockRecord,proto3,oneof" json:"current_lock_record,omitempty"`
 	BusinessType            BusinessType            `protobuf:"varint,17,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// 锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。
+	LockSource    *string `protobuf:"bytes,18,opt,name=lock_source,json=lockSource,proto3,oneof" json:"lock_source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderLockStateData) Reset() {
@@ -857,6 +859,13 @@ func (x *OrderLockStateData) GetBusinessType() BusinessType {
 		return x.BusinessType
 	}
 	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *OrderLockStateData) GetLockSource() string {
+	if x != nil && x.LockSource != nil {
+		return *x.LockSource
+	}
+	return ""
 }
 
 type OrderLockResultData struct {
@@ -1052,8 +1061,16 @@ type OrderLockRecordData struct {
 	UnlockMode           *string                           `protobuf:"bytes,17,opt,name=unlock_mode,json=unlockMode,proto3,oneof" json:"unlock_mode,omitempty"`
 	HouseBillSnapshots   []*OrderLockHouseBillSnapshotData `protobuf:"bytes,18,rep,name=house_bill_snapshots,json=houseBillSnapshots,proto3" json:"house_bill_snapshots,omitempty"`
 	BusinessType         BusinessType                      `protobuf:"varint,19,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// 锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。
+	LockSource string `protobuf:"bytes,20,opt,name=lock_source,json=lockSource,proto3" json:"lock_source,omitempty"`
+	// 自动锁定触发审计：触发类型（VERIFICATION/NETTING/FEE_CONFIRM/FEE_CANCEL）、
+	// 触发单据与触发操作人。人工锁定时为空。
+	TriggerType       *string `protobuf:"bytes,21,opt,name=trigger_type,json=triggerType,proto3,oneof" json:"trigger_type,omitempty"`
+	TriggerResourceId *string `protobuf:"bytes,22,opt,name=trigger_resource_id,json=triggerResourceId,proto3,oneof" json:"trigger_resource_id,omitempty"`
+	TriggeredBy       *string `protobuf:"bytes,23,opt,name=triggered_by,json=triggeredBy,proto3,oneof" json:"triggered_by,omitempty"`
+	TriggeredByName   *string `protobuf:"bytes,24,opt,name=triggered_by_name,json=triggeredByName,proto3,oneof" json:"triggered_by_name,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *OrderLockRecordData) Reset() {
@@ -1217,6 +1234,41 @@ func (x *OrderLockRecordData) GetBusinessType() BusinessType {
 		return x.BusinessType
 	}
 	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *OrderLockRecordData) GetLockSource() string {
+	if x != nil {
+		return x.LockSource
+	}
+	return ""
+}
+
+func (x *OrderLockRecordData) GetTriggerType() string {
+	if x != nil && x.TriggerType != nil {
+		return *x.TriggerType
+	}
+	return ""
+}
+
+func (x *OrderLockRecordData) GetTriggerResourceId() string {
+	if x != nil && x.TriggerResourceId != nil {
+		return *x.TriggerResourceId
+	}
+	return ""
+}
+
+func (x *OrderLockRecordData) GetTriggeredBy() string {
+	if x != nil && x.TriggeredBy != nil {
+		return *x.TriggeredBy
+	}
+	return ""
+}
+
+func (x *OrderLockRecordData) GetTriggeredByName() string {
+	if x != nil && x.TriggeredByName != nil {
+		return *x.TriggeredByName
+	}
+	return ""
 }
 
 type OrderLockHouseBillSnapshotData struct {
@@ -1693,7 +1745,7 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
 	"\x04data\x18\x04 \x01(\v2 .order.v1.OrderUnlockRequestDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x94\a\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xca\a\n" +
 	"\x12OrderLockStateData\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\x1b\n" +
@@ -1712,14 +1764,17 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x16unlock_blocked_reasons\x18\x0e \x03(\tR\x14unlockBlockedReasons\x12Y\n" +
 	"\x15active_unlock_request\x18\x0f \x01(\v2 .order.v1.OrderUnlockRequestDataH\x03R\x13activeUnlockRequest\x88\x01\x01\x12R\n" +
 	"\x13current_lock_record\x18\x10 \x01(\v2\x1d.order.v1.OrderLockRecordDataH\x04R\x11currentLockRecord\x88\x01\x01\x12;\n" +
-	"\rbusiness_type\x18\x11 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessTypeB\f\n" +
+	"\rbusiness_type\x18\x11 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessType\x12$\n" +
+	"\vlock_source\x18\x12 \x01(\tH\x05R\n" +
+	"lockSource\x88\x01\x01B\f\n" +
 	"\n" +
 	"_locked_atB\f\n" +
 	"\n" +
 	"_locked_byB\x11\n" +
 	"\x0f_locked_by_nameB\x18\n" +
 	"\x16_active_unlock_requestB\x16\n" +
-	"\x14_current_lock_record\"\x89\x01\n" +
+	"\x14_current_lock_recordB\x0e\n" +
+	"\f_lock_source\"\x89\x01\n" +
 	"\x13OrderLockResultData\x122\n" +
 	"\x05state\x18\x01 \x01(\v2\x1c.order.v1.OrderLockStateDataR\x05state\x12>\n" +
 	"\vlock_record\x18\x02 \x01(\v2\x1d.order.v1.OrderLockRecordDataR\n" +
@@ -1731,7 +1786,8 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2 .order.v1.OrderUnlockRequestDataR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xfb\a\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xa2\n" +
+	"\n" +
 	"\x13OrderLockRecordData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -1757,7 +1813,14 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\vunlock_mode\x18\x11 \x01(\tH\bR\n" +
 	"unlockMode\x88\x01\x01\x12Z\n" +
 	"\x14house_bill_snapshots\x18\x12 \x03(\v2(.order.v1.OrderLockHouseBillSnapshotDataR\x12houseBillSnapshots\x12;\n" +
-	"\rbusiness_type\x18\x13 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessTypeB\x11\n" +
+	"\rbusiness_type\x18\x13 \x01(\x0e2\x16.order.v1.BusinessTypeR\fbusinessType\x12\x1f\n" +
+	"\vlock_source\x18\x14 \x01(\tR\n" +
+	"lockSource\x12&\n" +
+	"\ftrigger_type\x18\x15 \x01(\tH\tR\vtriggerType\x88\x01\x01\x123\n" +
+	"\x13trigger_resource_id\x18\x16 \x01(\tH\n" +
+	"R\x11triggerResourceId\x88\x01\x01\x12&\n" +
+	"\ftriggered_by\x18\x17 \x01(\tH\vR\vtriggeredBy\x88\x01\x01\x12/\n" +
+	"\x11triggered_by_name\x18\x18 \x01(\tH\fR\x0ftriggeredByName\x88\x01\x01B\x11\n" +
 	"\x0f_master_bill_idB\x19\n" +
 	"\x17_master_bill_version_idB\x0e\n" +
 	"\f_unlocked_byB\x13\n" +
@@ -1766,7 +1829,11 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x18_order_version_at_unlockB\x14\n" +
 	"\x12_unlock_request_idB\x10\n" +
 	"\x0e_unlock_reasonB\x0e\n" +
-	"\f_unlock_mode\"\xf8\x01\n" +
+	"\f_unlock_modeB\x0f\n" +
+	"\r_trigger_typeB\x16\n" +
+	"\x14_trigger_resource_idB\x0f\n" +
+	"\r_triggered_byB\x14\n" +
+	"\x12_triggered_by_name\"\xf8\x01\n" +
 	"\x1eOrderLockHouseBillSnapshotData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12$\n" +
 	"\x0elock_record_id\x18\x02 \x01(\tR\flockRecordId\x12\"\n" +

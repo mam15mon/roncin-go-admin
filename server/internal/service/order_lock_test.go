@@ -20,9 +20,10 @@ func TestOrderLockDTOIncludesBusinessTypeAndOptionalSeaReferences(t *testing.T) 
 	lockedAt := time.Date(2026, time.September, 5, 8, 0, 0, 0, time.UTC)
 	orderID := uuid.New()
 	lockRecordID := uuid.New()
+	lockedBy := uuid.New()
 	nonSea := orderLockRecordToAPI(&biz.OrderLockRecord{
 		ID: lockRecordID, OrderID: orderID, OrderNo: "AI-001", BusinessType: biz.OrderBusinessAI,
-		Generation: 1, LockedBy: uuid.New(), LockedByName: "测试锁定人", LockedAt: lockedAt, OrderVersionAtLock: 2,
+		Generation: 1, LockSource: biz.LockSourceManual, LockedBy: &lockedBy, LockedByName: "测试锁定人", LockedAt: lockedAt, OrderVersionAtLock: 2,
 	})
 	if nonSea.GetBusinessType() != v1.BusinessType_BUSINESS_TYPE_AI {
 		t.Fatalf("非海运出口锁记录业务类型 = %s", nonSea.GetBusinessType())
@@ -30,20 +31,38 @@ func TestOrderLockDTOIncludesBusinessTypeAndOptionalSeaReferences(t *testing.T) 
 	if nonSea.MasterBillId != nil || nonSea.MasterBillVersionId != nil {
 		t.Fatalf("非海运出口锁记录不得返回 MBL 引用: %#v", nonSea)
 	}
+	if nonSea.GetLockSource() != biz.LockSourceManual || nonSea.GetLockedBy() == "" {
+		t.Fatalf("人工锁定记录必须返回来源与锁定人: %#v", nonSea)
+	}
 
 	masterBillID, masterBillVersionID := uuid.New(), uuid.New()
 	sea := orderLockRecordToAPI(&biz.OrderLockRecord{
 		ID: uuid.New(), OrderID: orderID, OrderNo: "SE-001", BusinessType: biz.OrderBusinessSE,
-		Generation: 1, LockedBy: uuid.New(), LockedByName: "测试锁定人", LockedAt: lockedAt, OrderVersionAtLock: 2,
+		Generation: 1, LockSource: biz.LockSourceManual, LockedBy: &lockedBy, LockedByName: "测试锁定人", LockedAt: lockedAt, OrderVersionAtLock: 2,
 		MasterBillID: &masterBillID, MasterBillVersionID: &masterBillVersionID,
 	})
 	if sea.GetBusinessType() != v1.BusinessType_BUSINESS_TYPE_SE || sea.GetMasterBillId() != masterBillID.String() || sea.GetMasterBillVersionId() != masterBillVersionID.String() {
 		t.Fatalf("海运出口锁记录映射不完整: %#v", sea)
 	}
 
-	state := orderLockStateToAPI(&biz.OrderLockState{OrderID: orderID, OrderNo: "LAND-001", BusinessType: biz.OrderBusinessLand})
-	if state.GetBusinessType() != v1.BusinessType_BUSINESS_TYPE_LAND {
-		t.Fatalf("锁状态业务类型 = %s", state.GetBusinessType())
+	autoLockedAt := time.Now().UTC()
+	triggerResourceID := uuid.New()
+	triggeredBy := uuid.New()
+	auto := orderLockRecordToAPI(&biz.OrderLockRecord{
+		ID: uuid.New(), OrderID: orderID, OrderNo: "SE-002", BusinessType: biz.OrderBusinessSE,
+		Generation: 1, LockSource: biz.LockSourceAutoSettlement, LockedAt: autoLockedAt, OrderVersionAtLock: 3,
+		TriggerType: &[]string{string(biz.AutoLockTriggerVerification)}[0], TriggerResourceID: &triggerResourceID, TriggeredBy: &triggeredBy,
+	})
+	if auto.GetLockSource() != biz.LockSourceAutoSettlement || auto.GetLockedBy() != "" || auto.GetLockedByName() != "" {
+		t.Fatalf("自动锁定记录不得归属实际锁定人: %#v", auto)
+	}
+	if auto.GetTriggerType() != string(biz.AutoLockTriggerVerification) || auto.GetTriggerResourceId() != triggerResourceID.String() || auto.GetTriggeredBy() != triggeredBy.String() {
+		t.Fatalf("自动锁定记录必须返回触发审计字段: %#v", auto)
+	}
+
+	state := orderLockStateToAPI(&biz.OrderLockState{OrderID: orderID, OrderNo: "LAND-001", BusinessType: biz.OrderBusinessLand, LockSource: &[]string{biz.LockSourceManual}[0]})
+	if state.GetBusinessType() != v1.BusinessType_BUSINESS_TYPE_LAND || state.GetLockSource() != biz.LockSourceManual {
+		t.Fatalf("锁状态业务类型与来源 = %s/%s", state.GetBusinessType(), state.GetLockSource())
 	}
 	request := orderUnlockRequestToAPI(&biz.OrderUnlockRequest{ID: uuid.New(), OrderID: orderID, LockRecordID: lockRecordID, BusinessType: biz.OrderBusinessRail})
 	if request.GetBusinessType() != v1.BusinessType_BUSINESS_TYPE_RAIL {

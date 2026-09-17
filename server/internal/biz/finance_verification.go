@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"log/slog"
 	"sort"
 	"strings"
 	"time"
@@ -103,10 +104,12 @@ type VerificationUsecase struct {
 	repo         VerificationRepo
 	exchangeRate *ExchangeRateUsecase
 	transactor   Transactor
+	autoLock     *AutoOrderLockUsecase
+	logger       *slog.Logger
 }
 
-func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor) *VerificationUsecase {
-	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate, transactor: transactor}
+func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor, autoLock *AutoOrderLockUsecase, logger *slog.Logger) *VerificationUsecase {
+	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate, transactor: transactor, autoLock: autoLock, logger: logger}
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	return u.ListScoped(ctx, []uuid.UUID{org}, f)
@@ -186,6 +189,7 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		return nil, ErrVerificationInvalid
 	}
 	var created *FinanceVerification
+	isNew := false
 	err := u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		old, transactionErr := u.repo.GetByKey(txCtx, org, in.IdempotencyKey)
 		if transactionErr != nil {
@@ -213,10 +217,16 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		v.BaseCurrency = baseCurrency
 		// 单头本位币金额严格等于行级流水本位币合计；核销不再解析汇率，由仓储在
 		// 计算分摊时累加 cashflow_base_amount 回填。
+		isNew = true
 		created, transactionErr = u.repo.Create(txCtx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
 		return transactionErr
 	})
 	if err == nil {
+		if isNew {
+			// 应收核销创建生效后触发一次结清自动锁定检查：使用独立事务，
+			// 锁定失败不回滚或改变已提交的核销事实，也不伪装成本接口失败。
+			u.triggerAutoLock(ctx, org, actor, created.ID)
+		}
 		return u.repo.Get(ctx, org, created.ID)
 	}
 	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
@@ -271,6 +281,29 @@ func (u *VerificationUsecase) Reverse(ctx context.Context, org, actor, id uuid.U
 		return nil, ErrVerificationInvalid
 	}
 	return u.repo.Reverse(ctx, org, id, actor, version, reason, verifyAudit(org, actor, id, "finance.verification.reverse"))
+}
+
+// triggerAutoLock 在核销事务成功提交后触发结清自动锁定检查。
+// 触发失败只记录警告日志：自动锁定失败不得回滚或改变已提交的核销事实，
+// 也不得把锁定失败伪装成原业务失败；后续有效结清事件会重新检查。
+func (u *VerificationUsecase) triggerAutoLock(ctx context.Context, org, actor, verificationID uuid.UUID) {
+	if u.autoLock == nil {
+		return
+	}
+	trigger := AutoOrderLockTrigger{
+		Type:           AutoLockTriggerVerification,
+		ResourceID:     verificationID,
+		OrganizationID: org,
+		TriggeredBy:    actor,
+	}
+	if err := u.autoLock.RunSettlementLockCheck(ctx, trigger); err != nil {
+		if u.logger != nil {
+			u.logger.WarnContext(ctx, "应收核销触发的自动锁定检查失败",
+				slog.String("verification_id", verificationID.String()),
+				slog.String("organization_id", org.String()),
+				slog.String("error", err.Error()))
+		}
+	}
 }
 func verifyAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
 	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_verification", ResourceID: id.String()}

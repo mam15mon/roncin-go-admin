@@ -345,7 +345,7 @@ func TestFinanceNettingUsecaseCreateBuildsDraftNettingInTransaction(t *testing.T
 	receivable := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "100", "0", "0", 1)
 	payable := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeePayable, "60", "0", "0", 1)
 	repo := &financeNettingRepoStub{lockedBills: []*FinanceNettingBill{receivable, payable}}
-	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{})
+	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{}, nil, nil)
 	input := CreateFinanceNettingInput{
 		Bills:          nettingBillVersions(receivable, payable),
 		IdempotencyKey: "netting-key",
@@ -367,7 +367,7 @@ func TestFinanceNettingUsecaseCreateIdempotency(t *testing.T) {
 	payable := nettingBillForTest(uuid.Must(uuid.NewV7()), OrderFeePayable, "60", "0", "0", 1)
 	existing := &FinanceNetting{ID: uuid.New(), Status: FinanceNettingConfirmed}
 	repo := &financeNettingRepoStub{existing: existing, lockedBills: []*FinanceNettingBill{receivable, payable}}
-	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{})
+	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{}, nil, nil)
 	input := CreateFinanceNettingInput{Bills: nettingBillVersions(receivable, payable), IdempotencyKey: "netting-key"}
 	existing.RequestHash = financeNettingRequestHash(input)
 	if _, err := uc.Create(t.Context(), receivable.SettlementPartyID, uuid.New(), input); err != nil {
@@ -385,7 +385,7 @@ func TestFinanceNettingUsecaseCreateIdempotency(t *testing.T) {
 }
 
 func TestFinanceNettingUsecaseCreateValidatesInput(t *testing.T) {
-	uc := NewFinanceNettingUsecase(&financeNettingRepoStub{}, &financeBillTransactorStub{})
+	uc := NewFinanceNettingUsecase(&financeNettingRepoStub{}, &financeBillTransactorStub{}, nil, nil)
 	if _, err := uc.Create(t.Context(), uuid.Nil, uuid.New(), CreateFinanceNettingInput{Bills: []FinanceNettingBillVersion{{BillID: uuid.New(), ExpectedVersion: 1}}, IdempotencyKey: "k"}); err != ErrFinanceNettingInvalid {
 		t.Fatalf("组织缺失错误=%v", err)
 	}
@@ -397,7 +397,7 @@ func TestFinanceNettingUsecaseCreateValidatesInput(t *testing.T) {
 func TestFinanceNettingUsecaseConfirmRejectsVersionConflict(t *testing.T) {
 	existing := &FinanceNetting{ID: uuid.New(), OrganizationID: uuid.New(), Status: FinanceNettingDraft, Version: 2}
 	repo := &financeNettingRepoStub{existing: existing}
-	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{})
+	uc := NewFinanceNettingUsecase(repo, &financeBillTransactorStub{}, nil, nil)
 	if _, err := uc.Confirm(t.Context(), []uuid.UUID{existing.OrganizationID}, uuid.New(), existing.ID, 1); err != ErrFinanceNettingVersionConflict {
 		t.Fatalf("版本冲突错误=%v", err)
 	}

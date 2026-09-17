@@ -913,6 +913,21 @@ func (_u *UserUpdate) AddUnlockedOrderLockRecords(v ...*OrderLockRecord) *UserUp
 	return _u.AddUnlockedOrderLockRecordIDs(ids...)
 }
 
+// AddAutoTriggeredOrderLockRecordIDs adds the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_u *UserUpdate) AddAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddAutoTriggeredOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// AddAutoTriggeredOrderLockRecords adds the "auto_triggered_order_lock_records" edges to the OrderLockRecord entity.
+func (_u *UserUpdate) AddAutoTriggeredOrderLockRecords(v ...*OrderLockRecord) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAutoTriggeredOrderLockRecordIDs(ids...)
+}
+
 // AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
 func (_u *UserUpdate) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddOrderUnlockRequestIDs(ids...)
@@ -1926,6 +1941,27 @@ func (_u *UserUpdate) RemoveUnlockedOrderLockRecords(v ...*OrderLockRecord) *Use
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUnlockedOrderLockRecordIDs(ids...)
+}
+
+// ClearAutoTriggeredOrderLockRecords clears all "auto_triggered_order_lock_records" edges to the OrderLockRecord entity.
+func (_u *UserUpdate) ClearAutoTriggeredOrderLockRecords() *UserUpdate {
+	_u.mutation.ClearAutoTriggeredOrderLockRecords()
+	return _u
+}
+
+// RemoveAutoTriggeredOrderLockRecordIDs removes the "auto_triggered_order_lock_records" edge to OrderLockRecord entities by IDs.
+func (_u *UserUpdate) RemoveAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveAutoTriggeredOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// RemoveAutoTriggeredOrderLockRecords removes "auto_triggered_order_lock_records" edges to OrderLockRecord entities.
+func (_u *UserUpdate) RemoveAutoTriggeredOrderLockRecords(v ...*OrderLockRecord) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAutoTriggeredOrderLockRecordIDs(ids...)
 }
 
 // ClearOrderUnlockRequests clears all "order_unlock_requests" edges to the OrderUnlockRequest entity.
@@ -4135,6 +4171,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AutoTriggeredOrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAutoTriggeredOrderLockRecordsIDs(); len(nodes) > 0 && !_u.mutation.AutoTriggeredOrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AutoTriggeredOrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderUnlockRequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5527,6 +5608,21 @@ func (_u *UserUpdateOne) AddUnlockedOrderLockRecords(v ...*OrderLockRecord) *Use
 	return _u.AddUnlockedOrderLockRecordIDs(ids...)
 }
 
+// AddAutoTriggeredOrderLockRecordIDs adds the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_u *UserUpdateOne) AddAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddAutoTriggeredOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// AddAutoTriggeredOrderLockRecords adds the "auto_triggered_order_lock_records" edges to the OrderLockRecord entity.
+func (_u *UserUpdateOne) AddAutoTriggeredOrderLockRecords(v ...*OrderLockRecord) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAutoTriggeredOrderLockRecordIDs(ids...)
+}
+
 // AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
 func (_u *UserUpdateOne) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddOrderUnlockRequestIDs(ids...)
@@ -6540,6 +6636,27 @@ func (_u *UserUpdateOne) RemoveUnlockedOrderLockRecords(v ...*OrderLockRecord) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUnlockedOrderLockRecordIDs(ids...)
+}
+
+// ClearAutoTriggeredOrderLockRecords clears all "auto_triggered_order_lock_records" edges to the OrderLockRecord entity.
+func (_u *UserUpdateOne) ClearAutoTriggeredOrderLockRecords() *UserUpdateOne {
+	_u.mutation.ClearAutoTriggeredOrderLockRecords()
+	return _u
+}
+
+// RemoveAutoTriggeredOrderLockRecordIDs removes the "auto_triggered_order_lock_records" edge to OrderLockRecord entities by IDs.
+func (_u *UserUpdateOne) RemoveAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveAutoTriggeredOrderLockRecordIDs(ids...)
+	return _u
+}
+
+// RemoveAutoTriggeredOrderLockRecords removes "auto_triggered_order_lock_records" edges to OrderLockRecord entities.
+func (_u *UserUpdateOne) RemoveAutoTriggeredOrderLockRecords(v ...*OrderLockRecord) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAutoTriggeredOrderLockRecordIDs(ids...)
 }
 
 // ClearOrderUnlockRequests clears all "order_unlock_requests" edges to the OrderUnlockRequest entity.
@@ -8769,6 +8886,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Inverse: false,
 			Table:   user.UnlockedOrderLockRecordsTable,
 			Columns: []string{user.UnlockedOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AutoTriggeredOrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAutoTriggeredOrderLockRecordsIDs(); len(nodes) > 0 && !_u.mutation.AutoTriggeredOrderLockRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AutoTriggeredOrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),

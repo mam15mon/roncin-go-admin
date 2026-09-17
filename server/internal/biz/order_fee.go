@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"time"
@@ -167,10 +168,12 @@ type OrderFeeUsecase struct {
 	exchangeRate  *ExchangeRateUsecase
 	customSetting *FinanceCustomSettingUsecase
 	creditControl *PartnerCreditUsecase
+	autoLock      *AutoOrderLockUsecase
+	logger        *slog.Logger
 }
 
-func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase, customSetting *FinanceCustomSettingUsecase, creditControl *PartnerCreditUsecase) *OrderFeeUsecase {
-	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate, customSetting: customSetting, creditControl: creditControl}
+func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase, customSetting *FinanceCustomSettingUsecase, creditControl *PartnerCreditUsecase, autoLock *AutoOrderLockUsecase, logger *slog.Logger) *OrderFeeUsecase {
+	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate, customSetting: customSetting, creditControl: creditControl, autoLock: autoLock, logger: logger}
 }
 
 // ensureReceivablePartySelectionAllowed 在直接干预模式下校验应收费用结算单位未超额；
@@ -488,10 +491,17 @@ func (uc *OrderFeeUsecase) Confirm(ctx context.Context, organizationID, actorID,
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrOrderFeeInvalidArgument
 	}
-	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeDraft, OrderFeeConfirmed, nil, &AuditEvent{
+	fee, err := uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeDraft, OrderFeeConfirmed, nil, &AuditEvent{
 		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.confirm", Result: "success",
 		Details: map[string]string{"fee.id": id.String(), "order.id": orderID.String()},
 	})
+	if err != nil {
+		return nil, err
+	}
+	// 费用草稿确认成功后重试一次结清自动锁定检查：独立事务，锁定失败不回滚
+	// 或改变已提交的费用状态，也不伪装成本接口失败。
+	uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeConfirm)
+	return fee, nil
 }
 
 func (uc *OrderFeeUsecase) Reopen(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) (*OrderFee, error) {
@@ -510,7 +520,12 @@ func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, 
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
 		return ErrOrderFeeInvalidArgument
 	}
-	return uc.repo.Remove(ctx, organizationID, orderID, id, actorID, expectedVersion, reason, &AuditEvent{
+	// 费用草稿作废属于自动锁定重试触发；先读取当前状态用于判断触发类型。
+	current, err := uc.repo.Get(ctx, organizationID, orderID, id)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.Remove(ctx, organizationID, orderID, id, actorID, expectedVersion, reason, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.fee.remove",
@@ -518,7 +533,37 @@ func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, 
 		Details: map[string]string{
 			"fee.id": id.String(), "order.id": orderID.String(), "reason": reason,
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	if current.Status == OrderFeeDraft {
+		uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeCancel)
+	}
+	return nil
+}
+
+// triggerAutoLock 在费用草稿确认/作废成功提交后触发结清自动锁定检查。
+// 触发失败只记录警告日志；纯成本等无有效结清事实的订单由仓储预检静默跳过。
+func (uc *OrderFeeUsecase) triggerAutoLock(ctx context.Context, organizationID, actorID, feeID, orderID uuid.UUID, triggerType AutoLockTriggerSource) {
+	if uc.autoLock == nil {
+		return
+	}
+	trigger := AutoOrderLockTrigger{
+		Type:           triggerType,
+		ResourceID:     feeID,
+		OrganizationID: organizationID,
+		TriggeredBy:    actorID,
+		OrderID:        orderID,
+	}
+	if err := uc.autoLock.RunSettlementLockCheck(ctx, trigger); err != nil {
+		if uc.logger != nil {
+			uc.logger.WarnContext(ctx, "费用状态流转触发的自动锁定检查失败",
+				slog.String("fee_id", feeID.String()),
+				slog.String("order_id", orderID.String()),
+				slog.String("organization_id", organizationID.String()),
+				slog.String("error", err.Error()))
+		}
+	}
 }
 
 func orderFeeAudit(organizationID, actorID, orderID, feeID uuid.UUID, action string, fee *OrderFee) *AuditEvent {

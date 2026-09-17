@@ -4634,6 +4634,14 @@ declare namespace API {
     unlockMode?: string;
     houseBillSnapshots?: OrderLockHouseBillSnapshotData[];
     businessType?: number;
+    /** 锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。 */
+    lockSource?: string;
+    /** 自动锁定触发审计：触发类型（VERIFICATION/NETTING/FEE_CONFIRM/FEE_CANCEL）、
+ 触发单据与触发操作人。人工锁定时为空。 */
+    triggerType?: string;
+    triggerResourceId?: string;
+    triggeredBy?: string;
+    triggeredByName?: string;
   };
 
   type OrderLockResultData = {
@@ -4682,6 +4690,8 @@ declare namespace API {
     activeUnlockRequest?: OrderUnlockRequestData;
     currentLockRecord?: OrderLockRecordData;
     businessType?: number;
+    /** 锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。 */
+    lockSource?: string;
   };
 
   type OrderMilestone = {

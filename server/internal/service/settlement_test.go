@@ -501,7 +501,7 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 		}},
 	}
 	repo := &verificationCreationCandidateRepoStub{result: &biz.VerificationCreationCandidates{}}
-	service := &SettlementService{verificationUsecase: biz.NewVerificationUsecase(repo, nil, nil)}
+	service := &SettlementService{verificationUsecase: biz.NewVerificationUsecase(repo, nil, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 	_, err := service.ListVerificationCreationCandidates(ctx, &v1.ListVerificationCreationCandidatesRequest{
 		OrganizationId:    organizationID.String(),

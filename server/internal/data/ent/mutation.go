@@ -64851,6 +64851,10 @@ type OrderMutation struct {
 	locked_at                               *time.Time
 	lock_generation                         *uint64
 	addlock_generation                      *int64
+	lock_source                             *order.LockSource
+	auto_lock_trigger_type                  *order.AutoLockTriggerType
+	auto_lock_trigger_resource_id           *uuid.UUID
+	auto_lock_triggered_by                  *uuid.UUID
 	is_shared                               *bool
 	version                                 *uint64
 	addversion                              *int64
@@ -67113,6 +67117,202 @@ func (m *OrderMutation) AddedLockGeneration() (r int64, exists bool) {
 func (m *OrderMutation) ResetLockGeneration() {
 	m.lock_generation = nil
 	m.addlock_generation = nil
+}
+
+// SetLockSource sets the "lock_source" field.
+func (m *OrderMutation) SetLockSource(os order.LockSource) {
+	m.lock_source = &os
+}
+
+// LockSource returns the value of the "lock_source" field in the mutation.
+func (m *OrderMutation) LockSource() (r order.LockSource, exists bool) {
+	v := m.lock_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockSource returns the old "lock_source" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldLockSource(ctx context.Context) (v *order.LockSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockSource: %w", err)
+	}
+	return oldValue.LockSource, nil
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (m *OrderMutation) ClearLockSource() {
+	m.lock_source = nil
+	m.clearedFields[order.FieldLockSource] = struct{}{}
+}
+
+// LockSourceCleared returns if the "lock_source" field was cleared in this mutation.
+func (m *OrderMutation) LockSourceCleared() bool {
+	_, ok := m.clearedFields[order.FieldLockSource]
+	return ok
+}
+
+// ResetLockSource resets all changes to the "lock_source" field.
+func (m *OrderMutation) ResetLockSource() {
+	m.lock_source = nil
+	delete(m.clearedFields, order.FieldLockSource)
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (m *OrderMutation) SetAutoLockTriggerType(oltt order.AutoLockTriggerType) {
+	m.auto_lock_trigger_type = &oltt
+}
+
+// AutoLockTriggerType returns the value of the "auto_lock_trigger_type" field in the mutation.
+func (m *OrderMutation) AutoLockTriggerType() (r order.AutoLockTriggerType, exists bool) {
+	v := m.auto_lock_trigger_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoLockTriggerType returns the old "auto_lock_trigger_type" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldAutoLockTriggerType(ctx context.Context) (v *order.AutoLockTriggerType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoLockTriggerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoLockTriggerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoLockTriggerType: %w", err)
+	}
+	return oldValue.AutoLockTriggerType, nil
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (m *OrderMutation) ClearAutoLockTriggerType() {
+	m.auto_lock_trigger_type = nil
+	m.clearedFields[order.FieldAutoLockTriggerType] = struct{}{}
+}
+
+// AutoLockTriggerTypeCleared returns if the "auto_lock_trigger_type" field was cleared in this mutation.
+func (m *OrderMutation) AutoLockTriggerTypeCleared() bool {
+	_, ok := m.clearedFields[order.FieldAutoLockTriggerType]
+	return ok
+}
+
+// ResetAutoLockTriggerType resets all changes to the "auto_lock_trigger_type" field.
+func (m *OrderMutation) ResetAutoLockTriggerType() {
+	m.auto_lock_trigger_type = nil
+	delete(m.clearedFields, order.FieldAutoLockTriggerType)
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (m *OrderMutation) SetAutoLockTriggerResourceID(u uuid.UUID) {
+	m.auto_lock_trigger_resource_id = &u
+}
+
+// AutoLockTriggerResourceID returns the value of the "auto_lock_trigger_resource_id" field in the mutation.
+func (m *OrderMutation) AutoLockTriggerResourceID() (r uuid.UUID, exists bool) {
+	v := m.auto_lock_trigger_resource_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoLockTriggerResourceID returns the old "auto_lock_trigger_resource_id" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldAutoLockTriggerResourceID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoLockTriggerResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoLockTriggerResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoLockTriggerResourceID: %w", err)
+	}
+	return oldValue.AutoLockTriggerResourceID, nil
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (m *OrderMutation) ClearAutoLockTriggerResourceID() {
+	m.auto_lock_trigger_resource_id = nil
+	m.clearedFields[order.FieldAutoLockTriggerResourceID] = struct{}{}
+}
+
+// AutoLockTriggerResourceIDCleared returns if the "auto_lock_trigger_resource_id" field was cleared in this mutation.
+func (m *OrderMutation) AutoLockTriggerResourceIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldAutoLockTriggerResourceID]
+	return ok
+}
+
+// ResetAutoLockTriggerResourceID resets all changes to the "auto_lock_trigger_resource_id" field.
+func (m *OrderMutation) ResetAutoLockTriggerResourceID() {
+	m.auto_lock_trigger_resource_id = nil
+	delete(m.clearedFields, order.FieldAutoLockTriggerResourceID)
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (m *OrderMutation) SetAutoLockTriggeredBy(u uuid.UUID) {
+	m.auto_lock_triggered_by = &u
+}
+
+// AutoLockTriggeredBy returns the value of the "auto_lock_triggered_by" field in the mutation.
+func (m *OrderMutation) AutoLockTriggeredBy() (r uuid.UUID, exists bool) {
+	v := m.auto_lock_triggered_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoLockTriggeredBy returns the old "auto_lock_triggered_by" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldAutoLockTriggeredBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoLockTriggeredBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoLockTriggeredBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoLockTriggeredBy: %w", err)
+	}
+	return oldValue.AutoLockTriggeredBy, nil
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (m *OrderMutation) ClearAutoLockTriggeredBy() {
+	m.auto_lock_triggered_by = nil
+	m.clearedFields[order.FieldAutoLockTriggeredBy] = struct{}{}
+}
+
+// AutoLockTriggeredByCleared returns if the "auto_lock_triggered_by" field was cleared in this mutation.
+func (m *OrderMutation) AutoLockTriggeredByCleared() bool {
+	_, ok := m.clearedFields[order.FieldAutoLockTriggeredBy]
+	return ok
+}
+
+// ResetAutoLockTriggeredBy resets all changes to the "auto_lock_triggered_by" field.
+func (m *OrderMutation) ResetAutoLockTriggeredBy() {
+	m.auto_lock_triggered_by = nil
+	delete(m.clearedFields, order.FieldAutoLockTriggeredBy)
 }
 
 // SetIsShared sets the "is_shared" field.
@@ -70118,7 +70318,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 70)
+	fields := make([]string, 0, 74)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -70253,6 +70453,18 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.lock_generation != nil {
 		fields = append(fields, order.FieldLockGeneration)
+	}
+	if m.lock_source != nil {
+		fields = append(fields, order.FieldLockSource)
+	}
+	if m.auto_lock_trigger_type != nil {
+		fields = append(fields, order.FieldAutoLockTriggerType)
+	}
+	if m.auto_lock_trigger_resource_id != nil {
+		fields = append(fields, order.FieldAutoLockTriggerResourceID)
+	}
+	if m.auto_lock_triggered_by != nil {
+		fields = append(fields, order.FieldAutoLockTriggeredBy)
 	}
 	if m.is_shared != nil {
 		fields = append(fields, order.FieldIsShared)
@@ -70427,6 +70639,14 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.LockedBy()
 	case order.FieldLockGeneration:
 		return m.LockGeneration()
+	case order.FieldLockSource:
+		return m.LockSource()
+	case order.FieldAutoLockTriggerType:
+		return m.AutoLockTriggerType()
+	case order.FieldAutoLockTriggerResourceID:
+		return m.AutoLockTriggerResourceID()
+	case order.FieldAutoLockTriggeredBy:
+		return m.AutoLockTriggeredBy()
 	case order.FieldIsShared:
 		return m.IsShared()
 	case order.FieldVersion:
@@ -70576,6 +70796,14 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldLockedBy(ctx)
 	case order.FieldLockGeneration:
 		return m.OldLockGeneration(ctx)
+	case order.FieldLockSource:
+		return m.OldLockSource(ctx)
+	case order.FieldAutoLockTriggerType:
+		return m.OldAutoLockTriggerType(ctx)
+	case order.FieldAutoLockTriggerResourceID:
+		return m.OldAutoLockTriggerResourceID(ctx)
+	case order.FieldAutoLockTriggeredBy:
+		return m.OldAutoLockTriggeredBy(ctx)
 	case order.FieldIsShared:
 		return m.OldIsShared(ctx)
 	case order.FieldVersion:
@@ -70950,6 +71178,34 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLockGeneration(v)
 		return nil
+	case order.FieldLockSource:
+		v, ok := value.(order.LockSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockSource(v)
+		return nil
+	case order.FieldAutoLockTriggerType:
+		v, ok := value.(order.AutoLockTriggerType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoLockTriggerType(v)
+		return nil
+	case order.FieldAutoLockTriggerResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoLockTriggerResourceID(v)
+		return nil
+	case order.FieldAutoLockTriggeredBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoLockTriggeredBy(v)
+		return nil
 	case order.FieldIsShared:
 		v, ok := value.(bool)
 		if !ok {
@@ -71308,6 +71564,18 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldLockedBy) {
 		fields = append(fields, order.FieldLockedBy)
 	}
+	if m.FieldCleared(order.FieldLockSource) {
+		fields = append(fields, order.FieldLockSource)
+	}
+	if m.FieldCleared(order.FieldAutoLockTriggerType) {
+		fields = append(fields, order.FieldAutoLockTriggerType)
+	}
+	if m.FieldCleared(order.FieldAutoLockTriggerResourceID) {
+		fields = append(fields, order.FieldAutoLockTriggerResourceID)
+	}
+	if m.FieldCleared(order.FieldAutoLockTriggeredBy) {
+		fields = append(fields, order.FieldAutoLockTriggeredBy)
+	}
 	if m.FieldCleared(order.FieldOriginLocationID) {
 		fields = append(fields, order.FieldOriginLocationID)
 	}
@@ -71480,6 +71748,18 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldLockedBy:
 		m.ClearLockedBy()
+		return nil
+	case order.FieldLockSource:
+		m.ClearLockSource()
+		return nil
+	case order.FieldAutoLockTriggerType:
+		m.ClearAutoLockTriggerType()
+		return nil
+	case order.FieldAutoLockTriggerResourceID:
+		m.ClearAutoLockTriggerResourceID()
+		return nil
+	case order.FieldAutoLockTriggeredBy:
+		m.ClearAutoLockTriggeredBy()
 		return nil
 	case order.FieldOriginLocationID:
 		m.ClearOriginLocationID()
@@ -71692,6 +71972,18 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldLockGeneration:
 		m.ResetLockGeneration()
+		return nil
+	case order.FieldLockSource:
+		m.ResetLockSource()
+		return nil
+	case order.FieldAutoLockTriggerType:
+		m.ResetAutoLockTriggerType()
+		return nil
+	case order.FieldAutoLockTriggerResourceID:
+		m.ResetAutoLockTriggerResourceID()
+		return nil
+	case order.FieldAutoLockTriggeredBy:
+		m.ResetAutoLockTriggeredBy()
 		return nil
 	case order.FieldIsShared:
 		m.ResetIsShared()
@@ -86494,9 +86786,12 @@ type OrderLockRecordMutation struct {
 	business_type                      *orderlockrecord.BusinessType
 	generation                         *uint64
 	addgeneration                      *int64
+	lock_source                        *orderlockrecord.LockSource
 	locked_at                          *time.Time
 	order_version_at_lock              *uint64
 	addorder_version_at_lock           *int64
+	trigger_type                       *orderlockrecord.TriggerType
+	trigger_resource_id                *uuid.UUID
 	unlocked_at                        *time.Time
 	order_version_at_unlock            *uint64
 	addorder_version_at_unlock         *int64
@@ -86511,6 +86806,8 @@ type OrderLockRecordMutation struct {
 	cleared_order                      bool
 	locked_by_user                     *uuid.UUID
 	clearedlocked_by_user              bool
+	triggered_by_user                  *uuid.UUID
+	clearedtriggered_by_user           bool
 	unlocked_by_user                   *uuid.UUID
 	clearedunlocked_by_user            bool
 	master_bill                        *uuid.UUID
@@ -86874,6 +87171,42 @@ func (m *OrderLockRecordMutation) ResetGeneration() {
 	m.addgeneration = nil
 }
 
+// SetLockSource sets the "lock_source" field.
+func (m *OrderLockRecordMutation) SetLockSource(os orderlockrecord.LockSource) {
+	m.lock_source = &os
+}
+
+// LockSource returns the value of the "lock_source" field in the mutation.
+func (m *OrderLockRecordMutation) LockSource() (r orderlockrecord.LockSource, exists bool) {
+	v := m.lock_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockSource returns the old "lock_source" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldLockSource(ctx context.Context) (v orderlockrecord.LockSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockSource: %w", err)
+	}
+	return oldValue.LockSource, nil
+}
+
+// ResetLockSource resets all changes to the "lock_source" field.
+func (m *OrderLockRecordMutation) ResetLockSource() {
+	m.lock_source = nil
+}
+
 // SetLockedBy sets the "locked_by" field.
 func (m *OrderLockRecordMutation) SetLockedBy(u uuid.UUID) {
 	m.locked_by_user = &u
@@ -86891,7 +87224,7 @@ func (m *OrderLockRecordMutation) LockedBy() (r uuid.UUID, exists bool) {
 // OldLockedBy returns the old "locked_by" field's value of the OrderLockRecord entity.
 // If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderLockRecordMutation) OldLockedBy(ctx context.Context) (v uuid.UUID, err error) {
+func (m *OrderLockRecordMutation) OldLockedBy(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLockedBy is only allowed on UpdateOne operations")
 	}
@@ -86905,9 +87238,22 @@ func (m *OrderLockRecordMutation) OldLockedBy(ctx context.Context) (v uuid.UUID,
 	return oldValue.LockedBy, nil
 }
 
+// ClearLockedBy clears the value of the "locked_by" field.
+func (m *OrderLockRecordMutation) ClearLockedBy() {
+	m.locked_by_user = nil
+	m.clearedFields[orderlockrecord.FieldLockedBy] = struct{}{}
+}
+
+// LockedByCleared returns if the "locked_by" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) LockedByCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldLockedBy]
+	return ok
+}
+
 // ResetLockedBy resets all changes to the "locked_by" field.
 func (m *OrderLockRecordMutation) ResetLockedBy() {
 	m.locked_by_user = nil
+	delete(m.clearedFields, orderlockrecord.FieldLockedBy)
 }
 
 // SetLockedAt sets the "locked_at" field.
@@ -87000,6 +87346,153 @@ func (m *OrderLockRecordMutation) AddedOrderVersionAtLock() (r int64, exists boo
 func (m *OrderLockRecordMutation) ResetOrderVersionAtLock() {
 	m.order_version_at_lock = nil
 	m.addorder_version_at_lock = nil
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (m *OrderLockRecordMutation) SetTriggerType(ot orderlockrecord.TriggerType) {
+	m.trigger_type = &ot
+}
+
+// TriggerType returns the value of the "trigger_type" field in the mutation.
+func (m *OrderLockRecordMutation) TriggerType() (r orderlockrecord.TriggerType, exists bool) {
+	v := m.trigger_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggerType returns the old "trigger_type" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldTriggerType(ctx context.Context) (v *orderlockrecord.TriggerType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggerType: %w", err)
+	}
+	return oldValue.TriggerType, nil
+}
+
+// ClearTriggerType clears the value of the "trigger_type" field.
+func (m *OrderLockRecordMutation) ClearTriggerType() {
+	m.trigger_type = nil
+	m.clearedFields[orderlockrecord.FieldTriggerType] = struct{}{}
+}
+
+// TriggerTypeCleared returns if the "trigger_type" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) TriggerTypeCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldTriggerType]
+	return ok
+}
+
+// ResetTriggerType resets all changes to the "trigger_type" field.
+func (m *OrderLockRecordMutation) ResetTriggerType() {
+	m.trigger_type = nil
+	delete(m.clearedFields, orderlockrecord.FieldTriggerType)
+}
+
+// SetTriggerResourceID sets the "trigger_resource_id" field.
+func (m *OrderLockRecordMutation) SetTriggerResourceID(u uuid.UUID) {
+	m.trigger_resource_id = &u
+}
+
+// TriggerResourceID returns the value of the "trigger_resource_id" field in the mutation.
+func (m *OrderLockRecordMutation) TriggerResourceID() (r uuid.UUID, exists bool) {
+	v := m.trigger_resource_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggerResourceID returns the old "trigger_resource_id" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldTriggerResourceID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggerResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggerResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggerResourceID: %w", err)
+	}
+	return oldValue.TriggerResourceID, nil
+}
+
+// ClearTriggerResourceID clears the value of the "trigger_resource_id" field.
+func (m *OrderLockRecordMutation) ClearTriggerResourceID() {
+	m.trigger_resource_id = nil
+	m.clearedFields[orderlockrecord.FieldTriggerResourceID] = struct{}{}
+}
+
+// TriggerResourceIDCleared returns if the "trigger_resource_id" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) TriggerResourceIDCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldTriggerResourceID]
+	return ok
+}
+
+// ResetTriggerResourceID resets all changes to the "trigger_resource_id" field.
+func (m *OrderLockRecordMutation) ResetTriggerResourceID() {
+	m.trigger_resource_id = nil
+	delete(m.clearedFields, orderlockrecord.FieldTriggerResourceID)
+}
+
+// SetTriggeredBy sets the "triggered_by" field.
+func (m *OrderLockRecordMutation) SetTriggeredBy(u uuid.UUID) {
+	m.triggered_by_user = &u
+}
+
+// TriggeredBy returns the value of the "triggered_by" field in the mutation.
+func (m *OrderLockRecordMutation) TriggeredBy() (r uuid.UUID, exists bool) {
+	v := m.triggered_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggeredBy returns the old "triggered_by" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldTriggeredBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggeredBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggeredBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggeredBy: %w", err)
+	}
+	return oldValue.TriggeredBy, nil
+}
+
+// ClearTriggeredBy clears the value of the "triggered_by" field.
+func (m *OrderLockRecordMutation) ClearTriggeredBy() {
+	m.triggered_by_user = nil
+	m.clearedFields[orderlockrecord.FieldTriggeredBy] = struct{}{}
+}
+
+// TriggeredByCleared returns if the "triggered_by" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) TriggeredByCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldTriggeredBy]
+	return ok
+}
+
+// ResetTriggeredBy resets all changes to the "triggered_by" field.
+func (m *OrderLockRecordMutation) ResetTriggeredBy() {
+	m.triggered_by_user = nil
+	delete(m.clearedFields, orderlockrecord.FieldTriggeredBy)
 }
 
 // SetMasterBillID sets the "master_bill_id" field.
@@ -87652,7 +88145,7 @@ func (m *OrderLockRecordMutation) ClearLockedByUser() {
 
 // LockedByUserCleared reports if the "locked_by_user" edge to the User entity was cleared.
 func (m *OrderLockRecordMutation) LockedByUserCleared() bool {
-	return m.clearedlocked_by_user
+	return m.LockedByCleared() || m.clearedlocked_by_user
 }
 
 // LockedByUserID returns the "locked_by_user" edge ID in the mutation.
@@ -87677,6 +88170,46 @@ func (m *OrderLockRecordMutation) LockedByUserIDs() (ids []uuid.UUID) {
 func (m *OrderLockRecordMutation) ResetLockedByUser() {
 	m.locked_by_user = nil
 	m.clearedlocked_by_user = false
+}
+
+// SetTriggeredByUserID sets the "triggered_by_user" edge to the User entity by id.
+func (m *OrderLockRecordMutation) SetTriggeredByUserID(id uuid.UUID) {
+	m.triggered_by_user = &id
+}
+
+// ClearTriggeredByUser clears the "triggered_by_user" edge to the User entity.
+func (m *OrderLockRecordMutation) ClearTriggeredByUser() {
+	m.clearedtriggered_by_user = true
+	m.clearedFields[orderlockrecord.FieldTriggeredBy] = struct{}{}
+}
+
+// TriggeredByUserCleared reports if the "triggered_by_user" edge to the User entity was cleared.
+func (m *OrderLockRecordMutation) TriggeredByUserCleared() bool {
+	return m.TriggeredByCleared() || m.clearedtriggered_by_user
+}
+
+// TriggeredByUserID returns the "triggered_by_user" edge ID in the mutation.
+func (m *OrderLockRecordMutation) TriggeredByUserID() (id uuid.UUID, exists bool) {
+	if m.triggered_by_user != nil {
+		return *m.triggered_by_user, true
+	}
+	return
+}
+
+// TriggeredByUserIDs returns the "triggered_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TriggeredByUserID instead. It exists only for internal usage by the builders.
+func (m *OrderLockRecordMutation) TriggeredByUserIDs() (ids []uuid.UUID) {
+	if id := m.triggered_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTriggeredByUser resets all changes to the "triggered_by_user" edge.
+func (m *OrderLockRecordMutation) ResetTriggeredByUser() {
+	m.triggered_by_user = nil
+	m.clearedtriggered_by_user = false
 }
 
 // SetUnlockedByUserID sets the "unlocked_by_user" edge to the User entity by id.
@@ -88009,7 +88542,7 @@ func (m *OrderLockRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderLockRecordMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, orderlockrecord.FieldCreatedAt)
 	}
@@ -88028,6 +88561,9 @@ func (m *OrderLockRecordMutation) Fields() []string {
 	if m.generation != nil {
 		fields = append(fields, orderlockrecord.FieldGeneration)
 	}
+	if m.lock_source != nil {
+		fields = append(fields, orderlockrecord.FieldLockSource)
+	}
 	if m.locked_by_user != nil {
 		fields = append(fields, orderlockrecord.FieldLockedBy)
 	}
@@ -88036,6 +88572,15 @@ func (m *OrderLockRecordMutation) Fields() []string {
 	}
 	if m.order_version_at_lock != nil {
 		fields = append(fields, orderlockrecord.FieldOrderVersionAtLock)
+	}
+	if m.trigger_type != nil {
+		fields = append(fields, orderlockrecord.FieldTriggerType)
+	}
+	if m.trigger_resource_id != nil {
+		fields = append(fields, orderlockrecord.FieldTriggerResourceID)
+	}
+	if m.triggered_by_user != nil {
+		fields = append(fields, orderlockrecord.FieldTriggeredBy)
 	}
 	if m.master_bill != nil {
 		fields = append(fields, orderlockrecord.FieldMasterBillID)
@@ -88093,12 +88638,20 @@ func (m *OrderLockRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.BusinessType()
 	case orderlockrecord.FieldGeneration:
 		return m.Generation()
+	case orderlockrecord.FieldLockSource:
+		return m.LockSource()
 	case orderlockrecord.FieldLockedBy:
 		return m.LockedBy()
 	case orderlockrecord.FieldLockedAt:
 		return m.LockedAt()
 	case orderlockrecord.FieldOrderVersionAtLock:
 		return m.OrderVersionAtLock()
+	case orderlockrecord.FieldTriggerType:
+		return m.TriggerType()
+	case orderlockrecord.FieldTriggerResourceID:
+		return m.TriggerResourceID()
+	case orderlockrecord.FieldTriggeredBy:
+		return m.TriggeredBy()
 	case orderlockrecord.FieldMasterBillID:
 		return m.MasterBillID()
 	case orderlockrecord.FieldMasterBillVersionID:
@@ -88144,12 +88697,20 @@ func (m *OrderLockRecordMutation) OldField(ctx context.Context, name string) (en
 		return m.OldBusinessType(ctx)
 	case orderlockrecord.FieldGeneration:
 		return m.OldGeneration(ctx)
+	case orderlockrecord.FieldLockSource:
+		return m.OldLockSource(ctx)
 	case orderlockrecord.FieldLockedBy:
 		return m.OldLockedBy(ctx)
 	case orderlockrecord.FieldLockedAt:
 		return m.OldLockedAt(ctx)
 	case orderlockrecord.FieldOrderVersionAtLock:
 		return m.OldOrderVersionAtLock(ctx)
+	case orderlockrecord.FieldTriggerType:
+		return m.OldTriggerType(ctx)
+	case orderlockrecord.FieldTriggerResourceID:
+		return m.OldTriggerResourceID(ctx)
+	case orderlockrecord.FieldTriggeredBy:
+		return m.OldTriggeredBy(ctx)
 	case orderlockrecord.FieldMasterBillID:
 		return m.OldMasterBillID(ctx)
 	case orderlockrecord.FieldMasterBillVersionID:
@@ -88225,6 +88786,13 @@ func (m *OrderLockRecordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGeneration(v)
 		return nil
+	case orderlockrecord.FieldLockSource:
+		v, ok := value.(orderlockrecord.LockSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockSource(v)
+		return nil
 	case orderlockrecord.FieldLockedBy:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -88245,6 +88813,27 @@ func (m *OrderLockRecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderVersionAtLock(v)
+		return nil
+	case orderlockrecord.FieldTriggerType:
+		v, ok := value.(orderlockrecord.TriggerType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggerType(v)
+		return nil
+	case orderlockrecord.FieldTriggerResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggerResourceID(v)
+		return nil
+	case orderlockrecord.FieldTriggeredBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggeredBy(v)
 		return nil
 	case orderlockrecord.FieldMasterBillID:
 		v, ok := value.(uuid.UUID)
@@ -88399,6 +88988,18 @@ func (m *OrderLockRecordMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderLockRecordMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(orderlockrecord.FieldLockedBy) {
+		fields = append(fields, orderlockrecord.FieldLockedBy)
+	}
+	if m.FieldCleared(orderlockrecord.FieldTriggerType) {
+		fields = append(fields, orderlockrecord.FieldTriggerType)
+	}
+	if m.FieldCleared(orderlockrecord.FieldTriggerResourceID) {
+		fields = append(fields, orderlockrecord.FieldTriggerResourceID)
+	}
+	if m.FieldCleared(orderlockrecord.FieldTriggeredBy) {
+		fields = append(fields, orderlockrecord.FieldTriggeredBy)
+	}
 	if m.FieldCleared(orderlockrecord.FieldMasterBillID) {
 		fields = append(fields, orderlockrecord.FieldMasterBillID)
 	}
@@ -88443,6 +89044,18 @@ func (m *OrderLockRecordMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderLockRecordMutation) ClearField(name string) error {
 	switch name {
+	case orderlockrecord.FieldLockedBy:
+		m.ClearLockedBy()
+		return nil
+	case orderlockrecord.FieldTriggerType:
+		m.ClearTriggerType()
+		return nil
+	case orderlockrecord.FieldTriggerResourceID:
+		m.ClearTriggerResourceID()
+		return nil
+	case orderlockrecord.FieldTriggeredBy:
+		m.ClearTriggeredBy()
+		return nil
 	case orderlockrecord.FieldMasterBillID:
 		m.ClearMasterBillID()
 		return nil
@@ -88499,6 +89112,9 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 	case orderlockrecord.FieldGeneration:
 		m.ResetGeneration()
 		return nil
+	case orderlockrecord.FieldLockSource:
+		m.ResetLockSource()
+		return nil
 	case orderlockrecord.FieldLockedBy:
 		m.ResetLockedBy()
 		return nil
@@ -88507,6 +89123,15 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 		return nil
 	case orderlockrecord.FieldOrderVersionAtLock:
 		m.ResetOrderVersionAtLock()
+		return nil
+	case orderlockrecord.FieldTriggerType:
+		m.ResetTriggerType()
+		return nil
+	case orderlockrecord.FieldTriggerResourceID:
+		m.ResetTriggerResourceID()
+		return nil
+	case orderlockrecord.FieldTriggeredBy:
+		m.ResetTriggeredBy()
 		return nil
 	case orderlockrecord.FieldMasterBillID:
 		m.ResetMasterBillID()
@@ -88550,7 +89175,7 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderLockRecordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.organization != nil {
 		edges = append(edges, orderlockrecord.EdgeOrganization)
 	}
@@ -88559,6 +89184,9 @@ func (m *OrderLockRecordMutation) AddedEdges() []string {
 	}
 	if m.locked_by_user != nil {
 		edges = append(edges, orderlockrecord.EdgeLockedByUser)
+	}
+	if m.triggered_by_user != nil {
+		edges = append(edges, orderlockrecord.EdgeTriggeredByUser)
 	}
 	if m.unlocked_by_user != nil {
 		edges = append(edges, orderlockrecord.EdgeUnlockedByUser)
@@ -88603,6 +89231,10 @@ func (m *OrderLockRecordMutation) AddedIDs(name string) []ent.Value {
 		if id := m.locked_by_user; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderlockrecord.EdgeTriggeredByUser:
+		if id := m.triggered_by_user; id != nil {
+			return []ent.Value{*id}
+		}
 	case orderlockrecord.EdgeUnlockedByUser:
 		if id := m.unlocked_by_user; id != nil {
 			return []ent.Value{*id}
@@ -88645,7 +89277,7 @@ func (m *OrderLockRecordMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderLockRecordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.removedunlock_requests != nil {
 		edges = append(edges, orderlockrecord.EdgeUnlockRequests)
 	}
@@ -88677,7 +89309,7 @@ func (m *OrderLockRecordMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderLockRecordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.clearedorganization {
 		edges = append(edges, orderlockrecord.EdgeOrganization)
 	}
@@ -88686,6 +89318,9 @@ func (m *OrderLockRecordMutation) ClearedEdges() []string {
 	}
 	if m.clearedlocked_by_user {
 		edges = append(edges, orderlockrecord.EdgeLockedByUser)
+	}
+	if m.clearedtriggered_by_user {
+		edges = append(edges, orderlockrecord.EdgeTriggeredByUser)
 	}
 	if m.clearedunlocked_by_user {
 		edges = append(edges, orderlockrecord.EdgeUnlockedByUser)
@@ -88724,6 +89359,8 @@ func (m *OrderLockRecordMutation) EdgeCleared(name string) bool {
 		return m.cleared_order
 	case orderlockrecord.EdgeLockedByUser:
 		return m.clearedlocked_by_user
+	case orderlockrecord.EdgeTriggeredByUser:
+		return m.clearedtriggered_by_user
 	case orderlockrecord.EdgeUnlockedByUser:
 		return m.clearedunlocked_by_user
 	case orderlockrecord.EdgeMasterBill:
@@ -88756,6 +89393,9 @@ func (m *OrderLockRecordMutation) ClearEdge(name string) error {
 		return nil
 	case orderlockrecord.EdgeLockedByUser:
 		m.ClearLockedByUser()
+		return nil
+	case orderlockrecord.EdgeTriggeredByUser:
+		m.ClearTriggeredByUser()
 		return nil
 	case orderlockrecord.EdgeUnlockedByUser:
 		m.ClearUnlockedByUser()
@@ -88791,6 +89431,9 @@ func (m *OrderLockRecordMutation) ResetEdge(name string) error {
 		return nil
 	case orderlockrecord.EdgeLockedByUser:
 		m.ResetLockedByUser()
+		return nil
+	case orderlockrecord.EdgeTriggeredByUser:
+		m.ResetTriggeredByUser()
 		return nil
 	case orderlockrecord.EdgeUnlockedByUser:
 		m.ResetUnlockedByUser()
@@ -153427,6 +154070,9 @@ type UserMutation struct {
 	unlocked_order_lock_records                     map[uuid.UUID]struct{}
 	removedunlocked_order_lock_records              map[uuid.UUID]struct{}
 	clearedunlocked_order_lock_records              bool
+	auto_triggered_order_lock_records               map[uuid.UUID]struct{}
+	removedauto_triggered_order_lock_records        map[uuid.UUID]struct{}
+	clearedauto_triggered_order_lock_records        bool
 	order_unlock_requests                           map[uuid.UUID]struct{}
 	removedorder_unlock_requests                    map[uuid.UUID]struct{}
 	clearedorder_unlock_requests                    bool
@@ -156437,6 +157083,60 @@ func (m *UserMutation) ResetUnlockedOrderLockRecords() {
 	m.removedunlocked_order_lock_records = nil
 }
 
+// AddAutoTriggeredOrderLockRecordIDs adds the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity by ids.
+func (m *UserMutation) AddAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) {
+	if m.auto_triggered_order_lock_records == nil {
+		m.auto_triggered_order_lock_records = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.auto_triggered_order_lock_records[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAutoTriggeredOrderLockRecords clears the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity.
+func (m *UserMutation) ClearAutoTriggeredOrderLockRecords() {
+	m.clearedauto_triggered_order_lock_records = true
+}
+
+// AutoTriggeredOrderLockRecordsCleared reports if the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity was cleared.
+func (m *UserMutation) AutoTriggeredOrderLockRecordsCleared() bool {
+	return m.clearedauto_triggered_order_lock_records
+}
+
+// RemoveAutoTriggeredOrderLockRecordIDs removes the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (m *UserMutation) RemoveAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) {
+	if m.removedauto_triggered_order_lock_records == nil {
+		m.removedauto_triggered_order_lock_records = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.auto_triggered_order_lock_records, ids[i])
+		m.removedauto_triggered_order_lock_records[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAutoTriggeredOrderLockRecords returns the removed IDs of the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity.
+func (m *UserMutation) RemovedAutoTriggeredOrderLockRecordsIDs() (ids []uuid.UUID) {
+	for id := range m.removedauto_triggered_order_lock_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AutoTriggeredOrderLockRecordsIDs returns the "auto_triggered_order_lock_records" edge IDs in the mutation.
+func (m *UserMutation) AutoTriggeredOrderLockRecordsIDs() (ids []uuid.UUID) {
+	for id := range m.auto_triggered_order_lock_records {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAutoTriggeredOrderLockRecords resets all changes to the "auto_triggered_order_lock_records" edge.
+func (m *UserMutation) ResetAutoTriggeredOrderLockRecords() {
+	m.auto_triggered_order_lock_records = nil
+	m.clearedauto_triggered_order_lock_records = false
+	m.removedauto_triggered_order_lock_records = nil
+}
+
 // AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by ids.
 func (m *UserMutation) AddOrderUnlockRequestIDs(ids ...uuid.UUID) {
 	if m.order_unlock_requests == nil {
@@ -157509,7 +158209,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 52)
+	edges := make([]string, 0, 53)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -157629,6 +158329,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.unlocked_order_lock_records != nil {
 		edges = append(edges, user.EdgeUnlockedOrderLockRecords)
+	}
+	if m.auto_triggered_order_lock_records != nil {
+		edges = append(edges, user.EdgeAutoTriggeredOrderLockRecords)
 	}
 	if m.order_unlock_requests != nil {
 		edges = append(edges, user.EdgeOrderUnlockRequests)
@@ -157913,6 +158616,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAutoTriggeredOrderLockRecords:
+		ids := make([]ent.Value, 0, len(m.auto_triggered_order_lock_records))
+		for id := range m.auto_triggered_order_lock_records {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeOrderUnlockRequests:
 		ids := make([]ent.Value, 0, len(m.order_unlock_requests))
 		for id := range m.order_unlock_requests {
@@ -157989,7 +158698,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 52)
+	edges := make([]string, 0, 53)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -158109,6 +158818,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedunlocked_order_lock_records != nil {
 		edges = append(edges, user.EdgeUnlockedOrderLockRecords)
+	}
+	if m.removedauto_triggered_order_lock_records != nil {
+		edges = append(edges, user.EdgeAutoTriggeredOrderLockRecords)
 	}
 	if m.removedorder_unlock_requests != nil {
 		edges = append(edges, user.EdgeOrderUnlockRequests)
@@ -158390,6 +159102,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAutoTriggeredOrderLockRecords:
+		ids := make([]ent.Value, 0, len(m.removedauto_triggered_order_lock_records))
+		for id := range m.removedauto_triggered_order_lock_records {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeOrderUnlockRequests:
 		ids := make([]ent.Value, 0, len(m.removedorder_unlock_requests))
 		for id := range m.removedorder_unlock_requests {
@@ -158462,7 +159180,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 52)
+	edges := make([]string, 0, 53)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -158582,6 +159300,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedunlocked_order_lock_records {
 		edges = append(edges, user.EdgeUnlockedOrderLockRecords)
+	}
+	if m.clearedauto_triggered_order_lock_records {
+		edges = append(edges, user.EdgeAutoTriggeredOrderLockRecords)
 	}
 	if m.clearedorder_unlock_requests {
 		edges = append(edges, user.EdgeOrderUnlockRequests)
@@ -158706,6 +159427,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedorder_lock_records
 	case user.EdgeUnlockedOrderLockRecords:
 		return m.clearedunlocked_order_lock_records
+	case user.EdgeAutoTriggeredOrderLockRecords:
+		return m.clearedauto_triggered_order_lock_records
 	case user.EdgeOrderUnlockRequests:
 		return m.clearedorder_unlock_requests
 	case user.EdgeDecidedOrderUnlockRequests:
@@ -158868,6 +159591,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeUnlockedOrderLockRecords:
 		m.ResetUnlockedOrderLockRecords()
+		return nil
+	case user.EdgeAutoTriggeredOrderLockRecords:
+		m.ResetAutoTriggeredOrderLockRecords()
 		return nil
 	case user.EdgeOrderUnlockRequests:
 		m.ResetOrderUnlockRequests()

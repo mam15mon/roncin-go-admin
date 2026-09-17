@@ -631,6 +631,62 @@ func (_c *OrderCreate) SetNillableLockGeneration(v *uint64) *OrderCreate {
 	return _c
 }
 
+// SetLockSource sets the "lock_source" field.
+func (_c *OrderCreate) SetLockSource(v order.LockSource) *OrderCreate {
+	_c.mutation.SetLockSource(v)
+	return _c
+}
+
+// SetNillableLockSource sets the "lock_source" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableLockSource(v *order.LockSource) *OrderCreate {
+	if v != nil {
+		_c.SetLockSource(*v)
+	}
+	return _c
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (_c *OrderCreate) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderCreate {
+	_c.mutation.SetAutoLockTriggerType(v)
+	return _c
+}
+
+// SetNillableAutoLockTriggerType sets the "auto_lock_trigger_type" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableAutoLockTriggerType(v *order.AutoLockTriggerType) *OrderCreate {
+	if v != nil {
+		_c.SetAutoLockTriggerType(*v)
+	}
+	return _c
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (_c *OrderCreate) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetAutoLockTriggerResourceID(v)
+	return _c
+}
+
+// SetNillableAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableAutoLockTriggerResourceID(v *uuid.UUID) *OrderCreate {
+	if v != nil {
+		_c.SetAutoLockTriggerResourceID(*v)
+	}
+	return _c
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (_c *OrderCreate) SetAutoLockTriggeredBy(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetAutoLockTriggeredBy(v)
+	return _c
+}
+
+// SetNillableAutoLockTriggeredBy sets the "auto_lock_triggered_by" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableAutoLockTriggeredBy(v *uuid.UUID) *OrderCreate {
+	if v != nil {
+		_c.SetAutoLockTriggeredBy(*v)
+	}
+	return _c
+}
+
 // SetIsShared sets the "is_shared" field.
 func (_c *OrderCreate) SetIsShared(v bool) *OrderCreate {
 	_c.mutation.SetIsShared(v)
@@ -1742,6 +1798,16 @@ func (_c *OrderCreate) check() error {
 	if _, ok := _c.mutation.LockGeneration(); !ok {
 		return &ValidationError{Name: "lock_generation", err: errors.New(`ent: missing required field "Order.lock_generation"`)}
 	}
+	if v, ok := _c.mutation.LockSource(); ok {
+		if err := order.LockSourceValidator(v); err != nil {
+			return &ValidationError{Name: "lock_source", err: fmt.Errorf(`ent: validator failed for field "Order.lock_source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.AutoLockTriggerType(); ok {
+		if err := order.AutoLockTriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "auto_lock_trigger_type", err: fmt.Errorf(`ent: validator failed for field "Order.auto_lock_trigger_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsShared(); !ok {
 		return &ValidationError{Name: "is_shared", err: errors.New(`ent: missing required field "Order.is_shared"`)}
 	}
@@ -2043,6 +2109,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LockGeneration(); ok {
 		_spec.SetField(order.FieldLockGeneration, field.TypeUint64, value)
 		_node.LockGeneration = value
+	}
+	if value, ok := _c.mutation.LockSource(); ok {
+		_spec.SetField(order.FieldLockSource, field.TypeEnum, value)
+		_node.LockSource = &value
+	}
+	if value, ok := _c.mutation.AutoLockTriggerType(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerType, field.TypeEnum, value)
+		_node.AutoLockTriggerType = &value
+	}
+	if value, ok := _c.mutation.AutoLockTriggerResourceID(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerResourceID, field.TypeUUID, value)
+		_node.AutoLockTriggerResourceID = &value
+	}
+	if value, ok := _c.mutation.AutoLockTriggeredBy(); ok {
+		_spec.SetField(order.FieldAutoLockTriggeredBy, field.TypeUUID, value)
+		_node.AutoLockTriggeredBy = &value
 	}
 	if value, ok := _c.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
@@ -3430,6 +3512,78 @@ func (u *OrderUpsert) AddLockGeneration(v uint64) *OrderUpsert {
 	return u
 }
 
+// SetLockSource sets the "lock_source" field.
+func (u *OrderUpsert) SetLockSource(v order.LockSource) *OrderUpsert {
+	u.Set(order.FieldLockSource, v)
+	return u
+}
+
+// UpdateLockSource sets the "lock_source" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateLockSource() *OrderUpsert {
+	u.SetExcluded(order.FieldLockSource)
+	return u
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (u *OrderUpsert) ClearLockSource() *OrderUpsert {
+	u.SetNull(order.FieldLockSource)
+	return u
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (u *OrderUpsert) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderUpsert {
+	u.Set(order.FieldAutoLockTriggerType, v)
+	return u
+}
+
+// UpdateAutoLockTriggerType sets the "auto_lock_trigger_type" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateAutoLockTriggerType() *OrderUpsert {
+	u.SetExcluded(order.FieldAutoLockTriggerType)
+	return u
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (u *OrderUpsert) ClearAutoLockTriggerType() *OrderUpsert {
+	u.SetNull(order.FieldAutoLockTriggerType)
+	return u
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsert) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldAutoLockTriggerResourceID, v)
+	return u
+}
+
+// UpdateAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateAutoLockTriggerResourceID() *OrderUpsert {
+	u.SetExcluded(order.FieldAutoLockTriggerResourceID)
+	return u
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsert) ClearAutoLockTriggerResourceID() *OrderUpsert {
+	u.SetNull(order.FieldAutoLockTriggerResourceID)
+	return u
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (u *OrderUpsert) SetAutoLockTriggeredBy(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldAutoLockTriggeredBy, v)
+	return u
+}
+
+// UpdateAutoLockTriggeredBy sets the "auto_lock_triggered_by" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateAutoLockTriggeredBy() *OrderUpsert {
+	u.SetExcluded(order.FieldAutoLockTriggeredBy)
+	return u
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (u *OrderUpsert) ClearAutoLockTriggeredBy() *OrderUpsert {
+	u.SetNull(order.FieldAutoLockTriggeredBy)
+	return u
+}
+
 // SetIsShared sets the "is_shared" field.
 func (u *OrderUpsert) SetIsShared(v bool) *OrderUpsert {
 	u.Set(order.FieldIsShared, v)
@@ -4762,6 +4916,90 @@ func (u *OrderUpsertOne) AddLockGeneration(v uint64) *OrderUpsertOne {
 func (u *OrderUpsertOne) UpdateLockGeneration() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateLockGeneration()
+	})
+}
+
+// SetLockSource sets the "lock_source" field.
+func (u *OrderUpsertOne) SetLockSource(v order.LockSource) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockSource(v)
+	})
+}
+
+// UpdateLockSource sets the "lock_source" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateLockSource() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockSource()
+	})
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (u *OrderUpsertOne) ClearLockSource() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockSource()
+	})
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (u *OrderUpsertOne) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggerType(v)
+	})
+}
+
+// UpdateAutoLockTriggerType sets the "auto_lock_trigger_type" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateAutoLockTriggerType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggerType()
+	})
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (u *OrderUpsertOne) ClearAutoLockTriggerType() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggerType()
+	})
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsertOne) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggerResourceID(v)
+	})
+}
+
+// UpdateAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateAutoLockTriggerResourceID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggerResourceID()
+	})
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsertOne) ClearAutoLockTriggerResourceID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggerResourceID()
+	})
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (u *OrderUpsertOne) SetAutoLockTriggeredBy(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggeredBy(v)
+	})
+}
+
+// UpdateAutoLockTriggeredBy sets the "auto_lock_triggered_by" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateAutoLockTriggeredBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggeredBy()
+	})
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (u *OrderUpsertOne) ClearAutoLockTriggeredBy() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggeredBy()
 	})
 }
 
@@ -6341,6 +6579,90 @@ func (u *OrderUpsertBulk) AddLockGeneration(v uint64) *OrderUpsertBulk {
 func (u *OrderUpsertBulk) UpdateLockGeneration() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateLockGeneration()
+	})
+}
+
+// SetLockSource sets the "lock_source" field.
+func (u *OrderUpsertBulk) SetLockSource(v order.LockSource) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetLockSource(v)
+	})
+}
+
+// UpdateLockSource sets the "lock_source" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateLockSource() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateLockSource()
+	})
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (u *OrderUpsertBulk) ClearLockSource() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearLockSource()
+	})
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (u *OrderUpsertBulk) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggerType(v)
+	})
+}
+
+// UpdateAutoLockTriggerType sets the "auto_lock_trigger_type" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateAutoLockTriggerType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggerType()
+	})
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (u *OrderUpsertBulk) ClearAutoLockTriggerType() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggerType()
+	})
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsertBulk) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggerResourceID(v)
+	})
+}
+
+// UpdateAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateAutoLockTriggerResourceID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggerResourceID()
+	})
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (u *OrderUpsertBulk) ClearAutoLockTriggerResourceID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggerResourceID()
+	})
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (u *OrderUpsertBulk) SetAutoLockTriggeredBy(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetAutoLockTriggeredBy(v)
+	})
+}
+
+// UpdateAutoLockTriggeredBy sets the "auto_lock_triggered_by" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateAutoLockTriggeredBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateAutoLockTriggeredBy()
+	})
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (u *OrderUpsertBulk) ClearAutoLockTriggeredBy() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearAutoLockTriggeredBy()
 	})
 }
 

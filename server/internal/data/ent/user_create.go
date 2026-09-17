@@ -890,6 +890,21 @@ func (_c *UserCreate) AddUnlockedOrderLockRecords(v ...*OrderLockRecord) *UserCr
 	return _c.AddUnlockedOrderLockRecordIDs(ids...)
 }
 
+// AddAutoTriggeredOrderLockRecordIDs adds the "auto_triggered_order_lock_records" edge to the OrderLockRecord entity by IDs.
+func (_c *UserCreate) AddAutoTriggeredOrderLockRecordIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddAutoTriggeredOrderLockRecordIDs(ids...)
+	return _c
+}
+
+// AddAutoTriggeredOrderLockRecords adds the "auto_triggered_order_lock_records" edges to the OrderLockRecord entity.
+func (_c *UserCreate) AddAutoTriggeredOrderLockRecords(v ...*OrderLockRecord) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAutoTriggeredOrderLockRecordIDs(ids...)
+}
+
 // AddOrderUnlockRequestIDs adds the "order_unlock_requests" edge to the OrderUnlockRequest entity by IDs.
 func (_c *UserCreate) AddOrderUnlockRequestIDs(ids ...uuid.UUID) *UserCreate {
 	_c.mutation.AddOrderUnlockRequestIDs(ids...)
@@ -1924,6 +1939,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Inverse: false,
 			Table:   user.UnlockedOrderLockRecordsTable,
 			Columns: []string{user.UnlockedOrderLockRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AutoTriggeredOrderLockRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AutoTriggeredOrderLockRecordsTable,
+			Columns: []string{user.AutoTriggeredOrderLockRecordsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),

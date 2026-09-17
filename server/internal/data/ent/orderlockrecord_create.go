@@ -77,9 +77,31 @@ func (_c *OrderLockRecordCreate) SetGeneration(v uint64) *OrderLockRecordCreate 
 	return _c
 }
 
+// SetLockSource sets the "lock_source" field.
+func (_c *OrderLockRecordCreate) SetLockSource(v orderlockrecord.LockSource) *OrderLockRecordCreate {
+	_c.mutation.SetLockSource(v)
+	return _c
+}
+
+// SetNillableLockSource sets the "lock_source" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableLockSource(v *orderlockrecord.LockSource) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetLockSource(*v)
+	}
+	return _c
+}
+
 // SetLockedBy sets the "locked_by" field.
 func (_c *OrderLockRecordCreate) SetLockedBy(v uuid.UUID) *OrderLockRecordCreate {
 	_c.mutation.SetLockedBy(v)
+	return _c
+}
+
+// SetNillableLockedBy sets the "locked_by" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableLockedBy(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetLockedBy(*v)
+	}
 	return _c
 }
 
@@ -92,6 +114,48 @@ func (_c *OrderLockRecordCreate) SetLockedAt(v time.Time) *OrderLockRecordCreate
 // SetOrderVersionAtLock sets the "order_version_at_lock" field.
 func (_c *OrderLockRecordCreate) SetOrderVersionAtLock(v uint64) *OrderLockRecordCreate {
 	_c.mutation.SetOrderVersionAtLock(v)
+	return _c
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (_c *OrderLockRecordCreate) SetTriggerType(v orderlockrecord.TriggerType) *OrderLockRecordCreate {
+	_c.mutation.SetTriggerType(v)
+	return _c
+}
+
+// SetNillableTriggerType sets the "trigger_type" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTriggerType(v *orderlockrecord.TriggerType) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetTriggerType(*v)
+	}
+	return _c
+}
+
+// SetTriggerResourceID sets the "trigger_resource_id" field.
+func (_c *OrderLockRecordCreate) SetTriggerResourceID(v uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.SetTriggerResourceID(v)
+	return _c
+}
+
+// SetNillableTriggerResourceID sets the "trigger_resource_id" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTriggerResourceID(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetTriggerResourceID(*v)
+	}
+	return _c
+}
+
+// SetTriggeredBy sets the "triggered_by" field.
+func (_c *OrderLockRecordCreate) SetTriggeredBy(v uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.SetTriggeredBy(v)
+	return _c
+}
+
+// SetNillableTriggeredBy sets the "triggered_by" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTriggeredBy(v *uuid.UUID) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetTriggeredBy(*v)
+	}
 	return _c
 }
 
@@ -277,9 +341,36 @@ func (_c *OrderLockRecordCreate) SetLockedByUserID(id uuid.UUID) *OrderLockRecor
 	return _c
 }
 
+// SetNillableLockedByUserID sets the "locked_by_user" edge to the User entity by ID if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableLockedByUserID(id *uuid.UUID) *OrderLockRecordCreate {
+	if id != nil {
+		_c = _c.SetLockedByUserID(*id)
+	}
+	return _c
+}
+
 // SetLockedByUser sets the "locked_by_user" edge to the User entity.
 func (_c *OrderLockRecordCreate) SetLockedByUser(v *User) *OrderLockRecordCreate {
 	return _c.SetLockedByUserID(v.ID)
+}
+
+// SetTriggeredByUserID sets the "triggered_by_user" edge to the User entity by ID.
+func (_c *OrderLockRecordCreate) SetTriggeredByUserID(id uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.SetTriggeredByUserID(id)
+	return _c
+}
+
+// SetNillableTriggeredByUserID sets the "triggered_by_user" edge to the User entity by ID if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableTriggeredByUserID(id *uuid.UUID) *OrderLockRecordCreate {
+	if id != nil {
+		_c = _c.SetTriggeredByUserID(*id)
+	}
+	return _c
+}
+
+// SetTriggeredByUser sets the "triggered_by_user" edge to the User entity.
+func (_c *OrderLockRecordCreate) SetTriggeredByUser(v *User) *OrderLockRecordCreate {
+	return _c.SetTriggeredByUserID(v.ID)
 }
 
 // SetUnlockedByUserID sets the "unlocked_by_user" edge to the User entity by ID.
@@ -409,6 +500,10 @@ func (_c *OrderLockRecordCreate) defaults() {
 		v := orderlockrecord.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
+	if _, ok := _c.mutation.LockSource(); !ok {
+		v := orderlockrecord.DefaultLockSource
+		_c.mutation.SetLockSource(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := orderlockrecord.DefaultID()
 		_c.mutation.SetID(v)
@@ -445,14 +540,24 @@ func (_c *OrderLockRecordCreate) check() error {
 	if _, ok := _c.mutation.Generation(); !ok {
 		return &ValidationError{Name: "generation", err: errors.New(`ent: missing required field "OrderLockRecord.generation"`)}
 	}
-	if _, ok := _c.mutation.LockedBy(); !ok {
-		return &ValidationError{Name: "locked_by", err: errors.New(`ent: missing required field "OrderLockRecord.locked_by"`)}
+	if _, ok := _c.mutation.LockSource(); !ok {
+		return &ValidationError{Name: "lock_source", err: errors.New(`ent: missing required field "OrderLockRecord.lock_source"`)}
+	}
+	if v, ok := _c.mutation.LockSource(); ok {
+		if err := orderlockrecord.LockSourceValidator(v); err != nil {
+			return &ValidationError{Name: "lock_source", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.lock_source": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.LockedAt(); !ok {
 		return &ValidationError{Name: "locked_at", err: errors.New(`ent: missing required field "OrderLockRecord.locked_at"`)}
 	}
 	if _, ok := _c.mutation.OrderVersionAtLock(); !ok {
 		return &ValidationError{Name: "order_version_at_lock", err: errors.New(`ent: missing required field "OrderLockRecord.order_version_at_lock"`)}
+	}
+	if v, ok := _c.mutation.TriggerType(); ok {
+		if err := orderlockrecord.TriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_type", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.trigger_type": %w`, err)}
+		}
 	}
 	if v, ok := _c.mutation.UnlockReason(); ok {
 		if err := orderlockrecord.UnlockReasonValidator(v); err != nil {
@@ -485,9 +590,6 @@ func (_c *OrderLockRecordCreate) check() error {
 	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "OrderLockRecord.order"`)}
-	}
-	if len(_c.mutation.LockedByUserIDs()) == 0 {
-		return &ValidationError{Name: "locked_by_user", err: errors.New(`ent: missing required edge "OrderLockRecord.locked_by_user"`)}
 	}
 	return nil
 }
@@ -541,6 +643,10 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		_spec.SetField(orderlockrecord.FieldGeneration, field.TypeUint64, value)
 		_node.Generation = value
 	}
+	if value, ok := _c.mutation.LockSource(); ok {
+		_spec.SetField(orderlockrecord.FieldLockSource, field.TypeEnum, value)
+		_node.LockSource = value
+	}
 	if value, ok := _c.mutation.LockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldLockedAt, field.TypeTime, value)
 		_node.LockedAt = value
@@ -548,6 +654,14 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 	if value, ok := _c.mutation.OrderVersionAtLock(); ok {
 		_spec.SetField(orderlockrecord.FieldOrderVersionAtLock, field.TypeUint64, value)
 		_node.OrderVersionAtLock = value
+	}
+	if value, ok := _c.mutation.TriggerType(); ok {
+		_spec.SetField(orderlockrecord.FieldTriggerType, field.TypeEnum, value)
+		_node.TriggerType = &value
+	}
+	if value, ok := _c.mutation.TriggerResourceID(); ok {
+		_spec.SetField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID, value)
+		_node.TriggerResourceID = &value
 	}
 	if value, ok := _c.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)
@@ -621,7 +735,24 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.LockedBy = nodes[0]
+		_node.LockedBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TriggeredByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderlockrecord.TriggeredByUserTable,
+			Columns: []string{orderlockrecord.TriggeredByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.TriggeredBy = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UnlockedByUserIDs(); len(nodes) > 0 {
@@ -959,6 +1090,9 @@ func (u *OrderLockRecordUpsertOne) UpdateNewValues() *OrderLockRecordUpsertOne {
 		if _, exists := u.create.mutation.Generation(); exists {
 			s.SetIgnore(orderlockrecord.FieldGeneration)
 		}
+		if _, exists := u.create.mutation.LockSource(); exists {
+			s.SetIgnore(orderlockrecord.FieldLockSource)
+		}
 		if _, exists := u.create.mutation.LockedBy(); exists {
 			s.SetIgnore(orderlockrecord.FieldLockedBy)
 		}
@@ -967,6 +1101,15 @@ func (u *OrderLockRecordUpsertOne) UpdateNewValues() *OrderLockRecordUpsertOne {
 		}
 		if _, exists := u.create.mutation.OrderVersionAtLock(); exists {
 			s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+		}
+		if _, exists := u.create.mutation.TriggerType(); exists {
+			s.SetIgnore(orderlockrecord.FieldTriggerType)
+		}
+		if _, exists := u.create.mutation.TriggerResourceID(); exists {
+			s.SetIgnore(orderlockrecord.FieldTriggerResourceID)
+		}
+		if _, exists := u.create.mutation.TriggeredBy(); exists {
+			s.SetIgnore(orderlockrecord.FieldTriggeredBy)
 		}
 		if _, exists := u.create.mutation.MasterBillID(); exists {
 			s.SetIgnore(orderlockrecord.FieldMasterBillID)
@@ -1351,6 +1494,9 @@ func (u *OrderLockRecordUpsertBulk) UpdateNewValues() *OrderLockRecordUpsertBulk
 			if _, exists := b.mutation.Generation(); exists {
 				s.SetIgnore(orderlockrecord.FieldGeneration)
 			}
+			if _, exists := b.mutation.LockSource(); exists {
+				s.SetIgnore(orderlockrecord.FieldLockSource)
+			}
 			if _, exists := b.mutation.LockedBy(); exists {
 				s.SetIgnore(orderlockrecord.FieldLockedBy)
 			}
@@ -1359,6 +1505,15 @@ func (u *OrderLockRecordUpsertBulk) UpdateNewValues() *OrderLockRecordUpsertBulk
 			}
 			if _, exists := b.mutation.OrderVersionAtLock(); exists {
 				s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+			}
+			if _, exists := b.mutation.TriggerType(); exists {
+				s.SetIgnore(orderlockrecord.FieldTriggerType)
+			}
+			if _, exists := b.mutation.TriggerResourceID(); exists {
+				s.SetIgnore(orderlockrecord.FieldTriggerResourceID)
+			}
+			if _, exists := b.mutation.TriggeredBy(); exists {
+				s.SetIgnore(orderlockrecord.FieldTriggeredBy)
 			}
 			if _, exists := b.mutation.MasterBillID(); exists {
 				s.SetIgnore(orderlockrecord.FieldMasterBillID)

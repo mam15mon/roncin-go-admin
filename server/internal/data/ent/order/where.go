@@ -226,6 +226,16 @@ func LockGeneration(v uint64) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldLockGeneration, v))
 }
 
+// AutoLockTriggerResourceID applies equality check predicate on the "auto_lock_trigger_resource_id" field. It's identical to AutoLockTriggerResourceIDEQ.
+func AutoLockTriggerResourceID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggeredBy applies equality check predicate on the "auto_lock_triggered_by" field. It's identical to AutoLockTriggeredByEQ.
+func AutoLockTriggeredBy(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAutoLockTriggeredBy, v))
+}
+
 // IsShared applies equality check predicate on the "is_shared" field. It's identical to IsSharedEQ.
 func IsShared(v bool) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldIsShared, v))
@@ -2624,6 +2634,166 @@ func LockGenerationLT(v uint64) predicate.Order {
 // LockGenerationLTE applies the LTE predicate on the "lock_generation" field.
 func LockGenerationLTE(v uint64) predicate.Order {
 	return predicate.Order(sql.FieldLTE(FieldLockGeneration, v))
+}
+
+// LockSourceEQ applies the EQ predicate on the "lock_source" field.
+func LockSourceEQ(v LockSource) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockSource, v))
+}
+
+// LockSourceNEQ applies the NEQ predicate on the "lock_source" field.
+func LockSourceNEQ(v LockSource) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldLockSource, v))
+}
+
+// LockSourceIn applies the In predicate on the "lock_source" field.
+func LockSourceIn(vs ...LockSource) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldLockSource, vs...))
+}
+
+// LockSourceNotIn applies the NotIn predicate on the "lock_source" field.
+func LockSourceNotIn(vs ...LockSource) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldLockSource, vs...))
+}
+
+// LockSourceIsNil applies the IsNil predicate on the "lock_source" field.
+func LockSourceIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldLockSource))
+}
+
+// LockSourceNotNil applies the NotNil predicate on the "lock_source" field.
+func LockSourceNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldLockSource))
+}
+
+// AutoLockTriggerTypeEQ applies the EQ predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeEQ(v AutoLockTriggerType) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAutoLockTriggerType, v))
+}
+
+// AutoLockTriggerTypeNEQ applies the NEQ predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeNEQ(v AutoLockTriggerType) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldAutoLockTriggerType, v))
+}
+
+// AutoLockTriggerTypeIn applies the In predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeIn(vs ...AutoLockTriggerType) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldAutoLockTriggerType, vs...))
+}
+
+// AutoLockTriggerTypeNotIn applies the NotIn predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeNotIn(vs ...AutoLockTriggerType) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldAutoLockTriggerType, vs...))
+}
+
+// AutoLockTriggerTypeIsNil applies the IsNil predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldAutoLockTriggerType))
+}
+
+// AutoLockTriggerTypeNotNil applies the NotNil predicate on the "auto_lock_trigger_type" field.
+func AutoLockTriggerTypeNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldAutoLockTriggerType))
+}
+
+// AutoLockTriggerResourceIDEQ applies the EQ predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDNEQ applies the NEQ predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDIn applies the In predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldAutoLockTriggerResourceID, vs...))
+}
+
+// AutoLockTriggerResourceIDNotIn applies the NotIn predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldAutoLockTriggerResourceID, vs...))
+}
+
+// AutoLockTriggerResourceIDGT applies the GT predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDGTE applies the GTE predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDLT applies the LT predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDLTE applies the LTE predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldAutoLockTriggerResourceID, v))
+}
+
+// AutoLockTriggerResourceIDIsNil applies the IsNil predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldAutoLockTriggerResourceID))
+}
+
+// AutoLockTriggerResourceIDNotNil applies the NotNil predicate on the "auto_lock_trigger_resource_id" field.
+func AutoLockTriggerResourceIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldAutoLockTriggerResourceID))
+}
+
+// AutoLockTriggeredByEQ applies the EQ predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByNEQ applies the NEQ predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByIn applies the In predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldAutoLockTriggeredBy, vs...))
+}
+
+// AutoLockTriggeredByNotIn applies the NotIn predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldAutoLockTriggeredBy, vs...))
+}
+
+// AutoLockTriggeredByGT applies the GT predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByGTE applies the GTE predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByLT applies the LT predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByLTE applies the LTE predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldAutoLockTriggeredBy, v))
+}
+
+// AutoLockTriggeredByIsNil applies the IsNil predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldAutoLockTriggeredBy))
+}
+
+// AutoLockTriggeredByNotNil applies the NotNil predicate on the "auto_lock_triggered_by" field.
+func AutoLockTriggeredByNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldAutoLockTriggeredBy))
 }
 
 // IsSharedEQ applies the EQ predicate on the "is_shared" field.

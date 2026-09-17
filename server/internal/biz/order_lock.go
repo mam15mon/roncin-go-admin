@@ -30,6 +30,12 @@ const (
 	VersionSourceAmendment  = "AMENDMENT"
 	VersionSourceVoid       = "VOID"
 	VersionSourceModeChange = "MODE_CHANGE"
+
+	// LockSourceManual 人工锁定：locked_by 必填，归属实际锁定人。
+	LockSourceManual = "MANUAL"
+	// LockSourceAutoSettlement 结清事件驱动的系统自动锁定：locked_by 为空，
+	// 页面固定展示【系统自动锁定】，触发审计记录在 trigger 字段。
+	LockSourceAutoSettlement = "AUTO_SETTLEMENT"
 )
 
 var (
@@ -76,6 +82,7 @@ type OrderLockState struct {
 	LockedAt                *time.Time
 	LockedBy                *uuid.UUID
 	LockedByName            *string
+	LockSource              *string
 	OrderVersion            uint64
 	CanLock                 bool
 	CanRoleDirectUnlock     bool
@@ -95,10 +102,15 @@ type OrderLockRecord struct {
 	OrderNo              string
 	BusinessType         OrderBusinessType
 	Generation           uint64
-	LockedBy             uuid.UUID
+	LockSource           string
+	LockedBy             *uuid.UUID
 	LockedByName         string
 	LockedAt             time.Time
 	OrderVersionAtLock   uint64
+	TriggerType          *string
+	TriggerResourceID    *uuid.UUID
+	TriggeredBy          *uuid.UUID
+	TriggeredByName      *string
 	MasterBillID         *uuid.UUID
 	MasterBillVersionID  *uuid.UUID
 	UnlockedBy           *uuid.UUID

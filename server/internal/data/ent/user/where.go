@@ -1991,6 +1991,29 @@ func HasUnlockedOrderLockRecordsWith(preds ...predicate.OrderLockRecord) predica
 	})
 }
 
+// HasAutoTriggeredOrderLockRecords applies the HasEdge predicate on the "auto_triggered_order_lock_records" edge.
+func HasAutoTriggeredOrderLockRecords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AutoTriggeredOrderLockRecordsTable, AutoTriggeredOrderLockRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAutoTriggeredOrderLockRecordsWith applies the HasEdge predicate on the "auto_triggered_order_lock_records" edge with a given conditions (other predicates).
+func HasAutoTriggeredOrderLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAutoTriggeredOrderLockRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderUnlockRequests applies the HasEdge predicate on the "order_unlock_requests" edge.
 func HasOrderUnlockRequests() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

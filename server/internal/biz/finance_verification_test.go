@@ -175,7 +175,7 @@ func TestVerificationCreateUsesOneSharedTransaction(t *testing.T) {
 		rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 	}
 	transactor := &verificationTransactorStub{}
-	usecase := NewVerificationUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor)
+	usecase := NewVerificationUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor, nil, nil)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateVerificationInput{
 		Allocations:      []*VerificationAllocation{{CashflowID: cashflowID, BillID: billID, Amount: decimal.RequireFromString("40")}},
@@ -207,7 +207,7 @@ func TestVerificationCreationCandidatesUseOneExplicitOrganizationAndPreserveRepo
 	partyID := uuid.New()
 	expected := errors.New("候选查询失败")
 	repo := &verificationCandidateRepoStub{err: expected}
-	usecase := NewVerificationUsecase(repo, nil, nil)
+	usecase := NewVerificationUsecase(repo, nil, nil, nil, nil)
 
 	_, err := usecase.ListCreationCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{
 		Direction:         OrderFeeReceivable,
@@ -232,7 +232,7 @@ func TestVerificationListScopedValidatesDirectionAndPreservesRepositoryError(t *
 	organizationID := uuid.New()
 	expected := errors.New("核销列表查询失败")
 	repo := &verificationListRepoStub{err: expected}
-	usecase := NewVerificationUsecase(repo, nil, nil)
+	usecase := NewVerificationUsecase(repo, nil, nil, nil, nil)
 	filter := VerificationFilter{Page: 1, PageSize: 20, Direction: OrderFeeReceivable}
 	if _, err := usecase.ListScoped(context.Background(), []uuid.UUID{organizationID}, filter); !errors.Is(err, expected) {
 		t.Fatalf("列表错误 = %v，期望原样返回 %v", err, expected)

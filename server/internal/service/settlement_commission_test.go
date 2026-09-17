@@ -149,8 +149,8 @@ func newCommissionService(org uuid.UUID) (*SettlementService, *commissionRepoStu
 		},
 	}
 	usecase := biz.NewCommissionUsecase(repo, nil, &commissionTransactorStub{})
-	verificationUsecase := biz.NewVerificationUsecase(&verificationRepoStub{}, nil, nil)
-	nettingUsecase := biz.NewFinanceNettingUsecase(&nettingRepoStub{}, nil)
+	verificationUsecase := biz.NewVerificationUsecase(&verificationRepoStub{}, nil, nil, nil, nil)
+	nettingUsecase := biz.NewFinanceNettingUsecase(&nettingRepoStub{}, nil, nil, nil)
 	service := NewSettlementService(nil, nil, nil, nil, verificationUsecase, nettingUsecase, usecase, nil, nil, nil, nil)
 	return service, repo
 }
@@ -386,7 +386,7 @@ func TestListCommissionVerificationCandidatesUsesManageWritableOrganization(t *t
 		ID: uuid.New(), OrganizationID: allowed, VerificationNo: "VR202609100001", Status: biz.VerificationActive,
 		Direction: biz.OrderFeeReceivable, SettlementPartyName: "测试结算单位", Currency: "CNY",
 	}}}}
-	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil), nil, nil, nil, nil, nil, nil)
+	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil, nil, nil), nil, nil, nil, nil, nil, nil)
 	principal := &biz.Principal{
 		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,

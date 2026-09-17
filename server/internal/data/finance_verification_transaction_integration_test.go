@@ -104,7 +104,7 @@ func (f *verificationPostgresFixture) input(key string) biz.CreateVerificationIn
 }
 
 func (f *verificationPostgresFixture) newUsecase(repo biz.VerificationRepo, exchangeRepo biz.ExchangeRateRepo) *biz.VerificationUsecase {
-	return biz.NewVerificationUsecase(repo, biz.NewExchangeRateUsecase(exchangeRepo, nil), f.data)
+	return biz.NewVerificationUsecase(repo, biz.NewExchangeRateUsecase(exchangeRepo, nil), f.data, nil, nil)
 }
 
 func createVerificationsConcurrently(usecase *biz.VerificationUsecase, organizationID, actorID uuid.UUID, inputs ...biz.CreateVerificationInput) []verificationCreateResult {

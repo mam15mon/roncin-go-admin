@@ -96,6 +96,16 @@ func OrderVersionAtLock(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldOrderVersionAtLock, v))
 }
 
+// TriggerResourceID applies equality check predicate on the "trigger_resource_id" field. It's identical to TriggerResourceIDEQ.
+func TriggerResourceID(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggerResourceID, v))
+}
+
+// TriggeredBy applies equality check predicate on the "triggered_by" field. It's identical to TriggeredByEQ.
+func TriggeredBy(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggeredBy, v))
+}
+
 // MasterBillID applies equality check predicate on the "master_bill_id" field. It's identical to MasterBillIDEQ.
 func MasterBillID(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldMasterBillID, v))
@@ -356,6 +366,26 @@ func GenerationLTE(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldLTE(FieldGeneration, v))
 }
 
+// LockSourceEQ applies the EQ predicate on the "lock_source" field.
+func LockSourceEQ(v LockSource) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldLockSource, v))
+}
+
+// LockSourceNEQ applies the NEQ predicate on the "lock_source" field.
+func LockSourceNEQ(v LockSource) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldLockSource, v))
+}
+
+// LockSourceIn applies the In predicate on the "lock_source" field.
+func LockSourceIn(vs ...LockSource) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldLockSource, vs...))
+}
+
+// LockSourceNotIn applies the NotIn predicate on the "lock_source" field.
+func LockSourceNotIn(vs ...LockSource) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldLockSource, vs...))
+}
+
 // LockedByEQ applies the EQ predicate on the "locked_by" field.
 func LockedByEQ(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldLockedBy, v))
@@ -374,6 +404,16 @@ func LockedByIn(vs ...uuid.UUID) predicate.OrderLockRecord {
 // LockedByNotIn applies the NotIn predicate on the "locked_by" field.
 func LockedByNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldNotIn(FieldLockedBy, vs...))
+}
+
+// LockedByIsNil applies the IsNil predicate on the "locked_by" field.
+func LockedByIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldLockedBy))
+}
+
+// LockedByNotNil applies the NotNil predicate on the "locked_by" field.
+func LockedByNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldLockedBy))
 }
 
 // LockedAtEQ applies the EQ predicate on the "locked_at" field.
@@ -454,6 +494,116 @@ func OrderVersionAtLockLT(v uint64) predicate.OrderLockRecord {
 // OrderVersionAtLockLTE applies the LTE predicate on the "order_version_at_lock" field.
 func OrderVersionAtLockLTE(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldLTE(FieldOrderVersionAtLock, v))
+}
+
+// TriggerTypeEQ applies the EQ predicate on the "trigger_type" field.
+func TriggerTypeEQ(v TriggerType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggerType, v))
+}
+
+// TriggerTypeNEQ applies the NEQ predicate on the "trigger_type" field.
+func TriggerTypeNEQ(v TriggerType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldTriggerType, v))
+}
+
+// TriggerTypeIn applies the In predicate on the "trigger_type" field.
+func TriggerTypeIn(vs ...TriggerType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldTriggerType, vs...))
+}
+
+// TriggerTypeNotIn applies the NotIn predicate on the "trigger_type" field.
+func TriggerTypeNotIn(vs ...TriggerType) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldTriggerType, vs...))
+}
+
+// TriggerTypeIsNil applies the IsNil predicate on the "trigger_type" field.
+func TriggerTypeIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldTriggerType))
+}
+
+// TriggerTypeNotNil applies the NotNil predicate on the "trigger_type" field.
+func TriggerTypeNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTriggerType))
+}
+
+// TriggerResourceIDEQ applies the EQ predicate on the "trigger_resource_id" field.
+func TriggerResourceIDEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDNEQ applies the NEQ predicate on the "trigger_resource_id" field.
+func TriggerResourceIDNEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDIn applies the In predicate on the "trigger_resource_id" field.
+func TriggerResourceIDIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldTriggerResourceID, vs...))
+}
+
+// TriggerResourceIDNotIn applies the NotIn predicate on the "trigger_resource_id" field.
+func TriggerResourceIDNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldTriggerResourceID, vs...))
+}
+
+// TriggerResourceIDGT applies the GT predicate on the "trigger_resource_id" field.
+func TriggerResourceIDGT(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGT(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDGTE applies the GTE predicate on the "trigger_resource_id" field.
+func TriggerResourceIDGTE(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGTE(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDLT applies the LT predicate on the "trigger_resource_id" field.
+func TriggerResourceIDLT(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLT(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDLTE applies the LTE predicate on the "trigger_resource_id" field.
+func TriggerResourceIDLTE(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLTE(FieldTriggerResourceID, v))
+}
+
+// TriggerResourceIDIsNil applies the IsNil predicate on the "trigger_resource_id" field.
+func TriggerResourceIDIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldTriggerResourceID))
+}
+
+// TriggerResourceIDNotNil applies the NotNil predicate on the "trigger_resource_id" field.
+func TriggerResourceIDNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTriggerResourceID))
+}
+
+// TriggeredByEQ applies the EQ predicate on the "triggered_by" field.
+func TriggeredByEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggeredBy, v))
+}
+
+// TriggeredByNEQ applies the NEQ predicate on the "triggered_by" field.
+func TriggeredByNEQ(v uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldTriggeredBy, v))
+}
+
+// TriggeredByIn applies the In predicate on the "triggered_by" field.
+func TriggeredByIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldTriggeredBy, vs...))
+}
+
+// TriggeredByNotIn applies the NotIn predicate on the "triggered_by" field.
+func TriggeredByNotIn(vs ...uuid.UUID) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldTriggeredBy, vs...))
+}
+
+// TriggeredByIsNil applies the IsNil predicate on the "triggered_by" field.
+func TriggeredByIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldTriggeredBy))
+}
+
+// TriggeredByNotNil applies the NotNil predicate on the "triggered_by" field.
+func TriggeredByNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTriggeredBy))
 }
 
 // MasterBillIDEQ applies the EQ predicate on the "master_bill_id" field.
@@ -1032,6 +1182,29 @@ func HasLockedByUser() predicate.OrderLockRecord {
 func HasLockedByUserWith(preds ...predicate.User) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(func(s *sql.Selector) {
 		step := newLockedByUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTriggeredByUser applies the HasEdge predicate on the "triggered_by_user" edge.
+func HasTriggeredByUser() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TriggeredByUserTable, TriggeredByUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTriggeredByUserWith applies the HasEdge predicate on the "triggered_by_user" edge with a given conditions (other predicates).
+func HasTriggeredByUserWith(preds ...predicate.User) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := newTriggeredByUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -112,6 +112,14 @@ type Order struct {
 	LockedBy *uuid.UUID `json:"locked_by,omitempty"`
 	// LockGeneration holds the value of the "lock_generation" field.
 	LockGeneration uint64 `json:"lock_generation,omitempty"`
+	// LockSource holds the value of the "lock_source" field.
+	LockSource *order.LockSource `json:"lock_source,omitempty"`
+	// AutoLockTriggerType holds the value of the "auto_lock_trigger_type" field.
+	AutoLockTriggerType *order.AutoLockTriggerType `json:"auto_lock_trigger_type,omitempty"`
+	// AutoLockTriggerResourceID holds the value of the "auto_lock_trigger_resource_id" field.
+	AutoLockTriggerResourceID *uuid.UUID `json:"auto_lock_trigger_resource_id,omitempty"`
+	// AutoLockTriggeredBy holds the value of the "auto_lock_triggered_by" field.
+	AutoLockTriggeredBy *uuid.UUID `json:"auto_lock_triggered_by,omitempty"`
 	// IsShared holds the value of the "is_shared" field.
 	IsShared bool `json:"is_shared,omitempty"`
 	// Version holds the value of the "version" field.
@@ -551,7 +559,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldShippingLineID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldLockedBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
+		case order.FieldShippingLineID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldLockedBy, order.FieldAutoLockTriggerResourceID, order.FieldAutoLockTriggeredBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldIsShared:
 			values[i] = new(sql.NullBool)
@@ -559,7 +567,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -872,6 +880,34 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field lock_generation", values[i])
 			} else if value.Valid {
 				_m.LockGeneration = uint64(value.Int64)
+			}
+		case order.FieldLockSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field lock_source", values[i])
+			} else if value.Valid {
+				_m.LockSource = new(order.LockSource)
+				*_m.LockSource = order.LockSource(value.String)
+			}
+		case order.FieldAutoLockTriggerType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_lock_trigger_type", values[i])
+			} else if value.Valid {
+				_m.AutoLockTriggerType = new(order.AutoLockTriggerType)
+				*_m.AutoLockTriggerType = order.AutoLockTriggerType(value.String)
+			}
+		case order.FieldAutoLockTriggerResourceID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_lock_trigger_resource_id", values[i])
+			} else if value.Valid {
+				_m.AutoLockTriggerResourceID = new(uuid.UUID)
+				*_m.AutoLockTriggerResourceID = *value.S.(*uuid.UUID)
+			}
+		case order.FieldAutoLockTriggeredBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_lock_triggered_by", values[i])
+			} else if value.Valid {
+				_m.AutoLockTriggeredBy = new(uuid.UUID)
+				*_m.AutoLockTriggeredBy = *value.S.(*uuid.UUID)
 			}
 		case order.FieldIsShared:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -1399,6 +1435,26 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("lock_generation=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LockGeneration))
+	builder.WriteString(", ")
+	if v := _m.LockSource; v != nil {
+		builder.WriteString("lock_source=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.AutoLockTriggerType; v != nil {
+		builder.WriteString("auto_lock_trigger_type=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.AutoLockTriggerResourceID; v != nil {
+		builder.WriteString("auto_lock_trigger_resource_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.AutoLockTriggeredBy; v != nil {
+		builder.WriteString("auto_lock_triggered_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("is_shared=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsShared))

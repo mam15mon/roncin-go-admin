@@ -37,6 +37,7 @@ type OrderLockRecordQuery struct {
 	withOrganization              *OrganizationQuery
 	withOrder                     *OrderQuery
 	withLockedByUser              *UserQuery
+	withTriggeredByUser           *UserQuery
 	withUnlockedByUser            *UserQuery
 	withMasterBill                *SeaMasterBillQuery
 	withMasterBillVersion         *SeaMasterBillVersionQuery
@@ -141,6 +142,28 @@ func (_q *OrderLockRecordQuery) QueryLockedByUser() *UserQuery {
 			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.LockedByUserTable, orderlockrecord.LockedByUserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTriggeredByUser chains the current query on the "triggered_by_user" edge.
+func (_q *OrderLockRecordQuery) QueryTriggeredByUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TriggeredByUserTable, orderlockrecord.TriggeredByUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -519,6 +542,7 @@ func (_q *OrderLockRecordQuery) Clone() *OrderLockRecordQuery {
 		withOrganization:              _q.withOrganization.Clone(),
 		withOrder:                     _q.withOrder.Clone(),
 		withLockedByUser:              _q.withLockedByUser.Clone(),
+		withTriggeredByUser:           _q.withTriggeredByUser.Clone(),
 		withUnlockedByUser:            _q.withUnlockedByUser.Clone(),
 		withMasterBill:                _q.withMasterBill.Clone(),
 		withMasterBillVersion:         _q.withMasterBillVersion.Clone(),
@@ -563,6 +587,17 @@ func (_q *OrderLockRecordQuery) WithLockedByUser(opts ...func(*UserQuery)) *Orde
 		opt(query)
 	}
 	_q.withLockedByUser = query
+	return _q
+}
+
+// WithTriggeredByUser tells the query-builder to eager-load the nodes that are connected to
+// the "triggered_by_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderLockRecordQuery) WithTriggeredByUser(opts ...func(*UserQuery)) *OrderLockRecordQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTriggeredByUser = query
 	return _q
 }
 
@@ -732,10 +767,11 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderLockRecord{}
 		_spec       = _q.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [12]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withLockedByUser != nil,
+			_q.withTriggeredByUser != nil,
 			_q.withUnlockedByUser != nil,
 			_q.withMasterBill != nil,
 			_q.withMasterBillVersion != nil,
@@ -782,6 +818,12 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withLockedByUser; query != nil {
 		if err := _q.loadLockedByUser(ctx, query, nodes, nil,
 			func(n *OrderLockRecord, e *User) { n.Edges.LockedByUser = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTriggeredByUser; query != nil {
+		if err := _q.loadTriggeredByUser(ctx, query, nodes, nil,
+			func(n *OrderLockRecord, e *User) { n.Edges.TriggeredByUser = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -904,7 +946,10 @@ func (_q *OrderLockRecordQuery) loadLockedByUser(ctx context.Context, query *Use
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
 	for i := range nodes {
-		fk := nodes[i].LockedBy
+		if nodes[i].LockedBy == nil {
+			continue
+		}
+		fk := *nodes[i].LockedBy
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -922,6 +967,38 @@ func (_q *OrderLockRecordQuery) loadLockedByUser(ctx context.Context, query *Use
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "locked_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderLockRecordQuery) loadTriggeredByUser(ctx context.Context, query *UserQuery, nodes []*OrderLockRecord, init func(*OrderLockRecord), assign func(*OrderLockRecord, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderLockRecord)
+	for i := range nodes {
+		if nodes[i].TriggeredBy == nil {
+			continue
+		}
+		fk := *nodes[i].TriggeredBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "triggered_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -1218,6 +1295,9 @@ func (_q *OrderLockRecordQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withLockedByUser != nil {
 			_spec.Node.AddColumnOnce(orderlockrecord.FieldLockedBy)
+		}
+		if _q.withTriggeredByUser != nil {
+			_spec.Node.AddColumnOnce(orderlockrecord.FieldTriggeredBy)
 		}
 		if _q.withUnlockedByUser != nil {
 			_spec.Node.AddColumnOnce(orderlockrecord.FieldUnlockedBy)

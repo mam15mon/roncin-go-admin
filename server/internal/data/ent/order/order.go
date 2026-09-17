@@ -106,6 +106,14 @@ const (
 	FieldLockedBy = "locked_by"
 	// FieldLockGeneration holds the string denoting the lock_generation field in the database.
 	FieldLockGeneration = "lock_generation"
+	// FieldLockSource holds the string denoting the lock_source field in the database.
+	FieldLockSource = "lock_source"
+	// FieldAutoLockTriggerType holds the string denoting the auto_lock_trigger_type field in the database.
+	FieldAutoLockTriggerType = "auto_lock_trigger_type"
+	// FieldAutoLockTriggerResourceID holds the string denoting the auto_lock_trigger_resource_id field in the database.
+	FieldAutoLockTriggerResourceID = "auto_lock_trigger_resource_id"
+	// FieldAutoLockTriggeredBy holds the string denoting the auto_lock_triggered_by field in the database.
+	FieldAutoLockTriggeredBy = "auto_lock_triggered_by"
 	// FieldIsShared holds the string denoting the is_shared field in the database.
 	FieldIsShared = "is_shared"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -505,6 +513,10 @@ var Columns = []string{
 	FieldLockedAt,
 	FieldLockedBy,
 	FieldLockGeneration,
+	FieldLockSource,
+	FieldAutoLockTriggerType,
+	FieldAutoLockTriggerResourceID,
+	FieldAutoLockTriggeredBy,
 	FieldIsShared,
 	FieldVersion,
 	FieldOriginLocationID,
@@ -923,6 +935,54 @@ func ClosureStatusValidator(cs ClosureStatus) error {
 	}
 }
 
+// LockSource defines the type for the "lock_source" enum field.
+type LockSource string
+
+// LockSource values.
+const (
+	LockSourceMANUAL          LockSource = "MANUAL"
+	LockSourceAUTO_SETTLEMENT LockSource = "AUTO_SETTLEMENT"
+)
+
+func (ls LockSource) String() string {
+	return string(ls)
+}
+
+// LockSourceValidator is a validator for the "lock_source" field enum values. It is called by the builders before save.
+func LockSourceValidator(ls LockSource) error {
+	switch ls {
+	case LockSourceMANUAL, LockSourceAUTO_SETTLEMENT:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for lock_source field: %q", ls)
+	}
+}
+
+// AutoLockTriggerType defines the type for the "auto_lock_trigger_type" enum field.
+type AutoLockTriggerType string
+
+// AutoLockTriggerType values.
+const (
+	AutoLockTriggerTypeVERIFICATION AutoLockTriggerType = "VERIFICATION"
+	AutoLockTriggerTypeNETTING      AutoLockTriggerType = "NETTING"
+	AutoLockTriggerTypeFEE_CONFIRM  AutoLockTriggerType = "FEE_CONFIRM"
+	AutoLockTriggerTypeFEE_CANCEL   AutoLockTriggerType = "FEE_CANCEL"
+)
+
+func (altt AutoLockTriggerType) String() string {
+	return string(altt)
+}
+
+// AutoLockTriggerTypeValidator is a validator for the "auto_lock_trigger_type" field enum values. It is called by the builders before save.
+func AutoLockTriggerTypeValidator(altt AutoLockTriggerType) error {
+	switch altt {
+	case AutoLockTriggerTypeVERIFICATION, AutoLockTriggerTypeNETTING, AutoLockTriggerTypeFEE_CONFIRM, AutoLockTriggerTypeFEE_CANCEL:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for auto_lock_trigger_type field: %q", altt)
+	}
+}
+
 // OrderOption defines the ordering options for the Order queries.
 type OrderOption func(*sql.Selector)
 
@@ -1154,6 +1214,26 @@ func ByLockedBy(opts ...sql.OrderTermOption) OrderOption {
 // ByLockGeneration orders the results by the lock_generation field.
 func ByLockGeneration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLockGeneration, opts...).ToFunc()
+}
+
+// ByLockSource orders the results by the lock_source field.
+func ByLockSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockSource, opts...).ToFunc()
+}
+
+// ByAutoLockTriggerType orders the results by the auto_lock_trigger_type field.
+func ByAutoLockTriggerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoLockTriggerType, opts...).ToFunc()
+}
+
+// ByAutoLockTriggerResourceID orders the results by the auto_lock_trigger_resource_id field.
+func ByAutoLockTriggerResourceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoLockTriggerResourceID, opts...).ToFunc()
+}
+
+// ByAutoLockTriggeredBy orders the results by the auto_lock_triggered_by field.
+func ByAutoLockTriggeredBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoLockTriggeredBy, opts...).ToFunc()
 }
 
 // ByIsShared orders the results by the is_shared field.

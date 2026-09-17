@@ -139,6 +139,8 @@ type UserEdges struct {
 	OrderLockRecords []*OrderLockRecord `json:"order_lock_records,omitempty"`
 	// UnlockedOrderLockRecords holds the value of the unlocked_order_lock_records edge.
 	UnlockedOrderLockRecords []*OrderLockRecord `json:"unlocked_order_lock_records,omitempty"`
+	// AutoTriggeredOrderLockRecords holds the value of the auto_triggered_order_lock_records edge.
+	AutoTriggeredOrderLockRecords []*OrderLockRecord `json:"auto_triggered_order_lock_records,omitempty"`
 	// OrderUnlockRequests holds the value of the order_unlock_requests edge.
 	OrderUnlockRequests []*OrderUnlockRequest `json:"order_unlock_requests,omitempty"`
 	// DecidedOrderUnlockRequests holds the value of the decided_order_unlock_requests edge.
@@ -165,7 +167,7 @@ type UserEdges struct {
 	DingtalkRequestedOrganization *Organization `json:"dingtalk_requested_organization,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [52]bool
+	loadedTypes [53]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -528,10 +530,19 @@ func (e UserEdges) UnlockedOrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
 	return nil, &NotLoadedError{edge: "unlocked_order_lock_records"}
 }
 
+// AutoTriggeredOrderLockRecordsOrErr returns the AutoTriggeredOrderLockRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AutoTriggeredOrderLockRecordsOrErr() ([]*OrderLockRecord, error) {
+	if e.loadedTypes[40] {
+		return e.AutoTriggeredOrderLockRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "auto_triggered_order_lock_records"}
+}
+
 // OrderUnlockRequestsOrErr returns the OrderUnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[40] {
+	if e.loadedTypes[41] {
 		return e.OrderUnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_requests"}
@@ -540,7 +551,7 @@ func (e UserEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
 // DecidedOrderUnlockRequestsOrErr returns the DecidedOrderUnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) DecidedOrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[41] {
+	if e.loadedTypes[42] {
 		return e.DecidedOrderUnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "decided_order_unlock_requests"}
@@ -549,7 +560,7 @@ func (e UserEdges) DecidedOrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, err
 // OrderUnlockApproverCandidatesOrErr returns the OrderUnlockApproverCandidates value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverCandidate, error) {
-	if e.loadedTypes[42] {
+	if e.loadedTypes[43] {
 		return e.OrderUnlockApproverCandidates, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_approver_candidates"}
@@ -558,7 +569,7 @@ func (e UserEdges) OrderUnlockApproverCandidatesOrErr() ([]*OrderUnlockApproverC
 // CreatedSeaMasterBillVersionsOrErr returns the CreatedSeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[43] {
+	if e.loadedTypes[44] {
 		return e.CreatedSeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_master_bill_versions"}
@@ -567,7 +578,7 @@ func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion,
 // CreatedSeaHouseBillVersionsOrErr returns the CreatedSeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[44] {
+	if e.loadedTypes[45] {
 		return e.CreatedSeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_house_bill_versions"}
@@ -576,7 +587,7 @@ func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, e
 // CreatedSeaDocumentVoidEventsOrErr returns the CreatedSeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[45] {
+	if e.loadedTypes[46] {
 		return e.CreatedSeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_void_events"}
@@ -585,7 +596,7 @@ func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent,
 // CreatedSeaTransportExecutionVersionsOrErr returns the CreatedSeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
-	if e.loadedTypes[46] {
+	if e.loadedTypes[47] {
 		return e.CreatedSeaTransportExecutionVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_transport_execution_versions"}
@@ -594,7 +605,7 @@ func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportE
 // CreatedSeaDocumentModeChangeEventsOrErr returns the CreatedSeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
-	if e.loadedTypes[47] {
+	if e.loadedTypes[48] {
 		return e.CreatedSeaDocumentModeChangeEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_mode_change_events"}
@@ -603,7 +614,7 @@ func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentMode
 // ConfirmedSeaSharedContainersOrErr returns the ConfirmedSeaSharedContainers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, error) {
-	if e.loadedTypes[48] {
+	if e.loadedTypes[49] {
 		return e.ConfirmedSeaSharedContainers, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_sea_shared_containers"}
@@ -612,7 +623,7 @@ func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, e
 // CreatedDingtalkInvitationsOrErr returns the CreatedDingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[49] {
+	if e.loadedTypes[50] {
 		return e.CreatedDingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "created_dingtalk_invitations"}
@@ -621,7 +632,7 @@ func (e UserEdges) CreatedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, err
 // ConsumedDingtalkInvitationsOrErr returns the ConsumedDingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConsumedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[50] {
+	if e.loadedTypes[51] {
 		return e.ConsumedDingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "consumed_dingtalk_invitations"}
@@ -632,7 +643,7 @@ func (e UserEdges) ConsumedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, er
 func (e UserEdges) DingtalkRequestedOrganizationOrErr() (*Organization, error) {
 	if e.DingtalkRequestedOrganization != nil {
 		return e.DingtalkRequestedOrganization, nil
-	} else if e.loadedTypes[51] {
+	} else if e.loadedTypes[52] {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_requested_organization"}
@@ -990,6 +1001,11 @@ func (_m *User) QueryOrderLockRecords() *OrderLockRecordQuery {
 // QueryUnlockedOrderLockRecords queries the "unlocked_order_lock_records" edge of the User entity.
 func (_m *User) QueryUnlockedOrderLockRecords() *OrderLockRecordQuery {
 	return NewUserClient(_m.config).QueryUnlockedOrderLockRecords(_m)
+}
+
+// QueryAutoTriggeredOrderLockRecords queries the "auto_triggered_order_lock_records" edge of the User entity.
+func (_m *User) QueryAutoTriggeredOrderLockRecords() *OrderLockRecordQuery {
+	return NewUserClient(_m.config).QueryAutoTriggeredOrderLockRecords(_m)
 }
 
 // QueryOrderUnlockRequests queries the "order_unlock_requests" edge of the User entity.

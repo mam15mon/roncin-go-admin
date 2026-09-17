@@ -94,6 +94,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("locked_orders", Order.Type),
 		edge.To("order_lock_records", OrderLockRecord.Type),
 		edge.To("unlocked_order_lock_records", OrderLockRecord.Type),
+		edge.To("auto_triggered_order_lock_records", OrderLockRecord.Type),
 		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("decided_order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),

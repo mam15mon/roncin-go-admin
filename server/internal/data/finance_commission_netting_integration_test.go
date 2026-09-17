@@ -286,7 +286,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 }
 
 func (f *commissionNettingPostgresFixture) newNettingUsecase() *biz.FinanceNettingUsecase {
-	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data)
+	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data, nil, nil)
 }
 
 func (f *commissionNettingPostgresFixture) newUsecase() *biz.CommissionUsecase {

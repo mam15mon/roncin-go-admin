@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -12,6 +14,17 @@ import (
 type Order struct{ ent.Schema }
 
 func (Order) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
+
+func (Order) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Checks(map[string]string{
+			// 锁定来源一致性：未锁定时全部锁字段为空；MANUAL 必须有 locked_by
+			// 且自动触发字段为空；AUTO_SETTLEMENT 必须 locked_by 为空且触发
+			// 类型、触发单据与触发操作人完整。
+			"orders_lock_source_check": "(locked_at IS NULL AND locked_by IS NULL AND lock_source IS NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'MANUAL' AND locked_by IS NOT NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND auto_lock_trigger_type IS NOT NULL AND auto_lock_trigger_resource_id IS NOT NULL AND auto_lock_triggered_by IS NOT NULL)",
+		}),
+	}
+}
 
 func (Order) Fields() []ent.Field {
 	return []ent.Field{
@@ -60,6 +73,10 @@ func (Order) Fields() []ent.Field {
 		field.Time("locked_at").Optional().Nillable(),
 		field.UUID("locked_by", uuid.Nil).Optional().Nillable(),
 		field.Uint64("lock_generation").Default(0),
+		field.Enum("lock_source").Values("MANUAL", "AUTO_SETTLEMENT").Optional().Nillable(),
+		field.Enum("auto_lock_trigger_type").Values("VERIFICATION", "NETTING", "FEE_CONFIRM", "FEE_CANCEL").Optional().Nillable(),
+		field.UUID("auto_lock_trigger_resource_id", uuid.Nil).Optional().Nillable(),
+		field.UUID("auto_lock_triggered_by", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_shared").Default(false),
 		field.Uint64("version").Default(1),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),

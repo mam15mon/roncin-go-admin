@@ -449,7 +449,7 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 			t.Fatalf("批次确认不应改变对冲单状态: %#v", confirmedBatch.Nettings)
 		}
 
-		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data)
+		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil, nil)
 		confirmed, err := nettingUsecase.Confirm(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, netting.ID, netting.Version)
 		if err != nil {
 			t.Fatalf("确认对冲单失败: %v", err)

@@ -426,6 +426,27 @@ func (r *financeNettingRepo) Cancel(ctx context.Context, organizationID, actorID
 // 敞口生成 CONFIRMED 冲减调整（Clawback）。
 func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceNetting, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		// 1. 只读解析本次反转涉及的订单：分摊 → 账单 → 账单行。
+		allocations, resolveErr := tx.FinanceNettingAllocation.Query().
+			Where(financenettingallocationent.NettingIDEQ(id)).
+			All(ctx)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		billIDs := make([]uuid.UUID, 0, len(allocations))
+		for _, allocation := range allocations {
+			billIDs = append(billIDs, allocation.BillID)
+		}
+		affectedOrderIDs, resolveErr := orderIDsForBills(ctx, tx.Client(), billIDs)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		// 2. Order 优先固定锁序：仅用于与自动锁定线性化，不施加业务内容门禁，
+		//    订单已锁定不得阻止财务反转。
+		if lockErr := lockOrdersForFinanceReversal(ctx, tx, affectedOrderIDs); lockErr != nil {
+			return lockErr
+		}
+		// 3. 锁定来源单并重验版本、状态。
 		item, err := tx.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceNettingNotFound, nil)

@@ -28,12 +28,20 @@ const (
 	FieldBusinessType = "business_type"
 	// FieldGeneration holds the string denoting the generation field in the database.
 	FieldGeneration = "generation"
+	// FieldLockSource holds the string denoting the lock_source field in the database.
+	FieldLockSource = "lock_source"
 	// FieldLockedBy holds the string denoting the locked_by field in the database.
 	FieldLockedBy = "locked_by"
 	// FieldLockedAt holds the string denoting the locked_at field in the database.
 	FieldLockedAt = "locked_at"
 	// FieldOrderVersionAtLock holds the string denoting the order_version_at_lock field in the database.
 	FieldOrderVersionAtLock = "order_version_at_lock"
+	// FieldTriggerType holds the string denoting the trigger_type field in the database.
+	FieldTriggerType = "trigger_type"
+	// FieldTriggerResourceID holds the string denoting the trigger_resource_id field in the database.
+	FieldTriggerResourceID = "trigger_resource_id"
+	// FieldTriggeredBy holds the string denoting the triggered_by field in the database.
+	FieldTriggeredBy = "triggered_by"
 	// FieldMasterBillID holds the string denoting the master_bill_id field in the database.
 	FieldMasterBillID = "master_bill_id"
 	// FieldMasterBillVersionID holds the string denoting the master_bill_version_id field in the database.
@@ -64,6 +72,8 @@ const (
 	EdgeOrder = "order"
 	// EdgeLockedByUser holds the string denoting the locked_by_user edge name in mutations.
 	EdgeLockedByUser = "locked_by_user"
+	// EdgeTriggeredByUser holds the string denoting the triggered_by_user edge name in mutations.
+	EdgeTriggeredByUser = "triggered_by_user"
 	// EdgeUnlockedByUser holds the string denoting the unlocked_by_user edge name in mutations.
 	EdgeUnlockedByUser = "unlocked_by_user"
 	// EdgeMasterBill holds the string denoting the master_bill edge name in mutations.
@@ -103,6 +113,13 @@ const (
 	LockedByUserInverseTable = "users"
 	// LockedByUserColumn is the table column denoting the locked_by_user relation/edge.
 	LockedByUserColumn = "locked_by"
+	// TriggeredByUserTable is the table that holds the triggered_by_user relation/edge.
+	TriggeredByUserTable = "order_lock_records"
+	// TriggeredByUserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	TriggeredByUserInverseTable = "users"
+	// TriggeredByUserColumn is the table column denoting the triggered_by_user relation/edge.
+	TriggeredByUserColumn = "triggered_by"
 	// UnlockedByUserTable is the table that holds the unlocked_by_user relation/edge.
 	UnlockedByUserTable = "order_lock_records"
 	// UnlockedByUserInverseTable is the table name for the User entity.
@@ -170,9 +187,13 @@ var Columns = []string{
 	FieldOrderNo,
 	FieldBusinessType,
 	FieldGeneration,
+	FieldLockSource,
 	FieldLockedBy,
 	FieldLockedAt,
 	FieldOrderVersionAtLock,
+	FieldTriggerType,
+	FieldTriggerResourceID,
+	FieldTriggeredBy,
 	FieldMasterBillID,
 	FieldMasterBillVersionID,
 	FieldTransportExecutionID,
@@ -239,6 +260,57 @@ func BusinessTypeValidator(bt BusinessType) error {
 	}
 }
 
+// LockSource defines the type for the "lock_source" enum field.
+type LockSource string
+
+// LockSourceMANUAL is the default value of the LockSource enum.
+const DefaultLockSource = LockSourceMANUAL
+
+// LockSource values.
+const (
+	LockSourceMANUAL          LockSource = "MANUAL"
+	LockSourceAUTO_SETTLEMENT LockSource = "AUTO_SETTLEMENT"
+)
+
+func (ls LockSource) String() string {
+	return string(ls)
+}
+
+// LockSourceValidator is a validator for the "lock_source" field enum values. It is called by the builders before save.
+func LockSourceValidator(ls LockSource) error {
+	switch ls {
+	case LockSourceMANUAL, LockSourceAUTO_SETTLEMENT:
+		return nil
+	default:
+		return fmt.Errorf("orderlockrecord: invalid enum value for lock_source field: %q", ls)
+	}
+}
+
+// TriggerType defines the type for the "trigger_type" enum field.
+type TriggerType string
+
+// TriggerType values.
+const (
+	TriggerTypeVERIFICATION TriggerType = "VERIFICATION"
+	TriggerTypeNETTING      TriggerType = "NETTING"
+	TriggerTypeFEE_CONFIRM  TriggerType = "FEE_CONFIRM"
+	TriggerTypeFEE_CANCEL   TriggerType = "FEE_CANCEL"
+)
+
+func (tt TriggerType) String() string {
+	return string(tt)
+}
+
+// TriggerTypeValidator is a validator for the "trigger_type" field enum values. It is called by the builders before save.
+func TriggerTypeValidator(tt TriggerType) error {
+	switch tt {
+	case TriggerTypeVERIFICATION, TriggerTypeNETTING, TriggerTypeFEE_CONFIRM, TriggerTypeFEE_CANCEL:
+		return nil
+	default:
+		return fmt.Errorf("orderlockrecord: invalid enum value for trigger_type field: %q", tt)
+	}
+}
+
 // UnlockMode defines the type for the "unlock_mode" enum field.
 type UnlockMode string
 
@@ -301,6 +373,11 @@ func ByGeneration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGeneration, opts...).ToFunc()
 }
 
+// ByLockSource orders the results by the lock_source field.
+func ByLockSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockSource, opts...).ToFunc()
+}
+
 // ByLockedBy orders the results by the locked_by field.
 func ByLockedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLockedBy, opts...).ToFunc()
@@ -314,6 +391,21 @@ func ByLockedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByOrderVersionAtLock orders the results by the order_version_at_lock field.
 func ByOrderVersionAtLock(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderVersionAtLock, opts...).ToFunc()
+}
+
+// ByTriggerType orders the results by the trigger_type field.
+func ByTriggerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerType, opts...).ToFunc()
+}
+
+// ByTriggerResourceID orders the results by the trigger_resource_id field.
+func ByTriggerResourceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerResourceID, opts...).ToFunc()
+}
+
+// ByTriggeredBy orders the results by the triggered_by field.
+func ByTriggeredBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggeredBy, opts...).ToFunc()
 }
 
 // ByMasterBillID orders the results by the master_bill_id field.
@@ -394,6 +486,13 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByLockedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newLockedByUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTriggeredByUserField orders the results by triggered_by_user field.
+func ByTriggeredByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTriggeredByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -485,6 +584,13 @@ func newLockedByUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LockedByUserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, LockedByUserTable, LockedByUserColumn),
+	)
+}
+func newTriggeredByUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TriggeredByUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TriggeredByUserTable, TriggeredByUserColumn),
 	)
 }
 func newUnlockedByUserStep() *sqlgraph.Step {

@@ -38,12 +38,20 @@ type OrderLockRecord struct {
 	BusinessType orderlockrecord.BusinessType `json:"business_type,omitempty"`
 	// Generation holds the value of the "generation" field.
 	Generation uint64 `json:"generation,omitempty"`
+	// LockSource holds the value of the "lock_source" field.
+	LockSource orderlockrecord.LockSource `json:"lock_source,omitempty"`
 	// LockedBy holds the value of the "locked_by" field.
-	LockedBy uuid.UUID `json:"locked_by,omitempty"`
+	LockedBy *uuid.UUID `json:"locked_by,omitempty"`
 	// LockedAt holds the value of the "locked_at" field.
 	LockedAt time.Time `json:"locked_at,omitempty"`
 	// OrderVersionAtLock holds the value of the "order_version_at_lock" field.
 	OrderVersionAtLock uint64 `json:"order_version_at_lock,omitempty"`
+	// TriggerType holds the value of the "trigger_type" field.
+	TriggerType *orderlockrecord.TriggerType `json:"trigger_type,omitempty"`
+	// TriggerResourceID holds the value of the "trigger_resource_id" field.
+	TriggerResourceID *uuid.UUID `json:"trigger_resource_id,omitempty"`
+	// TriggeredBy holds the value of the "triggered_by" field.
+	TriggeredBy *uuid.UUID `json:"triggered_by,omitempty"`
 	// MasterBillID holds the value of the "master_bill_id" field.
 	MasterBillID *uuid.UUID `json:"master_bill_id,omitempty"`
 	// MasterBillVersionID holds the value of the "master_bill_version_id" field.
@@ -82,6 +90,8 @@ type OrderLockRecordEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// LockedByUser holds the value of the locked_by_user edge.
 	LockedByUser *User `json:"locked_by_user,omitempty"`
+	// TriggeredByUser holds the value of the triggered_by_user edge.
+	TriggeredByUser *User `json:"triggered_by_user,omitempty"`
 	// UnlockedByUser holds the value of the unlocked_by_user edge.
 	UnlockedByUser *User `json:"unlocked_by_user,omitempty"`
 	// MasterBill holds the value of the master_bill edge.
@@ -100,7 +110,7 @@ type OrderLockRecordEdges struct {
 	HouseBillSnapshots []*OrderLockHouseBillSnapshot `json:"house_bill_snapshots,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [12]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -136,12 +146,23 @@ func (e OrderLockRecordEdges) LockedByUserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "locked_by_user"}
 }
 
+// TriggeredByUserOrErr returns the TriggeredByUser value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderLockRecordEdges) TriggeredByUserOrErr() (*User, error) {
+	if e.TriggeredByUser != nil {
+		return e.TriggeredByUser, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "triggered_by_user"}
+}
+
 // UnlockedByUserOrErr returns the UnlockedByUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e OrderLockRecordEdges) UnlockedByUserOrErr() (*User, error) {
 	if e.UnlockedByUser != nil {
 		return e.UnlockedByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "unlocked_by_user"}
@@ -152,7 +173,7 @@ func (e OrderLockRecordEdges) UnlockedByUserOrErr() (*User, error) {
 func (e OrderLockRecordEdges) MasterBillOrErr() (*SeaMasterBill, error) {
 	if e.MasterBill != nil {
 		return e.MasterBill, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: seamasterbill.Label}
 	}
 	return nil, &NotLoadedError{edge: "master_bill"}
@@ -163,7 +184,7 @@ func (e OrderLockRecordEdges) MasterBillOrErr() (*SeaMasterBill, error) {
 func (e OrderLockRecordEdges) MasterBillVersionOrErr() (*SeaMasterBillVersion, error) {
 	if e.MasterBillVersion != nil {
 		return e.MasterBillVersion, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: seamasterbillversion.Label}
 	}
 	return nil, &NotLoadedError{edge: "master_bill_version"}
@@ -174,7 +195,7 @@ func (e OrderLockRecordEdges) MasterBillVersionOrErr() (*SeaMasterBillVersion, e
 func (e OrderLockRecordEdges) TransportExecutionOrErr() (*SeaTransportExecution, error) {
 	if e.TransportExecution != nil {
 		return e.TransportExecution, nil
-	} else if e.loadedTypes[6] {
+	} else if e.loadedTypes[7] {
 		return nil, &NotFoundError{label: seatransportexecution.Label}
 	}
 	return nil, &NotLoadedError{edge: "transport_execution"}
@@ -185,7 +206,7 @@ func (e OrderLockRecordEdges) TransportExecutionOrErr() (*SeaTransportExecution,
 func (e OrderLockRecordEdges) TransportExecutionVersionOrErr() (*SeaTransportExecutionVersion, error) {
 	if e.TransportExecutionVersion != nil {
 		return e.TransportExecutionVersion, nil
-	} else if e.loadedTypes[7] {
+	} else if e.loadedTypes[8] {
 		return nil, &NotFoundError{label: seatransportexecutionversion.Label}
 	}
 	return nil, &NotLoadedError{edge: "transport_execution_version"}
@@ -194,7 +215,7 @@ func (e OrderLockRecordEdges) TransportExecutionVersionOrErr() (*SeaTransportExe
 // UnlockRequestsOrErr returns the UnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderLockRecordEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.UnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "unlock_requests"}
@@ -205,7 +226,7 @@ func (e OrderLockRecordEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, erro
 func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, error) {
 	if e.AppliedUnlockRequest != nil {
 		return e.AppliedUnlockRequest, nil
-	} else if e.loadedTypes[9] {
+	} else if e.loadedTypes[10] {
 		return nil, &NotFoundError{label: orderunlockrequest.Label}
 	}
 	return nil, &NotLoadedError{edge: "applied_unlock_request"}
@@ -214,7 +235,7 @@ func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, 
 // HouseBillSnapshotsOrErr returns the HouseBillSnapshots value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderLockRecordEdges) HouseBillSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.HouseBillSnapshots, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bill_snapshots"}
@@ -225,15 +246,15 @@ func (*OrderLockRecord) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldTransportExecutionID, orderlockrecord.FieldTransportExecutionVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
+		case orderlockrecord.FieldLockedBy, orderlockrecord.FieldTriggerResourceID, orderlockrecord.FieldTriggeredBy, orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldTransportExecutionID, orderlockrecord.FieldTransportExecutionVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldOrderVersionAtUnlock:
 			values[i] = new(sql.NullInt64)
-		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
+		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldLockSource, orderlockrecord.FieldTriggerType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
 			values[i] = new(sql.NullString)
 		case orderlockrecord.FieldCreatedAt, orderlockrecord.FieldLockedAt, orderlockrecord.FieldUnlockedAt:
 			values[i] = new(sql.NullTime)
-		case orderlockrecord.FieldID, orderlockrecord.FieldOrganizationID, orderlockrecord.FieldOrderID, orderlockrecord.FieldLockedBy:
+		case orderlockrecord.FieldID, orderlockrecord.FieldOrganizationID, orderlockrecord.FieldOrderID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -292,11 +313,18 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Generation = uint64(value.Int64)
 			}
+		case orderlockrecord.FieldLockSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field lock_source", values[i])
+			} else if value.Valid {
+				_m.LockSource = orderlockrecord.LockSource(value.String)
+			}
 		case orderlockrecord.FieldLockedBy:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field locked_by", values[i])
-			} else if value != nil {
-				_m.LockedBy = *value
+			} else if value.Valid {
+				_m.LockedBy = new(uuid.UUID)
+				*_m.LockedBy = *value.S.(*uuid.UUID)
 			}
 		case orderlockrecord.FieldLockedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -309,6 +337,27 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field order_version_at_lock", values[i])
 			} else if value.Valid {
 				_m.OrderVersionAtLock = uint64(value.Int64)
+			}
+		case orderlockrecord.FieldTriggerType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field trigger_type", values[i])
+			} else if value.Valid {
+				_m.TriggerType = new(orderlockrecord.TriggerType)
+				*_m.TriggerType = orderlockrecord.TriggerType(value.String)
+			}
+		case orderlockrecord.FieldTriggerResourceID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field trigger_resource_id", values[i])
+			} else if value.Valid {
+				_m.TriggerResourceID = new(uuid.UUID)
+				*_m.TriggerResourceID = *value.S.(*uuid.UUID)
+			}
+		case orderlockrecord.FieldTriggeredBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field triggered_by", values[i])
+			} else if value.Valid {
+				_m.TriggeredBy = new(uuid.UUID)
+				*_m.TriggeredBy = *value.S.(*uuid.UUID)
 			}
 		case orderlockrecord.FieldMasterBillID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -420,6 +469,11 @@ func (_m *OrderLockRecord) QueryLockedByUser() *UserQuery {
 	return NewOrderLockRecordClient(_m.config).QueryLockedByUser(_m)
 }
 
+// QueryTriggeredByUser queries the "triggered_by_user" edge of the OrderLockRecord entity.
+func (_m *OrderLockRecord) QueryTriggeredByUser() *UserQuery {
+	return NewOrderLockRecordClient(_m.config).QueryTriggeredByUser(_m)
+}
+
 // QueryUnlockedByUser queries the "unlocked_by_user" edge of the OrderLockRecord entity.
 func (_m *OrderLockRecord) QueryUnlockedByUser() *UserQuery {
 	return NewOrderLockRecordClient(_m.config).QueryUnlockedByUser(_m)
@@ -501,14 +555,34 @@ func (_m *OrderLockRecord) String() string {
 	builder.WriteString("generation=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Generation))
 	builder.WriteString(", ")
-	builder.WriteString("locked_by=")
-	builder.WriteString(fmt.Sprintf("%v", _m.LockedBy))
+	builder.WriteString("lock_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LockSource))
+	builder.WriteString(", ")
+	if v := _m.LockedBy; v != nil {
+		builder.WriteString("locked_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("locked_at=")
 	builder.WriteString(_m.LockedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("order_version_at_lock=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderVersionAtLock))
+	builder.WriteString(", ")
+	if v := _m.TriggerType; v != nil {
+		builder.WriteString("trigger_type=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TriggerResourceID; v != nil {
+		builder.WriteString("trigger_resource_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TriggeredBy; v != nil {
+		builder.WriteString("triggered_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := _m.MasterBillID; v != nil {
 		builder.WriteString("master_bill_id=")

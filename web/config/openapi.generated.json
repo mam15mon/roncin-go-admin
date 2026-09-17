@@ -26505,6 +26505,23 @@
           "businessType": {
             "type": "integer",
             "format": "enum"
+          },
+          "lockSource": {
+            "type": "string",
+            "description": "锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。"
+          },
+          "triggerType": {
+            "type": "string",
+            "description": "自动锁定触发审计：触发类型（VERIFICATION/NETTING/FEE_CONFIRM/FEE_CANCEL）、\n 触发单据与触发操作人。人工锁定时为空。"
+          },
+          "triggerResourceId": {
+            "type": "string"
+          },
+          "triggeredBy": {
+            "type": "string"
+          },
+          "triggeredByName": {
+            "type": "string"
           }
         }
       },
@@ -26579,6 +26596,10 @@
           "businessType": {
             "type": "integer",
             "format": "enum"
+          },
+          "lockSource": {
+            "type": "string",
+            "description": "锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。"
           }
         }
       },

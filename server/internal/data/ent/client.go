@@ -13158,6 +13158,22 @@ func (c *OrderLockRecordClient) QueryLockedByUser(_m *OrderLockRecord) *UserQuer
 	return query
 }
 
+// QueryTriggeredByUser queries the triggered_by_user edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryTriggeredByUser(_m *OrderLockRecord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlockrecord.TriggeredByUserTable, orderlockrecord.TriggeredByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUnlockedByUser queries the unlocked_by_user edge of a OrderLockRecord.
 func (c *OrderLockRecordClient) QueryUnlockedByUser(_m *OrderLockRecord) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -23543,6 +23559,22 @@ func (c *UserClient) QueryUnlockedOrderLockRecords(_m *User) *OrderLockRecordQue
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.UnlockedOrderLockRecordsTable, user.UnlockedOrderLockRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAutoTriggeredOrderLockRecords queries the auto_triggered_order_lock_records edge of a User.
+func (c *UserClient) QueryAutoTriggeredOrderLockRecords(_m *User) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AutoTriggeredOrderLockRecordsTable, user.AutoTriggeredOrderLockRecordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

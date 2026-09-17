@@ -269,7 +269,7 @@ func (r *dingTalkApprovalRepo) ApplyApproved(ctx context.Context, job *biz.DingT
 		}
 
 		newVersion := order.Version + 1
-		if _, err := tx.Order.UpdateOne(order).ClearLockedAt().ClearLockedBy().SetVersion(newVersion).Save(ctx); err != nil {
+		if _, err := tx.Order.UpdateOne(order).ClearLockedAt().ClearLockedBy().ClearLockSource().ClearAutoLockTriggerType().ClearAutoLockTriggerResourceID().ClearAutoLockTriggeredBy().SetVersion(newVersion).Save(ctx); err != nil {
 			return err
 		}
 		decidedAt := now

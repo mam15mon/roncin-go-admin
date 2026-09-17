@@ -128,6 +128,8 @@ const (
 	EdgeOrderLockRecords = "order_lock_records"
 	// EdgeUnlockedOrderLockRecords holds the string denoting the unlocked_order_lock_records edge name in mutations.
 	EdgeUnlockedOrderLockRecords = "unlocked_order_lock_records"
+	// EdgeAutoTriggeredOrderLockRecords holds the string denoting the auto_triggered_order_lock_records edge name in mutations.
+	EdgeAutoTriggeredOrderLockRecords = "auto_triggered_order_lock_records"
 	// EdgeOrderUnlockRequests holds the string denoting the order_unlock_requests edge name in mutations.
 	EdgeOrderUnlockRequests = "order_unlock_requests"
 	// EdgeDecidedOrderUnlockRequests holds the string denoting the decided_order_unlock_requests edge name in mutations.
@@ -434,6 +436,13 @@ const (
 	UnlockedOrderLockRecordsInverseTable = "order_lock_records"
 	// UnlockedOrderLockRecordsColumn is the table column denoting the unlocked_order_lock_records relation/edge.
 	UnlockedOrderLockRecordsColumn = "unlocked_by"
+	// AutoTriggeredOrderLockRecordsTable is the table that holds the auto_triggered_order_lock_records relation/edge.
+	AutoTriggeredOrderLockRecordsTable = "order_lock_records"
+	// AutoTriggeredOrderLockRecordsInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	AutoTriggeredOrderLockRecordsInverseTable = "order_lock_records"
+	// AutoTriggeredOrderLockRecordsColumn is the table column denoting the auto_triggered_order_lock_records relation/edge.
+	AutoTriggeredOrderLockRecordsColumn = "triggered_by"
 	// OrderUnlockRequestsTable is the table that holds the order_unlock_requests relation/edge.
 	OrderUnlockRequestsTable = "order_unlock_requests"
 	// OrderUnlockRequestsInverseTable is the table name for the OrderUnlockRequest entity.
@@ -1240,6 +1249,20 @@ func ByUnlockedOrderLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) Orde
 	}
 }
 
+// ByAutoTriggeredOrderLockRecordsCount orders the results by auto_triggered_order_lock_records count.
+func ByAutoTriggeredOrderLockRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAutoTriggeredOrderLockRecordsStep(), opts...)
+	}
+}
+
+// ByAutoTriggeredOrderLockRecords orders the results by auto_triggered_order_lock_records terms.
+func ByAutoTriggeredOrderLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAutoTriggeredOrderLockRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderUnlockRequestsCount orders the results by order_unlock_requests count.
 func ByOrderUnlockRequestsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1678,6 +1701,13 @@ func newUnlockedOrderLockRecordsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UnlockedOrderLockRecordsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UnlockedOrderLockRecordsTable, UnlockedOrderLockRecordsColumn),
+	)
+}
+func newAutoTriggeredOrderLockRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AutoTriggeredOrderLockRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AutoTriggeredOrderLockRecordsTable, AutoTriggeredOrderLockRecordsColumn),
 	)
 }
 func newOrderUnlockRequestsStep() *sqlgraph.Step {

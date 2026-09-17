@@ -190,6 +190,9 @@ func orderLockStateToAPI(s *biz.OrderLockState) *v1.OrderLockStateData {
 	if s.LockedByName != nil {
 		data.LockedByName = s.LockedByName
 	}
+	if s.LockSource != nil {
+		data.LockSource = s.LockSource
+	}
 	if s.ActiveUnlockRequest != nil {
 		data.ActiveUnlockRequest = orderUnlockRequestToAPI(s.ActiveUnlockRequest)
 	}
@@ -208,13 +211,30 @@ func orderLockRecordToAPI(r *biz.OrderLockRecord) *v1.OrderLockRecordData {
 		OrderId:            r.OrderID.String(),
 		OrderNo:            r.OrderNo,
 		Generation:         r.Generation,
-		LockedBy:           r.LockedBy.String(),
 		LockedByName:       r.LockedByName,
 		LockedAt:           r.LockedAt.Format(time.RFC3339),
 		OrderVersionAtLock: r.OrderVersionAtLock,
 		BusinessType:       orderBusinessTypeToAPI(r.BusinessType),
+		LockSource:         r.LockSource,
 		UnlockReason:       r.UnlockReason,
 		UnlockMode:         r.UnlockMode,
+	}
+	if r.LockedBy != nil {
+		data.LockedBy = r.LockedBy.String()
+	}
+	if r.TriggerType != nil {
+		data.TriggerType = r.TriggerType
+	}
+	if r.TriggerResourceID != nil {
+		id := r.TriggerResourceID.String()
+		data.TriggerResourceId = &id
+	}
+	if r.TriggeredBy != nil {
+		id := r.TriggeredBy.String()
+		data.TriggeredBy = &id
+	}
+	if r.TriggeredByName != nil {
+		data.TriggeredByName = r.TriggeredByName
 	}
 	if r.MasterBillID != nil {
 		id := r.MasterBillID.String()

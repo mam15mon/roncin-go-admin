@@ -843,6 +843,86 @@ func (_u *OrderUpdate) AddLockGeneration(v int64) *OrderUpdate {
 	return _u
 }
 
+// SetLockSource sets the "lock_source" field.
+func (_u *OrderUpdate) SetLockSource(v order.LockSource) *OrderUpdate {
+	_u.mutation.SetLockSource(v)
+	return _u
+}
+
+// SetNillableLockSource sets the "lock_source" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableLockSource(v *order.LockSource) *OrderUpdate {
+	if v != nil {
+		_u.SetLockSource(*v)
+	}
+	return _u
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (_u *OrderUpdate) ClearLockSource() *OrderUpdate {
+	_u.mutation.ClearLockSource()
+	return _u
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (_u *OrderUpdate) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderUpdate {
+	_u.mutation.SetAutoLockTriggerType(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggerType sets the "auto_lock_trigger_type" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableAutoLockTriggerType(v *order.AutoLockTriggerType) *OrderUpdate {
+	if v != nil {
+		_u.SetAutoLockTriggerType(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (_u *OrderUpdate) ClearAutoLockTriggerType() *OrderUpdate {
+	_u.mutation.ClearAutoLockTriggerType()
+	return _u
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (_u *OrderUpdate) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetAutoLockTriggerResourceID(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableAutoLockTriggerResourceID(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetAutoLockTriggerResourceID(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (_u *OrderUpdate) ClearAutoLockTriggerResourceID() *OrderUpdate {
+	_u.mutation.ClearAutoLockTriggerResourceID()
+	return _u
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (_u *OrderUpdate) SetAutoLockTriggeredBy(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetAutoLockTriggeredBy(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggeredBy sets the "auto_lock_triggered_by" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableAutoLockTriggeredBy(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetAutoLockTriggeredBy(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (_u *OrderUpdate) ClearAutoLockTriggeredBy() *OrderUpdate {
+	_u.mutation.ClearAutoLockTriggeredBy()
+	return _u
+}
+
 // SetIsShared sets the "is_shared" field.
 func (_u *OrderUpdate) SetIsShared(v bool) *OrderUpdate {
 	_u.mutation.SetIsShared(v)
@@ -2649,6 +2729,16 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "closure_reason", err: fmt.Errorf(`ent: validator failed for field "Order.closure_reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.LockSource(); ok {
+		if err := order.LockSourceValidator(v); err != nil {
+			return &ValidationError{Name: "lock_source", err: fmt.Errorf(`ent: validator failed for field "Order.lock_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AutoLockTriggerType(); ok {
+		if err := order.AutoLockTriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "auto_lock_trigger_type", err: fmt.Errorf(`ent: validator failed for field "Order.auto_lock_trigger_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
 		if err := order.VesselVoyageValidator(v); err != nil {
 			return &ValidationError{Name: "vessel_voyage", err: fmt.Errorf(`ent: validator failed for field "Order.vessel_voyage": %w`, err)}
@@ -2963,6 +3053,30 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedLockGeneration(); ok {
 		_spec.AddField(order.FieldLockGeneration, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.LockSource(); ok {
+		_spec.SetField(order.FieldLockSource, field.TypeEnum, value)
+	}
+	if _u.mutation.LockSourceCleared() {
+		_spec.ClearField(order.FieldLockSource, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AutoLockTriggerType(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerType, field.TypeEnum, value)
+	}
+	if _u.mutation.AutoLockTriggerTypeCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggerType, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AutoLockTriggerResourceID(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerResourceID, field.TypeUUID, value)
+	}
+	if _u.mutation.AutoLockTriggerResourceIDCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggerResourceID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.AutoLockTriggeredBy(); ok {
+		_spec.SetField(order.FieldAutoLockTriggeredBy, field.TypeUUID, value)
+	}
+	if _u.mutation.AutoLockTriggeredByCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggeredBy, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
@@ -5342,6 +5456,86 @@ func (_u *OrderUpdateOne) AddLockGeneration(v int64) *OrderUpdateOne {
 	return _u
 }
 
+// SetLockSource sets the "lock_source" field.
+func (_u *OrderUpdateOne) SetLockSource(v order.LockSource) *OrderUpdateOne {
+	_u.mutation.SetLockSource(v)
+	return _u
+}
+
+// SetNillableLockSource sets the "lock_source" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableLockSource(v *order.LockSource) *OrderUpdateOne {
+	if v != nil {
+		_u.SetLockSource(*v)
+	}
+	return _u
+}
+
+// ClearLockSource clears the value of the "lock_source" field.
+func (_u *OrderUpdateOne) ClearLockSource() *OrderUpdateOne {
+	_u.mutation.ClearLockSource()
+	return _u
+}
+
+// SetAutoLockTriggerType sets the "auto_lock_trigger_type" field.
+func (_u *OrderUpdateOne) SetAutoLockTriggerType(v order.AutoLockTriggerType) *OrderUpdateOne {
+	_u.mutation.SetAutoLockTriggerType(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggerType sets the "auto_lock_trigger_type" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableAutoLockTriggerType(v *order.AutoLockTriggerType) *OrderUpdateOne {
+	if v != nil {
+		_u.SetAutoLockTriggerType(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggerType clears the value of the "auto_lock_trigger_type" field.
+func (_u *OrderUpdateOne) ClearAutoLockTriggerType() *OrderUpdateOne {
+	_u.mutation.ClearAutoLockTriggerType()
+	return _u
+}
+
+// SetAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field.
+func (_u *OrderUpdateOne) SetAutoLockTriggerResourceID(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetAutoLockTriggerResourceID(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggerResourceID sets the "auto_lock_trigger_resource_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableAutoLockTriggerResourceID(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetAutoLockTriggerResourceID(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggerResourceID clears the value of the "auto_lock_trigger_resource_id" field.
+func (_u *OrderUpdateOne) ClearAutoLockTriggerResourceID() *OrderUpdateOne {
+	_u.mutation.ClearAutoLockTriggerResourceID()
+	return _u
+}
+
+// SetAutoLockTriggeredBy sets the "auto_lock_triggered_by" field.
+func (_u *OrderUpdateOne) SetAutoLockTriggeredBy(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetAutoLockTriggeredBy(v)
+	return _u
+}
+
+// SetNillableAutoLockTriggeredBy sets the "auto_lock_triggered_by" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableAutoLockTriggeredBy(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetAutoLockTriggeredBy(*v)
+	}
+	return _u
+}
+
+// ClearAutoLockTriggeredBy clears the value of the "auto_lock_triggered_by" field.
+func (_u *OrderUpdateOne) ClearAutoLockTriggeredBy() *OrderUpdateOne {
+	_u.mutation.ClearAutoLockTriggeredBy()
+	return _u
+}
+
 // SetIsShared sets the "is_shared" field.
 func (_u *OrderUpdateOne) SetIsShared(v bool) *OrderUpdateOne {
 	_u.mutation.SetIsShared(v)
@@ -7161,6 +7355,16 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "closure_reason", err: fmt.Errorf(`ent: validator failed for field "Order.closure_reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.LockSource(); ok {
+		if err := order.LockSourceValidator(v); err != nil {
+			return &ValidationError{Name: "lock_source", err: fmt.Errorf(`ent: validator failed for field "Order.lock_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AutoLockTriggerType(); ok {
+		if err := order.AutoLockTriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "auto_lock_trigger_type", err: fmt.Errorf(`ent: validator failed for field "Order.auto_lock_trigger_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
 		if err := order.VesselVoyageValidator(v); err != nil {
 			return &ValidationError{Name: "vessel_voyage", err: fmt.Errorf(`ent: validator failed for field "Order.vessel_voyage": %w`, err)}
@@ -7492,6 +7696,30 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.AddedLockGeneration(); ok {
 		_spec.AddField(order.FieldLockGeneration, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.LockSource(); ok {
+		_spec.SetField(order.FieldLockSource, field.TypeEnum, value)
+	}
+	if _u.mutation.LockSourceCleared() {
+		_spec.ClearField(order.FieldLockSource, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AutoLockTriggerType(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerType, field.TypeEnum, value)
+	}
+	if _u.mutation.AutoLockTriggerTypeCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggerType, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AutoLockTriggerResourceID(); ok {
+		_spec.SetField(order.FieldAutoLockTriggerResourceID, field.TypeUUID, value)
+	}
+	if _u.mutation.AutoLockTriggerResourceIDCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggerResourceID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.AutoLockTriggeredBy(); ok {
+		_spec.SetField(order.FieldAutoLockTriggeredBy, field.TypeUUID, value)
+	}
+	if _u.mutation.AutoLockTriggeredByCleared() {
+		_spec.ClearField(order.FieldAutoLockTriggeredBy, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
