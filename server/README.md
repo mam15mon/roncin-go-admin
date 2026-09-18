@@ -60,7 +60,13 @@ go test ./...
 go vet ./...
 ```
 
-仓库根目录的 `pnpm run check:server` 会额外执行 Proto lint 和 govulncheck。
+仓库根目录的 `pnpm run check:server` 会额外执行 Proto lint 和
+govulncheck。扫描由 `scripts/check-server-vuln.mjs` 统一执行；脚本仅对精确
+匹配 `github.com/xuri/excelize/v2@v2.11.1-0.20260728235842-f98df08a8f6a`
+的 `GO-2026-6452` 做审计豁免，因为该伪版本已包含上游完整修复提交
+`f98df08a8f6aed8bc3b193115d1abb5b1ea2e433`，且有内存与临时文件路径的
+恶意工作簿回归测试。
+任何其他可达漏洞、Excelize 版本变化或扫描异常仍会使检查失败。
 
 ## 构建与部署
 

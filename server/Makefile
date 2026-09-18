@@ -38,7 +38,8 @@ lint:
 .PHONY: vuln
 # 扫描可达的 Go 漏洞
 vuln:
-	go tool govulncheck ./...
+	node --test ../scripts/check-server-vuln.test.mjs
+	node ../scripts/check-server-vuln.mjs
 
 .PHONY: check
 # 检查服务端源码与依赖

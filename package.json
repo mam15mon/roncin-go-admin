@@ -36,7 +36,7 @@
     "acceptance:finance": "pnpm run acceptance:finance-bill-batch -- --apply && pnpm run acceptance:finance-payable -- --apply && pnpm run acceptance:finance-ui",
     "check:web": "pnpm run check:permission-keys && pnpm run check:proto-constants && pnpm --dir web lint && pnpm --dir web test",
     "lint:proto": "buf lint server",
-    "check:server:vuln": "go -C server tool govulncheck ./...",
+    "check:server:vuln": "node --test scripts/check-server-vuln.test.mjs && node scripts/check-server-vuln.mjs",
     "check:server": "pnpm run lint:proto && go -C server test ./... && go -C server vet ./... && pnpm run check:server:vuln",
     "check": "pnpm run check:web && pnpm run check:server",
     "sentry:sourcemaps": "node scripts/upload-sentry-sourcemaps.mjs",

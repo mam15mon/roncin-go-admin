@@ -13,14 +13,14 @@ require (
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/shopspring/decimal v1.4.0
-	github.com/xuri/excelize/v2 v2.11.0
+	github.com/xuri/excelize/v2 v2.11.1-0.20260728235842-f98df08a8f6a
 	go.einride.tech/aip v0.86.3
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.55.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa
-	google.golang.org/grpc v1.82.1
+	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.11
 )
 
