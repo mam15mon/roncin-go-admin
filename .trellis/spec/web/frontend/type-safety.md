@@ -75,6 +75,33 @@ item.kind === MasterDataKind.MASTER_DATA_KIND_SERVICE_TYPE;
 - TypeScript 严格模式，禁止 `any` 兜底绕过生成类型。
 - 提交前按风险运行 `pnpm --dir web tsc` 与 `pnpm --dir web biome:lint`。
 
+## Convention: 禁止借用「数值恰好相同」的兄弟枚举
+
+**What**：每个 Proto 消息的枚举字段必须用它自己的生成常量消费
+（如 `WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT`），
+禁止因为另一个枚举（如 `FinanceCommissionStatus`）成员名和数值当前恰好一致
+就借用它。已实际踩中：工作台抽屉用财务提成枚举消费工作台状态，tsc 不报错、
+测试全绿，构成第二套真相，任一侧插入枚举值即静默错位。
+
+**Why**：两个 Proto 枚举是独立真相源，「当前数值相同」是巧合不是契约；
+TypeScript 结构类型对 `Record<number, …>` 键与 `status?: number` 不做枚举
+来源区分，编译期无法拦截。
+
+**Example**：
+
+```tsx
+// 错误：数值巧合可运行，但枚举重排即静默破坏筛选与文案
+import { FinanceCommissionStatus } from '@/enums.generated';
+status ?? FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT;
+
+// 正确
+import { WorkbenchCommissionStatus } from '@/enums.generated';
+status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
+```
+
+**Prevention**：code review 与 trellis-check 时对每个生成枚举导入核对
+「导入名与消费字段所属消息一致」；测试数据同样使用字段所属枚举构造。
+
 ## 服务端布尔响应的零值省略陷阱
 
 ### Convention: 判断后端 false 一律用 `!== true`，禁止 `=== false`

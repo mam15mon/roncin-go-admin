@@ -15,6 +15,7 @@
 | [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
 | [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 周汇率双轨点差（ar/ap）与组织自治：本币口径、四级容灾链、跨组织原币记账、NULL 基线兜底 | ✅ |
 | [Finance Commission Lock](./finance-commission-lock.md) | 提成净额财务锁：Clawback 冲减、净额归零释放、双落点同口径 | ✅ |
+| [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 主数据存储三型（A 全局/B 基线+本地/C 组织私有）与维护权、B 型统一读取谓词、写拦截器、迁移 CHECK/部分索引陷阱 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |
