@@ -98,6 +98,30 @@ edge.To("lock_records", OrderLockRecord.Type).
 // 生成后必须断言对应 ForeignKey.OnDelete == schema.NoAction。
 ```
 
+### Common Mistake：`field.Enum` 扩展新值但不同步既有 CHECK 值集
+
+**Symptom**：本地/开发库一切正常；冷启动库（集成、生产按迁移链初始化）写入新
+枚举值时报 `CHECK constraint violation`，且写入发生在业务事务内时整体回滚。
+
+**Cause**：`field.Enum` 只是 Go 侧类型声明，varchar 列没有 DDL 变化。若该列在
+历史迁移中已有同名 `CHECK (... IN (...))` 约束（如
+`notification_deliveries_template_check`），扩展枚举值后旧 CHECK 值集不变，
+新值必然被拒。开发库若因建库漂移缺少该 CHECK，问题会被完全掩盖，只有
+冷启动库暴露。本仓库已连续两次踩中：`EXCHANGE_RATE_WEEKLY_REMINDER`
+（只加枚举未动 CHECK）、`FEE_SUPPLEMENT_APPROVAL_PENDING` /
+`COMMISSION_DECREASE_SUGGESTED`；修复范本
+`server/migrations/20260918093000_notification_delivery_template_check.sql`。
+
+**Prevention**：改动任何 `field.Enum` 前先查迁移链中该列是否已有 CHECK：
+
+```bash
+grep -rn "ADD CONSTRAINT" server/migrations | grep <列名>
+```
+
+命中则四件事缺一不可：①新增迁移 `DROP CONSTRAINT` + `ADD CONSTRAINT`
+扩展值集（新迁移禁用 `IF EXISTS`）；②Ent Schema 同名 `entsql.Checks`
+同步完整值集；③元数据测试断言完整表达式；④冷启动集成库实测新值可写入。
+
 ## 事务统一封装（`internal/data/transaction.go`）
 
 所有事务必须走统一封装，禁止手写 `db.Tx` + `Rollback`/`Commit` 模板，禁止
