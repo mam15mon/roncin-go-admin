@@ -101,6 +101,19 @@
 6. 收口检查
    - `git diff --check` 通过；一次性数据库、临时 worktree、临时 Go 测试与过程日志均已删除；无秘密、连接串或调试输出入库。
 
+#### 遗留风险修复波次（2026-09-19，HEAD `edc9da40`，三代理并行 + 主会话收口）
+
+1. 存量集成失败（`e7aefd6e`）：全量 `Postgres$` 套件 **0 失败 / 0 跳过**（523.7s，显式 `-timeout 20m`）。
+   - `TestAdminUserWorkspaceScopePostgres`：夹具把角色锚定在部门，违反「角色库只归属总部/公司工作台」数据不变量（契约早前升级后夹具未跟进），改锚公司后原断言保留。
+   - 两个 default-order-options 测试：共享 public 表 + Ent 运行期建表的环境敏感设计，整体迁入随机隔离 Schema + 正式迁移链重放的标准助手，业务断言一字未动。
+   - 连带修复：`TestCommissionRuleAssignmentSchemaPostgres` 原假设迁移链尾，改为按文件重放指定迁移，对新迁移入库免疫。
+2. 前端偶发抖动（`edc9da40`）：根因是多字段并行校验的文案落不同 React 提交而测试同步断言；`getByText` 改 `await findByText`，单文件连续 8/8 全绿，fees 与 commissions 目录全量无旁路破坏。
+3. 查询性能（`08ea9968`）：Overview 改 order_id 驱动（`workbenchMyOrderIDs` 一次解析多查询共享）；订单摘要拆「行查询 + 父单主键批量 + Go 交集」并新增 `finance_commission_lines (order_id, employee_id)` 复合索引（迁移 `20260919090000`）。最坏分布实测：`GetOverview` 253–291ms → **84–110ms**；EMPLOYEE 订单摘要 342–382ms → **36–46ms**；均达标且隐私过滤仍在 SQL 条件内。EXPLAIN 证明索引与查询拆分缺一不可。
+4. 新增运维注意项：
+   - 全量 `Postgres$` 集成套件约 525s，验收时须显式 `-timeout 20m`（默认 10 分钟会超时 panic）。
+   - `workbenchMyOrderIDs` 的 IN 列表随用户协作订单数线性增长，单用户数千协作订单时需复核执行计划。
+   - 集成套件曾出现 1 次与两代理并发压测同一 PostgreSQL 实例吻合的单次抖动失败（单跑与重跑均通过），本地复现类似现象时先排除并发负载。
+
 ## 3. 重点受影响文件
 
 ```text
