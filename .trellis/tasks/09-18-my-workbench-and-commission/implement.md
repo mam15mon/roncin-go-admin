@@ -70,12 +70,36 @@
 
 ### 阶段 G：整体校验与文档收口
 
-- [ ] 对所有修改文件运行格式化和定向 lint；运行受影响 Go/前端单测。
-- [ ] 运行 `go -C server test ./...`、`go -C server vet ./...`、`pnpm --dir web tsc`、`pnpm --dir web biome:lint`。
-- [ ] 运行 `pnpm run check`，验证 Proto/OpenAPI/Ent/权限生成物无漂移；本任务不改生产入口，除非检查发现构建相关风险，不固定运行 `pnpm run build`。
-- [ ] 在 PostgreSQL 集成环境验证正式迁移、方案员工分配并发、工作台聚合和订单摘要查询计划；记录无法运行的集成项。
-- [ ] 运行 `git diff --check` 和秘密/临时产物检查，更新任务文档中的实际验证结果。
-- [ ] 提交：`test(workbench): 补齐员工提成与隐私投影验证` 或按实际剩余内容使用准确前缀。
+- [x] 对所有修改文件运行格式化和定向 lint；运行受影响 Go/前端单测。
+- [x] 运行 `go -C server test ./...`、`go -C server vet ./...`、`pnpm --dir web tsc`、`pnpm --dir web biome:lint`。
+- [x] 运行 `pnpm run check`，验证 Proto/OpenAPI/Ent/权限生成物无漂移；本任务不改生产入口，除非检查发现构建相关风险，不固定运行 `pnpm run build`。
+- [x] 在 PostgreSQL 集成环境验证正式迁移、方案员工分配并发、工作台聚合和订单摘要查询计划；记录无法运行的集成项。
+- [x] 运行 `git diff --check` 和秘密/临时产物检查，更新任务文档中的实际验证结果。
+- [x] 提交：`test(workbench): 补齐员工提成与隐私投影验证` 或按实际剩余内容使用准确前缀。
+
+#### 实际验证结果（2026-09-19，分支 `feat/my-workbench-and-commission`，HEAD `984dc21f`）
+
+1. 后端门禁
+   - `go -C server vet ./...`：通过。
+   - `go -C server test ./...`：首轮暴露 `TestGeneratedAccessRulesMatchProto` 失败——该测试硬编码的 Proto 包清单缺少 `workbench.v1`，把阶段 D 已正确生成的 4 个 workbench 访问规则误判为「已不存在的 RPC」（生成文件与 `workbench.proto` 的 `ACCESS_MODE_AUTHENTICATED` 声明一致，生成器本身按 buf 工作区扫描无此问题）。修复为在测试包清单补 `"workbench.v1": {}`，`-count=1` 全量重跑通过（biz 3.97s / data 37.0s / server 0.15s / service 2.20s）。
+2. 前端门禁
+   - `pnpm --dir web tsc`、`pnpm --dir web biome:lint`、`pnpm --dir web lint`：均通过。
+   - 定向覆盖套件（workbench/Welcome、orders/list、orders/order-commission-summary、OrderListTemplate、finance/commissions 全目录）：`pnpm --dir web exec vitest run` 10 个测试文件 57 用例全部通过（24.4s）。
+   - 全量 vitest：共跑三轮。前两轮出现 1~2 个偶发失败（`FeeSupplementModal.test.tsx`「补录原因与费用字段必填」找不到校验文案；该文件不在本任务改动范围，改动commit 停留在 `0e7370fb`），单文件重跑通过；第三轮全量 833 用例全绿。判定为并发负载下模态动画时序的既有抖动，非本任务回归。
+3. 生成物漂移检查
+   - `check:permission-keys`（302 个权限键名常量）、`check:proto-constants`（73 枚举 / 7 错误原因域）、`lint:proto`（buf lint）、`check:server:vuln`（1 项已审计豁免）：全部通过，无生成物漂移。按计划未运行 `pnpm run build`。
+4. PostgreSQL 集成验证（一次性库 `roncin_phase_g_1789763335`，`roncin` 属主，验证后已删除）
+   - 正式迁移链空库重放：`go -C server run ./cmd/migrate -dir migrations` 成功，耗时 13.2s（含权限清单同步与订单主数据种子），`schema_migrations` 最新版本为 `20260918150000_commission_rule_assignments`。
+   - 全量集成套件 `go test ./internal/data -run 'Postgres$' -v -count=1`：480.8s，70 通过 / 0 跳过 / 3 失败。本任务相关集成测试全部通过：`TestCommissionRuleAssignmentSchemaPostgres`（约束/索引元数据）、`TestCommissionRuleConcurrentOverlapPostgres`（同一员工身份加入重叠区间并发仅一个成功、固定锁序）、`TestWorkbenchOverviewGateMatrixPostgres` 等工作台权限矩阵、`TestOrderCommissionSummaryPrivacyPostgres`（订单摘要隐私投影）。
+   - 3 个失败（`TestAdminUserWorkspaceScopePostgres` 报 ADMIN_ROLE_NOT_FOUND、`TestSyncDefaultOrderOptionsPostgres` 首次补齐数量 0≠≥42、`TestCreateDefaultOrderOptionsPostgres` 与迁移种子冲突 20GP 重复键）在任务前基线 `d2f5874d` 用临时 worktree 复现完全相同失败，确认为存量遗留：集成夹具假设与正式迁移链内主数据种子 / 权限清单同步漂移，与本任务六个提交无关。按「修复仅限门禁暴露的本任务问题」边界未修，建议后续独立任务修复。
+5. EXPLAIN ANALYZE 抽查（一次性库隔离 Schema 内临时 Go 测试构造代表性数据量：500 订单 / 3000 提成行 / 3000 提成行明细 / 150 冲减；含各项 3 次冷热测量与逐查询计划导出，验证后临时文件已删除）
+   - `GetOverview`：253–291ms，超出 200ms 目标。定位：近期订单与草稿费用 / 未解决异常两个待办 COUNT 均走 `orders` 与 `order_personnels` 的 semi-join（`user_id` 位图扫描驱动）；在本抽查的最坏分布（该员工承担组织全部 500 订单）下估计行数 3 vs 实际 250.5，每条查询约 12.5 万次 Join Filter 拒绝、各约 100ms。提成侧聚合（GROUP BY 8.4ms、SUM 1–1.5ms）与分配门禁（<0.3ms）均达标。真实分布下员工订单占组织比例小，计划不会退化到该程度。
+   - `ListOrderSummaries`（EMPLOYEE 视图，50 订单页）：342–382ms，超出 200ms 目标。定位：`finance_commission_lines` 查询附加 `employee_id` 谓词后计划改由 `employee_id` 位图扫描驱动（最坏分布命中全部 3000 行、过滤 2700 行），再与约 3000 行父提成单做无哈希 Join Filter（38.2 万次拒绝），DB 侧单条约 300–400ms；同数据的 ORGANIZATION 视图同查询仅 43.5ms（走 order_id 驱动）。10 订单页约 77–101ms，成本随页内提成行数增长。
+   - `ListOrderSummaries`（ORGANIZATION 视图，50 订单页）：68–81ms，达标。
+   - `ListMyCommissions`（page=1, size=20）：21–29ms，达标。
+   - 按约定超标项只记录与定位，未擅自加缓存或快照；后续如需优化，方向是员工可见摘要的驱动路径（order_id 驱动或 `(order_id, employee_id)` 复合索引）与订单待办的 personnel 过滤计划。
+6. 收口检查
+   - `git diff --check` 通过；一次性数据库、临时 worktree、临时 Go 测试与过程日志均已删除；无秘密、连接串或调试输出入库。
 
 ## 3. 重点受影响文件
 

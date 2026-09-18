@@ -17,7 +17,7 @@ import (
 
 func TestGeneratedAccessRulesMatchProto(t *testing.T) {
 	packages := map[protoreflect.FullName]struct{}{
-		"admin.v1": {}, "auth.v1": {}, "enterprise_resource.v1": {}, "finance.v1": {}, "masterdata.v1": {}, "order.v1": {}, "partner.v1": {}, "task.v1": {},
+		"admin.v1": {}, "auth.v1": {}, "enterprise_resource.v1": {}, "finance.v1": {}, "masterdata.v1": {}, "order.v1": {}, "partner.v1": {}, "task.v1": {}, "workbench.v1": {},
 	}
 	seen := make(map[string]struct{})
 
