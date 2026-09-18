@@ -1,22 +1,49 @@
-import {
-  ApartmentOutlined,
-  SafetyCertificateOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { ApartmentOutlined } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
-import { Avatar, Descriptions, Space, Tag, Typography } from 'antd';
-import React from 'react';
+import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
+import React, { useState } from 'react';
+import CommissionSummaryCard from './workbench/CommissionSummaryCard';
+import FinanceSummaryCard from './workbench/FinanceSummaryCard';
+import MyCommissionDrawer from './workbench/MyCommissionDrawer';
+import MyReceivablesDrawer from './workbench/MyReceivablesDrawer';
+import { useWorkbenchOverview } from './workbench/useWorkbenchOverview';
+import {
+  AccountBoundaryCard,
+  QuickEntriesCard,
+  RecentOrdersCard,
+  TodosCard,
+} from './workbench/WorkbenchSideCards';
 
-const { Text, Title, Paragraph } = Typography;
+const { Text, Title } = Typography;
+
+const GRID_STYLE: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+  gap: 16,
+};
 
 export default function Welcome() {
   const { initialState } = useModel('@@initialState');
   const user = initialState?.currentUser;
-
   const displayName = user?.displayName || user?.username || '用户';
   const orgName = user?.currentOrganization?.name || '默认组织';
-  const orgCode = user?.currentOrganization?.code || '-';
+
+  // 请求键：当前工作区组织 ID。组织切换时 hook 重新拉取并丢弃旧组织在途响应。
+  const { loading, data, error, reload } = useWorkbenchOverview(
+    user?.currentOrganization?.id,
+  );
+
+  const [commissionDrawerOpen, setCommissionDrawerOpen] = useState(false);
+  const [receivablesDrawerOpen, setReceivablesDrawerOpen] = useState(false);
+
+  // 提成门禁：optional bool 的 false 可能被省略为 undefined，一律 !== true 判假；
+  // 门禁为假时从首次渲染（含加载中）起就不出现提成模块 DOM。
+  const showCommission = data?.hasCommissionEligibility === true;
+  const finance = data?.finance;
+  const hasTodos =
+    (data?.todos?.draftFeeCount ?? 0) > 0 ||
+    (data?.todos?.openAbnormalCount ?? 0) > 0;
 
   return (
     <PageContainer
@@ -45,97 +72,79 @@ export default function Welcome() {
       }
       extra={
         <Space size={8}>
-          <Tag icon={<ApartmentOutlined />} color="blue" style={{ padding: '4px 10px', fontSize: 12 }}>
+          <Tag
+            icon={<ApartmentOutlined />}
+            color="blue"
+            style={{ padding: '4px 10px', fontSize: 12 }}
+          >
             当前组织：{orgName}
           </Tag>
         </Space>
       }
     >
-      <Space vertical size={16} style={{ width: '100%' }}>
-        {/* Profile and System Boundary Overview */}
-        <ProCard gutter={[16, 16]} wrap ghost>
-          <ProCard
-            colSpan={{ xs: 24, lg: 16 }}
-            title={
-              <Space size={8}>
-                <UserOutlined style={{ color: '#1677ff' }} />
-                <span>当前账号与组织上下文</span>
-              </Space>
+      <Space orientation="vertical" size={16} style={{ width: '100%' }}>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            message="工作台数据加载失败"
+            description="稍后重试；失败不会展示任何组织的旧数据。"
+            action={
+              <Button size="small" danger onClick={reload}>
+                重试
+              </Button>
             }
-            headerBordered
-            variant="outlined"
-          >
-            <Descriptions column={{ xs: 1, sm: 2 }} size="middle">
-              <Descriptions.Item label="用户登录名">
-                <Text copyable style={{ fontFamily: 'monospace' }}>
-                  {user?.username}
-                </Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="显示名称">
-                <Text strong>{user?.displayName || '-'}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="所属组织机构">
-                <Space size={6}>
-                  <ApartmentOutlined style={{ color: '#1677ff' }} />
-                  <Text strong>{orgName}</Text>
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label="组织统一编码">
-                <Text copyable style={{ fontFamily: 'monospace' }}>
-                  {orgCode}
-                </Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="数据授权范围" span={2}>
-                {user?.roleScopes && user.roleScopes.length > 0 ? (
-                  <Space wrap size={[6, 6]}>
-                    {user.roleScopes.map((scope) => (
-                      <Tag
-                        key={`${scope.roleCode}:${scope.dataScope}`}
-                        color="cyan"
-                        variant="filled"
-                        style={{ padding: '2px 8px', fontSize: 12 }}
-                      >
-                        <SafetyCertificateOutlined style={{ marginRight: 4 }} />
-                        {scope.roleName || scope.roleCode} · 数据范围:{' '}
-                        {scope.dataScope}
-                      </Tag>
-                    ))}
-                  </Space>
-                ) : (
-                  <Text type="secondary">按系统默认规则隔离</Text>
-                )}
-              </Descriptions.Item>
-            </Descriptions>
-          </ProCard>
+          />
+        ) : null}
 
+        {loading ? (
           <ProCard
-            colSpan={{ xs: 24, lg: 8 }}
-            title={
-              <Space size={8}>
-                <SafetyCertificateOutlined style={{ color: '#52c41a' }} />
-                <span>系统运行与安全边界</span>
-              </Space>
-            }
             headerBordered
             variant="outlined"
+            data-testid="workbench-loading"
           >
-            <Paragraph style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, marginBottom: 12 }}>
-              当前平台基于严格的组织树数据隔离与基于角色的功能访问控制（RBAC）。
-              所有的单据创建、流转、核销均受当前组织边界和授权策略约束。
-            </Paragraph>
-            <Space vertical size={8} style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <Text type="secondary">功能权限授权数</Text>
-                <Text strong>{user?.permissions?.length ?? 0} 项</Text>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <Text type="secondary">角色作用域数</Text>
-                <Text strong>{user?.roleScopes?.length ?? 0} 个</Text>
-              </div>
-            </Space>
+            <Skeleton active paragraph={{ rows: 5 }} />
           </ProCard>
-        </ProCard>
+        ) : data ? (
+          <>
+            {showCommission ? (
+              <CommissionSummaryCard
+                data={data}
+                onOpenCommissions={() => setCommissionDrawerOpen(true)}
+                onOpenReceivables={() => setReceivablesDrawerOpen(true)}
+              />
+            ) : null}
+
+            {finance ? <FinanceSummaryCard finance={finance} /> : null}
+
+            {(data.recentOrders?.length ?? 0) > 0 || hasTodos ? (
+              <div style={GRID_STYLE}>
+                <RecentOrdersCard orders={data.recentOrders} />
+                <TodosCard todos={data.todos} />
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        <div style={GRID_STYLE}>
+          <AccountBoundaryCard user={user} />
+          <QuickEntriesCard />
+        </div>
       </Space>
+
+      {commissionDrawerOpen ? (
+        <MyCommissionDrawer
+          open
+          baseCurrency={data?.baseCurrency}
+          onClose={() => setCommissionDrawerOpen(false)}
+        />
+      ) : null}
+      {receivablesDrawerOpen ? (
+        <MyReceivablesDrawer
+          open
+          onClose={() => setReceivablesDrawerOpen(false)}
+        />
+      ) : null}
     </PageContainer>
   );
 }
