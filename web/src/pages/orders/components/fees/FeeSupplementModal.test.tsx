@@ -40,8 +40,9 @@ describe('FeeSupplementModal', () => {
     renderModal(onSubmit);
 
     fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    // 各字段校验错误在不同微任务中渲染，必须逐个异步等待，避免并发负载下抖动。
     expect(await screen.findByText('请填写补录原因')).toBeInTheDocument();
-    expect(screen.getByText('请选择费用项目')).toBeInTheDocument();
+    expect(await screen.findByText('请选择费用项目')).toBeInTheDocument();
     await waitFor(() => expect(onSubmit).not.toHaveBeenCalled());
   });
 
