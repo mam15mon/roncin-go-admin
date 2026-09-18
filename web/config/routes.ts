@@ -231,6 +231,15 @@ export default [
     redirect: '/finance/fee-settings',
   },
   {
+    // 员工本人专属冲减来源落地页：不挂在 /finance 下，避免被组织级财务
+    // 读取权限拦截；授权由接口按 employee_id = 当前用户 强制执行。
+    path: '/commission-adjustments/:id/my-supplement-source',
+    name: '我的冲减来源',
+    access: 'isAuthenticated',
+    hideInMenu: true,
+    component: './finance/commissions/my-supplement-source',
+  },
+  {
     path: '/master-data',
     name: '主数据',
     icon: 'database',

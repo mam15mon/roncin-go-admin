@@ -80,15 +80,47 @@ export const decimalText = (value?: string) => {
 };
 
 export const calculationSignature = (values: Partial<CreateValues>) =>
-  [values.verificationId, values.nettingId, values.ruleId, values.employeeId].join(
-    '|',
-  );
+  [
+    values.verificationId,
+    values.nettingId,
+    values.ruleId,
+    values.employeeId,
+  ].join('|');
 
 /** 来源单号二选一展示：核销单号或对冲单号，两者都空显示占位符。 */
 export const commissionSourceNo = (
   record: { verificationNo?: string; nettingNo?: string },
   placeholder = '-',
 ) => record.verificationNo || record.nettingNo || placeholder;
+
+/**
+ * 锁后费用补录冲减建议的页面文案：严格区分「待处理 / 已确认 / 已扣回 / 已取消」。
+ * 待处理不等于已确认，已确认不等于已扣回。
+ */
+export const commissionDecreaseStatusMeta: Record<
+  number,
+  { text: string; color: string }
+> = {
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: {
+    text: '待处理',
+    color: 'processing',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: {
+    text: '已确认',
+    color: 'warning',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: {
+    text: '已扣回',
+    color: 'purple',
+  },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: {
+    text: '已取消',
+    color: 'default',
+  },
+};
+
+/** 锁后费用补录来源（冲减建议）的系统来源类型标识。 */
+export const LOCKED_FEE_SUPPLEMENT_SOURCE = 'LOCKED_FEE_SUPPLEMENT';
 
 export function getBusinessReason(error: any): string {
   return (

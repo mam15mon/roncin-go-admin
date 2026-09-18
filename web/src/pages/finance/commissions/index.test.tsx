@@ -33,8 +33,17 @@ vi.mock('@umijs/max', () => ({
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
-  PageContainer: ({ children }: { children?: React.ReactNode }) => (
-    <>{children}</>
+  PageContainer: ({
+    children,
+    extra,
+  }: {
+    children?: React.ReactNode;
+    extra?: React.ReactNode;
+  }) => (
+    <>
+      <div data-testid="page-extra">{extra}</div>
+      {children}
+    </>
   ),
   ProTable: (props: Record<string, any>) => {
     componentProps.proTable = props;
@@ -74,6 +83,17 @@ vi.mock('./components/CommissionCreateModal', () => ({ default: () => null }));
 vi.mock('./components/CommissionDetailDrawer', () => ({ default: () => null }));
 vi.mock('./components/CommissionRulesDrawer', () => ({ default: () => null }));
 
+const panelState = vi.hoisted(() => ({
+  renderCount: 0,
+}));
+
+vi.mock('./components/PendingDecreasePanel', () => ({
+  default: () => {
+    panelState.renderCount += 1;
+    return <div data-testid="pending-decrease-panel">待处理冲减视图</div>;
+  },
+}));
+
 import FinanceCommissionsPage from './index';
 
 describe('提成导出按钮', () => {
@@ -82,6 +102,7 @@ describe('提成导出按钮', () => {
     accessState.canExportFinanceCommissions = false;
     componentProps.searchFilter = undefined;
     componentProps.proTable = undefined;
+    panelState.renderCount = 0;
     vi.restoreAllMocks();
     serviceMocks.exportCommissions.mockReset();
     serviceMocks.listCommissions.mockReset();
@@ -202,9 +223,7 @@ describe('提成导出按钮', () => {
 
     const columns: Record<string, any>[] =
       componentProps.proTable?.columns ?? [];
-    const sourceColumn = columns.find(
-      (column) => column.title === '来源单号',
-    );
+    const sourceColumn = columns.find((column) => column.title === '来源单号');
     expect(sourceColumn).toBeTruthy();
     if (!sourceColumn) throw new Error('来源单号列不存在');
     expect(
@@ -214,5 +233,25 @@ describe('提成导出按钮', () => {
       'NT-2026-001',
     );
     expect(sourceColumn.render(undefined, {})).toBe('-');
+  });
+
+  it('切换到待处理冲减视图时渲染冲减面板，可切回台账', () => {
+    render(
+      <App>
+        <FinanceCommissionsPage />
+      </App>,
+    );
+    expect(
+      screen.queryByTestId('pending-decrease-panel'),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('待处理冲减'));
+
+    expect(screen.getByTestId('pending-decrease-panel')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('提成台账'));
+    expect(
+      screen.queryByTestId('pending-decrease-panel'),
+    ).not.toBeInTheDocument();
   });
 });

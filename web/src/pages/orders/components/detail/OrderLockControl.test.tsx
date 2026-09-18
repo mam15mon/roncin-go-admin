@@ -8,6 +8,8 @@ import {
 } from '@/services/roncin/orderLockService';
 import OrderLockControl, {
   getOrderLockConfirmationDescription,
+  getOrderLockSourceDisplay,
+  getOrderLockTriggerTypeText,
   OrderLockStatusTag,
 } from './OrderLockControl';
 
@@ -122,5 +124,96 @@ describe('OrderLockControl', () => {
     expect(screen.queryByRole('button', { name: '紧急解锁' })).toBeNull();
     expect(screen.getByRole('button', { name: /申请解锁/ })).toBeDisabled();
     expect(requestUnlock).not.toHaveBeenCalled();
+  });
+
+  it('人工锁定展示实际锁定人，不因 locked_by 缺失猜测来源', () => {
+    expect(
+      getOrderLockSourceDisplay({
+        lockSource: 'MANUAL',
+        lockedBy: 'user-1',
+        lockedByName: '张三',
+      }),
+    ).toEqual({ actorText: '张三', isAuto: false, triggerLines: [] });
+
+    // 无锁定人时回落中性文案，绝不因 locked_by 为空推断为系统自动锁定。
+    expect(
+      getOrderLockSourceDisplay({
+        lockSource: 'MANUAL',
+        lockedByName: undefined,
+      }).actorText,
+    ).toBe('人工锁定');
+    expect(
+      getOrderLockSourceDisplay({
+        lockSource: undefined,
+        lockedByName: undefined,
+      }).isAuto,
+    ).toBe(false);
+  });
+
+  it('自动锁定固定展示系统自动锁定并携带触发审计详情', () => {
+    render(
+      <OrderLockStatusTag
+        state={{
+          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+          isLocked: true,
+          lockSource: 'AUTO_SETTLEMENT',
+          currentLockRecord: {
+            lockSource: 'AUTO_SETTLEMENT',
+            triggerType: 'VERIFICATION',
+            triggerResourceId: 'VR-2026-001',
+            triggeredByName: '李四',
+          },
+        }}
+        loading={false}
+        error={null}
+      />,
+    );
+
+    expect(screen.getByText(/系统自动锁定/)).toBeInTheDocument();
+    expect(screen.queryByText(/测试用户/)).not.toBeInTheDocument();
+
+    expect(
+      getOrderLockSourceDisplay({
+        lockSource: 'AUTO_SETTLEMENT',
+        currentLockRecord: {
+          lockSource: 'AUTO_SETTLEMENT',
+          triggerType: 'VERIFICATION',
+          triggerResourceId: 'VR-2026-001',
+          triggeredByName: '李四',
+        },
+      }).triggerLines,
+    ).toEqual([
+      '触发类型：应收核销',
+      '触发单据：VR-2026-001',
+      '触发操作人：李四',
+    ]);
+    expect(getOrderLockTriggerTypeText('FEE_CONFIRM')).toBe('费用草稿确认');
+    expect(getOrderLockTriggerTypeText('UNKNOWN_KIND')).toBe('UNKNOWN_KIND');
+    expect(getOrderLockTriggerTypeText(undefined)).toBe('-');
+  });
+
+  it('自动锁定后显式解锁入口保持可用', () => {
+    render(
+      <App>
+        <OrderLockControl
+          orderId="order-se-auto"
+          state={{
+            businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+            isLocked: true,
+            lockSource: 'AUTO_SETTLEMENT',
+            orderVersion: '9',
+            canRoleDirectUnlock: true,
+            canRequestUnlock: true,
+          }}
+          loading={false}
+          error={null}
+          onRetry={vi.fn().mockResolvedValue(null)}
+          onSynchronize={vi.fn().mockResolvedValue(undefined)}
+        />
+      </App>,
+    );
+
+    expect(screen.getByRole('button', { name: /直接解锁/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /申请解锁/ })).toBeEnabled();
   });
 });

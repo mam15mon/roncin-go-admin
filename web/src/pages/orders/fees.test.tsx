@@ -3,17 +3,23 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
+import { orderFeeServiceListOrderFeeSupplementRequests } from '@/services/roncin/orderFeeService';
 import OrderFeesPage from './fees';
 
 let mockParams = { kind: 'sea-export', id: 'order-A' };
 
 const feeTestState = vi.hoisted(() => ({
   resetPreview: vi.fn(),
+  lockState: { isLocked: false } as Partial<API.OrderLockStateData>,
+  canCreateFee: true,
 }));
 
 vi.mock('@umijs/max', () => ({
   history: { push: vi.fn() },
-  useAccess: () => ({ canCreateFinanceBills: true }),
+  useAccess: () => ({
+    canCreateFinanceBills: true,
+    canOrder: () => feeTestState.canCreateFee,
+  }),
   useParams: () => mockParams,
 }));
 
@@ -24,6 +30,16 @@ vi.mock('@/components/ui', () => ({
       {allRows.map((item: API.OrderFee) => item.id).join(',')}
     </div>
   ),
+  SectionCard: ({ title, children }: any) => (
+    <div data-testid="fee-supplement-card">
+      {title}
+      {children}
+    </div>
+  ),
+  ProFormSearchableSelect: (props: any) => (
+    <div data-testid={`ui-select-${props.name}`}>{props.label}</div>
+  ),
+  ExchangeRatePreviewCard: () => <div data-testid="exchange-preview" />,
 }));
 
 vi.mock('@/pages/finance/bills/components/BillCreationWorkbench', () => ({
@@ -57,6 +73,14 @@ vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceRemoveFee: vi.fn(),
   orderFeeServiceReopenFee: vi.fn(),
   orderFeeServiceUpdateFee: vi.fn(),
+  orderFeeServiceListOrderFeeSupplementRequests: vi
+    .fn()
+    .mockResolvedValue({ data: { items: [], total: 0 }, success: true }),
+  orderFeeServiceCreateOrderFeeSupplement: vi.fn(),
+  orderFeeServiceApproveOrderFeeSupplement: vi.fn(),
+  orderFeeServiceRejectOrderFeeSupplement: vi.fn(),
+  orderFeeServiceWithdrawOrderFeeSupplement: vi.fn(),
+  orderFeeServiceCancelApprovedOrderFeeSupplement: vi.fn(),
 }));
 
 vi.mock('./use-order-fee-options', () => ({
@@ -67,6 +91,7 @@ vi.mock('./use-order-fee-options', () => ({
           id: orderId,
           orderNo: orderId.replace('order-', 'ORDER-'),
           organizationId: `organization-${orderId}`,
+          businessType: 1,
         }
       : undefined,
     currencies: [],
@@ -89,7 +114,7 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
   return {
     ...actual,
     useOrderLockState: () => ({
-      state: { isLocked: false },
+      state: feeTestState.lockState,
       loading: false,
       error: null,
       refresh: vi.fn(),
@@ -205,6 +230,8 @@ describe('订单费用页跨订单状态隔离', () => {
 
   beforeEach(() => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
+    feeTestState.lockState = { isLocked: false };
+    feeTestState.canCreateFee = true;
     vi.clearAllMocks();
   });
 
@@ -314,5 +341,73 @@ describe('订单费用页跨订单状态隔离', () => {
         'false',
       );
     });
+  });
+});
+
+describe('订单费用页锁后费用补录', () => {
+  const listSupplements = vi.mocked(
+    orderFeeServiceListOrderFeeSupplementRequests,
+  );
+
+  function renderPage() {
+    return render(
+      <App>
+        <OrderFeesPage />
+      </App>,
+    );
+  }
+
+  beforeEach(() => {
+    mockParams = { kind: 'sea-export', id: 'order-A' };
+    feeTestState.lockState = { isLocked: false };
+    feeTestState.canCreateFee = true;
+    vi.clearAllMocks();
+    listSupplements.mockResolvedValue({
+      data: { items: [], total: 0 },
+      success: true,
+    } as Awaited<ReturnType<typeof listSupplements>>);
+  });
+
+  it('订单锁定时普通费用写入口关闭，但按 fee.create 能力开放补录入口', async () => {
+    feeTestState.lockState = { isLocked: true };
+    renderPage();
+
+    // 补录申请区不依赖 fee.read，申请列表照常读取。
+    await waitFor(() =>
+      expect(listSupplements).toHaveBeenCalledWith({
+        orderId: 'order-A',
+        page: 1,
+        pageSize: 10,
+      }),
+    );
+    expect(
+      await screen.findByRole('button', { name: '补录费用' }),
+    ).toBeInTheDocument();
+    // 普通新增入口在锁定时保持禁用（feeWritesDisabled 传递为 true）。
+    await waitFor(() => {
+      const tabs = screen.getByTestId('fee-table-state');
+      expect(tabs).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
+  });
+
+  it('无 fee.create 能力时不展示补录入口，但申请列表仍可读取', async () => {
+    feeTestState.lockState = { isLocked: true };
+    feeTestState.canCreateFee = false;
+    renderPage();
+
+    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('button', { name: '补录费用' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('订单未锁定时不展示补录入口', async () => {
+    renderPage();
+
+    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('button', { name: '补录费用' }),
+    ).not.toBeInTheDocument();
   });
 });

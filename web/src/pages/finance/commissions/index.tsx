@@ -10,7 +10,15 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, DatePicker, Space, Tag, Typography } from 'antd';
+import {
+  App,
+  Button,
+  DatePicker,
+  Segmented,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import {
@@ -43,6 +51,7 @@ import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
 import CommissionRulesDrawer from './components/CommissionRulesDrawer';
+import PendingDecreasePanel from './components/PendingDecreasePanel';
 import {
   calculationBasisMeta,
   calculationBasisText,
@@ -57,10 +66,13 @@ import {
 
 const { RangePicker } = DatePicker;
 
+type CommissionView = 'ledger' | 'pending-decrease';
+
 export default function FinanceCommissionsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const [view, setView] = useState<CommissionView>('ledger');
 
   const searchFiltersRef = useRef<CommissionQueryFilters>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -122,13 +134,15 @@ export default function FinanceCommissionsPage() {
     },
   );
 
-  const openDetail = async (record: API.FinanceCommission) => {
-    if (!record.id) return;
+  const openDetailById = async (commissionId?: string) => {
+    if (!commissionId) return;
     setDetailOpen(true);
     setDetailLoading(true);
     setDetail(undefined);
     try {
-      const response = await settlementServiceGetCommission({ id: record.id });
+      const response = await settlementServiceGetCommission({
+        id: commissionId,
+      });
       setDetail(response.data);
     } catch (error: any) {
       message.error(error.message || '提成明细加载失败');
@@ -137,6 +151,9 @@ export default function FinanceCommissionsPage() {
       setDetailLoading(false);
     }
   };
+
+  const openDetail = (record: API.FinanceCommission) =>
+    openDetailById(record.id);
 
   const refreshDetail = async () => {
     if (!detail?.id) return;
@@ -165,7 +182,8 @@ export default function FinanceCommissionsPage() {
     if (target === 'PAID') {
       if (isReversal) {
         action = '标记已追回';
-        content = '该操作表示来源反转（反核销或反对冲）冲减款项已实际追回，完成后不可取消。';
+        content =
+          '该操作表示来源反转（反核销或反对冲）冲减款项已实际追回，完成后不可取消。';
       } else if (isDecrease) {
         action = '标记已扣回';
         content = '该操作表示冲减金额已实际扣回，完成后不可取消。';
@@ -557,142 +575,165 @@ export default function FinanceCommissionsPage() {
     <PageContainer
       title="提成管理"
       subTitle="业务人员业绩提成核算、规则配置与发放台账"
+      extra={[
+        <Segmented
+          key="commission-view"
+          value={view}
+          onChange={(value) => setView(value as CommissionView)}
+          options={[
+            { label: '提成台账', value: 'ledger' },
+            { label: '待处理冲减', value: 'pending-decrease' },
+          ]}
+        />,
+      ]}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
-      <SearchFilterTemplate<CommissionSearchValues>
-        layout="grid"
-        collapsible={false}
-        colSpan={6}
-        items={[
-          {
-            name: 'keyword',
-            label: '关键词',
-            placeholder: '提成单号、员工名称或业务单号',
-            span: 6,
-          },
-          {
-            name: 'status',
-            label: '状态',
-            type: 'select',
-            placeholder: '全部状态',
-            span: 4,
-            options: [
+      {view === 'pending-decrease' ? (
+        <PendingDecreasePanel
+          onOpenCommissionDetail={(commissionId) =>
+            void openDetailById(commissionId)
+          }
+        />
+      ) : (
+        <>
+          <SearchFilterTemplate<CommissionSearchValues>
+            layout="grid"
+            collapsible={false}
+            colSpan={6}
+            items={[
               {
-                label: '草稿',
-                value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+                name: 'keyword',
+                label: '关键词',
+                placeholder: '提成单号、员工名称或业务单号',
+                span: 6,
               },
               {
-                label: '已确认',
-                value:
-                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+                name: 'status',
+                label: '状态',
+                type: 'select',
+                placeholder: '全部状态',
+                span: 4,
+                options: [
+                  {
+                    label: '草稿',
+                    value:
+                      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+                  },
+                  {
+                    label: '已确认',
+                    value:
+                      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+                  },
+                  {
+                    label: '已发放',
+                    value:
+                      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+                  },
+                  {
+                    label: '已取消',
+                    value:
+                      FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED,
+                  },
+                ],
               },
               {
-                label: '已发放',
-                value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+                name: 'commissionMonth',
+                label: '归属月份',
+                type: 'custom',
+                span: 8,
+                render: () => (
+                  <RangePicker
+                    picker="month"
+                    allowEmpty={[true, true]}
+                    placeholder={['开始月份', '结束月份']}
+                    style={{ width: '100%' }}
+                  />
+                ),
               },
               {
-                label: '已取消',
-                value:
-                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED,
+                name: 'organizationId',
+                label: '所属公司',
+                type: 'select',
+                placeholder: '全部公司',
+                span: 4,
+                options: organizationOptions.map((item) => ({
+                  value: item.id ?? '',
+                  label: item.name ?? item.code ?? item.id ?? '',
+                })),
               },
-            ],
-          },
-          {
-            name: 'commissionMonth',
-            label: '归属月份',
-            type: 'custom',
-            span: 8,
-            render: () => (
-              <RangePicker
-                picker="month"
-                allowEmpty={[true, true]}
-                placeholder={['开始月份', '结束月份']}
-                style={{ width: '100%' }}
-              />
-            ),
-          },
-          {
-            name: 'organizationId',
-            label: '所属公司',
-            type: 'select',
-            placeholder: '全部公司',
-            span: 4,
-            options: organizationOptions.map((item) => ({
-              value: item.id ?? '',
-              label: item.name ?? item.code ?? item.id ?? '',
-            })),
-          },
-        ]}
-        onSearch={(values) => {
-          searchFiltersRef.current = normalizeCommissionFilters(values);
-          actionRef.current?.reload();
-        }}
-        onReset={() => {
-          searchFiltersRef.current = {};
-          actionRef.current?.reload();
-        }}
-        extraRight={
-          <Space size={8}>
-            {access.canExportFinanceCommissions && (
-              <Button
-                key="export"
-                icon={<DownloadOutlined />}
-                loading={exporting}
-                onClick={exportCommissions}
-              >
-                导出提成
-              </Button>
-            )}
-            {access.canManageFinanceCommissions && (
-              <Button
-                key="create"
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setCreateModalOpen(true)}
-              >
-                生成提成
-              </Button>
-            )}
-            <Button
-              key="rules"
-              icon={<SettingOutlined />}
-              onClick={() => setRulesDrawerOpen(true)}
-            >
-              {access.canManageFinanceCommissions ? '考核规则' : '查看规则'}
-            </Button>
-          </Space>
-        }
-      />
-      <ProTable<API.FinanceCommission>
-        headerTitle="提成结算列表"
-        actionRef={actionRef}
-        rowKey="id"
-        columns={columns}
-        cardProps={{
-          style: {
-            borderRadius: 8,
-            border: '1px solid #f0f0f0',
-          },
-        }}
-        size="small"
-        scroll={{ x: 1900 }}
-        search={false}
-        toolBarRender={false}
-        request={async (params) => {
-          const response = await settlementServiceListCommissions({
-            page: params.current ?? 1,
-            pageSize: params.pageSize ?? 20,
-            ...searchFiltersRef.current,
-          });
-          return toTableRequest(response);
-        }}
-      />
+            ]}
+            onSearch={(values) => {
+              searchFiltersRef.current = normalizeCommissionFilters(values);
+              actionRef.current?.reload();
+            }}
+            onReset={() => {
+              searchFiltersRef.current = {};
+              actionRef.current?.reload();
+            }}
+            extraRight={
+              <Space size={8}>
+                {access.canExportFinanceCommissions && (
+                  <Button
+                    key="export"
+                    icon={<DownloadOutlined />}
+                    loading={exporting}
+                    onClick={exportCommissions}
+                  >
+                    导出提成
+                  </Button>
+                )}
+                {access.canManageFinanceCommissions && (
+                  <Button
+                    key="create"
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setCreateModalOpen(true)}
+                  >
+                    生成提成
+                  </Button>
+                )}
+                <Button
+                  key="rules"
+                  icon={<SettingOutlined />}
+                  onClick={() => setRulesDrawerOpen(true)}
+                >
+                  {access.canManageFinanceCommissions ? '考核规则' : '查看规则'}
+                </Button>
+              </Space>
+            }
+          />
+          <ProTable<API.FinanceCommission>
+            headerTitle="提成结算列表"
+            actionRef={actionRef}
+            rowKey="id"
+            columns={columns}
+            cardProps={{
+              style: {
+                borderRadius: 8,
+                border: '1px solid #f0f0f0',
+              },
+            }}
+            size="small"
+            scroll={{ x: 1900 }}
+            search={false}
+            toolBarRender={false}
+            request={async (params) => {
+              const response = await settlementServiceListCommissions({
+                page: params.current ?? 1,
+                pageSize: params.pageSize ?? 20,
+                ...searchFiltersRef.current,
+              });
+              return toTableRequest(response);
+            }}
+          />
 
-      <CommissionCreateModal
-        open={createModalOpen}
-        onOpenChange={setCreateModalOpen}
-        onSuccess={reload}
-      />
+          <CommissionCreateModal
+            open={createModalOpen}
+            onOpenChange={setCreateModalOpen}
+            onSuccess={reload}
+          />
+        </>
+      )}
 
       <CommissionDetailDrawer
         open={detailOpen}

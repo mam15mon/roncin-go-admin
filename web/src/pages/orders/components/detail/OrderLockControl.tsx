@@ -11,8 +11,8 @@ import {
   orderLockServiceLockOrder,
   orderLockServiceRequestOrderUnlock,
 } from '@/services/roncin/orderLockService';
-import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
 import { generateUUID } from '@/utils/uuid';
+import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
 import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
 
 type UnlockRoute = 'ROLE_DIRECT' | 'ADMIN_EMERGENCY' | 'DINGTALK_APPROVAL';
@@ -45,6 +45,53 @@ export function getOrderLockConfirmationDescription(
   return '锁定后将冻结订单业务资料和费用。如需修改必须先解锁。';
 }
 
+/** 自动锁定触发类型的稳定展示文案；未知取值原样透出，不猜测。 */
+const LOCK_TRIGGER_TYPE_TEXT: Record<string, string> = {
+  VERIFICATION: '应收核销',
+  NETTING: '应收对冲',
+  FEE_CONFIRM: '费用草稿确认',
+  FEE_CANCEL: '费用草稿作废',
+};
+
+export function getOrderLockTriggerTypeText(triggerType?: string): string {
+  if (!triggerType) return '-';
+  return LOCK_TRIGGER_TYPE_TEXT[triggerType] ?? triggerType;
+}
+
+export type OrderLockSourceDisplay = {
+  /** 锁定归属主文案：MANUAL 展示实际锁定人，AUTO_SETTLEMENT 固定系统文案。 */
+  actorText: string;
+  isAuto: boolean;
+  /** 自动锁定触发审计行（触发类型、触发单据、触发操作人）。 */
+  triggerLines: string[];
+};
+
+/**
+ * 锁定来源展示投影：只消费服务端返回的 lock_source 与触发审计字段，
+ * 不根据 locked_by 是否为空在前端猜测来源。
+ */
+export function getOrderLockSourceDisplay(
+  state: Pick<
+    API.OrderLockStateData,
+    'lockSource' | 'lockedBy' | 'lockedByName' | 'currentLockRecord'
+  >,
+): OrderLockSourceDisplay {
+  if (state.lockSource === 'AUTO_SETTLEMENT') {
+    const record = state.currentLockRecord;
+    const triggerLines = [
+      `触发类型：${getOrderLockTriggerTypeText(record?.triggerType)}`,
+      `触发单据：${record?.triggerResourceId || '-'}`,
+      `触发操作人：${record?.triggeredByName || record?.triggeredBy || '-'}`,
+    ];
+    return { actorText: '系统自动锁定', isAuto: true, triggerLines };
+  }
+  return {
+    actorText: state.lockedByName || state.lockedBy || '人工锁定',
+    isAuto: false,
+    triggerLines: [],
+  };
+}
+
 function getUnlockTitle(route: UnlockRoute, businessType?: number): string {
   const businessTypeLabel = getOrderBusinessTypeLabel(businessType);
   if (route === 'ROLE_DIRECT') return `直接解锁${businessTypeLabel}订单`;
@@ -73,13 +120,23 @@ export function OrderLockStatusTag({
   const timeText = state.lockedAt
     ? dayjs(state.lockedAt).format('YYYY-MM-DD HH:mm')
     : '';
+  const sourceDisplay = getOrderLockSourceDisplay(state);
   return (
     <Tooltip
       title={
         <div style={{ fontSize: 12 }}>
           <div>业务类型：{businessTypeLabel}</div>
           <div>锁定轮次：第 {state.lockGeneration} 代</div>
-          <div>锁定人：{state.lockedByName || state.lockedBy || '系统'}</div>
+          {sourceDisplay.isAuto ? (
+            <>
+              <div>锁定来源：系统自动锁定</div>
+              {sourceDisplay.triggerLines.map((line) => (
+                <div key={line}>{line}</div>
+              ))}
+            </>
+          ) : (
+            <div>锁定人：{sourceDisplay.actorText}</div>
+          )}
           {timeText && <div>锁定时间：{timeText}</div>}
           {state.activeUnlockRequest && (
             <div style={{ marginTop: 4, color: '#faad14' }}>
@@ -91,7 +148,7 @@ export function OrderLockStatusTag({
       }
     >
       <Tag color="error" icon={<LockOutlined />}>
-        {businessTypeLabel} · 已锁定 · {state.lockedByName || '已锁定'}
+        {businessTypeLabel} · 已锁定 · {sourceDisplay.actorText}
         {timeText ? ` · ${timeText}` : ''}
       </Tag>
     </Tooltip>

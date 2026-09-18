@@ -9,7 +9,7 @@ import { history, useAccess, useParams } from '@umijs/max';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { FinanceSummaryBoard } from '@/components/ui';
+import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
@@ -27,6 +27,7 @@ import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
+import FeeSupplementSection from './components/fees/FeeSupplementSection';
 import {
   FEE_BILLED,
   feeStatusCode,
@@ -590,6 +591,24 @@ export default function OrderFeesPage() {
         onOpenFeeModal={openFeeModal}
         getTableColumns={getTableColumns}
       />
+
+      {/* 3.1 锁后费用补录：订单身份变化时经 key 整体重建，清空申请、弹窗与异步状态 */}
+      <SectionCard title="锁后费用补录" collapsible>
+        <FeeSupplementSection
+          key={targetOrderId}
+          orderId={orderId || ''}
+          canCreate={
+            order.businessType !== undefined &&
+            access.canOrder(order.businessType, 'fee.create')
+          }
+          lockActive={Boolean(lockState?.isLocked) || financeLocked}
+          feeSettings={feeSettings}
+          settlementParties={settlementParties}
+          currencies={currencies}
+          billingUnits={billingUnits}
+          onFeeTablesReload={reloadFeeTables}
+        />
+      </SectionCard>
 
       {/* 底部双层多币种动态汇总看板 */}
       <FinanceSummaryBoard
