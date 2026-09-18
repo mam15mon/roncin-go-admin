@@ -255,6 +255,11 @@ pnpm --dir web biome:lint
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
   并随代码提交迁移；不得绕过 Ent 在业务代码中散落手写 SQL（确有必要时说明
   原因并集中封装在 `internal/data`）。
+- Ent 迁移全局状态与并发禁忌：Ent 包级表对象（`migrate.Tables`）在运行期
+  执行 `client.Schema.Create` 或 Diff 时会被框架就地回写，存在隐式顺序依赖与
+  全局指针污染；禁止在集成测试中并发执行 `Schema.Create`（涉及 Schema 初始化的
+  测试禁止 `t.Parallel()`）；生产与集成验证严格以有序的正式 SQL 迁移文件
+  （`server/migrations/*.sql`）为唯一真相源，不得依赖 Ent 运行期自动建表。
 - 权限目录随 `cmd/migrate` 自动同步：`pnpm run migrate:server`（生产发版的
   迁移步骤同样执行该命令）在迁移完成后按 `internal/access` 的 Manifest 幂等
   同步 `permissions` 表，并为 `administrator` 角色补挂缺失权限。新增权限码
