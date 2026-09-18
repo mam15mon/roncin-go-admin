@@ -2196,6 +2196,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: employeeId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2244,6 +2248,85 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.UpdateCommissionRuleResponse'
+    /api/v1/finance/commission-rules/{id}/copy:
+        post:
+            tags:
+                - SettlementService
+            description: |-
+                CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+                 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+            operationId: SettlementService_CopyCommissionRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CopyCommissionRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CopyCommissionRuleResponse'
+    /api/v1/finance/commission-rules/{id}/employees/assign:
+        post:
+            tags:
+                - SettlementService
+            description: |-
+                AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+                 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+                 不物理删除历史分配。按 commission.manage 可写组织过滤。
+            operationId: SettlementService_AssignCommissionRuleEmployees
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.AssignCommissionRuleEmployeesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.AssignCommissionRuleEmployeesResponse'
+    /api/v1/finance/commission-rules/{id}/employees/remove:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_RemoveCommissionRuleEmployees
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.RemoveCommissionRuleEmployeesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.RemoveCommissionRuleEmployeesResponse'
     /api/v1/finance/commissions:
         get:
             tags:
@@ -2309,13 +2392,20 @@ paths:
         get:
             tags:
                 - SettlementService
+            description: |-
+                ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+                 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+                 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
             operationId: SettlementService_ListCommissionCandidates
             parameters:
                 - name: verificationId
                   in: query
+                  description: |-
+                    来源二选一：核销与对冲恰好提供一个，同时缺失或同时提供返回参数错误；
+                     候选不再接受客户端 rule_id，服务端按来源归属日期自动解析唯一有效方案。
                   schema:
                     type: string
-                - name: ruleId
+                - name: nettingId
                   in: query
                   schema:
                     type: string
@@ -2459,42 +2549,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.PreviewCommissionResponse'
-    /api/v1/finance/commissions/rule-candidates:
-        get:
-            tags:
-                - SettlementService
-            description: ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-            operationId: SettlementService_ListCommissionRuleCandidates
-            parameters:
-                - name: organizationId
-                  in: query
-                  schema:
-                    type: string
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: pageSize
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: keyword
-                  in: query
-                  schema:
-                    type: string
-                - name: personnelRole
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.ListCommissionRuleCandidatesResponse'
     /api/v1/finance/commissions/verification-candidates:
         get:
             tags:
@@ -9863,6 +9917,30 @@ components:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
                 traceId:
                     type: string
+        finance.v1.AssignCommissionRuleEmployeesRequest:
+            required:
+                - id
+                - change
+            type: object
+            properties:
+                id:
+                    type: string
+                change:
+                    $ref: '#/components/schemas/finance.v1.CommissionRuleEmployeeChangeInput'
+        finance.v1.AssignCommissionRuleEmployeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                traceId:
+                    type: string
         finance.v1.BatchAssignFinanceBillTagsRequest:
             required:
                 - billIds
@@ -10387,10 +10465,17 @@ components:
                     type: string
                 commissionAmount:
                     type: string
-                id:
+                ruleId:
                     type: string
-                displayName:
+                ruleName:
                     type: string
+                calculationBasis:
+                    type: string
+                ruleVersion:
+                    type: string
+            description: |-
+                CommissionCandidateSummary 是按来源自动解析出的单个「员工 + 人员身份 + 已解析
+                 方案」候选：rule_* 字段为服务端按来源归属日期命中的唯一有效方案投影。
         finance.v1.CommissionEmployeeOption:
             type: object
             properties:
@@ -10475,6 +10560,40 @@ components:
                 status:
                     type: integer
                     format: enum
+        finance.v1.CommissionRuleAssignmentProjection:
+            type: object
+            properties:
+                id:
+                    type: string
+                employeeId:
+                    type: string
+                employeeName:
+                    type: string
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+            description: |-
+                CommissionRuleAssignmentProjection 是方案名单的受控投影：只暴露名单抽屉与
+                 资格追溯所需字段，不包含审计操作者等内部信息。
+        finance.v1.CommissionRuleEmployeeChangeInput:
+            required:
+                - employeeIds
+                - expectedVersion
+            type: object
+            properties:
+                employeeIds:
+                    type: array
+                    items:
+                        type: string
+                expectedVersion:
+                    type: string
+                changeEffectiveDate:
+                    type: string
+            description: |-
+                CommissionRuleEmployeeChangeInput 描述方案名单的批量增删：expected_version 防
+                 并发覆盖；change_effective_date 对已生效方案必填且只允许当天或未来，未生效
+                 方案可省略。
         finance.v1.CommissionRuleInput:
             required:
                 - name
@@ -10499,6 +10618,10 @@ components:
                     type: boolean
                 note:
                     type: string
+                employeeIds:
+                    type: array
+                    items:
+                        type: string
         finance.v1.ConfirmBillBatchRequest:
             required:
                 - id
@@ -10667,6 +10790,54 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceNetting'
+                traceId:
+                    type: string
+        finance.v1.CopyCommissionRuleRequest:
+            required:
+                - id
+                - name
+                - personnelRole
+                - calculationBasis
+                - ratePercent
+                - effectiveFrom
+                - employeeIds
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                personnelRole:
+                    type: string
+                calculationBasis:
+                    type: string
+                ratePercent:
+                    type: string
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                employeeIds:
+                    type: array
+                    items:
+                        type: string
+                note:
+                    type: string
+            description: |-
+                CopyCommissionRuleRequest 描述【复制为新方案】：新方案以当天或未来日期生效，
+                 至少一名真实适用员工；源方案终止日由服务端衔接为新方案生效日前一日。
+        finance.v1.CopyCommissionRuleResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
                 traceId:
                     type: string
         finance.v1.CreateBillBatchGroupInput:
@@ -10903,7 +11074,8 @@ components:
             required:
                 - employeeId
                 - idempotencyKey
-                - ruleId
+                - personnelRole
+                - organizationId
             type: object
             properties:
                 verificationId:
@@ -10914,9 +11086,11 @@ components:
                     type: string
                 idempotencyKey:
                     type: string
-                ruleId:
+                personnelRole:
                     type: string
                 nettingId:
+                    type: string
+                organizationId:
                     type: string
         finance.v1.CreateCommissionResponse:
             type: object
@@ -12166,6 +12340,15 @@ components:
                     type: string
                 organizationName:
                     type: string
+                legacyReadonly:
+                    type: boolean
+                activeEmployeeCount:
+                    type: integer
+                    format: int32
+                assignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.CommissionRuleAssignmentProjection'
         finance.v1.FinanceInvoice:
             type: object
             properties:
@@ -12976,24 +13159,6 @@ components:
                     type: string
                 traceId:
                     type: string
-        finance.v1.ListCommissionRuleCandidatesResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
-                total:
-                    type: string
-                traceId:
-                    type: string
         finance.v1.ListCommissionRulesResponse:
             type: object
             properties:
@@ -13461,20 +13626,25 @@ components:
         finance.v1.PreviewCommissionRequest:
             required:
                 - employeeId
-                - ruleId
+                - personnelRole
+                - organizationId
             type: object
             properties:
                 verificationId:
                     type: string
                 employeeId:
                     type: string
-                ruleId:
+                personnelRole:
                     type: string
                 nettingId:
                     type: string
+                organizationId:
+                    type: string
             description: |-
                 PreviewCommissionRequest / CreateCommissionRequest 的来源二选一：
-                 verification_id 与 netting_id 恰好提供一个，同时缺失或同时提供返回参数错误。
+                 verification_id 与 netting_id 恰好提供一个，同时缺失或同时提供返回参数错误；
+                 不再接受客户端 rule_id，服务端按来源归属日期、员工与人员身份自动解析唯一
+                 有效方案与员工分配，响应返回实际命中的规则 ID/名称/版本。
         finance.v1.PreviewCommissionResponse:
             type: object
             properties:
@@ -13574,6 +13744,30 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.RemoveCommissionRuleEmployeesRequest:
+            required:
+                - id
+                - change
+            type: object
+            properties:
+                id:
+                    type: string
+                change:
+                    $ref: '#/components/schemas/finance.v1.CommissionRuleEmployeeChangeInput'
+        finance.v1.RemoveCommissionRuleEmployeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
                 traceId:
                     type: string
         finance.v1.ResetFeeLedgerPreferenceResponse:

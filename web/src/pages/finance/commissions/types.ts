@@ -5,8 +5,8 @@ export type CreateValues = {
   // 来源二选一：核销与对冲恰好提供一个，与后端契约一致。
   verificationId?: string;
   nettingId?: string;
-  employeeId: string;
-  ruleId: string;
+  // 候选选中键：`${employeeId}|${personnelRole}`，规则由服务端按来源日期解析。
+  candidateKey?: string;
   note?: string;
 };
 
@@ -19,6 +19,19 @@ export type RuleValues = {
   effectiveRange?: [Dayjs, Dayjs];
   enabled: boolean;
   note?: string;
+  employeeIds?: string[];
+};
+
+/** 解析候选选中键为员工与人员身份；非法键返回空。 */
+export const parseCandidateKey = (
+  key?: string,
+): { employeeId?: string; personnelRole?: string } => {
+  if (!key) return {};
+  const separator = key.indexOf('|');
+  if (separator <= 0) return {};
+  const employeeId = key.slice(0, separator);
+  const personnelRole = key.slice(separator + 1);
+  return employeeId && personnelRole ? { employeeId, personnelRole } : {};
 };
 
 export type AdjustmentValues = {
@@ -80,12 +93,7 @@ export const decimalText = (value?: string) => {
 };
 
 export const calculationSignature = (values: Partial<CreateValues>) =>
-  [
-    values.verificationId,
-    values.nettingId,
-    values.ruleId,
-    values.employeeId,
-  ].join('|');
+  [values.verificationId, values.nettingId, values.candidateKey].join('|');
 
 /** 来源单号二选一展示：核销单号或对冲单号，两者都空显示占位符。 */
 export const commissionSourceNo = (

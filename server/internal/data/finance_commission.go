@@ -19,8 +19,8 @@ import (
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
-	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	rule "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	nettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	nettingalloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -70,87 +70,104 @@ func (r *commissionRepo) ListEmployeesScoped(ctx context.Context, organizationID
 	}))
 }
 
+// ListCandidates 按来源单发现计提候选：先按来源订单的提成归属发现「员工 +
+// 人员身份」组合，再按来源归属日期解析「已启用方案 ∩ 该员工未取消有效分配」
+// 的唯一命中；任一条件不满足的组合不产生候选。同一员工多身份形成独立候选。
 func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	store := commissionStoreFromClient(client)
-	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, uuid.Nil, f.RuleID, false)
+	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, f.NettingID, false)
 	if err != nil {
 		return nil, err
 	}
-	employeePredicates := commissionCandidateEmployeePredicates(org, source, f.Keyword)
-	employeeQuery := client.User.Query().Where(employeePredicates...)
-	total, err := employeeQuery.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	employees, err := employeeQuery.
-		Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).
-		Offset((f.Page - 1) * f.PageSize).
-		Limit(f.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := &biz.CommissionCandidateListResult{
-		Items: make([]*biz.CommissionCalculation, 0, len(employees)), Total: int64(total), Page: f.Page, PageSize: f.PageSize,
-	}
-	if len(employees) == 0 {
-		return result, nil
-	}
-	employeeIDs := make([]uuid.UUID, 0, len(employees))
-	for _, employee := range employees {
-		employeeIDs = append(employeeIDs, employee.ID)
-	}
+	// 候选发现：来源涉及订单上存在应收费用事实的提成归属，按「员工 + 身份」
+	// 去重组合；固定薪员工没有对应身份归属，自然不产生候选。
 	attributions, err := client.OrderCommissionAttribution.Query().Where(
 		attribution.OrganizationIDEQ(org),
 		attribution.OrderIDIn(source.orderIDs...),
-		attribution.EmployeeIDIn(employeeIDs...),
-		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
-	).Order(attribution.ByAttributedAt(), attribution.ByID()).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	attributionsByEmployee := make(map[uuid.UUID][]*ent.OrderCommissionAttribution, len(employees))
-	for _, item := range attributions {
-		attributionsByEmployee[item.EmployeeID] = append(attributionsByEmployee[item.EmployeeID], item)
-	}
-	for _, employee := range employees {
-		calculation, calculateErr := calculateCommissionFromSource(source, employee, attributionsByEmployee[employee.ID])
-		if calculateErr != nil {
-			return nil, calculateErr
-		}
-		calculation.Lines = nil
-		result.Items = append(result.Items, calculation)
-	}
-	return result, nil
-}
-
-func commissionCandidateEmployeePredicates(org uuid.UUID, source *commissionCalculationSource, keyword string) []predicate.User {
-	attributionPredicates := []predicate.OrderCommissionAttribution{
-		attribution.OrganizationIDEQ(org),
-		attribution.OrderIDIn(source.orderIDs...),
-		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
 		attribution.HasOrderWith(orderent.HasFeesWith(
 			fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		)),
+	).Order(attribution.ByID()).All(ctx)
+	if err != nil {
+		return nil, err
 	}
-	employeePredicates := []predicate.User{
-		user.EnabledEQ(true),
-		user.HasOrderCommissionAttributionsWith(attributionPredicates...),
+	type candidateCombo struct {
+		employeeID    uuid.UUID
+		personnelRole biz.CommissionPersonnelRole
+		employeeName  string
+		attributions  []*ent.OrderCommissionAttribution
 	}
-	if keyword != "" {
-		employeePredicates = append(employeePredicates, user.Or(
-			user.UsernameContainsFold(keyword),
-			user.DisplayNameContainsFold(keyword),
-			user.SearchKeywordsContainsFold(keyword),
-		))
+	combos := make(map[string]*candidateCombo)
+	for _, item := range attributions {
+		role := biz.CommissionPersonnelRole(item.PersonnelRole)
+		key := item.EmployeeID.String() + "|" + string(role)
+		combo, exists := combos[key]
+		if !exists {
+			combo = &candidateCombo{employeeID: item.EmployeeID, personnelRole: role, employeeName: item.EmployeeName}
+			combos[key] = combo
+		}
+		combo.attributions = append(combo.attributions, item)
 	}
-	return employeePredicates
+	// 逐组合解析唯一方案并试算；解析失败或来源条件不满足的组合静默跳过，
+	// 其余错误（解析失败除外）原样外传。
+	employees := make(map[uuid.UUID]*ent.User)
+	skipped := map[error]bool{biz.ErrCommissionRuleNotResolved: true, biz.ErrCommissionSource: true, biz.ErrCommissionEmployeeRole: true}
+	calculations := make([]*biz.CommissionCalculation, 0, len(combos))
+	keys := make([]string, 0, len(combos))
+	for key := range combos {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		combo := combos[key]
+		if f.Keyword != "" && !strings.Contains(strings.ToLower(combo.employeeName), strings.ToLower(f.Keyword)) {
+			continue
+		}
+		employee, exists := employees[combo.employeeID]
+		if !exists {
+			loaded, loadErr := store.users.Query().Where(user.IDEQ(combo.employeeID)).Only(ctx)
+			if loadErr != nil {
+				continue
+			}
+			employees[combo.employeeID] = loaded
+			employee = loaded
+		}
+		ruleItem, assignmentItem, resolveErr := resolveCommissionRuleForDate(ctx, store, org, combo.employeeID, combo.personnelRole, source.commissionDate, false)
+		if resolveErr != nil {
+			if skipped[resolveErr] {
+				continue
+			}
+			return nil, resolveErr
+		}
+		calculation, calculateErr := calculateCommissionFromSource(source, ruleItem, assignmentItem, employee, combo.attributions)
+		if calculateErr != nil {
+			if skipped[calculateErr] {
+				continue
+			}
+			return nil, calculateErr
+		}
+		calculation.Lines = nil
+		calculations = append(calculations, calculation)
+	}
+	total := len(calculations)
+	start := (f.Page - 1) * f.PageSize
+	if start > total {
+		start = total
+	}
+	end := start + f.PageSize
+	if end > total {
+		end = total
+	}
+	result := &biz.CommissionCandidateListResult{
+		Items: calculations[start:end], Total: int64(total), Page: f.Page, PageSize: f.PageSize,
+	}
+	return result, nil
 }
 
 // ListNettingCandidates 返回可计提的对冲单候选：已确认且存在有效应收分摊，
@@ -260,10 +277,10 @@ func (r *commissionRepo) GetRuleScoped(ctx context.Context, organizationIDs []uu
 }
 
 // commissionRuleQueryWithAssignments 让方案查询随载未取消分配段（当前/未来名单
-// 与已终止历史段），取消段不参与名单与资格投影。
+// 与已终止历史段）及员工展示名，取消段不参与名单与资格投影。
 func commissionRuleQueryWithAssignments(q *ent.FinanceCommissionRuleQuery) *ent.FinanceCommissionRuleQuery {
 	return q.WithAssignments(func(aq *ent.FinanceCommissionRuleAssignmentQuery) {
-		aq.Where(assignment.CancelledAtIsNil()).Order(assignment.ByEffectiveFrom(), assignment.ByID())
+		aq.Where(assignment.CancelledAtIsNil()).WithEmployee().Order(assignment.ByEffectiveFrom(), assignment.ByID())
 	})
 }
 
@@ -890,12 +907,61 @@ func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.
 	return bq
 }
 
-func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
+func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, nettingID, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole) (*biz.CommissionCalculation, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, nettingID, employeeID, ruleID, false)
+	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, nettingID, employeeID, personnelRole, false)
+}
+
+// resolveCommissionRuleForDate 按来源归属日期为「组织 + 员工 + 人员身份」解析
+// 唯一有效方案与员工分配：方案必须已启用且归属日期落在方案区间内，且该员工
+// 存在未取消分配、归属日期同样落在分配区间内。零命中或多命中（并发或数据
+// 异常）均返回 ErrCommissionRuleNotResolved；迁移前停用的旧规则因 enabled=false
+// 自然被排除。lock=true 时按方案主键升序 ForUpdate，与方案写入共享串行化点。
+func resolveCommissionRuleForDate(ctx context.Context, store commissionCalculationStore, org, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole, commissionDate string, lock bool) (*ent.FinanceCommissionRule, *ent.FinanceCommissionRuleAssignment, error) {
+	if commissionDate == "" {
+		return nil, nil, biz.ErrCommissionRuleNotResolved
+	}
+	q := store.rules.Query().Where(
+		rule.OrganizationIDEQ(org),
+		rule.EnabledEQ(true),
+		rule.PersonnelRoleEQ(rule.PersonnelRole(personnelRole)),
+	).WithAssignments(func(aq *ent.FinanceCommissionRuleAssignmentQuery) {
+		aq.Where(assignment.EmployeeIDEQ(employeeID), assignment.CancelledAtIsNil())
+	}).Order(rule.ByID())
+	if lock {
+		q.ForUpdate()
+	}
+	rules, err := q.All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	var (
+		hitRule       *ent.FinanceCommissionRule
+		hitAssignment *ent.FinanceCommissionRuleAssignment
+	)
+	for _, ruleItem := range rules {
+		if (ruleItem.EffectiveFrom != nil && commissionDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && commissionDate > *ruleItem.EffectiveTo) {
+			continue
+		}
+		for _, seg := range ruleItem.Edges.Assignments {
+			if commissionDate < seg.EffectiveFrom || (seg.EffectiveTo != nil && commissionDate > *seg.EffectiveTo) {
+				continue
+			}
+			if hitRule != nil {
+				// 同员工同身份在同一归属日期命中多个方案：数据异常或并发窗口，
+				// 拒绝生成而不是静默选择。
+				return nil, nil, biz.ErrCommissionRuleNotResolved
+			}
+			hitRule, hitAssignment = ruleItem, seg
+		}
+	}
+	if hitRule == nil {
+		return nil, nil, biz.ErrCommissionRuleNotResolved
+	}
+	return hitRule, hitAssignment, nil
 }
 
 // GetGenerationContext 读取生成提成所需的来源上下文：归属日期和本位币。
@@ -936,13 +1002,12 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 
 // commissionCalculationSource 是提成计算的来源快照：核销或对冲二选一。
 // 两种来源同构地按「分摊金额 / 账单总额 × 账单行本位币」摊入 orderRealized。
+// 方案与员工分配不在此结构内：由调用方按「员工 + 人员身份 + 归属日期」解析。
 type commissionCalculationSource struct {
 	organizationID    uuid.UUID
 	verification      *ent.FinanceVerification // 核销来源时非空
 	netting           *ent.FinanceNetting      // 对冲来源时非空
 	commissionDate    string                   // 归属日期：核销 verification_date / 对冲确认日
-	rule              *ent.FinanceCommissionRule
-	rate              decimal.Decimal
 	baseCurrency      string
 	orderIDs          []uuid.UUID
 	orderRealized     map[uuid.UUID]decimal.Decimal
@@ -959,8 +1024,8 @@ type commissionSourceAllocation struct {
 	fingerprint string
 }
 
-func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, employeeID, ruleID uuid.UUID, lock bool) (*biz.CommissionCalculation, error) {
-	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, nettingID, ruleID, lock)
+func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole, lock bool) (*biz.CommissionCalculation, error) {
+	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, nettingID, lock)
 	if err != nil {
 		return nil, err
 	}
@@ -972,11 +1037,17 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionInvalid, nil)
 	}
+	// 员工已离职（账号停用、成员关系解除）不影响解析：历史资格只由来源日期、
+	// 方案区间与分配区间决定，不以当前账号状态抹除。
+	ruleItem, assignmentItem, err := resolveCommissionRuleForDate(ctx, store, org, employeeID, personnelRole, source.commissionDate, lock)
+	if err != nil {
+		return nil, err
+	}
 	aq := store.attributions.Query().Where(
 		attribution.OrganizationIDEQ(org),
 		attribution.OrderIDIn(source.orderIDs...),
 		attribution.EmployeeIDEQ(employeeID),
-		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
+		attribution.PersonnelRoleEQ(attribution.PersonnelRole(personnelRole)),
 	).Order(attribution.ByAttributedAt(), attribution.ByID())
 	if lock {
 		aq.ForUpdate()
@@ -985,13 +1056,13 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	return calculateCommissionFromSource(source, employee, attributions)
+	return calculateCommissionFromSource(source, ruleItem, assignmentItem, employee, attributions)
 }
 
 // loadCommissionCalculationSource 按来源（核销 ACTIVE+RECEIVABLE / 对冲 CONFIRMED 的
-// RECEIVABLE 分摊）加载统一分摊条目，并锁定规则、账单、订单、费用与账单行事实。
+// RECEIVABLE 分摊）加载统一分摊条目，并锁定账单、订单、费用与账单行事实。
 // 多行加锁一律按主键稳定排序，固定加锁顺序防止并发提成创建死锁。
-func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, ruleID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
+func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
 	var (
 		fingerprintParts   []string
 		commissionDate     string
@@ -1067,22 +1138,6 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 			})
 		}
 	}
-	rq := store.rules.Query().Where(rule.IDEQ(ruleID), rule.OrganizationIDEQ(org))
-	if lock {
-		rq.ForUpdate()
-	}
-	ruleItem, err := rq.Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrCommissionRuleNotFound, nil)
-	}
-	if !ruleItem.Enabled || (ruleItem.EffectiveFrom != nil && commissionDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && commissionDate > *ruleItem.EffectiveTo) {
-		return nil, biz.ErrCommissionRuleInvalid
-	}
-	rate, err := decimalOf(ruleItem.RatePercent)
-	if err != nil {
-		return nil, err
-	}
-	fingerprintParts = append(fingerprintParts, fmt.Sprintf("rule|%s|%s|%s|%s|%s|%d|%t|%s|%s", ruleItem.ID, ruleItem.Name, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, ruleItem.Version, ruleItem.Enabled, optionalStringValue(ruleItem.EffectiveFrom), optionalStringValue(ruleItem.EffectiveTo)))
 	if len(allocationEntries) == 0 {
 		return nil, biz.ErrCommissionSource
 	}
@@ -1195,19 +1250,31 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	}
 	return &commissionCalculationSource{
 		organizationID: org, verification: verificationEntity, netting: nettingEntity, commissionDate: commissionDate,
-		rule: ruleItem, rate: rate, baseCurrency: baseCurrency,
-		orderIDs: orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
+		baseCurrency: baseCurrency,
+		orderIDs:     orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
 		billLineBaseByFee: billLineBaseByFee,
 		fingerprintBase:   fingerprintParts,
 	}, nil
 }
 
-func calculateCommissionFromSource(source *commissionCalculationSource, employee *ent.User, attributions []*ent.OrderCommissionAttribution) (*biz.CommissionCalculation, error) {
-	if len(attributions) == 0 {
-		return nil, biz.ErrCommissionEmployeeRole
+// calculateCommissionFromSource 基于来源快照、已解析的方案与员工分配、员工及其
+// 提成归属逐订单计算提成。指纹只覆盖影响来源日期计算资格的稳定标识：方案参数
+// （身份、口径、比例、起始日）与分配段身份。方案版本、终止日与名单后续变更
+// （未来生效）不改变来源日期的资格，不参与指纹，保证历史快照确认不被重算。
+func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem *ent.FinanceCommissionRule, assignmentItem *ent.FinanceCommissionRuleAssignment, employee *ent.User, attributions []*ent.OrderCommissionAttribution) (*biz.CommissionCalculation, error) {
+	if ruleItem == nil || assignmentItem == nil || !ruleItem.Enabled {
+		return nil, biz.ErrCommissionRuleNotResolved
+	}
+	rate, err := decimalOf(ruleItem.RatePercent)
+	if err != nil {
+		return nil, err
 	}
 	fingerprintParts := append([]string(nil), source.fingerprintBase...)
-	fingerprintParts = append(fingerprintParts, fmt.Sprintf("employee|%s|%s|%t", employee.ID, employee.DisplayName, employee.Enabled))
+	fingerprintParts = append(fingerprintParts,
+		fmt.Sprintf("rule|%s|%s|%s|%s|%s", ruleItem.ID, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, optionalStringValue(ruleItem.EffectiveFrom)),
+		fmt.Sprintf("rule_assignment|%s|%s|%s", assignmentItem.ID, assignmentItem.EmployeeID, assignmentItem.EffectiveFrom),
+		fmt.Sprintf("employee|%s|%s|%t", employee.ID, employee.DisplayName, employee.Enabled),
+	)
 	attributionByOrder := make(map[uuid.UUID]*ent.OrderCommissionAttribution, len(attributions))
 	for _, item := range attributions {
 		attributionByOrder[item.OrderID] = item
@@ -1224,9 +1291,9 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 	}
 	result := &biz.CommissionCalculation{
 		EmployeeID: employee.ID, EmployeeName: attributions[0].EmployeeName,
-		RuleID: source.rule.ID, RuleName: source.rule.Name, PersonnelRole: biz.CommissionPersonnelRole(source.rule.PersonnelRole),
-		CalculationBasis: biz.CommissionCalculationBasis(source.rule.CalculationBasis), RuleVersion: source.rule.Version,
-		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: source.baseCurrency, RatePercent: source.rate,
+		RuleID: ruleItem.ID, RuleName: ruleItem.Name, PersonnelRole: biz.CommissionPersonnelRole(ruleItem.PersonnelRole),
+		CalculationBasis: biz.CommissionCalculationBasis(ruleItem.CalculationBasis), RuleVersion: ruleItem.Version,
+		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: source.baseCurrency, RatePercent: rate,
 		Lines: make([]*biz.FinanceCommissionLine, 0, len(eligibleOrderIDs)),
 	}
 	if source.verification != nil {
@@ -1251,7 +1318,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 			CustomerID: customer.ID, CustomerCode: partnerCodeValue(customer.Code), CustomerName: customer.LegalName,
 			CustomerAssignmentID: attributionItem.SourceAssignmentID, CustomerAssignmentOrganizationID: attributionItem.OrganizationID, CustomerAssignedAt: attributionItem.AttributedAt,
 			EmployeeID: employee.ID, EmployeeName: attributionItem.EmployeeName, PersonnelRole: result.PersonnelRole,
-			CalculationBasis: result.CalculationBasis, RatePercent: source.rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
+			CalculationBasis: result.CalculationBasis, RatePercent: rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
 		}
 		for _, feeItem := range orderFees {
 			party, partyErr := feeItem.Edges.SettlementPartyOrErr()
@@ -1297,7 +1364,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 		totalReceivable := line.RealizedRevenue.Round(8)
 		totalPayable := line.AllocatedCost.Round(8)
 		realized := source.orderRealized[orderID].Round(8)
-		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, source.rate, result.CalculationBasis)
+		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, rate, result.CalculationBasis)
 		if calculateErr != nil {
 			return nil, calculateErr
 		}
@@ -1340,10 +1407,11 @@ func optionalStringValue(value *string) string {
 }
 
 // Create 在事务内锁定来源并写入提成草稿与 CNY 快照，只负责写入并返回错误；
-// 完整业务响应由用例在共享事务提交后通过普通上下文重读。
+// 完整业务响应由用例在共享事务提交后通过普通上下文重读。方案与员工分配在
+// 事务内按来源归属日期重新解析，不信任预览结果。
 func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.FinanceCommission, snapshot *biz.CommissionCNYSnapshot, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		calculation, err := calculateCommission(ctx, commissionStoreFromTx(tx), org, c.VerificationID, c.NettingID, c.EmployeeID, c.RuleID, true)
+		calculation, err := calculateCommission(ctx, commissionStoreFromTx(tx), org, c.VerificationID, c.NettingID, c.EmployeeID, c.PersonnelRole, true)
 		if err != nil {
 			return err
 		}
@@ -1370,7 +1438,7 @@ func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.Finan
 		}
 		c.VerificationNo, c.NettingNo, c.EmployeeName, c.RuleName = calculation.VerificationNo, calculation.NettingNo, calculation.EmployeeName, calculation.RuleName
 		c.PersonnelRole, c.CalculationBasis = calculation.PersonnelRole, calculation.CalculationBasis
-		c.RuleVersion, c.CalculationVersion, c.SourceFingerprint = calculation.RuleVersion, calculation.CalculationVersion, calculation.SourceFingerprint
+		c.RuleID, c.RuleVersion, c.CalculationVersion, c.SourceFingerprint = calculation.RuleID, calculation.RuleVersion, calculation.CalculationVersion, calculation.SourceFingerprint
 		c.BaseCurrency, c.RatePercent = calculation.BaseCurrency, calculation.RatePercent
 		c.CustomerCount, c.OrderCount, c.FeeCount = calculation.CustomerCount, calculation.OrderCount, calculation.FeeCount
 		c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit
@@ -1408,12 +1476,14 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if target == biz.CommissionConfirmed {
 			// CONFIRMED 分支先按既有「来源 → 账单 → 订单 → 费用」锁序完成指纹
-			// 复算，避免引入与提成创建路径相反的订单/账单加锁顺序。
+			// 复算，避免引入与提成创建路径相反的订单/账单加锁顺序。方案与员工
+			// 分配按快照的员工、身份与归属日期重新解析：已生效方案的历史快照
+			// 不被名单或方案后续变化重算，但解析失败或指纹漂移会拒绝确认。
 			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
 			if lookupErr != nil {
 				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
 			}
-			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, valueOrNilUUID(snapshot.VerificationID), valueOrNilUUID(snapshot.NettingID), snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
+			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, valueOrNilUUID(snapshot.VerificationID), valueOrNilUUID(snapshot.NettingID), snapshot.EmployeeID, derefCommissionPersonnelRole(snapshot.PersonnelRole), true)
 			if calculateErr != nil {
 				return biz.ErrCommissionSourceChanged
 			}
@@ -1495,6 +1565,15 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 		return uuid.Nil
 	}
 	return *value
+}
+
+// derefCommissionPersonnelRole 读取提成快照中的人员身份；存量行身份为空时返回
+// 非法值，由后续解析稳定拒绝。
+func derefCommissionPersonnelRole(value *string) biz.CommissionPersonnelRole {
+	if value == nil {
+		return ""
+	}
+	return biz.CommissionPersonnelRole(*value)
 }
 
 // orderUUIDsFromLines 汇总提成行的订单 ID。
@@ -2039,13 +2118,17 @@ func commissionRuleToBiz(x *ent.FinanceCommissionRule) (*biz.FinanceCommissionRu
 }
 
 func commissionRuleAssignmentToBiz(x *ent.FinanceCommissionRuleAssignment) *biz.FinanceCommissionRuleAssignment {
-	return &biz.FinanceCommissionRuleAssignment{
+	result := &biz.FinanceCommissionRuleAssignment{
 		ID: x.ID, OrganizationID: x.OrganizationID, RuleID: x.RuleID, EmployeeID: x.EmployeeID,
 		EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo,
 		CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy,
 		TerminatedAt: x.TerminatedAt, TerminatedBy: x.TerminatedBy,
 		CreatedBy: x.CreatedBy, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt,
 	}
+	if x.Edges.Employee != nil {
+		result.EmployeeName = x.Edges.Employee.DisplayName
+	}
+	return result
 }
 
 // activeCommissionAssignmentRuleNames 返回员工在组织内当前或未来仍有效的方案

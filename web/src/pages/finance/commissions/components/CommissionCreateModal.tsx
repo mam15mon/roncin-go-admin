@@ -4,6 +4,7 @@ import {
   ProFormDependency,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import type { TableProps } from 'antd';
 import {
   Alert,
   App,
@@ -16,16 +17,13 @@ import {
   Tabs,
   Typography,
 } from 'antd';
-import type { TableProps } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceCreateCommission,
   settlementServiceListCommissionCandidates,
-  settlementServiceListCommissionEmployees,
   settlementServiceListCommissionNettingCandidates,
-  settlementServiceListCommissionRuleCandidates,
   settlementServiceListCommissionVerificationCandidates,
   settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewCommission,
@@ -40,6 +38,7 @@ import {
   cnyExchangeRateSourceText,
   commissionSourceNo,
   decimalText,
+  parseCandidateKey,
   personnelRoleText,
 } from '../types';
 import { previewColumns, renderExpandedFees } from './CommissionLineTable';
@@ -52,6 +51,10 @@ type CommissionCreateModalProps = {
 
 /** 提成来源 Tab：核销提成走核销单，对冲提成走已确认对冲单。 */
 type CommissionSourceTab = 'verification' | 'netting';
+
+/** 候选选中键：`${employeeId}|${personnelRole}`，由候选列表派生。 */
+const candidateKeyOf = (employeeId?: string, personnelRole?: string) =>
+  employeeId && personnelRole ? `${employeeId}|${personnelRole}` : undefined;
 
 const nettingCandidateColumns: TableProps<API.FinanceNetting>['columns'] = [
   { title: '对冲单号', dataIndex: 'nettingNo', width: 170 },
@@ -90,9 +93,8 @@ export default function CommissionCreateModal({
   const [organizationOptions, setOrganizationOptions] = useState<
     API.FinanceOrganizationOption[]
   >([]);
-  const [sourceType, setSourceType] = useState<CommissionSourceTab>(
-    'verification',
-  );
+  const [sourceType, setSourceType] =
+    useState<CommissionSourceTab>('verification');
   const [nettingCandidates, setNettingCandidates] = useState<
     API.FinanceNetting[]
   >([]);
@@ -104,9 +106,15 @@ export default function CommissionCreateModal({
   >([]);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [verificationKeyword, setVerificationKeyword] = useState('');
-  // 候选请求序号：只允许最新一次请求写入候选，防止组织/关键字切换后的迟到响应污染。
+  // 来源选中后由服务端解析的「员工 + 身份 + 已解析方案」候选。
+  const [candidateOptions, setCandidateOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [candidateLoading, setCandidateLoading] = useState(false);
+  // 候选请求序号：只允许最新一次请求写入候选，防止来源/组织切换后的迟到响应污染。
   const verificationRequestRef = useRef(0);
   const nettingRequestRef = useRef(0);
+  const candidateRequestRef = useRef(0);
 
   const resetPreview = () => {
     setPreview(undefined);
@@ -184,15 +192,14 @@ export default function CommissionCreateModal({
       const sequence = ++nettingRequestRef.current;
       setNettingLoading(true);
       try {
-        const response =
-          await settlementServiceListCommissionNettingCandidates(
-            {
-              page: 1,
-              pageSize: 200,
-              organizationId: targetOrganizationId,
-              ...(keyword ? { keyword } : {}),
-            },
-          );
+        const response = await settlementServiceListCommissionNettingCandidates(
+          {
+            page: 1,
+            pageSize: 200,
+            organizationId: targetOrganizationId,
+            ...(keyword ? { keyword } : {}),
+          },
+        );
         if (sequence !== nettingRequestRef.current) return;
         setNettingCandidates(unwrapList(response));
       } catch {
@@ -226,7 +233,7 @@ export default function CommissionCreateModal({
     formRef.current?.setFieldsValue({
       verificationId: undefined,
       nettingId: undefined,
-      employeeId: undefined,
+      candidateKey: undefined,
     });
   };
 
@@ -235,6 +242,7 @@ export default function CommissionCreateModal({
     setVerificationKeyword('');
     setNettingKeyword('');
     setNettingCandidates([]);
+    setCandidateOptions([]);
   };
 
   const handleSourceTabChange = (key: string) => {
@@ -251,9 +259,53 @@ export default function CommissionCreateModal({
     resetPreview();
     formRef.current?.setFieldsValue({
       nettingId: record.id,
-      employeeId: undefined,
+      candidateKey: undefined,
     });
   };
+
+  // 来源选中后拉取服务端解析的「员工 + 身份 + 已解析方案」候选。
+  const loadCandidateOptions = useCallback(
+    async (
+      targetOrganizationId: string,
+      source: { verificationId?: string; nettingId?: string },
+    ) => {
+      const sequence = ++candidateRequestRef.current;
+      setCandidateLoading(true);
+      try {
+        const response = await settlementServiceListCommissionCandidates({
+          page: 1,
+          pageSize: 200,
+          organizationId: targetOrganizationId,
+          ...(source.verificationId
+            ? { verificationId: source.verificationId }
+            : { nettingId: source.nettingId }),
+        });
+        if (sequence !== candidateRequestRef.current) return;
+        setCandidateOptions(
+          unwrapList(response).flatMap((item) => {
+            const value = candidateKeyOf(item.employeeId, item.personnelRole);
+            return value
+              ? [
+                  {
+                    label: `${item.employeeName}｜${personnelRoleText(item.personnelRole)}｜${item.ruleName}（v${item.ruleVersion ?? ''}）｜预计 ${decimalText(item.commissionAmount)} ${item.baseCurrency}`,
+                    value,
+                  },
+                ]
+              : [];
+          }),
+        );
+      } catch {
+        if (sequence !== candidateRequestRef.current) return;
+        setCandidateOptions([]);
+        message.warning('计提候选加载失败');
+      } finally {
+        if (sequence === candidateRequestRef.current) {
+          setCandidateLoading(false);
+        }
+      }
+    },
+    [message],
+  );
 
   return (
     <ModalForm<CreateValues>
@@ -276,12 +328,7 @@ export default function CommissionCreateModal({
         },
       }}
       onValuesChange={(changedValues) => {
-        if (
-          'verificationId' in changedValues ||
-          'nettingId' in changedValues ||
-          'ruleId' in changedValues ||
-          'employeeId' in changedValues
-        ) {
+        if ('candidateKey' in changedValues) {
           resetPreview();
         }
       }}
@@ -290,15 +337,23 @@ export default function CommissionCreateModal({
           message.warning('请先计算并核对当前选择的提成预览');
           return false;
         }
+        const { employeeId, personnelRole } = parseCandidateKey(
+          values.candidateKey,
+        );
+        if (!employeeId || !personnelRole) {
+          message.warning('请选择计提候选');
+          return false;
+        }
         try {
           await settlementServiceCreateCommission({
             ...(values.verificationId
               ? { verificationId: values.verificationId }
               : { nettingId: values.nettingId }),
-            employeeId: values.employeeId,
-            ruleId: values.ruleId,
+            employeeId,
+            personnelRole,
             note: values.note,
             idempotencyKey: createIdempotencyKey,
+            organizationId: organizationId ?? '',
           });
           message.success('提成草稿已生成，列表已按创建结果刷新');
           onOpenChange(false);
@@ -329,9 +384,9 @@ export default function CommissionCreateModal({
             setVerificationOptions([]);
             setVerificationKeyword('');
             setNettingKeyword('');
+            setCandidateOptions([]);
             resetPreview();
             resetSourceSelection();
-            formRef.current?.setFieldsValue({ ruleId: undefined });
           },
         }}
       />
@@ -357,6 +412,13 @@ export default function CommissionCreateModal({
             filterOption: false,
             loading: verificationLoading,
             onSearch: (value: string) => setVerificationKeyword(value),
+            onChange: (value?: string) => {
+              if (!value) return;
+              resetPreview();
+              void loadCandidateOptions(organizationId ?? '', {
+                verificationId: value,
+              });
+            },
           }}
         />
       ) : (
@@ -391,97 +453,53 @@ export default function CommissionCreateModal({
             scroll={{ y: 260 }}
             rowSelection={{
               type: 'radio',
-              selectedRowKeys: selectedNetting?.id
-                ? [selectedNetting.id]
-                : [],
-              onSelect: handleSelectNetting,
+              selectedRowKeys: selectedNetting?.id ? [selectedNetting.id] : [],
+              onSelect: (record) => {
+                handleSelectNetting(record);
+                void loadCandidateOptions(organizationId ?? '', {
+                  nettingId: record.id,
+                });
+              },
             }}
             onRow={(record) => ({
-              onClick: () => handleSelectNetting(record),
+              onClick: () => {
+                handleSelectNetting(record);
+                void loadCandidateOptions(organizationId ?? '', {
+                  nettingId: record.id,
+                });
+              },
               style: { cursor: 'pointer' },
             })}
             locale={{
-              emptyText: organizationId ? '暂无符合条件的对冲单' : '请先选择所属公司',
+              emptyText: organizationId
+                ? '暂无符合条件的对冲单'
+                : '请先选择所属公司',
             }}
           />
         </Form.Item>
       )}
-      <ProFormSearchableSelect
-        key={`rule-${organizationId || 'no-organization'}`}
-        name="ruleId"
-        label="考核规则"
-        rules={[{ required: true, message: '请选择考核规则' }]}
-        disabled={!organizationId}
-        request={async () => {
-          if (!organizationId) return [];
-          const response = await settlementServiceListCommissionRuleCandidates({
-            page: 1,
-            pageSize: 200,
-            organizationId,
-          });
-          return unwrapList(response).map((item) => ({
-            label: `${item.name}｜${personnelRoleText(item.personnelRole)}｜${calculationBasisText(item.calculationBasis)} × ${decimalText(item.ratePercent)}%`,
-            value: item.id,
-          }));
-        }}
-      />
       <ProFormDependency
-        name={['verificationId', 'nettingId', 'ruleId', 'organizationId']}
+        name={['verificationId', 'nettingId', 'organizationId']}
       >
         {({
           verificationId,
           nettingId,
-          ruleId,
           organizationId: selectedOrganizationID,
         }) => {
-          const isVerificationSource = sourceType === 'verification';
-          const sourceId = isVerificationSource
-            ? verificationId
-            : nettingId;
+          const sourceId = verificationId || nettingId;
           return (
             <ProFormSearchableSelect
-              key={`${sourceType}-${sourceId || ''}-${ruleId || ''}`}
-              name="employeeId"
-              label={isVerificationSource ? '符合规则的候选人员' : '提成员工'}
-              rules={[{ required: true, message: '请选择提成员工' }]}
-              disabled={
-                !sourceId ||
-                !selectedOrganizationID ||
-                (isVerificationSource && !ruleId)
-              }
-              request={async () => {
-                if (!sourceId || !selectedOrganizationID) return [];
-                if (isVerificationSource) {
-                  if (!ruleId || !verificationId) return [];
-                  const response =
-                    await settlementServiceListCommissionCandidates({
-                      verificationId,
-                      ruleId,
-                      page: 1,
-                      pageSize: 200,
-                      organizationId: selectedOrganizationID,
-                    });
-                  return unwrapList(response).map((item) => ({
-                    label: `${item.employeeName}｜${item.customerCount ?? 0}个客户｜${item.orderCount ?? 0}票订单｜预计 ${decimalText(item.commissionAmount)} ${item.baseCurrency}`,
-                    value: item.employeeId,
-                  }));
-                }
-                const response =
-                  await settlementServiceListCommissionEmployees({
-                    page: 1,
-                    pageSize: 200,
-                    organizationId: selectedOrganizationID,
-                  });
-                return unwrapList(response).map((item) => ({
-                  label: item.displayName,
-                  value: item.id,
-                }));
+              key={`${sourceType}-${sourceId || ''}`}
+              name="candidateKey"
+              label="计提候选（员工 / 身份 / 已解析方案）"
+              rules={[{ required: true, message: '请选择计提候选' }]}
+              disabled={!sourceId || !selectedOrganizationID}
+              options={candidateOptions}
+              fieldProps={{
+                filterOption: false,
+                loading: candidateLoading,
               }}
-              extra={
-                isVerificationSource
-                  ? '人员来自本次核销涉及订单在创建时固化的业务、操作或客服归属；客户后续换人不会改变历史订单归属。'
-                  : '人员按所选公司列出，预览时会按对冲单涉及订单固化的人员归属校验员工与规则角色是否匹配。'
-              }
+              extra="候选由服务端按来源单涉及订单的固化归属与归属日期自动解析：仅列出该员工身份在来源日期唯一命中的启用方案；无候选表示该员工没有可用方案或身份归属。"
             />
           );
         }}
@@ -491,9 +509,7 @@ export default function CommissionCreateModal({
         label="备注"
         fieldProps={{ maxLength: 500 }}
       />
-      <ProFormDependency
-        name={['verificationId', 'nettingId', 'ruleId', 'employeeId']}
-      >
+      <ProFormDependency name={['verificationId', 'nettingId', 'candidateKey']}>
         {(values: Partial<CreateValues>) => {
           const sourceId = values.verificationId || values.nettingId;
           return (
@@ -502,19 +518,21 @@ export default function CommissionCreateModal({
                 type="primary"
                 ghost
                 loading={previewLoading}
-                disabled={!sourceId || !values.ruleId || !values.employeeId}
+                disabled={!sourceId || !values.candidateKey}
                 onClick={async () => {
-                  const { verificationId, nettingId, employeeId, ruleId } =
-                    values;
-                  if (!sourceId || !employeeId || !ruleId) return;
+                  const { employeeId, personnelRole } = parseCandidateKey(
+                    values.candidateKey,
+                  );
+                  if (!sourceId || !employeeId || !personnelRole) return;
                   try {
                     setPreviewLoading(true);
                     const response = await settlementServicePreviewCommission({
-                      ...(verificationId
-                        ? { verificationId }
-                        : { nettingId }),
+                      ...(values.verificationId
+                        ? { verificationId: values.verificationId }
+                        : { nettingId: values.nettingId }),
                       employeeId,
-                      ruleId,
+                      personnelRole,
+                      organizationId: organizationId ?? '',
                     });
                     setPreview(response.data);
                     setPreviewSignature(calculationSignature(values));
@@ -554,7 +572,7 @@ export default function CommissionCreateModal({
                       },
                       {
                         key: 'rule',
-                        label: '规则',
+                        label: '方案',
                         children: `${preview.ruleName}（v${preview.ruleVersion}）`,
                       },
                       {
@@ -628,7 +646,7 @@ export default function CommissionCreateModal({
                     type="warning"
                     showIcon
                     title="预览汇率仅供生成前核对"
-                    description="创建草稿时会在事务内重新解析 CNY 汇率；最终折算依据和金额以创建结果及刷新后的列表为准。"
+                    description="创建草稿时会在事务内重新解析方案与 CNY 汇率；最终折算依据和金额以创建结果及刷新后的列表为准。"
                   />
                   <Table<API.FinanceCommissionLine>
                     size="small"
@@ -652,11 +670,11 @@ export default function CommissionCreateModal({
       </ProFormDependency>
       <Space vertical size={2} style={{ color: '#666', marginTop: 8 }}>
         <span>
-          计算比例、角色与口径均取自已启用且在来源单归属日期生效的考核规则。
+          比例、口径与身份均取自服务端按来源归属日期解析的唯一有效方案与员工分配。
         </span>
         <span>亏损订单逐票按 0 计提，但仍保留真实负毛利快照。</span>
         <span>
-          草稿确认时会重新校验客户人员与费用来源；来源变化后必须取消并重新生成。
+          草稿确认时会重新校验人员归属与方案；来源或方案变化后必须取消并重新生成。
         </span>
       </Space>
     </ModalForm>

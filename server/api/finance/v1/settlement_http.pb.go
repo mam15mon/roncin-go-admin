@@ -17,6 +17,7 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationSettlementServiceAssignCommissionRuleEmployees = "/finance.v1.SettlementService/AssignCommissionRuleEmployees"
 const OperationSettlementServiceBatchAssignFinanceBillTags = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
 const OperationSettlementServiceBatchAssignFinanceFeeTags = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
 const OperationSettlementServiceBatchRemoveFinanceBillTags = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
@@ -33,6 +34,7 @@ const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService
 const OperationSettlementServiceConfirmCommission = "/finance.v1.SettlementService/ConfirmCommission"
 const OperationSettlementServiceConfirmCommissionAdjustment = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
 const OperationSettlementServiceConfirmNetting = "/finance.v1.SettlementService/ConfirmNetting"
+const OperationSettlementServiceCopyCommissionRule = "/finance.v1.SettlementService/CopyCommissionRule"
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
 const OperationSettlementServiceCreateBillBatch = "/finance.v1.SettlementService/CreateBillBatch"
 const OperationSettlementServiceCreateCashflow = "/finance.v1.SettlementService/CreateCashflow"
@@ -62,7 +64,6 @@ const OperationSettlementServiceListCommissionAdjustments = "/finance.v1.Settlem
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
 const OperationSettlementServiceListCommissionEmployees = "/finance.v1.SettlementService/ListCommissionEmployees"
 const OperationSettlementServiceListCommissionNettingCandidates = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
-const OperationSettlementServiceListCommissionRuleCandidates = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
 const OperationSettlementServiceListCommissionRules = "/finance.v1.SettlementService/ListCommissionRules"
 const OperationSettlementServiceListCommissionVerificationCandidates = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
 const OperationSettlementServiceListCommissions = "/finance.v1.SettlementService/ListCommissions"
@@ -85,6 +86,7 @@ const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementServic
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
 const OperationSettlementServicePreviewNetting = "/finance.v1.SettlementService/PreviewNetting"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
+const OperationSettlementServiceRemoveCommissionRuleEmployees = "/finance.v1.SettlementService/RemoveCommissionRuleEmployees"
 const OperationSettlementServiceResetFeeLedgerPreference = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
@@ -95,6 +97,10 @@ const OperationSettlementServiceUpdateCreditLimitControlPolicy = "/finance.v1.Se
 const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
+	// AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
+	AssignCommissionRuleEmployees(context.Context, *AssignCommissionRuleEmployeesRequest) (*AssignCommissionRuleEmployeesResponse, error)
 	BatchAssignFinanceBillTags(context.Context, *BatchAssignFinanceBillTagsRequest) (*BatchAssignFinanceBillTagsResponse, error)
 	BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error)
 	BatchRemoveFinanceBillTags(context.Context, *BatchRemoveFinanceBillTagsRequest) (*BatchRemoveFinanceBillTagsResponse, error)
@@ -111,6 +117,9 @@ type SettlementServiceHTTPServer interface {
 	ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error)
 	ConfirmCommissionAdjustment(context.Context, *ConfirmCommissionAdjustmentRequest) (*ConfirmCommissionAdjustmentResponse, error)
 	ConfirmNetting(context.Context, *ConfirmNettingRequest) (*ConfirmNettingResponse, error)
+	// CopyCommissionRule CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+	// 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+	CopyCommissionRule(context.Context, *CopyCommissionRuleRequest) (*CopyCommissionRuleResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
@@ -146,12 +155,13 @@ type SettlementServiceHTTPServer interface {
 	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error)
+	// ListCommissionCandidates ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
 	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
 	ListCommissionNettingCandidates(context.Context, *ListCommissionNettingCandidatesRequest) (*ListCommissionNettingCandidatesResponse, error)
-	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-	ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
@@ -178,6 +188,7 @@ type SettlementServiceHTTPServer interface {
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
+	RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
 	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
@@ -254,11 +265,13 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("GET", "/api/v1/finance/commissions/export", _SettlementService_ExportCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/employees", _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/candidates", _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/commissions/rule-candidates", _SettlementService_ListCommissionRuleCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/{id}", _SettlementService_GetCommission0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-rules", _SettlementService_ListCommissionRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-rules", _SettlementService_CreateCommissionRule0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/commission-rules/{id}", _SettlementService_UpdateCommissionRule0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-rules/{id}/employees/assign", _SettlementService_AssignCommissionRuleEmployees0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-rules/{id}/employees/remove", _SettlementService_RemoveCommissionRuleEmployees0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-rules/{id}/copy", _SettlementService_CopyCommissionRule0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/preview", _SettlementService_PreviewCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions", _SettlementService_CreateCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/confirm", _SettlementService_ConfirmCommission0_HTTP_Handler(srv))
@@ -1463,25 +1476,6 @@ func _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv SettlementSer
 	}
 }
 
-func _SettlementService_ListCommissionRuleCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListCommissionRuleCandidatesRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceListCommissionRuleCandidates)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListCommissionRuleCandidates(ctx, req.(*ListCommissionRuleCandidatesRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListCommissionRuleCandidatesResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _SettlementService_GetCommission0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetCommissionRequest
@@ -1560,6 +1554,72 @@ func _SettlementService_UpdateCommissionRule0_HTTP_Handler(srv SettlementService
 			return err
 		}
 		reply := out.(*UpdateCommissionRuleResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_AssignCommissionRuleEmployees0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AssignCommissionRuleEmployeesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceAssignCommissionRuleEmployees)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AssignCommissionRuleEmployees(ctx, req.(*AssignCommissionRuleEmployeesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AssignCommissionRuleEmployeesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_RemoveCommissionRuleEmployees0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RemoveCommissionRuleEmployeesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceRemoveCommissionRuleEmployees)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RemoveCommissionRuleEmployees(ctx, req.(*RemoveCommissionRuleEmployeesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RemoveCommissionRuleEmployeesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CopyCommissionRule0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CopyCommissionRuleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCopyCommissionRule)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CopyCommissionRule(ctx, req.(*CopyCommissionRuleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CopyCommissionRuleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1798,6 +1858,10 @@ func _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv Set
 }
 
 type SettlementServiceHTTPClient interface {
+	// AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
+	AssignCommissionRuleEmployees(ctx context.Context, req *AssignCommissionRuleEmployeesRequest, opts ...http.CallOption) (rsp *AssignCommissionRuleEmployeesResponse, err error)
 	BatchAssignFinanceBillTags(ctx context.Context, req *BatchAssignFinanceBillTagsRequest, opts ...http.CallOption) (rsp *BatchAssignFinanceBillTagsResponse, err error)
 	BatchAssignFinanceFeeTags(ctx context.Context, req *BatchAssignFinanceFeeTagsRequest, opts ...http.CallOption) (rsp *BatchAssignFinanceFeeTagsResponse, err error)
 	BatchRemoveFinanceBillTags(ctx context.Context, req *BatchRemoveFinanceBillTagsRequest, opts ...http.CallOption) (rsp *BatchRemoveFinanceBillTagsResponse, err error)
@@ -1814,6 +1878,9 @@ type SettlementServiceHTTPClient interface {
 	ConfirmCommission(ctx context.Context, req *ConfirmCommissionRequest, opts ...http.CallOption) (rsp *ConfirmCommissionResponse, err error)
 	ConfirmCommissionAdjustment(ctx context.Context, req *ConfirmCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *ConfirmCommissionAdjustmentResponse, err error)
 	ConfirmNetting(ctx context.Context, req *ConfirmNettingRequest, opts ...http.CallOption) (rsp *ConfirmNettingResponse, err error)
+	// CopyCommissionRule CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+	// 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+	CopyCommissionRule(ctx context.Context, req *CopyCommissionRuleRequest, opts ...http.CallOption) (rsp *CopyCommissionRuleResponse, err error)
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
 	CreateBillBatch(ctx context.Context, req *CreateBillBatchRequest, opts ...http.CallOption) (rsp *CreateBillBatchResponse, err error)
 	CreateCashflow(ctx context.Context, req *CreateCashflowRequest, opts ...http.CallOption) (rsp *CreateCashflowResponse, err error)
@@ -1849,12 +1916,13 @@ type SettlementServiceHTTPClient interface {
 	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(ctx context.Context, req *ListCommissionAdjustmentsRequest, opts ...http.CallOption) (rsp *ListCommissionAdjustmentsResponse, err error)
+	// ListCommissionCandidates ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
 	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidatesResponse, err error)
 	ListCommissionEmployees(ctx context.Context, req *ListCommissionEmployeesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
 	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
 	ListCommissionNettingCandidates(ctx context.Context, req *ListCommissionNettingCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionNettingCandidatesResponse, err error)
-	// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-	ListCommissionRuleCandidates(ctx context.Context, req *ListCommissionRuleCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionRuleCandidatesResponse, err error)
 	ListCommissionRules(ctx context.Context, req *ListCommissionRulesRequest, opts ...http.CallOption) (rsp *ListCommissionRulesResponse, err error)
 	ListCommissionVerificationCandidates(ctx context.Context, req *ListCommissionVerificationCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionVerificationCandidatesResponse, err error)
 	ListCommissions(ctx context.Context, req *ListCommissionsRequest, opts ...http.CallOption) (rsp *ListCommissionsResponse, err error)
@@ -1881,6 +1949,7 @@ type SettlementServiceHTTPClient interface {
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
 	PreviewNetting(ctx context.Context, req *PreviewNettingRequest, opts ...http.CallOption) (rsp *PreviewNettingResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
+	RemoveCommissionRuleEmployees(ctx context.Context, req *RemoveCommissionRuleEmployeesRequest, opts ...http.CallOption) (rsp *RemoveCommissionRuleEmployeesResponse, err error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(ctx context.Context, req *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *ResetFeeLedgerPreferenceResponse, err error)
 	ReverseNetting(ctx context.Context, req *ReverseNettingRequest, opts ...http.CallOption) (rsp *ReverseNettingResponse, err error)
@@ -1901,6 +1970,26 @@ type SettlementServiceHTTPClientImpl struct {
 
 func NewSettlementServiceHTTPClient(client *http.Client) SettlementServiceHTTPClient {
 	return &SettlementServiceHTTPClientImpl{client}
+}
+
+// AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+// 不物理删除历史分配。按 commission.manage 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) AssignCommissionRuleEmployees(ctx context.Context, in *AssignCommissionRuleEmployeesRequest, opts ...http.CallOption) (*AssignCommissionRuleEmployeesResponse, error) {
+	var out AssignCommissionRuleEmployeesResponse
+	pattern := "/api/v1/finance/commission-rules/{id}/employees/assign"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceAssignCommissionRuleEmployees),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *SettlementServiceHTTPClientImpl) BatchAssignFinanceBillTags(ctx context.Context, in *BatchAssignFinanceBillTagsRequest, opts ...http.CallOption) (*BatchAssignFinanceBillTagsResponse, error) {
@@ -2166,6 +2255,25 @@ func (c *SettlementServiceHTTPClientImpl) ConfirmNetting(ctx context.Context, in
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceConfirmNetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CopyCommissionRule CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+// 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+func (c *SettlementServiceHTTPClientImpl) CopyCommissionRule(ctx context.Context, in *CopyCommissionRuleRequest, opts ...http.CallOption) (*CopyCommissionRuleResponse, error) {
+	var out CopyCommissionRuleResponse
+	pattern := "/api/v1/finance/commission-rules/{id}/copy"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCopyCommissionRule),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -2610,6 +2718,9 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionAdjustments(ctx context.
 	return &out, nil
 }
 
+// ListCommissionCandidates ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
 func (c *SettlementServiceHTTPClientImpl) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...http.CallOption) (*ListCommissionCandidatesResponse, error) {
 	var out ListCommissionCandidatesResponse
 	pattern := "/api/v1/finance/commissions/candidates"
@@ -2650,23 +2761,6 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionNettingCandidates(ctx co
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListCommissionNettingCandidates),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ListCommissionRuleCandidates ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-func (c *SettlementServiceHTTPClientImpl) ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...http.CallOption) (*ListCommissionRuleCandidatesResponse, error) {
-	var out ListCommissionRuleCandidatesResponse
-	pattern := "/api/v1/finance/commissions/rule-candidates"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationSettlementServiceListCommissionRuleCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -3029,6 +3123,23 @@ func (c *SettlementServiceHTTPClientImpl) RedFlushInvoice(ctx context.Context, i
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceRedFlushInvoice),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) RemoveCommissionRuleEmployees(ctx context.Context, in *RemoveCommissionRuleEmployeesRequest, opts ...http.CallOption) (*RemoveCommissionRuleEmployeesResponse, error) {
+	var out RemoveCommissionRuleEmployeesResponse
+	pattern := "/api/v1/finance/commission-rules/{id}/employees/remove"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceRemoveCommissionRuleEmployees),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

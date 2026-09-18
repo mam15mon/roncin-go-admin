@@ -40,29 +40,6 @@ func setupTestCommissionRepo(t *testing.T) (*commissionRepo, sqlmock.Sqlmock) {
 	return &commissionRepo{data: &Data{db: client, sqlDB: db}}, mock
 }
 
-func TestCommissionCandidateEmployeePredicatesUseDatabaseFilteringAndPagination(t *testing.T) {
-	repo, mock := setupTestCommissionRepo(t)
-	source := &commissionCalculationSource{
-		rule:     &ent.FinanceCommissionRule{PersonnelRole: financecommissionrule.PersonnelRoleSALES},
-		orderIDs: []uuid.UUID{uuid.New()},
-	}
-	query := repo.data.db.User.Query().Where(commissionCandidateEmployeePredicates(uuid.New(), source, "zhangsan")...)
-	mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*order_commission_attributions.*orders.*order_fees.*"username".*"display_name".*"search_keywords"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-	mock.ExpectQuery(`SELECT "users"\..*FROM "users".*ORDER BY.*LIMIT 20 OFFSET 20`).
-		WillReturnRows(sqlmock.NewRows(user.Columns))
-
-	if _, err := query.Clone().Count(context.Background()); err != nil {
-		t.Fatalf("统计提成候选失败: %v", err)
-	}
-	if _, err := query.Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).Offset(20).Limit(20).All(context.Background()); err != nil {
-		t.Fatalf("分页查询提成候选失败: %v", err)
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("提成候选未使用数据库筛选和分页: %v", err)
-	}
-}
-
 func TestCalculateCommissionFromSourceUsesSharedBatchData(t *testing.T) {
 	organizationID := uuid.New()
 	orderID := uuid.New()
@@ -87,19 +64,24 @@ func TestCalculateCommissionFromSourceUsesSharedBatchData(t *testing.T) {
 		BaseCurrency: "CNY", BaseCurrencyAmount: "400", ExpenseDate: "2026-08-28", Version: 1,
 		Edges: ent.OrderFeeEdges{SettlementParty: settlementParty},
 	}
+	resolvedRule := &ent.FinanceCommissionRule{
+		ID: uuid.New(), Name: "销售提成", PersonnelRole: financecommissionrule.PersonnelRoleSALES,
+		CalculationBasis: financecommissionrule.CalculationBasisREALIZED_PROFIT,
+		RatePercent:      "10.0000", Enabled: true, Version: 1,
+	}
+	resolvedAssignment := &ent.FinanceCommissionRuleAssignment{
+		ID: uuid.New(), OrganizationID: organizationID, RuleID: resolvedRule.ID,
+		EmployeeID: employeeID, EffectiveFrom: "2026-01-01",
+	}
 	source := &commissionCalculationSource{
 		organizationID: organizationID,
 		verification:   &ent.FinanceVerification{ID: uuid.New(), VerificationNo: "VR20260001"},
-		rule: &ent.FinanceCommissionRule{
-			ID: uuid.New(), Name: "销售提成", PersonnelRole: financecommissionrule.PersonnelRoleSALES,
-			CalculationBasis: financecommissionrule.CalculationBasisREALIZED_PROFIT, Version: 1,
-		},
-		rate:          decimal.NewFromInt(10),
-		baseCurrency:  "CNY",
-		orderIDs:      []uuid.UUID{orderID},
-		orderRealized: map[uuid.UUID]decimal.Decimal{orderID: decimal.NewFromInt(500)},
-		orderByID:     map[uuid.UUID]*ent.Order{orderID: orderItem},
-		feesByOrder:   map[uuid.UUID][]*ent.OrderFee{orderID: {receivable, payable}},
+		commissionDate: "2026-08-30",
+		baseCurrency:   "CNY",
+		orderIDs:       []uuid.UUID{orderID},
+		orderRealized:  map[uuid.UUID]decimal.Decimal{orderID: decimal.NewFromInt(500)},
+		orderByID:      map[uuid.UUID]*ent.Order{orderID: orderItem},
+		feesByOrder:    map[uuid.UUID][]*ent.OrderFee{orderID: {receivable, payable}},
 	}
 	employee := &ent.User{ID: employeeID, DisplayName: "张三", Enabled: true}
 	attributions := []*ent.OrderCommissionAttribution{{
@@ -108,7 +90,7 @@ func TestCalculateCommissionFromSourceUsesSharedBatchData(t *testing.T) {
 		PersonnelRole: ordercommissionattribution.PersonnelRoleSALES, AttributedAt: time.Now(),
 	}}
 
-	calculation, err := calculateCommissionFromSource(source, employee, attributions)
+	calculation, err := calculateCommissionFromSource(source, resolvedRule, resolvedAssignment, employee, attributions)
 	if err != nil {
 		t.Fatalf("使用批量上下文计算提成失败: %v", err)
 	}
@@ -256,7 +238,6 @@ func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
 
 	org := uuid.New()
 	verificationID := uuid.New()
-	ruleID := uuid.New()
 	checks := []struct {
 		name string
 		call func() error
@@ -271,7 +252,7 @@ func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
 		{
 			name: "提成候选",
 			call: func() error {
-				_, err := repo.ListCandidates(transactionCtx, org, biz.CommissionCandidateFilter{VerificationID: verificationID, RuleID: ruleID, Page: 1, PageSize: 20})
+				_, err := repo.ListCandidates(transactionCtx, org, biz.CommissionCandidateFilter{VerificationID: verificationID, Page: 1, PageSize: 20})
 				return err
 			},
 		},
@@ -439,7 +420,6 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 	t.Run("生产计算加载路径贯穿调用账单加锁与排序", func(t *testing.T) {
 		repo, mock := setupTestCommissionRepo(t)
 		verificationID := uuid.New()
-		ruleID := uuid.New()
 		cashflowID := uuid.New()
 		now := time.Now()
 
@@ -456,16 +436,12 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "50.00", "360.00", "360.00", "0.00", true).
 				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID2, "CF1", "BILL2", "50.00", "360.00", "360.00", "0.00", true),
 			)
-		// 3. 提成规则查询 (lock=true -> FOR UPDATE)
-		mock.ExpectQuery(`SELECT .* FROM "finance_commission_rules" WHERE .* FOR UPDATE$`).
-			WillReturnRows(sqlmock.NewRows(financecommissionrule.Columns).AddRow(
-				ruleID, now, now, org, "销售提成", "SALES", "REALIZED_PROFIT", "10.0000", nil, nil, true, false, nil, 1,
-			))
-		// 4. 账单批量查询 (要求 ORDER BY "finance_bills"."id" FOR UPDATE)
+		// 3. 账单批量查询 (要求 ORDER BY "finance_bills"."id" FOR UPDATE)；方案与
+		// 员工分配改由 resolveCommissionRuleForDate 在来源加载后单独解析。
 		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id" FOR UPDATE$`).
 			WillReturnError(errors.New("stop_after_bills_query"))
 
-		_, err := loadCommissionCalculationSource(context.Background(), commissionStoreFromClient(repo.data.db), org, verificationID, uuid.Nil, ruleID, true)
+		_, err := loadCommissionCalculationSource(context.Background(), commissionStoreFromClient(repo.data.db), org, verificationID, uuid.Nil, true)
 		if err == nil || err.Error() != "stop_after_bills_query" {
 			t.Fatalf("loadCommissionCalculationSource() error = %v, 期望 stop_after_bills_query", err)
 		}

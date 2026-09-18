@@ -261,6 +261,16 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		t.Fatalf("创建测试提成规则: %v", err)
 	}
 	fixture.ruleID = ruleItem.ID
+	// 方案员工分配：覆盖夹具归属日期的未取消有效段，供计提自动解析唯一命中。
+	if _, err = data.db.FinanceCommissionRuleAssignment.Create().
+		SetOrganizationID(org.ID).
+		SetRuleID(ruleItem.ID).
+		SetEmployeeID(fixture.employeeID).
+		SetEffectiveFrom("2026-01-01").
+		SetCreatedBy(fixture.actorID).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试方案员工分配: %v", err)
+	}
 
 	// 走真实对冲创建/确认链路形成 CONFIRMED 对冲单：金额 800 双方全额抵销。
 	nettingItem, err := fixture.newNettingUsecase().Create(ctx, org.ID, fixture.actorID, biz.CreateFinanceNettingInput{
@@ -301,7 +311,7 @@ func (f *commissionNettingPostgresFixture) input(key string) biz.CreateCommissio
 	return biz.CreateCommissionInput{
 		NettingID:      f.nettingID,
 		EmployeeID:     f.employeeID,
-		RuleID:         f.ruleID,
+		PersonnelRole:  biz.CommissionRoleSales,
 		IdempotencyKey: "nt-commission-" + key + "-" + f.suffix,
 	}
 }
@@ -343,7 +353,7 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 			t.Fatalf("已确认对冲单未进入提成候选: total=%d items=%d", candidates.Total, len(candidates.Items))
 		}
 
-		preview, err := usecase.Preview(ctx, fixture.organizationID, uuid.Nil, fixture.nettingID, fixture.employeeID, fixture.ruleID)
+		preview, err := usecase.Preview(ctx, fixture.organizationID, uuid.Nil, fixture.nettingID, fixture.employeeID, biz.CommissionRoleSales)
 		if err != nil {
 			t.Fatalf("对冲来源预览失败: %v", err)
 		}
@@ -429,7 +439,7 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 		if _, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, biz.CreateCommissionInput{
 			VerificationID: verificationID,
 			EmployeeID:     fixture.employeeID,
-			RuleID:         fixture.ruleID,
+			PersonnelRole:  biz.CommissionRoleSales,
 			IdempotencyKey: "nt-commission-verify-" + fixture.suffix,
 		}); err != nil {
 			t.Fatalf("核销来源与对冲来源互不冲突失败: %v", err)

@@ -103,40 +103,40 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request
 		Total: int64(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize),
 	}), nil
 }
+
+// ListCommissionCandidates 按来源单返回「员工 + 人员身份 + 已解析方案」候选：
+// 来源二选一，不再接受客户端指定规则；组织按 commission.manage 可写范围校验，
+// 来源单与组织归属由领域校验兜底。
 func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionCandidatesResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
+	verificationID, nettingID, err := commissionSourceFromAPI(r.GetVerificationId(), r.GetNettingId())
 	if err != nil {
-		return nil, biz.ErrCommissionInvalid
-	}
-	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
-	if err != nil {
-		return nil, biz.ErrCommissionInvalid
+		return nil, err
 	}
 	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionInvalid)
 	if err != nil {
 		return nil, err
 	}
-	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionManage, true, r.OrganizationId)
+	organizationID, parseErr := uuid.Parse(strings.TrimSpace(r.GetOrganizationId()))
+	if parseErr != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
-	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
-	if err != nil {
-		return nil, err
-	}
-	verification, err := s.verificationUsecase.GetScoped(ctx, []uuid.UUID{rule.OrganizationID}, verificationID)
-	if err != nil {
-		return nil, err
-	}
-	if verification.OrganizationID != rule.OrganizationID {
+	if !uuidIn(organizationID, organizationIDs) {
 		return nil, biz.ErrPermissionDenied
 	}
-	f := biz.CommissionCandidateFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), VerificationID: verificationID, RuleID: ruleID}
-	result, err := s.commissionUsecase.ListCandidates(ctx, rule.OrganizationID, f)
+	if sourceErr := s.ensureCommissionSourceOrganization(ctx, organizationID, verificationID, nettingID); sourceErr != nil {
+		return nil, sourceErr
+	}
+	result, err := s.commissionUsecase.ListCandidates(ctx, organizationID, biz.CommissionCandidateFilter{
+		Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), VerificationID: verificationID, NettingID: nettingID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +159,13 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 		return nil, err
 	}
 	f := biz.CommissionRuleFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
+	if rawEmployeeID := strings.TrimSpace(r.GetEmployeeId()); rawEmployeeID != "" {
+		employeeID, parseErr := uuid.Parse(rawEmployeeID)
+		if parseErr != nil {
+			return nil, biz.ErrCommissionRuleInvalid
+		}
+		f.EmployeeID = employeeID
+	}
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionRead, false, r.OrganizationId)
 	if scopeErr != nil {
 		return nil, scopeErr
@@ -172,47 +179,6 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 		data = append(data, commissionRuleToAPI(item))
 	}
 	return okList(ctx, &v1.ListCommissionRulesResponse{Data: data, Total: result.Total}), nil
-}
-
-// ListCommissionRuleCandidates 只为生成提成选择规则服务。候选和最终生成使用同一
-// commission.manage 可写组织范围，且服务端固定只返回已启用规则。
-func (s *SettlementService) ListCommissionRuleCandidates(ctx context.Context, r *v1.ListCommissionRuleCandidatesRequest) (*v1.ListCommissionRuleCandidatesResponse, error) {
-	p, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	rawOrganizationID := strings.TrimSpace(r.GetOrganizationId())
-	if rawOrganizationID == "" {
-		return nil, biz.ErrCommissionRuleInvalid
-	}
-	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionManage, true, &rawOrganizationID)
-	if scopeErr != nil {
-		return nil, scopeErr
-	}
-	if len(organizationIDs) != 1 {
-		return nil, biz.ErrCommissionRuleInvalid
-	}
-	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionRuleInvalid)
-	if err != nil {
-		return nil, err
-	}
-	enabled := true
-	f := biz.CommissionRuleFilter{
-		Page:          page,
-		PageSize:      pageSize,
-		Keyword:       financeOptionalString(r.Keyword),
-		PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))),
-		Enabled:       &enabled,
-	}
-	result, err := s.commissionUsecase.ListRulesScoped(ctx, organizationIDs, f)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*v1.FinanceCommissionRule, 0, len(result.Items))
-	for _, item := range result.Items {
-		data = append(data, commissionRuleToAPI(item))
-	}
-	return okList(ctx, &v1.ListCommissionRuleCandidatesResponse{Data: data, Total: result.Total}), nil
 }
 
 func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CreateCommissionRuleResponse, error) {
@@ -264,6 +230,117 @@ func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.Upda
 	}
 	return ok(ctx, &v1.UpdateCommissionRuleResponse{Data: commissionRuleToAPI(item)}), nil
 }
+
+// AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+// 增删入口：service 只解析 ID、员工集合与变更生效日，锁序、生效日约束与区间
+// 唯一校验由领域层执行。
+func (s *SettlementService) AssignCommissionRuleEmployees(ctx context.Context, r *v1.AssignCommissionRuleEmployeesRequest) (*v1.AssignCommissionRuleEmployeesResponse, error) {
+	p, organizationID, change, err := s.commissionRuleEmployeeChangeFromAPI(ctx, r.GetId(), r.GetChange())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.AssignRuleEmployees(ctx, organizationID, p.UserID, change)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.AssignCommissionRuleEmployeesResponse{Data: commissionRuleToAPI(item)}), nil
+}
+
+func (s *SettlementService) RemoveCommissionRuleEmployees(ctx context.Context, r *v1.RemoveCommissionRuleEmployeesRequest) (*v1.RemoveCommissionRuleEmployeesResponse, error) {
+	p, organizationID, change, err := s.commissionRuleEmployeeChangeFromAPI(ctx, r.GetId(), r.GetChange())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.RemoveRuleEmployees(ctx, organizationID, p.UserID, change)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.RemoveCommissionRuleEmployeesResponse{Data: commissionRuleToAPI(item)}), nil
+}
+
+// commissionRuleEmployeeChangeFromAPI 校验名单变更请求：先解析主体与方案归属组织
+// （按 commission.manage 可写范围），再转换员工集合与变更生效日。
+func (s *SettlementService) commissionRuleEmployeeChangeFromAPI(ctx context.Context, rawRuleID string, in *v1.CommissionRuleEmployeeChangeInput) (*biz.Principal, uuid.UUID, biz.CommissionRuleEmployeeChange, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, principalErr
+	}
+	ruleID, parseErr := uuid.Parse(strings.TrimSpace(rawRuleID))
+	if parseErr != nil {
+		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, biz.ErrCommissionRuleAssignmentInvalid
+	}
+	if in == nil {
+		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, biz.ErrCommissionRuleAssignmentInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, scopeErr
+	}
+	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
+	if err != nil {
+		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, err
+	}
+	change := biz.CommissionRuleEmployeeChange{
+		RuleID:              ruleID,
+		ExpectedVersion:     in.GetExpectedVersion(),
+		ChangeEffectiveDate: financeOptionalString(in.ChangeEffectiveDate),
+	}
+	for _, rawEmployeeID := range in.GetEmployeeIds() {
+		employeeID, employeeErr := uuid.Parse(strings.TrimSpace(rawEmployeeID))
+		if employeeErr != nil {
+			return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, biz.ErrCommissionRuleAssignmentInvalid
+		}
+		change.EmployeeIDs = append(change.EmployeeIDs, employeeID)
+	}
+	return p, rule.OrganizationID, change, nil
+}
+
+// CopyCommissionRule 实现【复制为新方案】：service 只转换输入，源方案归属组织按
+// commission.manage 可写范围解析后由领域层锁内衔接与校验。
+func (s *SettlementService) CopyCommissionRule(ctx context.Context, r *v1.CopyCommissionRuleRequest) (*v1.CopyCommissionRuleResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	sourceRuleID, parseErr := uuid.Parse(strings.TrimSpace(r.GetId()))
+	if parseErr != nil {
+		return nil, biz.ErrCommissionRuleInvalid
+	}
+	rate, rateErr := decimal.NewFromString(strings.TrimSpace(r.GetRatePercent()))
+	if rateErr != nil {
+		return nil, biz.ErrCommissionRuleInvalid
+	}
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	source, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, sourceRuleID)
+	if err != nil {
+		return nil, err
+	}
+	in := biz.CopyCommissionRuleInput{
+		SourceRuleID:     sourceRuleID,
+		Name:             r.GetName(),
+		PersonnelRole:    commissionPersonnelRoleFromAPI(r.GetPersonnelRole()),
+		CalculationBasis: biz.CommissionCalculationBasis(strings.ToUpper(strings.TrimSpace(r.GetCalculationBasis()))),
+		RatePercent:      rate,
+		EffectiveFrom:    r.GetEffectiveFrom(),
+		EffectiveTo:      r.EffectiveTo,
+		Note:             r.Note,
+	}
+	for _, rawEmployeeID := range r.GetEmployeeIds() {
+		employeeID, employeeErr := uuid.Parse(strings.TrimSpace(rawEmployeeID))
+		if employeeErr != nil {
+			return nil, biz.ErrCommissionRuleInvalid
+		}
+		in.EmployeeIDs = append(in.EmployeeIDs, employeeID)
+	}
+	item, err := s.commissionUsecase.CopyRule(ctx, source.OrganizationID, p.UserID, in)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.CopyCommissionRuleResponse{Data: commissionRuleToAPI(item)}), nil
+}
 func commissionRuleInputFromAPI(r *v1.CommissionRuleInput) (biz.CreateCommissionRuleInput, error) {
 	if r == nil {
 		return biz.CreateCommissionRuleInput{}, biz.ErrCommissionRuleInvalid
@@ -272,13 +349,31 @@ func commissionRuleInputFromAPI(r *v1.CommissionRuleInput) (biz.CreateCommission
 	if err != nil {
 		return biz.CreateCommissionRuleInput{}, biz.ErrCommissionRuleInvalid
 	}
-	return biz.CreateCommissionRuleInput{Name: r.GetName(), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(r.GetPersonnelRole())), CalculationBasis: biz.CommissionCalculationBasis(strings.ToUpper(r.GetCalculationBasis())), RatePercent: rate, EffectiveFrom: r.EffectiveFrom, EffectiveTo: r.EffectiveTo, Enabled: r.GetEnabled(), Note: r.Note}, nil
+	in := biz.CreateCommissionRuleInput{Name: r.GetName(), PersonnelRole: commissionPersonnelRoleFromAPI(r.GetPersonnelRole()), CalculationBasis: biz.CommissionCalculationBasis(strings.ToUpper(r.GetCalculationBasis())), RatePercent: rate, EffectiveFrom: r.EffectiveFrom, EffectiveTo: r.EffectiveTo, Enabled: r.GetEnabled(), Note: r.Note}
+	for _, rawEmployeeID := range r.GetEmployeeIds() {
+		employeeID, employeeErr := uuid.Parse(strings.TrimSpace(rawEmployeeID))
+		if employeeErr != nil {
+			return biz.CreateCommissionRuleInput{}, biz.ErrCommissionRuleInvalid
+		}
+		in.EmployeeIDs = append(in.EmployeeIDs, employeeID)
+	}
+	return in, nil
 }
 func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule {
 	if x == nil {
 		return nil
 	}
-	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName}
+	// 名单投影：只输出抽屉展示与资格追溯所需字段；适用人数按未取消分配段去重。
+	assignments := make([]*v1.CommissionRuleAssignmentProjection, 0, len(x.Assignments))
+	employees := make(map[uuid.UUID]struct{}, len(x.Assignments))
+	for _, item := range x.Assignments {
+		employees[item.EmployeeID] = struct{}{}
+		assignments = append(assignments, &v1.CommissionRuleAssignmentProjection{
+			Id: item.ID.String(), EmployeeId: item.EmployeeID.String(), EmployeeName: item.EmployeeName,
+			EffectiveFrom: item.EffectiveFrom, EffectiveTo: item.EffectiveTo,
+		})
+	}
+	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, LegacyReadonly: x.LegacyReadOnly, ActiveEmployeeCount: int32(len(employees)), Assignments: assignments}
 }
 
 // commissionSourceFromAPI 解析提成来源二选一：核销与对冲恰好提供一个，
@@ -359,6 +454,11 @@ func (s *SettlementService) ListCommissionNettingCandidates(ctx context.Context,
 	return okList(ctx, &v1.ListCommissionNettingCandidatesResponse{Data: data, Total: result.Total}), nil
 }
 
+// commissionPersonnelRoleFromAPI 解析并归一化客户端提交的人员身份。
+func commissionPersonnelRoleFromAPI(raw string) biz.CommissionPersonnelRole {
+	return biz.CommissionPersonnelRole(strings.ToUpper(strings.TrimSpace(raw)))
+}
+
 func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.PreviewCommissionRequest) (*v1.PreviewCommissionResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
@@ -372,22 +472,21 @@ func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.Preview
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
-	if err != nil {
+	organizationID, orgErr := uuid.Parse(strings.TrimSpace(r.GetOrganizationId()))
+	if orgErr != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
 	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
-	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
-	if err != nil {
-		return nil, err
+	if !uuidIn(organizationID, organizationIDs) {
+		return nil, biz.ErrPermissionDenied
 	}
-	if sourceErr := s.ensureCommissionSourceOrganization(ctx, rule.OrganizationID, verificationID, nettingID); sourceErr != nil {
+	if sourceErr := s.ensureCommissionSourceOrganization(ctx, organizationID, verificationID, nettingID); sourceErr != nil {
 		return nil, sourceErr
 	}
-	item, err := s.commissionUsecase.Preview(ctx, rule.OrganizationID, verificationID, nettingID, employeeID, ruleID)
+	item, err := s.commissionUsecase.Preview(ctx, organizationID, verificationID, nettingID, employeeID, commissionPersonnelRoleFromAPI(r.GetPersonnelRole()))
 	if err != nil {
 		return nil, err
 	}
@@ -406,22 +505,21 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
-	if err != nil {
+	organizationID, orgErr := uuid.Parse(strings.TrimSpace(r.GetOrganizationId()))
+	if orgErr != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
 	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
-	rule, err := s.commissionUsecase.GetRuleScoped(ctx, organizationIDs, ruleID)
-	if err != nil {
-		return nil, err
+	if !uuidIn(organizationID, organizationIDs) {
+		return nil, biz.ErrPermissionDenied
 	}
-	if sourceErr := s.ensureCommissionSourceOrganization(ctx, rule.OrganizationID, verificationID, nettingID); sourceErr != nil {
+	if sourceErr := s.ensureCommissionSourceOrganization(ctx, organizationID, verificationID, nettingID); sourceErr != nil {
 		return nil, sourceErr
 	}
-	item, err := s.commissionUsecase.Create(ctx, rule.OrganizationID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, NettingID: nettingID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	item, err := s.commissionUsecase.Create(ctx, organizationID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, NettingID: nettingID, EmployeeID: employeeID, PersonnelRole: commissionPersonnelRoleFromAPI(r.GetPersonnelRole()), Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -765,5 +863,5 @@ func commissionLineToAPI(x *biz.FinanceCommissionLine) *v1.FinanceCommissionLine
 }
 
 func commissionCandidateSummaryToAPI(x *biz.CommissionCalculation) *v1.CommissionCandidateSummary {
-	return &v1.CommissionCandidateSummary{EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Id: x.EmployeeID.String(), DisplayName: x.EmployeeName}
+	return &v1.CommissionCandidateSummary{EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), RuleId: x.RuleID.String(), RuleName: x.RuleName, CalculationBasis: string(x.CalculationBasis), RuleVersion: x.RuleVersion}
 }

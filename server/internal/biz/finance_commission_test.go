@@ -83,7 +83,7 @@ func (s *commissionRepoStub) GetByKey(context.Context, uuid.UUID, string) (*Fina
 	return nil, nil
 }
 
-func (s *commissionRepoStub) Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error) {
+func (s *commissionRepoStub) Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, CommissionPersonnelRole) (*CommissionCalculation, error) {
 	return s.preview, nil
 }
 
@@ -431,7 +431,7 @@ func TestCommissionUsecasePreviewResolvesCNYSnapshot(t *testing.T) {
 	// 原币记账后提成预览不再依赖汇率用例（退役回归：ResolveBaseRate 已删除）。
 	usecase := NewCommissionUsecase(repo, nil, &transactorStub{})
 
-	result, err := usecase.Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), uuid.New())
+	result, err := usecase.Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), CommissionRoleSales)
 	if err != nil {
 		t.Fatalf("Preview() error = %v", err)
 	}
@@ -444,8 +444,8 @@ func TestCommissionUsecasePreviewResolvesCNYSnapshot(t *testing.T) {
 
 func TestCommissionUsecaseCreateResolvesCNYRateInsideTransaction(t *testing.T) {
 	org, actor := uuid.New(), uuid.New()
-	verificationID, employeeID, ruleID := uuid.New(), uuid.New(), uuid.New()
-	input := CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, IdempotencyKey: "commission-cny"}
+	verificationID, employeeID := uuid.New(), uuid.New()
+	input := CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, PersonnelRole: CommissionRoleSales, IdempotencyKey: "commission-cny"}
 
 	newUsecase := func(repo *commissionRepoStub) *CommissionUsecase {
 		return NewCommissionUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), &transactorStub{})
@@ -750,24 +750,75 @@ func TestCommissionUsecaseValidatesExclusiveSource(t *testing.T) {
 	}
 
 	for name, input := range map[string]CreateCommissionInput{
-		"创建来源双空": {EmployeeID: uuid.New(), RuleID: uuid.New(), IdempotencyKey: "src-choice"},
-		"创建来源双填": {VerificationID: uuid.New(), NettingID: uuid.New(), EmployeeID: uuid.New(), RuleID: uuid.New(), IdempotencyKey: "src-choice"},
+		"创建来源双空": {EmployeeID: uuid.New(), PersonnelRole: CommissionRoleSales, IdempotencyKey: "src-choice"},
+		"创建来源双填": {VerificationID: uuid.New(), NettingID: uuid.New(), EmployeeID: uuid.New(), PersonnelRole: CommissionRoleSales, IdempotencyKey: "src-choice"},
 	} {
 		if _, err := newUsecase().Create(context.Background(), org, actor, input); err != ErrCommissionInvalid {
 			t.Fatalf("%s 错误 = %v，期望 %v", name, err, ErrCommissionInvalid)
 		}
 	}
-	if _, err := newUsecase().Preview(context.Background(), org, uuid.Nil, uuid.Nil, uuid.New(), uuid.New()); err != ErrCommissionInvalid {
+	if _, err := newUsecase().Preview(context.Background(), org, uuid.Nil, uuid.Nil, uuid.New(), CommissionRoleSales); err != ErrCommissionInvalid {
 		t.Fatalf("预览来源双空错误 = %v，期望 %v", err, ErrCommissionInvalid)
 	}
-	if _, err := newUsecase().Preview(context.Background(), org, uuid.New(), uuid.New(), uuid.New(), uuid.New()); err != ErrCommissionInvalid {
+	if _, err := newUsecase().Preview(context.Background(), org, uuid.New(), uuid.New(), uuid.New(), CommissionRoleSales); err != ErrCommissionInvalid {
 		t.Fatalf("预览来源双填错误 = %v，期望 %v", err, ErrCommissionInvalid)
 	}
 	// 恰好提供一个来源时不被二选一校验拦截，预览全链路可成功。
-	if _, err := newUsecase().Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), uuid.New()); err != nil {
+	if _, err := newUsecase().Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), CommissionRoleSales); err != nil {
 		t.Fatalf("仅提供核销来源的预览不应被拒绝: %v", err)
 	}
-	if _, err := newUsecase().Preview(context.Background(), org, uuid.Nil, uuid.New(), uuid.New(), uuid.New()); err != nil {
+	if _, err := newUsecase().Preview(context.Background(), org, uuid.Nil, uuid.New(), uuid.New(), CommissionRoleSales); err != nil {
 		t.Fatalf("仅提供对冲来源的预览不应被拒绝: %v", err)
+	}
+	// 人员身份是创建意图的必填部分：非法身份稳定拒绝。
+	if _, err := newUsecase().Create(context.Background(), org, actor, CreateCommissionInput{
+		VerificationID: uuid.New(), EmployeeID: uuid.New(), PersonnelRole: "SALES_MANUAL", IdempotencyKey: "bad-role",
+	}); err != ErrCommissionInvalid {
+		t.Fatalf("非法人员身份错误 = %v，期望 %v", err, ErrCommissionInvalid)
+	}
+	if _, err := newUsecase().Preview(context.Background(), org, uuid.New(), uuid.Nil, uuid.New(), ""); err != ErrCommissionInvalid {
+		t.Fatalf("空人员身份预览错误 = %v，期望 %v", err, ErrCommissionInvalid)
+	}
+}
+
+func TestCommissionCreateIntentComparesPersonnelRole(t *testing.T) {
+	employeeID := uuid.New()
+	verificationID := uuid.New()
+	note := "备注"
+	old := &FinanceCommission{
+		VerificationID: verificationID, EmployeeID: employeeID,
+		PersonnelRole: CommissionRoleSales, Note: &note,
+	}
+	same := CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, PersonnelRole: CommissionRoleSales, Note: &note}
+	roleChanged := CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, PersonnelRole: CommissionRoleOperator, Note: &note}
+	employeeChanged := CreateCommissionInput{VerificationID: verificationID, EmployeeID: uuid.New(), PersonnelRole: CommissionRoleSales, Note: &note}
+
+	if !sameCommissionCreateIntent(old, same) {
+		t.Fatal("同来源同员工同身份的请求应视为同一意图")
+	}
+	if sameCommissionCreateIntent(old, roleChanged) {
+		t.Fatal("人员身份变化应视为不同意图，规则由服务端解析后不可混淆")
+	}
+	if sameCommissionCreateIntent(old, employeeChanged) {
+		t.Fatal("员工变化应视为不同意图")
+	}
+}
+
+func TestCommissionCandidateFilterValidatesExclusiveSource(t *testing.T) {
+	org := uuid.New()
+	newUsecase := func() *CommissionUsecase {
+		return NewCommissionUsecase(&commissionRepoStub{}, nil, &transactorStub{})
+	}
+	if _, err := newUsecase().ListCandidates(context.Background(), org, CommissionCandidateFilter{Page: 1, PageSize: 20}); err != ErrCommissionInvalid {
+		t.Fatalf("候选来源双空错误 = %v，期望 %v", err, ErrCommissionInvalid)
+	}
+	if _, err := newUsecase().ListCandidates(context.Background(), org, CommissionCandidateFilter{VerificationID: uuid.New(), NettingID: uuid.New(), Page: 1, PageSize: 20}); err != ErrCommissionInvalid {
+		t.Fatalf("候选来源双填错误 = %v，期望 %v", err, ErrCommissionInvalid)
+	}
+	if _, err := newUsecase().ListCandidates(context.Background(), uuid.Nil, CommissionCandidateFilter{VerificationID: uuid.New(), Page: 1, PageSize: 20}); err != ErrCommissionInvalid {
+		t.Fatalf("组织为空错误 = %v，期望 %v", err, ErrCommissionInvalid)
+	}
+	if _, err := newUsecase().ListCandidates(context.Background(), org, CommissionCandidateFilter{VerificationID: uuid.New(), Page: 0, PageSize: 20}); err != ErrCommissionInvalid {
+		t.Fatalf("非法分页错误 = %v，期望 %v", err, ErrCommissionInvalid)
 	}
 }

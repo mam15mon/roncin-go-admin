@@ -22,6 +22,7 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	rule "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	membership "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -474,6 +475,17 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 	}
 	fixture.ruleID = ruleItem.ID
 
+	// 方案员工分配：覆盖夹具归属日期的未取消有效段，供计提自动解析唯一命中。
+	if _, err = data.db.FinanceCommissionRuleAssignment.Create().
+		SetOrganizationID(org.ID).
+		SetRuleID(ruleItem.ID).
+		SetEmployeeID(fixture.employeeID).
+		SetEffectiveFrom("2026-01-01").
+		SetCreatedBy(fixture.actorID).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试方案员工分配: %v", err)
+	}
+
 	if _, err = data.db.NumberRule.Create().
 		SetOrganizationID(org.ID).
 		SetDocumentType(numberruleent.DocumentTypeCommission).
@@ -493,7 +505,7 @@ func (f *commissionPostgresFixture) input(key string) biz.CreateCommissionInput 
 	return biz.CreateCommissionInput{
 		VerificationID: f.verificationID,
 		EmployeeID:     f.employeeID,
-		RuleID:         f.ruleID,
+		PersonnelRole:  biz.CommissionRoleSales,
 		IdempotencyKey: "commission-" + key + "-" + f.suffix,
 	}
 }
@@ -615,6 +627,10 @@ func (f *commissionPostgresFixture) cleanup() {
 		}},
 		{name: "提成主单", run: func() error {
 			_, err := f.data.db.FinanceCommission.Delete().Where(commission.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			return err
+		}},
+		{name: "提成方案员工分配", run: func() error {
+			_, err := f.data.db.FinanceCommissionRuleAssignment.Delete().Where(assignment.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
 		{name: "提成规则", run: func() error {
@@ -870,7 +886,7 @@ func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
 		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
 	}
 
-	t.Run("同一核销同一员工相同角色更换规则重复计提被阻止", func(t *testing.T) {
+	t.Run("同一核销同一员工相同角色重复计提被阻止且规则由服务端解析", func(t *testing.T) {
 		fixture := newCommissionPostgresFixture(t)
 		ctx := context.Background()
 		usecase := fixture.newUsecase(NewCommissionRepo(fixture.data))
@@ -882,40 +898,15 @@ func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
 		if created == nil {
 			t.Fatal("创建首笔提成未返回实体")
 		}
-
-		// 创建同角色不同ID的提成规则
-		rule2, err := fixture.data.db.FinanceCommissionRule.Create().
-			SetOrganizationID(fixture.organizationID).
-			SetName("销售提成备用规则-" + fixture.suffix).
-			SetPersonnelRole(rule.PersonnelRoleSALES).
-			SetCalculationBasis(rule.CalculationBasisREALIZED_PROFIT).
-			SetRatePercent("12.0000").
-			SetEnabled(true).
-			SetVersion(1).
-			Save(ctx)
-		if err != nil {
-			t.Fatalf("创建第二套提成规则失败: %v", err)
+		if created.RuleID != fixture.ruleID {
+			t.Fatalf("创建结果应固化服务端解析出的方案: %v", created.RuleID)
 		}
 
-		// 使用不同规则ID再次创建提成，应被阻止
-		inputDiffRule := fixture.input("dup-diff-rule")
-		inputDiffRule.RuleID = rule2.ID
-		_, err = usecase.Create(ctx, fixture.organizationID, fixture.actorID, inputDiffRule)
-		if err == nil {
-			t.Fatal("更换规则ID后重复创建提成未报错")
-		}
+		// 规则由服务端按来源日期解析：换幂等键重复提交同一「来源+员工+身份」
+		// 仍解析到同一方案，被活跃唯一约束阻止。
+		_, err = usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.input("dup-diff-rule"))
 		if !errors.Is(err, biz.ErrCommissionDuplicate) {
-			t.Fatalf("更换规则ID后返回错误 = %v，期望 %v", err, biz.ErrCommissionDuplicate)
-		}
-
-		// 使用相同规则ID再次创建提成，同样应被阻止
-		inputSameRule := fixture.input("dup-same-rule")
-		_, err = usecase.Create(ctx, fixture.organizationID, fixture.actorID, inputSameRule)
-		if err == nil {
-			t.Fatal("相同规则ID重复创建提成未报错")
-		}
-		if !errors.Is(err, biz.ErrCommissionDuplicate) {
-			t.Fatalf("相同规则ID返回错误 = %v，期望 %v", err, biz.ErrCommissionDuplicate)
+			t.Fatalf("换幂等键重复创建返回错误 = %v，期望 %v", err, biz.ErrCommissionDuplicate)
 		}
 
 		// 验证数据库中活动提成数量保持为 1

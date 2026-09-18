@@ -15,16 +15,14 @@ const serviceMocks = vi.hoisted(() => ({
   listFinanceOrganizationOptions: vi.fn(),
   listCommissionVerificationCandidates: vi.fn(),
   listCommissionNettingCandidates: vi.fn(),
-  listCommissionRuleCandidates: vi.fn(),
-  listCommissionEmployees: vi.fn(),
+  listCommissionCandidates: vi.fn(),
 }));
 
 const modalState = vi.hoisted(() => ({
   props: undefined as Record<string, any> | undefined,
   dependencyValues: {
     verificationId: 'verification-1',
-    ruleId: 'rule-1',
-    employeeId: 'employee-1',
+    candidateKey: 'employee-1|SALES',
   } as Record<string, any>,
 }));
 
@@ -60,6 +58,14 @@ vi.mock('@/components/ui', () => ({
             </button>
           </>
         )}
+        {props.label === '有效应收核销' && (
+          <button
+            type="button"
+            onClick={() => props.fieldProps?.onChange?.('verification-1')}
+          >
+            选择核销单
+          </button>
+        )}
         {props.request && (
           <button
             type="button"
@@ -87,13 +93,10 @@ vi.mock('@/components/ui', () => ({
 
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateCommission: serviceMocks.createCommission,
-  settlementServiceListCommissionCandidates: vi.fn(),
+  settlementServiceListCommissionCandidates:
+    serviceMocks.listCommissionCandidates,
   settlementServiceListCommissionNettingCandidates:
     serviceMocks.listCommissionNettingCandidates,
-  settlementServiceListCommissionEmployees:
-    serviceMocks.listCommissionEmployees,
-  settlementServiceListCommissionRuleCandidates:
-    serviceMocks.listCommissionRuleCandidates,
   settlementServiceListCommissionRules: vi.fn(),
   settlementServiceListFinanceOrganizationOptions:
     serviceMocks.listFinanceOrganizationOptions,
@@ -126,13 +129,27 @@ const verificationCandidate = {
   currency: 'CNY',
 };
 
+const commissionCandidate = {
+  employeeId: 'employee-1',
+  employeeName: '张三',
+  personnelRole: 'SALES',
+  customerCount: 1,
+  orderCount: 2,
+  feeCount: 3,
+  baseCurrency: 'CNY',
+  commissionAmount: '60.00000000',
+  ruleId: 'rule-1',
+  ruleName: '销售提成方案',
+  calculationBasis: 'REALIZED_PROFIT',
+  ruleVersion: '3',
+};
+
 describe('提成预览 CNY 快照', () => {
   beforeEach(() => {
     modalState.props = undefined;
     modalState.dependencyValues = {
       verificationId: 'verification-1',
-      ruleId: 'rule-1',
-      employeeId: 'employee-1',
+      candidateKey: 'employee-1|SALES',
     };
     for (const mock of Object.values(serviceMocks)) {
       mock.mockReset();
@@ -144,11 +161,14 @@ describe('提成预览 CNY 快照', () => {
     serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
       data: [],
     });
+    serviceMocks.listCommissionCandidates.mockResolvedValue({
+      data: [commissionCandidate],
+    });
     serviceMocks.previewCommission.mockResolvedValue({
       data: {
         employeeName: '张三',
-        ruleName: '销售提成',
-        ruleVersion: '1',
+        ruleName: '销售提成方案',
+        ruleVersion: '3',
         personnelRole: 'SALES',
         calculationBasis: 'REALIZED_PROFIT',
         ratePercent: '2.5000',
@@ -183,7 +203,7 @@ describe('提成预览 CNY 快照', () => {
     expect(screen.getByText('预览汇率仅供生成前核对')).toBeInTheDocument();
   });
 
-  it('核销来源创建请求体携带 verificationId 而不带 nettingId', async () => {
+  it('核销来源创建请求体携带员工与身份而不携带 nettingId 与规则', async () => {
     const onSuccess = vi.fn();
     serviceMocks.createCommission.mockResolvedValue({
       data: { cnyCommissionAmount: '401.00000000' },
@@ -197,14 +217,14 @@ describe('提成预览 CNY 快照', () => {
         />
       </App>,
     );
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
     fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
     await screen.findByText('400 CNY');
 
     await act(async () => {
       await modalState.props?.onFinish({
         verificationId: 'verification-1',
-        ruleId: 'rule-1',
-        employeeId: 'employee-1',
+        candidateKey: 'employee-1|SALES',
       });
     });
 
@@ -212,15 +232,79 @@ describe('提成预览 CNY 快照', () => {
     expect(serviceMocks.createCommission).toHaveBeenCalledWith(
       expect.objectContaining({
         verificationId: 'verification-1',
-        ruleId: 'rule-1',
         employeeId: 'employee-1',
+        personnelRole: 'SALES',
+        organizationId: 'org-a',
       }),
     );
     expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
       'nettingId',
     );
     expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
+      'ruleId',
+    );
+    expect(serviceMocks.createCommission.mock.calls[0][0]).not.toHaveProperty(
       'cnyCommissionAmount',
+    );
+  });
+
+  it('选择核销来源后从服务端加载「员工 + 身份 + 已解析方案」候选', async () => {
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    fireEvent.click(screen.getByRole('button', { name: '选择核销单' }));
+
+    await waitFor(() =>
+      expect(serviceMocks.listCommissionCandidates).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+        verificationId: 'verification-1',
+      }),
+    );
+    expect(
+      await screen.findByText(
+        '张三｜业务人员｜销售提成方案（v3）｜预计 60 CNY',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('预览请求携带来源、员工、身份与组织且不携带规则', async () => {
+    render(
+      <App>
+        <CommissionCreateModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
+    fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
+
+    await waitFor(() =>
+      expect(serviceMocks.previewCommission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          verificationId: 'verification-1',
+          employeeId: 'employee-1',
+          personnelRole: 'SALES',
+          organizationId: 'org-a',
+        }),
+      ),
+    );
+    expect(serviceMocks.previewCommission.mock.calls[0][0]).not.toHaveProperty(
+      'ruleId',
+    );
+    expect(serviceMocks.previewCommission.mock.calls[0][0]).not.toHaveProperty(
+      'nettingId',
     );
   });
 
@@ -256,7 +340,7 @@ describe('提成预览 CNY 快照', () => {
     expect(screen.getByText('2026-09-01 10:00:00')).toBeInTheDocument();
     // 默认核销 Tab 的下拉入口在对冲 Tab 下不再渲染。
     expect(
-      screen.queryByRole('button', { name: '加载有效应收核销' }),
+      screen.queryByRole('button', { name: '选择核销单' }),
     ).not.toBeInTheDocument();
   });
 
@@ -267,8 +351,8 @@ describe('提成预览 CNY 快照', () => {
     serviceMocks.previewCommission.mockResolvedValue({
       data: {
         employeeName: '张三',
-        ruleName: '销售提成',
-        ruleVersion: '1',
+        ruleName: '销售提成方案',
+        ruleVersion: '3',
         personnelRole: 'SALES',
         calculationBasis: 'REALIZED_PROFIT',
         ratePercent: '2.5000',
@@ -294,10 +378,10 @@ describe('提成预览 CNY 快照', () => {
       </App>,
     );
 
+    fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
     modalState.dependencyValues = {
       nettingId: 'netting-1',
-      ruleId: 'rule-1',
-      employeeId: 'employee-1',
+      candidateKey: 'employee-1|SALES',
     };
     fireEvent.click(screen.getByRole('tab', { name: '对冲提成' }));
     fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
@@ -307,7 +391,8 @@ describe('提成预览 CNY 快照', () => {
         expect.objectContaining({
           nettingId: 'netting-1',
           employeeId: 'employee-1',
-          ruleId: 'rule-1',
+          personnelRole: 'SALES',
+          organizationId: 'org-a',
         }),
       ),
     );
@@ -315,13 +400,13 @@ describe('提成预览 CNY 快照', () => {
       'verificationId',
     );
     expect(await screen.findByText('来源单号')).toBeInTheDocument();
-    expect(screen.getByText('NT-2026-001')).toBeInTheDocument();
+    // 对冲表格与预览来源都会展示对冲单号。
+    expect(screen.getAllByText('NT-2026-001').length).toBeGreaterThan(0);
 
     await act(async () => {
       await modalState.props?.onFinish({
         nettingId: 'netting-1',
-        ruleId: 'rule-1',
-        employeeId: 'employee-1',
+        candidateKey: 'employee-1|SALES',
       });
     });
 
@@ -329,8 +414,9 @@ describe('提成预览 CNY 快照', () => {
       expect(serviceMocks.createCommission).toHaveBeenCalledWith(
         expect.objectContaining({
           nettingId: 'netting-1',
-          ruleId: 'rule-1',
           employeeId: 'employee-1',
+          personnelRole: 'SALES',
+          organizationId: 'org-a',
         }),
       ),
     );
@@ -508,40 +594,6 @@ describe('提成预览 CNY 快照', () => {
       expect(
         serviceMocks.listCommissionNettingCandidates,
       ).toHaveBeenLastCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-b',
-      }),
-    );
-  });
-
-  it('考核规则候选携带当前公司，并使用提成管理专用接口', async () => {
-    serviceMocks.listCommissionRuleCandidates.mockResolvedValue({
-      data: [
-        {
-          id: 'rule-b',
-          name: 'B公司销售提成',
-          personnelRole: 'SALES',
-          calculationBasis: 'REALIZED_PROFIT',
-          ratePercent: '2.5',
-        },
-      ],
-    });
-    render(
-      <App>
-        <CommissionCreateModal
-          open
-          onOpenChange={vi.fn()}
-          onSuccess={vi.fn()}
-        />
-      </App>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
-    fireEvent.click(screen.getByRole('button', { name: '加载考核规则' }));
-
-    await waitFor(() =>
-      expect(serviceMocks.listCommissionRuleCandidates).toHaveBeenCalledWith({
         page: 1,
         pageSize: 200,
         organizationId: 'org-b',

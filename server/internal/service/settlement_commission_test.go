@@ -17,22 +17,24 @@ import (
 // commissionRepoStub 捕获列表筛选并返回固定的提成与预览结果，不触发数据库。
 type commissionRepoStub struct {
 	biz.CommissionRepo
-	filter         biz.CommissionFilter
-	listResult     *biz.CommissionListResult
-	preview        *biz.CommissionCalculation
-	generation     *biz.CommissionGenerationContext
-	ruleFilter     biz.CommissionRuleFilter
-	ruleScope      []uuid.UUID
-	ruleResult     *biz.CommissionRuleListResult
-	ruleErr        error
-	rateContext    *biz.ExchangeRateContext
-	rateStub       *exchangeRateStub
-	exportTotal    int64
-	exportBatch    []*biz.FinanceCommission
-	exportFilter   biz.CommissionFilter
-	exportAuditLog *biz.AuditEvent
-	nettingFilter  biz.CommissionNettingCandidateFilter
-	nettingResult  *biz.CommissionNettingCandidateListResult
+	filter          biz.CommissionFilter
+	listResult      *biz.CommissionListResult
+	preview         *biz.CommissionCalculation
+	generation      *biz.CommissionGenerationContext
+	ruleFilter      biz.CommissionRuleFilter
+	ruleScope       []uuid.UUID
+	ruleResult      *biz.CommissionRuleListResult
+	ruleErr         error
+	rateContext     *biz.ExchangeRateContext
+	rateStub        *exchangeRateStub
+	exportTotal     int64
+	exportBatch     []*biz.FinanceCommission
+	exportFilter    biz.CommissionFilter
+	exportAuditLog  *biz.AuditEvent
+	nettingFilter   biz.CommissionNettingCandidateFilter
+	nettingResult   *biz.CommissionNettingCandidateListResult
+	candidateFilter biz.CommissionCandidateFilter
+	candidateResult *biz.CommissionCandidateListResult
 }
 
 func (s *commissionRepoStub) List(_ context.Context, _ uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
@@ -70,12 +72,12 @@ func (s *commissionRepoStub) SaveExportAudit(_ context.Context, event *biz.Audit
 	return nil
 }
 
-func (s *commissionRepoStub) Preview(_ context.Context, _ uuid.UUID, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
+func (s *commissionRepoStub) Preview(_ context.Context, _ uuid.UUID, verificationID, nettingID, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole) (*biz.CommissionCalculation, error) {
 	if s.preview != nil {
 		s.preview.VerificationID = verificationID
 		s.preview.NettingID = nettingID
 		s.preview.EmployeeID = employeeID
-		s.preview.RuleID = ruleID
+		s.preview.PersonnelRole = personnelRole
 	}
 	return s.preview, nil
 }
@@ -90,6 +92,14 @@ func (s *commissionRepoStub) ListNettingCandidates(_ context.Context, _ uuid.UUI
 		return &biz.CommissionNettingCandidateListResult{}, nil
 	}
 	return s.nettingResult, nil
+}
+
+func (s *commissionRepoStub) ListCandidates(_ context.Context, _ uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
+	s.candidateFilter = f
+	if s.candidateResult == nil {
+		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}, Page: f.Page, PageSize: f.PageSize}, nil
+	}
+	return s.candidateResult, nil
 }
 
 func (s *commissionRepoStub) GetRuleScoped(_ context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceCommissionRule, error) {
@@ -302,7 +312,7 @@ func TestPreviewCommissionReturnsCNYRateBasis(t *testing.T) {
 	verificationID := uuid.New().String()
 
 	response, err := service.PreviewCommission(commissionPrincipalContext(org), &v1.PreviewCommissionRequest{
-		VerificationId: &verificationID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String(),
+		VerificationId: &verificationID, EmployeeId: uuid.New().String(), PersonnelRole: "SALES", OrganizationId: org.String(),
 	})
 	if err != nil {
 		t.Fatalf("PreviewCommission() error = %v", err)
@@ -324,16 +334,16 @@ func TestCommissionSourceExclusiveChoice(t *testing.T) {
 	verificationID, nettingID := uuid.New().String(), uuid.New().String()
 
 	for name, request := range map[string]*v1.PreviewCommissionRequest{
-		"预览来源双空": {EmployeeId: uuid.New().String(), RuleId: uuid.New().String()},
-		"预览来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String()},
+		"预览来源双空": {EmployeeId: uuid.New().String(), PersonnelRole: "SALES", OrganizationId: org.String()},
+		"预览来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), PersonnelRole: "SALES", OrganizationId: org.String()},
 	} {
 		if _, err := service.PreviewCommission(ctx, request); !errors.Is(err, biz.ErrCommissionInvalid) {
 			t.Fatalf("%s 错误 = %v，期望 %v", name, err, biz.ErrCommissionInvalid)
 		}
 	}
 	for name, request := range map[string]*v1.CreateCommissionRequest{
-		"创建来源双空": {EmployeeId: uuid.New().String(), RuleId: uuid.New().String(), IdempotencyKey: "dup-src"},
-		"创建来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), RuleId: uuid.New().String(), IdempotencyKey: "dup-src"},
+		"创建来源双空": {EmployeeId: uuid.New().String(), PersonnelRole: "SALES", OrganizationId: org.String(), IdempotencyKey: "dup-src"},
+		"创建来源双填": {VerificationId: &verificationID, NettingId: &nettingID, EmployeeId: uuid.New().String(), PersonnelRole: "SALES", OrganizationId: org.String(), IdempotencyKey: "dup-src"},
 	} {
 		if _, err := service.CreateCommission(ctx, request); !errors.Is(err, biz.ErrCommissionInvalid) {
 			t.Fatalf("%s 错误 = %v，期望 %v", name, err, biz.ErrCommissionInvalid)
@@ -420,37 +430,54 @@ func TestListCommissionVerificationCandidatesUsesManageWritableOrganization(t *t
 	}
 }
 
-func TestListCommissionRuleCandidatesUsesManageWritableOrganization(t *testing.T) {
+func TestListCommissionCandidatesUsesManageWritableOrganization(t *testing.T) {
 	allowed, denied := uuid.New(), uuid.New()
 	service, repo := newCommissionService(allowed)
-	repo.ruleResult = &biz.CommissionRuleListResult{Items: []*biz.FinanceCommissionRule{{
-		ID: uuid.New(), OrganizationID: allowed, Name: "销售基础提成", PersonnelRole: biz.CommissionRoleSales,
-		CalculationBasis: biz.CommissionBasisRealizedProfit, RatePercent: decimal.RequireFromString("2.5"), Enabled: true,
-	}}}
+	repo.candidateResult = &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{{
+		EmployeeID: uuid.New(), EmployeeName: "张三", PersonnelRole: biz.CommissionRoleSales,
+		RuleID: uuid.New(), RuleName: "销售基础提成", CalculationBasis: biz.CommissionBasisRealizedProfit, RuleVersion: 3,
+		BaseCurrency: "USD", CommissionAmount: decimal.RequireFromString("12.5"),
+	}}, Total: 1, Page: 1, PageSize: 20}
 	principal := &biz.Principal{
 		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
 	ctx := biz.WithPrincipal(context.Background(), principal)
+	verificationID, nettingID := uuid.New().String(), uuid.New().String()
 
-	response, err := service.ListCommissionRuleCandidates(ctx, &v1.ListCommissionRuleCandidatesRequest{OrganizationId: allowed.String(), Page: 1, PageSize: 20})
+	response, err := service.ListCommissionCandidates(ctx, &v1.ListCommissionCandidatesRequest{
+		OrganizationId: allowed.String(), VerificationId: &verificationID, Page: 1, PageSize: 20,
+	})
 	if err != nil {
-		t.Fatalf("Manage-only 规则候选查询失败: %v", err)
+		t.Fatalf("Manage-only 来源候选查询失败: %v", err)
 	}
-	if len(response.Data) != 1 || len(repo.ruleScope) != 1 || repo.ruleScope[0] != allowed ||
-		repo.ruleFilter.Enabled == nil || !*repo.ruleFilter.Enabled {
-		t.Fatalf("候选未按提成管理可写组织和已启用规则查询: result=%#v scope=%v filter=%+v", response.Data, repo.ruleScope, repo.ruleFilter)
+	if len(response.Data) != 1 || repo.candidateFilter.VerificationID == uuid.Nil || repo.candidateFilter.NettingID != uuid.Nil {
+		t.Fatalf("候选未按核销来源查询: result=%#v filter=%+v", response.Data, repo.candidateFilter)
+	}
+	if response.Data[0].RuleId == "" || response.Data[0].RuleName != "销售基础提成" || response.Data[0].RuleVersion != 3 {
+		t.Fatalf("候选应返回实际命中的方案投影: %#v", response.Data[0])
 	}
 
-	if _, err := service.ListCommissionRuleCandidates(ctx, &v1.ListCommissionRuleCandidatesRequest{OrganizationId: denied.String(), Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrPermissionDenied) {
+	if _, err := service.ListCommissionCandidates(ctx, &v1.ListCommissionCandidatesRequest{
+		OrganizationId: denied.String(), VerificationId: &verificationID, Page: 1, PageSize: 20,
+	}); !errors.Is(err, biz.ErrPermissionDenied) {
 		t.Fatalf("越权组织错误 = %v，期望 %v", err, biz.ErrPermissionDenied)
 	}
-	if _, err := service.ListCommissionRuleCandidates(ctx, &v1.ListCommissionRuleCandidatesRequest{Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrCommissionRuleInvalid) {
-		t.Fatalf("空组织错误 = %v，期望 %v", err, biz.ErrCommissionRuleInvalid)
+	if _, err := service.ListCommissionCandidates(ctx, &v1.ListCommissionCandidatesRequest{
+		OrganizationId: allowed.String(), Page: 1, PageSize: 20,
+	}); !errors.Is(err, biz.ErrCommissionInvalid) {
+		t.Fatalf("来源双空错误 = %v，期望 %v", err, biz.ErrCommissionInvalid)
+	}
+	if _, err := service.ListCommissionCandidates(ctx, &v1.ListCommissionCandidatesRequest{
+		OrganizationId: allowed.String(), VerificationId: &verificationID, NettingId: &nettingID, Page: 1, PageSize: 20,
+	}); !errors.Is(err, biz.ErrCommissionInvalid) {
+		t.Fatalf("来源双填错误 = %v，期望 %v", err, biz.ErrCommissionInvalid)
 	}
 	readOnly := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "commission-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceCommissionRead: {}}}}}
-	if _, err := service.ListCommissionRuleCandidates(biz.WithPrincipal(context.Background(), readOnly), &v1.ListCommissionRuleCandidatesRequest{OrganizationId: allowed.String(), Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrPermissionDenied) {
+	if _, err := service.ListCommissionCandidates(biz.WithPrincipal(context.Background(), readOnly), &v1.ListCommissionCandidatesRequest{
+		OrganizationId: allowed.String(), VerificationId: &verificationID, Page: 1, PageSize: 20,
+	}); !errors.Is(err, biz.ErrPermissionDenied) {
 		t.Fatalf("只读权限错误 = %v，期望 %v", err, biz.ErrPermissionDenied)
 	}
 }

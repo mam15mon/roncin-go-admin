@@ -79,11 +79,13 @@ const (
 	SettlementService_ExportCommissions_FullMethodName                         = "/finance.v1.SettlementService/ExportCommissions"
 	SettlementService_ListCommissionEmployees_FullMethodName                   = "/finance.v1.SettlementService/ListCommissionEmployees"
 	SettlementService_ListCommissionCandidates_FullMethodName                  = "/finance.v1.SettlementService/ListCommissionCandidates"
-	SettlementService_ListCommissionRuleCandidates_FullMethodName              = "/finance.v1.SettlementService/ListCommissionRuleCandidates"
 	SettlementService_GetCommission_FullMethodName                             = "/finance.v1.SettlementService/GetCommission"
 	SettlementService_ListCommissionRules_FullMethodName                       = "/finance.v1.SettlementService/ListCommissionRules"
 	SettlementService_CreateCommissionRule_FullMethodName                      = "/finance.v1.SettlementService/CreateCommissionRule"
 	SettlementService_UpdateCommissionRule_FullMethodName                      = "/finance.v1.SettlementService/UpdateCommissionRule"
+	SettlementService_AssignCommissionRuleEmployees_FullMethodName             = "/finance.v1.SettlementService/AssignCommissionRuleEmployees"
+	SettlementService_RemoveCommissionRuleEmployees_FullMethodName             = "/finance.v1.SettlementService/RemoveCommissionRuleEmployees"
+	SettlementService_CopyCommissionRule_FullMethodName                        = "/finance.v1.SettlementService/CopyCommissionRule"
 	SettlementService_PreviewCommission_FullMethodName                         = "/finance.v1.SettlementService/PreviewCommission"
 	SettlementService_CreateCommission_FullMethodName                          = "/finance.v1.SettlementService/CreateCommission"
 	SettlementService_ConfirmCommission_FullMethodName                         = "/finance.v1.SettlementService/ConfirmCommission"
@@ -174,13 +176,22 @@ type SettlementServiceClient interface {
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	ExportCommissions(ctx context.Context, in *ExportCommissionsRequest, opts ...grpc.CallOption) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
+	// ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
 	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidatesResponse, error)
-	// ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-	ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionRuleCandidatesResponse, error)
 	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error)
 	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CreateCommissionRuleResponse, error)
 	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*UpdateCommissionRuleResponse, error)
+	// AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
+	AssignCommissionRuleEmployees(ctx context.Context, in *AssignCommissionRuleEmployeesRequest, opts ...grpc.CallOption) (*AssignCommissionRuleEmployeesResponse, error)
+	RemoveCommissionRuleEmployees(ctx context.Context, in *RemoveCommissionRuleEmployeesRequest, opts ...grpc.CallOption) (*RemoveCommissionRuleEmployeesResponse, error)
+	// CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+	// 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+	CopyCommissionRule(ctx context.Context, in *CopyCommissionRuleRequest, opts ...grpc.CallOption) (*CopyCommissionRuleResponse, error)
 	PreviewCommission(ctx context.Context, in *PreviewCommissionRequest, opts ...grpc.CallOption) (*PreviewCommissionResponse, error)
 	CreateCommission(ctx context.Context, in *CreateCommissionRequest, opts ...grpc.CallOption) (*CreateCommissionResponse, error)
 	ConfirmCommission(ctx context.Context, in *ConfirmCommissionRequest, opts ...grpc.CallOption) (*ConfirmCommissionResponse, error)
@@ -808,16 +819,6 @@ func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, 
 	return out, nil
 }
 
-func (c *settlementServiceClient) ListCommissionRuleCandidates(ctx context.Context, in *ListCommissionRuleCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionRuleCandidatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCommissionRuleCandidatesResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListCommissionRuleCandidates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *settlementServiceClient) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetCommissionResponse)
@@ -852,6 +853,36 @@ func (c *settlementServiceClient) UpdateCommissionRule(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateCommissionRuleResponse)
 	err := c.cc.Invoke(ctx, SettlementService_UpdateCommissionRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) AssignCommissionRuleEmployees(ctx context.Context, in *AssignCommissionRuleEmployeesRequest, opts ...grpc.CallOption) (*AssignCommissionRuleEmployeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignCommissionRuleEmployeesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_AssignCommissionRuleEmployees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) RemoveCommissionRuleEmployees(ctx context.Context, in *RemoveCommissionRuleEmployeesRequest, opts ...grpc.CallOption) (*RemoveCommissionRuleEmployeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveCommissionRuleEmployeesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_RemoveCommissionRuleEmployees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CopyCommissionRule(ctx context.Context, in *CopyCommissionRuleRequest, opts ...grpc.CallOption) (*CopyCommissionRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CopyCommissionRuleResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CopyCommissionRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1045,13 +1076,22 @@ type SettlementServiceServer interface {
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
+	// ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
-	// ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。
-	ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
+	// AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
+	AssignCommissionRuleEmployees(context.Context, *AssignCommissionRuleEmployeesRequest) (*AssignCommissionRuleEmployeesResponse, error)
+	RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error)
+	// CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+	// 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
+	CopyCommissionRule(context.Context, *CopyCommissionRuleRequest) (*CopyCommissionRuleResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error)
 	ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error)
@@ -1259,9 +1299,6 @@ func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Cont
 func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
 }
-func (UnimplementedSettlementServiceServer) ListCommissionRuleCandidates(context.Context, *ListCommissionRuleCandidatesRequest) (*ListCommissionRuleCandidatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListCommissionRuleCandidates not implemented")
-}
 func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCommission not implemented")
 }
@@ -1273,6 +1310,15 @@ func (UnimplementedSettlementServiceServer) CreateCommissionRule(context.Context
 }
 func (UnimplementedSettlementServiceServer) UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateCommissionRule not implemented")
+}
+func (UnimplementedSettlementServiceServer) AssignCommissionRuleEmployees(context.Context, *AssignCommissionRuleEmployeesRequest) (*AssignCommissionRuleEmployeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignCommissionRuleEmployees not implemented")
+}
+func (UnimplementedSettlementServiceServer) RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveCommissionRuleEmployees not implemented")
+}
+func (UnimplementedSettlementServiceServer) CopyCommissionRule(context.Context, *CopyCommissionRuleRequest) (*CopyCommissionRuleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CopyCommissionRule not implemented")
 }
 func (UnimplementedSettlementServiceServer) PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PreviewCommission not implemented")
@@ -2408,24 +2454,6 @@ func _SettlementService_ListCommissionCandidates_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SettlementService_ListCommissionRuleCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCommissionRuleCandidatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListCommissionRuleCandidates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListCommissionRuleCandidates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListCommissionRuleCandidates(ctx, req.(*ListCommissionRuleCandidatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _SettlementService_GetCommission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCommissionRequest)
 	if err := dec(in); err != nil {
@@ -2494,6 +2522,60 @@ func _SettlementService_UpdateCommissionRule_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).UpdateCommissionRule(ctx, req.(*UpdateCommissionRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_AssignCommissionRuleEmployees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignCommissionRuleEmployeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).AssignCommissionRuleEmployees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_AssignCommissionRuleEmployees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).AssignCommissionRuleEmployees(ctx, req.(*AssignCommissionRuleEmployeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_RemoveCommissionRuleEmployees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveCommissionRuleEmployeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).RemoveCommissionRuleEmployees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_RemoveCommissionRuleEmployees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).RemoveCommissionRuleEmployees(ctx, req.(*RemoveCommissionRuleEmployeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CopyCommissionRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CopyCommissionRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CopyCommissionRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CopyCommissionRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CopyCommissionRule(ctx, req.(*CopyCommissionRuleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2944,10 +3026,6 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ListCommissionCandidates_Handler,
 		},
 		{
-			MethodName: "ListCommissionRuleCandidates",
-			Handler:    _SettlementService_ListCommissionRuleCandidates_Handler,
-		},
-		{
 			MethodName: "GetCommission",
 			Handler:    _SettlementService_GetCommission_Handler,
 		},
@@ -2962,6 +3040,18 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateCommissionRule",
 			Handler:    _SettlementService_UpdateCommissionRule_Handler,
+		},
+		{
+			MethodName: "AssignCommissionRuleEmployees",
+			Handler:    _SettlementService_AssignCommissionRuleEmployees_Handler,
+		},
+		{
+			MethodName: "RemoveCommissionRuleEmployees",
+			Handler:    _SettlementService_RemoveCommissionRuleEmployees_Handler,
+		},
+		{
+			MethodName: "CopyCommissionRule",
+			Handler:    _SettlementService_CopyCommissionRule_Handler,
 		},
 		{
 			MethodName: "PreviewCommission",

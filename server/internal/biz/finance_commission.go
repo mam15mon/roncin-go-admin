@@ -49,6 +49,10 @@ var (
 	ErrCommissionRuleLockedParams            = errors.Conflict("FINANCE_COMMISSION_RULE_LOCKED_PARAMS", "方案已生效，人员身份、计提口径、比例和起始日不可原地修改，也不能停用，请复制为新方案")
 	ErrCommissionRuleLegacyReadOnly          = errors.Conflict("FINANCE_COMMISSION_RULE_LEGACY_READ_ONLY", "迁移前的历史旧规则为只读，请复制为新方案后再使用")
 	ErrCommissionRuleMemberAssignmentBlocked = errors.Conflict("FINANCE_COMMISSION_RULE_MEMBER_ASSIGNMENT", "员工仍有当前或未来的提成方案分配，请先终止分配后再停用成员")
+	// ErrCommissionRuleNotResolved 计提自动解析失败：来源归属日期未唯一命中
+	// 「已启用方案 ∩ 该员工未取消有效分配」，或员工身份与订单提成归属不匹配。
+	// 财务不能把未分配给员工的方案套用到该员工，也不能用不匹配的身份绕过方案。
+	ErrCommissionRuleNotResolved = errors.Conflict("FINANCE_COMMISSION_RULE_NOT_RESOLVED", "来源归属日期未唯一命中该员工该身份的有效提成方案与员工分配")
 )
 
 type CommissionStatus string
@@ -326,10 +330,14 @@ func PlanCommissionReversal(status CommissionStatus, baseAmount decimal.Decimal,
 	return plan, nil
 }
 
+// CommissionCandidateFilter 按来源单（核销/对冲二选一）发现计提候选：服务端
+// 从来源订单提成归属中发现「员工 + 人员身份」组合，再按来源归属日期解析唯一
+// 有效方案与员工分配；任一条件不满足的组合不产生候选。
 type CommissionCandidateFilter struct {
-	Page, PageSize         int
-	Keyword                string
-	VerificationID, RuleID uuid.UUID
+	Page, PageSize int
+	Keyword        string
+	VerificationID uuid.UUID
+	NettingID      uuid.UUID
 }
 type CommissionCandidateListResult struct {
 	Items          []*CommissionCalculation
@@ -349,8 +357,10 @@ type CommissionNettingCandidateListResult struct {
 // FinanceCommissionRuleAssignment 是方案与员工之间保留审计的有效期分配段：
 // 起始日必填且创建后不可变，终止日为空表示尚未终止；未生效分配以 CancelledAt
 // 撤销，已生效分配以 EffectiveTo 终止并记录 TerminatedAt，不物理删除。
+// EmployeeName 是名单投影用的员工展示名（用户不可考时为空）。
 type FinanceCommissionRuleAssignment struct {
 	ID, OrganizationID, RuleID, EmployeeID uuid.UUID
+	EmployeeName                           string
 	EffectiveFrom                          string
 	EffectiveTo                            *string
 	CancelledAt, TerminatedAt              *time.Time
@@ -436,10 +446,13 @@ type CopyCommissionRuleInput struct {
 }
 
 // CreateCommissionInput 的来源二选一：VerificationID 与 NettingID 恰好一个非空。
+// 不再接受客户端指定规则：PersonnelRole 与员工一起由服务端按来源归属日期解析
+// 唯一有效方案与员工分配，实际命中的规则快照写入提成单。
 type CreateCommissionInput struct {
-	VerificationID, NettingID, EmployeeID, RuleID uuid.UUID
-	Note                                          *string
-	IdempotencyKey                                string
+	VerificationID, NettingID, EmployeeID uuid.UUID
+	PersonnelRole                         CommissionPersonnelRole
+	Note                                  *string
+	IdempotencyKey                        string
 }
 
 type CreateCommissionAdjustmentInput struct {
@@ -538,7 +551,8 @@ type CommissionRepo interface {
 	ListEmployeesScoped(context.Context, []uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
 	ListNettingCandidates(context.Context, uuid.UUID, CommissionNettingCandidateFilter) (*CommissionNettingCandidateListResult, error)
-	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
+	// Preview 按来源二选一与「员工 + 人员身份」自动解析唯一有效方案后预览提成。
+	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, CommissionPersonnelRole) (*CommissionCalculation, error)
 	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	ListRulesScoped(context.Context, []uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
@@ -584,7 +598,7 @@ func (u *CommissionUsecase) ListEmployeesScoped(ctx context.Context, organizatio
 }
 func (u *CommissionUsecase) ListCandidates(ctx context.Context, org uuid.UUID, f CommissionCandidateFilter) (*CommissionCandidateListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || f.VerificationID == uuid.Nil || f.RuleID == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 {
+	if org == uuid.Nil || !validCommissionSource(f.VerificationID, f.NettingID) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 {
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.ListCandidates(ctx, org, f)
@@ -747,12 +761,13 @@ func (u *CommissionUsecase) GetMyFeeSupplementAdjustmentSource(ctx context.Conte
 	return u.repo.GetMyFeeSupplementAdjustmentSource(ctx, caller.UserID, id)
 }
 
-// Preview 按核销或对冲来源二选一预览提成计算，并按生成日固化 CNY 快照（原币记账口径）。
-func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, nettingID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
-	if org == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil || !validCommissionSource(verificationID, nettingID) {
+// Preview 按核销或对冲来源二选一预览提成：服务端按来源归属日期、员工与人员
+// 身份自动解析唯一有效方案与员工分配，并按生成日固化 CNY 快照（原币记账口径）。
+func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, nettingID, employeeID uuid.UUID, personnelRole CommissionPersonnelRole) (*CommissionCalculation, error) {
+	if org == uuid.Nil || employeeID == uuid.Nil || !validCommissionPersonnelRole(personnelRole) || !validCommissionSource(verificationID, nettingID) {
 		return nil, ErrCommissionInvalid
 	}
-	calculation, err := u.repo.Preview(ctx, org, verificationID, nettingID, employeeID, ruleID)
+	calculation, err := u.repo.Preview(ctx, org, verificationID, nettingID, employeeID, personnelRole)
 	if err != nil {
 		return nil, err
 	}
@@ -1062,15 +1077,16 @@ func CalculateCommissionLine(realizedRevenue, totalReceivable, totalPayable, rat
 }
 
 // sameCommissionCreateIntent 判断幂等重放请求与已存在提成是否语义一致：
-// 来源（核销/对冲二选一）、员工、规则与备注都必须相同。
+// 来源（核销/对冲二选一）、员工、人员身份与备注都必须相同；规则由服务端按
+// 来源日期解析，不属于客户端意图的一部分。
 func sameCommissionCreateIntent(old *FinanceCommission, in CreateCommissionInput) bool {
-	return old.VerificationID == in.VerificationID && old.NettingID == in.NettingID && old.EmployeeID == in.EmployeeID && old.RuleID == in.RuleID && stringPointersEqual(old.Note, in.Note)
+	return old.VerificationID == in.VerificationID && old.NettingID == in.NettingID && old.EmployeeID == in.EmployeeID && old.PersonnelRole == in.PersonnelRole && stringPointersEqual(old.Note, in.Note)
 }
 
 func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateCommissionInput) (*FinanceCommission, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
-	if org == uuid.Nil || actor == uuid.Nil || !validCommissionSource(in.VerificationID, in.NettingID) || in.EmployeeID == uuid.Nil || in.RuleID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
+	if org == uuid.Nil || actor == uuid.Nil || !validCommissionSource(in.VerificationID, in.NettingID) || in.EmployeeID == uuid.Nil || !validCommissionPersonnelRole(in.PersonnelRole) || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return nil, ErrCommissionInvalid
 	}
 	if u.transactor == nil {
@@ -1089,7 +1105,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, NettingID: in.NettingID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
+	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, NettingID: in.NettingID, EmployeeID: in.EmployeeID, PersonnelRole: in.PersonnelRole, Status: CommissionDraft, Note: in.Note, Version: 1}
 	// 生成上下文读取与提成写入在同一共享事务内完成；CNY 快照不依赖预览结果，
 	// 按事务内固化（原币记账恒等口径，无需再解析外部汇率）。
 	err = u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {

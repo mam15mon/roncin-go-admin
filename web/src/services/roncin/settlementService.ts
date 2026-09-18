@@ -527,6 +527,75 @@ export async function settlementServiceUpdateCommissionRule(
   );
 }
 
+/** CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
+ 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。 POST /api/v1/finance/commission-rules/${param0}/copy */
+export async function settlementServiceCopyCommissionRule(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceCopyCommissionRuleParams,
+  body: API.CopyCommissionRuleRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CopyCommissionRuleResponse>(
+    `/api/v1/finance/commission-rules/${param0}/copy`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
+ 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
+ 不物理删除历史分配。按 commission.manage 可写组织过滤。 POST /api/v1/finance/commission-rules/${param0}/employees/assign */
+export async function settlementServiceAssignCommissionRuleEmployees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceAssignCommissionRuleEmployeesParams,
+  body: API.AssignCommissionRuleEmployeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.AssignCommissionRuleEmployeesResponse>(
+    `/api/v1/finance/commission-rules/${param0}/employees/assign`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/commission-rules/${param0}/employees/remove */
+export async function settlementServiceRemoveCommissionRuleEmployees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceRemoveCommissionRuleEmployeesParams,
+  body: API.RemoveCommissionRuleEmployeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RemoveCommissionRuleEmployeesResponse>(
+    `/api/v1/finance/commission-rules/${param0}/employees/remove`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/commissions */
 export async function settlementServiceListCommissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -662,7 +731,9 @@ export async function settlementServiceMarkCommissionPaid(
   );
 }
 
-/** 此处后端没有提供注释 GET /api/v1/finance/commissions/candidates */
+/** ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
+ 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
+ 不再接受客户端指定规则。按 commission.manage 可写组织过滤。 GET /api/v1/finance/commissions/candidates */
 export async function settlementServiceListCommissionCandidates(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SettlementServiceListCommissionCandidatesParams,
@@ -747,24 +818,6 @@ export async function settlementServicePreviewCommission(
         "Content-Type": "application/json",
       },
       data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** ListCommissionRuleCandidates 仅为生成提成提供已启用规则，按 commission.manage 可写组织过滤。 GET /api/v1/finance/commissions/rule-candidates */
-export async function settlementServiceListCommissionRuleCandidates(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SettlementServiceListCommissionRuleCandidatesParams,
-  options?: { [key: string]: any }
-) {
-  return request<API.ListCommissionRuleCandidatesResponse>(
-    "/api/v1/finance/commissions/rule-candidates",
-    {
-      method: "GET",
-      params: {
-        ...params,
-      },
       ...(options || {}),
     }
   );
