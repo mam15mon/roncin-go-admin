@@ -12,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/shopspring/decimal"
 )
 
@@ -503,6 +504,68 @@ type MyFeeSupplementAdjustmentSource struct {
 	SupplementReason      string
 }
 
+// OrderCommissionSummaryVisibility 标识订单提成摘要的可见模式：EMPLOYEE 仅含
+// 本人提成事实（SQL 层固定 employee_id = 调用者），ORGANIZATION 为组织级全员
+// 状态与汇总。判定真相源是目标组织的 system.finance.commission.read 权限范围，
+// 用户角色或管理员身份本身不替代该权限。
+type OrderCommissionSummaryVisibility string
+
+const (
+	OrderCommissionVisibilityEmployee     OrderCommissionSummaryVisibility = "EMPLOYEE"
+	OrderCommissionVisibilityOrganization OrderCommissionSummaryVisibility = "ORGANIZATION"
+)
+
+// OrderCommissionSummaryTarget 是订单页内一个需要附加提成摘要的订单；订单必须
+// 已通过订单读取授权，由调用方（订单列表服务）传入。
+type OrderCommissionSummaryTarget struct {
+	OrderID        uuid.UUID
+	OrganizationID uuid.UUID
+}
+
+// OrderCommissionSummaryScope 描述同一组织、同一可见模式下一组订单的批量聚合
+// 范围。EMPLOYEE 模式的 EmployeeID 必填：隐私裁剪发生在 SQL 查询条件内，禁止
+// 先聚合全员再在内存或前端裁剪。
+type OrderCommissionSummaryScope struct {
+	OrganizationID uuid.UUID
+	Visibility     OrderCommissionSummaryVisibility
+	OrderIDs       []uuid.UUID
+	EmployeeID     uuid.UUID
+}
+
+// OrderCommissionSummary 是订单列表提成摘要的领域投影：可并存事实集合，允许
+// 同票多员工、多来源、分期回款与不同状态同时存在，不构造整票互斥状态。
+// 金额是当前可见范围内的汇总（订单组织本位币），取消记录不参与有效汇总；
+// Paid 只表示对应提成单已发，PendingDecrease 只表示 DRAFT 冲减建议尚未处理，
+// 预计机会是尚未生成有效基础提成单的估算来源数量，均不做应发承诺。
+type OrderCommissionSummary struct {
+	Visibility   OrderCommissionSummaryVisibility
+	BaseCurrency string
+
+	HasExpectedOpportunity   bool
+	ExpectedOpportunityCount int
+
+	HasDraftCommission    bool
+	DraftCommissionCount  int
+	DraftCommissionAmount decimal.Decimal
+
+	HasConfirmedCommission    bool
+	ConfirmedCommissionCount  int
+	ConfirmedCommissionAmount decimal.Decimal
+
+	HasPaidCommission    bool
+	PaidCommissionCount  int
+	PaidCommissionAmount decimal.Decimal
+
+	HasPendingDecrease    bool
+	PendingDecreaseCount  int
+	PendingDecreaseAmount decimal.Decimal
+}
+
+// newEmptyOrderCommissionSummary 返回指定可见模式的本人/全员空态摘要。
+func newEmptyOrderCommissionSummary(visibility OrderCommissionSummaryVisibility) *OrderCommissionSummary {
+	return &OrderCommissionSummary{Visibility: visibility}
+}
+
 // validCommissionAdjustmentSourceType 判断来源类型取值是否已登记。
 func validCommissionAdjustmentSourceType(source CommissionAdjustmentSourceType) bool {
 	switch source {
@@ -581,6 +644,10 @@ type CommissionRepo interface {
 	// 同时限定调整 ID、employee_id = 当前用户、LOCKED_FEE_SUPPLEMENT 来源和组织
 	// 成员关系；任一不满足时按不存在处理，不泄露记录事实。
 	GetMyFeeSupplementAdjustmentSource(context.Context, uuid.UUID, uuid.UUID) (*MyFeeSupplementAdjustmentSource, error)
+	// ListOrderSummaries 按组织与可见模式分组的批量聚合查询：一次处理整页订单
+	// ID，不逐行查询。EMPLOYEE 作用域必须在 SQL 条件内固定 employee_id，普通
+	// 员工响应不得包含他人数量、姓名、状态、金额或整票是否有提成等旁路字段。
+	ListOrderSummaries(context.Context, []OrderCommissionSummaryScope) (map[uuid.UUID]*OrderCommissionSummary, error)
 	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
 	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }
@@ -759,6 +826,68 @@ func (u *CommissionUsecase) GetMyFeeSupplementAdjustmentSource(ctx context.Conte
 		return nil, ErrCommissionAdjustmentNotFound
 	}
 	return u.repo.GetMyFeeSupplementAdjustmentSource(ctx, caller.UserID, id)
+}
+
+// BuildOrderListSummaries 为已授权订单页批量构建提成摘要：对每个订单组织单独
+// 判定调用者是否持有该组织 system.finance.commission.read，持有则组织级全员
+// 状态与汇总，否则 SQL 层固定 employee_id = 调用者。可见模式只在 SQL 条件中
+// 生效，不先聚合全员再裁剪；对越权组织返回本人视图（一致的空态语义），不泄露
+// 他人记录存在性。返回映射覆盖全部去重后的目标订单，本人/全员无记录时为空态。
+func (u *CommissionUsecase) BuildOrderListSummaries(ctx context.Context, caller *Principal, targets []OrderCommissionSummaryTarget) (map[uuid.UUID]*OrderCommissionSummary, error) {
+	if caller == nil || caller.UserID == uuid.Nil || len(targets) == 0 || len(targets) > MaxListPageSize {
+		return nil, ErrCommissionInvalid
+	}
+	// 去重目标订单；同一订单只聚合一次，重复目标共享同一份摘要。
+	deduped := make(map[uuid.UUID]uuid.UUID, len(targets))
+	orderIDsByOrganization := make(map[uuid.UUID][]uuid.UUID)
+	organizations := make([]uuid.UUID, 0, 2)
+	for _, target := range targets {
+		if target.OrderID == uuid.Nil || target.OrganizationID == uuid.Nil {
+			return nil, ErrCommissionInvalid
+		}
+		if _, exists := deduped[target.OrderID]; exists {
+			continue
+		}
+		deduped[target.OrderID] = target.OrganizationID
+		existing, seen := orderIDsByOrganization[target.OrganizationID]
+		if !seen {
+			organizations = append(organizations, target.OrganizationID)
+		}
+		orderIDsByOrganization[target.OrganizationID] = append(existing, target.OrderID)
+	}
+	// 逐组织判定可见模式：同一主体在不同组织权限可以不同，切换组织后重新判定。
+	scopes := make([]OrderCommissionSummaryScope, 0, len(organizations))
+	visibilityByOrganization := make(map[uuid.UUID]OrderCommissionSummaryVisibility, len(organizations))
+	for _, organizationID := range organizations {
+		visibility := OrderCommissionVisibilityEmployee
+		if caller.CanAccessOrganizationForPermission(access.FinanceCommissionRead, organizationID, false) {
+			visibility = OrderCommissionVisibilityOrganization
+		}
+		visibilityByOrganization[organizationID] = visibility
+		scope := OrderCommissionSummaryScope{OrganizationID: organizationID, Visibility: visibility, OrderIDs: orderIDsByOrganization[organizationID]}
+		if visibility == OrderCommissionVisibilityEmployee {
+			scope.EmployeeID = caller.UserID
+		}
+		scopes = append(scopes, scope)
+	}
+	summaries, err := u.repo.ListOrderSummaries(ctx, scopes)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[uuid.UUID]*OrderCommissionSummary, len(deduped))
+	for orderID, organizationID := range deduped {
+		summary, exists := summaries[orderID]
+		if !exists || summary == nil {
+			// 本人/全员无记录：返回一致的空态，而不是缺失，避免调用方把缺失
+			// 解释为不可见事实。
+			summary = newEmptyOrderCommissionSummary(visibilityByOrganization[organizationID])
+		}
+		if summary.Visibility != visibilityByOrganization[organizationID] {
+			return nil, ErrCommissionInvalid
+		}
+		result[orderID] = summary
+	}
+	return result, nil
 }
 
 // Preview 按核销或对冲来源二选一预览提成：服务端按来源归属日期、员工与人员

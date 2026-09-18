@@ -220,6 +220,44 @@ enum OrderAllowedAction {
   ORDER_ALLOWED_ACTION_REOPEN = 7;
 }
 
+// OrderCommissionVisibilityMode 订单提成摘要可见模式。服务端按订单所属组织
+// 逐个判定调用者是否持有 system.finance.commission.read：持有返回组织级
+// 全员汇总，否则 SQL 层固定本人，返回仅本人视图。
+enum OrderCommissionVisibilityMode {
+  ORDER_COMMISSION_VISIBILITY_MODE_UNSPECIFIED = 0;
+  ORDER_COMMISSION_VISIBILITY_MODE_EMPLOYEE = 1;
+  ORDER_COMMISSION_VISIBILITY_MODE_ORGANIZATION = 2;
+}
+
+// OrderCommissionSummary 订单列表可选提成摘要：仅 ListOrders 的海运出口结果
+// 按需填充，订单详情不自动附加。摘要以可并存事实集合表达当前用户可见范围内
+// 的提成状态，不构造整票互斥状态；普通员工视图仅含本人提成事实，不含他人
+// 数量、姓名、状态、金额或「整票是否有提成」等旁路信息，本人无记录时所有
+// 事实均为 false 的本人空态。
+// 金额为订单组织本位币口径（不同币种不合并），取消记录不参与有效汇总；
+// PAID 仅表示对应提成单已发放，不宣称整票全部结清；待处理冲减是 DRAFT
+// 冲减建议，不代表已实际扣回；预计可计提来源是尚未生成有效基础提成单的
+// 估算机会，非应发承诺。
+message OrderCommissionSummary {
+  OrderCommissionVisibilityMode visibility_mode = 1;
+  // base_currency 金额口径币种（订单组织本位币）；无金额事实时为空。
+  string base_currency = 2;
+  bool has_expected_opportunity = 3;
+  int32 expected_opportunity_count = 4;
+  bool has_draft_commission = 5;
+  int32 draft_commission_count = 6;
+  optional string draft_commission_amount = 7;
+  bool has_confirmed_commission = 8;
+  int32 confirmed_commission_count = 9;
+  optional string confirmed_commission_amount = 10;
+  bool has_paid_commission = 11;
+  int32 paid_commission_count = 12;
+  optional string paid_commission_amount = 13;
+  bool has_pending_decrease = 14;
+  int32 pending_decrease_count = 15;
+  optional string pending_decrease_amount = 16;
+}
+
 // Order 订单核心信息。
 // BusinessTagSummary 订单返回的组织标签概要。
 message BusinessTagSummary {
@@ -319,6 +357,9 @@ message Order {
   optional uint64 sea_document_link_version = 83;
   optional SeaOrderDocumentSummary sea_document_summary = 84;
   optional string booking_no = 85;
+  // commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
+  // 可见范围批量附加；普通员工视图不含他人提成事实。
+  optional OrderCommissionSummary commission_summary = 86;
 }
 
 message OrderCargoMeasurement {

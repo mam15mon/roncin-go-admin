@@ -3292,6 +3292,28 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetWorkbenchOverviewData = {
+    hasCommissionEligibility: boolean;
+    /** next_effective_date 是本人最近的未来实际生效日（YYYY-MM-DD）：存在当前/未来
+ 有效方案分配且尚未到生效日时返回，供页面说明「方案尚未生效」，不把未生效
+ 解释为零金额。 */
+    nextEffectiveDate?: string;
+    /** base_currency 是当前工作区组织本位币；summary 中全部金额均为该本位币口径。 */
+    baseCurrency?: string;
+    commissionSummary?: WorkbenchCommissionSummary;
+    recentOrders?: WorkbenchRecentOrder[];
+    todos?: WorkbenchTodoSummary;
+    finance?: WorkbenchFinanceSummary;
+  };
+
+  type GetWorkbenchOverviewResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    data?: GetWorkbenchOverviewData;
+  };
+
   type ImportItemsRequest = {
     kind: number;
     source: string;
@@ -3755,6 +3777,39 @@ declare namespace API {
     message?: string;
     data?: OrderMilestone[];
     traceId?: string;
+  };
+
+  type ListMyCommissionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchMyCommission[];
+  };
+
+  type ListMyReceivablesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchMyReceivable[];
+  };
+
+  type ListMyRecentOrdersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchRecentOrder[];
   };
 
   type ListNettingsResponse = {
@@ -4469,6 +4524,9 @@ declare namespace API {
     seaDocumentLinkVersion?: string;
     seaDocumentSummary?: SeaOrderDocumentSummary;
     bookingNo?: string;
+    /** commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
+ 可见范围批量附加；普通员工视图不含他人提成事实。 */
+    commissionSummary?: OrderCommissionSummary;
   };
 
   type OrderAbnormalCase = {
@@ -4568,6 +4626,26 @@ declare namespace API {
     packages?: number;
     grossWeightKg?: number;
     volumeCbm?: number;
+  };
+
+  type OrderCommissionSummary = {
+    visibilityMode?: number;
+    /** base_currency 金额口径币种（订单组织本位币）；无金额事实时为空。 */
+    baseCurrency?: string;
+    hasExpectedOpportunity?: boolean;
+    expectedOpportunityCount?: number;
+    hasDraftCommission?: boolean;
+    draftCommissionCount?: number;
+    draftCommissionAmount?: string;
+    hasConfirmedCommission?: boolean;
+    confirmedCommissionCount?: number;
+    confirmedCommissionAmount?: string;
+    hasPaidCommission?: boolean;
+    paidCommissionCount?: number;
+    paidCommissionAmount?: string;
+    hasPendingDecrease?: boolean;
+    pendingDecreaseCount?: number;
+    pendingDecreaseAmount?: string;
   };
 
   type OrderConsolidationMember = {
@@ -8472,5 +8550,131 @@ declare namespace API {
     message?: string;
     data?: SeaSharedContainer;
     traceId?: string;
+  };
+
+  type WorkbenchCommissionSummary = {
+    baseCurrency?: string;
+    draftCount?: number;
+    draftAmount?: string;
+    confirmedCount?: number;
+    confirmedAmount?: string;
+    paidCount?: number;
+    paidAmount?: string;
+    paidAmountThisYear?: string;
+    paidAmountThisMonth?: string;
+    decreaseDraftCount?: number;
+    decreaseDraftAmount?: string;
+    decreaseConfirmedCount?: number;
+    decreaseConfirmedAmount?: string;
+    decreasePaidCount?: number;
+    decreasePaidAmount?: string;
+    estimated?: WorkbenchEstimatedOpportunity;
+  };
+
+  type WorkbenchEstimatedOpportunity = {
+    opportunityCount?: number;
+    estimatedAmount?: string;
+    hasMore?: boolean;
+  };
+
+  type WorkbenchFinanceSummary = {
+    canReadCommission?: boolean;
+    canManageCommission?: boolean;
+    /** confirmed_commission_count 是当前组织已确认待发提成数量（组织范围）。 */
+    confirmedCommissionCount?: number;
+    /** pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT
+ 冲减建议数量（待处理、尚未扣回）。 */
+    pendingDecreaseCount?: number;
+    pendingSupplementApprovalCount?: number;
+    pendingSupplementApprovals?: WorkbenchSupplementApprovalItem[];
+    /** supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
+ 上限，计数仅为已扫描部分的下界。 */
+    supplementApprovalsTruncated?: boolean;
+  };
+
+  type WorkbenchMyCommission = {
+    id?: string;
+    commissionNo?: string;
+    status?: number;
+    personnelRole?: string;
+    ruleName?: string;
+    calculationBasis?: string;
+    baseCurrency?: string;
+    commissionAmount?: string;
+    commissionDate?: string;
+    verificationNo?: string;
+    nettingNo?: string;
+    createdAt?: string;
+    adjustments?: WorkbenchMyCommissionAdjustment[];
+  };
+
+  type WorkbenchMyCommissionAdjustment = {
+    id?: string;
+    adjustmentNo?: string;
+    direction?: string;
+    status?: number;
+    amount?: string;
+    reason?: string;
+    createdAt?: string;
+  };
+
+  type WorkbenchMyReceivable = {
+    billId?: string;
+    billNo?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    totalAmount?: string;
+    unverifiedAmount?: string;
+    billDate?: string;
+    dueDate?: string;
+    overdueDays?: number;
+    confirmedAt?: string;
+  };
+
+  type WorkbenchRecentOrder = {
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    customerName?: string;
+    flowStatus?: string;
+    terminationStatus?: string;
+    orderDate?: string;
+    createdAt?: string;
+  };
+
+  type WorkbenchServiceListMyCommissionsParams = {
+    page?: number;
+    pageSize?: number;
+    status?: number;
+    commissionDateFrom?: string;
+    commissionDateTo?: string;
+  };
+
+  type WorkbenchServiceListMyReceivablesParams = {
+    page?: number;
+    pageSize?: number;
+  };
+
+  type WorkbenchServiceListMyRecentOrdersParams = {
+    page?: number;
+    pageSize?: number;
+  };
+
+  type WorkbenchSupplementApprovalItem = {
+    requestId?: string;
+    orderId?: string;
+    orderNo?: string;
+    feeCode?: string;
+    feeName?: string;
+    currency?: string;
+    amount?: string;
+    reason?: string;
+    requestedByName?: string;
+    requestedAt?: string;
+  };
+
+  type WorkbenchTodoSummary = {
+    draftFeeCount?: number;
+    openAbnormalCount?: number;
   };
 }

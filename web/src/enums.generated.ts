@@ -465,6 +465,14 @@ export const OrderAllowedAction = {
 
 export type OrderAllowedAction = (typeof OrderAllowedAction)[keyof typeof OrderAllowedAction];
 
+export const OrderCommissionVisibilityMode = {
+  ORDER_COMMISSION_VISIBILITY_MODE_UNSPECIFIED: 0,
+  ORDER_COMMISSION_VISIBILITY_MODE_EMPLOYEE: 1,
+  ORDER_COMMISSION_VISIBILITY_MODE_ORGANIZATION: 2,
+} as const;
+
+export type OrderCommissionVisibilityMode = (typeof OrderCommissionVisibilityMode)[keyof typeof OrderCommissionVisibilityMode];
+
 export const OrderAbnormalCaseStatus = {
   ORDER_ABNORMAL_CASE_STATUS_UNSPECIFIED: 0,
   ORDER_ABNORMAL_CASE_STATUS_ACTIVE: 1,
@@ -736,3 +744,13 @@ export const BackgroundTaskPhase = {
 } as const;
 
 export type BackgroundTaskPhase = (typeof BackgroundTaskPhase)[keyof typeof BackgroundTaskPhase];
+
+export const WorkbenchCommissionStatus = {
+  WORKBENCH_COMMISSION_STATUS_UNSPECIFIED: 0,
+  WORKBENCH_COMMISSION_STATUS_DRAFT: 1,
+  WORKBENCH_COMMISSION_STATUS_CONFIRMED: 2,
+  WORKBENCH_COMMISSION_STATUS_PAID: 3,
+  WORKBENCH_COMMISSION_STATUS_CANCELLED: 4,
+} as const;
+
+export type WorkbenchCommissionStatus = (typeof WorkbenchCommissionStatus)[keyof typeof WorkbenchCommissionStatus];

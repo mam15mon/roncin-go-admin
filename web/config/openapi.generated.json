@@ -12852,6 +12852,166 @@
           }
         }
       }
+    },
+    "/api/v1/workbench/my-commissions": {
+      "get": {
+        "tags": [
+          "WorkbenchService"
+        ],
+        "description": "ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。",
+        "operationId": "WorkbenchService_ListMyCommissions",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "commissionDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commissionDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/workbench.v1.ListMyCommissionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbench/my-receivables": {
+      "get": {
+        "tags": [
+          "WorkbenchService"
+        ],
+        "description": "ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。",
+        "operationId": "WorkbenchService_ListMyReceivables",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/workbench.v1.ListMyReceivablesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbench/my-recent-orders": {
+      "get": {
+        "tags": [
+          "WorkbenchService"
+        ],
+        "description": "ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。",
+        "operationId": "WorkbenchService_ListMyRecentOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/workbench.v1.ListMyRecentOrdersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbench/overview": {
+      "get": {
+        "tags": [
+          "WorkbenchService"
+        ],
+        "description": "GetWorkbenchOverview 返回模块门禁、本人提成状态汇总、近期订单、可靠作业\n 待办计数与当前用户有权查看的财务/审批摘要。",
+        "operationId": "WorkbenchService_GetWorkbenchOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/workbench.v1.GetWorkbenchOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26917,6 +27077,14 @@
           },
           "bookingNo": {
             "type": "string"
+          },
+          "commissionSummary": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.v1.OrderCommissionSummary"
+              }
+            ],
+            "description": "commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户\n 可见范围批量附加；普通员工视图不含他人提成事实。"
           }
         }
       },
@@ -27061,6 +27229,67 @@
             "format": "double"
           }
         }
+      },
+      "order.v1.OrderCommissionSummary": {
+        "type": "object",
+        "properties": {
+          "visibilityMode": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "baseCurrency": {
+            "type": "string",
+            "description": "base_currency 金额口径币种（订单组织本位币）；无金额事实时为空。"
+          },
+          "hasExpectedOpportunity": {
+            "type": "boolean"
+          },
+          "expectedOpportunityCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasDraftCommission": {
+            "type": "boolean"
+          },
+          "draftCommissionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "draftCommissionAmount": {
+            "type": "string"
+          },
+          "hasConfirmedCommission": {
+            "type": "boolean"
+          },
+          "confirmedCommissionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmedCommissionAmount": {
+            "type": "string"
+          },
+          "hasPaidCommission": {
+            "type": "boolean"
+          },
+          "paidCommissionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paidCommissionAmount": {
+            "type": "string"
+          },
+          "hasPendingDecrease": {
+            "type": "boolean"
+          },
+          "pendingDecreaseCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingDecreaseAmount": {
+            "type": "string"
+          }
+        },
+        "description": "OrderCommissionSummary 订单列表可选提成摘要：仅 ListOrders 的海运出口结果\n 按需填充，订单详情不自动附加。摘要以可并存事实集合表达当前用户可见范围内\n 的提成状态，不构造整票互斥状态；普通员工视图仅含本人提成事实，不含他人\n 数量、姓名、状态、金额或「整票是否有提成」等旁路信息，本人无记录时所有\n 事实均为 false 的本人空态。\n 金额为订单组织本位币口径（不同币种不合并），取消记录不参与有效汇总；\n PAID 仅表示对应提成单已发放，不宣称整票全部结清；待处理冲减是 DRAFT\n 冲减建议，不代表已实际扣回；预计可计提来源是尚未生成有效基础提成单的\n 估算机会，非应发承诺。"
       },
       "order.v1.OrderConsolidationMember": {
         "type": "object",
@@ -34255,6 +34484,469 @@
             "type": "string"
           }
         }
+      },
+      "workbench.v1.GetWorkbenchOverviewData": {
+        "required": [
+          "hasCommissionEligibility"
+        ],
+        "type": "object",
+        "properties": {
+          "hasCommissionEligibility": {
+            "type": "boolean"
+          },
+          "nextEffectiveDate": {
+            "type": "string",
+            "description": "next_effective_date 是本人最近的未来实际生效日（YYYY-MM-DD）：存在当前/未来\n 有效方案分配且尚未到生效日时返回，供页面说明「方案尚未生效」，不把未生效\n 解释为零金额。"
+          },
+          "baseCurrency": {
+            "type": "string",
+            "description": "base_currency 是当前工作区组织本位币；summary 中全部金额均为该本位币口径。"
+          },
+          "commissionSummary": {
+            "$ref": "#/components/schemas/workbench.v1.WorkbenchCommissionSummary"
+          },
+          "recentOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchRecentOrder"
+            }
+          },
+          "todos": {
+            "$ref": "#/components/schemas/workbench.v1.WorkbenchTodoSummary"
+          },
+          "finance": {
+            "$ref": "#/components/schemas/workbench.v1.WorkbenchFinanceSummary"
+          }
+        }
+      },
+      "workbench.v1.GetWorkbenchOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/workbench.v1.GetWorkbenchOverviewData"
+          }
+        },
+        "description": "GetWorkbenchOverviewResponse 中 has_commission_eligibility 为 optional bool 且\n 服务端始终赋值：门禁为假时 commission_summary 保持缺省，前端从首次渲染起就\n 不出现提成模块（不渲染标题、骨架、入口或零金额卡片）。"
+      },
+      "workbench.v1.ListMyCommissionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchMyCommission"
+            }
+          }
+        }
+      },
+      "workbench.v1.ListMyReceivablesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchMyReceivable"
+            }
+          }
+        }
+      },
+      "workbench.v1.ListMyRecentOrdersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchRecentOrder"
+            }
+          }
+        }
+      },
+      "workbench.v1.WorkbenchCommissionSummary": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "draftCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "draftAmount": {
+            "type": "string"
+          },
+          "confirmedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmedAmount": {
+            "type": "string"
+          },
+          "paidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "paidAmountThisYear": {
+            "type": "string"
+          },
+          "paidAmountThisMonth": {
+            "type": "string"
+          },
+          "decreaseDraftCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decreaseDraftAmount": {
+            "type": "string"
+          },
+          "decreaseConfirmedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decreaseConfirmedAmount": {
+            "type": "string"
+          },
+          "decreasePaidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "decreasePaidAmount": {
+            "type": "string"
+          },
+          "estimated": {
+            "$ref": "#/components/schemas/workbench.v1.WorkbenchEstimatedOpportunity"
+          }
+        },
+        "description": "WorkbenchCommissionSummary 提成卡严格分桶：\n DRAFT=待财务确认；CONFIRMED=已确认待发；PAID=已发放；CANCELLED 不计入有效金额。\n 冲减三阶段：DRAFT=待处理、尚未扣回；CONFIRMED=已确认、尚未实际扣回；PAID=已扣回。\n 预计机会不属于任何已确认/已发金额，仅表示尚未生成的可靠估算。"
+      },
+      "workbench.v1.WorkbenchEstimatedOpportunity": {
+        "type": "object",
+        "properties": {
+          "opportunityCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estimatedAmount": {
+            "type": "string"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "description": "WorkbenchEstimatedOpportunity 是「预计可计提」摘要：本人已有可计算的有效应收\n 核销/对冲来源，且来源归属日期能唯一匹配本人对应身份的有效方案与员工分配，\n 但尚无对应有效基础提成单。estimated_amount 为按现有提成口径的估算值，\n 不得并入已确认或已发金额；has_more 为真时表示候选超出服务端有界扫描上限，\n 金额仅为不完整下界，页面应提示而非当作精确合计。"
+      },
+      "workbench.v1.WorkbenchFinanceSummary": {
+        "type": "object",
+        "properties": {
+          "canReadCommission": {
+            "type": "boolean"
+          },
+          "canManageCommission": {
+            "type": "boolean"
+          },
+          "confirmedCommissionCount": {
+            "type": "integer",
+            "description": "confirmed_commission_count 是当前组织已确认待发提成数量（组织范围）。",
+            "format": "int32"
+          },
+          "pendingDecreaseCount": {
+            "type": "integer",
+            "description": "pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT\n 冲减建议数量（待处理、尚未扣回）。",
+            "format": "int32"
+          },
+          "pendingSupplementApprovalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingSupplementApprovals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchSupplementApprovalItem"
+            }
+          },
+          "supplementApprovalsTruncated": {
+            "type": "boolean",
+            "description": "supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描\n 上限，计数仅为已扫描部分的下界。"
+          }
+        },
+        "description": "WorkbenchFinanceSummary 按当前用户对当前工作区组织的实际权限出现：无\n commission.read 时整体缺省；can_manage_commission 仅表示具备处理入口能力，\n 实际动作仍调用原端点并重新鉴权。"
+      },
+      "workbench.v1.WorkbenchMyCommission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "commissionNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "commissionAmount": {
+            "type": "string"
+          },
+          "commissionDate": {
+            "type": "string"
+          },
+          "verificationNo": {
+            "type": "string"
+          },
+          "nettingNo": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "adjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/workbench.v1.WorkbenchMyCommissionAdjustment"
+            }
+          }
+        }
+      },
+      "workbench.v1.WorkbenchMyCommissionAdjustment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adjustmentNo": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "workbench.v1.WorkbenchMyReceivable": {
+        "type": "object",
+        "properties": {
+          "billId": {
+            "type": "string"
+          },
+          "billNo": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "unverifiedAmount": {
+            "type": "string"
+          },
+          "billDate": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "overdueDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmedAt": {
+            "type": "string"
+          }
+        },
+        "description": "WorkbenchMyReceivable 是单张已确认应收账单的未结投影：金额全部为账单原币，\n 不同币种不合计；未结余额口径与账单台账一致（总额 - 有效核销 - 有效对冲）。"
+      },
+      "workbench.v1.WorkbenchRecentOrder": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "businessType": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "flowStatus": {
+            "type": "string"
+          },
+          "terminationStatus": {
+            "type": "string"
+          },
+          "orderDate": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "workbench.v1.WorkbenchSupplementApprovalItem": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestedByName": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "workbench.v1.WorkbenchTodoSummary": {
+        "type": "object",
+        "properties": {
+          "draftFeeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openAbnormalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "WorkbenchTodoSummary 只聚合能由现有事实准确判定的作业待办，不虚构未建模的\n 责任与时限。"
       }
     }
   },
@@ -34350,6 +35042,10 @@
     {
       "name": "SettlementService",
       "description": "SettlementService 提供跨业务费用台账及后续账单、开票、收付和核销能力。"
+    },
+    {
+      "name": "WorkbenchService",
+      "description": "WorkbenchService 提供登录员工「我的工作台」聚合读模型：全部接口只从会话取当前\n 用户与当前工作区组织，不接收 employee_id / organization_id 等可改写参数。\n 模块门禁由服务端按本人事实（方案员工分配、历史提成/调整、订单协作）与当前\n 组织权限判定；完整台账、审批、冲减与发放动作仍走原有业务接口。"
     }
   ]
 }

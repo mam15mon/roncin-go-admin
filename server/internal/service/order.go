@@ -13,10 +13,15 @@ import (
 type OrderService struct {
 	v1.UnimplementedOrderServiceServer
 	usecase *biz.OrderUsecase
+	// commission 供海运出口订单列表批量附加提成摘要；为 nil 时列表不携带
+	// 摘要字段（测试与降级场景）。
+	commission *biz.CommissionUsecase
 }
 
 var orderListDateLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
-func NewOrderService(usecase *biz.OrderUsecase) *OrderService { return &OrderService{usecase: usecase} }
+func NewOrderService(usecase *biz.OrderUsecase, commission *biz.CommissionUsecase) *OrderService {
+	return &OrderService{usecase: usecase, commission: commission}
+}
 
 var _ v1.OrderServiceServer = (*OrderService)(nil)

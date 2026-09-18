@@ -26,6 +26,7 @@ import * as seaDocumentService from "./seaDocumentService";
 import * as seaOrderChangeService from "./seaOrderChangeService";
 import * as orderShippingDocumentService from "./orderShippingDocumentService";
 import * as partnerService from "./partnerService";
+import * as workbenchService from "./workbenchService";
 export default {
   adminService,
   authService,
@@ -51,4 +52,5 @@ export default {
   seaOrderChangeService,
   orderShippingDocumentService,
   partnerService,
+  workbenchService,
 };

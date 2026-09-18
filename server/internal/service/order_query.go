@@ -229,7 +229,86 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		output.CanModify = canModifyOrder(principal, item)
 		data = append(data, output)
 	}
+	// 海运出口订单页批量附加提成摘要：一次性把本页订单 ID 交给提成用例，
+	// 不逐行发起查询；可见模式与隐私裁剪由服务端完成，详情接口不附加。
+	if err := s.attachListCommissionSummaries(ctx, principal, result.Items, data); err != nil {
+		return nil, err
+	}
 	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
+}
+
+// attachListCommissionSummaries 为已授权海运出口订单页批量附加提成摘要：
+// 仅收集本页海运出口订单，调用提成用例按组织逐个判定可见模式后批量聚合，
+// 并把领域投影转换为 API 结构；非海运出口订单不携带摘要。
+func (s *OrderService) attachListCommissionSummaries(ctx context.Context, principal *biz.Principal, items []*biz.Order, outputs []*v1.Order) error {
+	if s.commission == nil || len(items) != len(outputs) {
+		return nil
+	}
+	targets := make([]biz.OrderCommissionSummaryTarget, 0, len(items))
+	outputByOrderID := make(map[uuid.UUID]*v1.Order, len(items))
+	for index, item := range items {
+		if item.BusinessType != biz.OrderBusinessSE {
+			continue
+		}
+		targets = append(targets, biz.OrderCommissionSummaryTarget{OrderID: item.ID, OrganizationID: item.OrganizationID})
+		outputByOrderID[item.ID] = outputs[index]
+	}
+	if len(targets) == 0 {
+		return nil
+	}
+	summaries, err := s.commission.BuildOrderListSummaries(ctx, principal, targets)
+	if err != nil {
+		return err
+	}
+	for orderID, summary := range summaries {
+		output, exists := outputByOrderID[orderID]
+		if !exists || summary == nil {
+			continue
+		}
+		output.CommissionSummary = orderCommissionSummaryToAPI(summary)
+	}
+	return nil
+}
+
+// orderCommissionSummaryToAPI 转换提成摘要领域投影：金额为组织本位币口径的
+// StringFixed(8)，仅在对应事实存在时输出；空态不携带金额字段。
+func orderCommissionSummaryToAPI(summary *biz.OrderCommissionSummary) *v1.OrderCommissionSummary {
+	result := &v1.OrderCommissionSummary{BaseCurrency: summary.BaseCurrency}
+	switch summary.Visibility {
+	case biz.OrderCommissionVisibilityOrganization:
+		result.VisibilityMode = v1.OrderCommissionVisibilityMode_ORDER_COMMISSION_VISIBILITY_MODE_ORGANIZATION
+	case biz.OrderCommissionVisibilityEmployee:
+		result.VisibilityMode = v1.OrderCommissionVisibilityMode_ORDER_COMMISSION_VISIBILITY_MODE_EMPLOYEE
+	default:
+		result.VisibilityMode = v1.OrderCommissionVisibilityMode_ORDER_COMMISSION_VISIBILITY_MODE_UNSPECIFIED
+	}
+	result.HasExpectedOpportunity = summary.HasExpectedOpportunity
+	result.ExpectedOpportunityCount = int32(summary.ExpectedOpportunityCount)
+	result.HasDraftCommission = summary.HasDraftCommission
+	result.DraftCommissionCount = int32(summary.DraftCommissionCount)
+	if summary.HasDraftCommission {
+		amount := summary.DraftCommissionAmount.StringFixed(8)
+		result.DraftCommissionAmount = &amount
+	}
+	result.HasConfirmedCommission = summary.HasConfirmedCommission
+	result.ConfirmedCommissionCount = int32(summary.ConfirmedCommissionCount)
+	if summary.HasConfirmedCommission {
+		amount := summary.ConfirmedCommissionAmount.StringFixed(8)
+		result.ConfirmedCommissionAmount = &amount
+	}
+	result.HasPaidCommission = summary.HasPaidCommission
+	result.PaidCommissionCount = int32(summary.PaidCommissionCount)
+	if summary.HasPaidCommission {
+		amount := summary.PaidCommissionAmount.StringFixed(8)
+		result.PaidCommissionAmount = &amount
+	}
+	result.HasPendingDecrease = summary.HasPendingDecrease
+	result.PendingDecreaseCount = int32(summary.PendingDecreaseCount)
+	if summary.HasPendingDecrease {
+		amount := summary.PendingDecreaseAmount.StringFixed(8)
+		result.PendingDecreaseAmount = &amount
+	}
+	return result
 }
 
 func orderDateRangeFromAPI(from, to string) (biz.OrderDateRange, error) {
