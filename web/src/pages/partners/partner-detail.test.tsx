@@ -300,13 +300,12 @@ describe('PartnerDetailPage', () => {
     expect(screen.queryByText('操作记录')).not.toBeInTheDocument();
   });
 
-  it('根据创建/编辑权限细粒度控制保存按钮渲染', async () => {
-    // 1. 创建模式下无 canCreatePartners：保存按钮不展示
+  it('创建模式下无创建权限时不展示保存按钮', async () => {
     accessState.canCreatePartners = false;
     routeState.params = { id: 'create' };
     routeState.pathname = '/partners/customers/create';
 
-    const { unmount: unmount1 } = render(
+    render(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -316,9 +315,9 @@ describe('PartnerDetailPage', () => {
     expect(
       screen.queryByRole('button', { name: /保存客户档案/ }),
     ).not.toBeInTheDocument();
-    unmount1();
+  });
 
-    // 2. 编辑模式下无 canUpdatePartners：保存按钮不展示
+  it('编辑模式下无更新权限时不展示保存按钮', async () => {
     accessState.canUpdatePartners = false;
     routeState.params = { id: VALID_UUID_1 };
     routeState.pathname = `/partners/customers/${VALID_UUID_1}`;
@@ -330,7 +329,7 @@ describe('PartnerDetailPage', () => {
       } as never,
     });
 
-    const { unmount: unmount2 } = render(
+    render(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -342,11 +341,21 @@ describe('PartnerDetailPage', () => {
     expect(
       screen.queryByRole('button', { name: /保存客户档案/ }),
     ).not.toBeInTheDocument();
-    unmount2();
+  });
 
-    // 3. 编辑模式下具备 canUpdatePartners：保存按钮正常展示
+  it('编辑模式下具备更新权限时展示保存按钮', async () => {
     accessState.canUpdatePartners = true;
-    const { unmount: unmount3 } = render(
+    routeState.params = { id: VALID_UUID_1 };
+    routeState.pathname = `/partners/customers/${VALID_UUID_1}`;
+    vi.mocked(partnerServiceGetPartner).mockResolvedValue({
+      data: {
+        id: VALID_UUID_1,
+        legalName: '测试权限公司',
+        enabled: true,
+      } as never,
+    });
+
+    render(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -357,6 +366,5 @@ describe('PartnerDetailPage', () => {
     );
     const saveButtons = screen.getAllByRole('button', { name: /保存客户档案/ });
     expect(saveButtons.length).toBeGreaterThanOrEqual(1);
-    unmount3();
   });
 });

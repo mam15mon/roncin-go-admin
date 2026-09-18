@@ -361,12 +361,12 @@ export default function FeeSupplementSection({
       ),
       okText: '确认作废',
       okButtonProps: { danger: true },
-      onOk: async () => {
+      onOk: (_close) => {
         if (!cancelReason) {
           message.warning('请输入作废原因');
-          throw new Error('作废原因不能为空');
+          return;
         }
-        await runGuarded(async (requestSequence) => {
+        return runGuarded(async (requestSequence) => {
           try {
             await orderFeeServiceCancelApprovedOrderFeeSupplement(
               { orderId: targetOrderId, id: record.id as string },

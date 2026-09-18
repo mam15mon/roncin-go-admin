@@ -231,6 +231,8 @@ vi.mock('./templates', () => ({
 vi.mock('./components/detail/OrderDetailHeader', () => ({
   default: (props: {
     moreMenuItems?: Array<{ key: string; onClick?: () => void }>;
+    hasAction: (action: number) => boolean;
+    onReset?: () => void;
   }) => (
     <div>
       <button
@@ -243,6 +245,12 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
       >
         刷新数据
       </button>
+      {props.hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+        props.onReset && (
+          <button type="button" onClick={props.onReset}>
+            重置修改
+          </button>
+        )}
     </div>
   ),
 }));

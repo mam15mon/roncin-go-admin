@@ -33,12 +33,12 @@ export function confirmWithReason(
     okText: '确认',
     cancelText: '取消',
     okButtonProps: options.danger ? { danger: true } : undefined,
-    onOk: async () => {
+    onOk: (_close) => {
       if (!reason) {
         app.message.warning(requiredMessage);
-        throw new Error(`${requiredMessage.replace(/^请输入/, '')}不能为空`);
+        return;
       }
-      await onSubmit(reason);
+      return onSubmit(reason);
     },
   });
 }

@@ -51,21 +51,29 @@ vi.mock('./use-order-create-options', () => ({
 }));
 
 vi.mock('./components/OrderPageHeader', () => ({
-  default: () => <div />,
+  default: ({ actions }: { actions?: React.ReactNode }) => <div>{actions}</div>,
 }));
 
 vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
   OrderFormTemplate: (props: {
     onFinish?: (values: unknown) => Promise<boolean>;
-    submitText?: string;
-  }) => (
-    <button
-      type="button"
-      onClick={() => props.onFinish?.({ customerId: 'c-1' })}
-    >
-      {props.submitText ?? 'submit'}
-    </button>
-  ),
+    header?: React.ReactNode;
+    formRef?: React.MutableRefObject<{ submit: () => void } | undefined>;
+  }) => {
+    React.useEffect(() => {
+      if (!props.formRef) return;
+      props.formRef.current = {
+        submit: () => {
+          void props.onFinish?.({ customerId: 'c-1' });
+        },
+      };
+      return () => {
+        if (props.formRef) props.formRef.current = undefined;
+      };
+    }, [props.formRef, props.onFinish]);
+
+    return <>{props.header}</>;
+  },
 }));
 
 const mockCreateOrder = vi.mocked(orderServiceCreateOrder);
