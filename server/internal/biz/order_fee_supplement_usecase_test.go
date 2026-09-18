@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -116,10 +117,16 @@ func TestVerifyLockBasis(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "重新发起补录") {
 		t.Fatalf("代次失效且仍有新锁应提示重新发起: %v", err)
 	}
+	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Metadata[LockBasisChangedNextActionMetadata] != LockBasisChangedRecreateSupplement {
+		t.Fatalf("仍有新锁必须携带 next_action=RECREATE_SUPPLEMENT: %v", err)
+	}
 	noLock := &OrderFeeSupplementLockEvidence{}
 	err = verifyLockBasis(request, noLock)
 	if err == nil || !strings.Contains(err.Error(), "普通费用新增") {
 		t.Fatalf("代次失效且已无锁应提示普通新增: %v", err)
+	}
+	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Metadata[LockBasisChangedNextActionMetadata] != LockBasisChangedUseNormalFeeEntry {
+		t.Fatalf("已无锁必须携带 next_action=USE_NORMAL_FEE_ENTRY: %v", err)
 	}
 
 	request.LockBasis = SupplementLockBasisFinancial
@@ -139,6 +146,9 @@ func TestVerifyLockBasis(t *testing.T) {
 		t.Fatalf("净额释放后必须拒绝审批")
 	}
 
+	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Reason != "LOCK_BASIS_CHANGED" {
+		t.Fatalf("BOTH 双依据失效必须返回稳定 LOCK_BASIS_CHANGED: %v", err)
+	}
 	// BOTH：任一依据匹配即可。
 	request.LockBasis = SupplementLockBasisBoth
 	if err := verifyLockBasis(request, sameGeneration); err != nil {
@@ -181,10 +191,12 @@ func TestComputeSupplementMarginalImpact(t *testing.T) {
 	if impact.AmountBefore.StringFixed(8) != "60.00000000" || impact.AmountAfter.StringFixed(8) != "50.00000000" || impact.Delta.StringFixed(8) != "10.00000000" {
 		t.Fatalf("边际影响计算不符: %+v", impact)
 	}
-	// 此前未作废补录进入 before 基线：再次补录 100 后 after 应付 600、提成 40、差 20。
+	// 此前未作废补录进入 before 基线：再次补录 100 时 before 应付 500、提成 50，
+	// after 应付 600、提成 40，本笔增量差额 10；两笔合计 20 等于真实总影响，
+	// 前笔已建议的 10 不得重复计入。
 	impact = ComputeSupplementMarginalImpact(realized, receivable, payable, decimal.RequireFromString("100"), decimal.RequireFromString("100"), rate, CommissionBasisRealizedProfit)
-	if impact.AmountAfter.StringFixed(8) != "40.00000000" || impact.Delta.StringFixed(8) != "20.00000000" {
-		t.Fatalf("历史补录应进入 before 基线: %+v", impact)
+	if impact.AmountBefore.StringFixed(8) != "50.00000000" || impact.AmountAfter.StringFixed(8) != "40.00000000" || impact.Delta.StringFixed(8) != "10.00000000" {
+		t.Fatalf("历史补录应进入 before 基线且只计算本笔增量: %+v", impact)
 	}
 	// 亏损时 before 提成为零则不生成负差。
 	impact = ComputeSupplementMarginalImpact(realized, receivable, decimal.RequireFromString("1200"), decimal.Zero, decimal.RequireFromString("100"), rate, CommissionBasisRealizedProfit)

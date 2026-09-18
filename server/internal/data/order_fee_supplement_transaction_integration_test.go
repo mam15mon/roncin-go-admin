@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	auditent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -553,10 +554,19 @@ func TestFeeSupplementCreateGatePostgres(t *testing.T) {
 		if _, err := fixture.usecase.Create(fixture.ctx, fixture.requesterPrincipal(), fixture.organizationID, order.ID, receivable, false); err != biz.ErrFeeSupplementInvalidArgument {
 			t.Fatalf("应收补录必须被领域边界拒绝，实际 %v", err)
 		}
-		// 确认申请入库时固化指纹并带审计。
+		// 确认申请入库时固化指纹并带审计；审批人资格快照（含未绑定钉钉者）
+		// 必须在创建审计中留下持久痕迹。
 		stored := fixture.requestByID(created.ID)
 		if stored.RequestFingerprint != created.RequestFingerprint || stored.RequestFingerprint == "" {
 			t.Fatalf("申请指纹必须由服务端固化: %s", stored.RequestFingerprint)
+		}
+		audit, auditErr := fixture.data.db.AuditLog.Query().Where(auditent.ActionEQ("order.fee_supplement.create"), auditent.ResourceIDEQ(created.ID.String())).First(fixture.ctx)
+		if auditErr != nil {
+			t.Fatalf("读取创建审计: %v", auditErr)
+		}
+		auditDetails := string(audit.Details)
+		if !strings.Contains(auditDetails, fixture.approverID.String()) || !strings.Contains(auditDetails, "approver_snapshot") {
+			t.Fatalf("创建审计必须包含审批人资格快照: %s", auditDetails)
 		}
 	})
 
@@ -806,16 +816,59 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		if count := fixture.decreaseTaskCount(first.ID); count != 1 {
 			t.Fatalf("员工知情通知应为 1 条，实际 %d", count)
 		}
-		// 第二笔补录：此前未作废补录 100 进入 before 基线（应付 500）→ 计入本笔后应付
-		// 600、提成 40，逐次差额 20，不重复计算第一笔已生成的那 10。
+		// 第二笔补录：此前未作废补录 100 进入 before 基线（应付 500、提成 50），
+		// 计入本笔后应付 600、提成 40，本笔增量差额 10；两笔合计 20 等于真实总
+		// 影响，前笔已建议的 10 不得重复计入。
 		second := fixture.createSupplement(order, "impact-2")
 		fixture.approveSupplement(order, second.ID, second.Version)
 		secondAdjustments := fixture.adjustmentsForRequest(second.ID)
 		if len(secondAdjustments) != 1 {
 			t.Fatalf("第二笔补录应生成一条建议: %+v", secondAdjustments)
 		}
-		if amount, amountErr := decimalOf(secondAdjustments[0].Amount); amountErr != nil || amount.StringFixed(8) != "20.00000000" {
-			t.Fatalf("第二笔补录边际差额应为 20: %+v (%v)", secondAdjustments, amountErr)
+		if amount, amountErr := decimalOf(secondAdjustments[0].Amount); amountErr != nil || amount.StringFixed(8) != "10.00000000" {
+			t.Fatalf("第二笔补录边际差额应为 10（只计算本笔增量）: %+v (%v)", secondAdjustments, amountErr)
+		}
+	})
+
+	t.Run("前笔建议被忽略后第二笔仍不得重复计算前笔成本", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-IGN-" + fixture.suffix)
+		fixture.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.00", "1000.00000000", "400.00000000")
+		first := fixture.createSupplement(order, "ignore-1")
+		fixture.approveSupplement(order, first.ID, first.Version)
+		// 财务忽略 DRAFT 建议（复用通用取消，必填原因）；前笔费用仍是有效成本事实。
+		adjustment := fixture.adjustmentsForRequest(first.ID)[0]
+		if _, err := fixture.commissionRepo.TransitionAdjustment(fixture.ctx, fixture.organizationID, adjustment.ID, fixture.approverID, adjustment.Version, biz.CommissionCancelled, "财务忽略建议", &biz.AuditEvent{OrganizationID: &fixture.organizationID, UserID: &fixture.approverID, Action: "finance.commission_adjustment.cancelled", Result: "success", ResourceType: "finance_commission_adjustment", ResourceID: adjustment.ID.String()}); err != nil {
+			t.Fatalf("忽略建议: %v", err)
+		}
+		second := fixture.createSupplement(order, "ignore-2")
+		fixture.approveSupplement(order, second.ID, second.Version)
+		// before 基线含前笔补录应付（费用未作废），第二笔增量差额仍为 10。
+		secondAdjustments := fixture.adjustmentsForRequest(second.ID)
+		if len(secondAdjustments) != 1 {
+			t.Fatalf("忽略前笔建议后第二笔应生成建议: %+v", secondAdjustments)
+		}
+		if amount, amountErr := decimalOf(secondAdjustments[0].Amount); amountErr != nil || amount.StringFixed(8) != "10.00000000" {
+			t.Fatalf("建议被忽略不得导致重复计算前笔成本: %+v (%v)", secondAdjustments, amountErr)
+		}
+	})
+
+	t.Run("前笔建议已确认后第二笔同样不重复计算", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-CFR-" + fixture.suffix)
+		fixture.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.00", "1000.00000000", "400.00000000")
+		first := fixture.createSupplement(order, "confirm-1")
+		fixture.approveSupplement(order, first.ID, first.Version)
+		adjustment := fixture.adjustmentsForRequest(first.ID)[0]
+		if _, err := fixture.commissionRepo.TransitionAdjustment(fixture.ctx, fixture.organizationID, adjustment.ID, fixture.approverID, adjustment.Version, biz.CommissionConfirmed, "", &biz.AuditEvent{OrganizationID: &fixture.organizationID, UserID: &fixture.approverID, Action: "finance.commission_adjustment.confirmed", Result: "success", ResourceType: "finance_commission_adjustment", ResourceID: adjustment.ID.String()}); err != nil {
+			t.Fatalf("确认建议: %v", err)
+		}
+		second := fixture.createSupplement(order, "confirm-2")
+		fixture.approveSupplement(order, second.ID, second.Version)
+		secondAdjustments := fixture.adjustmentsForRequest(second.ID)
+		if len(secondAdjustments) != 1 {
+			t.Fatalf("前笔已确认时第二笔应生成建议: %+v", secondAdjustments)
+		}
+		if amount, amountErr := decimalOf(secondAdjustments[0].Amount); amountErr != nil || amount.StringFixed(8) != "10.00000000" {
+			t.Fatalf("前笔建议已确认后第二笔增量差额应为 10: %+v (%v)", secondAdjustments, amountErr)
 		}
 	})
 
@@ -1206,4 +1259,134 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 	if restored.SupplementRequestID == nil || *restored.SupplementRequestID != created.ID {
 		t.Fatalf("费用必须保留补录申请关联: %v", restored.SupplementRequestID)
 	}
+}
+
+// ---------------------------------------------------------------------------
+// 场景 7：列表逐行授权（fee.read / 发起人本人 / 实时 lock grant）
+// ---------------------------------------------------------------------------
+
+func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
+	fixture := newFeeSupplementFixture(t)
+
+	t.Run("无 fee.read 发起人只读本人申请且能力投影正确", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-LIST-" + fixture.suffix)
+		fixture.lockOrder(order)
+		pending := fixture.createSupplement(order, "list-pending")
+		approved := fixture.createSupplement(order, "list-approved")
+		fixture.approveSupplement(order, approved.ID, approved.Version)
+
+		view, err := fixture.usecase.List(fixture.ctx, fixture.requesterPrincipal(), fixture.organizationID, order.ID, 1, 200)
+		if err != nil {
+			t.Fatalf("发起人读取列表: %v", err)
+		}
+		if view.Total != 2 || len(view.Items) != 2 {
+			t.Fatalf("发起人应看到本人两条申请: total=%d", view.Total)
+		}
+		byID := make(map[uuid.UUID]*biz.OrderFeeSupplementRequestView, len(view.Items))
+		for _, item := range view.Items {
+			byID[item.Request.ID] = item
+		}
+		pendingView := byID[pending.ID]
+		if pendingView == nil || !pendingView.CanWithdraw || pendingView.CanApprove || pendingView.CanCancel || pendingView.ApproverAvailable {
+			t.Fatalf("本人 PENDING 投影不符: %+v", pendingView)
+		}
+		approvedView := byID[approved.ID]
+		if approvedView == nil || approvedView.CanWithdraw || approvedView.CanApprove || approvedView.CanCancel {
+			t.Fatalf("无 grant 发起人的 APPROVED 投影不符: %+v", approvedView)
+		}
+		if approvedView.FeeID == nil || approvedView.FeeStatus != "CONFIRMED" {
+			t.Fatalf("APPROVED 行应投影生成费用状态: %+v", approvedView)
+		}
+	})
+
+	t.Run("实时 grant 审批人无需 fee.read 可读订单申请并显示作废能力", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-LISTG-" + fixture.suffix)
+		fixture.lockOrder(order)
+		pending := fixture.createSupplement(order, "list-grant-pending")
+		approved := fixture.createSupplement(order, "list-grant-approved")
+		approvedResult := fixture.approveSupplement(order, approved.ID, approved.Version)
+
+		view, err := fixture.usecase.List(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, 1, 200)
+		if err != nil {
+			t.Fatalf("审批人读取列表: %v", err)
+		}
+		if view.Total != 2 {
+			t.Fatalf("实时 grant 审批人应看到订单全部申请: total=%d", view.Total)
+		}
+		byID := make(map[uuid.UUID]*biz.OrderFeeSupplementRequestView, len(view.Items))
+		for _, item := range view.Items {
+			byID[item.Request.ID] = item
+		}
+		pendingView := byID[pending.ID]
+		if pendingView == nil || !pendingView.CanApprove || pendingView.CanWithdraw || pendingView.ApproverAvailable != true {
+			t.Fatalf("grant 审批人 PENDING 投影不符: %+v", pendingView)
+		}
+		approvedView := byID[approved.ID]
+		if approvedView == nil || !approvedView.CanCancel || approvedView.CancelBlockReason != "" {
+			t.Fatalf("最新有效 CONFIRMED 补录应可作废: %+v", approvedView)
+		}
+		if approvedView.FeeID == nil || *approvedView.FeeID != approvedResult.Fee.ID {
+			t.Fatalf("APPROVED 行应投影生成费用 ID: %+v", approvedView)
+		}
+	})
+
+	t.Run("无关用户列表为空且跨组织探测返回不存在", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-LISTN-" + fixture.suffix)
+		fixture.lockOrder(order)
+		fixture.createSupplement(order, "list-private")
+		// 组织内无关用户：无 fee.read、无 grant、非发起人。
+		outsider, outsiderErr := fixture.data.db.User.Create().SetDisplayName("补录无关用户-" + fixture.suffix).SetEnabled(true).SetIsBootstrapAdmin(false).Save(fixture.ctx)
+		if outsiderErr != nil {
+			t.Fatalf("创建无关用户: %v", outsiderErr)
+		}
+		if _, memberErr := fixture.data.db.Membership.Create().SetUserID(outsider.ID).SetOrganizationID(fixture.organizationID).SetPrimary(true).SetEnabled(true).Save(fixture.ctx); memberErr != nil {
+			t.Fatalf("创建无关成员关系: %v", memberErr)
+		}
+		outsiderPrincipal := &biz.Principal{UserID: outsider.ID, Organization: biz.Organization{ID: fixture.organizationID}}
+		view, err := fixture.usecase.List(fixture.ctx, outsiderPrincipal, fixture.organizationID, order.ID, 1, 200)
+		if err != nil {
+			t.Fatalf("无关用户列表不应报错: %v", err)
+		}
+		if view.Total != 0 || len(view.Items) != 0 {
+			t.Fatalf("无关用户不得看到任何申请: total=%d", view.Total)
+		}
+		// 跨组织探测：稳定返回不存在，不泄露申请事实。
+		otherOrg, orgErr := fixture.data.db.Organization.Create().SetCode("FSUP-OTHER-" + fixture.suffix).SetName("补录跨组织-" + fixture.suffix).SetKind("company").SetBaseCurrency("CNY").SetEnabled(true).Save(fixture.ctx)
+		if orgErr != nil {
+			t.Fatalf("创建跨组织: %v", orgErr)
+		}
+		otherPrincipal := &biz.Principal{UserID: outsider.ID, Organization: biz.Organization{ID: otherOrg.ID}}
+		if _, listErr := fixture.usecase.List(fixture.ctx, otherPrincipal, otherOrg.ID, order.ID, 1, 200); listErr != biz.ErrFeeSupplementNotFound {
+			t.Fatalf("跨组织探测应返回不存在，实际 %v", listErr)
+		}
+	})
+
+	t.Run("持 fee.read 用户无需 grant 可读取全部申请", func(t *testing.T) {
+		order := fixture.createOrder("FSUP-LISTF-" + fixture.suffix)
+		fixture.lockOrder(order)
+		fixture.createSupplement(order, "list-fee-read")
+		feeReadUser, userErr := fixture.data.db.User.Create().SetDisplayName("补录费用查看-" + fixture.suffix).SetEnabled(true).SetIsBootstrapAdmin(false).Save(fixture.ctx)
+		if userErr != nil {
+			t.Fatalf("创建 fee.read 用户: %v", userErr)
+		}
+		feeReadPrincipal := &biz.Principal{
+			UserID:       feeReadUser.ID,
+			Organization: biz.Organization{ID: fixture.organizationID},
+			RoleGrants: []biz.RoleGrant{{
+				Permissions: map[string]struct{}{"business.order.si.fee.read": {}},
+				DataScope:   biz.DataScopeOrganization,
+			}},
+		}
+		view, err := fixture.usecase.List(fixture.ctx, feeReadPrincipal, fixture.organizationID, order.ID, 1, 200)
+		if err != nil {
+			t.Fatalf("fee.read 用户读取列表: %v", err)
+		}
+		if view.Total != 1 || len(view.Items) != 1 {
+			t.Fatalf("fee.read 用户应读取订单全部申请: total=%d", view.Total)
+		}
+		// 仅 fee.read 不授予审批或撤回能力。
+		if view.Items[0].CanApprove || view.Items[0].CanWithdraw || view.Items[0].CanCancel {
+			t.Fatalf("仅 fee.read 不得获得操作能力: %+v", view.Items[0])
+		}
+	})
 }

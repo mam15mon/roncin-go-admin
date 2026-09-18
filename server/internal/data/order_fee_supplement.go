@@ -1215,23 +1215,30 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 		if !blocked.Cancellable {
 			return newFeeSupplementCancelBlockedError(blocked.BlockReason)
 		}
-		// 4. 按父单 UUID 锁定该申请关联的全部提成父单和调整；任一调整曾进入
-		// CONFIRMED 或 PAID 时已在能力评估中整体拒绝。
+		// 4. 按 design §5.1 固定锁序：先只读定位关联调整并按父单 UUID 升序锁定
+		// 全部提成父单，再按 ID 锁定关联调整，与审批/确认路径保持同一顺序，
+		// 避免多订单父单并发下形成反向锁序死锁。任一调整曾进入 CONFIRMED 或
+		// PAID 时已在能力评估中整体拒绝。
+		linkedAdjustments, linkedErr := tx.FinanceCommissionAdjustment.Query().
+			Where(commissionadjustmentent.SourceFeeSupplementRequestIDEQ(input.RequestID)).
+			All(ctx)
+		if linkedErr != nil {
+			return linkedErr
+		}
+		commissionIDs := make([]uuid.UUID, 0, len(linkedAdjustments))
+		for _, adjustment := range linkedAdjustments {
+			commissionIDs = append(commissionIDs, adjustment.CommissionID)
+		}
+		for _, commissionID := range uniqueSortedUUIDs(commissionIDs) {
+			if _, parentErr := tx.FinanceCommission.Query().Where(commissionent.IDEQ(commissionID), commissionent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx); parentErr != nil {
+				return parentErr
+			}
+		}
 		adjustments, adjustmentErr := tx.FinanceCommissionAdjustment.Query().
 			Where(commissionadjustmentent.SourceFeeSupplementRequestIDEQ(input.RequestID)).
 			Order(commissionadjustmentent.ByID()).ForUpdate().All(ctx)
 		if adjustmentErr != nil {
 			return adjustmentErr
-		}
-		commissionIDs := make([]uuid.UUID, 0, len(adjustments))
-		for _, adjustment := range adjustments {
-			commissionIDs = append(commissionIDs, adjustment.CommissionID)
-		}
-		commissionIDs = uniqueSortedUUIDs(commissionIDs)
-		for _, commissionID := range commissionIDs {
-			if _, parentErr := tx.FinanceCommission.Query().Where(commissionent.IDEQ(commissionID), commissionent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx); parentErr != nil {
-				return parentErr
-			}
 		}
 		// 5. 将关联 DRAFT 调整转为 CANCELLED，再将费用转为 CANCELLED；APPROVED
 		// 申请保持终态不变，生成费用已作废由列表投影呈现。

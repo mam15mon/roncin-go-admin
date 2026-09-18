@@ -17,7 +17,6 @@ var (
 	ErrFeeSupplementInvalidArgument     = errors.BadRequest("FEE_SUPPLEMENT_REQUEST_INVALID", "补录费用申请参数不合法")
 	ErrFeeSupplementIdempotencyConflict = errors.Conflict("FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT", "同一幂等键的补录申请内容已变化，请刷新后重新发起")
 	ErrFeeSupplementApproverUnavailable = errors.Conflict("FEE_SUPPLEMENT_APPROVER_UNAVAILABLE", "当前没有具备订单直接解锁资格的审批人，请先配置审批资格")
-	ErrFeeSupplementLockBasisChanged    = errors.Conflict("LOCK_BASIS_CHANGED", "申请提交时的锁依据已全部失效，请根据当前锁状态重新发起补录或改走普通费用新增")
 	ErrFeeSupplementTransition          = errors.Conflict("FEE_SUPPLEMENT_TRANSITION", "当前补录申请状态不允许该操作")
 	// ErrFeeSupplementNotApplicable 业务锁与财务锁均不存在时的稳定拒绝：补录是
 	// 锁单的受控例外，普通无锁订单必须走普通费用新增入口。
@@ -26,6 +25,25 @@ var (
 	// 阻断原因动态构造，稳定 reason 便于前端识别。
 	ErrFeeSupplementCancelBlocked = errors.Conflict("FEE_SUPPLEMENT_CANCEL_BLOCKED", "当前补录费用不满足专用作废条件")
 )
+
+// LOCK_BASIS_CHANGED 的结构化 next_action 元数据键与取值：前端按稳定字段决定
+// 引导动作，不解析中文文案。
+const (
+	// LockBasisChangedNextActionMetadata 是错误 metadata 中携带引导动作的键。
+	LockBasisChangedNextActionMetadata = "next_action"
+	// LockBasisChangedRecreateSupplement 表示订单当前仍存在新锁，应重新发起补录。
+	LockBasisChangedRecreateSupplement = "RECREATE_SUPPLEMENT"
+	// LockBasisChangedUseNormalFeeEntry 表示订单已无任何锁，应改走普通费用新增。
+	LockBasisChangedUseNormalFeeEntry = "USE_NORMAL_FEE_ENTRY"
+)
+
+// newLockBasisChangedError 构造携带结构化 next_action 的 LOCK_BASIS_CHANGED
+// 错误；reason 稳定不变，引导语义只依赖 metadata。
+func newLockBasisChangedError(nextAction, message string) error {
+	return errors.Conflict("LOCK_BASIS_CHANGED", message).WithMetadata(map[string]string{
+		LockBasisChangedNextActionMetadata: nextAction,
+	})
+}
 
 // OrderFeeSupplementStatus 补录申请状态：PENDING 是唯一可流转状态；
 // APPROVED、REJECTED、WITHDRAWN 均为终态。
@@ -519,11 +537,14 @@ type SupplementMarginalImpact struct {
 }
 
 // ComputeSupplementMarginalImpact 计算单条原提成订单行的边际冲减差额：
-// before 使用历史快照分母与此前未作废补录应付，after 再计入本笔费用本位币
-// 金额；前后提成金额均按 8 位舍入后取非负差额，零差不生成建议。
+// before 基线 = 历史快照分母 + 此前已审批且尚未作废的补录应付（历史计算事实，
+// 已作废补录不进基线），after 再计入本笔费用本位币金额；前后提成金额均按
+// 8 位舍入后取非负差额，零差不生成建议。每笔补录只计算自身增量，此前补录
+// 已建议的影响不得在后续补录中重复计入。
 func ComputeSupplementMarginalImpact(realizedRevenue, totalReceivable, totalPayableSnapshot, priorSupplementBase, feeBaseAmount, ratePercent decimal.Decimal, basis CommissionCalculationBasis) SupplementMarginalImpact {
-	before := supplementCommissionAmountAtPayable(realizedRevenue, totalReceivable, totalPayableSnapshot, ratePercent, basis)
-	after := supplementCommissionAmountAtPayable(realizedRevenue, totalReceivable, totalPayableSnapshot.Add(priorSupplementBase).Add(feeBaseAmount), ratePercent, basis)
+	baselinePayable := totalPayableSnapshot.Add(priorSupplementBase)
+	before := supplementCommissionAmountAtPayable(realizedRevenue, totalReceivable, baselinePayable, ratePercent, basis)
+	after := supplementCommissionAmountAtPayable(realizedRevenue, totalReceivable, baselinePayable.Add(feeBaseAmount), ratePercent, basis)
 	delta := before.Sub(after)
 	if delta.Sign() <= 0 {
 		delta = decimal.Zero

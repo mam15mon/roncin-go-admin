@@ -2,11 +2,12 @@ package biz
 
 import (
 	"context"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/shopspring/decimal"
@@ -186,7 +187,7 @@ func (uc *OrderFeeSupplementUsecase) Create(ctx context.Context, caller *Princip
 		if validateErr := request.Validate(); validateErr != nil {
 			return validateErr
 		}
-		result, createErr := uc.repo.Create(txCtx, request, uc.createAudit(organizationID, caller.UserID, request, evidence))
+		result, createErr := uc.repo.Create(txCtx, request, uc.createAudit(organizationID, caller.UserID, request, evidence, approvers))
 		if createErr != nil {
 			return createErr
 		}
@@ -262,8 +263,17 @@ func feeSnapshotFromOrderFee(fee *OrderFee) OrderFeeSupplementFeeSnapshot {
 	}
 }
 
-func (uc *OrderFeeSupplementUsecase) createAudit(organizationID, actorID uuid.UUID, request *OrderFeeSupplementRequest, evidence *OrderFeeSupplementLockEvidence) *AuditEvent {
+func (uc *OrderFeeSupplementUsecase) createAudit(organizationID, actorID uuid.UUID, request *OrderFeeSupplementRequest, evidence *OrderFeeSupplementLockEvidence, approvers []OrderFeeSupplementApprover) *AuditEvent {
+	// 审批人资格快照（含未绑定钉钉者）写入创建审计，保证「提交时谁有资格」
+	// 存在持久痕迹；通知收件人投影与审批资格仍以实时校验为准。
+	approverIDs := make([]string, 0, len(approvers))
+	for _, approver := range approvers {
+		approverIDs = append(approverIDs, approver.UserID.String())
+	}
+	sort.Strings(approverIDs)
 	details := map[string]string{
+		"approver_count":      strconv.Itoa(len(approverIDs)),
+		"approver_snapshot":   strings.Join(approverIDs, ","),
 		"request.id":          request.ID.String(),
 		"order.id":            request.OrderID.String(),
 		"lock_basis":          string(request.LockBasis),
@@ -321,9 +331,9 @@ func verifyLockBasis(request *OrderFeeSupplementRequest, evidence *OrderFeeSuppl
 		return ErrFeeSupplementInvalidArgument
 	}
 	if evidence.BusinessLocked || evidence.FinancialLocked {
-		return errors.Conflict("LOCK_BASIS_CHANGED", "申请提交时的锁依据已全部失效，订单当前存在新的锁，请重新发起补录申请")
+		return newLockBasisChangedError(LockBasisChangedRecreateSupplement, "申请提交时的锁依据已全部失效，订单当前存在新的锁，请重新发起补录申请")
 	}
-	return errors.Conflict("LOCK_BASIS_CHANGED", "申请提交时的锁依据已全部失效，订单当前已无任何锁，请改走普通费用新增入口")
+	return newLockBasisChangedError(LockBasisChangedUseNormalFeeEntry, "申请提交时的锁依据已全部失效，订单当前已无任何锁，请改走普通费用新增入口")
 }
 
 // Approve 按 design 第 5 节九步固定顺序执行：Order 行锁 → 申请行锁校验版本与
