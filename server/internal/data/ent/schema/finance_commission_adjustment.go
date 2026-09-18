@@ -3,6 +3,8 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -13,6 +15,20 @@ import (
 type FinanceCommissionAdjustment struct{ ent.Schema }
 
 func (FinanceCommissionAdjustment) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
+
+func (FinanceCommissionAdjustment) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Checks(map[string]string{
+			"commission_adjustment_direction_check":       "direction IN ('INCREASE', 'DECREASE')",
+			"commission_adjustment_status_check":          "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+			"commission_adjustment_amount_positive":       "amount > 0",
+			"commission_adjustment_source_type_check":     "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
+			// 来源关联互斥：仅锁后费用补录来源允许且必须携带补录申请关联；
+			// 人工与核销/对冲冲减来源不得携带该关联，防止来源错配绕过唯一键。
+			"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
+		}),
+	}
+}
 
 func (FinanceCommissionAdjustment) Fields() []ent.Field {
 	return []ent.Field{
@@ -25,8 +41,11 @@ func (FinanceCommissionAdjustment) Fields() []ent.Field {
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
-		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL").Default("MANUAL").Immutable(),
+		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT").Default("MANUAL").Immutable(),
 		field.UUID("source_verification_id", uuid.Nil).Optional().Nillable().Immutable(),
+		// 锁后费用补录来源的补录申请关联：数据库 CHECK 强制与 LOCKED_FEE_SUPPLEMENT
+		// 双向对应，外键 NO ACTION 禁止删除申请造成孤儿调整。
+		field.UUID("source_fee_supplement_request_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Enum("direction").Values("INCREASE", "DECREASE").Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "PAID", "CANCELLED").Default("DRAFT"),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
@@ -51,6 +70,7 @@ func (FinanceCommissionAdjustment) Edges() []ent.Edge {
 		edge.From("order", Order.Type).Ref("finance_commission_adjustments").Field("order_id").Unique().Required().Immutable(),
 		edge.From("employee", User.Type).Ref("finance_commission_adjustments").Field("employee_id").Unique().Required().Immutable(),
 		edge.From("source_verification", FinanceVerification.Type).Ref("commission_reversal_adjustments").Field("source_verification_id").Unique().Immutable(),
+		edge.From("source_fee_supplement_request", OrderFeeSupplementRequest.Type).Ref("commission_adjustments").Field("source_fee_supplement_request_id").Unique().Immutable(),
 		edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_commission_adjustments").Field("confirmed_by").Unique(),
 		edge.From("paid_by_user", User.Type).Ref("paid_finance_commission_adjustments").Field("paid_by").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_commission_adjustments").Field("cancelled_by").Unique(),
@@ -64,5 +84,7 @@ func (FinanceCommissionAdjustment) Indexes() []ent.Index {
 		index.Fields("commission_id", "status", "created_at"),
 		index.Fields("order_id", "status"),
 		index.Fields("commission_id", "order_id", "source_type", "source_verification_id").Unique(),
+		// 锁后补录建议去重：同一原提成订单行对同一补录申请只生成一条调整。
+		index.Fields("commission_id", "order_id", "source_type", "source_fee_supplement_request_id").Unique(),
 	}
 }

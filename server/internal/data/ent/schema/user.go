@@ -101,6 +101,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("decided_order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
+		edge.To("requested_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
+		edge.To("decided_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
 		edge.To("created_sea_master_bill_versions", SeaMasterBillVersion.Type),
 		edge.To("created_sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("created_sea_document_void_events", SeaDocumentVoidEvent.Type),

@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -37,6 +38,7 @@ type OrderFeeQuery struct {
 	withSettlementParty    *PartnerQuery
 	withBillingUnitRef     *BillingUnitQuery
 	withCancelledByUser    *UserQuery
+	withSupplementRequest  *OrderFeeSupplementRequestQuery
 	withFinanceBillLines   *FinanceBillLineQuery
 	withEnterpriseTagLinks *OrderFeeEnterpriseTagQuery
 	modifiers              []func(*sql.Selector)
@@ -179,6 +181,28 @@ func (_q *OrderFeeQuery) QueryCancelledByUser() *UserQuery {
 			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.CancelledByUserTable, orderfee.CancelledByUserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySupplementRequest chains the current query on the "supplement_request" edge.
+func (_q *OrderFeeQuery) QuerySupplementRequest() *OrderFeeSupplementRequestQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SupplementRequestTable, orderfee.SupplementRequestColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -427,6 +451,7 @@ func (_q *OrderFeeQuery) Clone() *OrderFeeQuery {
 		withSettlementParty:    _q.withSettlementParty.Clone(),
 		withBillingUnitRef:     _q.withBillingUnitRef.Clone(),
 		withCancelledByUser:    _q.withCancelledByUser.Clone(),
+		withSupplementRequest:  _q.withSupplementRequest.Clone(),
 		withFinanceBillLines:   _q.withFinanceBillLines.Clone(),
 		withEnterpriseTagLinks: _q.withEnterpriseTagLinks.Clone(),
 		// clone intermediate query.
@@ -487,6 +512,17 @@ func (_q *OrderFeeQuery) WithCancelledByUser(opts ...func(*UserQuery)) *OrderFee
 		opt(query)
 	}
 	_q.withCancelledByUser = query
+	return _q
+}
+
+// WithSupplementRequest tells the query-builder to eager-load the nodes that are connected to
+// the "supplement_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithSupplementRequest(opts ...func(*OrderFeeSupplementRequestQuery)) *OrderFeeQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSupplementRequest = query
 	return _q
 }
 
@@ -590,12 +626,13 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	var (
 		nodes       = []*OrderFee{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrder != nil,
 			_q.withFeeSetting != nil,
 			_q.withSettlementParty != nil,
 			_q.withBillingUnitRef != nil,
 			_q.withCancelledByUser != nil,
+			_q.withSupplementRequest != nil,
 			_q.withFinanceBillLines != nil,
 			_q.withEnterpriseTagLinks != nil,
 		}
@@ -648,6 +685,12 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	if query := _q.withCancelledByUser; query != nil {
 		if err := _q.loadCancelledByUser(ctx, query, nodes, nil,
 			func(n *OrderFee, e *User) { n.Edges.CancelledByUser = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSupplementRequest; query != nil {
+		if err := _q.loadSupplementRequest(ctx, query, nodes, nil,
+			func(n *OrderFee, e *OrderFeeSupplementRequest) { n.Edges.SupplementRequest = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -824,6 +867,38 @@ func (_q *OrderFeeQuery) loadCancelledByUser(ctx context.Context, query *UserQue
 	}
 	return nil
 }
+func (_q *OrderFeeQuery) loadSupplementRequest(ctx context.Context, query *OrderFeeSupplementRequestQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFeeSupplementRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderFee)
+	for i := range nodes {
+		if nodes[i].SupplementRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].SupplementRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeesupplementrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "supplement_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *OrderFeeQuery) loadFinanceBillLines(ctx context.Context, query *FinanceBillLineQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *FinanceBillLine)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*OrderFee)
@@ -927,6 +1002,9 @@ func (_q *OrderFeeQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCancelledByUser != nil {
 			_spec.Node.AddColumnOnce(orderfee.FieldCancelledBy)
+		}
+		if _q.withSupplementRequest != nil {
+			_spec.Node.AddColumnOnce(orderfee.FieldSupplementRequestID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

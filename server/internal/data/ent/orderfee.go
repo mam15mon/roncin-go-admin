@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -83,6 +84,8 @@ type OrderFee struct {
 	ExpenseDate string `json:"expense_date,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// SupplementRequestID holds the value of the "supplement_request_id" field.
+	SupplementRequestID *uuid.UUID `json:"supplement_request_id,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// CancelledAt holds the value of the "cancelled_at" field.
@@ -109,13 +112,15 @@ type OrderFeeEdges struct {
 	BillingUnitRef *BillingUnit `json:"billing_unit_ref,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
+	// SupplementRequest holds the value of the supplement_request edge.
+	SupplementRequest *OrderFeeSupplementRequest `json:"supplement_request,omitempty"`
 	// FinanceBillLines holds the value of the finance_bill_lines edge.
 	FinanceBillLines []*FinanceBillLine `json:"finance_bill_lines,omitempty"`
 	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
 	EnterpriseTagLinks []*OrderFeeEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -173,10 +178,21 @@ func (e OrderFeeEdges) CancelledByUserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
 }
 
+// SupplementRequestOrErr returns the SupplementRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) SupplementRequestOrErr() (*OrderFeeSupplementRequest, error) {
+	if e.SupplementRequest != nil {
+		return e.SupplementRequest, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: orderfeesupplementrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "supplement_request"}
+}
+
 // FinanceBillLinesOrErr returns the FinanceBillLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.FinanceBillLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_lines"}
@@ -185,7 +201,7 @@ func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
 // EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeEdges) EnterpriseTagLinksOrErr() ([]*OrderFeeEnterpriseTag, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.EnterpriseTagLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
@@ -196,7 +212,7 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldCancelledBy:
+		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldSupplementRequestID, orderfee.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderfee.FieldTaxInclusive:
 			values[i] = new(sql.NullBool)
@@ -415,6 +431,13 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Note = value.String
 			}
+		case orderfee.FieldSupplementRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field supplement_request_id", values[i])
+			} else if value.Valid {
+				_m.SupplementRequestID = new(uuid.UUID)
+				*_m.SupplementRequestID = *value.S.(*uuid.UUID)
+			}
 		case orderfee.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -478,6 +501,11 @@ func (_m *OrderFee) QueryBillingUnitRef() *BillingUnitQuery {
 // QueryCancelledByUser queries the "cancelled_by_user" edge of the OrderFee entity.
 func (_m *OrderFee) QueryCancelledByUser() *UserQuery {
 	return NewOrderFeeClient(_m.config).QueryCancelledByUser(_m)
+}
+
+// QuerySupplementRequest queries the "supplement_request" edge of the OrderFee entity.
+func (_m *OrderFee) QuerySupplementRequest() *OrderFeeSupplementRequestQuery {
+	return NewOrderFeeClient(_m.config).QuerySupplementRequest(_m)
 }
 
 // QueryFinanceBillLines queries the "finance_bill_lines" edge of the OrderFee entity.
@@ -614,6 +642,11 @@ func (_m *OrderFee) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)
+	builder.WriteString(", ")
+	if v := _m.SupplementRequestID; v != nil {
+		builder.WriteString("supplement_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

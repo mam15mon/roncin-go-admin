@@ -129,6 +129,8 @@ const (
 	EdgeSeaOrderReassignmentEvents = "sea_order_reassignment_events"
 	// EdgeOrderLockRecords holds the string denoting the order_lock_records edge name in mutations.
 	EdgeOrderLockRecords = "order_lock_records"
+	// EdgeOrderFeeSupplementRequests holds the string denoting the order_fee_supplement_requests edge name in mutations.
+	EdgeOrderFeeSupplementRequests = "order_fee_supplement_requests"
 	// EdgeOrderLockHouseBillSnapshots holds the string denoting the order_lock_house_bill_snapshots edge name in mutations.
 	EdgeOrderLockHouseBillSnapshots = "order_lock_house_bill_snapshots"
 	// EdgeOrderUnlockRequests holds the string denoting the order_unlock_requests edge name in mutations.
@@ -473,6 +475,13 @@ const (
 	OrderLockRecordsInverseTable = "order_lock_records"
 	// OrderLockRecordsColumn is the table column denoting the order_lock_records relation/edge.
 	OrderLockRecordsColumn = "organization_id"
+	// OrderFeeSupplementRequestsTable is the table that holds the order_fee_supplement_requests relation/edge.
+	OrderFeeSupplementRequestsTable = "order_fee_supplement_requests"
+	// OrderFeeSupplementRequestsInverseTable is the table name for the OrderFeeSupplementRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeesupplementrequest" package.
+	OrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
+	// OrderFeeSupplementRequestsColumn is the table column denoting the order_fee_supplement_requests relation/edge.
+	OrderFeeSupplementRequestsColumn = "organization_id"
 	// OrderLockHouseBillSnapshotsTable is the table that holds the order_lock_house_bill_snapshots relation/edge.
 	OrderLockHouseBillSnapshotsTable = "order_lock_house_bill_snapshots"
 	// OrderLockHouseBillSnapshotsInverseTable is the table name for the OrderLockHouseBillSnapshot entity.
@@ -1333,6 +1342,20 @@ func ByOrderLockRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 	}
 }
 
+// ByOrderFeeSupplementRequestsCount orders the results by order_fee_supplement_requests count.
+func ByOrderFeeSupplementRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderFeeSupplementRequestsStep(), opts...)
+	}
+}
+
+// ByOrderFeeSupplementRequests orders the results by order_fee_supplement_requests terms.
+func ByOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderFeeSupplementRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderLockHouseBillSnapshotsCount orders the results by order_lock_house_bill_snapshots count.
 func ByOrderLockHouseBillSnapshotsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1834,6 +1857,13 @@ func newOrderLockRecordsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderLockRecordsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderLockRecordsTable, OrderLockRecordsColumn),
+	)
+}
+func newOrderFeeSupplementRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderFeeSupplementRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeSupplementRequestsTable, OrderFeeSupplementRequestsColumn),
 	)
 }
 func newOrderLockHouseBillSnapshotsStep() *sqlgraph.Step {

@@ -1831,7 +1831,7 @@ var (
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
-		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL"}, Default: "MANUAL"},
+		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT"}, Default: "MANUAL"},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -1846,6 +1846,7 @@ var (
 		{Name: "commission_id", Type: field.TypeUUID},
 		{Name: "source_verification_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "source_fee_supplement_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "employee_id", Type: field.TypeUUID},
 		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
@@ -1877,32 +1878,38 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "finance_commission_adjustments_organizations_finance_commission_adjustments",
+				Symbol:     "finance_commission_adjustments_order_fee_supplement_requests_commission_adjustments",
 				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[23]},
+				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_adjustments_organizations_finance_commission_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_confirmed_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_commission_adjustments_users_paid_finance_commission_adjustments",
 				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_commission_adjustments_users_cancelled_finance_commission_adjustments",
+				Symbol:     "finance_commission_adjustments_users_paid_finance_commission_adjustments",
 				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[27]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_commission_adjustments_users_cancelled_finance_commission_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1916,12 +1923,12 @@ var (
 			{
 				Name:    "financecommissionadjustment_organization_id_adjustment_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[23], FinanceCommissionAdjustmentsColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[24], FinanceCommissionAdjustmentsColumns[3]},
 			},
 			{
 				Name:    "financecommissionadjustment_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[23], FinanceCommissionAdjustmentsColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[24], FinanceCommissionAdjustmentsColumns[4]},
 			},
 			{
 				Name:    "financecommissionadjustment_commission_id_status_created_at",
@@ -1937,6 +1944,11 @@ var (
 				Name:    "financecommissionadjustment_commission_id_order_id_source_type_source_verification_id",
 				Unique:  true,
 				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[20], FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[21]},
+			},
+			{
+				Name:    "financecommissionadjustment_commission_id_order_id_source_type_source_fee_supplement_request_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[20], FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[23]},
 			},
 		},
 	}
@@ -1966,6 +1978,13 @@ var (
 		{Name: "commission_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "rate_percent", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
 		{Name: "commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "total_receivable_snapshot", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "total_payable_snapshot", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "snapshot_status", Type: field.TypeEnum, Nullable: true, Enums: []string{"READY", "UNAVAILABLE"}},
+		{Name: "snapshot_source", Type: field.TypeEnum, Nullable: true, Enums: []string{"NATIVE", "MIGRATED"}},
+		{Name: "snapshot_backfill_version", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "snapshot_evidence_hash", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "snapshot_unavailable_reason_code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "commission_id", Type: field.TypeUUID},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -1978,19 +1997,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commission_lines_finance_commissions_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[24]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[31]},
 				RefColumns: []*schema.Column{FinanceCommissionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_lines_orders_finance_commission_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[25]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[32]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_lines_organizations_finance_commission_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[26]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[33]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2004,17 +2023,17 @@ var (
 			{
 				Name:    "financecommissionline_commission_id_order_id",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[24], FinanceCommissionLinesColumns[25]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[31], FinanceCommissionLinesColumns[32]},
 			},
 			{
 				Name:    "financecommissionline_organization_id_employee_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[26], FinanceCommissionLinesColumns[13]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[33], FinanceCommissionLinesColumns[13]},
 			},
 			{
 				Name:    "financecommissionline_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[25]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[32]},
 			},
 		},
 	}
@@ -2823,7 +2842,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "channel", Type: field.TypeEnum, Enums: []string{"DINGTALK"}},
-		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED", "DINGTALK_REGISTRATION_PENDING", "DINGTALK_REGISTRATION_REJECTED", "DINGTALK_INVITATION_ACTIVATED", "EXCHANGE_RATE_WEEKLY_REMINDER"}},
+		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED", "DINGTALK_REGISTRATION_PENDING", "DINGTALK_REGISTRATION_REJECTED", "DINGTALK_INVITATION_ACTIVATED", "EXCHANGE_RATE_WEEKLY_REMINDER", "FEE_SUPPLEMENT_APPROVAL_PENDING", "COMMISSION_DECREASE_SUGGESTED"}},
 		{Name: "resource_type", Type: field.TypeString, Size: 64},
 		{Name: "resource_id", Type: field.TypeUUID},
 		{Name: "reference_code", Type: field.TypeString, Nullable: true, Size: 64},
@@ -3676,6 +3695,7 @@ var (
 		{Name: "billing_unit_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "fee_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "supplement_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -3704,14 +3724,20 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_fees_partners_order_fees",
+				Symbol:     "order_fees_order_fee_supplement_requests_fees",
 				Columns:    []*schema.Column{OrderFeesColumns[33]},
+				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_partners_order_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[34]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_users_cancelled_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[34]},
+				Columns:    []*schema.Column{OrderFeesColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -3726,6 +3752,11 @@ var (
 				Name:    "orderfee_order_id_idempotency_key",
 				Unique:  true,
 				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[3]},
+			},
+			{
+				Name:    "orderfee_supplement_request_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeesColumns[33]},
 			},
 			{
 				Name:    "orderfee_order_id_direction_created_at",
@@ -3750,7 +3781,7 @@ var (
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[4], OrderFeesColumns[18]},
+				Columns: []*schema.Column{OrderFeesColumns[34], OrderFeesColumns[4], OrderFeesColumns[18]},
 			},
 		},
 	}
@@ -3808,6 +3839,108 @@ var (
 				Name:    "orderfeeenterprisetag_order_fee_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrderFeeEnterpriseTagsColumns[4]},
+			},
+		},
+	}
+	// OrderFeeSupplementRequestsColumns holds the columns for the "order_fee_supplement_requests" table.
+	OrderFeeSupplementRequestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "lock_basis", Type: field.TypeEnum, Enums: []string{"BUSINESS", "FINANCIAL", "BOTH"}},
+		{Name: "business_lock_generation", Type: field.TypeUint64, Nullable: true},
+		{Name: "financial_lock_evidence_version", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "financial_lock_evidence_hash", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "financial_lock_net_amount_snapshot", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 128},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "fee_setting_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "fee_code", Type: field.TypeString, Size: 30},
+		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "fee_name_en", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "billing_unit_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "billing_unit", Type: field.TypeString, Size: 32},
+		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "taxable_service_name", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_inclusive", Type: field.TypeBool, Default: true},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "MANUAL", "DERIVED", "WEEKLY", "INHERITED_LAST_WEEK", "BOC_SYNC"}},
+		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
+		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "expense_date", Type: field.TypeString, Size: 10},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED", "WITHDRAWN"}, Default: "PENDING"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "decision_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "requested_by", Type: field.TypeUUID},
+		{Name: "decided_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderFeeSupplementRequestsTable holds the schema information for the "order_fee_supplement_requests" table.
+	OrderFeeSupplementRequestsTable = &schema.Table{
+		Name:       "order_fee_supplement_requests",
+		Columns:    OrderFeeSupplementRequestsColumns,
+		PrimaryKey: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_fee_supplement_requests_orders_fee_supplement_requests",
+				Columns:    []*schema.Column{OrderFeeSupplementRequestsColumns[41]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_supplement_requests_organizations_order_fee_supplement_requests",
+				Columns:    []*schema.Column{OrderFeeSupplementRequestsColumns[42]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_supplement_requests_users_requested_order_fee_supplement_requests",
+				Columns:    []*schema.Column{OrderFeeSupplementRequestsColumns[43]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_supplement_requests_users_decided_order_fee_supplement_requests",
+				Columns:    []*schema.Column{OrderFeeSupplementRequestsColumns[44]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderfeesupplementrequest_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeSupplementRequestsColumns[2]},
+			},
+			{
+				Name:    "orderfeesupplementrequest_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeeSupplementRequestsColumns[42], OrderFeeSupplementRequestsColumns[8]},
+			},
+			{
+				Name:    "orderfeesupplementrequest_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeSupplementRequestsColumns[42], OrderFeeSupplementRequestsColumns[41]},
+			},
+			{
+				Name:    "orderfeesupplementrequest_order_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeSupplementRequestsColumns[41], OrderFeeSupplementRequestsColumns[37]},
 			},
 		},
 	}
@@ -6792,6 +6925,7 @@ var (
 		OrderEnterpriseTagsTable,
 		OrderFeesTable,
 		OrderFeeEnterpriseTagsTable,
+		OrderFeeSupplementRequestsTable,
 		OrderLifecycleEventsTable,
 		OrderLockHouseBillSnapshotsTable,
 		OrderLockRecordsTable,
@@ -6918,14 +7052,27 @@ func init() {
 	FinanceCommissionAdjustmentsTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = FinanceVerificationsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = OrdersTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = OrganizationsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = OrderFeeSupplementRequestsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[4].RefTable = OrganizationsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[6].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[7].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[8].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.Annotation = &entsql.Annotation{}
+	FinanceCommissionAdjustmentsTable.Annotation.Checks = map[string]string{
+		"commission_adjustment_amount_positive":         "amount > 0",
+		"commission_adjustment_direction_check":         "direction IN ('INCREASE', 'DECREASE')",
+		"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
+		"commission_adjustment_source_type_check":       "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
+		"commission_adjustment_status_check":            "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+	}
 	FinanceCommissionLinesTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
 	FinanceCommissionLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceCommissionLinesTable.ForeignKeys[2].RefTable = OrganizationsTable
+	FinanceCommissionLinesTable.Annotation = &entsql.Annotation{}
+	FinanceCommissionLinesTable.Annotation.Checks = map[string]string{
+		"finance_commission_lines_snapshot_consistency_check": "(snapshot_status IS NULL AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NULL) OR (snapshot_status = 'READY' AND total_receivable_snapshot IS NOT NULL AND total_payable_snapshot IS NOT NULL AND snapshot_unavailable_reason_code IS NULL AND snapshot_source IS NOT NULL AND ((snapshot_source = 'NATIVE' AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL) OR (snapshot_source = 'MIGRATED' AND snapshot_backfill_version IS NOT NULL AND snapshot_evidence_hash IS NOT NULL))) OR (snapshot_status = 'UNAVAILABLE' AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NOT NULL)",
+	}
 	FinanceCommissionRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
@@ -7007,11 +7154,21 @@ func init() {
 	OrderFeesTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
-	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
-	OrderFeesTable.ForeignKeys[4].RefTable = UsersTable
+	OrderFeesTable.ForeignKeys[3].RefTable = OrderFeeSupplementRequestsTable
+	OrderFeesTable.ForeignKeys[4].RefTable = PartnersTable
+	OrderFeesTable.ForeignKeys[5].RefTable = UsersTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[1].RefTable = OrderFeesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	OrderFeeSupplementRequestsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderFeeSupplementRequestsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	OrderFeeSupplementRequestsTable.ForeignKeys[2].RefTable = UsersTable
+	OrderFeeSupplementRequestsTable.ForeignKeys[3].RefTable = UsersTable
+	OrderFeeSupplementRequestsTable.Annotation = &entsql.Annotation{}
+	OrderFeeSupplementRequestsTable.Annotation.Checks = map[string]string{
+		"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
+		"order_fee_supplement_requests_status_check":     "status IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
+	}
 	OrderLifecycleEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderLifecycleEventsTable.Annotation = &entsql.Annotation{}
 	OrderLifecycleEventsTable.Annotation.Checks = map[string]string{

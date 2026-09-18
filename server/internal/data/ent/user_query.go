@@ -35,6 +35,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
@@ -105,6 +106,8 @@ type UserQuery struct {
 	withOrderUnlockRequests                   *OrderUnlockRequestQuery
 	withDecidedOrderUnlockRequests            *OrderUnlockRequestQuery
 	withOrderUnlockApproverCandidates         *OrderUnlockApproverCandidateQuery
+	withRequestedOrderFeeSupplementRequests   *OrderFeeSupplementRequestQuery
+	withDecidedOrderFeeSupplementRequests     *OrderFeeSupplementRequestQuery
 	withCreatedSeaMasterBillVersions          *SeaMasterBillVersionQuery
 	withCreatedSeaHouseBillVersions           *SeaHouseBillVersionQuery
 	withCreatedSeaDocumentVoidEvents          *SeaDocumentVoidEventQuery
@@ -1119,6 +1122,50 @@ func (_q *UserQuery) QueryOrderUnlockApproverCandidates() *OrderUnlockApproverCa
 	return query
 }
 
+// QueryRequestedOrderFeeSupplementRequests chains the current query on the "requested_order_fee_supplement_requests" edge.
+func (_q *UserQuery) QueryRequestedOrderFeeSupplementRequests() *OrderFeeSupplementRequestQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RequestedOrderFeeSupplementRequestsTable, user.RequestedOrderFeeSupplementRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDecidedOrderFeeSupplementRequests chains the current query on the "decided_order_fee_supplement_requests" edge.
+func (_q *UserQuery) QueryDecidedOrderFeeSupplementRequests() *OrderFeeSupplementRequestQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DecidedOrderFeeSupplementRequestsTable, user.DecidedOrderFeeSupplementRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryCreatedSeaMasterBillVersions chains the current query on the "created_sea_master_bill_versions" edge.
 func (_q *UserQuery) QueryCreatedSeaMasterBillVersions() *SeaMasterBillVersionQuery {
 	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
@@ -1553,6 +1600,8 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withOrderUnlockRequests:                   _q.withOrderUnlockRequests.Clone(),
 		withDecidedOrderUnlockRequests:            _q.withDecidedOrderUnlockRequests.Clone(),
 		withOrderUnlockApproverCandidates:         _q.withOrderUnlockApproverCandidates.Clone(),
+		withRequestedOrderFeeSupplementRequests:   _q.withRequestedOrderFeeSupplementRequests.Clone(),
+		withDecidedOrderFeeSupplementRequests:     _q.withDecidedOrderFeeSupplementRequests.Clone(),
 		withCreatedSeaMasterBillVersions:          _q.withCreatedSeaMasterBillVersions.Clone(),
 		withCreatedSeaHouseBillVersions:           _q.withCreatedSeaHouseBillVersions.Clone(),
 		withCreatedSeaDocumentVoidEvents:          _q.withCreatedSeaDocumentVoidEvents.Clone(),
@@ -2052,6 +2101,28 @@ func (_q *UserQuery) WithOrderUnlockApproverCandidates(opts ...func(*OrderUnlock
 	return _q
 }
 
+// WithRequestedOrderFeeSupplementRequests tells the query-builder to eager-load the nodes that are connected to
+// the "requested_order_fee_supplement_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRequestedOrderFeeSupplementRequests(opts ...func(*OrderFeeSupplementRequestQuery)) *UserQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRequestedOrderFeeSupplementRequests = query
+	return _q
+}
+
+// WithDecidedOrderFeeSupplementRequests tells the query-builder to eager-load the nodes that are connected to
+// the "decided_order_fee_supplement_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithDecidedOrderFeeSupplementRequests(opts ...func(*OrderFeeSupplementRequestQuery)) *UserQuery {
+	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDecidedOrderFeeSupplementRequests = query
+	return _q
+}
+
 // WithCreatedSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
 // the "created_sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithCreatedSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *UserQuery {
@@ -2229,7 +2300,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [53]bool{
+		loadedTypes = [55]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2274,6 +2345,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withOrderUnlockRequests != nil,
 			_q.withDecidedOrderUnlockRequests != nil,
 			_q.withOrderUnlockApproverCandidates != nil,
+			_q.withRequestedOrderFeeSupplementRequests != nil,
+			_q.withDecidedOrderFeeSupplementRequests != nil,
 			_q.withCreatedSeaMasterBillVersions != nil,
 			_q.withCreatedSeaHouseBillVersions != nil,
 			_q.withCreatedSeaDocumentVoidEvents != nil,
@@ -2686,6 +2759,24 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.OrderUnlockApproverCandidates = []*OrderUnlockApproverCandidate{} },
 			func(n *User, e *OrderUnlockApproverCandidate) {
 				n.Edges.OrderUnlockApproverCandidates = append(n.Edges.OrderUnlockApproverCandidates, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRequestedOrderFeeSupplementRequests; query != nil {
+		if err := _q.loadRequestedOrderFeeSupplementRequests(ctx, query, nodes,
+			func(n *User) { n.Edges.RequestedOrderFeeSupplementRequests = []*OrderFeeSupplementRequest{} },
+			func(n *User, e *OrderFeeSupplementRequest) {
+				n.Edges.RequestedOrderFeeSupplementRequests = append(n.Edges.RequestedOrderFeeSupplementRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDecidedOrderFeeSupplementRequests; query != nil {
+		if err := _q.loadDecidedOrderFeeSupplementRequests(ctx, query, nodes,
+			func(n *User) { n.Edges.DecidedOrderFeeSupplementRequests = []*OrderFeeSupplementRequest{} },
+			func(n *User, e *OrderFeeSupplementRequest) {
+				n.Edges.DecidedOrderFeeSupplementRequests = append(n.Edges.DecidedOrderFeeSupplementRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4173,6 +4264,69 @@ func (_q *UserQuery) loadOrderUnlockApproverCandidates(ctx context.Context, quer
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRequestedOrderFeeSupplementRequests(ctx context.Context, query *OrderFeeSupplementRequestQuery, nodes []*User, init func(*User), assign func(*User, *OrderFeeSupplementRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeesupplementrequest.FieldRequestedBy)
+	}
+	query.Where(predicate.OrderFeeSupplementRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RequestedOrderFeeSupplementRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RequestedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "requested_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadDecidedOrderFeeSupplementRequests(ctx context.Context, query *OrderFeeSupplementRequestQuery, nodes []*User, init func(*User), assign func(*User, *OrderFeeSupplementRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeesupplementrequest.FieldDecidedBy)
+	}
+	query.Where(predicate.OrderFeeSupplementRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.DecidedOrderFeeSupplementRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DecidedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "decided_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "decided_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

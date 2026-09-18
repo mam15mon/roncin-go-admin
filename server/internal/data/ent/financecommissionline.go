@@ -73,6 +73,20 @@ type FinanceCommissionLine struct {
 	RatePercent string `json:"rate_percent,omitempty"`
 	// CommissionAmount holds the value of the "commission_amount" field.
 	CommissionAmount string `json:"commission_amount,omitempty"`
+	// TotalReceivableSnapshot holds the value of the "total_receivable_snapshot" field.
+	TotalReceivableSnapshot *string `json:"total_receivable_snapshot,omitempty"`
+	// TotalPayableSnapshot holds the value of the "total_payable_snapshot" field.
+	TotalPayableSnapshot *string `json:"total_payable_snapshot,omitempty"`
+	// SnapshotStatus holds the value of the "snapshot_status" field.
+	SnapshotStatus *financecommissionline.SnapshotStatus `json:"snapshot_status,omitempty"`
+	// SnapshotSource holds the value of the "snapshot_source" field.
+	SnapshotSource *financecommissionline.SnapshotSource `json:"snapshot_source,omitempty"`
+	// SnapshotBackfillVersion holds the value of the "snapshot_backfill_version" field.
+	SnapshotBackfillVersion *string `json:"snapshot_backfill_version,omitempty"`
+	// SnapshotEvidenceHash holds the value of the "snapshot_evidence_hash" field.
+	SnapshotEvidenceHash *string `json:"snapshot_evidence_hash,omitempty"`
+	// SnapshotUnavailableReasonCode holds the value of the "snapshot_unavailable_reason_code" field.
+	SnapshotUnavailableReasonCode *string `json:"snapshot_unavailable_reason_code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FinanceCommissionLineQuery when eager-loading is set.
 	Edges        FinanceCommissionLineEdges `json:"edges"`
@@ -132,7 +146,7 @@ func (*FinanceCommissionLine) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financecommissionline.FieldFeeCount:
 			values[i] = new(sql.NullInt64)
-		case financecommissionline.FieldOrderNo, financecommissionline.FieldOrderDate, financecommissionline.FieldCustomerCode, financecommissionline.FieldCustomerName, financecommissionline.FieldFeeSnapshot, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldCommissionBaseAmount, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount:
+		case financecommissionline.FieldOrderNo, financecommissionline.FieldOrderDate, financecommissionline.FieldCustomerCode, financecommissionline.FieldCustomerName, financecommissionline.FieldFeeSnapshot, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldCommissionBaseAmount, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount, financecommissionline.FieldTotalReceivableSnapshot, financecommissionline.FieldTotalPayableSnapshot, financecommissionline.FieldSnapshotStatus, financecommissionline.FieldSnapshotSource, financecommissionline.FieldSnapshotBackfillVersion, financecommissionline.FieldSnapshotEvidenceHash, financecommissionline.FieldSnapshotUnavailableReasonCode:
 			values[i] = new(sql.NullString)
 		case financecommissionline.FieldCreatedAt, financecommissionline.FieldUpdatedAt, financecommissionline.FieldPersonnelAssignedAt:
 			values[i] = new(sql.NullTime)
@@ -315,6 +329,55 @@ func (_m *FinanceCommissionLine) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.CommissionAmount = value.String
 			}
+		case financecommissionline.FieldTotalReceivableSnapshot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field total_receivable_snapshot", values[i])
+			} else if value.Valid {
+				_m.TotalReceivableSnapshot = new(string)
+				*_m.TotalReceivableSnapshot = value.String
+			}
+		case financecommissionline.FieldTotalPayableSnapshot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field total_payable_snapshot", values[i])
+			} else if value.Valid {
+				_m.TotalPayableSnapshot = new(string)
+				*_m.TotalPayableSnapshot = value.String
+			}
+		case financecommissionline.FieldSnapshotStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field snapshot_status", values[i])
+			} else if value.Valid {
+				_m.SnapshotStatus = new(financecommissionline.SnapshotStatus)
+				*_m.SnapshotStatus = financecommissionline.SnapshotStatus(value.String)
+			}
+		case financecommissionline.FieldSnapshotSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field snapshot_source", values[i])
+			} else if value.Valid {
+				_m.SnapshotSource = new(financecommissionline.SnapshotSource)
+				*_m.SnapshotSource = financecommissionline.SnapshotSource(value.String)
+			}
+		case financecommissionline.FieldSnapshotBackfillVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field snapshot_backfill_version", values[i])
+			} else if value.Valid {
+				_m.SnapshotBackfillVersion = new(string)
+				*_m.SnapshotBackfillVersion = value.String
+			}
+		case financecommissionline.FieldSnapshotEvidenceHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field snapshot_evidence_hash", values[i])
+			} else if value.Valid {
+				_m.SnapshotEvidenceHash = new(string)
+				*_m.SnapshotEvidenceHash = value.String
+			}
+		case financecommissionline.FieldSnapshotUnavailableReasonCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field snapshot_unavailable_reason_code", values[i])
+			} else if value.Valid {
+				_m.SnapshotUnavailableReasonCode = new(string)
+				*_m.SnapshotUnavailableReasonCode = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -443,6 +506,41 @@ func (_m *FinanceCommissionLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("commission_amount=")
 	builder.WriteString(_m.CommissionAmount)
+	builder.WriteString(", ")
+	if v := _m.TotalReceivableSnapshot; v != nil {
+		builder.WriteString("total_receivable_snapshot=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.TotalPayableSnapshot; v != nil {
+		builder.WriteString("total_payable_snapshot=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SnapshotStatus; v != nil {
+		builder.WriteString("snapshot_status=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SnapshotSource; v != nil {
+		builder.WriteString("snapshot_source=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SnapshotBackfillVersion; v != nil {
+		builder.WriteString("snapshot_backfill_version=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SnapshotEvidenceHash; v != nil {
+		builder.WriteString("snapshot_evidence_hash=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SnapshotUnavailableReasonCode; v != nil {
+		builder.WriteString("snapshot_unavailable_reason_code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

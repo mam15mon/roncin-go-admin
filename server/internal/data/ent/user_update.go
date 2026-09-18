@@ -33,6 +33,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
@@ -971,6 +972,36 @@ func (_u *UserUpdate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApprover
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// AddRequestedOrderFeeSupplementRequestIDs adds the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *UserUpdate) AddRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddRequestedOrderFeeSupplementRequests adds the "requested_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdate) AddRequestedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *UserUpdate) AddDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddDecidedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddDecidedOrderFeeSupplementRequests adds the "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdate) AddDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDecidedOrderFeeSupplementRequestIDs(ids...)
 }
 
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
@@ -2025,6 +2056,48 @@ func (_u *UserUpdate) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockAppro
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// ClearRequestedOrderFeeSupplementRequests clears all "requested_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdate) ClearRequestedOrderFeeSupplementRequests() *UserUpdate {
+	_u.mutation.ClearRequestedOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveRequestedOrderFeeSupplementRequestIDs removes the "requested_order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *UserUpdate) RemoveRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveRequestedOrderFeeSupplementRequests removes "requested_order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *UserUpdate) RemoveRequestedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearDecidedOrderFeeSupplementRequests clears all "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdate) ClearDecidedOrderFeeSupplementRequests() *UserUpdate {
+	_u.mutation.ClearDecidedOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveDecidedOrderFeeSupplementRequestIDs removes the "decided_order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *UserUpdate) RemoveDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDecidedOrderFeeSupplementRequests removes "decided_order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *UserUpdate) RemoveDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
 }
 
 // ClearCreatedSeaMasterBillVersions clears all "created_sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
@@ -4351,6 +4424,96 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.RequestedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRequestedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.RequestedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequestedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DecidedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDecidedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.DecidedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DecidedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.CreatedSeaMasterBillVersionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5668,6 +5831,36 @@ func (_u *UserUpdateOne) AddOrderUnlockApproverCandidates(v ...*OrderUnlockAppro
 	return _u.AddOrderUnlockApproverCandidateIDs(ids...)
 }
 
+// AddRequestedOrderFeeSupplementRequestIDs adds the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *UserUpdateOne) AddRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddRequestedOrderFeeSupplementRequests adds the "requested_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdateOne) AddRequestedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *UserUpdateOne) AddDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddDecidedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddDecidedOrderFeeSupplementRequests adds the "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdateOne) AddDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDecidedOrderFeeSupplementRequestIDs(ids...)
+}
+
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
 func (_u *UserUpdateOne) AddCreatedSeaMasterBillVersionIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddCreatedSeaMasterBillVersionIDs(ids...)
@@ -6720,6 +6913,48 @@ func (_u *UserUpdateOne) RemoveOrderUnlockApproverCandidates(v ...*OrderUnlockAp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// ClearRequestedOrderFeeSupplementRequests clears all "requested_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdateOne) ClearRequestedOrderFeeSupplementRequests() *UserUpdateOne {
+	_u.mutation.ClearRequestedOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveRequestedOrderFeeSupplementRequestIDs removes the "requested_order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *UserUpdateOne) RemoveRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveRequestedOrderFeeSupplementRequests removes "requested_order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *UserUpdateOne) RemoveRequestedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearDecidedOrderFeeSupplementRequests clears all "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *UserUpdateOne) ClearDecidedOrderFeeSupplementRequests() *UserUpdateOne {
+	_u.mutation.ClearDecidedOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveDecidedOrderFeeSupplementRequestIDs removes the "decided_order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *UserUpdateOne) RemoveDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDecidedOrderFeeSupplementRequests removes "decided_order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *UserUpdateOne) RemoveDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
 }
 
 // ClearCreatedSeaMasterBillVersions clears all "created_sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
@@ -9069,6 +9304,96 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RequestedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRequestedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.RequestedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequestedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DecidedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDecidedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.DecidedOrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DecidedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

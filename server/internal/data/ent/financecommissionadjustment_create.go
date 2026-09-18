@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -135,6 +136,20 @@ func (_c *FinanceCommissionAdjustmentCreate) SetSourceVerificationID(v uuid.UUID
 func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceVerificationID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
 	if v != nil {
 		_c.SetSourceVerificationID(*v)
+	}
+	return _c
+}
+
+// SetSourceFeeSupplementRequestID sets the "source_fee_supplement_request_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeSupplementRequestID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSourceFeeSupplementRequestID(v)
+	return _c
+}
+
+// SetNillableSourceFeeSupplementRequestID sets the "source_fee_supplement_request_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceFeeSupplementRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSourceFeeSupplementRequestID(*v)
 	}
 	return _c
 }
@@ -340,6 +355,11 @@ func (_c *FinanceCommissionAdjustmentCreate) SetEmployee(v *User) *FinanceCommis
 // SetSourceVerification sets the "source_verification" edge to the FinanceVerification entity.
 func (_c *FinanceCommissionAdjustmentCreate) SetSourceVerification(v *FinanceVerification) *FinanceCommissionAdjustmentCreate {
 	return _c.SetSourceVerificationID(v.ID)
+}
+
+// SetSourceFeeSupplementRequest sets the "source_fee_supplement_request" edge to the OrderFeeSupplementRequest entity.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeSupplementRequest(v *OrderFeeSupplementRequest) *FinanceCommissionAdjustmentCreate {
+	return _c.SetSourceFeeSupplementRequestID(v.ID)
 }
 
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
@@ -785,6 +805,23 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 		_node.SourceVerificationID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.SourceFeeSupplementRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SourceFeeSupplementRequestTable,
+			Columns: []string{financecommissionadjustment.SourceFeeSupplementRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceFeeSupplementRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.ConfirmedByUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1126,6 +1163,9 @@ func (u *FinanceCommissionAdjustmentUpsertOne) UpdateNewValues() *FinanceCommiss
 		}
 		if _, exists := u.create.mutation.SourceVerificationID(); exists {
 			s.SetIgnore(financecommissionadjustment.FieldSourceVerificationID)
+		}
+		if _, exists := u.create.mutation.SourceFeeSupplementRequestID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 		}
 		if _, exists := u.create.mutation.Direction(); exists {
 			s.SetIgnore(financecommissionadjustment.FieldDirection)
@@ -1605,6 +1645,9 @@ func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateNewValues() *FinanceCommis
 			}
 			if _, exists := b.mutation.SourceVerificationID(); exists {
 				s.SetIgnore(financecommissionadjustment.FieldSourceVerificationID)
+			}
+			if _, exists := b.mutation.SourceFeeSupplementRequestID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 			}
 			if _, exists := b.mutation.Direction(); exists {
 				s.SetIgnore(financecommissionadjustment.FieldDirection)

@@ -207,6 +207,104 @@ func (_c *FinanceCommissionLineCreate) SetCommissionAmount(v string) *FinanceCom
 	return _c
 }
 
+// SetTotalReceivableSnapshot sets the "total_receivable_snapshot" field.
+func (_c *FinanceCommissionLineCreate) SetTotalReceivableSnapshot(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetTotalReceivableSnapshot(v)
+	return _c
+}
+
+// SetNillableTotalReceivableSnapshot sets the "total_receivable_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableTotalReceivableSnapshot(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetTotalReceivableSnapshot(*v)
+	}
+	return _c
+}
+
+// SetTotalPayableSnapshot sets the "total_payable_snapshot" field.
+func (_c *FinanceCommissionLineCreate) SetTotalPayableSnapshot(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetTotalPayableSnapshot(v)
+	return _c
+}
+
+// SetNillableTotalPayableSnapshot sets the "total_payable_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableTotalPayableSnapshot(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetTotalPayableSnapshot(*v)
+	}
+	return _c
+}
+
+// SetSnapshotStatus sets the "snapshot_status" field.
+func (_c *FinanceCommissionLineCreate) SetSnapshotStatus(v financecommissionline.SnapshotStatus) *FinanceCommissionLineCreate {
+	_c.mutation.SetSnapshotStatus(v)
+	return _c
+}
+
+// SetNillableSnapshotStatus sets the "snapshot_status" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableSnapshotStatus(v *financecommissionline.SnapshotStatus) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetSnapshotStatus(*v)
+	}
+	return _c
+}
+
+// SetSnapshotSource sets the "snapshot_source" field.
+func (_c *FinanceCommissionLineCreate) SetSnapshotSource(v financecommissionline.SnapshotSource) *FinanceCommissionLineCreate {
+	_c.mutation.SetSnapshotSource(v)
+	return _c
+}
+
+// SetNillableSnapshotSource sets the "snapshot_source" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableSnapshotSource(v *financecommissionline.SnapshotSource) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetSnapshotSource(*v)
+	}
+	return _c
+}
+
+// SetSnapshotBackfillVersion sets the "snapshot_backfill_version" field.
+func (_c *FinanceCommissionLineCreate) SetSnapshotBackfillVersion(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetSnapshotBackfillVersion(v)
+	return _c
+}
+
+// SetNillableSnapshotBackfillVersion sets the "snapshot_backfill_version" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableSnapshotBackfillVersion(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetSnapshotBackfillVersion(*v)
+	}
+	return _c
+}
+
+// SetSnapshotEvidenceHash sets the "snapshot_evidence_hash" field.
+func (_c *FinanceCommissionLineCreate) SetSnapshotEvidenceHash(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetSnapshotEvidenceHash(v)
+	return _c
+}
+
+// SetNillableSnapshotEvidenceHash sets the "snapshot_evidence_hash" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableSnapshotEvidenceHash(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetSnapshotEvidenceHash(*v)
+	}
+	return _c
+}
+
+// SetSnapshotUnavailableReasonCode sets the "snapshot_unavailable_reason_code" field.
+func (_c *FinanceCommissionLineCreate) SetSnapshotUnavailableReasonCode(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetSnapshotUnavailableReasonCode(v)
+	return _c
+}
+
+// SetNillableSnapshotUnavailableReasonCode sets the "snapshot_unavailable_reason_code" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableSnapshotUnavailableReasonCode(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetSnapshotUnavailableReasonCode(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FinanceCommissionLineCreate) SetID(v uuid.UUID) *FinanceCommissionLineCreate {
 	_c.mutation.SetID(v)
@@ -414,6 +512,31 @@ func (_c *FinanceCommissionLineCreate) check() error {
 	if _, ok := _c.mutation.CommissionAmount(); !ok {
 		return &ValidationError{Name: "commission_amount", err: errors.New(`ent: missing required field "FinanceCommissionLine.commission_amount"`)}
 	}
+	if v, ok := _c.mutation.SnapshotStatus(); ok {
+		if err := financecommissionline.SnapshotStatusValidator(v); err != nil {
+			return &ValidationError{Name: "snapshot_status", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.snapshot_status": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SnapshotSource(); ok {
+		if err := financecommissionline.SnapshotSourceValidator(v); err != nil {
+			return &ValidationError{Name: "snapshot_source", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.snapshot_source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SnapshotBackfillVersion(); ok {
+		if err := financecommissionline.SnapshotBackfillVersionValidator(v); err != nil {
+			return &ValidationError{Name: "snapshot_backfill_version", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.snapshot_backfill_version": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SnapshotEvidenceHash(); ok {
+		if err := financecommissionline.SnapshotEvidenceHashValidator(v); err != nil {
+			return &ValidationError{Name: "snapshot_evidence_hash", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.snapshot_evidence_hash": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SnapshotUnavailableReasonCode(); ok {
+		if err := financecommissionline.SnapshotUnavailableReasonCodeValidator(v); err != nil {
+			return &ValidationError{Name: "snapshot_unavailable_reason_code", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.snapshot_unavailable_reason_code": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "FinanceCommissionLine.organization"`)}
 	}
@@ -550,6 +673,34 @@ func (_c *FinanceCommissionLineCreate) createSpec() (*FinanceCommissionLine, *sq
 	if value, ok := _c.mutation.CommissionAmount(); ok {
 		_spec.SetField(financecommissionline.FieldCommissionAmount, field.TypeString, value)
 		_node.CommissionAmount = value
+	}
+	if value, ok := _c.mutation.TotalReceivableSnapshot(); ok {
+		_spec.SetField(financecommissionline.FieldTotalReceivableSnapshot, field.TypeString, value)
+		_node.TotalReceivableSnapshot = &value
+	}
+	if value, ok := _c.mutation.TotalPayableSnapshot(); ok {
+		_spec.SetField(financecommissionline.FieldTotalPayableSnapshot, field.TypeString, value)
+		_node.TotalPayableSnapshot = &value
+	}
+	if value, ok := _c.mutation.SnapshotStatus(); ok {
+		_spec.SetField(financecommissionline.FieldSnapshotStatus, field.TypeEnum, value)
+		_node.SnapshotStatus = &value
+	}
+	if value, ok := _c.mutation.SnapshotSource(); ok {
+		_spec.SetField(financecommissionline.FieldSnapshotSource, field.TypeEnum, value)
+		_node.SnapshotSource = &value
+	}
+	if value, ok := _c.mutation.SnapshotBackfillVersion(); ok {
+		_spec.SetField(financecommissionline.FieldSnapshotBackfillVersion, field.TypeString, value)
+		_node.SnapshotBackfillVersion = &value
+	}
+	if value, ok := _c.mutation.SnapshotEvidenceHash(); ok {
+		_spec.SetField(financecommissionline.FieldSnapshotEvidenceHash, field.TypeString, value)
+		_node.SnapshotEvidenceHash = &value
+	}
+	if value, ok := _c.mutation.SnapshotUnavailableReasonCode(); ok {
+		_spec.SetField(financecommissionline.FieldSnapshotUnavailableReasonCode, field.TypeString, value)
+		_node.SnapshotUnavailableReasonCode = &value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -757,6 +908,27 @@ func (u *FinanceCommissionLineUpsertOne) UpdateNewValues() *FinanceCommissionLin
 		}
 		if _, exists := u.create.mutation.CommissionAmount(); exists {
 			s.SetIgnore(financecommissionline.FieldCommissionAmount)
+		}
+		if _, exists := u.create.mutation.TotalReceivableSnapshot(); exists {
+			s.SetIgnore(financecommissionline.FieldTotalReceivableSnapshot)
+		}
+		if _, exists := u.create.mutation.TotalPayableSnapshot(); exists {
+			s.SetIgnore(financecommissionline.FieldTotalPayableSnapshot)
+		}
+		if _, exists := u.create.mutation.SnapshotStatus(); exists {
+			s.SetIgnore(financecommissionline.FieldSnapshotStatus)
+		}
+		if _, exists := u.create.mutation.SnapshotSource(); exists {
+			s.SetIgnore(financecommissionline.FieldSnapshotSource)
+		}
+		if _, exists := u.create.mutation.SnapshotBackfillVersion(); exists {
+			s.SetIgnore(financecommissionline.FieldSnapshotBackfillVersion)
+		}
+		if _, exists := u.create.mutation.SnapshotEvidenceHash(); exists {
+			s.SetIgnore(financecommissionline.FieldSnapshotEvidenceHash)
+		}
+		if _, exists := u.create.mutation.SnapshotUnavailableReasonCode(); exists {
+			s.SetIgnore(financecommissionline.FieldSnapshotUnavailableReasonCode)
 		}
 	}))
 	return u
@@ -1060,6 +1232,27 @@ func (u *FinanceCommissionLineUpsertBulk) UpdateNewValues() *FinanceCommissionLi
 			}
 			if _, exists := b.mutation.CommissionAmount(); exists {
 				s.SetIgnore(financecommissionline.FieldCommissionAmount)
+			}
+			if _, exists := b.mutation.TotalReceivableSnapshot(); exists {
+				s.SetIgnore(financecommissionline.FieldTotalReceivableSnapshot)
+			}
+			if _, exists := b.mutation.TotalPayableSnapshot(); exists {
+				s.SetIgnore(financecommissionline.FieldTotalPayableSnapshot)
+			}
+			if _, exists := b.mutation.SnapshotStatus(); exists {
+				s.SetIgnore(financecommissionline.FieldSnapshotStatus)
+			}
+			if _, exists := b.mutation.SnapshotSource(); exists {
+				s.SetIgnore(financecommissionline.FieldSnapshotSource)
+			}
+			if _, exists := b.mutation.SnapshotBackfillVersion(); exists {
+				s.SetIgnore(financecommissionline.FieldSnapshotBackfillVersion)
+			}
+			if _, exists := b.mutation.SnapshotEvidenceHash(); exists {
+				s.SetIgnore(financecommissionline.FieldSnapshotEvidenceHash)
+			}
+			if _, exists := b.mutation.SnapshotUnavailableReasonCode(); exists {
+				s.SetIgnore(financecommissionline.FieldSnapshotUnavailableReasonCode)
 			}
 		}
 	}))

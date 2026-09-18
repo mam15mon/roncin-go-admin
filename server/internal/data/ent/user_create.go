@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
@@ -948,6 +949,36 @@ func (_c *UserCreate) AddOrderUnlockApproverCandidates(v ...*OrderUnlockApprover
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderUnlockApproverCandidateIDs(ids...)
+}
+
+// AddRequestedOrderFeeSupplementRequestIDs adds the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_c *UserCreate) AddRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+	return _c
+}
+
+// AddRequestedOrderFeeSupplementRequests adds the "requested_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_c *UserCreate) AddRequestedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_c *UserCreate) AddDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddDecidedOrderFeeSupplementRequestIDs(ids...)
+	return _c
+}
+
+// AddDecidedOrderFeeSupplementRequests adds the "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_c *UserCreate) AddDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDecidedOrderFeeSupplementRequestIDs(ids...)
 }
 
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
@@ -2006,6 +2037,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockapprovercandidate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RequestedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.RequestedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DecidedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedOrderFeeSupplementRequestsTable,
+			Columns: []string{user.DecidedOrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -196,6 +196,8 @@ const (
 	EdgeAbnormalCases = "abnormal_cases"
 	// EdgeFees holds the string denoting the fees edge name in mutations.
 	EdgeFees = "fees"
+	// EdgeFeeSupplementRequests holds the string denoting the fee_supplement_requests edge name in mutations.
+	EdgeFeeSupplementRequests = "fee_supplement_requests"
 	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
 	EdgeFinanceBillLines = "finance_bill_lines"
 	// EdgeFinanceCommissionLines holds the string denoting the finance_commission_lines edge name in mutations.
@@ -344,6 +346,13 @@ const (
 	FeesInverseTable = "order_fees"
 	// FeesColumn is the table column denoting the fees relation/edge.
 	FeesColumn = "order_id"
+	// FeeSupplementRequestsTable is the table that holds the fee_supplement_requests relation/edge.
+	FeeSupplementRequestsTable = "order_fee_supplement_requests"
+	// FeeSupplementRequestsInverseTable is the table name for the OrderFeeSupplementRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeesupplementrequest" package.
+	FeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
+	// FeeSupplementRequestsColumn is the table column denoting the fee_supplement_requests relation/edge.
+	FeeSupplementRequestsColumn = "order_id"
 	// FinanceBillLinesTable is the table that holds the finance_bill_lines relation/edge.
 	FinanceBillLinesTable = "finance_bill_lines"
 	// FinanceBillLinesInverseTable is the table name for the FinanceBillLine entity.
@@ -1564,6 +1573,20 @@ func ByFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByFeeSupplementRequestsCount orders the results by fee_supplement_requests count.
+func ByFeeSupplementRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeSupplementRequestsStep(), opts...)
+	}
+}
+
+// ByFeeSupplementRequests orders the results by fee_supplement_requests terms.
+func ByFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeSupplementRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFinanceBillLinesCount orders the results by finance_bill_lines count.
 func ByFinanceBillLinesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1904,6 +1927,13 @@ func newFeesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeesTable, FeesColumn),
+	)
+}
+func newFeeSupplementRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeSupplementRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeSupplementRequestsTable, FeeSupplementRequestsColumn),
 	)
 }
 func newFinanceBillLinesStep() *sqlgraph.Step {

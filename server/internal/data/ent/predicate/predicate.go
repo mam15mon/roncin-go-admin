@@ -189,6 +189,9 @@ type OrderFee func(*sql.Selector)
 // OrderFeeEnterpriseTag is the predicate function for orderfeeenterprisetag builders.
 type OrderFeeEnterpriseTag func(*sql.Selector)
 
+// OrderFeeSupplementRequest is the predicate function for orderfeesupplementrequest builders.
+type OrderFeeSupplementRequest func(*sql.Selector)
+
 // OrderLifecycleEvent is the predicate function for orderlifecycleevent builders.
 type OrderLifecycleEvent func(*sql.Selector)
 

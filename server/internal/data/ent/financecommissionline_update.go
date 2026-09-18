@@ -104,6 +104,27 @@ func (_u *FinanceCommissionLineUpdate) sqlSave(ctx context.Context) (_node int, 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommissionline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.TotalReceivableSnapshotCleared() {
+		_spec.ClearField(financecommissionline.FieldTotalReceivableSnapshot, field.TypeString)
+	}
+	if _u.mutation.TotalPayableSnapshotCleared() {
+		_spec.ClearField(financecommissionline.FieldTotalPayableSnapshot, field.TypeString)
+	}
+	if _u.mutation.SnapshotStatusCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotStatus, field.TypeEnum)
+	}
+	if _u.mutation.SnapshotSourceCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotSource, field.TypeEnum)
+	}
+	if _u.mutation.SnapshotBackfillVersionCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotBackfillVersion, field.TypeString)
+	}
+	if _u.mutation.SnapshotEvidenceHashCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotEvidenceHash, field.TypeString)
+	}
+	if _u.mutation.SnapshotUnavailableReasonCodeCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotUnavailableReasonCode, field.TypeString)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financecommissionline.Label}
@@ -229,6 +250,27 @@ func (_u *FinanceCommissionLineUpdateOne) sqlSave(ctx context.Context) (_node *F
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommissionline.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.TotalReceivableSnapshotCleared() {
+		_spec.ClearField(financecommissionline.FieldTotalReceivableSnapshot, field.TypeString)
+	}
+	if _u.mutation.TotalPayableSnapshotCleared() {
+		_spec.ClearField(financecommissionline.FieldTotalPayableSnapshot, field.TypeString)
+	}
+	if _u.mutation.SnapshotStatusCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotStatus, field.TypeEnum)
+	}
+	if _u.mutation.SnapshotSourceCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotSource, field.TypeEnum)
+	}
+	if _u.mutation.SnapshotBackfillVersionCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotBackfillVersion, field.TypeString)
+	}
+	if _u.mutation.SnapshotEvidenceHashCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotEvidenceHash, field.TypeString)
+	}
+	if _u.mutation.SnapshotUnavailableReasonCodeCleared() {
+		_spec.ClearField(financecommissionline.FieldSnapshotUnavailableReasonCode, field.TypeString)
 	}
 	_node = &FinanceCommissionLine{config: _u.config}
 	_spec.Assign = _node.assignValues

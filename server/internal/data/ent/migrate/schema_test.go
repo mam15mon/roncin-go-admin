@@ -88,6 +88,32 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "finance_commission_adjustments",
+			table:     FinanceCommissionAdjustmentsTable,
+			expectedChecks: map[string]string{
+				"commission_adjustment_amount_positive":          "amount > 0",
+				"commission_adjustment_direction_check":          "direction IN ('INCREASE', 'DECREASE')",
+				"commission_adjustment_source_supplement_check":  "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
+				"commission_adjustment_source_type_check":        "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
+				"commission_adjustment_status_check":             "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+			},
+		},
+		{
+			tableName: "finance_commission_lines",
+			table:     FinanceCommissionLinesTable,
+			expectedChecks: map[string]string{
+				"finance_commission_lines_snapshot_consistency_check": "(snapshot_status IS NULL AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NULL) OR (snapshot_status = 'READY' AND total_receivable_snapshot IS NOT NULL AND total_payable_snapshot IS NOT NULL AND snapshot_unavailable_reason_code IS NULL AND snapshot_source IS NOT NULL AND ((snapshot_source = 'NATIVE' AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL) OR (snapshot_source = 'MIGRATED' AND snapshot_backfill_version IS NOT NULL AND snapshot_evidence_hash IS NOT NULL))) OR (snapshot_status = 'UNAVAILABLE' AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NOT NULL)",
+			},
+		},
+		{
+			tableName: "order_fee_supplement_requests",
+			table:     OrderFeeSupplementRequestsTable,
+			expectedChecks: map[string]string{
+				"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
+				"order_fee_supplement_requests_status_check":     "status IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
+			},
+		},
+		{
 			tableName: "sea_document_mode_change_events",
 			table:     SeaDocumentModeChangeEventsTable,
 			expectedChecks: map[string]string{

@@ -1574,6 +1574,29 @@ func HasOrderLockRecordsWith(preds ...predicate.OrderLockRecord) predicate.Organ
 	})
 }
 
+// HasOrderFeeSupplementRequests applies the HasEdge predicate on the "order_fee_supplement_requests" edge.
+func HasOrderFeeSupplementRequests() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeSupplementRequestsTable, OrderFeeSupplementRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderFeeSupplementRequestsWith applies the HasEdge predicate on the "order_fee_supplement_requests" edge with a given conditions (other predicates).
+func HasOrderFeeSupplementRequestsWith(preds ...predicate.OrderFeeSupplementRequest) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderFeeSupplementRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderLockHouseBillSnapshots applies the HasEdge predicate on the "order_lock_house_bill_snapshots" edge.
 func HasOrderLockHouseBillSnapshots() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

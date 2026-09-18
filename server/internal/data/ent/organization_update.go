@@ -42,6 +42,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -869,6 +870,21 @@ func (_u *OrganizationUpdate) AddOrderLockRecords(v ...*OrderLockRecord) *Organi
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderLockRecordIDs(ids...)
+}
+
+// AddOrderFeeSupplementRequestIDs adds the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *OrganizationUpdate) AddOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddOrderFeeSupplementRequests adds the "order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrganizationUpdate) AddOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeSupplementRequestIDs(ids...)
 }
 
 // AddOrderLockHouseBillSnapshotIDs adds the "order_lock_house_bill_snapshots" edge to the OrderLockHouseBillSnapshot entity by IDs.
@@ -2020,6 +2036,27 @@ func (_u *OrganizationUpdate) RemoveOrderLockRecords(v ...*OrderLockRecord) *Org
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderLockRecordIDs(ids...)
+}
+
+// ClearOrderFeeSupplementRequests clears all "order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrganizationUpdate) ClearOrderFeeSupplementRequests() *OrganizationUpdate {
+	_u.mutation.ClearOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveOrderFeeSupplementRequestIDs removes the "order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFeeSupplementRequests removes "order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *OrganizationUpdate) RemoveOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeSupplementRequestIDs(ids...)
 }
 
 // ClearOrderLockHouseBillSnapshots clears all "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
@@ -4447,6 +4484,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderLockHouseBillSnapshotsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5838,6 +5920,21 @@ func (_u *OrganizationUpdateOne) AddOrderLockRecords(v ...*OrderLockRecord) *Org
 	return _u.AddOrderLockRecordIDs(ids...)
 }
 
+// AddOrderFeeSupplementRequestIDs adds the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddOrderFeeSupplementRequests adds the "order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrganizationUpdateOne) AddOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeSupplementRequestIDs(ids...)
+}
+
 // AddOrderLockHouseBillSnapshotIDs adds the "order_lock_house_bill_snapshots" edge to the OrderLockHouseBillSnapshot entity by IDs.
 func (_u *OrganizationUpdateOne) AddOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddOrderLockHouseBillSnapshotIDs(ids...)
@@ -6987,6 +7084,27 @@ func (_u *OrganizationUpdateOne) RemoveOrderLockRecords(v ...*OrderLockRecord) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderLockRecordIDs(ids...)
+}
+
+// ClearOrderFeeSupplementRequests clears all "order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrganizationUpdateOne) ClearOrderFeeSupplementRequests() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderFeeSupplementRequests()
+	return _u
+}
+
+// RemoveOrderFeeSupplementRequestIDs removes the "order_fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFeeSupplementRequests removes "order_fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *OrganizationUpdateOne) RemoveOrderFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeSupplementRequestIDs(ids...)
 }
 
 // ClearOrderLockHouseBillSnapshots clears all "order_lock_house_bill_snapshots" edges to the OrderLockHouseBillSnapshot entity.
@@ -9437,6 +9555,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeSupplementRequestsTable,
+			Columns: []string{organization.OrderFeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

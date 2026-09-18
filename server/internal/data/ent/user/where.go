@@ -2083,6 +2083,52 @@ func HasOrderUnlockApproverCandidatesWith(preds ...predicate.OrderUnlockApprover
 	})
 }
 
+// HasRequestedOrderFeeSupplementRequests applies the HasEdge predicate on the "requested_order_fee_supplement_requests" edge.
+func HasRequestedOrderFeeSupplementRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RequestedOrderFeeSupplementRequestsTable, RequestedOrderFeeSupplementRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRequestedOrderFeeSupplementRequestsWith applies the HasEdge predicate on the "requested_order_fee_supplement_requests" edge with a given conditions (other predicates).
+func HasRequestedOrderFeeSupplementRequestsWith(preds ...predicate.OrderFeeSupplementRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRequestedOrderFeeSupplementRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDecidedOrderFeeSupplementRequests applies the HasEdge predicate on the "decided_order_fee_supplement_requests" edge.
+func HasDecidedOrderFeeSupplementRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DecidedOrderFeeSupplementRequestsTable, DecidedOrderFeeSupplementRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDecidedOrderFeeSupplementRequestsWith applies the HasEdge predicate on the "decided_order_fee_supplement_requests" edge with a given conditions (other predicates).
+func HasDecidedOrderFeeSupplementRequestsWith(preds ...predicate.OrderFeeSupplementRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDecidedOrderFeeSupplementRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCreatedSeaMasterBillVersions applies the HasEdge predicate on the "created_sea_master_bill_versions" edge.
 func HasCreatedSeaMasterBillVersions() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

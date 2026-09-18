@@ -191,6 +191,11 @@ func Note(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldNote, v))
 }
 
+// SupplementRequestID applies equality check predicate on the "supplement_request_id" field. It's identical to SupplementRequestIDEQ.
+func SupplementRequestID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSupplementRequestID, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldVersion, v))
@@ -1786,6 +1791,36 @@ func NoteContainsFold(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldContainsFold(FieldNote, v))
 }
 
+// SupplementRequestIDEQ applies the EQ predicate on the "supplement_request_id" field.
+func SupplementRequestIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSupplementRequestID, v))
+}
+
+// SupplementRequestIDNEQ applies the NEQ predicate on the "supplement_request_id" field.
+func SupplementRequestIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldSupplementRequestID, v))
+}
+
+// SupplementRequestIDIn applies the In predicate on the "supplement_request_id" field.
+func SupplementRequestIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldSupplementRequestID, vs...))
+}
+
+// SupplementRequestIDNotIn applies the NotIn predicate on the "supplement_request_id" field.
+func SupplementRequestIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldSupplementRequestID, vs...))
+}
+
+// SupplementRequestIDIsNil applies the IsNil predicate on the "supplement_request_id" field.
+func SupplementRequestIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldSupplementRequestID))
+}
+
+// SupplementRequestIDNotNil applies the NotNil predicate on the "supplement_request_id" field.
+func SupplementRequestIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldSupplementRequestID))
+}
+
 // VersionEQ applies the EQ predicate on the "version" field.
 func VersionEQ(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldVersion, v))
@@ -2088,6 +2123,29 @@ func HasCancelledByUser() predicate.OrderFee {
 func HasCancelledByUserWith(preds ...predicate.User) predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
 		step := newCancelledByUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSupplementRequest applies the HasEdge predicate on the "supplement_request" edge.
+func HasSupplementRequest() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SupplementRequestTable, SupplementRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSupplementRequestWith applies the HasEdge predicate on the "supplement_request" edge with a given conditions (other predicates).
+func HasSupplementRequestWith(preds ...predicate.OrderFeeSupplementRequest) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newSupplementRequestStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -18,7 +18,7 @@ func (NotificationDelivery) Fields() []ent.Field {
 		field.UUID("background_task_id", uuid.Nil).Immutable(),
 		field.UUID("recipient_user_id", uuid.Nil).Immutable(),
 		field.Enum("channel").Values("DINGTALK").Immutable(),
-		field.Enum("template").Values("ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED", "DINGTALK_REGISTRATION_PENDING", "DINGTALK_REGISTRATION_REJECTED", "DINGTALK_INVITATION_ACTIVATED", "EXCHANGE_RATE_WEEKLY_REMINDER").Immutable(),
+		field.Enum("template").Values("ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED", "DINGTALK_REGISTRATION_PENDING", "DINGTALK_REGISTRATION_REJECTED", "DINGTALK_INVITATION_ACTIVATED", "EXCHANGE_RATE_WEEKLY_REMINDER", "FEE_SUPPLEMENT_APPROVAL_PENDING", "COMMISSION_DECREASE_SUGGESTED").Immutable(),
 		field.String("resource_type").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
 		field.String("reference_code").Optional().MaxLen(64).Immutable(),

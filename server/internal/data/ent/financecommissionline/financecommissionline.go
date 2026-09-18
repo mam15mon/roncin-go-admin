@@ -3,6 +3,7 @@
 package financecommissionline
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -67,6 +68,20 @@ const (
 	FieldRatePercent = "rate_percent"
 	// FieldCommissionAmount holds the string denoting the commission_amount field in the database.
 	FieldCommissionAmount = "commission_amount"
+	// FieldTotalReceivableSnapshot holds the string denoting the total_receivable_snapshot field in the database.
+	FieldTotalReceivableSnapshot = "total_receivable_snapshot"
+	// FieldTotalPayableSnapshot holds the string denoting the total_payable_snapshot field in the database.
+	FieldTotalPayableSnapshot = "total_payable_snapshot"
+	// FieldSnapshotStatus holds the string denoting the snapshot_status field in the database.
+	FieldSnapshotStatus = "snapshot_status"
+	// FieldSnapshotSource holds the string denoting the snapshot_source field in the database.
+	FieldSnapshotSource = "snapshot_source"
+	// FieldSnapshotBackfillVersion holds the string denoting the snapshot_backfill_version field in the database.
+	FieldSnapshotBackfillVersion = "snapshot_backfill_version"
+	// FieldSnapshotEvidenceHash holds the string denoting the snapshot_evidence_hash field in the database.
+	FieldSnapshotEvidenceHash = "snapshot_evidence_hash"
+	// FieldSnapshotUnavailableReasonCode holds the string denoting the snapshot_unavailable_reason_code field in the database.
+	FieldSnapshotUnavailableReasonCode = "snapshot_unavailable_reason_code"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeCommission holds the string denoting the commission edge name in mutations.
@@ -127,6 +142,13 @@ var Columns = []string{
 	FieldCommissionBaseAmount,
 	FieldRatePercent,
 	FieldCommissionAmount,
+	FieldTotalReceivableSnapshot,
+	FieldTotalPayableSnapshot,
+	FieldSnapshotStatus,
+	FieldSnapshotSource,
+	FieldSnapshotBackfillVersion,
+	FieldSnapshotEvidenceHash,
+	FieldSnapshotUnavailableReasonCode,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -166,9 +188,61 @@ var (
 	CalculationBasisValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
+	// SnapshotBackfillVersionValidator is a validator for the "snapshot_backfill_version" field. It is called by the builders before save.
+	SnapshotBackfillVersionValidator func(string) error
+	// SnapshotEvidenceHashValidator is a validator for the "snapshot_evidence_hash" field. It is called by the builders before save.
+	SnapshotEvidenceHashValidator func(string) error
+	// SnapshotUnavailableReasonCodeValidator is a validator for the "snapshot_unavailable_reason_code" field. It is called by the builders before save.
+	SnapshotUnavailableReasonCodeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// SnapshotStatus defines the type for the "snapshot_status" enum field.
+type SnapshotStatus string
+
+// SnapshotStatus values.
+const (
+	SnapshotStatusREADY       SnapshotStatus = "READY"
+	SnapshotStatusUNAVAILABLE SnapshotStatus = "UNAVAILABLE"
+)
+
+func (ss SnapshotStatus) String() string {
+	return string(ss)
+}
+
+// SnapshotStatusValidator is a validator for the "snapshot_status" field enum values. It is called by the builders before save.
+func SnapshotStatusValidator(ss SnapshotStatus) error {
+	switch ss {
+	case SnapshotStatusREADY, SnapshotStatusUNAVAILABLE:
+		return nil
+	default:
+		return fmt.Errorf("financecommissionline: invalid enum value for snapshot_status field: %q", ss)
+	}
+}
+
+// SnapshotSource defines the type for the "snapshot_source" enum field.
+type SnapshotSource string
+
+// SnapshotSource values.
+const (
+	SnapshotSourceNATIVE   SnapshotSource = "NATIVE"
+	SnapshotSourceMIGRATED SnapshotSource = "MIGRATED"
+)
+
+func (ss SnapshotSource) String() string {
+	return string(ss)
+}
+
+// SnapshotSourceValidator is a validator for the "snapshot_source" field enum values. It is called by the builders before save.
+func SnapshotSourceValidator(ss SnapshotSource) error {
+	switch ss {
+	case SnapshotSourceNATIVE, SnapshotSourceMIGRATED:
+		return nil
+	default:
+		return fmt.Errorf("financecommissionline: invalid enum value for snapshot_source field: %q", ss)
+	}
+}
 
 // OrderOption defines the ordering options for the FinanceCommissionLine queries.
 type OrderOption func(*sql.Selector)
@@ -306,6 +380,41 @@ func ByRatePercent(opts ...sql.OrderTermOption) OrderOption {
 // ByCommissionAmount orders the results by the commission_amount field.
 func ByCommissionAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCommissionAmount, opts...).ToFunc()
+}
+
+// ByTotalReceivableSnapshot orders the results by the total_receivable_snapshot field.
+func ByTotalReceivableSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalReceivableSnapshot, opts...).ToFunc()
+}
+
+// ByTotalPayableSnapshot orders the results by the total_payable_snapshot field.
+func ByTotalPayableSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalPayableSnapshot, opts...).ToFunc()
+}
+
+// BySnapshotStatus orders the results by the snapshot_status field.
+func BySnapshotStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSnapshotStatus, opts...).ToFunc()
+}
+
+// BySnapshotSource orders the results by the snapshot_source field.
+func BySnapshotSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSnapshotSource, opts...).ToFunc()
+}
+
+// BySnapshotBackfillVersion orders the results by the snapshot_backfill_version field.
+func BySnapshotBackfillVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSnapshotBackfillVersion, opts...).ToFunc()
+}
+
+// BySnapshotEvidenceHash orders the results by the snapshot_evidence_hash field.
+func BySnapshotEvidenceHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSnapshotEvidenceHash, opts...).ToFunc()
+}
+
+// BySnapshotUnavailableReasonCode orders the results by the snapshot_unavailable_reason_code field.
+func BySnapshotUnavailableReasonCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSnapshotUnavailableReasonCode, opts...).ToFunc()
 }
 
 // ByOrganizationField orders the results by organization field.

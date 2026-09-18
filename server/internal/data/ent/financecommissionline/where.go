@@ -186,6 +186,31 @@ func CommissionAmount(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCommissionAmount, v))
 }
 
+// TotalReceivableSnapshot applies equality check predicate on the "total_receivable_snapshot" field. It's identical to TotalReceivableSnapshotEQ.
+func TotalReceivableSnapshot(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalPayableSnapshot applies equality check predicate on the "total_payable_snapshot" field. It's identical to TotalPayableSnapshotEQ.
+func TotalPayableSnapshot(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldTotalPayableSnapshot, v))
+}
+
+// SnapshotBackfillVersion applies equality check predicate on the "snapshot_backfill_version" field. It's identical to SnapshotBackfillVersionEQ.
+func SnapshotBackfillVersion(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotEvidenceHash applies equality check predicate on the "snapshot_evidence_hash" field. It's identical to SnapshotEvidenceHashEQ.
+func SnapshotEvidenceHash(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotUnavailableReasonCode applies equality check predicate on the "snapshot_unavailable_reason_code" field. It's identical to SnapshotUnavailableReasonCodeEQ.
+func SnapshotUnavailableReasonCode(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotUnavailableReasonCode, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCreatedAt, v))
@@ -1539,6 +1564,441 @@ func CommissionAmountEqualFold(v string) predicate.FinanceCommissionLine {
 // CommissionAmountContainsFold applies the ContainsFold predicate on the "commission_amount" field.
 func CommissionAmountContainsFold(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldCommissionAmount, v))
+}
+
+// TotalReceivableSnapshotEQ applies the EQ predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotNEQ applies the NEQ predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotIn applies the In predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldTotalReceivableSnapshot, vs...))
+}
+
+// TotalReceivableSnapshotNotIn applies the NotIn predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldTotalReceivableSnapshot, vs...))
+}
+
+// TotalReceivableSnapshotGT applies the GT predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotGTE applies the GTE predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotLT applies the LT predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotLTE applies the LTE predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotContains applies the Contains predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotHasPrefix applies the HasPrefix predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotHasSuffix applies the HasSuffix predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotIsNil applies the IsNil predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldTotalReceivableSnapshot))
+}
+
+// TotalReceivableSnapshotNotNil applies the NotNil predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldTotalReceivableSnapshot))
+}
+
+// TotalReceivableSnapshotEqualFold applies the EqualFold predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalReceivableSnapshotContainsFold applies the ContainsFold predicate on the "total_receivable_snapshot" field.
+func TotalReceivableSnapshotContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldTotalReceivableSnapshot, v))
+}
+
+// TotalPayableSnapshotEQ applies the EQ predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotNEQ applies the NEQ predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotIn applies the In predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldTotalPayableSnapshot, vs...))
+}
+
+// TotalPayableSnapshotNotIn applies the NotIn predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldTotalPayableSnapshot, vs...))
+}
+
+// TotalPayableSnapshotGT applies the GT predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotGTE applies the GTE predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotLT applies the LT predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotLTE applies the LTE predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotContains applies the Contains predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotHasPrefix applies the HasPrefix predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotHasSuffix applies the HasSuffix predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotIsNil applies the IsNil predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldTotalPayableSnapshot))
+}
+
+// TotalPayableSnapshotNotNil applies the NotNil predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldTotalPayableSnapshot))
+}
+
+// TotalPayableSnapshotEqualFold applies the EqualFold predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldTotalPayableSnapshot, v))
+}
+
+// TotalPayableSnapshotContainsFold applies the ContainsFold predicate on the "total_payable_snapshot" field.
+func TotalPayableSnapshotContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldTotalPayableSnapshot, v))
+}
+
+// SnapshotStatusEQ applies the EQ predicate on the "snapshot_status" field.
+func SnapshotStatusEQ(v SnapshotStatus) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotStatus, v))
+}
+
+// SnapshotStatusNEQ applies the NEQ predicate on the "snapshot_status" field.
+func SnapshotStatusNEQ(v SnapshotStatus) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldSnapshotStatus, v))
+}
+
+// SnapshotStatusIn applies the In predicate on the "snapshot_status" field.
+func SnapshotStatusIn(vs ...SnapshotStatus) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldSnapshotStatus, vs...))
+}
+
+// SnapshotStatusNotIn applies the NotIn predicate on the "snapshot_status" field.
+func SnapshotStatusNotIn(vs ...SnapshotStatus) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldSnapshotStatus, vs...))
+}
+
+// SnapshotStatusIsNil applies the IsNil predicate on the "snapshot_status" field.
+func SnapshotStatusIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldSnapshotStatus))
+}
+
+// SnapshotStatusNotNil applies the NotNil predicate on the "snapshot_status" field.
+func SnapshotStatusNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldSnapshotStatus))
+}
+
+// SnapshotSourceEQ applies the EQ predicate on the "snapshot_source" field.
+func SnapshotSourceEQ(v SnapshotSource) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotSource, v))
+}
+
+// SnapshotSourceNEQ applies the NEQ predicate on the "snapshot_source" field.
+func SnapshotSourceNEQ(v SnapshotSource) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldSnapshotSource, v))
+}
+
+// SnapshotSourceIn applies the In predicate on the "snapshot_source" field.
+func SnapshotSourceIn(vs ...SnapshotSource) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldSnapshotSource, vs...))
+}
+
+// SnapshotSourceNotIn applies the NotIn predicate on the "snapshot_source" field.
+func SnapshotSourceNotIn(vs ...SnapshotSource) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldSnapshotSource, vs...))
+}
+
+// SnapshotSourceIsNil applies the IsNil predicate on the "snapshot_source" field.
+func SnapshotSourceIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldSnapshotSource))
+}
+
+// SnapshotSourceNotNil applies the NotNil predicate on the "snapshot_source" field.
+func SnapshotSourceNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldSnapshotSource))
+}
+
+// SnapshotBackfillVersionEQ applies the EQ predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionNEQ applies the NEQ predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionIn applies the In predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldSnapshotBackfillVersion, vs...))
+}
+
+// SnapshotBackfillVersionNotIn applies the NotIn predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldSnapshotBackfillVersion, vs...))
+}
+
+// SnapshotBackfillVersionGT applies the GT predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionGTE applies the GTE predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionLT applies the LT predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionLTE applies the LTE predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionContains applies the Contains predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionHasPrefix applies the HasPrefix predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionHasSuffix applies the HasSuffix predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionIsNil applies the IsNil predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldSnapshotBackfillVersion))
+}
+
+// SnapshotBackfillVersionNotNil applies the NotNil predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldSnapshotBackfillVersion))
+}
+
+// SnapshotBackfillVersionEqualFold applies the EqualFold predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotBackfillVersionContainsFold applies the ContainsFold predicate on the "snapshot_backfill_version" field.
+func SnapshotBackfillVersionContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldSnapshotBackfillVersion, v))
+}
+
+// SnapshotEvidenceHashEQ applies the EQ predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashNEQ applies the NEQ predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashIn applies the In predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldSnapshotEvidenceHash, vs...))
+}
+
+// SnapshotEvidenceHashNotIn applies the NotIn predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldSnapshotEvidenceHash, vs...))
+}
+
+// SnapshotEvidenceHashGT applies the GT predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashGTE applies the GTE predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashLT applies the LT predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashLTE applies the LTE predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashContains applies the Contains predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashHasPrefix applies the HasPrefix predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashHasSuffix applies the HasSuffix predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashIsNil applies the IsNil predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldSnapshotEvidenceHash))
+}
+
+// SnapshotEvidenceHashNotNil applies the NotNil predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldSnapshotEvidenceHash))
+}
+
+// SnapshotEvidenceHashEqualFold applies the EqualFold predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotEvidenceHashContainsFold applies the ContainsFold predicate on the "snapshot_evidence_hash" field.
+func SnapshotEvidenceHashContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldSnapshotEvidenceHash, v))
+}
+
+// SnapshotUnavailableReasonCodeEQ applies the EQ predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeNEQ applies the NEQ predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeIn applies the In predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldSnapshotUnavailableReasonCode, vs...))
+}
+
+// SnapshotUnavailableReasonCodeNotIn applies the NotIn predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldSnapshotUnavailableReasonCode, vs...))
+}
+
+// SnapshotUnavailableReasonCodeGT applies the GT predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeGTE applies the GTE predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeLT applies the LT predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeLTE applies the LTE predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeContains applies the Contains predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeHasPrefix applies the HasPrefix predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeHasSuffix applies the HasSuffix predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeIsNil applies the IsNil predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeIsNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIsNull(FieldSnapshotUnavailableReasonCode))
+}
+
+// SnapshotUnavailableReasonCodeNotNil applies the NotNil predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeNotNil() predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotNull(FieldSnapshotUnavailableReasonCode))
+}
+
+// SnapshotUnavailableReasonCodeEqualFold applies the EqualFold predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldSnapshotUnavailableReasonCode, v))
+}
+
+// SnapshotUnavailableReasonCodeContainsFold applies the ContainsFold predicate on the "snapshot_unavailable_reason_code" field.
+func SnapshotUnavailableReasonCodeContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldSnapshotUnavailableReasonCode, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

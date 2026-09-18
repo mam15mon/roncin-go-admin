@@ -42,6 +42,8 @@ const (
 	FieldSourceType = "source_type"
 	// FieldSourceVerificationID holds the string denoting the source_verification_id field in the database.
 	FieldSourceVerificationID = "source_verification_id"
+	// FieldSourceFeeSupplementRequestID holds the string denoting the source_fee_supplement_request_id field in the database.
+	FieldSourceFeeSupplementRequestID = "source_fee_supplement_request_id"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -80,6 +82,8 @@ const (
 	EdgeEmployee = "employee"
 	// EdgeSourceVerification holds the string denoting the source_verification edge name in mutations.
 	EdgeSourceVerification = "source_verification"
+	// EdgeSourceFeeSupplementRequest holds the string denoting the source_fee_supplement_request edge name in mutations.
+	EdgeSourceFeeSupplementRequest = "source_fee_supplement_request"
 	// EdgeConfirmedByUser holds the string denoting the confirmed_by_user edge name in mutations.
 	EdgeConfirmedByUser = "confirmed_by_user"
 	// EdgePaidByUser holds the string denoting the paid_by_user edge name in mutations.
@@ -123,6 +127,13 @@ const (
 	SourceVerificationInverseTable = "finance_verifications"
 	// SourceVerificationColumn is the table column denoting the source_verification relation/edge.
 	SourceVerificationColumn = "source_verification_id"
+	// SourceFeeSupplementRequestTable is the table that holds the source_fee_supplement_request relation/edge.
+	SourceFeeSupplementRequestTable = "finance_commission_adjustments"
+	// SourceFeeSupplementRequestInverseTable is the table name for the OrderFeeSupplementRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeesupplementrequest" package.
+	SourceFeeSupplementRequestInverseTable = "order_fee_supplement_requests"
+	// SourceFeeSupplementRequestColumn is the table column denoting the source_fee_supplement_request relation/edge.
+	SourceFeeSupplementRequestColumn = "source_fee_supplement_request_id"
 	// ConfirmedByUserTable is the table that holds the confirmed_by_user relation/edge.
 	ConfirmedByUserTable = "finance_commission_adjustments"
 	// ConfirmedByUserInverseTable is the table name for the User entity.
@@ -162,6 +173,7 @@ var Columns = []string{
 	FieldEmployeeName,
 	FieldSourceType,
 	FieldSourceVerificationID,
+	FieldSourceFeeSupplementRequestID,
 	FieldDirection,
 	FieldStatus,
 	FieldBaseCurrency,
@@ -230,6 +242,7 @@ const (
 	SourceTypeMANUAL                SourceType = "MANUAL"
 	SourceTypeVERIFICATION_REVERSAL SourceType = "VERIFICATION_REVERSAL"
 	SourceTypeNETTING_REVERSAL      SourceType = "NETTING_REVERSAL"
+	SourceTypeLOCKED_FEE_SUPPLEMENT SourceType = "LOCKED_FEE_SUPPLEMENT"
 )
 
 func (st SourceType) String() string {
@@ -239,7 +252,7 @@ func (st SourceType) String() string {
 // SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
 func SourceTypeValidator(st SourceType) error {
 	switch st {
-	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL:
+	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL, SourceTypeLOCKED_FEE_SUPPLEMENT:
 		return nil
 	default:
 		return fmt.Errorf("financecommissionadjustment: invalid enum value for source_type field: %q", st)
@@ -370,6 +383,11 @@ func BySourceVerificationID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceVerificationID, opts...).ToFunc()
 }
 
+// BySourceFeeSupplementRequestID orders the results by the source_fee_supplement_request_id field.
+func BySourceFeeSupplementRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceFeeSupplementRequestID, opts...).ToFunc()
+}
+
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
@@ -475,6 +493,13 @@ func BySourceVerificationField(field string, opts ...sql.OrderTermOption) OrderO
 	}
 }
 
+// BySourceFeeSupplementRequestField orders the results by source_fee_supplement_request field.
+func BySourceFeeSupplementRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceFeeSupplementRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByConfirmedByUserField orders the results by confirmed_by_user field.
 func ByConfirmedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -528,6 +553,13 @@ func newSourceVerificationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SourceVerificationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SourceVerificationTable, SourceVerificationColumn),
+	)
+}
+func newSourceFeeSupplementRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SourceFeeSupplementRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeSupplementRequestTable, SourceFeeSupplementRequestColumn),
 	)
 }
 func newConfirmedByUserStep() *sqlgraph.Step {

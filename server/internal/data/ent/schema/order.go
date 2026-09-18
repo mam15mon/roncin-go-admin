@@ -123,6 +123,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("release_pods", OrderReleasePod.Type),
 		edge.To("abnormal_cases", OrderAbnormalCase.Type),
 		edge.To("fees", OrderFee.Type),
+		edge.To("fee_supplement_requests", OrderFeeSupplementRequest.Type),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
 		edge.To("finance_commission_lines", FinanceCommissionLine.Type),
 		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),

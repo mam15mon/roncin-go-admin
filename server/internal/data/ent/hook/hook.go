@@ -741,6 +741,18 @@ func (f OrderFeeEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeEnterpriseTagMutation", m)
 }
 
+// The OrderFeeSupplementRequestFunc type is an adapter to allow the use of ordinary
+// function as OrderFeeSupplementRequest mutator.
+type OrderFeeSupplementRequestFunc func(context.Context, *ent.OrderFeeSupplementRequestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderFeeSupplementRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderFeeSupplementRequestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeSupplementRequestMutation", m)
+}
+
 // The OrderLifecycleEventFunc type is an adapter to allow the use of ordinary
 // function as OrderLifecycleEvent mutator.
 type OrderLifecycleEventFunc func(context.Context, *ent.OrderLifecycleEventMutation) (ent.Value, error)

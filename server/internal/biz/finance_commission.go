@@ -31,6 +31,10 @@ var (
 	ErrCommissionAdjustmentTransition = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_TRANSITION), "当前提成调整状态不允许该操作")
 	ErrCommissionAdjustmentExceeds    = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS), "冲减后的有效提成金额不能小于零")
 	ErrCommissionExportLimit          = errors.BadRequest("FINANCE_COMMISSION_EXPORT_LIMIT", "提成导出行数超过单次上限，请缩小筛选范围后重试")
+	// 锁后费用补录审批对历史提成复算快照的稳定阻断错误码。
+	ErrCommissionSnapshotUnavailable           = errors.Conflict("COMMISSION_SNAPSHOT_UNAVAILABLE", "历史提成复算快照不可用，无法处理锁后费用补录")
+	ErrCommissionBaseCurrencyMismatch          = errors.Conflict("COMMISSION_BASE_CURRENCY_MISMATCH", "补录费用本位币与历史提成快照本位币不一致，不支持跨本位币换算")
+	ErrCommissionCalculationVersionUnsupported = errors.Conflict("COMMISSION_CALCULATION_VERSION_UNSUPPORTED", "提成计算版本不受支持，无法判定应付成本影响")
 )
 
 type CommissionStatus string
@@ -55,6 +59,9 @@ const (
 	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"
 	CommissionAdjustmentSourceVerificationReversal CommissionAdjustmentSourceType = "VERIFICATION_REVERSAL"
 	CommissionAdjustmentSourceNettingReversal      CommissionAdjustmentSourceType = "NETTING_REVERSAL"
+	// CommissionAdjustmentSourceLockedFeeSupplement 锁后费用补录的系统冲减建议
+	// 来源，必须携带补录申请关联并由数据库 CHECK 强制双向对应。
+	CommissionAdjustmentSourceLockedFeeSupplement CommissionAdjustmentSourceType = "LOCKED_FEE_SUPPLEMENT"
 	cnyCurrency                                                                   = "CNY"
 )
 

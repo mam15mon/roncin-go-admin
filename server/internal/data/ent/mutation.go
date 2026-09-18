@@ -74,6 +74,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -193,6 +194,7 @@ const (
 	TypeOrderEnterpriseTag             = "OrderEnterpriseTag"
 	TypeOrderFee                       = "OrderFee"
 	TypeOrderFeeEnterpriseTag          = "OrderFeeEnterpriseTag"
+	TypeOrderFeeSupplementRequest      = "OrderFeeSupplementRequest"
 	TypeOrderLifecycleEvent            = "OrderLifecycleEvent"
 	TypeOrderLockHouseBillSnapshot     = "OrderLockHouseBillSnapshot"
 	TypeOrderLockRecord                = "OrderLockRecord"
@@ -39596,49 +39598,51 @@ func (m *FinanceCommissionMutation) ResetEdge(name string) error {
 // FinanceCommissionAdjustmentMutation represents an operation that mutates the FinanceCommissionAdjustment nodes in the graph.
 type FinanceCommissionAdjustmentMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	adjustment_no              *string
-	idempotency_key            *string
-	commission_no              *string
-	order_no                   *string
-	employee_name              *string
-	source_type                *financecommissionadjustment.SourceType
-	direction                  *financecommissionadjustment.Direction
-	status                     *financecommissionadjustment.Status
-	base_currency              *string
-	amount                     *string
-	reason                     *string
-	note                       *string
-	version                    *uint64
-	addversion                 *int64
-	confirmed_at               *time.Time
-	paid_at                    *time.Time
-	cancelled_at               *time.Time
-	cancellation_reason        *string
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	commission                 *uuid.UUID
-	clearedcommission          bool
-	_order                     *uuid.UUID
-	cleared_order              bool
-	employee                   *uuid.UUID
-	clearedemployee            bool
-	source_verification        *uuid.UUID
-	clearedsource_verification bool
-	confirmed_by_user          *uuid.UUID
-	clearedconfirmed_by_user   bool
-	paid_by_user               *uuid.UUID
-	clearedpaid_by_user        bool
-	cancelled_by_user          *uuid.UUID
-	clearedcancelled_by_user   bool
-	done                       bool
-	oldValue                   func(context.Context) (*FinanceCommissionAdjustment, error)
-	predicates                 []predicate.FinanceCommissionAdjustment
+	op                                   Op
+	typ                                  string
+	id                                   *uuid.UUID
+	created_at                           *time.Time
+	updated_at                           *time.Time
+	adjustment_no                        *string
+	idempotency_key                      *string
+	commission_no                        *string
+	order_no                             *string
+	employee_name                        *string
+	source_type                          *financecommissionadjustment.SourceType
+	direction                            *financecommissionadjustment.Direction
+	status                               *financecommissionadjustment.Status
+	base_currency                        *string
+	amount                               *string
+	reason                               *string
+	note                                 *string
+	version                              *uint64
+	addversion                           *int64
+	confirmed_at                         *time.Time
+	paid_at                              *time.Time
+	cancelled_at                         *time.Time
+	cancellation_reason                  *string
+	clearedFields                        map[string]struct{}
+	organization                         *uuid.UUID
+	clearedorganization                  bool
+	commission                           *uuid.UUID
+	clearedcommission                    bool
+	_order                               *uuid.UUID
+	cleared_order                        bool
+	employee                             *uuid.UUID
+	clearedemployee                      bool
+	source_verification                  *uuid.UUID
+	clearedsource_verification           bool
+	source_fee_supplement_request        *uuid.UUID
+	clearedsource_fee_supplement_request bool
+	confirmed_by_user                    *uuid.UUID
+	clearedconfirmed_by_user             bool
+	paid_by_user                         *uuid.UUID
+	clearedpaid_by_user                  bool
+	cancelled_by_user                    *uuid.UUID
+	clearedcancelled_by_user             bool
+	done                                 bool
+	oldValue                             func(context.Context) (*FinanceCommissionAdjustment, error)
+	predicates                           []predicate.FinanceCommissionAdjustment
 }
 
 var _ ent.Mutation = (*FinanceCommissionAdjustmentMutation)(nil)
@@ -40224,6 +40228,55 @@ func (m *FinanceCommissionAdjustmentMutation) SourceVerificationIDCleared() bool
 func (m *FinanceCommissionAdjustmentMutation) ResetSourceVerificationID() {
 	m.source_verification = nil
 	delete(m.clearedFields, financecommissionadjustment.FieldSourceVerificationID)
+}
+
+// SetSourceFeeSupplementRequestID sets the "source_fee_supplement_request_id" field.
+func (m *FinanceCommissionAdjustmentMutation) SetSourceFeeSupplementRequestID(u uuid.UUID) {
+	m.source_fee_supplement_request = &u
+}
+
+// SourceFeeSupplementRequestID returns the value of the "source_fee_supplement_request_id" field in the mutation.
+func (m *FinanceCommissionAdjustmentMutation) SourceFeeSupplementRequestID() (r uuid.UUID, exists bool) {
+	v := m.source_fee_supplement_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceFeeSupplementRequestID returns the old "source_fee_supplement_request_id" field's value of the FinanceCommissionAdjustment entity.
+// If the FinanceCommissionAdjustment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionAdjustmentMutation) OldSourceFeeSupplementRequestID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceFeeSupplementRequestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceFeeSupplementRequestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceFeeSupplementRequestID: %w", err)
+	}
+	return oldValue.SourceFeeSupplementRequestID, nil
+}
+
+// ClearSourceFeeSupplementRequestID clears the value of the "source_fee_supplement_request_id" field.
+func (m *FinanceCommissionAdjustmentMutation) ClearSourceFeeSupplementRequestID() {
+	m.source_fee_supplement_request = nil
+	m.clearedFields[financecommissionadjustment.FieldSourceFeeSupplementRequestID] = struct{}{}
+}
+
+// SourceFeeSupplementRequestIDCleared returns if the "source_fee_supplement_request_id" field was cleared in this mutation.
+func (m *FinanceCommissionAdjustmentMutation) SourceFeeSupplementRequestIDCleared() bool {
+	_, ok := m.clearedFields[financecommissionadjustment.FieldSourceFeeSupplementRequestID]
+	return ok
+}
+
+// ResetSourceFeeSupplementRequestID resets all changes to the "source_fee_supplement_request_id" field.
+func (m *FinanceCommissionAdjustmentMutation) ResetSourceFeeSupplementRequestID() {
+	m.source_fee_supplement_request = nil
+	delete(m.clearedFields, financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 }
 
 // SetDirection sets the "direction" field.
@@ -40989,6 +41042,33 @@ func (m *FinanceCommissionAdjustmentMutation) ResetSourceVerification() {
 	m.clearedsource_verification = false
 }
 
+// ClearSourceFeeSupplementRequest clears the "source_fee_supplement_request" edge to the OrderFeeSupplementRequest entity.
+func (m *FinanceCommissionAdjustmentMutation) ClearSourceFeeSupplementRequest() {
+	m.clearedsource_fee_supplement_request = true
+	m.clearedFields[financecommissionadjustment.FieldSourceFeeSupplementRequestID] = struct{}{}
+}
+
+// SourceFeeSupplementRequestCleared reports if the "source_fee_supplement_request" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *FinanceCommissionAdjustmentMutation) SourceFeeSupplementRequestCleared() bool {
+	return m.SourceFeeSupplementRequestIDCleared() || m.clearedsource_fee_supplement_request
+}
+
+// SourceFeeSupplementRequestIDs returns the "source_fee_supplement_request" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SourceFeeSupplementRequestID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionAdjustmentMutation) SourceFeeSupplementRequestIDs() (ids []uuid.UUID) {
+	if id := m.source_fee_supplement_request; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSourceFeeSupplementRequest resets all changes to the "source_fee_supplement_request" edge.
+func (m *FinanceCommissionAdjustmentMutation) ResetSourceFeeSupplementRequest() {
+	m.source_fee_supplement_request = nil
+	m.clearedsource_fee_supplement_request = false
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by id.
 func (m *FinanceCommissionAdjustmentMutation) SetConfirmedByUserID(id uuid.UUID) {
 	m.confirmed_by_user = &id
@@ -41143,7 +41223,7 @@ func (m *FinanceCommissionAdjustmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionAdjustmentMutation) Fields() []string {
-	fields := make([]string, 0, 27)
+	fields := make([]string, 0, 28)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionadjustment.FieldCreatedAt)
 	}
@@ -41182,6 +41262,9 @@ func (m *FinanceCommissionAdjustmentMutation) Fields() []string {
 	}
 	if m.source_verification != nil {
 		fields = append(fields, financecommissionadjustment.FieldSourceVerificationID)
+	}
+	if m.source_fee_supplement_request != nil {
+		fields = append(fields, financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 	}
 	if m.direction != nil {
 		fields = append(fields, financecommissionadjustment.FieldDirection)
@@ -41259,6 +41342,8 @@ func (m *FinanceCommissionAdjustmentMutation) Field(name string) (ent.Value, boo
 		return m.SourceType()
 	case financecommissionadjustment.FieldSourceVerificationID:
 		return m.SourceVerificationID()
+	case financecommissionadjustment.FieldSourceFeeSupplementRequestID:
+		return m.SourceFeeSupplementRequestID()
 	case financecommissionadjustment.FieldDirection:
 		return m.Direction()
 	case financecommissionadjustment.FieldStatus:
@@ -41322,6 +41407,8 @@ func (m *FinanceCommissionAdjustmentMutation) OldField(ctx context.Context, name
 		return m.OldSourceType(ctx)
 	case financecommissionadjustment.FieldSourceVerificationID:
 		return m.OldSourceVerificationID(ctx)
+	case financecommissionadjustment.FieldSourceFeeSupplementRequestID:
+		return m.OldSourceFeeSupplementRequestID(ctx)
 	case financecommissionadjustment.FieldDirection:
 		return m.OldDirection(ctx)
 	case financecommissionadjustment.FieldStatus:
@@ -41449,6 +41536,13 @@ func (m *FinanceCommissionAdjustmentMutation) SetField(name string, value ent.Va
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceVerificationID(v)
+		return nil
+	case financecommissionadjustment.FieldSourceFeeSupplementRequestID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceFeeSupplementRequestID(v)
 		return nil
 	case financecommissionadjustment.FieldDirection:
 		v, ok := value.(financecommissionadjustment.Direction)
@@ -41596,6 +41690,9 @@ func (m *FinanceCommissionAdjustmentMutation) ClearedFields() []string {
 	if m.FieldCleared(financecommissionadjustment.FieldSourceVerificationID) {
 		fields = append(fields, financecommissionadjustment.FieldSourceVerificationID)
 	}
+	if m.FieldCleared(financecommissionadjustment.FieldSourceFeeSupplementRequestID) {
+		fields = append(fields, financecommissionadjustment.FieldSourceFeeSupplementRequestID)
+	}
 	if m.FieldCleared(financecommissionadjustment.FieldNote) {
 		fields = append(fields, financecommissionadjustment.FieldNote)
 	}
@@ -41636,6 +41733,9 @@ func (m *FinanceCommissionAdjustmentMutation) ClearField(name string) error {
 	switch name {
 	case financecommissionadjustment.FieldSourceVerificationID:
 		m.ClearSourceVerificationID()
+		return nil
+	case financecommissionadjustment.FieldSourceFeeSupplementRequestID:
+		m.ClearSourceFeeSupplementRequestID()
 		return nil
 	case financecommissionadjustment.FieldNote:
 		m.ClearNote()
@@ -41708,6 +41808,9 @@ func (m *FinanceCommissionAdjustmentMutation) ResetField(name string) error {
 	case financecommissionadjustment.FieldSourceVerificationID:
 		m.ResetSourceVerificationID()
 		return nil
+	case financecommissionadjustment.FieldSourceFeeSupplementRequestID:
+		m.ResetSourceFeeSupplementRequestID()
+		return nil
 	case financecommissionadjustment.FieldDirection:
 		m.ResetDirection()
 		return nil
@@ -41756,7 +41859,7 @@ func (m *FinanceCommissionAdjustmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceCommissionAdjustmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.organization != nil {
 		edges = append(edges, financecommissionadjustment.EdgeOrganization)
 	}
@@ -41771,6 +41874,9 @@ func (m *FinanceCommissionAdjustmentMutation) AddedEdges() []string {
 	}
 	if m.source_verification != nil {
 		edges = append(edges, financecommissionadjustment.EdgeSourceVerification)
+	}
+	if m.source_fee_supplement_request != nil {
+		edges = append(edges, financecommissionadjustment.EdgeSourceFeeSupplementRequest)
 	}
 	if m.confirmed_by_user != nil {
 		edges = append(edges, financecommissionadjustment.EdgeConfirmedByUser)
@@ -41808,6 +41914,10 @@ func (m *FinanceCommissionAdjustmentMutation) AddedIDs(name string) []ent.Value 
 		if id := m.source_verification; id != nil {
 			return []ent.Value{*id}
 		}
+	case financecommissionadjustment.EdgeSourceFeeSupplementRequest:
+		if id := m.source_fee_supplement_request; id != nil {
+			return []ent.Value{*id}
+		}
 	case financecommissionadjustment.EdgeConfirmedByUser:
 		if id := m.confirmed_by_user; id != nil {
 			return []ent.Value{*id}
@@ -41826,7 +41936,7 @@ func (m *FinanceCommissionAdjustmentMutation) AddedIDs(name string) []ent.Value 
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceCommissionAdjustmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	return edges
 }
 
@@ -41838,7 +41948,7 @@ func (m *FinanceCommissionAdjustmentMutation) RemovedIDs(name string) []ent.Valu
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceCommissionAdjustmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedorganization {
 		edges = append(edges, financecommissionadjustment.EdgeOrganization)
 	}
@@ -41853,6 +41963,9 @@ func (m *FinanceCommissionAdjustmentMutation) ClearedEdges() []string {
 	}
 	if m.clearedsource_verification {
 		edges = append(edges, financecommissionadjustment.EdgeSourceVerification)
+	}
+	if m.clearedsource_fee_supplement_request {
+		edges = append(edges, financecommissionadjustment.EdgeSourceFeeSupplementRequest)
 	}
 	if m.clearedconfirmed_by_user {
 		edges = append(edges, financecommissionadjustment.EdgeConfirmedByUser)
@@ -41880,6 +41993,8 @@ func (m *FinanceCommissionAdjustmentMutation) EdgeCleared(name string) bool {
 		return m.clearedemployee
 	case financecommissionadjustment.EdgeSourceVerification:
 		return m.clearedsource_verification
+	case financecommissionadjustment.EdgeSourceFeeSupplementRequest:
+		return m.clearedsource_fee_supplement_request
 	case financecommissionadjustment.EdgeConfirmedByUser:
 		return m.clearedconfirmed_by_user
 	case financecommissionadjustment.EdgePaidByUser:
@@ -41908,6 +42023,9 @@ func (m *FinanceCommissionAdjustmentMutation) ClearEdge(name string) error {
 		return nil
 	case financecommissionadjustment.EdgeSourceVerification:
 		m.ClearSourceVerification()
+		return nil
+	case financecommissionadjustment.EdgeSourceFeeSupplementRequest:
+		m.ClearSourceFeeSupplementRequest()
 		return nil
 	case financecommissionadjustment.EdgeConfirmedByUser:
 		m.ClearConfirmedByUser()
@@ -41941,6 +42059,9 @@ func (m *FinanceCommissionAdjustmentMutation) ResetEdge(name string) error {
 	case financecommissionadjustment.EdgeSourceVerification:
 		m.ResetSourceVerification()
 		return nil
+	case financecommissionadjustment.EdgeSourceFeeSupplementRequest:
+		m.ResetSourceFeeSupplementRequest()
+		return nil
 	case financecommissionadjustment.EdgeConfirmedByUser:
 		m.ResetConfirmedByUser()
 		return nil
@@ -41957,43 +42078,50 @@ func (m *FinanceCommissionAdjustmentMutation) ResetEdge(name string) error {
 // FinanceCommissionLineMutation represents an operation that mutates the FinanceCommissionLine nodes in the graph.
 type FinanceCommissionLineMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	created_at                *time.Time
-	updated_at                *time.Time
-	order_no                  *string
-	order_date                *string
-	customer_id               *uuid.UUID
-	customer_code             *string
-	customer_name             *string
-	personnel_assignment_id   *uuid.UUID
-	personnel_organization_id *uuid.UUID
-	personnel_assigned_at     *time.Time
-	fee_count                 *int
-	addfee_count              *int
-	fee_snapshot              *string
-	employee_id               *uuid.UUID
-	employee_name             *string
-	personnel_role            *string
-	calculation_basis         *string
-	base_currency             *string
-	realized_revenue          *string
-	allocated_cost            *string
-	realized_profit           *string
-	commission_base_amount    *string
-	rate_percent              *string
-	commission_amount         *string
-	clearedFields             map[string]struct{}
-	organization              *uuid.UUID
-	clearedorganization       bool
-	commission                *uuid.UUID
-	clearedcommission         bool
-	_order                    *uuid.UUID
-	cleared_order             bool
-	done                      bool
-	oldValue                  func(context.Context) (*FinanceCommissionLine, error)
-	predicates                []predicate.FinanceCommissionLine
+	op                               Op
+	typ                              string
+	id                               *uuid.UUID
+	created_at                       *time.Time
+	updated_at                       *time.Time
+	order_no                         *string
+	order_date                       *string
+	customer_id                      *uuid.UUID
+	customer_code                    *string
+	customer_name                    *string
+	personnel_assignment_id          *uuid.UUID
+	personnel_organization_id        *uuid.UUID
+	personnel_assigned_at            *time.Time
+	fee_count                        *int
+	addfee_count                     *int
+	fee_snapshot                     *string
+	employee_id                      *uuid.UUID
+	employee_name                    *string
+	personnel_role                   *string
+	calculation_basis                *string
+	base_currency                    *string
+	realized_revenue                 *string
+	allocated_cost                   *string
+	realized_profit                  *string
+	commission_base_amount           *string
+	rate_percent                     *string
+	commission_amount                *string
+	total_receivable_snapshot        *string
+	total_payable_snapshot           *string
+	snapshot_status                  *financecommissionline.SnapshotStatus
+	snapshot_source                  *financecommissionline.SnapshotSource
+	snapshot_backfill_version        *string
+	snapshot_evidence_hash           *string
+	snapshot_unavailable_reason_code *string
+	clearedFields                    map[string]struct{}
+	organization                     *uuid.UUID
+	clearedorganization              bool
+	commission                       *uuid.UUID
+	clearedcommission                bool
+	_order                           *uuid.UUID
+	cleared_order                    bool
+	done                             bool
+	oldValue                         func(context.Context) (*FinanceCommissionLine, error)
+	predicates                       []predicate.FinanceCommissionLine
 }
 
 var _ ent.Mutation = (*FinanceCommissionLineMutation)(nil)
@@ -43056,6 +43184,349 @@ func (m *FinanceCommissionLineMutation) ResetCommissionAmount() {
 	m.commission_amount = nil
 }
 
+// SetTotalReceivableSnapshot sets the "total_receivable_snapshot" field.
+func (m *FinanceCommissionLineMutation) SetTotalReceivableSnapshot(s string) {
+	m.total_receivable_snapshot = &s
+}
+
+// TotalReceivableSnapshot returns the value of the "total_receivable_snapshot" field in the mutation.
+func (m *FinanceCommissionLineMutation) TotalReceivableSnapshot() (r string, exists bool) {
+	v := m.total_receivable_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalReceivableSnapshot returns the old "total_receivable_snapshot" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldTotalReceivableSnapshot(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalReceivableSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalReceivableSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalReceivableSnapshot: %w", err)
+	}
+	return oldValue.TotalReceivableSnapshot, nil
+}
+
+// ClearTotalReceivableSnapshot clears the value of the "total_receivable_snapshot" field.
+func (m *FinanceCommissionLineMutation) ClearTotalReceivableSnapshot() {
+	m.total_receivable_snapshot = nil
+	m.clearedFields[financecommissionline.FieldTotalReceivableSnapshot] = struct{}{}
+}
+
+// TotalReceivableSnapshotCleared returns if the "total_receivable_snapshot" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) TotalReceivableSnapshotCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldTotalReceivableSnapshot]
+	return ok
+}
+
+// ResetTotalReceivableSnapshot resets all changes to the "total_receivable_snapshot" field.
+func (m *FinanceCommissionLineMutation) ResetTotalReceivableSnapshot() {
+	m.total_receivable_snapshot = nil
+	delete(m.clearedFields, financecommissionline.FieldTotalReceivableSnapshot)
+}
+
+// SetTotalPayableSnapshot sets the "total_payable_snapshot" field.
+func (m *FinanceCommissionLineMutation) SetTotalPayableSnapshot(s string) {
+	m.total_payable_snapshot = &s
+}
+
+// TotalPayableSnapshot returns the value of the "total_payable_snapshot" field in the mutation.
+func (m *FinanceCommissionLineMutation) TotalPayableSnapshot() (r string, exists bool) {
+	v := m.total_payable_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalPayableSnapshot returns the old "total_payable_snapshot" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldTotalPayableSnapshot(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalPayableSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalPayableSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalPayableSnapshot: %w", err)
+	}
+	return oldValue.TotalPayableSnapshot, nil
+}
+
+// ClearTotalPayableSnapshot clears the value of the "total_payable_snapshot" field.
+func (m *FinanceCommissionLineMutation) ClearTotalPayableSnapshot() {
+	m.total_payable_snapshot = nil
+	m.clearedFields[financecommissionline.FieldTotalPayableSnapshot] = struct{}{}
+}
+
+// TotalPayableSnapshotCleared returns if the "total_payable_snapshot" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) TotalPayableSnapshotCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldTotalPayableSnapshot]
+	return ok
+}
+
+// ResetTotalPayableSnapshot resets all changes to the "total_payable_snapshot" field.
+func (m *FinanceCommissionLineMutation) ResetTotalPayableSnapshot() {
+	m.total_payable_snapshot = nil
+	delete(m.clearedFields, financecommissionline.FieldTotalPayableSnapshot)
+}
+
+// SetSnapshotStatus sets the "snapshot_status" field.
+func (m *FinanceCommissionLineMutation) SetSnapshotStatus(fs financecommissionline.SnapshotStatus) {
+	m.snapshot_status = &fs
+}
+
+// SnapshotStatus returns the value of the "snapshot_status" field in the mutation.
+func (m *FinanceCommissionLineMutation) SnapshotStatus() (r financecommissionline.SnapshotStatus, exists bool) {
+	v := m.snapshot_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshotStatus returns the old "snapshot_status" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldSnapshotStatus(ctx context.Context) (v *financecommissionline.SnapshotStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshotStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshotStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshotStatus: %w", err)
+	}
+	return oldValue.SnapshotStatus, nil
+}
+
+// ClearSnapshotStatus clears the value of the "snapshot_status" field.
+func (m *FinanceCommissionLineMutation) ClearSnapshotStatus() {
+	m.snapshot_status = nil
+	m.clearedFields[financecommissionline.FieldSnapshotStatus] = struct{}{}
+}
+
+// SnapshotStatusCleared returns if the "snapshot_status" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) SnapshotStatusCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldSnapshotStatus]
+	return ok
+}
+
+// ResetSnapshotStatus resets all changes to the "snapshot_status" field.
+func (m *FinanceCommissionLineMutation) ResetSnapshotStatus() {
+	m.snapshot_status = nil
+	delete(m.clearedFields, financecommissionline.FieldSnapshotStatus)
+}
+
+// SetSnapshotSource sets the "snapshot_source" field.
+func (m *FinanceCommissionLineMutation) SetSnapshotSource(fs financecommissionline.SnapshotSource) {
+	m.snapshot_source = &fs
+}
+
+// SnapshotSource returns the value of the "snapshot_source" field in the mutation.
+func (m *FinanceCommissionLineMutation) SnapshotSource() (r financecommissionline.SnapshotSource, exists bool) {
+	v := m.snapshot_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshotSource returns the old "snapshot_source" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldSnapshotSource(ctx context.Context) (v *financecommissionline.SnapshotSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshotSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshotSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshotSource: %w", err)
+	}
+	return oldValue.SnapshotSource, nil
+}
+
+// ClearSnapshotSource clears the value of the "snapshot_source" field.
+func (m *FinanceCommissionLineMutation) ClearSnapshotSource() {
+	m.snapshot_source = nil
+	m.clearedFields[financecommissionline.FieldSnapshotSource] = struct{}{}
+}
+
+// SnapshotSourceCleared returns if the "snapshot_source" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) SnapshotSourceCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldSnapshotSource]
+	return ok
+}
+
+// ResetSnapshotSource resets all changes to the "snapshot_source" field.
+func (m *FinanceCommissionLineMutation) ResetSnapshotSource() {
+	m.snapshot_source = nil
+	delete(m.clearedFields, financecommissionline.FieldSnapshotSource)
+}
+
+// SetSnapshotBackfillVersion sets the "snapshot_backfill_version" field.
+func (m *FinanceCommissionLineMutation) SetSnapshotBackfillVersion(s string) {
+	m.snapshot_backfill_version = &s
+}
+
+// SnapshotBackfillVersion returns the value of the "snapshot_backfill_version" field in the mutation.
+func (m *FinanceCommissionLineMutation) SnapshotBackfillVersion() (r string, exists bool) {
+	v := m.snapshot_backfill_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshotBackfillVersion returns the old "snapshot_backfill_version" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldSnapshotBackfillVersion(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshotBackfillVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshotBackfillVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshotBackfillVersion: %w", err)
+	}
+	return oldValue.SnapshotBackfillVersion, nil
+}
+
+// ClearSnapshotBackfillVersion clears the value of the "snapshot_backfill_version" field.
+func (m *FinanceCommissionLineMutation) ClearSnapshotBackfillVersion() {
+	m.snapshot_backfill_version = nil
+	m.clearedFields[financecommissionline.FieldSnapshotBackfillVersion] = struct{}{}
+}
+
+// SnapshotBackfillVersionCleared returns if the "snapshot_backfill_version" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) SnapshotBackfillVersionCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldSnapshotBackfillVersion]
+	return ok
+}
+
+// ResetSnapshotBackfillVersion resets all changes to the "snapshot_backfill_version" field.
+func (m *FinanceCommissionLineMutation) ResetSnapshotBackfillVersion() {
+	m.snapshot_backfill_version = nil
+	delete(m.clearedFields, financecommissionline.FieldSnapshotBackfillVersion)
+}
+
+// SetSnapshotEvidenceHash sets the "snapshot_evidence_hash" field.
+func (m *FinanceCommissionLineMutation) SetSnapshotEvidenceHash(s string) {
+	m.snapshot_evidence_hash = &s
+}
+
+// SnapshotEvidenceHash returns the value of the "snapshot_evidence_hash" field in the mutation.
+func (m *FinanceCommissionLineMutation) SnapshotEvidenceHash() (r string, exists bool) {
+	v := m.snapshot_evidence_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshotEvidenceHash returns the old "snapshot_evidence_hash" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldSnapshotEvidenceHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshotEvidenceHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshotEvidenceHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshotEvidenceHash: %w", err)
+	}
+	return oldValue.SnapshotEvidenceHash, nil
+}
+
+// ClearSnapshotEvidenceHash clears the value of the "snapshot_evidence_hash" field.
+func (m *FinanceCommissionLineMutation) ClearSnapshotEvidenceHash() {
+	m.snapshot_evidence_hash = nil
+	m.clearedFields[financecommissionline.FieldSnapshotEvidenceHash] = struct{}{}
+}
+
+// SnapshotEvidenceHashCleared returns if the "snapshot_evidence_hash" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) SnapshotEvidenceHashCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldSnapshotEvidenceHash]
+	return ok
+}
+
+// ResetSnapshotEvidenceHash resets all changes to the "snapshot_evidence_hash" field.
+func (m *FinanceCommissionLineMutation) ResetSnapshotEvidenceHash() {
+	m.snapshot_evidence_hash = nil
+	delete(m.clearedFields, financecommissionline.FieldSnapshotEvidenceHash)
+}
+
+// SetSnapshotUnavailableReasonCode sets the "snapshot_unavailable_reason_code" field.
+func (m *FinanceCommissionLineMutation) SetSnapshotUnavailableReasonCode(s string) {
+	m.snapshot_unavailable_reason_code = &s
+}
+
+// SnapshotUnavailableReasonCode returns the value of the "snapshot_unavailable_reason_code" field in the mutation.
+func (m *FinanceCommissionLineMutation) SnapshotUnavailableReasonCode() (r string, exists bool) {
+	v := m.snapshot_unavailable_reason_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshotUnavailableReasonCode returns the old "snapshot_unavailable_reason_code" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldSnapshotUnavailableReasonCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshotUnavailableReasonCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshotUnavailableReasonCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshotUnavailableReasonCode: %w", err)
+	}
+	return oldValue.SnapshotUnavailableReasonCode, nil
+}
+
+// ClearSnapshotUnavailableReasonCode clears the value of the "snapshot_unavailable_reason_code" field.
+func (m *FinanceCommissionLineMutation) ClearSnapshotUnavailableReasonCode() {
+	m.snapshot_unavailable_reason_code = nil
+	m.clearedFields[financecommissionline.FieldSnapshotUnavailableReasonCode] = struct{}{}
+}
+
+// SnapshotUnavailableReasonCodeCleared returns if the "snapshot_unavailable_reason_code" field was cleared in this mutation.
+func (m *FinanceCommissionLineMutation) SnapshotUnavailableReasonCodeCleared() bool {
+	_, ok := m.clearedFields[financecommissionline.FieldSnapshotUnavailableReasonCode]
+	return ok
+}
+
+// ResetSnapshotUnavailableReasonCode resets all changes to the "snapshot_unavailable_reason_code" field.
+func (m *FinanceCommissionLineMutation) ResetSnapshotUnavailableReasonCode() {
+	m.snapshot_unavailable_reason_code = nil
+	delete(m.clearedFields, financecommissionline.FieldSnapshotUnavailableReasonCode)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *FinanceCommissionLineMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -43171,7 +43642,7 @@ func (m *FinanceCommissionLineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionLineMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 33)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionline.FieldCreatedAt)
 	}
@@ -43250,6 +43721,27 @@ func (m *FinanceCommissionLineMutation) Fields() []string {
 	if m.commission_amount != nil {
 		fields = append(fields, financecommissionline.FieldCommissionAmount)
 	}
+	if m.total_receivable_snapshot != nil {
+		fields = append(fields, financecommissionline.FieldTotalReceivableSnapshot)
+	}
+	if m.total_payable_snapshot != nil {
+		fields = append(fields, financecommissionline.FieldTotalPayableSnapshot)
+	}
+	if m.snapshot_status != nil {
+		fields = append(fields, financecommissionline.FieldSnapshotStatus)
+	}
+	if m.snapshot_source != nil {
+		fields = append(fields, financecommissionline.FieldSnapshotSource)
+	}
+	if m.snapshot_backfill_version != nil {
+		fields = append(fields, financecommissionline.FieldSnapshotBackfillVersion)
+	}
+	if m.snapshot_evidence_hash != nil {
+		fields = append(fields, financecommissionline.FieldSnapshotEvidenceHash)
+	}
+	if m.snapshot_unavailable_reason_code != nil {
+		fields = append(fields, financecommissionline.FieldSnapshotUnavailableReasonCode)
+	}
 	return fields
 }
 
@@ -43310,6 +43802,20 @@ func (m *FinanceCommissionLineMutation) Field(name string) (ent.Value, bool) {
 		return m.RatePercent()
 	case financecommissionline.FieldCommissionAmount:
 		return m.CommissionAmount()
+	case financecommissionline.FieldTotalReceivableSnapshot:
+		return m.TotalReceivableSnapshot()
+	case financecommissionline.FieldTotalPayableSnapshot:
+		return m.TotalPayableSnapshot()
+	case financecommissionline.FieldSnapshotStatus:
+		return m.SnapshotStatus()
+	case financecommissionline.FieldSnapshotSource:
+		return m.SnapshotSource()
+	case financecommissionline.FieldSnapshotBackfillVersion:
+		return m.SnapshotBackfillVersion()
+	case financecommissionline.FieldSnapshotEvidenceHash:
+		return m.SnapshotEvidenceHash()
+	case financecommissionline.FieldSnapshotUnavailableReasonCode:
+		return m.SnapshotUnavailableReasonCode()
 	}
 	return nil, false
 }
@@ -43371,6 +43877,20 @@ func (m *FinanceCommissionLineMutation) OldField(ctx context.Context, name strin
 		return m.OldRatePercent(ctx)
 	case financecommissionline.FieldCommissionAmount:
 		return m.OldCommissionAmount(ctx)
+	case financecommissionline.FieldTotalReceivableSnapshot:
+		return m.OldTotalReceivableSnapshot(ctx)
+	case financecommissionline.FieldTotalPayableSnapshot:
+		return m.OldTotalPayableSnapshot(ctx)
+	case financecommissionline.FieldSnapshotStatus:
+		return m.OldSnapshotStatus(ctx)
+	case financecommissionline.FieldSnapshotSource:
+		return m.OldSnapshotSource(ctx)
+	case financecommissionline.FieldSnapshotBackfillVersion:
+		return m.OldSnapshotBackfillVersion(ctx)
+	case financecommissionline.FieldSnapshotEvidenceHash:
+		return m.OldSnapshotEvidenceHash(ctx)
+	case financecommissionline.FieldSnapshotUnavailableReasonCode:
+		return m.OldSnapshotUnavailableReasonCode(ctx)
 	}
 	return nil, fmt.Errorf("unknown FinanceCommissionLine field %s", name)
 }
@@ -43562,6 +44082,55 @@ func (m *FinanceCommissionLineMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetCommissionAmount(v)
 		return nil
+	case financecommissionline.FieldTotalReceivableSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalReceivableSnapshot(v)
+		return nil
+	case financecommissionline.FieldTotalPayableSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalPayableSnapshot(v)
+		return nil
+	case financecommissionline.FieldSnapshotStatus:
+		v, ok := value.(financecommissionline.SnapshotStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshotStatus(v)
+		return nil
+	case financecommissionline.FieldSnapshotSource:
+		v, ok := value.(financecommissionline.SnapshotSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshotSource(v)
+		return nil
+	case financecommissionline.FieldSnapshotBackfillVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshotBackfillVersion(v)
+		return nil
+	case financecommissionline.FieldSnapshotEvidenceHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshotEvidenceHash(v)
+		return nil
+	case financecommissionline.FieldSnapshotUnavailableReasonCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshotUnavailableReasonCode(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceCommissionLine field %s", name)
 }
@@ -43606,7 +44175,29 @@ func (m *FinanceCommissionLineMutation) AddField(name string, value ent.Value) e
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FinanceCommissionLineMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(financecommissionline.FieldTotalReceivableSnapshot) {
+		fields = append(fields, financecommissionline.FieldTotalReceivableSnapshot)
+	}
+	if m.FieldCleared(financecommissionline.FieldTotalPayableSnapshot) {
+		fields = append(fields, financecommissionline.FieldTotalPayableSnapshot)
+	}
+	if m.FieldCleared(financecommissionline.FieldSnapshotStatus) {
+		fields = append(fields, financecommissionline.FieldSnapshotStatus)
+	}
+	if m.FieldCleared(financecommissionline.FieldSnapshotSource) {
+		fields = append(fields, financecommissionline.FieldSnapshotSource)
+	}
+	if m.FieldCleared(financecommissionline.FieldSnapshotBackfillVersion) {
+		fields = append(fields, financecommissionline.FieldSnapshotBackfillVersion)
+	}
+	if m.FieldCleared(financecommissionline.FieldSnapshotEvidenceHash) {
+		fields = append(fields, financecommissionline.FieldSnapshotEvidenceHash)
+	}
+	if m.FieldCleared(financecommissionline.FieldSnapshotUnavailableReasonCode) {
+		fields = append(fields, financecommissionline.FieldSnapshotUnavailableReasonCode)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -43619,6 +44210,29 @@ func (m *FinanceCommissionLineMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FinanceCommissionLineMutation) ClearField(name string) error {
+	switch name {
+	case financecommissionline.FieldTotalReceivableSnapshot:
+		m.ClearTotalReceivableSnapshot()
+		return nil
+	case financecommissionline.FieldTotalPayableSnapshot:
+		m.ClearTotalPayableSnapshot()
+		return nil
+	case financecommissionline.FieldSnapshotStatus:
+		m.ClearSnapshotStatus()
+		return nil
+	case financecommissionline.FieldSnapshotSource:
+		m.ClearSnapshotSource()
+		return nil
+	case financecommissionline.FieldSnapshotBackfillVersion:
+		m.ClearSnapshotBackfillVersion()
+		return nil
+	case financecommissionline.FieldSnapshotEvidenceHash:
+		m.ClearSnapshotEvidenceHash()
+		return nil
+	case financecommissionline.FieldSnapshotUnavailableReasonCode:
+		m.ClearSnapshotUnavailableReasonCode()
+		return nil
+	}
 	return fmt.Errorf("unknown FinanceCommissionLine nullable field %s", name)
 }
 
@@ -43703,6 +44317,27 @@ func (m *FinanceCommissionLineMutation) ResetField(name string) error {
 		return nil
 	case financecommissionline.FieldCommissionAmount:
 		m.ResetCommissionAmount()
+		return nil
+	case financecommissionline.FieldTotalReceivableSnapshot:
+		m.ResetTotalReceivableSnapshot()
+		return nil
+	case financecommissionline.FieldTotalPayableSnapshot:
+		m.ResetTotalPayableSnapshot()
+		return nil
+	case financecommissionline.FieldSnapshotStatus:
+		m.ResetSnapshotStatus()
+		return nil
+	case financecommissionline.FieldSnapshotSource:
+		m.ResetSnapshotSource()
+		return nil
+	case financecommissionline.FieldSnapshotBackfillVersion:
+		m.ResetSnapshotBackfillVersion()
+		return nil
+	case financecommissionline.FieldSnapshotEvidenceHash:
+		m.ResetSnapshotEvidenceHash()
+		return nil
+	case financecommissionline.FieldSnapshotUnavailableReasonCode:
+		m.ResetSnapshotUnavailableReasonCode()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceCommissionLine field %s", name)
@@ -64930,6 +65565,9 @@ type OrderMutation struct {
 	fees                                    map[uuid.UUID]struct{}
 	removedfees                             map[uuid.UUID]struct{}
 	clearedfees                             bool
+	fee_supplement_requests                 map[uuid.UUID]struct{}
+	removedfee_supplement_requests          map[uuid.UUID]struct{}
+	clearedfee_supplement_requests          bool
 	finance_bill_lines                      map[uuid.UUID]struct{}
 	removedfinance_bill_lines               map[uuid.UUID]struct{}
 	clearedfinance_bill_lines               bool
@@ -69380,6 +70018,60 @@ func (m *OrderMutation) ResetFees() {
 	m.removedfees = nil
 }
 
+// AddFeeSupplementRequestIDs adds the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by ids.
+func (m *OrderMutation) AddFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.fee_supplement_requests == nil {
+		m.fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeeSupplementRequests clears the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *OrderMutation) ClearFeeSupplementRequests() {
+	m.clearedfee_supplement_requests = true
+}
+
+// FeeSupplementRequestsCleared reports if the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *OrderMutation) FeeSupplementRequestsCleared() bool {
+	return m.clearedfee_supplement_requests
+}
+
+// RemoveFeeSupplementRequestIDs removes the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (m *OrderMutation) RemoveFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.removedfee_supplement_requests == nil {
+		m.removedfee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.fee_supplement_requests, ids[i])
+		m.removedfee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeeSupplementRequests returns the removed IDs of the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *OrderMutation) RemovedFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeeSupplementRequestsIDs returns the "fee_supplement_requests" edge IDs in the mutation.
+func (m *OrderMutation) FeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeeSupplementRequests resets all changes to the "fee_supplement_requests" edge.
+func (m *OrderMutation) ResetFeeSupplementRequests() {
+	m.fee_supplement_requests = nil
+	m.clearedfee_supplement_requests = false
+	m.removedfee_supplement_requests = nil
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by ids.
 func (m *OrderMutation) AddFinanceBillLineIDs(ids ...uuid.UUID) {
 	if m.finance_bill_lines == nil {
@@ -72066,7 +72758,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 33)
+	edges := make([]string, 0, 34)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -72114,6 +72806,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.fees != nil {
 		edges = append(edges, order.EdgeFees)
+	}
+	if m.fee_supplement_requests != nil {
+		edges = append(edges, order.EdgeFeeSupplementRequests)
 	}
 	if m.finance_bill_lines != nil {
 		edges = append(edges, order.EdgeFinanceBillLines)
@@ -72263,6 +72958,12 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.fee_supplement_requests))
+		for id := range m.fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeFinanceBillLines:
 		ids := make([]ent.Value, 0, len(m.finance_bill_lines))
 		for id := range m.finance_bill_lines {
@@ -72369,7 +73070,7 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 33)
+	edges := make([]string, 0, 34)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -72408,6 +73109,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedfees != nil {
 		edges = append(edges, order.EdgeFees)
+	}
+	if m.removedfee_supplement_requests != nil {
+		edges = append(edges, order.EdgeFeeSupplementRequests)
 	}
 	if m.removedfinance_bill_lines != nil {
 		edges = append(edges, order.EdgeFinanceBillLines)
@@ -72542,6 +73246,12 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.removedfee_supplement_requests))
+		for id := range m.removedfee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeFinanceBillLines:
 		ids := make([]ent.Value, 0, len(m.removedfinance_bill_lines))
 		for id := range m.removedfinance_bill_lines {
@@ -72644,7 +73354,7 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 33)
+	edges := make([]string, 0, 34)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -72692,6 +73402,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedfees {
 		edges = append(edges, order.EdgeFees)
+	}
+	if m.clearedfee_supplement_requests {
+		edges = append(edges, order.EdgeFeeSupplementRequests)
 	}
 	if m.clearedfinance_bill_lines {
 		edges = append(edges, order.EdgeFinanceBillLines)
@@ -72783,6 +73496,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedabnormal_cases
 	case order.EdgeFees:
 		return m.clearedfees
+	case order.EdgeFeeSupplementRequests:
+		return m.clearedfee_supplement_requests
 	case order.EdgeFinanceBillLines:
 		return m.clearedfinance_bill_lines
 	case order.EdgeFinanceCommissionLines:
@@ -72892,6 +73607,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeFees:
 		m.ResetFees()
+		return nil
+	case order.EdgeFeeSupplementRequests:
+		m.ResetFeeSupplementRequests()
 		return nil
 	case order.EdgeFinanceBillLines:
 		m.ResetFinanceBillLines()
@@ -81589,6 +82307,8 @@ type OrderFeeMutation struct {
 	clearedbilling_unit_ref     bool
 	cancelled_by_user           *uuid.UUID
 	clearedcancelled_by_user    bool
+	supplement_request          *uuid.UUID
+	clearedsupplement_request   bool
 	finance_bill_lines          map[uuid.UUID]struct{}
 	removedfinance_bill_lines   map[uuid.UUID]struct{}
 	clearedfinance_bill_lines   bool
@@ -82875,6 +83595,55 @@ func (m *OrderFeeMutation) ResetNote() {
 	delete(m.clearedFields, orderfee.FieldNote)
 }
 
+// SetSupplementRequestID sets the "supplement_request_id" field.
+func (m *OrderFeeMutation) SetSupplementRequestID(u uuid.UUID) {
+	m.supplement_request = &u
+}
+
+// SupplementRequestID returns the value of the "supplement_request_id" field in the mutation.
+func (m *OrderFeeMutation) SupplementRequestID() (r uuid.UUID, exists bool) {
+	v := m.supplement_request
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupplementRequestID returns the old "supplement_request_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldSupplementRequestID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupplementRequestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupplementRequestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupplementRequestID: %w", err)
+	}
+	return oldValue.SupplementRequestID, nil
+}
+
+// ClearSupplementRequestID clears the value of the "supplement_request_id" field.
+func (m *OrderFeeMutation) ClearSupplementRequestID() {
+	m.supplement_request = nil
+	m.clearedFields[orderfee.FieldSupplementRequestID] = struct{}{}
+}
+
+// SupplementRequestIDCleared returns if the "supplement_request_id" field was cleared in this mutation.
+func (m *OrderFeeMutation) SupplementRequestIDCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldSupplementRequestID]
+	return ok
+}
+
+// ResetSupplementRequestID resets all changes to the "supplement_request_id" field.
+func (m *OrderFeeMutation) ResetSupplementRequestID() {
+	m.supplement_request = nil
+	delete(m.clearedFields, orderfee.FieldSupplementRequestID)
+}
+
 // SetVersion sets the "version" field.
 func (m *OrderFeeMutation) SetVersion(u uint64) {
 	m.version = &u
@@ -83239,6 +84008,33 @@ func (m *OrderFeeMutation) ResetCancelledByUser() {
 	m.clearedcancelled_by_user = false
 }
 
+// ClearSupplementRequest clears the "supplement_request" edge to the OrderFeeSupplementRequest entity.
+func (m *OrderFeeMutation) ClearSupplementRequest() {
+	m.clearedsupplement_request = true
+	m.clearedFields[orderfee.FieldSupplementRequestID] = struct{}{}
+}
+
+// SupplementRequestCleared reports if the "supplement_request" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *OrderFeeMutation) SupplementRequestCleared() bool {
+	return m.SupplementRequestIDCleared() || m.clearedsupplement_request
+}
+
+// SupplementRequestIDs returns the "supplement_request" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SupplementRequestID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeMutation) SupplementRequestIDs() (ids []uuid.UUID) {
+	if id := m.supplement_request; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSupplementRequest resets all changes to the "supplement_request" edge.
+func (m *OrderFeeMutation) ResetSupplementRequest() {
+	m.supplement_request = nil
+	m.clearedsupplement_request = false
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by ids.
 func (m *OrderFeeMutation) AddFinanceBillLineIDs(ids ...uuid.UUID) {
 	if m.finance_bill_lines == nil {
@@ -83381,7 +84177,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 34)
+	fields := make([]string, 0, 35)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -83472,6 +84268,9 @@ func (m *OrderFeeMutation) Fields() []string {
 	if m.note != nil {
 		fields = append(fields, orderfee.FieldNote)
 	}
+	if m.supplement_request != nil {
+		fields = append(fields, orderfee.FieldSupplementRequestID)
+	}
 	if m.version != nil {
 		fields = append(fields, orderfee.FieldVersion)
 	}
@@ -83552,6 +84351,8 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.ExpenseDate()
 	case orderfee.FieldNote:
 		return m.Note()
+	case orderfee.FieldSupplementRequestID:
+		return m.SupplementRequestID()
 	case orderfee.FieldVersion:
 		return m.Version()
 	case orderfee.FieldCancelledAt:
@@ -83629,6 +84430,8 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldExpenseDate(ctx)
 	case orderfee.FieldNote:
 		return m.OldNote(ctx)
+	case orderfee.FieldSupplementRequestID:
+		return m.OldSupplementRequestID(ctx)
 	case orderfee.FieldVersion:
 		return m.OldVersion(ctx)
 	case orderfee.FieldCancelledAt:
@@ -83856,6 +84659,13 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNote(v)
 		return nil
+	case orderfee.FieldSupplementRequestID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupplementRequestID(v)
+		return nil
 	case orderfee.FieldVersion:
 		v, ok := value.(uint64)
 		if !ok {
@@ -83950,6 +84760,9 @@ func (m *OrderFeeMutation) ClearedFields() []string {
 	if m.FieldCleared(orderfee.FieldNote) {
 		fields = append(fields, orderfee.FieldNote)
 	}
+	if m.FieldCleared(orderfee.FieldSupplementRequestID) {
+		fields = append(fields, orderfee.FieldSupplementRequestID)
+	}
 	if m.FieldCleared(orderfee.FieldCancelledAt) {
 		fields = append(fields, orderfee.FieldCancelledAt)
 	}
@@ -83993,6 +84806,9 @@ func (m *OrderFeeMutation) ClearField(name string) error {
 		return nil
 	case orderfee.FieldNote:
 		m.ClearNote()
+		return nil
+	case orderfee.FieldSupplementRequestID:
+		m.ClearSupplementRequestID()
 		return nil
 	case orderfee.FieldCancelledAt:
 		m.ClearCancelledAt()
@@ -84101,6 +84917,9 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 	case orderfee.FieldNote:
 		m.ResetNote()
 		return nil
+	case orderfee.FieldSupplementRequestID:
+		m.ResetSupplementRequestID()
+		return nil
 	case orderfee.FieldVersion:
 		m.ResetVersion()
 		return nil
@@ -84119,7 +84938,7 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderFeeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m._order != nil {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
@@ -84134,6 +84953,9 @@ func (m *OrderFeeMutation) AddedEdges() []string {
 	}
 	if m.cancelled_by_user != nil {
 		edges = append(edges, orderfee.EdgeCancelledByUser)
+	}
+	if m.supplement_request != nil {
+		edges = append(edges, orderfee.EdgeSupplementRequest)
 	}
 	if m.finance_bill_lines != nil {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
@@ -84168,6 +84990,10 @@ func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cancelled_by_user; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderfee.EdgeSupplementRequest:
+		if id := m.supplement_request; id != nil {
+			return []ent.Value{*id}
+		}
 	case orderfee.EdgeFinanceBillLines:
 		ids := make([]ent.Value, 0, len(m.finance_bill_lines))
 		for id := range m.finance_bill_lines {
@@ -84186,7 +85012,7 @@ func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderFeeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedfinance_bill_lines != nil {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
 	}
@@ -84218,7 +85044,7 @@ func (m *OrderFeeMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderFeeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.cleared_order {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
@@ -84233,6 +85059,9 @@ func (m *OrderFeeMutation) ClearedEdges() []string {
 	}
 	if m.clearedcancelled_by_user {
 		edges = append(edges, orderfee.EdgeCancelledByUser)
+	}
+	if m.clearedsupplement_request {
+		edges = append(edges, orderfee.EdgeSupplementRequest)
 	}
 	if m.clearedfinance_bill_lines {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
@@ -84257,6 +85086,8 @@ func (m *OrderFeeMutation) EdgeCleared(name string) bool {
 		return m.clearedbilling_unit_ref
 	case orderfee.EdgeCancelledByUser:
 		return m.clearedcancelled_by_user
+	case orderfee.EdgeSupplementRequest:
+		return m.clearedsupplement_request
 	case orderfee.EdgeFinanceBillLines:
 		return m.clearedfinance_bill_lines
 	case orderfee.EdgeEnterpriseTagLinks:
@@ -84284,6 +85115,9 @@ func (m *OrderFeeMutation) ClearEdge(name string) error {
 	case orderfee.EdgeCancelledByUser:
 		m.ClearCancelledByUser()
 		return nil
+	case orderfee.EdgeSupplementRequest:
+		m.ClearSupplementRequest()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderFee unique edge %s", name)
 }
@@ -84306,6 +85140,9 @@ func (m *OrderFeeMutation) ResetEdge(name string) error {
 		return nil
 	case orderfee.EdgeCancelledByUser:
 		m.ResetCancelledByUser()
+		return nil
+	case orderfee.EdgeSupplementRequest:
+		m.ResetSupplementRequest()
 		return nil
 	case orderfee.EdgeFinanceBillLines:
 		m.ResetFinanceBillLines()
@@ -85009,6 +85846,3385 @@ func (m *OrderFeeEnterpriseTagMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderFeeEnterpriseTag edge %s", name)
+}
+
+// OrderFeeSupplementRequestMutation represents an operation that mutates the OrderFeeSupplementRequest nodes in the graph.
+type OrderFeeSupplementRequestMutation struct {
+	config
+	op                                 Op
+	typ                                string
+	id                                 *uuid.UUID
+	created_at                         *time.Time
+	updated_at                         *time.Time
+	lock_basis                         *orderfeesupplementrequest.LockBasis
+	business_lock_generation           *uint64
+	addbusiness_lock_generation        *int64
+	financial_lock_evidence_version    *string
+	financial_lock_evidence_hash       *string
+	financial_lock_net_amount_snapshot *string
+	idempotency_key                    *string
+	request_fingerprint                *string
+	direction                          *orderfeesupplementrequest.Direction
+	fee_setting_id                     *uuid.UUID
+	fee_code                           *string
+	fee_name                           *string
+	fee_name_en                        *string
+	settlement_party_id                *uuid.UUID
+	billing_unit_id                    *uuid.UUID
+	billing_unit                       *string
+	tax_rate                           *string
+	taxable_service_name               *string
+	quantity                           *string
+	unit_price                         *string
+	total_amount                       *string
+	tax_inclusive                      *bool
+	net_amount                         *string
+	tax_amount                         *string
+	currency                           *string
+	exchange_rate                      *string
+	exchange_rate_source               *orderfeesupplementrequest.ExchangeRateSource
+	exchange_rate_date                 *string
+	exchange_rate_setting_id           *uuid.UUID
+	base_currency                      *string
+	base_currency_amount               *string
+	expense_date                       *string
+	note                               *string
+	reason                             *string
+	requested_at                       *time.Time
+	status                             *orderfeesupplementrequest.Status
+	version                            *uint64
+	addversion                         *int64
+	decided_at                         *time.Time
+	decision_reason                    *string
+	clearedFields                      map[string]struct{}
+	organization                       *uuid.UUID
+	clearedorganization                bool
+	_order                             *uuid.UUID
+	cleared_order                      bool
+	requested_by_user                  *uuid.UUID
+	clearedrequested_by_user           bool
+	decided_by_user                    *uuid.UUID
+	cleareddecided_by_user             bool
+	fees                               map[uuid.UUID]struct{}
+	removedfees                        map[uuid.UUID]struct{}
+	clearedfees                        bool
+	commission_adjustments             map[uuid.UUID]struct{}
+	removedcommission_adjustments      map[uuid.UUID]struct{}
+	clearedcommission_adjustments      bool
+	done                               bool
+	oldValue                           func(context.Context) (*OrderFeeSupplementRequest, error)
+	predicates                         []predicate.OrderFeeSupplementRequest
+}
+
+var _ ent.Mutation = (*OrderFeeSupplementRequestMutation)(nil)
+
+// orderfeesupplementrequestOption allows management of the mutation configuration using functional options.
+type orderfeesupplementrequestOption func(*OrderFeeSupplementRequestMutation)
+
+// newOrderFeeSupplementRequestMutation creates new mutation for the OrderFeeSupplementRequest entity.
+func newOrderFeeSupplementRequestMutation(c config, op Op, opts ...orderfeesupplementrequestOption) *OrderFeeSupplementRequestMutation {
+	m := &OrderFeeSupplementRequestMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderFeeSupplementRequest,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderFeeSupplementRequestID sets the ID field of the mutation.
+func withOrderFeeSupplementRequestID(id uuid.UUID) orderfeesupplementrequestOption {
+	return func(m *OrderFeeSupplementRequestMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderFeeSupplementRequest
+		)
+		m.oldValue = func(ctx context.Context) (*OrderFeeSupplementRequest, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderFeeSupplementRequest.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderFeeSupplementRequest sets the old OrderFeeSupplementRequest of the mutation.
+func withOrderFeeSupplementRequest(node *OrderFeeSupplementRequest) orderfeesupplementrequestOption {
+	return func(m *OrderFeeSupplementRequestMutation) {
+		m.oldValue = func(context.Context) (*OrderFeeSupplementRequest, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderFeeSupplementRequestMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderFeeSupplementRequestMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderFeeSupplementRequest entities.
+func (m *OrderFeeSupplementRequestMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderFeeSupplementRequestMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderFeeSupplementRequestMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderFeeSupplementRequest.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderFeeSupplementRequestMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderFeeSupplementRequestMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderFeeSupplementRequestMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderFeeSupplementRequestMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetLockBasis sets the "lock_basis" field.
+func (m *OrderFeeSupplementRequestMutation) SetLockBasis(ob orderfeesupplementrequest.LockBasis) {
+	m.lock_basis = &ob
+}
+
+// LockBasis returns the value of the "lock_basis" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) LockBasis() (r orderfeesupplementrequest.LockBasis, exists bool) {
+	v := m.lock_basis
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockBasis returns the old "lock_basis" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldLockBasis(ctx context.Context) (v orderfeesupplementrequest.LockBasis, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockBasis is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockBasis requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockBasis: %w", err)
+	}
+	return oldValue.LockBasis, nil
+}
+
+// ResetLockBasis resets all changes to the "lock_basis" field.
+func (m *OrderFeeSupplementRequestMutation) ResetLockBasis() {
+	m.lock_basis = nil
+}
+
+// SetBusinessLockGeneration sets the "business_lock_generation" field.
+func (m *OrderFeeSupplementRequestMutation) SetBusinessLockGeneration(u uint64) {
+	m.business_lock_generation = &u
+	m.addbusiness_lock_generation = nil
+}
+
+// BusinessLockGeneration returns the value of the "business_lock_generation" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) BusinessLockGeneration() (r uint64, exists bool) {
+	v := m.business_lock_generation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessLockGeneration returns the old "business_lock_generation" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldBusinessLockGeneration(ctx context.Context) (v *uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessLockGeneration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessLockGeneration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessLockGeneration: %w", err)
+	}
+	return oldValue.BusinessLockGeneration, nil
+}
+
+// AddBusinessLockGeneration adds u to the "business_lock_generation" field.
+func (m *OrderFeeSupplementRequestMutation) AddBusinessLockGeneration(u int64) {
+	if m.addbusiness_lock_generation != nil {
+		*m.addbusiness_lock_generation += u
+	} else {
+		m.addbusiness_lock_generation = &u
+	}
+}
+
+// AddedBusinessLockGeneration returns the value that was added to the "business_lock_generation" field in this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedBusinessLockGeneration() (r int64, exists bool) {
+	v := m.addbusiness_lock_generation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBusinessLockGeneration clears the value of the "business_lock_generation" field.
+func (m *OrderFeeSupplementRequestMutation) ClearBusinessLockGeneration() {
+	m.business_lock_generation = nil
+	m.addbusiness_lock_generation = nil
+	m.clearedFields[orderfeesupplementrequest.FieldBusinessLockGeneration] = struct{}{}
+}
+
+// BusinessLockGenerationCleared returns if the "business_lock_generation" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) BusinessLockGenerationCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldBusinessLockGeneration]
+	return ok
+}
+
+// ResetBusinessLockGeneration resets all changes to the "business_lock_generation" field.
+func (m *OrderFeeSupplementRequestMutation) ResetBusinessLockGeneration() {
+	m.business_lock_generation = nil
+	m.addbusiness_lock_generation = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldBusinessLockGeneration)
+}
+
+// SetFinancialLockEvidenceVersion sets the "financial_lock_evidence_version" field.
+func (m *OrderFeeSupplementRequestMutation) SetFinancialLockEvidenceVersion(s string) {
+	m.financial_lock_evidence_version = &s
+}
+
+// FinancialLockEvidenceVersion returns the value of the "financial_lock_evidence_version" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockEvidenceVersion() (r string, exists bool) {
+	v := m.financial_lock_evidence_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinancialLockEvidenceVersion returns the old "financial_lock_evidence_version" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFinancialLockEvidenceVersion(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinancialLockEvidenceVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinancialLockEvidenceVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinancialLockEvidenceVersion: %w", err)
+	}
+	return oldValue.FinancialLockEvidenceVersion, nil
+}
+
+// ClearFinancialLockEvidenceVersion clears the value of the "financial_lock_evidence_version" field.
+func (m *OrderFeeSupplementRequestMutation) ClearFinancialLockEvidenceVersion() {
+	m.financial_lock_evidence_version = nil
+	m.clearedFields[orderfeesupplementrequest.FieldFinancialLockEvidenceVersion] = struct{}{}
+}
+
+// FinancialLockEvidenceVersionCleared returns if the "financial_lock_evidence_version" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockEvidenceVersionCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldFinancialLockEvidenceVersion]
+	return ok
+}
+
+// ResetFinancialLockEvidenceVersion resets all changes to the "financial_lock_evidence_version" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFinancialLockEvidenceVersion() {
+	m.financial_lock_evidence_version = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion)
+}
+
+// SetFinancialLockEvidenceHash sets the "financial_lock_evidence_hash" field.
+func (m *OrderFeeSupplementRequestMutation) SetFinancialLockEvidenceHash(s string) {
+	m.financial_lock_evidence_hash = &s
+}
+
+// FinancialLockEvidenceHash returns the value of the "financial_lock_evidence_hash" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockEvidenceHash() (r string, exists bool) {
+	v := m.financial_lock_evidence_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinancialLockEvidenceHash returns the old "financial_lock_evidence_hash" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFinancialLockEvidenceHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinancialLockEvidenceHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinancialLockEvidenceHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinancialLockEvidenceHash: %w", err)
+	}
+	return oldValue.FinancialLockEvidenceHash, nil
+}
+
+// ClearFinancialLockEvidenceHash clears the value of the "financial_lock_evidence_hash" field.
+func (m *OrderFeeSupplementRequestMutation) ClearFinancialLockEvidenceHash() {
+	m.financial_lock_evidence_hash = nil
+	m.clearedFields[orderfeesupplementrequest.FieldFinancialLockEvidenceHash] = struct{}{}
+}
+
+// FinancialLockEvidenceHashCleared returns if the "financial_lock_evidence_hash" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockEvidenceHashCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldFinancialLockEvidenceHash]
+	return ok
+}
+
+// ResetFinancialLockEvidenceHash resets all changes to the "financial_lock_evidence_hash" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFinancialLockEvidenceHash() {
+	m.financial_lock_evidence_hash = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldFinancialLockEvidenceHash)
+}
+
+// SetFinancialLockNetAmountSnapshot sets the "financial_lock_net_amount_snapshot" field.
+func (m *OrderFeeSupplementRequestMutation) SetFinancialLockNetAmountSnapshot(s string) {
+	m.financial_lock_net_amount_snapshot = &s
+}
+
+// FinancialLockNetAmountSnapshot returns the value of the "financial_lock_net_amount_snapshot" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockNetAmountSnapshot() (r string, exists bool) {
+	v := m.financial_lock_net_amount_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinancialLockNetAmountSnapshot returns the old "financial_lock_net_amount_snapshot" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFinancialLockNetAmountSnapshot(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinancialLockNetAmountSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinancialLockNetAmountSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinancialLockNetAmountSnapshot: %w", err)
+	}
+	return oldValue.FinancialLockNetAmountSnapshot, nil
+}
+
+// ClearFinancialLockNetAmountSnapshot clears the value of the "financial_lock_net_amount_snapshot" field.
+func (m *OrderFeeSupplementRequestMutation) ClearFinancialLockNetAmountSnapshot() {
+	m.financial_lock_net_amount_snapshot = nil
+	m.clearedFields[orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot] = struct{}{}
+}
+
+// FinancialLockNetAmountSnapshotCleared returns if the "financial_lock_net_amount_snapshot" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FinancialLockNetAmountSnapshotCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot]
+	return ok
+}
+
+// ResetFinancialLockNetAmountSnapshot resets all changes to the "financial_lock_net_amount_snapshot" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFinancialLockNetAmountSnapshot() {
+	m.financial_lock_net_amount_snapshot = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *OrderFeeSupplementRequestMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *OrderFeeSupplementRequestMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *OrderFeeSupplementRequestMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldRequestFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *OrderFeeSupplementRequestMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+}
+
+// SetDirection sets the "direction" field.
+func (m *OrderFeeSupplementRequestMutation) SetDirection(o orderfeesupplementrequest.Direction) {
+	m.direction = &o
+}
+
+// Direction returns the value of the "direction" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Direction() (r orderfeesupplementrequest.Direction, exists bool) {
+	v := m.direction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDirection returns the old "direction" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldDirection(ctx context.Context) (v orderfeesupplementrequest.Direction, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDirection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDirection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDirection: %w", err)
+	}
+	return oldValue.Direction, nil
+}
+
+// ResetDirection resets all changes to the "direction" field.
+func (m *OrderFeeSupplementRequestMutation) ResetDirection() {
+	m.direction = nil
+}
+
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetFeeSettingID(u uuid.UUID) {
+	m.fee_setting_id = &u
+}
+
+// FeeSettingID returns the value of the "fee_setting_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeSettingID() (r uuid.UUID, exists bool) {
+	v := m.fee_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeSettingID returns the old "fee_setting_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFeeSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeSettingID: %w", err)
+	}
+	return oldValue.FeeSettingID, nil
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) ClearFeeSettingID() {
+	m.fee_setting_id = nil
+	m.clearedFields[orderfeesupplementrequest.FieldFeeSettingID] = struct{}{}
+}
+
+// FeeSettingIDCleared returns if the "fee_setting_id" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeSettingIDCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldFeeSettingID]
+	return ok
+}
+
+// ResetFeeSettingID resets all changes to the "fee_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFeeSettingID() {
+	m.fee_setting_id = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldFeeSettingID)
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (m *OrderFeeSupplementRequestMutation) SetFeeCode(s string) {
+	m.fee_code = &s
+}
+
+// FeeCode returns the value of the "fee_code" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeCode() (r string, exists bool) {
+	v := m.fee_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeCode returns the old "fee_code" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFeeCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeCode: %w", err)
+	}
+	return oldValue.FeeCode, nil
+}
+
+// ResetFeeCode resets all changes to the "fee_code" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFeeCode() {
+	m.fee_code = nil
+}
+
+// SetFeeName sets the "fee_name" field.
+func (m *OrderFeeSupplementRequestMutation) SetFeeName(s string) {
+	m.fee_name = &s
+}
+
+// FeeName returns the value of the "fee_name" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeName() (r string, exists bool) {
+	v := m.fee_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeName returns the old "fee_name" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFeeName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeName: %w", err)
+	}
+	return oldValue.FeeName, nil
+}
+
+// ResetFeeName resets all changes to the "fee_name" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFeeName() {
+	m.fee_name = nil
+}
+
+// SetFeeNameEn sets the "fee_name_en" field.
+func (m *OrderFeeSupplementRequestMutation) SetFeeNameEn(s string) {
+	m.fee_name_en = &s
+}
+
+// FeeNameEn returns the value of the "fee_name_en" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeNameEn() (r string, exists bool) {
+	v := m.fee_name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeNameEn returns the old "fee_name_en" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldFeeNameEn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeNameEn: %w", err)
+	}
+	return oldValue.FeeNameEn, nil
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (m *OrderFeeSupplementRequestMutation) ClearFeeNameEn() {
+	m.fee_name_en = nil
+	m.clearedFields[orderfeesupplementrequest.FieldFeeNameEn] = struct{}{}
+}
+
+// FeeNameEnCleared returns if the "fee_name_en" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FeeNameEnCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldFeeNameEn]
+	return ok
+}
+
+// ResetFeeNameEn resets all changes to the "fee_name_en" field.
+func (m *OrderFeeSupplementRequestMutation) ResetFeeNameEn() {
+	m.fee_name_en = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldFeeNameEn)
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetSettlementPartyID(u uuid.UUID) {
+	m.settlement_party_id = &u
+}
+
+// SettlementPartyID returns the value of the "settlement_party_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) SettlementPartyID() (r uuid.UUID, exists bool) {
+	v := m.settlement_party_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementPartyID returns the old "settlement_party_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldSettlementPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementPartyID: %w", err)
+	}
+	return oldValue.SettlementPartyID, nil
+}
+
+// ResetSettlementPartyID resets all changes to the "settlement_party_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetSettlementPartyID() {
+	m.settlement_party_id = nil
+}
+
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetBillingUnitID(u uuid.UUID) {
+	m.billing_unit_id = &u
+}
+
+// BillingUnitID returns the value of the "billing_unit_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) BillingUnitID() (r uuid.UUID, exists bool) {
+	v := m.billing_unit_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingUnitID returns the old "billing_unit_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldBillingUnitID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingUnitID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingUnitID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingUnitID: %w", err)
+	}
+	return oldValue.BillingUnitID, nil
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (m *OrderFeeSupplementRequestMutation) ClearBillingUnitID() {
+	m.billing_unit_id = nil
+	m.clearedFields[orderfeesupplementrequest.FieldBillingUnitID] = struct{}{}
+}
+
+// BillingUnitIDCleared returns if the "billing_unit_id" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) BillingUnitIDCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldBillingUnitID]
+	return ok
+}
+
+// ResetBillingUnitID resets all changes to the "billing_unit_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetBillingUnitID() {
+	m.billing_unit_id = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldBillingUnitID)
+}
+
+// SetBillingUnit sets the "billing_unit" field.
+func (m *OrderFeeSupplementRequestMutation) SetBillingUnit(s string) {
+	m.billing_unit = &s
+}
+
+// BillingUnit returns the value of the "billing_unit" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) BillingUnit() (r string, exists bool) {
+	v := m.billing_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingUnit returns the old "billing_unit" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldBillingUnit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingUnit: %w", err)
+	}
+	return oldValue.BillingUnit, nil
+}
+
+// ResetBillingUnit resets all changes to the "billing_unit" field.
+func (m *OrderFeeSupplementRequestMutation) ResetBillingUnit() {
+	m.billing_unit = nil
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (m *OrderFeeSupplementRequestMutation) SetTaxRate(s string) {
+	m.tax_rate = &s
+}
+
+// TaxRate returns the value of the "tax_rate" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxRate() (r string, exists bool) {
+	v := m.tax_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxRate returns the old "tax_rate" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldTaxRate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxRate: %w", err)
+	}
+	return oldValue.TaxRate, nil
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (m *OrderFeeSupplementRequestMutation) ClearTaxRate() {
+	m.tax_rate = nil
+	m.clearedFields[orderfeesupplementrequest.FieldTaxRate] = struct{}{}
+}
+
+// TaxRateCleared returns if the "tax_rate" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxRateCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldTaxRate]
+	return ok
+}
+
+// ResetTaxRate resets all changes to the "tax_rate" field.
+func (m *OrderFeeSupplementRequestMutation) ResetTaxRate() {
+	m.tax_rate = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldTaxRate)
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (m *OrderFeeSupplementRequestMutation) SetTaxableServiceName(s string) {
+	m.taxable_service_name = &s
+}
+
+// TaxableServiceName returns the value of the "taxable_service_name" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxableServiceName() (r string, exists bool) {
+	v := m.taxable_service_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxableServiceName returns the old "taxable_service_name" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldTaxableServiceName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxableServiceName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxableServiceName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxableServiceName: %w", err)
+	}
+	return oldValue.TaxableServiceName, nil
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (m *OrderFeeSupplementRequestMutation) ClearTaxableServiceName() {
+	m.taxable_service_name = nil
+	m.clearedFields[orderfeesupplementrequest.FieldTaxableServiceName] = struct{}{}
+}
+
+// TaxableServiceNameCleared returns if the "taxable_service_name" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxableServiceNameCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldTaxableServiceName]
+	return ok
+}
+
+// ResetTaxableServiceName resets all changes to the "taxable_service_name" field.
+func (m *OrderFeeSupplementRequestMutation) ResetTaxableServiceName() {
+	m.taxable_service_name = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldTaxableServiceName)
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *OrderFeeSupplementRequestMutation) SetQuantity(s string) {
+	m.quantity = &s
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Quantity() (r string, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldQuantity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *OrderFeeSupplementRequestMutation) ResetQuantity() {
+	m.quantity = nil
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (m *OrderFeeSupplementRequestMutation) SetUnitPrice(s string) {
+	m.unit_price = &s
+}
+
+// UnitPrice returns the value of the "unit_price" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) UnitPrice() (r string, exists bool) {
+	v := m.unit_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnitPrice returns the old "unit_price" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldUnitPrice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnitPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnitPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnitPrice: %w", err)
+	}
+	return oldValue.UnitPrice, nil
+}
+
+// ResetUnitPrice resets all changes to the "unit_price" field.
+func (m *OrderFeeSupplementRequestMutation) ResetUnitPrice() {
+	m.unit_price = nil
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (m *OrderFeeSupplementRequestMutation) SetTotalAmount(s string) {
+	m.total_amount = &s
+}
+
+// TotalAmount returns the value of the "total_amount" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) TotalAmount() (r string, exists bool) {
+	v := m.total_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalAmount returns the old "total_amount" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldTotalAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalAmount: %w", err)
+	}
+	return oldValue.TotalAmount, nil
+}
+
+// ResetTotalAmount resets all changes to the "total_amount" field.
+func (m *OrderFeeSupplementRequestMutation) ResetTotalAmount() {
+	m.total_amount = nil
+}
+
+// SetTaxInclusive sets the "tax_inclusive" field.
+func (m *OrderFeeSupplementRequestMutation) SetTaxInclusive(b bool) {
+	m.tax_inclusive = &b
+}
+
+// TaxInclusive returns the value of the "tax_inclusive" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxInclusive() (r bool, exists bool) {
+	v := m.tax_inclusive
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxInclusive returns the old "tax_inclusive" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldTaxInclusive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxInclusive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxInclusive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxInclusive: %w", err)
+	}
+	return oldValue.TaxInclusive, nil
+}
+
+// ResetTaxInclusive resets all changes to the "tax_inclusive" field.
+func (m *OrderFeeSupplementRequestMutation) ResetTaxInclusive() {
+	m.tax_inclusive = nil
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (m *OrderFeeSupplementRequestMutation) SetNetAmount(s string) {
+	m.net_amount = &s
+}
+
+// NetAmount returns the value of the "net_amount" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) NetAmount() (r string, exists bool) {
+	v := m.net_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNetAmount returns the old "net_amount" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldNetAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNetAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNetAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNetAmount: %w", err)
+	}
+	return oldValue.NetAmount, nil
+}
+
+// ResetNetAmount resets all changes to the "net_amount" field.
+func (m *OrderFeeSupplementRequestMutation) ResetNetAmount() {
+	m.net_amount = nil
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (m *OrderFeeSupplementRequestMutation) SetTaxAmount(s string) {
+	m.tax_amount = &s
+}
+
+// TaxAmount returns the value of the "tax_amount" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) TaxAmount() (r string, exists bool) {
+	v := m.tax_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxAmount returns the old "tax_amount" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldTaxAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxAmount: %w", err)
+	}
+	return oldValue.TaxAmount, nil
+}
+
+// ResetTaxAmount resets all changes to the "tax_amount" field.
+func (m *OrderFeeSupplementRequestMutation) ResetTaxAmount() {
+	m.tax_amount = nil
+}
+
+// SetCurrency sets the "currency" field.
+func (m *OrderFeeSupplementRequestMutation) SetCurrency(s string) {
+	m.currency = &s
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Currency() (r string, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *OrderFeeSupplementRequestMutation) ResetCurrency() {
+	m.currency = nil
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (m *OrderFeeSupplementRequestMutation) SetExchangeRate(s string) {
+	m.exchange_rate = &s
+}
+
+// ExchangeRate returns the value of the "exchange_rate" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ExchangeRate() (r string, exists bool) {
+	v := m.exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRate returns the old "exchange_rate" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldExchangeRate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRate: %w", err)
+	}
+	return oldValue.ExchangeRate, nil
+}
+
+// ResetExchangeRate resets all changes to the "exchange_rate" field.
+func (m *OrderFeeSupplementRequestMutation) ResetExchangeRate() {
+	m.exchange_rate = nil
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *OrderFeeSupplementRequestMutation) SetExchangeRateSource(ors orderfeesupplementrequest.ExchangeRateSource) {
+	m.exchange_rate_source = &ors
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ExchangeRateSource() (r orderfeesupplementrequest.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldExchangeRateSource(ctx context.Context) (v orderfeesupplementrequest.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *OrderFeeSupplementRequestMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *OrderFeeSupplementRequestMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *OrderFeeSupplementRequestMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[orderfeesupplementrequest.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldExchangeRateSettingID)
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (m *OrderFeeSupplementRequestMutation) SetBaseCurrency(s string) {
+	m.base_currency = &s
+}
+
+// BaseCurrency returns the value of the "base_currency" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) BaseCurrency() (r string, exists bool) {
+	v := m.base_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrency returns the old "base_currency" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldBaseCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrency: %w", err)
+	}
+	return oldValue.BaseCurrency, nil
+}
+
+// ResetBaseCurrency resets all changes to the "base_currency" field.
+func (m *OrderFeeSupplementRequestMutation) ResetBaseCurrency() {
+	m.base_currency = nil
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (m *OrderFeeSupplementRequestMutation) SetBaseCurrencyAmount(s string) {
+	m.base_currency_amount = &s
+}
+
+// BaseCurrencyAmount returns the value of the "base_currency_amount" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) BaseCurrencyAmount() (r string, exists bool) {
+	v := m.base_currency_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrencyAmount returns the old "base_currency_amount" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldBaseCurrencyAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrencyAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrencyAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrencyAmount: %w", err)
+	}
+	return oldValue.BaseCurrencyAmount, nil
+}
+
+// ResetBaseCurrencyAmount resets all changes to the "base_currency_amount" field.
+func (m *OrderFeeSupplementRequestMutation) ResetBaseCurrencyAmount() {
+	m.base_currency_amount = nil
+}
+
+// SetExpenseDate sets the "expense_date" field.
+func (m *OrderFeeSupplementRequestMutation) SetExpenseDate(s string) {
+	m.expense_date = &s
+}
+
+// ExpenseDate returns the value of the "expense_date" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ExpenseDate() (r string, exists bool) {
+	v := m.expense_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpenseDate returns the old "expense_date" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldExpenseDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpenseDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpenseDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpenseDate: %w", err)
+	}
+	return oldValue.ExpenseDate, nil
+}
+
+// ResetExpenseDate resets all changes to the "expense_date" field.
+func (m *OrderFeeSupplementRequestMutation) ResetExpenseDate() {
+	m.expense_date = nil
+}
+
+// SetNote sets the "note" field.
+func (m *OrderFeeSupplementRequestMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderFeeSupplementRequestMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[orderfeesupplementrequest.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderFeeSupplementRequestMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldNote)
+}
+
+// SetReason sets the "reason" field.
+func (m *OrderFeeSupplementRequestMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *OrderFeeSupplementRequestMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetRequestedBy sets the "requested_by" field.
+func (m *OrderFeeSupplementRequestMutation) SetRequestedBy(u uuid.UUID) {
+	m.requested_by_user = &u
+}
+
+// RequestedBy returns the value of the "requested_by" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) RequestedBy() (r uuid.UUID, exists bool) {
+	v := m.requested_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestedBy returns the old "requested_by" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldRequestedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestedBy: %w", err)
+	}
+	return oldValue.RequestedBy, nil
+}
+
+// ResetRequestedBy resets all changes to the "requested_by" field.
+func (m *OrderFeeSupplementRequestMutation) ResetRequestedBy() {
+	m.requested_by_user = nil
+}
+
+// SetRequestedAt sets the "requested_at" field.
+func (m *OrderFeeSupplementRequestMutation) SetRequestedAt(t time.Time) {
+	m.requested_at = &t
+}
+
+// RequestedAt returns the value of the "requested_at" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) RequestedAt() (r time.Time, exists bool) {
+	v := m.requested_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestedAt returns the old "requested_at" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldRequestedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestedAt: %w", err)
+	}
+	return oldValue.RequestedAt, nil
+}
+
+// ResetRequestedAt resets all changes to the "requested_at" field.
+func (m *OrderFeeSupplementRequestMutation) ResetRequestedAt() {
+	m.requested_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *OrderFeeSupplementRequestMutation) SetStatus(o orderfeesupplementrequest.Status) {
+	m.status = &o
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Status() (r orderfeesupplementrequest.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldStatus(ctx context.Context) (v orderfeesupplementrequest.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *OrderFeeSupplementRequestMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *OrderFeeSupplementRequestMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *OrderFeeSupplementRequestMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *OrderFeeSupplementRequestMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetDecidedBy sets the "decided_by" field.
+func (m *OrderFeeSupplementRequestMutation) SetDecidedBy(u uuid.UUID) {
+	m.decided_by_user = &u
+}
+
+// DecidedBy returns the value of the "decided_by" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) DecidedBy() (r uuid.UUID, exists bool) {
+	v := m.decided_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecidedBy returns the old "decided_by" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldDecidedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecidedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecidedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecidedBy: %w", err)
+	}
+	return oldValue.DecidedBy, nil
+}
+
+// ClearDecidedBy clears the value of the "decided_by" field.
+func (m *OrderFeeSupplementRequestMutation) ClearDecidedBy() {
+	m.decided_by_user = nil
+	m.clearedFields[orderfeesupplementrequest.FieldDecidedBy] = struct{}{}
+}
+
+// DecidedByCleared returns if the "decided_by" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) DecidedByCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldDecidedBy]
+	return ok
+}
+
+// ResetDecidedBy resets all changes to the "decided_by" field.
+func (m *OrderFeeSupplementRequestMutation) ResetDecidedBy() {
+	m.decided_by_user = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldDecidedBy)
+}
+
+// SetDecidedAt sets the "decided_at" field.
+func (m *OrderFeeSupplementRequestMutation) SetDecidedAt(t time.Time) {
+	m.decided_at = &t
+}
+
+// DecidedAt returns the value of the "decided_at" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) DecidedAt() (r time.Time, exists bool) {
+	v := m.decided_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecidedAt returns the old "decided_at" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldDecidedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecidedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecidedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecidedAt: %w", err)
+	}
+	return oldValue.DecidedAt, nil
+}
+
+// ClearDecidedAt clears the value of the "decided_at" field.
+func (m *OrderFeeSupplementRequestMutation) ClearDecidedAt() {
+	m.decided_at = nil
+	m.clearedFields[orderfeesupplementrequest.FieldDecidedAt] = struct{}{}
+}
+
+// DecidedAtCleared returns if the "decided_at" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) DecidedAtCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldDecidedAt]
+	return ok
+}
+
+// ResetDecidedAt resets all changes to the "decided_at" field.
+func (m *OrderFeeSupplementRequestMutation) ResetDecidedAt() {
+	m.decided_at = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldDecidedAt)
+}
+
+// SetDecisionReason sets the "decision_reason" field.
+func (m *OrderFeeSupplementRequestMutation) SetDecisionReason(s string) {
+	m.decision_reason = &s
+}
+
+// DecisionReason returns the value of the "decision_reason" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) DecisionReason() (r string, exists bool) {
+	v := m.decision_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecisionReason returns the old "decision_reason" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldDecisionReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecisionReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecisionReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecisionReason: %w", err)
+	}
+	return oldValue.DecisionReason, nil
+}
+
+// ClearDecisionReason clears the value of the "decision_reason" field.
+func (m *OrderFeeSupplementRequestMutation) ClearDecisionReason() {
+	m.decision_reason = nil
+	m.clearedFields[orderfeesupplementrequest.FieldDecisionReason] = struct{}{}
+}
+
+// DecisionReasonCleared returns if the "decision_reason" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) DecisionReasonCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldDecisionReason]
+	return ok
+}
+
+// ResetDecisionReason resets all changes to the "decision_reason" field.
+func (m *OrderFeeSupplementRequestMutation) ResetDecisionReason() {
+	m.decision_reason = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldDecisionReason)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderFeeSupplementRequestMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderfeesupplementrequest.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeSupplementRequestMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderFeeSupplementRequestMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderfeesupplementrequest.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeSupplementRequestMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// SetRequestedByUserID sets the "requested_by_user" edge to the User entity by id.
+func (m *OrderFeeSupplementRequestMutation) SetRequestedByUserID(id uuid.UUID) {
+	m.requested_by_user = &id
+}
+
+// ClearRequestedByUser clears the "requested_by_user" edge to the User entity.
+func (m *OrderFeeSupplementRequestMutation) ClearRequestedByUser() {
+	m.clearedrequested_by_user = true
+	m.clearedFields[orderfeesupplementrequest.FieldRequestedBy] = struct{}{}
+}
+
+// RequestedByUserCleared reports if the "requested_by_user" edge to the User entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) RequestedByUserCleared() bool {
+	return m.clearedrequested_by_user
+}
+
+// RequestedByUserID returns the "requested_by_user" edge ID in the mutation.
+func (m *OrderFeeSupplementRequestMutation) RequestedByUserID() (id uuid.UUID, exists bool) {
+	if m.requested_by_user != nil {
+		return *m.requested_by_user, true
+	}
+	return
+}
+
+// RequestedByUserIDs returns the "requested_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RequestedByUserID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeSupplementRequestMutation) RequestedByUserIDs() (ids []uuid.UUID) {
+	if id := m.requested_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRequestedByUser resets all changes to the "requested_by_user" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetRequestedByUser() {
+	m.requested_by_user = nil
+	m.clearedrequested_by_user = false
+}
+
+// SetDecidedByUserID sets the "decided_by_user" edge to the User entity by id.
+func (m *OrderFeeSupplementRequestMutation) SetDecidedByUserID(id uuid.UUID) {
+	m.decided_by_user = &id
+}
+
+// ClearDecidedByUser clears the "decided_by_user" edge to the User entity.
+func (m *OrderFeeSupplementRequestMutation) ClearDecidedByUser() {
+	m.cleareddecided_by_user = true
+	m.clearedFields[orderfeesupplementrequest.FieldDecidedBy] = struct{}{}
+}
+
+// DecidedByUserCleared reports if the "decided_by_user" edge to the User entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) DecidedByUserCleared() bool {
+	return m.DecidedByCleared() || m.cleareddecided_by_user
+}
+
+// DecidedByUserID returns the "decided_by_user" edge ID in the mutation.
+func (m *OrderFeeSupplementRequestMutation) DecidedByUserID() (id uuid.UUID, exists bool) {
+	if m.decided_by_user != nil {
+		return *m.decided_by_user, true
+	}
+	return
+}
+
+// DecidedByUserIDs returns the "decided_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DecidedByUserID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeSupplementRequestMutation) DecidedByUserIDs() (ids []uuid.UUID) {
+	if id := m.decided_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDecidedByUser resets all changes to the "decided_by_user" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetDecidedByUser() {
+	m.decided_by_user = nil
+	m.cleareddecided_by_user = false
+}
+
+// AddFeeIDs adds the "fees" edge to the OrderFee entity by ids.
+func (m *OrderFeeSupplementRequestMutation) AddFeeIDs(ids ...uuid.UUID) {
+	if m.fees == nil {
+		m.fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.fees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFees clears the "fees" edge to the OrderFee entity.
+func (m *OrderFeeSupplementRequestMutation) ClearFees() {
+	m.clearedfees = true
+}
+
+// FeesCleared reports if the "fees" edge to the OrderFee entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) FeesCleared() bool {
+	return m.clearedfees
+}
+
+// RemoveFeeIDs removes the "fees" edge to the OrderFee entity by IDs.
+func (m *OrderFeeSupplementRequestMutation) RemoveFeeIDs(ids ...uuid.UUID) {
+	if m.removedfees == nil {
+		m.removedfees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.fees, ids[i])
+		m.removedfees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFees returns the removed IDs of the "fees" edge to the OrderFee entity.
+func (m *OrderFeeSupplementRequestMutation) RemovedFeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedfees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeesIDs returns the "fees" edge IDs in the mutation.
+func (m *OrderFeeSupplementRequestMutation) FeesIDs() (ids []uuid.UUID) {
+	for id := range m.fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFees resets all changes to the "fees" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetFees() {
+	m.fees = nil
+	m.clearedfees = false
+	m.removedfees = nil
+}
+
+// AddCommissionAdjustmentIDs adds the "commission_adjustments" edge to the FinanceCommissionAdjustment entity by ids.
+func (m *OrderFeeSupplementRequestMutation) AddCommissionAdjustmentIDs(ids ...uuid.UUID) {
+	if m.commission_adjustments == nil {
+		m.commission_adjustments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.commission_adjustments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCommissionAdjustments clears the "commission_adjustments" edge to the FinanceCommissionAdjustment entity.
+func (m *OrderFeeSupplementRequestMutation) ClearCommissionAdjustments() {
+	m.clearedcommission_adjustments = true
+}
+
+// CommissionAdjustmentsCleared reports if the "commission_adjustments" edge to the FinanceCommissionAdjustment entity was cleared.
+func (m *OrderFeeSupplementRequestMutation) CommissionAdjustmentsCleared() bool {
+	return m.clearedcommission_adjustments
+}
+
+// RemoveCommissionAdjustmentIDs removes the "commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (m *OrderFeeSupplementRequestMutation) RemoveCommissionAdjustmentIDs(ids ...uuid.UUID) {
+	if m.removedcommission_adjustments == nil {
+		m.removedcommission_adjustments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.commission_adjustments, ids[i])
+		m.removedcommission_adjustments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCommissionAdjustments returns the removed IDs of the "commission_adjustments" edge to the FinanceCommissionAdjustment entity.
+func (m *OrderFeeSupplementRequestMutation) RemovedCommissionAdjustmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcommission_adjustments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CommissionAdjustmentsIDs returns the "commission_adjustments" edge IDs in the mutation.
+func (m *OrderFeeSupplementRequestMutation) CommissionAdjustmentsIDs() (ids []uuid.UUID) {
+	for id := range m.commission_adjustments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCommissionAdjustments resets all changes to the "commission_adjustments" edge.
+func (m *OrderFeeSupplementRequestMutation) ResetCommissionAdjustments() {
+	m.commission_adjustments = nil
+	m.clearedcommission_adjustments = false
+	m.removedcommission_adjustments = nil
+}
+
+// Where appends a list predicates to the OrderFeeSupplementRequestMutation builder.
+func (m *OrderFeeSupplementRequestMutation) Where(ps ...predicate.OrderFeeSupplementRequest) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderFeeSupplementRequestMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderFeeSupplementRequestMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderFeeSupplementRequest, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderFeeSupplementRequestMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderFeeSupplementRequestMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderFeeSupplementRequest).
+func (m *OrderFeeSupplementRequestMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderFeeSupplementRequestMutation) Fields() []string {
+	fields := make([]string, 0, 44)
+	if m.created_at != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldOrderID)
+	}
+	if m.lock_basis != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldLockBasis)
+	}
+	if m.business_lock_generation != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBusinessLockGeneration)
+	}
+	if m.financial_lock_evidence_version != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion)
+	}
+	if m.financial_lock_evidence_hash != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockEvidenceHash)
+	}
+	if m.financial_lock_net_amount_snapshot != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldRequestFingerprint)
+	}
+	if m.direction != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldDirection)
+	}
+	if m.fee_setting_id != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeSettingID)
+	}
+	if m.fee_code != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeCode)
+	}
+	if m.fee_name != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeName)
+	}
+	if m.fee_name_en != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeNameEn)
+	}
+	if m.settlement_party_id != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldSettlementPartyID)
+	}
+	if m.billing_unit_id != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBillingUnitID)
+	}
+	if m.billing_unit != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBillingUnit)
+	}
+	if m.tax_rate != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxRate)
+	}
+	if m.taxable_service_name != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxableServiceName)
+	}
+	if m.quantity != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldQuantity)
+	}
+	if m.unit_price != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldUnitPrice)
+	}
+	if m.total_amount != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldTotalAmount)
+	}
+	if m.tax_inclusive != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxInclusive)
+	}
+	if m.net_amount != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldNetAmount)
+	}
+	if m.tax_amount != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxAmount)
+	}
+	if m.currency != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldCurrency)
+	}
+	if m.exchange_rate != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldExchangeRateSettingID)
+	}
+	if m.base_currency != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBaseCurrency)
+	}
+	if m.base_currency_amount != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBaseCurrencyAmount)
+	}
+	if m.expense_date != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldExpenseDate)
+	}
+	if m.note != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldNote)
+	}
+	if m.reason != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldReason)
+	}
+	if m.requested_by_user != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldRequestedBy)
+	}
+	if m.requested_at != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldRequestedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldStatus)
+	}
+	if m.version != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldVersion)
+	}
+	if m.decided_by_user != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldDecidedBy)
+	}
+	if m.decided_at != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldDecidedAt)
+	}
+	if m.decision_reason != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldDecisionReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderFeeSupplementRequestMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderfeesupplementrequest.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderfeesupplementrequest.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderfeesupplementrequest.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderfeesupplementrequest.FieldOrderID:
+		return m.OrderID()
+	case orderfeesupplementrequest.FieldLockBasis:
+		return m.LockBasis()
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		return m.BusinessLockGeneration()
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceVersion:
+		return m.FinancialLockEvidenceVersion()
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceHash:
+		return m.FinancialLockEvidenceHash()
+	case orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot:
+		return m.FinancialLockNetAmountSnapshot()
+	case orderfeesupplementrequest.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case orderfeesupplementrequest.FieldRequestFingerprint:
+		return m.RequestFingerprint()
+	case orderfeesupplementrequest.FieldDirection:
+		return m.Direction()
+	case orderfeesupplementrequest.FieldFeeSettingID:
+		return m.FeeSettingID()
+	case orderfeesupplementrequest.FieldFeeCode:
+		return m.FeeCode()
+	case orderfeesupplementrequest.FieldFeeName:
+		return m.FeeName()
+	case orderfeesupplementrequest.FieldFeeNameEn:
+		return m.FeeNameEn()
+	case orderfeesupplementrequest.FieldSettlementPartyID:
+		return m.SettlementPartyID()
+	case orderfeesupplementrequest.FieldBillingUnitID:
+		return m.BillingUnitID()
+	case orderfeesupplementrequest.FieldBillingUnit:
+		return m.BillingUnit()
+	case orderfeesupplementrequest.FieldTaxRate:
+		return m.TaxRate()
+	case orderfeesupplementrequest.FieldTaxableServiceName:
+		return m.TaxableServiceName()
+	case orderfeesupplementrequest.FieldQuantity:
+		return m.Quantity()
+	case orderfeesupplementrequest.FieldUnitPrice:
+		return m.UnitPrice()
+	case orderfeesupplementrequest.FieldTotalAmount:
+		return m.TotalAmount()
+	case orderfeesupplementrequest.FieldTaxInclusive:
+		return m.TaxInclusive()
+	case orderfeesupplementrequest.FieldNetAmount:
+		return m.NetAmount()
+	case orderfeesupplementrequest.FieldTaxAmount:
+		return m.TaxAmount()
+	case orderfeesupplementrequest.FieldCurrency:
+		return m.Currency()
+	case orderfeesupplementrequest.FieldExchangeRate:
+		return m.ExchangeRate()
+	case orderfeesupplementrequest.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case orderfeesupplementrequest.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case orderfeesupplementrequest.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
+	case orderfeesupplementrequest.FieldBaseCurrency:
+		return m.BaseCurrency()
+	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
+		return m.BaseCurrencyAmount()
+	case orderfeesupplementrequest.FieldExpenseDate:
+		return m.ExpenseDate()
+	case orderfeesupplementrequest.FieldNote:
+		return m.Note()
+	case orderfeesupplementrequest.FieldReason:
+		return m.Reason()
+	case orderfeesupplementrequest.FieldRequestedBy:
+		return m.RequestedBy()
+	case orderfeesupplementrequest.FieldRequestedAt:
+		return m.RequestedAt()
+	case orderfeesupplementrequest.FieldStatus:
+		return m.Status()
+	case orderfeesupplementrequest.FieldVersion:
+		return m.Version()
+	case orderfeesupplementrequest.FieldDecidedBy:
+		return m.DecidedBy()
+	case orderfeesupplementrequest.FieldDecidedAt:
+		return m.DecidedAt()
+	case orderfeesupplementrequest.FieldDecisionReason:
+		return m.DecisionReason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderFeeSupplementRequestMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderfeesupplementrequest.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderfeesupplementrequest.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderfeesupplementrequest.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderfeesupplementrequest.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderfeesupplementrequest.FieldLockBasis:
+		return m.OldLockBasis(ctx)
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		return m.OldBusinessLockGeneration(ctx)
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceVersion:
+		return m.OldFinancialLockEvidenceVersion(ctx)
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceHash:
+		return m.OldFinancialLockEvidenceHash(ctx)
+	case orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot:
+		return m.OldFinancialLockNetAmountSnapshot(ctx)
+	case orderfeesupplementrequest.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case orderfeesupplementrequest.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
+	case orderfeesupplementrequest.FieldDirection:
+		return m.OldDirection(ctx)
+	case orderfeesupplementrequest.FieldFeeSettingID:
+		return m.OldFeeSettingID(ctx)
+	case orderfeesupplementrequest.FieldFeeCode:
+		return m.OldFeeCode(ctx)
+	case orderfeesupplementrequest.FieldFeeName:
+		return m.OldFeeName(ctx)
+	case orderfeesupplementrequest.FieldFeeNameEn:
+		return m.OldFeeNameEn(ctx)
+	case orderfeesupplementrequest.FieldSettlementPartyID:
+		return m.OldSettlementPartyID(ctx)
+	case orderfeesupplementrequest.FieldBillingUnitID:
+		return m.OldBillingUnitID(ctx)
+	case orderfeesupplementrequest.FieldBillingUnit:
+		return m.OldBillingUnit(ctx)
+	case orderfeesupplementrequest.FieldTaxRate:
+		return m.OldTaxRate(ctx)
+	case orderfeesupplementrequest.FieldTaxableServiceName:
+		return m.OldTaxableServiceName(ctx)
+	case orderfeesupplementrequest.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case orderfeesupplementrequest.FieldUnitPrice:
+		return m.OldUnitPrice(ctx)
+	case orderfeesupplementrequest.FieldTotalAmount:
+		return m.OldTotalAmount(ctx)
+	case orderfeesupplementrequest.FieldTaxInclusive:
+		return m.OldTaxInclusive(ctx)
+	case orderfeesupplementrequest.FieldNetAmount:
+		return m.OldNetAmount(ctx)
+	case orderfeesupplementrequest.FieldTaxAmount:
+		return m.OldTaxAmount(ctx)
+	case orderfeesupplementrequest.FieldCurrency:
+		return m.OldCurrency(ctx)
+	case orderfeesupplementrequest.FieldExchangeRate:
+		return m.OldExchangeRate(ctx)
+	case orderfeesupplementrequest.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case orderfeesupplementrequest.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case orderfeesupplementrequest.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
+	case orderfeesupplementrequest.FieldBaseCurrency:
+		return m.OldBaseCurrency(ctx)
+	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
+		return m.OldBaseCurrencyAmount(ctx)
+	case orderfeesupplementrequest.FieldExpenseDate:
+		return m.OldExpenseDate(ctx)
+	case orderfeesupplementrequest.FieldNote:
+		return m.OldNote(ctx)
+	case orderfeesupplementrequest.FieldReason:
+		return m.OldReason(ctx)
+	case orderfeesupplementrequest.FieldRequestedBy:
+		return m.OldRequestedBy(ctx)
+	case orderfeesupplementrequest.FieldRequestedAt:
+		return m.OldRequestedAt(ctx)
+	case orderfeesupplementrequest.FieldStatus:
+		return m.OldStatus(ctx)
+	case orderfeesupplementrequest.FieldVersion:
+		return m.OldVersion(ctx)
+	case orderfeesupplementrequest.FieldDecidedBy:
+		return m.OldDecidedBy(ctx)
+	case orderfeesupplementrequest.FieldDecidedAt:
+		return m.OldDecidedAt(ctx)
+	case orderfeesupplementrequest.FieldDecisionReason:
+		return m.OldDecisionReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderFeeSupplementRequest field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeSupplementRequestMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderfeesupplementrequest.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderfeesupplementrequest.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderfeesupplementrequest.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderfeesupplementrequest.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderfeesupplementrequest.FieldLockBasis:
+		v, ok := value.(orderfeesupplementrequest.LockBasis)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockBasis(v)
+		return nil
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessLockGeneration(v)
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinancialLockEvidenceVersion(v)
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinancialLockEvidenceHash(v)
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinancialLockNetAmountSnapshot(v)
+		return nil
+	case orderfeesupplementrequest.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case orderfeesupplementrequest.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
+		return nil
+	case orderfeesupplementrequest.FieldDirection:
+		v, ok := value.(orderfeesupplementrequest.Direction)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDirection(v)
+		return nil
+	case orderfeesupplementrequest.FieldFeeSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeSettingID(v)
+		return nil
+	case orderfeesupplementrequest.FieldFeeCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeCode(v)
+		return nil
+	case orderfeesupplementrequest.FieldFeeName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeName(v)
+		return nil
+	case orderfeesupplementrequest.FieldFeeNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeNameEn(v)
+		return nil
+	case orderfeesupplementrequest.FieldSettlementPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementPartyID(v)
+		return nil
+	case orderfeesupplementrequest.FieldBillingUnitID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingUnitID(v)
+		return nil
+	case orderfeesupplementrequest.FieldBillingUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingUnit(v)
+		return nil
+	case orderfeesupplementrequest.FieldTaxRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxRate(v)
+		return nil
+	case orderfeesupplementrequest.FieldTaxableServiceName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxableServiceName(v)
+		return nil
+	case orderfeesupplementrequest.FieldQuantity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case orderfeesupplementrequest.FieldUnitPrice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnitPrice(v)
+		return nil
+	case orderfeesupplementrequest.FieldTotalAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalAmount(v)
+		return nil
+	case orderfeesupplementrequest.FieldTaxInclusive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxInclusive(v)
+		return nil
+	case orderfeesupplementrequest.FieldNetAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNetAmount(v)
+		return nil
+	case orderfeesupplementrequest.FieldTaxAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxAmount(v)
+		return nil
+	case orderfeesupplementrequest.FieldCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRate(v)
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateSource:
+		v, ok := value.(orderfeesupplementrequest.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
+		return nil
+	case orderfeesupplementrequest.FieldBaseCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrency(v)
+		return nil
+	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrencyAmount(v)
+		return nil
+	case orderfeesupplementrequest.FieldExpenseDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpenseDate(v)
+		return nil
+	case orderfeesupplementrequest.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case orderfeesupplementrequest.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case orderfeesupplementrequest.FieldRequestedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestedBy(v)
+		return nil
+	case orderfeesupplementrequest.FieldRequestedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestedAt(v)
+		return nil
+	case orderfeesupplementrequest.FieldStatus:
+		v, ok := value.(orderfeesupplementrequest.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case orderfeesupplementrequest.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case orderfeesupplementrequest.FieldDecidedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecidedBy(v)
+		return nil
+	case orderfeesupplementrequest.FieldDecidedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecidedAt(v)
+		return nil
+	case orderfeesupplementrequest.FieldDecisionReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecisionReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedFields() []string {
+	var fields []string
+	if m.addbusiness_lock_generation != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldBusinessLockGeneration)
+	}
+	if m.addversion != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderFeeSupplementRequestMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		return m.AddedBusinessLockGeneration()
+	case orderfeesupplementrequest.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeSupplementRequestMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBusinessLockGeneration(v)
+		return nil
+	case orderfeesupplementrequest.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderFeeSupplementRequestMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderfeesupplementrequest.FieldBusinessLockGeneration) {
+		fields = append(fields, orderfeesupplementrequest.FieldBusinessLockGeneration)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldFinancialLockEvidenceVersion) {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldFinancialLockEvidenceHash) {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockEvidenceHash)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot) {
+		fields = append(fields, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldFeeSettingID) {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeSettingID)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldFeeNameEn) {
+		fields = append(fields, orderfeesupplementrequest.FieldFeeNameEn)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldBillingUnitID) {
+		fields = append(fields, orderfeesupplementrequest.FieldBillingUnitID)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldTaxRate) {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxRate)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldTaxableServiceName) {
+		fields = append(fields, orderfeesupplementrequest.FieldTaxableServiceName)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldExchangeRateSettingID) {
+		fields = append(fields, orderfeesupplementrequest.FieldExchangeRateSettingID)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldNote) {
+		fields = append(fields, orderfeesupplementrequest.FieldNote)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldDecidedBy) {
+		fields = append(fields, orderfeesupplementrequest.FieldDecidedBy)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldDecidedAt) {
+		fields = append(fields, orderfeesupplementrequest.FieldDecidedAt)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldDecisionReason) {
+		fields = append(fields, orderfeesupplementrequest.FieldDecisionReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderFeeSupplementRequestMutation) ClearField(name string) error {
+	switch name {
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		m.ClearBusinessLockGeneration()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceVersion:
+		m.ClearFinancialLockEvidenceVersion()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceHash:
+		m.ClearFinancialLockEvidenceHash()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot:
+		m.ClearFinancialLockNetAmountSnapshot()
+		return nil
+	case orderfeesupplementrequest.FieldFeeSettingID:
+		m.ClearFeeSettingID()
+		return nil
+	case orderfeesupplementrequest.FieldFeeNameEn:
+		m.ClearFeeNameEn()
+		return nil
+	case orderfeesupplementrequest.FieldBillingUnitID:
+		m.ClearBillingUnitID()
+		return nil
+	case orderfeesupplementrequest.FieldTaxRate:
+		m.ClearTaxRate()
+		return nil
+	case orderfeesupplementrequest.FieldTaxableServiceName:
+		m.ClearTaxableServiceName()
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
+		return nil
+	case orderfeesupplementrequest.FieldNote:
+		m.ClearNote()
+		return nil
+	case orderfeesupplementrequest.FieldDecidedBy:
+		m.ClearDecidedBy()
+		return nil
+	case orderfeesupplementrequest.FieldDecidedAt:
+		m.ClearDecidedAt()
+		return nil
+	case orderfeesupplementrequest.FieldDecisionReason:
+		m.ClearDecisionReason()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderFeeSupplementRequestMutation) ResetField(name string) error {
+	switch name {
+	case orderfeesupplementrequest.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderfeesupplementrequest.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderfeesupplementrequest.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderfeesupplementrequest.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderfeesupplementrequest.FieldLockBasis:
+		m.ResetLockBasis()
+		return nil
+	case orderfeesupplementrequest.FieldBusinessLockGeneration:
+		m.ResetBusinessLockGeneration()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceVersion:
+		m.ResetFinancialLockEvidenceVersion()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockEvidenceHash:
+		m.ResetFinancialLockEvidenceHash()
+		return nil
+	case orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot:
+		m.ResetFinancialLockNetAmountSnapshot()
+		return nil
+	case orderfeesupplementrequest.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case orderfeesupplementrequest.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
+	case orderfeesupplementrequest.FieldDirection:
+		m.ResetDirection()
+		return nil
+	case orderfeesupplementrequest.FieldFeeSettingID:
+		m.ResetFeeSettingID()
+		return nil
+	case orderfeesupplementrequest.FieldFeeCode:
+		m.ResetFeeCode()
+		return nil
+	case orderfeesupplementrequest.FieldFeeName:
+		m.ResetFeeName()
+		return nil
+	case orderfeesupplementrequest.FieldFeeNameEn:
+		m.ResetFeeNameEn()
+		return nil
+	case orderfeesupplementrequest.FieldSettlementPartyID:
+		m.ResetSettlementPartyID()
+		return nil
+	case orderfeesupplementrequest.FieldBillingUnitID:
+		m.ResetBillingUnitID()
+		return nil
+	case orderfeesupplementrequest.FieldBillingUnit:
+		m.ResetBillingUnit()
+		return nil
+	case orderfeesupplementrequest.FieldTaxRate:
+		m.ResetTaxRate()
+		return nil
+	case orderfeesupplementrequest.FieldTaxableServiceName:
+		m.ResetTaxableServiceName()
+		return nil
+	case orderfeesupplementrequest.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case orderfeesupplementrequest.FieldUnitPrice:
+		m.ResetUnitPrice()
+		return nil
+	case orderfeesupplementrequest.FieldTotalAmount:
+		m.ResetTotalAmount()
+		return nil
+	case orderfeesupplementrequest.FieldTaxInclusive:
+		m.ResetTaxInclusive()
+		return nil
+	case orderfeesupplementrequest.FieldNetAmount:
+		m.ResetNetAmount()
+		return nil
+	case orderfeesupplementrequest.FieldTaxAmount:
+		m.ResetTaxAmount()
+		return nil
+	case orderfeesupplementrequest.FieldCurrency:
+		m.ResetCurrency()
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRate:
+		m.ResetExchangeRate()
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case orderfeesupplementrequest.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
+		return nil
+	case orderfeesupplementrequest.FieldBaseCurrency:
+		m.ResetBaseCurrency()
+		return nil
+	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
+		m.ResetBaseCurrencyAmount()
+		return nil
+	case orderfeesupplementrequest.FieldExpenseDate:
+		m.ResetExpenseDate()
+		return nil
+	case orderfeesupplementrequest.FieldNote:
+		m.ResetNote()
+		return nil
+	case orderfeesupplementrequest.FieldReason:
+		m.ResetReason()
+		return nil
+	case orderfeesupplementrequest.FieldRequestedBy:
+		m.ResetRequestedBy()
+		return nil
+	case orderfeesupplementrequest.FieldRequestedAt:
+		m.ResetRequestedAt()
+		return nil
+	case orderfeesupplementrequest.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case orderfeesupplementrequest.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case orderfeesupplementrequest.FieldDecidedBy:
+		m.ResetDecidedBy()
+		return nil
+	case orderfeesupplementrequest.FieldDecidedAt:
+		m.ResetDecidedAt()
+		return nil
+	case orderfeesupplementrequest.FieldDecisionReason:
+		m.ResetDecisionReason()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.organization != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeOrder)
+	}
+	if m.requested_by_user != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeRequestedByUser)
+	}
+	if m.decided_by_user != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeDecidedByUser)
+	}
+	if m.fees != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeFees)
+	}
+	if m.commission_adjustments != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeCommissionAdjustments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderfeesupplementrequest.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeesupplementrequest.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeesupplementrequest.EdgeRequestedByUser:
+		if id := m.requested_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeesupplementrequest.EdgeDecidedByUser:
+		if id := m.decided_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeesupplementrequest.EdgeFees:
+		ids := make([]ent.Value, 0, len(m.fees))
+		for id := range m.fees {
+			ids = append(ids, id)
+		}
+		return ids
+	case orderfeesupplementrequest.EdgeCommissionAdjustments:
+		ids := make([]ent.Value, 0, len(m.commission_adjustments))
+		for id := range m.commission_adjustments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderFeeSupplementRequestMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.removedfees != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeFees)
+	}
+	if m.removedcommission_adjustments != nil {
+		edges = append(edges, orderfeesupplementrequest.EdgeCommissionAdjustments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderFeeSupplementRequestMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case orderfeesupplementrequest.EdgeFees:
+		ids := make([]ent.Value, 0, len(m.removedfees))
+		for id := range m.removedfees {
+			ids = append(ids, id)
+		}
+		return ids
+	case orderfeesupplementrequest.EdgeCommissionAdjustments:
+		ids := make([]ent.Value, 0, len(m.removedcommission_adjustments))
+		for id := range m.removedcommission_adjustments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.clearedorganization {
+		edges = append(edges, orderfeesupplementrequest.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, orderfeesupplementrequest.EdgeOrder)
+	}
+	if m.clearedrequested_by_user {
+		edges = append(edges, orderfeesupplementrequest.EdgeRequestedByUser)
+	}
+	if m.cleareddecided_by_user {
+		edges = append(edges, orderfeesupplementrequest.EdgeDecidedByUser)
+	}
+	if m.clearedfees {
+		edges = append(edges, orderfeesupplementrequest.EdgeFees)
+	}
+	if m.clearedcommission_adjustments {
+		edges = append(edges, orderfeesupplementrequest.EdgeCommissionAdjustments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderfeesupplementrequest.EdgeOrganization:
+		return m.clearedorganization
+	case orderfeesupplementrequest.EdgeOrder:
+		return m.cleared_order
+	case orderfeesupplementrequest.EdgeRequestedByUser:
+		return m.clearedrequested_by_user
+	case orderfeesupplementrequest.EdgeDecidedByUser:
+		return m.cleareddecided_by_user
+	case orderfeesupplementrequest.EdgeFees:
+		return m.clearedfees
+	case orderfeesupplementrequest.EdgeCommissionAdjustments:
+		return m.clearedcommission_adjustments
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderFeeSupplementRequestMutation) ClearEdge(name string) error {
+	switch name {
+	case orderfeesupplementrequest.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case orderfeesupplementrequest.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case orderfeesupplementrequest.EdgeRequestedByUser:
+		m.ClearRequestedByUser()
+		return nil
+	case orderfeesupplementrequest.EdgeDecidedByUser:
+		m.ClearDecidedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderFeeSupplementRequestMutation) ResetEdge(name string) error {
+	switch name {
+	case orderfeesupplementrequest.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case orderfeesupplementrequest.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case orderfeesupplementrequest.EdgeRequestedByUser:
+		m.ResetRequestedByUser()
+		return nil
+	case orderfeesupplementrequest.EdgeDecidedByUser:
+		m.ResetDecidedByUser()
+		return nil
+	case orderfeesupplementrequest.EdgeFees:
+		m.ResetFees()
+		return nil
+	case orderfeesupplementrequest.EdgeCommissionAdjustments:
+		m.ResetCommissionAdjustments()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeSupplementRequest edge %s", name)
 }
 
 // OrderLifecycleEventMutation represents an operation that mutates the OrderLifecycleEvent nodes in the graph.
@@ -97320,6 +101536,9 @@ type OrganizationMutation struct {
 	order_lock_records                      map[uuid.UUID]struct{}
 	removedorder_lock_records               map[uuid.UUID]struct{}
 	clearedorder_lock_records               bool
+	order_fee_supplement_requests           map[uuid.UUID]struct{}
+	removedorder_fee_supplement_requests    map[uuid.UUID]struct{}
+	clearedorder_fee_supplement_requests    bool
 	order_lock_house_bill_snapshots         map[uuid.UUID]struct{}
 	removedorder_lock_house_bill_snapshots  map[uuid.UUID]struct{}
 	clearedorder_lock_house_bill_snapshots  bool
@@ -100340,6 +104559,60 @@ func (m *OrganizationMutation) ResetOrderLockRecords() {
 	m.removedorder_lock_records = nil
 }
 
+// AddOrderFeeSupplementRequestIDs adds the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by ids.
+func (m *OrganizationMutation) AddOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.order_fee_supplement_requests == nil {
+		m.order_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFeeSupplementRequests clears the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *OrganizationMutation) ClearOrderFeeSupplementRequests() {
+	m.clearedorder_fee_supplement_requests = true
+}
+
+// OrderFeeSupplementRequestsCleared reports if the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *OrganizationMutation) OrderFeeSupplementRequestsCleared() bool {
+	return m.clearedorder_fee_supplement_requests
+}
+
+// RemoveOrderFeeSupplementRequestIDs removes the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (m *OrganizationMutation) RemoveOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.removedorder_fee_supplement_requests == nil {
+		m.removedorder_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fee_supplement_requests, ids[i])
+		m.removedorder_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFeeSupplementRequests returns the removed IDs of the "order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *OrganizationMutation) RemovedOrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeeSupplementRequestsIDs returns the "order_fee_supplement_requests" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.order_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFeeSupplementRequests resets all changes to the "order_fee_supplement_requests" edge.
+func (m *OrganizationMutation) ResetOrderFeeSupplementRequests() {
+	m.order_fee_supplement_requests = nil
+	m.clearedorder_fee_supplement_requests = false
+	m.removedorder_fee_supplement_requests = nil
+}
+
 // AddOrderLockHouseBillSnapshotIDs adds the "order_lock_house_bill_snapshots" edge to the OrderLockHouseBillSnapshot entity by ids.
 func (m *OrganizationMutation) AddOrderLockHouseBillSnapshotIDs(ids ...uuid.UUID) {
 	if m.order_lock_house_bill_snapshots == nil {
@@ -101349,7 +105622,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 59)
+	edges := make([]string, 0, 60)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -101487,6 +105760,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.order_lock_records != nil {
 		edges = append(edges, organization.EdgeOrderLockRecords)
+	}
+	if m.order_fee_supplement_requests != nil {
+		edges = append(edges, organization.EdgeOrderFeeSupplementRequests)
 	}
 	if m.order_lock_house_bill_snapshots != nil {
 		edges = append(edges, organization.EdgeOrderLockHouseBillSnapshots)
@@ -101808,6 +106084,12 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.order_fee_supplement_requests))
+		for id := range m.order_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderLockHouseBillSnapshots:
 		ids := make([]ent.Value, 0, len(m.order_lock_house_bill_snapshots))
 		for id := range m.order_lock_house_bill_snapshots {
@@ -101892,7 +106174,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 59)
+	edges := make([]string, 0, 60)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -102027,6 +106309,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_lock_records != nil {
 		edges = append(edges, organization.EdgeOrderLockRecords)
+	}
+	if m.removedorder_fee_supplement_requests != nil {
+		edges = append(edges, organization.EdgeOrderFeeSupplementRequests)
 	}
 	if m.removedorder_lock_house_bill_snapshots != nil {
 		edges = append(edges, organization.EdgeOrderLockHouseBillSnapshots)
@@ -102344,6 +106629,12 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.removedorder_fee_supplement_requests))
+		for id := range m.removedorder_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderLockHouseBillSnapshots:
 		ids := make([]ent.Value, 0, len(m.removedorder_lock_house_bill_snapshots))
 		for id := range m.removedorder_lock_house_bill_snapshots {
@@ -102428,7 +106719,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 59)
+	edges := make([]string, 0, 60)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -102566,6 +106857,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedorder_lock_records {
 		edges = append(edges, organization.EdgeOrderLockRecords)
+	}
+	if m.clearedorder_fee_supplement_requests {
+		edges = append(edges, organization.EdgeOrderFeeSupplementRequests)
 	}
 	if m.clearedorder_lock_house_bill_snapshots {
 		edges = append(edges, organization.EdgeOrderLockHouseBillSnapshots)
@@ -102705,6 +106999,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_order_reassignment_events
 	case organization.EdgeOrderLockRecords:
 		return m.clearedorder_lock_records
+	case organization.EdgeOrderFeeSupplementRequests:
+		return m.clearedorder_fee_supplement_requests
 	case organization.EdgeOrderLockHouseBillSnapshots:
 		return m.clearedorder_lock_house_bill_snapshots
 	case organization.EdgeOrderUnlockRequests:
@@ -102887,6 +107183,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeOrderLockRecords:
 		m.ResetOrderLockRecords()
+		return nil
+	case organization.EdgeOrderFeeSupplementRequests:
+		m.ResetOrderFeeSupplementRequests()
 		return nil
 	case organization.EdgeOrderLockHouseBillSnapshots:
 		m.ResetOrderLockHouseBillSnapshots()
@@ -154082,6 +158381,12 @@ type UserMutation struct {
 	order_unlock_approver_candidates                map[uuid.UUID]struct{}
 	removedorder_unlock_approver_candidates         map[uuid.UUID]struct{}
 	clearedorder_unlock_approver_candidates         bool
+	requested_order_fee_supplement_requests         map[uuid.UUID]struct{}
+	removedrequested_order_fee_supplement_requests  map[uuid.UUID]struct{}
+	clearedrequested_order_fee_supplement_requests  bool
+	decided_order_fee_supplement_requests           map[uuid.UUID]struct{}
+	removeddecided_order_fee_supplement_requests    map[uuid.UUID]struct{}
+	cleareddecided_order_fee_supplement_requests    bool
 	created_sea_master_bill_versions                map[uuid.UUID]struct{}
 	removedcreated_sea_master_bill_versions         map[uuid.UUID]struct{}
 	clearedcreated_sea_master_bill_versions         bool
@@ -157299,6 +161604,114 @@ func (m *UserMutation) ResetOrderUnlockApproverCandidates() {
 	m.removedorder_unlock_approver_candidates = nil
 }
 
+// AddRequestedOrderFeeSupplementRequestIDs adds the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by ids.
+func (m *UserMutation) AddRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.requested_order_fee_supplement_requests == nil {
+		m.requested_order_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.requested_order_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRequestedOrderFeeSupplementRequests clears the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *UserMutation) ClearRequestedOrderFeeSupplementRequests() {
+	m.clearedrequested_order_fee_supplement_requests = true
+}
+
+// RequestedOrderFeeSupplementRequestsCleared reports if the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *UserMutation) RequestedOrderFeeSupplementRequestsCleared() bool {
+	return m.clearedrequested_order_fee_supplement_requests
+}
+
+// RemoveRequestedOrderFeeSupplementRequestIDs removes the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (m *UserMutation) RemoveRequestedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.removedrequested_order_fee_supplement_requests == nil {
+		m.removedrequested_order_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.requested_order_fee_supplement_requests, ids[i])
+		m.removedrequested_order_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRequestedOrderFeeSupplementRequests returns the removed IDs of the "requested_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *UserMutation) RemovedRequestedOrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrequested_order_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RequestedOrderFeeSupplementRequestsIDs returns the "requested_order_fee_supplement_requests" edge IDs in the mutation.
+func (m *UserMutation) RequestedOrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.requested_order_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRequestedOrderFeeSupplementRequests resets all changes to the "requested_order_fee_supplement_requests" edge.
+func (m *UserMutation) ResetRequestedOrderFeeSupplementRequests() {
+	m.requested_order_fee_supplement_requests = nil
+	m.clearedrequested_order_fee_supplement_requests = false
+	m.removedrequested_order_fee_supplement_requests = nil
+}
+
+// AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by ids.
+func (m *UserMutation) AddDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.decided_order_fee_supplement_requests == nil {
+		m.decided_order_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.decided_order_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDecidedOrderFeeSupplementRequests clears the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *UserMutation) ClearDecidedOrderFeeSupplementRequests() {
+	m.cleareddecided_order_fee_supplement_requests = true
+}
+
+// DecidedOrderFeeSupplementRequestsCleared reports if the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity was cleared.
+func (m *UserMutation) DecidedOrderFeeSupplementRequestsCleared() bool {
+	return m.cleareddecided_order_fee_supplement_requests
+}
+
+// RemoveDecidedOrderFeeSupplementRequestIDs removes the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (m *UserMutation) RemoveDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) {
+	if m.removeddecided_order_fee_supplement_requests == nil {
+		m.removeddecided_order_fee_supplement_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.decided_order_fee_supplement_requests, ids[i])
+		m.removeddecided_order_fee_supplement_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDecidedOrderFeeSupplementRequests returns the removed IDs of the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity.
+func (m *UserMutation) RemovedDecidedOrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddecided_order_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DecidedOrderFeeSupplementRequestsIDs returns the "decided_order_fee_supplement_requests" edge IDs in the mutation.
+func (m *UserMutation) DecidedOrderFeeSupplementRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.decided_order_fee_supplement_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDecidedOrderFeeSupplementRequests resets all changes to the "decided_order_fee_supplement_requests" edge.
+func (m *UserMutation) ResetDecidedOrderFeeSupplementRequests() {
+	m.decided_order_fee_supplement_requests = nil
+	m.cleareddecided_order_fee_supplement_requests = false
+	m.removeddecided_order_fee_supplement_requests = nil
+}
+
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by ids.
 func (m *UserMutation) AddCreatedSeaMasterBillVersionIDs(ids ...uuid.UUID) {
 	if m.created_sea_master_bill_versions == nil {
@@ -158209,7 +162622,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 53)
+	edges := make([]string, 0, 55)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -158341,6 +162754,12 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.order_unlock_approver_candidates != nil {
 		edges = append(edges, user.EdgeOrderUnlockApproverCandidates)
+	}
+	if m.requested_order_fee_supplement_requests != nil {
+		edges = append(edges, user.EdgeRequestedOrderFeeSupplementRequests)
+	}
+	if m.decided_order_fee_supplement_requests != nil {
+		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
 	}
 	if m.created_sea_master_bill_versions != nil {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
@@ -158640,6 +163059,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRequestedOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.requested_order_fee_supplement_requests))
+		for id := range m.requested_order_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeDecidedOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.decided_order_fee_supplement_requests))
+		for id := range m.decided_order_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCreatedSeaMasterBillVersions:
 		ids := make([]ent.Value, 0, len(m.created_sea_master_bill_versions))
 		for id := range m.created_sea_master_bill_versions {
@@ -158698,7 +163129,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 53)
+	edges := make([]string, 0, 55)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -158830,6 +163261,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_unlock_approver_candidates != nil {
 		edges = append(edges, user.EdgeOrderUnlockApproverCandidates)
+	}
+	if m.removedrequested_order_fee_supplement_requests != nil {
+		edges = append(edges, user.EdgeRequestedOrderFeeSupplementRequests)
+	}
+	if m.removeddecided_order_fee_supplement_requests != nil {
+		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
 	}
 	if m.removedcreated_sea_master_bill_versions != nil {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
@@ -159126,6 +163563,18 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRequestedOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.removedrequested_order_fee_supplement_requests))
+		for id := range m.removedrequested_order_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeDecidedOrderFeeSupplementRequests:
+		ids := make([]ent.Value, 0, len(m.removeddecided_order_fee_supplement_requests))
+		for id := range m.removeddecided_order_fee_supplement_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCreatedSeaMasterBillVersions:
 		ids := make([]ent.Value, 0, len(m.removedcreated_sea_master_bill_versions))
 		for id := range m.removedcreated_sea_master_bill_versions {
@@ -159180,7 +163629,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 53)
+	edges := make([]string, 0, 55)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -159313,6 +163762,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedorder_unlock_approver_candidates {
 		edges = append(edges, user.EdgeOrderUnlockApproverCandidates)
 	}
+	if m.clearedrequested_order_fee_supplement_requests {
+		edges = append(edges, user.EdgeRequestedOrderFeeSupplementRequests)
+	}
+	if m.cleareddecided_order_fee_supplement_requests {
+		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
+	}
 	if m.clearedcreated_sea_master_bill_versions {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
 	}
@@ -159435,6 +163890,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.cleareddecided_order_unlock_requests
 	case user.EdgeOrderUnlockApproverCandidates:
 		return m.clearedorder_unlock_approver_candidates
+	case user.EdgeRequestedOrderFeeSupplementRequests:
+		return m.clearedrequested_order_fee_supplement_requests
+	case user.EdgeDecidedOrderFeeSupplementRequests:
+		return m.cleareddecided_order_fee_supplement_requests
 	case user.EdgeCreatedSeaMasterBillVersions:
 		return m.clearedcreated_sea_master_bill_versions
 	case user.EdgeCreatedSeaHouseBillVersions:
@@ -159603,6 +164062,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeOrderUnlockApproverCandidates:
 		m.ResetOrderUnlockApproverCandidates()
+		return nil
+	case user.EdgeRequestedOrderFeeSupplementRequests:
+		m.ResetRequestedOrderFeeSupplementRequests()
+		return nil
+	case user.EdgeDecidedOrderFeeSupplementRequests:
+		m.ResetDecidedOrderFeeSupplementRequests()
 		return nil
 	case user.EdgeCreatedSeaMasterBillVersions:
 		m.ResetCreatedSeaMasterBillVersions()

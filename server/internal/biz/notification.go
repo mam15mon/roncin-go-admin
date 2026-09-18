@@ -21,6 +21,12 @@ const (
 	NotificationTemplateDingTalkRegistrationRejected = "DINGTALK_REGISTRATION_REJECTED"
 	NotificationTemplateDingTalkInvitationActivated  = "DINGTALK_INVITATION_ACTIVATED"
 	NotificationTemplateExchangeRateWeeklyReminder   = "EXCHANGE_RATE_WEEKLY_REMINDER"
+	// NotificationTemplateFeeSupplementApprovalPending 提交补录申请时发送给
+	// 审批资格快照内人员的待审批通知；resource_type = FEE_SUPPLEMENT_REQUEST。
+	NotificationTemplateFeeSupplementApprovalPending = "FEE_SUPPLEMENT_APPROVAL_PENDING"
+	// NotificationTemplateCommissionDecreaseSuggested 补录审批生成冲减建议后
+	// 发送给被冲减员工的知情通知；resource_type = COMMISSION_ADJUSTMENT。
+	NotificationTemplateCommissionDecreaseSuggested = "COMMISSION_DECREASE_SUGGESTED"
 )
 
 // NotificationIntent 是业务用例交给仓储、并与业务写入同事务落库的通知意图。

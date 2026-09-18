@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -299,6 +300,20 @@ func (_c *OrderFeeCreate) SetNillableNote(v *string) *OrderFeeCreate {
 	return _c
 }
 
+// SetSupplementRequestID sets the "supplement_request_id" field.
+func (_c *OrderFeeCreate) SetSupplementRequestID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetSupplementRequestID(v)
+	return _c
+}
+
+// SetNillableSupplementRequestID sets the "supplement_request_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableSupplementRequestID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetSupplementRequestID(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *OrderFeeCreate) SetVersion(v uint64) *OrderFeeCreate {
 	_c.mutation.SetVersion(v)
@@ -420,6 +435,11 @@ func (_c *OrderFeeCreate) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeC
 // SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
 func (_c *OrderFeeCreate) SetCancelledByUser(v *User) *OrderFeeCreate {
 	return _c.SetCancelledByUserID(v.ID)
+}
+
+// SetSupplementRequest sets the "supplement_request" edge to the OrderFeeSupplementRequest entity.
+func (_c *OrderFeeCreate) SetSupplementRequest(v *OrderFeeSupplementRequest) *OrderFeeCreate {
+	return _c.SetSupplementRequestID(v.ID)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -903,6 +923,23 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CancelledBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SupplementRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupplementRequestTable,
+			Columns: []string{orderfee.SupplementRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SupplementRequestID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
@@ -1461,6 +1498,9 @@ func (u *OrderFeeUpsertOne) UpdateNewValues() *OrderFeeUpsertOne {
 		}
 		if _, exists := u.create.mutation.IdempotencyKey(); exists {
 			s.SetIgnore(orderfee.FieldIdempotencyKey)
+		}
+		if _, exists := u.create.mutation.SupplementRequestID(); exists {
+			s.SetIgnore(orderfee.FieldSupplementRequestID)
 		}
 	}))
 	return u
@@ -2206,6 +2246,9 @@ func (u *OrderFeeUpsertBulk) UpdateNewValues() *OrderFeeUpsertBulk {
 			}
 			if _, exists := b.mutation.IdempotencyKey(); exists {
 				s.SetIgnore(orderfee.FieldIdempotencyKey)
+			}
+			if _, exists := b.mutation.SupplementRequestID(); exists {
+				s.SetIgnore(orderfee.FieldSupplementRequestID)
 			}
 		}
 	}))

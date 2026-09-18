@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
@@ -1649,6 +1650,21 @@ func (_u *OrderUpdate) AddFees(v ...*OrderFee) *OrderUpdate {
 	return _u.AddFeeIDs(ids...)
 }
 
+// AddFeeSupplementRequestIDs adds the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *OrderUpdate) AddFeeSupplementRequestIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeSupplementRequests adds the "fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrderUpdate) AddFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeSupplementRequestIDs(ids...)
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
 func (_u *OrderUpdate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddFinanceBillLineIDs(ids...)
@@ -2202,6 +2218,27 @@ func (_u *OrderUpdate) RemoveFees(v ...*OrderFee) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeIDs(ids...)
+}
+
+// ClearFeeSupplementRequests clears all "fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrderUpdate) ClearFeeSupplementRequests() *OrderUpdate {
+	_u.mutation.ClearFeeSupplementRequests()
+	return _u
+}
+
+// RemoveFeeSupplementRequestIDs removes the "fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *OrderUpdate) RemoveFeeSupplementRequestIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeSupplementRequests removes "fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *OrderUpdate) RemoveFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeSupplementRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -3899,6 +3936,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -6262,6 +6344,21 @@ func (_u *OrderUpdateOne) AddFees(v ...*OrderFee) *OrderUpdateOne {
 	return _u.AddFeeIDs(ids...)
 }
 
+// AddFeeSupplementRequestIDs adds the "fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
+func (_u *OrderUpdateOne) AddFeeSupplementRequestIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeSupplementRequests adds the "fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrderUpdateOne) AddFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeSupplementRequestIDs(ids...)
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
 func (_u *OrderUpdateOne) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddFinanceBillLineIDs(ids...)
@@ -6815,6 +6912,27 @@ func (_u *OrderUpdateOne) RemoveFees(v ...*OrderFee) *OrderUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeIDs(ids...)
+}
+
+// ClearFeeSupplementRequests clears all "fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
+func (_u *OrderUpdateOne) ClearFeeSupplementRequests() *OrderUpdateOne {
+	_u.mutation.ClearFeeSupplementRequests()
+	return _u
+}
+
+// RemoveFeeSupplementRequestIDs removes the "fee_supplement_requests" edge to OrderFeeSupplementRequest entities by IDs.
+func (_u *OrderUpdateOne) RemoveFeeSupplementRequestIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveFeeSupplementRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeSupplementRequests removes "fee_supplement_requests" edges to OrderFeeSupplementRequest entities.
+func (_u *OrderUpdateOne) RemoveFeeSupplementRequests(v ...*OrderFeeSupplementRequest) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeSupplementRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -8542,6 +8660,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeSupplementRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeSupplementRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSupplementRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeSupplementRequestsTable,
+			Columns: []string{order.FeeSupplementRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

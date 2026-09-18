@@ -136,6 +136,10 @@ const (
 	EdgeDecidedOrderUnlockRequests = "decided_order_unlock_requests"
 	// EdgeOrderUnlockApproverCandidates holds the string denoting the order_unlock_approver_candidates edge name in mutations.
 	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
+	// EdgeRequestedOrderFeeSupplementRequests holds the string denoting the requested_order_fee_supplement_requests edge name in mutations.
+	EdgeRequestedOrderFeeSupplementRequests = "requested_order_fee_supplement_requests"
+	// EdgeDecidedOrderFeeSupplementRequests holds the string denoting the decided_order_fee_supplement_requests edge name in mutations.
+	EdgeDecidedOrderFeeSupplementRequests = "decided_order_fee_supplement_requests"
 	// EdgeCreatedSeaMasterBillVersions holds the string denoting the created_sea_master_bill_versions edge name in mutations.
 	EdgeCreatedSeaMasterBillVersions = "created_sea_master_bill_versions"
 	// EdgeCreatedSeaHouseBillVersions holds the string denoting the created_sea_house_bill_versions edge name in mutations.
@@ -464,6 +468,20 @@ const (
 	OrderUnlockApproverCandidatesInverseTable = "order_unlock_approver_candidates"
 	// OrderUnlockApproverCandidatesColumn is the table column denoting the order_unlock_approver_candidates relation/edge.
 	OrderUnlockApproverCandidatesColumn = "user_id"
+	// RequestedOrderFeeSupplementRequestsTable is the table that holds the requested_order_fee_supplement_requests relation/edge.
+	RequestedOrderFeeSupplementRequestsTable = "order_fee_supplement_requests"
+	// RequestedOrderFeeSupplementRequestsInverseTable is the table name for the OrderFeeSupplementRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeesupplementrequest" package.
+	RequestedOrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
+	// RequestedOrderFeeSupplementRequestsColumn is the table column denoting the requested_order_fee_supplement_requests relation/edge.
+	RequestedOrderFeeSupplementRequestsColumn = "requested_by"
+	// DecidedOrderFeeSupplementRequestsTable is the table that holds the decided_order_fee_supplement_requests relation/edge.
+	DecidedOrderFeeSupplementRequestsTable = "order_fee_supplement_requests"
+	// DecidedOrderFeeSupplementRequestsInverseTable is the table name for the OrderFeeSupplementRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeesupplementrequest" package.
+	DecidedOrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
+	// DecidedOrderFeeSupplementRequestsColumn is the table column denoting the decided_order_fee_supplement_requests relation/edge.
+	DecidedOrderFeeSupplementRequestsColumn = "decided_by"
 	// CreatedSeaMasterBillVersionsTable is the table that holds the created_sea_master_bill_versions relation/edge.
 	CreatedSeaMasterBillVersionsTable = "sea_master_bill_versions"
 	// CreatedSeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
@@ -1305,6 +1323,34 @@ func ByOrderUnlockApproverCandidates(term sql.OrderTerm, terms ...sql.OrderTerm)
 	}
 }
 
+// ByRequestedOrderFeeSupplementRequestsCount orders the results by requested_order_fee_supplement_requests count.
+func ByRequestedOrderFeeSupplementRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRequestedOrderFeeSupplementRequestsStep(), opts...)
+	}
+}
+
+// ByRequestedOrderFeeSupplementRequests orders the results by requested_order_fee_supplement_requests terms.
+func ByRequestedOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRequestedOrderFeeSupplementRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDecidedOrderFeeSupplementRequestsCount orders the results by decided_order_fee_supplement_requests count.
+func ByDecidedOrderFeeSupplementRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDecidedOrderFeeSupplementRequestsStep(), opts...)
+	}
+}
+
+// ByDecidedOrderFeeSupplementRequests orders the results by decided_order_fee_supplement_requests terms.
+func ByDecidedOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDecidedOrderFeeSupplementRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCreatedSeaMasterBillVersionsCount orders the results by created_sea_master_bill_versions count.
 func ByCreatedSeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1729,6 +1775,20 @@ func newOrderUnlockApproverCandidatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderUnlockApproverCandidatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderUnlockApproverCandidatesTable, OrderUnlockApproverCandidatesColumn),
+	)
+}
+func newRequestedOrderFeeSupplementRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RequestedOrderFeeSupplementRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RequestedOrderFeeSupplementRequestsTable, RequestedOrderFeeSupplementRequestsColumn),
+	)
+}
+func newDecidedOrderFeeSupplementRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DecidedOrderFeeSupplementRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DecidedOrderFeeSupplementRequestsTable, DecidedOrderFeeSupplementRequestsColumn),
 	)
 }
 func newCreatedSeaMasterBillVersionsStep() *sqlgraph.Step {
