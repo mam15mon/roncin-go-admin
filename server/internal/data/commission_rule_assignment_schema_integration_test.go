@@ -3,13 +3,13 @@ package data
 import (
 	"context"
 	"database/sql"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 )
 
 // TestCommissionRuleAssignmentSchemaPostgres 在真实 PostgreSQL 上验证提成方案
@@ -226,8 +226,15 @@ func TestCommissionRuleAssignmentSchemaPostgres(t *testing.T) {
 		if _, err = data.sqlDB.ExecContext(ctx, stmt, legacyWithDatesID, org.ID, "旧规则带区间-"+suffix, "2026-01-01", nil); err != nil {
 			t.Fatalf("插入带起始日旧规则失败: %v", err)
 		}
-		// 对真实迁移目录重放：其余文件已应用且校验和一致，仅补执行本迁移。
-		if err = migration.Apply(ctx, data.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
+		// 重放真实迁移文件：读取迁移内容，在已恢复的迁移前状态上执行，断言其真实
+		// 改写效果。不走 migration.Apply——隔离库随后会随迁移链增长应用更晚版本，
+		// 框架的线性与完整性守卫会拦截这类定点补放；本用例验证的是迁移 DDL 本身。
+		content, err := os.ReadFile(filepath.Join("..", "..", "migrations",
+			"20260918150000_commission_rule_assignments.sql"))
+		if err != nil {
+			t.Fatalf("读取迁移文件失败: %v", err)
+		}
+		if _, err = data.sqlDB.ExecContext(ctx, string(content)); err != nil {
 			t.Fatalf("重放迁移失败: %v", err)
 		}
 		rows, err := data.sqlDB.QueryContext(ctx,

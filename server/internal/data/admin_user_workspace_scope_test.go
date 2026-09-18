@@ -127,7 +127,8 @@ func TestPreferAdminAnchorMembership(t *testing.T) {
 
 // TestAdminUserWorkspaceScopePostgres 在隔离 Schema 上验证用户管理的工作台范围口径：
 // 总部工作台可见/可编辑全树用户（含仅有公司、部门成员关系的用户）；公司工作台只见
-// 本公司子树；移除工作台节点成员关系后用户仍可编辑；角色按锚定成员关系所在组织校验。
+// 本公司子树；移除工作台节点成员关系后用户仍可编辑；角色按锚定成员关系所属
+// 工作台（部门/团队沿树回溯公司）的角色库校验。
 func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
@@ -181,7 +182,10 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建公司A角色: %v", err)
 	}
-	roleDept, err := data.db.Role.Create().SetOrganizationID(deptA1.ID).SetCode("dept_operator").SetName("部门操作员").SetDataScope("organization").Save(ctx)
+	// 部门/团队不持有角色库，公用所属公司（工作台）的角色；夹具遵守该数据不变量
+	// （生产数据由 cmd/migrate 的 BackfillRoleWorkspaceAnchors 归一并自检，不存在
+	// 部门锚定角色），避免让业务校验命中夹具自身违反不变量的脏数据。
+	roleDept, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("dept_operator").SetName("部门操作员").SetDataScope("organization").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建部门角色: %v", err)
 	}
@@ -301,7 +305,8 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		t.Fatalf("角色应写入锚定的公司A成员关系: %v, error = %v", anchors, err)
 	}
 
-	// 5. 角色按锚定组织校验：公司角色挂公司关系成功、错配组织被拒。
+	// 5. 角色按锚定成员关系所属工作台的角色库校验：部门锚定用户挂所属公司角色成功、
+	// 跨工作台角色被拒。
 	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户", Enabled: true}, []uuid.UUID{roleB.ID}, adminLifecycleAudit(headquarters.ID, "admin.user.update")); err != biz.ErrAdminRoleNotFound {
 		t.Fatalf("错配组织角色 error = %v, want ErrAdminRoleNotFound", err)
 	}

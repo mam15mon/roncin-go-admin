@@ -2,39 +2,26 @@ package data
 
 import (
 	"context"
-	"database/sql"
-	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// TestSyncDefaultOrderOptionsPostgres 在隔离 Schema 上验证默认订单主数据的幂等补齐：
+// 迁移链本身会播种同批主数据，先清空主数据还原「种子缺失」前置，再断言同步补齐
+// 全部默认项、不覆盖业务人员维护过的行、修复误删行且重复同步保持幂等。
 func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
-	ctx := context.Background()
-	db, err := sql.Open("pgx", source)
-	if err != nil {
-		t.Fatalf("打开集成测试数据库: %v", err)
-	}
-	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
-	// 关库注册为最早的 t.Cleanup（LIFO 中最后执行），保证数据清理先于连接关闭。
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(ctx); err != nil {
-		t.Fatalf("初始化集成测试 Schema: %v", err)
-	}
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
 
-	first, err := SyncDefaultOrderOptions(ctx, db)
+	ctx := context.Background()
+	client := data.db
+	clearMasterDataItems(t, client)
+
+	first, err := SyncDefaultOrderOptions(ctx, data.sqlDB)
 	if err != nil {
 		t.Fatalf("首次同步默认订单主数据: %v", err)
 	}
@@ -66,7 +53,7 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 		t.Fatalf("删除拖车费用大类: %v", err)
 	}
 
-	second, err := SyncDefaultOrderOptions(ctx, db)
+	second, err := SyncDefaultOrderOptions(ctx, data.sqlDB)
 	if err != nil {
 		t.Fatalf("补齐缺失订单主数据: %v", err)
 	}
@@ -78,33 +65,23 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 		t.Fatalf("同步覆盖了已有订舱主数据: booking=%#v error=%v", booking, err)
 	}
 
-	third, err := SyncDefaultOrderOptions(ctx, db)
+	third, err := SyncDefaultOrderOptions(ctx, data.sqlDB)
 	if err != nil {
 		t.Fatalf("重复同步默认订单主数据: %v", err)
 	}
 	if third.Created != 0 {
 		t.Fatalf("重复同步不是幂等操作: %+v", third)
 	}
-	// A 型主数据不再按组织重复落行，同步完成后清理全局种子，避免污染其他用例。
-	t.Cleanup(func() { cleanupMasterDataItems(t, client) })
 }
 
 func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
+
 	ctx := context.Background()
-	db, err := sql.Open("pgx", source)
-	if err != nil {
-		t.Fatalf("打开集成测试数据库: %v", err)
-	}
-	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
-	// 关库注册为最早的 t.Cleanup（LIFO 中最后执行），保证数据清理先于连接关闭。
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(ctx); err != nil {
-		t.Fatalf("初始化集成测试 Schema: %v", err)
-	}
+	client := data.db
+	// 迁移链已播种同批主数据；先清空还原「空库」前置，验证创建函数自身的写入行为。
+	clearMasterDataItems(t, client)
 
 	tx, err := client.Tx(ctx)
 	if err != nil {
@@ -128,15 +105,12 @@ func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
 	if containerSpec.TeuFactor == nil || *containerSpec.TeuFactor != "1" {
 		t.Fatalf("20GP TEU 系数 = %v, want 1", containerSpec.TeuFactor)
 	}
-	// A 型主数据全局唯一，测试完成后清理种子行。
-	t.Cleanup(func() { cleanupMasterDataItems(t, client) })
 }
 
-// cleanupMasterDataItems 清理集成测试写入的全局主数据种子行。
-func cleanupMasterDataItems(t *testing.T, client *ent.Client) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if _, err := client.MasterDataItem.Delete().Exec(ctx); err != nil {
-		t.Errorf("清理全局主数据失败: %v", err)
+// clearMasterDataItems 清空隔离 Schema 内的主数据行，还原默认订单选项种子缺失的前置。
+func clearMasterDataItems(t *testing.T, client *ent.Client) {
+	t.Helper()
+	if _, err := client.MasterDataItem.Delete().Exec(context.Background()); err != nil {
+		t.Fatalf("清空主数据失败: %v", err)
 	}
 }
