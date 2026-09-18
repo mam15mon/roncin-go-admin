@@ -8949,6 +8949,288 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fee-supplement-requests": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权\n （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级\n fee.read 注解提前挡住，也不泄露无权申请。",
+        "operationId": "OrderFeeService_ListOrderFeeSupplementRequests",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListOrderFeeSupplementRequestsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。\n 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时\n 稳定拒绝并引导普通费用新增。",
+        "operationId": "OrderFeeService_CreateOrderFeeSupplement",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.CreateOrderFeeSupplementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.CreateOrderFeeSupplementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-supplement-requests/{id}/approve": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，\n 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。",
+        "operationId": "OrderFeeService_ApproveOrderFeeSupplement",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApproveOrderFeeSupplementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApproveOrderFeeSupplementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-supplement-requests/{id}/cancel-fee": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、\n CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的\n 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。",
+        "operationId": "OrderFeeService_CancelApprovedOrderFeeSupplement",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.CancelApprovedOrderFeeSupplementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.CancelApprovedOrderFeeSupplementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-supplement-requests/{id}/reject": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。",
+        "operationId": "OrderFeeService_RejectOrderFeeSupplement",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.RejectOrderFeeSupplementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RejectOrderFeeSupplementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-supplement-requests/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时\n 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。",
+        "operationId": "OrderFeeService_WithdrawOrderFeeSupplement",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeSupplementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeSupplementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/fee-tag-options": {
       "get": {
         "tags": [
@@ -23611,6 +23893,54 @@
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
       },
+      "order.v1.ApproveOrderFeeSupplementRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ApproveOrderFeeSupplementResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeSupplementRequestData"
+          },
+          "fee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.v1.OrderFee"
+              }
+            ],
+            "description": "审批生成的 CONFIRMED 补录费用。"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.AssignPersonnelRequest": {
         "required": [
           "orderId",
@@ -23828,6 +24158,56 @@
         },
         "description": "Order 订单核心信息。\n BusinessTagSummary 订单返回的组织标签概要。"
       },
+      "order.v1.CancelApprovedOrderFeeSupplementRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedVersion",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string",
+            "description": "目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.CancelApprovedOrderFeeSupplementResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/order.v1.OrderFee"
+              }
+            ],
+            "description": "作废后的费用（CANCELLED）。"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.CheckOrderReferenceResponse": {
         "type": "object",
         "properties": {
@@ -23932,6 +24312,90 @@
           },
           "data": {
             "$ref": "#/components/schemas/order.v1.SeaSharedContainer"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.CreateOrderFeeSupplementRequest": {
+        "required": [
+          "orderId",
+          "direction",
+          "feeSettingId",
+          "settlementPartyId",
+          "billingUnitId",
+          "quantity",
+          "unitPrice",
+          "currency",
+          "expenseDate",
+          "reason",
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "description": "补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。",
+            "format": "enum"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "exchangeRateOverride": {
+            "type": "string"
+          },
+          "taxInclusive": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "description": "补录原因必填，参与 request_fingerprint。"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.CreateOrderFeeSupplementResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeSupplementRequestData"
           },
           "traceId": {
             "type": "string"
@@ -25095,6 +25559,50 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderConsolidationSummary"
             }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListOrderFeeSupplementRequestsData": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeSupplementRequestData"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.ListOrderFeeSupplementRequestsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.ListOrderFeeSupplementRequestsData"
           },
           "traceId": {
             "type": "string"
@@ -26419,6 +26927,165 @@
           }
         }
       },
+      "order.v1.OrderFeeSupplementRequestData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "lockBasis": {
+            "type": "string",
+            "description": "锁依据类型：BUSINESS / FINANCIAL / BOTH。"
+          },
+          "businessLockGeneration": {
+            "type": "string"
+          },
+          "financialLockEvidenceVersion": {
+            "type": "string"
+          },
+          "financialLockEvidenceHash": {
+            "type": "string"
+          },
+          "financialLockNetAmount": {
+            "type": "string",
+            "description": "提交当时固化的有效提成净额快照（8 位十进制字符串）。"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态：PENDING / APPROVED / REJECTED / WITHDRAWN。"
+          },
+          "version": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "description": "不可变应付费用快照，字段语义与 OrderFee 对齐。",
+            "format": "enum"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "feeNameEn": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "billingUnit": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "string"
+          },
+          "taxableServiceName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "taxInclusive": {
+            "type": "boolean"
+          },
+          "netAmount": {
+            "type": "string"
+          },
+          "taxAmount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "exchangeRateSource": {
+            "type": "string"
+          },
+          "exchangeRateDate": {
+            "type": "string"
+          },
+          "exchangeRateSettingId": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseCurrencyAmount": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string"
+          },
+          "decidedBy": {
+            "type": "string"
+          },
+          "decidedAt": {
+            "type": "string"
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "canApprove": {
+            "type": "boolean",
+            "description": "当前调用人能力投影：由后端按实时资格与申请状态计算，前端只消费结果。"
+          },
+          "canWithdraw": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "cancelBlockedReason": {
+            "type": "string",
+            "description": "can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。"
+          },
+          "feeId": {
+            "type": "string",
+            "description": "APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。"
+          },
+          "feeStatus": {
+            "type": "string"
+          },
+          "approverAvailable": {
+            "type": "boolean",
+            "description": "当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持\n PENDING 并投影 false，发起人仍可撤回。"
+          }
+        },
+        "description": "OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。\n 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。"
+      },
       "order.v1.OrderLockHouseBillSnapshotData": {
         "type": "object",
         "properties": {
@@ -27301,6 +27968,49 @@
           }
         },
         "description": "RegisterAttachmentResponse 单条订单附件响应。"
+      },
+      "order.v1.RejectOrderFeeSupplementRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.RejectOrderFeeSupplementResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeSupplementRequestData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.RemoveAbnormalCaseResponse": {
         "type": "object",
@@ -30858,6 +31568,46 @@
           },
           "isDifferent": {
             "type": "boolean"
+          }
+        }
+      },
+      "order.v1.WithdrawOrderFeeSupplementRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.WithdrawOrderFeeSupplementResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeSupplementRequestData"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

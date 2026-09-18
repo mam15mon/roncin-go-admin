@@ -2455,6 +2455,1438 @@ func (x *BatchRemoveOrderFeeTagsResponse) GetTraceId() string {
 	return ""
 }
 
+// OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
+// 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。
+type OrderFeeSupplementRequestData struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// 锁依据类型：BUSINESS / FINANCIAL / BOTH。
+	LockBasis                    string  `protobuf:"bytes,3,opt,name=lock_basis,json=lockBasis,proto3" json:"lock_basis,omitempty"`
+	BusinessLockGeneration       *uint64 `protobuf:"varint,4,opt,name=business_lock_generation,json=businessLockGeneration,proto3,oneof" json:"business_lock_generation,omitempty"`
+	FinancialLockEvidenceVersion *string `protobuf:"bytes,5,opt,name=financial_lock_evidence_version,json=financialLockEvidenceVersion,proto3,oneof" json:"financial_lock_evidence_version,omitempty"`
+	FinancialLockEvidenceHash    *string `protobuf:"bytes,6,opt,name=financial_lock_evidence_hash,json=financialLockEvidenceHash,proto3,oneof" json:"financial_lock_evidence_hash,omitempty"`
+	// 提交当时固化的有效提成净额快照（8 位十进制字符串）。
+	FinancialLockNetAmount *string `protobuf:"bytes,7,opt,name=financial_lock_net_amount,json=financialLockNetAmount,proto3,oneof" json:"financial_lock_net_amount,omitempty"`
+	// 状态：PENDING / APPROVED / REJECTED / WITHDRAWN。
+	Status  string `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`
+	Version uint64 `protobuf:"varint,9,opt,name=version,proto3" json:"version,omitempty"`
+	// 不可变应付费用快照，字段语义与 OrderFee 对齐。
+	Direction             OrderFeeDirection `protobuf:"varint,10,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
+	FeeSettingId          *string           `protobuf:"bytes,11,opt,name=fee_setting_id,json=feeSettingId,proto3,oneof" json:"fee_setting_id,omitempty"`
+	FeeCode               string            `protobuf:"bytes,12,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	FeeName               string            `protobuf:"bytes,13,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	FeeNameEn             *string           `protobuf:"bytes,14,opt,name=fee_name_en,json=feeNameEn,proto3,oneof" json:"fee_name_en,omitempty"`
+	SettlementPartyId     string            `protobuf:"bytes,15,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName   string            `protobuf:"bytes,16,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	BillingUnitId         *string           `protobuf:"bytes,17,opt,name=billing_unit_id,json=billingUnitId,proto3,oneof" json:"billing_unit_id,omitempty"`
+	BillingUnit           string            `protobuf:"bytes,18,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	TaxRate               *string           `protobuf:"bytes,19,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	TaxableServiceName    *string           `protobuf:"bytes,20,opt,name=taxable_service_name,json=taxableServiceName,proto3,oneof" json:"taxable_service_name,omitempty"`
+	Quantity              string            `protobuf:"bytes,21,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice             string            `protobuf:"bytes,22,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	TotalAmount           string            `protobuf:"bytes,23,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	TaxInclusive          bool              `protobuf:"varint,24,opt,name=tax_inclusive,json=taxInclusive,proto3" json:"tax_inclusive,omitempty"`
+	NetAmount             string            `protobuf:"bytes,25,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
+	TaxAmount             string            `protobuf:"bytes,26,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
+	Currency              string            `protobuf:"bytes,27,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExchangeRate          string            `protobuf:"bytes,28,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
+	ExchangeRateSource    string            `protobuf:"bytes,29,opt,name=exchange_rate_source,json=exchangeRateSource,proto3" json:"exchange_rate_source,omitempty"`
+	ExchangeRateDate      string            `protobuf:"bytes,30,opt,name=exchange_rate_date,json=exchangeRateDate,proto3" json:"exchange_rate_date,omitempty"`
+	ExchangeRateSettingId *string           `protobuf:"bytes,31,opt,name=exchange_rate_setting_id,json=exchangeRateSettingId,proto3,oneof" json:"exchange_rate_setting_id,omitempty"`
+	BaseCurrency          string            `protobuf:"bytes,32,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	BaseCurrencyAmount    string            `protobuf:"bytes,33,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
+	ExpenseDate           string            `protobuf:"bytes,34,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
+	Note                  *string           `protobuf:"bytes,35,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Reason                string            `protobuf:"bytes,36,opt,name=reason,proto3" json:"reason,omitempty"`
+	RequestedBy           string            `protobuf:"bytes,37,opt,name=requested_by,json=requestedBy,proto3" json:"requested_by,omitempty"`
+	RequestedAt           string            `protobuf:"bytes,38,opt,name=requested_at,json=requestedAt,proto3" json:"requested_at,omitempty"`
+	DecidedBy             *string           `protobuf:"bytes,39,opt,name=decided_by,json=decidedBy,proto3,oneof" json:"decided_by,omitempty"`
+	DecidedAt             *string           `protobuf:"bytes,40,opt,name=decided_at,json=decidedAt,proto3,oneof" json:"decided_at,omitempty"`
+	DecisionReason        *string           `protobuf:"bytes,41,opt,name=decision_reason,json=decisionReason,proto3,oneof" json:"decision_reason,omitempty"`
+	// 当前调用人能力投影：由后端按实时资格与申请状态计算，前端只消费结果。
+	CanApprove  bool `protobuf:"varint,42,opt,name=can_approve,json=canApprove,proto3" json:"can_approve,omitempty"`
+	CanWithdraw bool `protobuf:"varint,43,opt,name=can_withdraw,json=canWithdraw,proto3" json:"can_withdraw,omitempty"`
+	CanCancel   bool `protobuf:"varint,44,opt,name=can_cancel,json=canCancel,proto3" json:"can_cancel,omitempty"`
+	// can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。
+	CancelBlockedReason *string `protobuf:"bytes,45,opt,name=cancel_blocked_reason,json=cancelBlockedReason,proto3,oneof" json:"cancel_blocked_reason,omitempty"`
+	// APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。
+	FeeId     *string `protobuf:"bytes,46,opt,name=fee_id,json=feeId,proto3,oneof" json:"fee_id,omitempty"`
+	FeeStatus *string `protobuf:"bytes,47,opt,name=fee_status,json=feeStatus,proto3,oneof" json:"fee_status,omitempty"`
+	// 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
+	// PENDING 并投影 false，发起人仍可撤回。
+	ApproverAvailable bool `protobuf:"varint,48,opt,name=approver_available,json=approverAvailable,proto3" json:"approver_available,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *OrderFeeSupplementRequestData) Reset() {
+	*x = OrderFeeSupplementRequestData{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderFeeSupplementRequestData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderFeeSupplementRequestData) ProtoMessage() {}
+
+func (x *OrderFeeSupplementRequestData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderFeeSupplementRequestData.ProtoReflect.Descriptor instead.
+func (*OrderFeeSupplementRequestData) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *OrderFeeSupplementRequestData) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetLockBasis() string {
+	if x != nil {
+		return x.LockBasis
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetBusinessLockGeneration() uint64 {
+	if x != nil && x.BusinessLockGeneration != nil {
+		return *x.BusinessLockGeneration
+	}
+	return 0
+}
+
+func (x *OrderFeeSupplementRequestData) GetFinancialLockEvidenceVersion() string {
+	if x != nil && x.FinancialLockEvidenceVersion != nil {
+		return *x.FinancialLockEvidenceVersion
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFinancialLockEvidenceHash() string {
+	if x != nil && x.FinancialLockEvidenceHash != nil {
+		return *x.FinancialLockEvidenceHash
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFinancialLockNetAmount() string {
+	if x != nil && x.FinancialLockNetAmount != nil {
+		return *x.FinancialLockNetAmount
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *OrderFeeSupplementRequestData) GetDirection() OrderFeeDirection {
+	if x != nil {
+		return x.Direction
+	}
+	return OrderFeeDirection_ORDER_FEE_DIRECTION_UNSPECIFIED
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeSettingId() string {
+	if x != nil && x.FeeSettingId != nil {
+		return *x.FeeSettingId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeCode() string {
+	if x != nil {
+		return x.FeeCode
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeName() string {
+	if x != nil {
+		return x.FeeName
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeNameEn() string {
+	if x != nil && x.FeeNameEn != nil {
+		return *x.FeeNameEn
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetSettlementPartyId() string {
+	if x != nil {
+		return x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetSettlementPartyName() string {
+	if x != nil {
+		return x.SettlementPartyName
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetBillingUnitId() string {
+	if x != nil && x.BillingUnitId != nil {
+		return *x.BillingUnitId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetBillingUnit() string {
+	if x != nil {
+		return x.BillingUnit
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetTaxRate() string {
+	if x != nil && x.TaxRate != nil {
+		return *x.TaxRate
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetTaxableServiceName() string {
+	if x != nil && x.TaxableServiceName != nil {
+		return *x.TaxableServiceName
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetQuantity() string {
+	if x != nil {
+		return x.Quantity
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetUnitPrice() string {
+	if x != nil {
+		return x.UnitPrice
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetTotalAmount() string {
+	if x != nil {
+		return x.TotalAmount
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetTaxInclusive() bool {
+	if x != nil {
+		return x.TaxInclusive
+	}
+	return false
+}
+
+func (x *OrderFeeSupplementRequestData) GetNetAmount() string {
+	if x != nil {
+		return x.NetAmount
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetTaxAmount() string {
+	if x != nil {
+		return x.TaxAmount
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetExchangeRate() string {
+	if x != nil {
+		return x.ExchangeRate
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetExchangeRateSource() string {
+	if x != nil {
+		return x.ExchangeRateSource
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetExchangeRateDate() string {
+	if x != nil {
+		return x.ExchangeRateDate
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetExchangeRateSettingId() string {
+	if x != nil && x.ExchangeRateSettingId != nil {
+		return *x.ExchangeRateSettingId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetBaseCurrencyAmount() string {
+	if x != nil {
+		return x.BaseCurrencyAmount
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetExpenseDate() string {
+	if x != nil {
+		return x.ExpenseDate
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetRequestedBy() string {
+	if x != nil {
+		return x.RequestedBy
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetRequestedAt() string {
+	if x != nil {
+		return x.RequestedAt
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetDecidedBy() string {
+	if x != nil && x.DecidedBy != nil {
+		return *x.DecidedBy
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetDecidedAt() string {
+	if x != nil && x.DecidedAt != nil {
+		return *x.DecidedAt
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetDecisionReason() string {
+	if x != nil && x.DecisionReason != nil {
+		return *x.DecisionReason
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetCanApprove() bool {
+	if x != nil {
+		return x.CanApprove
+	}
+	return false
+}
+
+func (x *OrderFeeSupplementRequestData) GetCanWithdraw() bool {
+	if x != nil {
+		return x.CanWithdraw
+	}
+	return false
+}
+
+func (x *OrderFeeSupplementRequestData) GetCanCancel() bool {
+	if x != nil {
+		return x.CanCancel
+	}
+	return false
+}
+
+func (x *OrderFeeSupplementRequestData) GetCancelBlockedReason() string {
+	if x != nil && x.CancelBlockedReason != nil {
+		return *x.CancelBlockedReason
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeId() string {
+	if x != nil && x.FeeId != nil {
+		return *x.FeeId
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetFeeStatus() string {
+	if x != nil && x.FeeStatus != nil {
+		return *x.FeeStatus
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetApproverAvailable() bool {
+	if x != nil {
+		return x.ApproverAvailable
+	}
+	return false
+}
+
+type CreateOrderFeeSupplementRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	OrderId string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。
+	Direction            OrderFeeDirection `protobuf:"varint,2,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
+	FeeSettingId         string            `protobuf:"bytes,3,opt,name=fee_setting_id,json=feeSettingId,proto3" json:"fee_setting_id,omitempty"`
+	SettlementPartyId    string            `protobuf:"bytes,4,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	BillingUnitId        string            `protobuf:"bytes,5,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	Quantity             string            `protobuf:"bytes,6,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice            string            `protobuf:"bytes,7,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	Currency             string            `protobuf:"bytes,8,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExpenseDate          string            `protobuf:"bytes,9,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
+	Note                 *string           `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExchangeRateOverride *string           `protobuf:"bytes,11,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
+	TaxInclusive         *bool             `protobuf:"varint,12,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
+	// 补录原因必填，参与 request_fingerprint。
+	Reason         string `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
+	IdempotencyKey string `protobuf:"bytes,14,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateOrderFeeSupplementRequest) Reset() {
+	*x = CreateOrderFeeSupplementRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateOrderFeeSupplementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateOrderFeeSupplementRequest) ProtoMessage() {}
+
+func (x *CreateOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
+func (*CreateOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetDirection() OrderFeeDirection {
+	if x != nil {
+		return x.Direction
+	}
+	return OrderFeeDirection_ORDER_FEE_DIRECTION_UNSPECIFIED
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetFeeSettingId() string {
+	if x != nil {
+		return x.FeeSettingId
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetSettlementPartyId() string {
+	if x != nil {
+		return x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetBillingUnitId() string {
+	if x != nil {
+		return x.BillingUnitId
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetQuantity() string {
+	if x != nil {
+		return x.Quantity
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetUnitPrice() string {
+	if x != nil {
+		return x.UnitPrice
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetExpenseDate() string {
+	if x != nil {
+		return x.ExpenseDate
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetExchangeRateOverride() string {
+	if x != nil && x.ExchangeRateOverride != nil {
+		return *x.ExchangeRateOverride
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetTaxInclusive() bool {
+	if x != nil && x.TaxInclusive != nil {
+		return *x.TaxInclusive
+	}
+	return false
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+type CreateOrderFeeSupplementResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeSupplementRequestData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                         `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateOrderFeeSupplementResponse) Reset() {
+	*x = CreateOrderFeeSupplementResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateOrderFeeSupplementResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateOrderFeeSupplementResponse) ProtoMessage() {}
+
+func (x *CreateOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
+func (*CreateOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CreateOrderFeeSupplementResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateOrderFeeSupplementResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateOrderFeeSupplementResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateOrderFeeSupplementResponse) GetData() *OrderFeeSupplementRequestData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateOrderFeeSupplementResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ListOrderFeeSupplementRequestsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOrderFeeSupplementRequestsRequest) Reset() {
+	*x = ListOrderFeeSupplementRequestsRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOrderFeeSupplementRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOrderFeeSupplementRequestsRequest) ProtoMessage() {}
+
+func (x *ListOrderFeeSupplementRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOrderFeeSupplementRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListOrderFeeSupplementRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListOrderFeeSupplementRequestsRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *ListOrderFeeSupplementRequestsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListOrderFeeSupplementRequestsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListOrderFeeSupplementRequestsData struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	Items         []*OrderFeeSupplementRequestData `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int32                            `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                            `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                            `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOrderFeeSupplementRequestsData) Reset() {
+	*x = ListOrderFeeSupplementRequestsData{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOrderFeeSupplementRequestsData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOrderFeeSupplementRequestsData) ProtoMessage() {}
+
+func (x *ListOrderFeeSupplementRequestsData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOrderFeeSupplementRequestsData.ProtoReflect.Descriptor instead.
+func (*ListOrderFeeSupplementRequestsData) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ListOrderFeeSupplementRequestsData) GetItems() []*OrderFeeSupplementRequestData {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListOrderFeeSupplementRequestsData) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListOrderFeeSupplementRequestsData) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListOrderFeeSupplementRequestsData) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListOrderFeeSupplementRequestsResponse struct {
+	state         protoimpl.MessageState              `protogen:"open.v1"`
+	Success       bool                                `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                               `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                              `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *ListOrderFeeSupplementRequestsData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                              `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) Reset() {
+	*x = ListOrderFeeSupplementRequestsResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOrderFeeSupplementRequestsResponse) ProtoMessage() {}
+
+func (x *ListOrderFeeSupplementRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOrderFeeSupplementRequestsResponse.ProtoReflect.Descriptor instead.
+func (*ListOrderFeeSupplementRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) GetData() *ListOrderFeeSupplementRequestsData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListOrderFeeSupplementRequestsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ApproveOrderFeeSupplementRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeSupplementRequest) Reset() {
+	*x = ApproveOrderFeeSupplementRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeSupplementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeSupplementRequest) ProtoMessage() {}
+
+func (x *ApproveOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ApproveOrderFeeSupplementRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeSupplementRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeSupplementRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type ApproveOrderFeeSupplementResponse struct {
+	state   protoimpl.MessageState         `protogen:"open.v1"`
+	Success bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data    *OrderFeeSupplementRequestData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	// 审批生成的 CONFIRMED 补录费用。
+	Fee           *OrderFee `protobuf:"bytes,5,opt,name=fee,proto3" json:"fee,omitempty"`
+	TraceId       string    `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeSupplementResponse) Reset() {
+	*x = ApproveOrderFeeSupplementResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeSupplementResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeSupplementResponse) ProtoMessage() {}
+
+func (x *ApproveOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetData() *OrderFeeSupplementRequestData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetFee() *OrderFee {
+	if x != nil {
+		return x.Fee
+	}
+	return nil
+}
+
+func (x *ApproveOrderFeeSupplementResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type RejectOrderFeeSupplementRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Reason          *string                `protobuf:"bytes,4,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *RejectOrderFeeSupplementRequest) Reset() {
+	*x = RejectOrderFeeSupplementRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectOrderFeeSupplementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectOrderFeeSupplementRequest) ProtoMessage() {}
+
+func (x *RejectOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
+func (*RejectOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *RejectOrderFeeSupplementRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeSupplementRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeSupplementRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *RejectOrderFeeSupplementRequest) GetReason() string {
+	if x != nil && x.Reason != nil {
+		return *x.Reason
+	}
+	return ""
+}
+
+type RejectOrderFeeSupplementResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeSupplementRequestData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                         `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectOrderFeeSupplementResponse) Reset() {
+	*x = RejectOrderFeeSupplementResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectOrderFeeSupplementResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectOrderFeeSupplementResponse) ProtoMessage() {}
+
+func (x *RejectOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
+func (*RejectOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *RejectOrderFeeSupplementResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RejectOrderFeeSupplementResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RejectOrderFeeSupplementResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeSupplementResponse) GetData() *OrderFeeSupplementRequestData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RejectOrderFeeSupplementResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type WithdrawOrderFeeSupplementRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *WithdrawOrderFeeSupplementRequest) Reset() {
+	*x = WithdrawOrderFeeSupplementRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawOrderFeeSupplementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawOrderFeeSupplementRequest) ProtoMessage() {}
+
+func (x *WithdrawOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
+func (*WithdrawOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *WithdrawOrderFeeSupplementRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeSupplementRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeSupplementRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type WithdrawOrderFeeSupplementResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeSupplementRequestData `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                         `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) Reset() {
+	*x = WithdrawOrderFeeSupplementResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawOrderFeeSupplementResponse) ProtoMessage() {}
+
+func (x *WithdrawOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
+func (*WithdrawOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) GetData() *OrderFeeSupplementRequestData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *WithdrawOrderFeeSupplementResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type CancelApprovedOrderFeeSupplementRequest struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	OrderId string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id      string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	// 目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。
+	ExpectedVersion uint64 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Reason          string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) Reset() {
+	*x = CancelApprovedOrderFeeSupplementRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelApprovedOrderFeeSupplementRequest) ProtoMessage() {}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelApprovedOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
+func (*CancelApprovedOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *CancelApprovedOrderFeeSupplementRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type CancelApprovedOrderFeeSupplementResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Success bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// 作废后的费用（CANCELLED）。
+	Fee           *OrderFee `protobuf:"bytes,4,opt,name=fee,proto3" json:"fee,omitempty"`
+	TraceId       string    `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) Reset() {
+	*x = CancelApprovedOrderFeeSupplementResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelApprovedOrderFeeSupplementResponse) ProtoMessage() {}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelApprovedOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
+func (*CancelApprovedOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) GetFee() *OrderFee {
+	if x != nil {
+		return x.Fee
+	}
+	return nil
+}
+
+func (x *CancelApprovedOrderFeeSupplementResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_order_v1_order_fee_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_fee_proto_rawDesc = "" +
@@ -2695,7 +4127,169 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\atag_ids\x18\x03 \x03(\tB\x03\xe0A\x02R\x06tagIds\"a\n" +
 	"\x1fBatchRemoveOrderFeeTagsResponse\x12#\n" +
 	"\rremoved_count\x18\x01 \x01(\x05R\fremovedCount\x12\x19\n" +
-	"\btrace_id\x18\x02 \x01(\tR\atraceId*}\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\xf3\x11\n" +
+	"\x1dOrderFeeSupplementRequestData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1d\n" +
+	"\n" +
+	"lock_basis\x18\x03 \x01(\tR\tlockBasis\x12=\n" +
+	"\x18business_lock_generation\x18\x04 \x01(\x04H\x00R\x16businessLockGeneration\x88\x01\x01\x12J\n" +
+	"\x1ffinancial_lock_evidence_version\x18\x05 \x01(\tH\x01R\x1cfinancialLockEvidenceVersion\x88\x01\x01\x12D\n" +
+	"\x1cfinancial_lock_evidence_hash\x18\x06 \x01(\tH\x02R\x19financialLockEvidenceHash\x88\x01\x01\x12>\n" +
+	"\x19financial_lock_net_amount\x18\a \x01(\tH\x03R\x16financialLockNetAmount\x88\x01\x01\x12\x16\n" +
+	"\x06status\x18\b \x01(\tR\x06status\x12\x18\n" +
+	"\aversion\x18\t \x01(\x04R\aversion\x129\n" +
+	"\tdirection\x18\n" +
+	" \x01(\x0e2\x1b.order.v1.OrderFeeDirectionR\tdirection\x12)\n" +
+	"\x0efee_setting_id\x18\v \x01(\tH\x04R\ffeeSettingId\x88\x01\x01\x12\x19\n" +
+	"\bfee_code\x18\f \x01(\tR\afeeCode\x12\x19\n" +
+	"\bfee_name\x18\r \x01(\tR\afeeName\x12#\n" +
+	"\vfee_name_en\x18\x0e \x01(\tH\x05R\tfeeNameEn\x88\x01\x01\x12.\n" +
+	"\x13settlement_party_id\x18\x0f \x01(\tR\x11settlementPartyId\x122\n" +
+	"\x15settlement_party_name\x18\x10 \x01(\tR\x13settlementPartyName\x12+\n" +
+	"\x0fbilling_unit_id\x18\x11 \x01(\tH\x06R\rbillingUnitId\x88\x01\x01\x12!\n" +
+	"\fbilling_unit\x18\x12 \x01(\tR\vbillingUnit\x12\x1e\n" +
+	"\btax_rate\x18\x13 \x01(\tH\aR\ataxRate\x88\x01\x01\x125\n" +
+	"\x14taxable_service_name\x18\x14 \x01(\tH\bR\x12taxableServiceName\x88\x01\x01\x12\x1a\n" +
+	"\bquantity\x18\x15 \x01(\tR\bquantity\x12\x1d\n" +
+	"\n" +
+	"unit_price\x18\x16 \x01(\tR\tunitPrice\x12!\n" +
+	"\ftotal_amount\x18\x17 \x01(\tR\vtotalAmount\x12#\n" +
+	"\rtax_inclusive\x18\x18 \x01(\bR\ftaxInclusive\x12\x1d\n" +
+	"\n" +
+	"net_amount\x18\x19 \x01(\tR\tnetAmount\x12\x1d\n" +
+	"\n" +
+	"tax_amount\x18\x1a \x01(\tR\ttaxAmount\x12\x1a\n" +
+	"\bcurrency\x18\x1b \x01(\tR\bcurrency\x12#\n" +
+	"\rexchange_rate\x18\x1c \x01(\tR\fexchangeRate\x120\n" +
+	"\x14exchange_rate_source\x18\x1d \x01(\tR\x12exchangeRateSource\x12,\n" +
+	"\x12exchange_rate_date\x18\x1e \x01(\tR\x10exchangeRateDate\x12<\n" +
+	"\x18exchange_rate_setting_id\x18\x1f \x01(\tH\tR\x15exchangeRateSettingId\x88\x01\x01\x12#\n" +
+	"\rbase_currency\x18  \x01(\tR\fbaseCurrency\x120\n" +
+	"\x14base_currency_amount\x18! \x01(\tR\x12baseCurrencyAmount\x12!\n" +
+	"\fexpense_date\x18\" \x01(\tR\vexpenseDate\x12\x17\n" +
+	"\x04note\x18# \x01(\tH\n" +
+	"R\x04note\x88\x01\x01\x12\x16\n" +
+	"\x06reason\x18$ \x01(\tR\x06reason\x12!\n" +
+	"\frequested_by\x18% \x01(\tR\vrequestedBy\x12!\n" +
+	"\frequested_at\x18& \x01(\tR\vrequestedAt\x12\"\n" +
+	"\n" +
+	"decided_by\x18' \x01(\tH\vR\tdecidedBy\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"decided_at\x18( \x01(\tH\fR\tdecidedAt\x88\x01\x01\x12,\n" +
+	"\x0fdecision_reason\x18) \x01(\tH\rR\x0edecisionReason\x88\x01\x01\x12\x1f\n" +
+	"\vcan_approve\x18* \x01(\bR\n" +
+	"canApprove\x12!\n" +
+	"\fcan_withdraw\x18+ \x01(\bR\vcanWithdraw\x12\x1d\n" +
+	"\n" +
+	"can_cancel\x18, \x01(\bR\tcanCancel\x127\n" +
+	"\x15cancel_blocked_reason\x18- \x01(\tH\x0eR\x13cancelBlockedReason\x88\x01\x01\x12\x1a\n" +
+	"\x06fee_id\x18. \x01(\tH\x0fR\x05feeId\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"fee_status\x18/ \x01(\tH\x10R\tfeeStatus\x88\x01\x01\x12-\n" +
+	"\x12approver_available\x180 \x01(\bR\x11approverAvailableB\x1b\n" +
+	"\x19_business_lock_generationB\"\n" +
+	" _financial_lock_evidence_versionB\x1f\n" +
+	"\x1d_financial_lock_evidence_hashB\x1c\n" +
+	"\x1a_financial_lock_net_amountB\x11\n" +
+	"\x0f_fee_setting_idB\x0e\n" +
+	"\f_fee_name_enB\x12\n" +
+	"\x10_billing_unit_idB\v\n" +
+	"\t_tax_rateB\x17\n" +
+	"\x15_taxable_service_nameB\x1b\n" +
+	"\x19_exchange_rate_setting_idB\a\n" +
+	"\x05_noteB\r\n" +
+	"\v_decided_byB\r\n" +
+	"\v_decided_atB\x12\n" +
+	"\x10_decision_reasonB\x18\n" +
+	"\x16_cancel_blocked_reasonB\t\n" +
+	"\a_fee_idB\r\n" +
+	"\v_fee_status\"\x9b\x05\n" +
+	"\x1fCreateOrderFeeSupplementRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
+	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12)\n" +
+	"\x0efee_setting_id\x18\x03 \x01(\tB\x03\xe0A\x02R\ffeeSettingId\x123\n" +
+	"\x13settlement_party_id\x18\x04 \x01(\tB\x03\xe0A\x02R\x11settlementPartyId\x12+\n" +
+	"\x0fbilling_unit_id\x18\x05 \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12\x1f\n" +
+	"\bquantity\x18\x06 \x01(\tB\x03\xe0A\x02R\bquantity\x12\"\n" +
+	"\n" +
+	"unit_price\x18\a \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
+	"\bcurrency\x18\b \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
+	"\fexpense_date\x18\t \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
+	"\x04note\x18\n" +
+	" \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
+	"\x16exchange_rate_override\x18\v \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01\x12(\n" +
+	"\rtax_inclusive\x18\f \x01(\bH\x02R\ftaxInclusive\x88\x01\x01\x12\x1b\n" +
+	"\x06reason\x18\r \x01(\tB\x03\xe0A\x02R\x06reason\x12,\n" +
+	"\x0fidempotency_key\x18\x0e \x01(\tB\x03\xe0A\x02R\x0eidempotencyKeyB\a\n" +
+	"\x05_noteB\x19\n" +
+	"\x17_exchange_rate_overrideB\x10\n" +
+	"\x0e_tax_inclusive\"\xc2\x01\n" +
+	" CreateOrderFeeSupplementResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12;\n" +
+	"\x04data\x18\x04 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"x\n" +
+	"%ListOrderFeeSupplementRequestsRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xaa\x01\n" +
+	"\"ListOrderFeeSupplementRequestsData\x12=\n" +
+	"\x05items\x18\x01 \x03(\v2'.order.v1.OrderFeeSupplementRequestDataR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xcd\x01\n" +
+	"&ListOrderFeeSupplementRequestsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12@\n" +
+	"\x04data\x18\x04 \x01(\v2,.order.v1.ListOrderFeeSupplementRequestsDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x87\x01\n" +
+	" ApproveOrderFeeSupplementRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xe9\x01\n" +
+	"!ApproveOrderFeeSupplementResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12;\n" +
+	"\x04data\x18\x04 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04data\x12$\n" +
+	"\x03fee\x18\x05 \x01(\v2\x12.order.v1.OrderFeeR\x03fee\x12\x19\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xae\x01\n" +
+	"\x1fRejectOrderFeeSupplementRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
+	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
+	"\a_reason\"\xc2\x01\n" +
+	" RejectOrderFeeSupplementResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12;\n" +
+	"\x04data\x18\x04 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
+	"!WithdrawOrderFeeSupplementRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xc4\x01\n" +
+	"\"WithdrawOrderFeeSupplementResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12;\n" +
+	"\x04data\x18\x04 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"'CancelApprovedOrderFeeSupplementRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
+	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"\xb3\x01\n" +
+	"(CancelApprovedOrderFeeSupplementResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12$\n" +
+	"\x03fee\x18\x04 \x01(\v2\x12.order.v1.OrderFeeR\x03fee\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*}\n" +
 	"\x11OrderFeeDirection\x12#\n" +
 	"\x1fORDER_FEE_DIRECTION_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eORDER_FEE_DIRECTION_RECEIVABLE\x10\x01\x12\x1f\n" +
@@ -2705,7 +4299,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x16ORDER_FEE_STATUS_DRAFT\x10\x01\x12\x1e\n" +
 	"\x1aORDER_FEE_STATUS_CONFIRMED\x10\x02\x12\x1b\n" +
 	"\x17ORDER_FEE_STATUS_BILLED\x10\x03\x12\x1e\n" +
-	"\x1aORDER_FEE_STATUS_CANCELLED\x10\x042\xc6\r\n" +
+	"\x1aORDER_FEE_STATUS_CANCELLED\x10\x042\x8b\x17\n" +
 	"\x0fOrderFeeService\x12\x94\x01\n" +
 	"\x0eListFeeOptions\x12\x1f.order.v1.ListFeeOptionsRequest\x1a .order.v1.ListFeeOptionsResponse\"?\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/fee-options\x12{\n" +
 	"\bListFees\x12\x19.order.v1.ListFeesRequest\x1a\x1a.order.v1.ListFeesResponse\"8\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/orders/{order_id}/fees\x12\xb2\x01\n" +
@@ -2720,7 +4314,14 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\tReopenFee\x12\x1a.order.v1.ReopenFeeRequest\x1a\x1b.order.v1.ReopenFeeResponse\"I\x82\xb5\x18\x10\b\x04\x1a\n" +
 	"fee.update \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/orders/{order_id}/fees/{id}/reopen\x12\x85\x01\n" +
 	"\tRemoveFee\x12\x1a.order.v1.RemoveFeeRequest\x1a\x1b.order.v1.RemoveFeeResponse\"?\x82\xb5\x18\x10\b\x04\x1a\n" +
-	"fee.delete \x02\x82\xd3\xe4\x93\x02%*#/api/v1/orders/{order_id}/fees/{id}\x12\xb0\x01\n" +
+	"fee.delete \x02\x82\xd3\xe4\x93\x02%*#/api/v1/orders/{order_id}/fees/{id}\x12\xc3\x01\n" +
+	"\x18CreateOrderFeeSupplement\x12).order.v1.CreateOrderFeeSupplementRequest\x1a*.order.v1.CreateOrderFeeSupplementResponse\"P\x82\xb5\x18\x10\b\x04\x1a\n" +
+	"fee.create \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/orders/{order_id}/fee-supplement-requests\x12\xc4\x01\n" +
+	"\x1eListOrderFeeSupplementRequests\x12/.order.v1.ListOrderFeeSupplementRequestsRequest\x1a0.order.v1.ListOrderFeeSupplementRequestsResponse\"?\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x023\x121/api/v1/orders/{order_id}/fee-supplement-requests\x12\xc5\x01\n" +
+	"\x19ApproveOrderFeeSupplement\x12*.order.v1.ApproveOrderFeeSupplementRequest\x1a+.order.v1.ApproveOrderFeeSupplementResponse\"O\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02C:\x01*\">/api/v1/orders/{order_id}/fee-supplement-requests/{id}/approve\x12\xc1\x01\n" +
+	"\x18RejectOrderFeeSupplement\x12).order.v1.RejectOrderFeeSupplementRequest\x1a*.order.v1.RejectOrderFeeSupplementResponse\"N\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02B:\x01*\"=/api/v1/orders/{order_id}/fee-supplement-requests/{id}/reject\x12\xc9\x01\n" +
+	"\x1aWithdrawOrderFeeSupplement\x12+.order.v1.WithdrawOrderFeeSupplementRequest\x1a,.order.v1.WithdrawOrderFeeSupplementResponse\"P\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/fee-supplement-requests/{id}/withdraw\x12\xdd\x01\n" +
+	" CancelApprovedOrderFeeSupplement\x121.order.v1.CancelApprovedOrderFeeSupplementRequest\x1a2.order.v1.CancelApprovedOrderFeeSupplementResponse\"R\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02F:\x01*\"A/api/v1/orders/{order_id}/fee-supplement-requests/{id}/cancel-fee\x12\xb0\x01\n" +
 	"\x16ListOrderFeeTagOptions\x12'.order.v1.ListOrderFeeTagOptionsRequest\x1a(.order.v1.ListOrderFeeTagOptionsResponse\"C\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/orders/{order_id}/fee-tag-options\x12\xbe\x01\n" +
 	"\x17BatchAssignOrderFeeTags\x12(.order.v1.BatchAssignOrderFeeTagsRequest\x1a).order.v1.BatchAssignOrderFeeTagsResponse\"N\x82\xb5\x18\x10\b\x04\x1a\n" +
 	"fee.update \x02\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/orders/{order_id}/fee-tags/batch-assign\x12\xbe\x01\n" +
@@ -2740,43 +4341,57 @@ func file_order_v1_order_fee_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_fee_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_order_v1_order_fee_proto_goTypes = []any{
-	(OrderFeeDirection)(0),                  // 0: order.v1.OrderFeeDirection
-	(OrderFeeStatus)(0),                     // 1: order.v1.OrderFeeStatus
-	(*OrderFee)(nil),                        // 2: order.v1.OrderFee
-	(*ListFeesRequest)(nil),                 // 3: order.v1.ListFeesRequest
-	(*ListFeeOptionsRequest)(nil),           // 4: order.v1.ListFeeOptionsRequest
-	(*OrderFeeSettlementPartyOption)(nil),   // 5: order.v1.OrderFeeSettlementPartyOption
-	(*OrderFeeCurrencyOption)(nil),          // 6: order.v1.OrderFeeCurrencyOption
-	(*OrderFeeSettingOption)(nil),           // 7: order.v1.OrderFeeSettingOption
-	(*OrderFeeBillingUnitOption)(nil),       // 8: order.v1.OrderFeeBillingUnitOption
-	(*ListFeeOptionsResponse)(nil),          // 9: order.v1.ListFeeOptionsResponse
-	(*AddFeeRequest)(nil),                   // 10: order.v1.AddFeeRequest
-	(*UpdateFeeRequest)(nil),                // 11: order.v1.UpdateFeeRequest
-	(*RemoveFeeRequest)(nil),                // 12: order.v1.RemoveFeeRequest
-	(*ConfirmFeeRequest)(nil),               // 13: order.v1.ConfirmFeeRequest
-	(*ReopenFeeRequest)(nil),                // 14: order.v1.ReopenFeeRequest
-	(*ResolveFeeExchangeRateRequest)(nil),   // 15: order.v1.ResolveFeeExchangeRateRequest
-	(*ResolveFeeExchangeRateResponse)(nil),  // 16: order.v1.ResolveFeeExchangeRateResponse
-	(*ListFeesResponse)(nil),                // 17: order.v1.ListFeesResponse
-	(*AddFeeResponse)(nil),                  // 18: order.v1.AddFeeResponse
-	(*UpdateFeeResponse)(nil),               // 19: order.v1.UpdateFeeResponse
-	(*RemoveFeeResponse)(nil),               // 20: order.v1.RemoveFeeResponse
-	(*ConfirmFeeResponse)(nil),              // 21: order.v1.ConfirmFeeResponse
-	(*ReopenFeeResponse)(nil),               // 22: order.v1.ReopenFeeResponse
-	(*ListOrderFeeTagOptionsRequest)(nil),   // 23: order.v1.ListOrderFeeTagOptionsRequest
-	(*ListOrderFeeTagOptionsResponse)(nil),  // 24: order.v1.ListOrderFeeTagOptionsResponse
-	(*BatchAssignOrderFeeTagsRequest)(nil),  // 25: order.v1.BatchAssignOrderFeeTagsRequest
-	(*BatchAssignOrderFeeTagsResponse)(nil), // 26: order.v1.BatchAssignOrderFeeTagsResponse
-	(*BatchRemoveOrderFeeTagsRequest)(nil),  // 27: order.v1.BatchRemoveOrderFeeTagsRequest
-	(*BatchRemoveOrderFeeTagsResponse)(nil), // 28: order.v1.BatchRemoveOrderFeeTagsResponse
-	(*BusinessTagSummary)(nil),              // 29: order.v1.BusinessTagSummary
+	(OrderFeeDirection)(0),                           // 0: order.v1.OrderFeeDirection
+	(OrderFeeStatus)(0),                              // 1: order.v1.OrderFeeStatus
+	(*OrderFee)(nil),                                 // 2: order.v1.OrderFee
+	(*ListFeesRequest)(nil),                          // 3: order.v1.ListFeesRequest
+	(*ListFeeOptionsRequest)(nil),                    // 4: order.v1.ListFeeOptionsRequest
+	(*OrderFeeSettlementPartyOption)(nil),            // 5: order.v1.OrderFeeSettlementPartyOption
+	(*OrderFeeCurrencyOption)(nil),                   // 6: order.v1.OrderFeeCurrencyOption
+	(*OrderFeeSettingOption)(nil),                    // 7: order.v1.OrderFeeSettingOption
+	(*OrderFeeBillingUnitOption)(nil),                // 8: order.v1.OrderFeeBillingUnitOption
+	(*ListFeeOptionsResponse)(nil),                   // 9: order.v1.ListFeeOptionsResponse
+	(*AddFeeRequest)(nil),                            // 10: order.v1.AddFeeRequest
+	(*UpdateFeeRequest)(nil),                         // 11: order.v1.UpdateFeeRequest
+	(*RemoveFeeRequest)(nil),                         // 12: order.v1.RemoveFeeRequest
+	(*ConfirmFeeRequest)(nil),                        // 13: order.v1.ConfirmFeeRequest
+	(*ReopenFeeRequest)(nil),                         // 14: order.v1.ReopenFeeRequest
+	(*ResolveFeeExchangeRateRequest)(nil),            // 15: order.v1.ResolveFeeExchangeRateRequest
+	(*ResolveFeeExchangeRateResponse)(nil),           // 16: order.v1.ResolveFeeExchangeRateResponse
+	(*ListFeesResponse)(nil),                         // 17: order.v1.ListFeesResponse
+	(*AddFeeResponse)(nil),                           // 18: order.v1.AddFeeResponse
+	(*UpdateFeeResponse)(nil),                        // 19: order.v1.UpdateFeeResponse
+	(*RemoveFeeResponse)(nil),                        // 20: order.v1.RemoveFeeResponse
+	(*ConfirmFeeResponse)(nil),                       // 21: order.v1.ConfirmFeeResponse
+	(*ReopenFeeResponse)(nil),                        // 22: order.v1.ReopenFeeResponse
+	(*ListOrderFeeTagOptionsRequest)(nil),            // 23: order.v1.ListOrderFeeTagOptionsRequest
+	(*ListOrderFeeTagOptionsResponse)(nil),           // 24: order.v1.ListOrderFeeTagOptionsResponse
+	(*BatchAssignOrderFeeTagsRequest)(nil),           // 25: order.v1.BatchAssignOrderFeeTagsRequest
+	(*BatchAssignOrderFeeTagsResponse)(nil),          // 26: order.v1.BatchAssignOrderFeeTagsResponse
+	(*BatchRemoveOrderFeeTagsRequest)(nil),           // 27: order.v1.BatchRemoveOrderFeeTagsRequest
+	(*BatchRemoveOrderFeeTagsResponse)(nil),          // 28: order.v1.BatchRemoveOrderFeeTagsResponse
+	(*OrderFeeSupplementRequestData)(nil),            // 29: order.v1.OrderFeeSupplementRequestData
+	(*CreateOrderFeeSupplementRequest)(nil),          // 30: order.v1.CreateOrderFeeSupplementRequest
+	(*CreateOrderFeeSupplementResponse)(nil),         // 31: order.v1.CreateOrderFeeSupplementResponse
+	(*ListOrderFeeSupplementRequestsRequest)(nil),    // 32: order.v1.ListOrderFeeSupplementRequestsRequest
+	(*ListOrderFeeSupplementRequestsData)(nil),       // 33: order.v1.ListOrderFeeSupplementRequestsData
+	(*ListOrderFeeSupplementRequestsResponse)(nil),   // 34: order.v1.ListOrderFeeSupplementRequestsResponse
+	(*ApproveOrderFeeSupplementRequest)(nil),         // 35: order.v1.ApproveOrderFeeSupplementRequest
+	(*ApproveOrderFeeSupplementResponse)(nil),        // 36: order.v1.ApproveOrderFeeSupplementResponse
+	(*RejectOrderFeeSupplementRequest)(nil),          // 37: order.v1.RejectOrderFeeSupplementRequest
+	(*RejectOrderFeeSupplementResponse)(nil),         // 38: order.v1.RejectOrderFeeSupplementResponse
+	(*WithdrawOrderFeeSupplementRequest)(nil),        // 39: order.v1.WithdrawOrderFeeSupplementRequest
+	(*WithdrawOrderFeeSupplementResponse)(nil),       // 40: order.v1.WithdrawOrderFeeSupplementResponse
+	(*CancelApprovedOrderFeeSupplementRequest)(nil),  // 41: order.v1.CancelApprovedOrderFeeSupplementRequest
+	(*CancelApprovedOrderFeeSupplementResponse)(nil), // 42: order.v1.CancelApprovedOrderFeeSupplementResponse
+	(*BusinessTagSummary)(nil),                       // 43: order.v1.BusinessTagSummary
 }
 var file_order_v1_order_fee_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderFee.direction:type_name -> order.v1.OrderFeeDirection
 	1,  // 1: order.v1.OrderFee.status:type_name -> order.v1.OrderFeeStatus
-	29, // 2: order.v1.OrderFee.tags:type_name -> order.v1.BusinessTagSummary
+	43, // 2: order.v1.OrderFee.tags:type_name -> order.v1.BusinessTagSummary
 	5,  // 3: order.v1.ListFeeOptionsResponse.settlement_parties:type_name -> order.v1.OrderFeeSettlementPartyOption
 	6,  // 4: order.v1.ListFeeOptionsResponse.currencies:type_name -> order.v1.OrderFeeCurrencyOption
 	7,  // 5: order.v1.ListFeeOptionsResponse.fee_settings:type_name -> order.v1.OrderFeeSettingOption
@@ -2789,34 +4404,56 @@ var file_order_v1_order_fee_proto_depIdxs = []int32{
 	2,  // 12: order.v1.UpdateFeeResponse.data:type_name -> order.v1.OrderFee
 	2,  // 13: order.v1.ConfirmFeeResponse.data:type_name -> order.v1.OrderFee
 	2,  // 14: order.v1.ReopenFeeResponse.data:type_name -> order.v1.OrderFee
-	29, // 15: order.v1.ListOrderFeeTagOptionsResponse.tags:type_name -> order.v1.BusinessTagSummary
-	4,  // 16: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
-	3,  // 17: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
-	15, // 18: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
-	10, // 19: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
-	11, // 20: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
-	13, // 21: order.v1.OrderFeeService.ConfirmFee:input_type -> order.v1.ConfirmFeeRequest
-	14, // 22: order.v1.OrderFeeService.ReopenFee:input_type -> order.v1.ReopenFeeRequest
-	12, // 23: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
-	23, // 24: order.v1.OrderFeeService.ListOrderFeeTagOptions:input_type -> order.v1.ListOrderFeeTagOptionsRequest
-	25, // 25: order.v1.OrderFeeService.BatchAssignOrderFeeTags:input_type -> order.v1.BatchAssignOrderFeeTagsRequest
-	27, // 26: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:input_type -> order.v1.BatchRemoveOrderFeeTagsRequest
-	9,  // 27: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
-	17, // 28: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
-	16, // 29: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
-	18, // 30: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
-	19, // 31: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
-	21, // 32: order.v1.OrderFeeService.ConfirmFee:output_type -> order.v1.ConfirmFeeResponse
-	22, // 33: order.v1.OrderFeeService.ReopenFee:output_type -> order.v1.ReopenFeeResponse
-	20, // 34: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
-	24, // 35: order.v1.OrderFeeService.ListOrderFeeTagOptions:output_type -> order.v1.ListOrderFeeTagOptionsResponse
-	26, // 36: order.v1.OrderFeeService.BatchAssignOrderFeeTags:output_type -> order.v1.BatchAssignOrderFeeTagsResponse
-	28, // 37: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:output_type -> order.v1.BatchRemoveOrderFeeTagsResponse
-	27, // [27:38] is the sub-list for method output_type
-	16, // [16:27] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	43, // 15: order.v1.ListOrderFeeTagOptionsResponse.tags:type_name -> order.v1.BusinessTagSummary
+	0,  // 16: order.v1.OrderFeeSupplementRequestData.direction:type_name -> order.v1.OrderFeeDirection
+	0,  // 17: order.v1.CreateOrderFeeSupplementRequest.direction:type_name -> order.v1.OrderFeeDirection
+	29, // 18: order.v1.CreateOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	29, // 19: order.v1.ListOrderFeeSupplementRequestsData.items:type_name -> order.v1.OrderFeeSupplementRequestData
+	33, // 20: order.v1.ListOrderFeeSupplementRequestsResponse.data:type_name -> order.v1.ListOrderFeeSupplementRequestsData
+	29, // 21: order.v1.ApproveOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	2,  // 22: order.v1.ApproveOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
+	29, // 23: order.v1.RejectOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	29, // 24: order.v1.WithdrawOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	2,  // 25: order.v1.CancelApprovedOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
+	4,  // 26: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
+	3,  // 27: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
+	15, // 28: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
+	10, // 29: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
+	11, // 30: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
+	13, // 31: order.v1.OrderFeeService.ConfirmFee:input_type -> order.v1.ConfirmFeeRequest
+	14, // 32: order.v1.OrderFeeService.ReopenFee:input_type -> order.v1.ReopenFeeRequest
+	12, // 33: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
+	30, // 34: order.v1.OrderFeeService.CreateOrderFeeSupplement:input_type -> order.v1.CreateOrderFeeSupplementRequest
+	32, // 35: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:input_type -> order.v1.ListOrderFeeSupplementRequestsRequest
+	35, // 36: order.v1.OrderFeeService.ApproveOrderFeeSupplement:input_type -> order.v1.ApproveOrderFeeSupplementRequest
+	37, // 37: order.v1.OrderFeeService.RejectOrderFeeSupplement:input_type -> order.v1.RejectOrderFeeSupplementRequest
+	39, // 38: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:input_type -> order.v1.WithdrawOrderFeeSupplementRequest
+	41, // 39: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:input_type -> order.v1.CancelApprovedOrderFeeSupplementRequest
+	23, // 40: order.v1.OrderFeeService.ListOrderFeeTagOptions:input_type -> order.v1.ListOrderFeeTagOptionsRequest
+	25, // 41: order.v1.OrderFeeService.BatchAssignOrderFeeTags:input_type -> order.v1.BatchAssignOrderFeeTagsRequest
+	27, // 42: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:input_type -> order.v1.BatchRemoveOrderFeeTagsRequest
+	9,  // 43: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
+	17, // 44: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
+	16, // 45: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
+	18, // 46: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
+	19, // 47: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
+	21, // 48: order.v1.OrderFeeService.ConfirmFee:output_type -> order.v1.ConfirmFeeResponse
+	22, // 49: order.v1.OrderFeeService.ReopenFee:output_type -> order.v1.ReopenFeeResponse
+	20, // 50: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
+	31, // 51: order.v1.OrderFeeService.CreateOrderFeeSupplement:output_type -> order.v1.CreateOrderFeeSupplementResponse
+	34, // 52: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:output_type -> order.v1.ListOrderFeeSupplementRequestsResponse
+	36, // 53: order.v1.OrderFeeService.ApproveOrderFeeSupplement:output_type -> order.v1.ApproveOrderFeeSupplementResponse
+	38, // 54: order.v1.OrderFeeService.RejectOrderFeeSupplement:output_type -> order.v1.RejectOrderFeeSupplementResponse
+	40, // 55: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:output_type -> order.v1.WithdrawOrderFeeSupplementResponse
+	42, // 56: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:output_type -> order.v1.CancelApprovedOrderFeeSupplementResponse
+	24, // 57: order.v1.OrderFeeService.ListOrderFeeTagOptions:output_type -> order.v1.ListOrderFeeTagOptionsResponse
+	26, // 58: order.v1.OrderFeeService.BatchAssignOrderFeeTags:output_type -> order.v1.BatchAssignOrderFeeTagsResponse
+	28, // 59: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:output_type -> order.v1.BatchRemoveOrderFeeTagsResponse
+	43, // [43:60] is the sub-list for method output_type
+	26, // [26:43] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_fee_proto_init() }
@@ -2831,13 +4468,16 @@ func file_order_v1_order_fee_proto_init() {
 	file_order_v1_order_fee_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[9].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[14].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[27].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[28].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[35].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_fee_proto_rawDesc), len(file_order_v1_order_fee_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   27,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

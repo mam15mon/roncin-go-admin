@@ -866,6 +866,10 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 			return nil, calculateErr
 		}
 		line.RealizedRevenue, line.AllocatedCost, line.RealizedProfit = realized, cost, profit
+		// 历史分母快照：新生成提成行固定写 READY + NATIVE，作为锁后费用补录
+		// 审批的边际复算输入；分母为该行确认时冻结的历史总应收/总应付。
+		line.TotalReceivableSnapshot, line.TotalPayableSnapshot = totalReceivable, totalPayable
+		line.SnapshotStatus, line.SnapshotSource = biz.CommissionLineSnapshotReady, biz.CommissionLineSnapshotNative
 		line.CommissionBaseAmount, line.CommissionAmount = commissionBase, amount
 		result.Lines = append(result.Lines, line)
 		customersWithFees[orderItem.CustomerID] = struct{}{}
@@ -955,7 +959,7 @@ func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.Finan
 			if marshalErr != nil {
 				return marshalErr
 			}
-			lineBuilders = append(lineBuilders, tx.FinanceCommissionLine.Create().SetID(line.ID).SetOrganizationID(org).SetCommissionID(c.ID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetOrderDate(line.OrderDate).SetCustomerID(line.CustomerID).SetCustomerCode(line.CustomerCode).SetCustomerName(line.CustomerName).SetPersonnelAssignmentID(line.CustomerAssignmentID).SetPersonnelOrganizationID(line.CustomerAssignmentOrganizationID).SetPersonnelAssignedAt(line.CustomerAssignedAt).SetFeeCount(line.FeeCount).SetFeeSnapshot(string(feeSnapshot)).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(line.CommissionBaseAmount.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)))
+			lineBuilders = append(lineBuilders, tx.FinanceCommissionLine.Create().SetID(line.ID).SetOrganizationID(org).SetCommissionID(c.ID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetOrderDate(line.OrderDate).SetCustomerID(line.CustomerID).SetCustomerCode(line.CustomerCode).SetCustomerName(line.CustomerName).SetPersonnelAssignmentID(line.CustomerAssignmentID).SetPersonnelOrganizationID(line.CustomerAssignmentOrganizationID).SetPersonnelAssignedAt(line.CustomerAssignedAt).SetFeeCount(line.FeeCount).SetFeeSnapshot(string(feeSnapshot)).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(line.CommissionBaseAmount.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)).SetTotalReceivableSnapshot(line.TotalReceivableSnapshot.StringFixed(8)).SetTotalPayableSnapshot(line.TotalPayableSnapshot.StringFixed(8)).SetSnapshotStatus(commissionline.SnapshotStatusREADY).SetSnapshotSource(commissionline.SnapshotSourceNATIVE))
 		}
 		if _, err = tx.FinanceCommissionLine.CreateBulk(lineBuilders...).Save(ctx); err != nil {
 			return err
@@ -967,6 +971,8 @@ func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.Finan
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if target == biz.CommissionConfirmed {
+			// CONFIRMED 分支先按既有「来源 → 账单 → 订单 → 费用」锁序完成指纹
+			// 复算，避免引入与提成创建路径相反的订单/账单加锁顺序。
 			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
 			if lookupErr != nil {
 				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
@@ -978,11 +984,24 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			if snapshot.SourceFingerprint == "" || snapshot.SourceFingerprint != current.SourceFingerprint {
 				return biz.ErrCommissionSourceChanged
 			}
-			orderIDs := make([]uuid.UUID, 0, len(current.Lines))
-			for _, line := range current.Lines {
-				orderIDs = append(orderIDs, line.OrderID)
+		}
+		// 提成状态迁移会改变订单财务锁证据集合；在修改提成行之前统一按 UUID
+		// 升序取得受影响 Order 行锁，保持 Order → 提成父单 → 调整的固定锁序，
+		// 避免补录审批复核证据后被并发改写。
+		preLines, preLineErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(id)).All(ctx)
+		if preLineErr != nil {
+			return preLineErr
+		}
+		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(preLines)); lockErr != nil {
+			return lockErr
+		}
+		if target == biz.CommissionConfirmed {
+			orderIDs, orderIDErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(id)).All(ctx)
+			if orderIDErr != nil {
+				return orderIDErr
 			}
-			hasDraftFees, draftErr := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
+			lineOrderIDs := orderUUIDsFromLines(orderIDs)
+			hasDraftFees, draftErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
 			if draftErr != nil {
 				return draftErr
 			}
@@ -1040,6 +1059,27 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 		return uuid.Nil
 	}
 	return *value
+}
+
+// orderUUIDsFromLines 汇总提成行的订单 ID。
+func orderUUIDsFromLines(lines []*ent.FinanceCommissionLine) []uuid.UUID {
+	orderIDs := make([]uuid.UUID, 0, len(lines))
+	for _, line := range lines {
+		orderIDs = append(orderIDs, line.OrderID)
+	}
+	return orderIDs
+}
+
+// lockOrdersSortedForFinance 按 UUID 升序锁定受影响的订单行：所有会改变财务锁
+// 净额或证据集合的提成/调整状态迁移统一保持 Order → 提成父单 → 调整的固定锁
+// 序，防止补录审批复核证据后被并发改写。取得 Order 锁仅做线性化互斥。
+func lockOrdersSortedForFinance(ctx context.Context, tx *ent.Tx, orderIDs []uuid.UUID) error {
+	if len(orderIDs) == 0 {
+		return nil
+	}
+	sorted := uniqueSortedUUIDs(orderIDs)
+	_, err := tx.Order.Query().Where(orderent.IDIn(sorted...)).Order(ent.Asc(orderent.FieldID)).ForUpdate().All(ctx)
+	return err
 }
 
 func (r *commissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCommission, error) {
@@ -1186,7 +1226,38 @@ func commissionLineToBiz(x *ent.FinanceCommissionLine) (*biz.FinanceCommissionLi
 	if err = json.Unmarshal([]byte(x.FeeSnapshot), &fees); err != nil {
 		return nil, err
 	}
-	return &biz.FinanceCommissionLine{ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID, OrderNo: x.OrderNo, OrderDate: x.OrderDate, CustomerID: x.CustomerID, CustomerCode: x.CustomerCode, CustomerName: x.CustomerName, CustomerAssignmentID: x.PersonnelAssignmentID, CustomerAssignmentOrganizationID: x.PersonnelOrganizationID, CustomerAssignedAt: x.PersonnelAssignedAt, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, FeeCount: x.FeeCount, Fees: fees, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
+	result := &biz.FinanceCommissionLine{ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID, OrderNo: x.OrderNo, OrderDate: x.OrderDate, CustomerID: x.CustomerID, CustomerCode: x.CustomerCode, CustomerName: x.CustomerName, CustomerAssignmentID: x.PersonnelAssignmentID, CustomerAssignmentOrganizationID: x.PersonnelOrganizationID, CustomerAssignedAt: x.PersonnelAssignedAt, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, FeeCount: x.FeeCount, Fees: fees, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, SnapshotStatus: snapshotStatusOrEmpty(x.SnapshotStatus), SnapshotSource: snapshotSourceOrEmpty(x.SnapshotSource)}
+	if x.TotalReceivableSnapshot != nil {
+		receivable, parseErr := decimalOf(*x.TotalReceivableSnapshot)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		result.TotalReceivableSnapshot = receivable
+	}
+	if x.TotalPayableSnapshot != nil {
+		payable, parseErr := decimalOf(*x.TotalPayableSnapshot)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		result.TotalPayableSnapshot = payable
+	}
+	return result, nil
+}
+
+// snapshotStatusOrEmpty / snapshotSourceOrEmpty 把可空快照枚举转换为领域字符串；
+// 全空存量行为空串，调用方必须按「正向判定 == READY」处理，不得放行全空行。
+func snapshotStatusOrEmpty(value *commissionline.SnapshotStatus) string {
+	if value == nil {
+		return ""
+	}
+	return string(*value)
+}
+
+func snapshotSourceOrEmpty(value *commissionline.SnapshotSource) string {
+	if value == nil {
+		return ""
+	}
+	return string(*value)
 }
 
 func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCommissionAdjustment, error) {
@@ -1259,16 +1330,26 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
 	var updated *ent.FinanceCommissionAdjustment
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		// 调整状态迁移会改变订单财务锁证据集合与双层余额；先只读定位目标调整，
+		// 再按 Order → 提成父单 → 调整固定锁序取得行锁，避免补录审批复核证据后
+		// 被并发改写。
+		pre, preErr := tx.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDEQ(org)).Only(ctx)
+		if preErr != nil {
+			return mapEntError(preErr, biz.ErrCommissionAdjustmentNotFound, nil)
+		}
+		if lockErr := lockOrdersSortedForFinance(ctx, tx, []uuid.UUID{pre.OrderID}); lockErr != nil {
+			return lockErr
+		}
+		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(pre.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrCommissionNotFound, nil)
+		}
 		x, err := tx.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
 		}
 		if x.Version != version {
 			return biz.ErrCommissionAdjustmentTransition
-		}
-		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(x.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrCommissionNotFound, nil)
 		}
 		now := time.Now().UTC()
 		update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)

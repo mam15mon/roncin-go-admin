@@ -291,16 +291,16 @@ type candidateInfo struct {
 // 入候选池：它没有可写入候选快照的常规成员关系/角色事实，回调也不得绕过快照。
 // 同一用户存在多个合格 grant 时按稳定顺序（RoleAssignment ID 升序）选择首个
 // 可追溯 grant。
-func queryQualifiedBusinessLockCandidates(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType access.OrderBusinessType) ([]*candidateInfo, error) {
+func queryQualifiedBusinessLockCandidates(ctx context.Context, client *ent.Client, organizationID uuid.UUID, businessType access.OrderBusinessType) ([]*candidateInfo, error) {
 	permissionKey := access.OrderPermission(businessType, access.OrderLock)
 	if permissionKey == "" {
 		return nil, biz.ErrOrderBusinessUnsupported
 	}
-	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, tx.Client(), organizationID)
+	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	assignments, err := tx.RoleAssignment.Query().
+	assignments, err := client.RoleAssignment.Query().
 		Where(
 			qualifiedBusinessLockGrantPredicate(permissionKey, organizationID, ancestorIDs,
 				membershipent.HasUserWith(
@@ -1180,7 +1180,7 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 		}
 
 		// 解析全部有效业务角色成员和钉钉绑定
-		candidates, err := queryQualifiedBusinessLockCandidates(ctx, tx, organizationID, businessType)
+		candidates, err := queryQualifiedBusinessLockCandidates(ctx, tx.Client(), organizationID, businessType)
 		if err != nil {
 			return err
 		}

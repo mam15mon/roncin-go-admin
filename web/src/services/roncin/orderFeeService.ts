@@ -38,6 +38,143 @@ export async function orderFeeServiceListFeeOptions(
   );
 }
 
+/** ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
+ （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+ fee.read 注解提前挡住，也不泄露无权申请。 GET /api/v1/orders/${param0}/fee-supplement-requests */
+export async function orderFeeServiceListOrderFeeSupplementRequests(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceListOrderFeeSupplementRequestsParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ListOrderFeeSupplementRequestsResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
+ 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
+ 稳定拒绝并引导普通费用新增。 POST /api/v1/orders/${param0}/fee-supplement-requests */
+export async function orderFeeServiceCreateOrderFeeSupplement(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceCreateOrderFeeSupplementParams,
+  body: API.CreateOrderFeeSupplementRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.CreateOrderFeeSupplementResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
+ 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
+export async function orderFeeServiceApproveOrderFeeSupplement(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceApproveOrderFeeSupplementParams,
+  body: API.ApproveOrderFeeSupplementRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.ApproveOrderFeeSupplementResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
+ CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+ 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
+export async function orderFeeServiceCancelApprovedOrderFeeSupplement(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceCancelApprovedOrderFeeSupplementParams,
+  body: API.CancelApprovedOrderFeeSupplementRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.CancelApprovedOrderFeeSupplementResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/reject */
+export async function orderFeeServiceRejectOrderFeeSupplement(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceRejectOrderFeeSupplementParams,
+  body: API.RejectOrderFeeSupplementRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.RejectOrderFeeSupplementResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests/${param1}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
+ 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/withdraw */
+export async function orderFeeServiceWithdrawOrderFeeSupplement(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceWithdrawOrderFeeSupplementParams,
+  body: API.WithdrawOrderFeeSupplementRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.WithdrawOrderFeeSupplementResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests/${param1}/withdraw`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-tag-options */
 export async function orderFeeServiceListOrderFeeTagOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

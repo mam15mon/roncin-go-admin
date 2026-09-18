@@ -72,6 +72,65 @@ service OrderFeeService {
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/fees/{id}"};
   }
 
+  // CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
+  // 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
+  // 稳定拒绝并引导普通费用新增。
+  rpc CreateOrderFeeSupplement(CreateOrderFeeSupplementRequest) returns (CreateOrderFeeSupplementResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fee-supplement-requests"
+      body: "*"
+    };
+  }
+
+  // ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
+  // （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+  // fee.read 注解提前挡住，也不泄露无权申请。
+  rpc ListOrderFeeSupplementRequests(ListOrderFeeSupplementRequestsRequest) returns (ListOrderFeeSupplementRequestsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-supplement-requests"};
+  }
+
+  // ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
+  // 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+  rpc ApproveOrderFeeSupplement(ApproveOrderFeeSupplementRequest) returns (ApproveOrderFeeSupplementResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/approve"
+      body: "*"
+    };
+  }
+
+  // RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
+  rpc RejectOrderFeeSupplement(RejectOrderFeeSupplementRequest) returns (RejectOrderFeeSupplementResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/reject"
+      body: "*"
+    };
+  }
+
+  // WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
+  // 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
+  rpc WithdrawOrderFeeSupplement(WithdrawOrderFeeSupplementRequest) returns (WithdrawOrderFeeSupplementResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/withdraw"
+      body: "*"
+    };
+  }
+
+  // CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
+  // CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+  // 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
+  rpc CancelApprovedOrderFeeSupplement(CancelApprovedOrderFeeSupplementRequest) returns (CancelApprovedOrderFeeSupplementResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/cancel-fee"
+      body: "*"
+    };
+  }
+
   rpc ListOrderFeeTagOptions(ListOrderFeeTagOptionsRequest) returns (ListOrderFeeTagOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-tag-options"};
@@ -358,4 +417,180 @@ message BatchRemoveOrderFeeTagsRequest {
 message BatchRemoveOrderFeeTagsResponse {
   int32 removed_count = 1;
   string trace_id = 2;
+}
+
+// -------------------------------------------------------------
+// 锁单后费用补录申请
+// -------------------------------------------------------------
+
+// OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
+// 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。
+message OrderFeeSupplementRequestData {
+  string id = 1;
+  string order_id = 2;
+  // 锁依据类型：BUSINESS / FINANCIAL / BOTH。
+  string lock_basis = 3;
+  optional uint64 business_lock_generation = 4;
+  optional string financial_lock_evidence_version = 5;
+  optional string financial_lock_evidence_hash = 6;
+  // 提交当时固化的有效提成净额快照（8 位十进制字符串）。
+  optional string financial_lock_net_amount = 7;
+  // 状态：PENDING / APPROVED / REJECTED / WITHDRAWN。
+  string status = 8;
+  uint64 version = 9;
+  // 不可变应付费用快照，字段语义与 OrderFee 对齐。
+  OrderFeeDirection direction = 10;
+  optional string fee_setting_id = 11;
+  string fee_code = 12;
+  string fee_name = 13;
+  optional string fee_name_en = 14;
+  string settlement_party_id = 15;
+  string settlement_party_name = 16;
+  optional string billing_unit_id = 17;
+  string billing_unit = 18;
+  optional string tax_rate = 19;
+  optional string taxable_service_name = 20;
+  string quantity = 21;
+  string unit_price = 22;
+  string total_amount = 23;
+  bool tax_inclusive = 24;
+  string net_amount = 25;
+  string tax_amount = 26;
+  string currency = 27;
+  string exchange_rate = 28;
+  string exchange_rate_source = 29;
+  string exchange_rate_date = 30;
+  optional string exchange_rate_setting_id = 31;
+  string base_currency = 32;
+  string base_currency_amount = 33;
+  string expense_date = 34;
+  optional string note = 35;
+  string reason = 36;
+  string requested_by = 37;
+  string requested_at = 38;
+  optional string decided_by = 39;
+  optional string decided_at = 40;
+  optional string decision_reason = 41;
+  // 当前调用人能力投影：由后端按实时资格与申请状态计算，前端只消费结果。
+  bool can_approve = 42;
+  bool can_withdraw = 43;
+  bool can_cancel = 44;
+  // can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。
+  optional string cancel_blocked_reason = 45;
+  // APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。
+  optional string fee_id = 46;
+  optional string fee_status = 47;
+  // 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
+  // PENDING 并投影 false，发起人仍可撤回。
+  bool approver_available = 48;
+}
+
+message CreateOrderFeeSupplementRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  // 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。
+  OrderFeeDirection direction = 2 [(google.api.field_behavior) = REQUIRED];
+  string fee_setting_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string settlement_party_id = 4 [(google.api.field_behavior) = REQUIRED];
+  string billing_unit_id = 5 [(google.api.field_behavior) = REQUIRED];
+  string quantity = 6 [(google.api.field_behavior) = REQUIRED];
+  string unit_price = 7 [(google.api.field_behavior) = REQUIRED];
+  string currency = 8 [(google.api.field_behavior) = REQUIRED];
+  string expense_date = 9 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 10;
+  optional string exchange_rate_override = 11;
+  optional bool tax_inclusive = 12;
+  // 补录原因必填，参与 request_fingerprint。
+  string reason = 13 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 14 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CreateOrderFeeSupplementResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFeeSupplementRequestData data = 4;
+  string trace_id = 5;
+}
+
+message ListOrderFeeSupplementRequestsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListOrderFeeSupplementRequestsData {
+  repeated OrderFeeSupplementRequestData items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListOrderFeeSupplementRequestsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ListOrderFeeSupplementRequestsData data = 4;
+  string trace_id = 5;
+}
+
+message ApproveOrderFeeSupplementRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ApproveOrderFeeSupplementResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFeeSupplementRequestData data = 4;
+  // 审批生成的 CONFIRMED 补录费用。
+  OrderFee fee = 5;
+  string trace_id = 6;
+}
+
+message RejectOrderFeeSupplementRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string reason = 4;
+}
+
+message RejectOrderFeeSupplementResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFeeSupplementRequestData data = 4;
+  string trace_id = 5;
+}
+
+message WithdrawOrderFeeSupplementRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message WithdrawOrderFeeSupplementResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFeeSupplementRequestData data = 4;
+  string trace_id = 5;
+}
+
+message CancelApprovedOrderFeeSupplementRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  // 目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CancelApprovedOrderFeeSupplementResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  // 作废后的费用（CANCELLED）。
+  OrderFee fee = 4;
+  string trace_id = 5;
 }

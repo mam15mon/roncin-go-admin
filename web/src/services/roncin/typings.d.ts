@@ -363,6 +363,22 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ApproveOrderFeeSupplementRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ApproveOrderFeeSupplementResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeSupplementRequestData;
+    /** 审批生成的 CONFIRMED 补录费用。 */
+    fee?: OrderFee;
+    traceId?: string;
+  };
+
   type AssignPersonnelRequest = {
     orderId: string;
     userId: string;
@@ -709,6 +725,23 @@ declare namespace API {
     groupName?: string;
     groupColor?: string;
     enabled?: boolean;
+  };
+
+  type CancelApprovedOrderFeeSupplementRequest = {
+    orderId: string;
+    id: string;
+    /** 目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。 */
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type CancelApprovedOrderFeeSupplementResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    /** 作废后的费用（CANCELLED）。 */
+    fee?: OrderFee;
+    traceId?: string;
   };
 
   type CancelBillRequest = {
@@ -1379,6 +1412,33 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: NumberRule;
+    traceId?: string;
+  };
+
+  type CreateOrderFeeSupplementRequest = {
+    orderId: string;
+    /** 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。 */
+    direction: number;
+    feeSettingId: string;
+    settlementPartyId: string;
+    billingUnitId: string;
+    quantity: string;
+    unitPrice: string;
+    currency: string;
+    expenseDate: string;
+    note?: string;
+    exchangeRateOverride?: string;
+    taxInclusive?: boolean;
+    /** 补录原因必填，参与 request_fingerprint。 */
+    reason: string;
+    idempotencyKey: string;
+  };
+
+  type CreateOrderFeeSupplementResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeSupplementRequestData;
     traceId?: string;
   };
 
@@ -3667,6 +3727,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListOrderFeeSupplementRequestsData = {
+    items?: OrderFeeSupplementRequestData[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListOrderFeeSupplementRequestsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ListOrderFeeSupplementRequestsData;
+    traceId?: string;
+  };
+
   type ListOrderFeeTagOptionsResponse = {
     tags?: BusinessTagSummary[];
     total?: string;
@@ -4534,6 +4609,11 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderFeeServiceApproveOrderFeeSupplementParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderFeeServiceBatchAssignOrderFeeTagsParams = {
     orderId: string;
   };
@@ -4542,9 +4622,18 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderFeeServiceCancelApprovedOrderFeeSupplementParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderFeeServiceConfirmFeeParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderFeeServiceCreateOrderFeeSupplementParams = {
+    orderId: string;
   };
 
   type OrderFeeServiceListFeeOptionsParams = {
@@ -4555,11 +4644,22 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderFeeServiceListOrderFeeSupplementRequestsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type OrderFeeServiceListOrderFeeTagOptionsParams = {
     orderId: string;
     keyword?: string;
     page?: number;
     pageSize?: number;
+  };
+
+  type OrderFeeServiceRejectOrderFeeSupplementParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderFeeServiceRemoveFeeParams = {
@@ -4586,6 +4686,11 @@ declare namespace API {
     id: string;
   };
 
+  type OrderFeeServiceWithdrawOrderFeeSupplementParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderFeeSettingOption = {
     id?: string;
     feeCode?: string;
@@ -4603,6 +4708,66 @@ declare namespace API {
     id?: string;
     code?: string;
     name?: string;
+  };
+
+  type OrderFeeSupplementRequestData = {
+    id?: string;
+    orderId?: string;
+    /** 锁依据类型：BUSINESS / FINANCIAL / BOTH。 */
+    lockBasis?: string;
+    businessLockGeneration?: string;
+    financialLockEvidenceVersion?: string;
+    financialLockEvidenceHash?: string;
+    /** 提交当时固化的有效提成净额快照（8 位十进制字符串）。 */
+    financialLockNetAmount?: string;
+    /** 状态：PENDING / APPROVED / REJECTED / WITHDRAWN。 */
+    status?: string;
+    version?: string;
+    /** 不可变应付费用快照，字段语义与 OrderFee 对齐。 */
+    direction?: number;
+    feeSettingId?: string;
+    feeCode?: string;
+    feeName?: string;
+    feeNameEn?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    billingUnitId?: string;
+    billingUnit?: string;
+    taxRate?: string;
+    taxableServiceName?: string;
+    quantity?: string;
+    unitPrice?: string;
+    totalAmount?: string;
+    taxInclusive?: boolean;
+    netAmount?: string;
+    taxAmount?: string;
+    currency?: string;
+    exchangeRate?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    expenseDate?: string;
+    note?: string;
+    reason?: string;
+    requestedBy?: string;
+    requestedAt?: string;
+    decidedBy?: string;
+    decidedAt?: string;
+    decisionReason?: string;
+    /** 当前调用人能力投影：由后端按实时资格与申请状态计算，前端只消费结果。 */
+    canApprove?: boolean;
+    canWithdraw?: boolean;
+    canCancel?: boolean;
+    /** can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。 */
+    cancelBlockedReason?: string;
+    /** APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。 */
+    feeId?: string;
+    feeStatus?: string;
+    /** 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
+ PENDING 并投影 false，发起人仍可撤回。 */
+    approverAvailable?: boolean;
   };
 
   type OrderLockHouseBillSnapshotData = {
@@ -5693,6 +5858,21 @@ declare namespace API {
     success?: boolean;
     code?: number;
     message?: string;
+    traceId?: string;
+  };
+
+  type RejectOrderFeeSupplementRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+    reason?: string;
+  };
+
+  type RejectOrderFeeSupplementResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeSupplementRequestData;
     traceId?: string;
   };
 
@@ -8144,6 +8324,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type WithdrawOrderFeeSupplementRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+  };
+
+  type WithdrawOrderFeeSupplementResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeSupplementRequestData;
     traceId?: string;
   };
 

@@ -21,10 +21,11 @@ type OrderFeeService struct {
 	v1.UnimplementedOrderFeeServiceServer
 	usecase    *biz.OrderFeeUsecase
 	tagUsecase *biz.BusinessTagUsecase
+	supplement *biz.OrderFeeSupplementUsecase
 }
 
-func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTagUsecase) *OrderFeeService {
-	return &OrderFeeService{usecase: usecase, tagUsecase: tagUsecase}
+func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTagUsecase, supplement *biz.OrderFeeSupplementUsecase) *OrderFeeService {
+	return &OrderFeeService{usecase: usecase, tagUsecase: tagUsecase, supplement: supplement}
 }
 
 func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFeeOptionsRequest) (*v1.ListFeeOptionsResponse, error) {

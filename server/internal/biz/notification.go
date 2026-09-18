@@ -216,6 +216,22 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 			return "", fmt.Errorf("通知明细不完整")
 		}
 		return fmt.Sprintf("【周汇率同步督办】\n组织：%s\n本周汇率尚未同步（%s），费用折算正暂沿用上周汇率。\n请尽快在「财务 · 汇率」页完成一键同步或手工维护。", organizationName, weekScope), nil
+	case NotificationTemplateFeeSupplementApprovalPending:
+		// 只链接目标申请的审批最小详情；Parameter 携带经长度限制的订单号与金额摘要。
+		orderNo := strings.TrimSpace(delivery.ReferenceCode)
+		summary := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "FEE_SUPPLEMENT_REQUEST" || orderNo == "" || summary == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【费用补录待审批】\n订单：%s\n补录摘要：%s\n您具备该订单的直接解锁资格，请登录 Roncin 系统在订单费用页处理补录申请。", orderNo, summary), nil
+	case NotificationTemplateCommissionDecreaseSuggested:
+		// 只链接员工本人专属冲减来源详情；Parameter 携带经长度限制的金额摘要。
+		orderNo := strings.TrimSpace(delivery.ReferenceCode)
+		summary := strings.TrimSpace(delivery.Parameter)
+		if delivery.ResourceType != "COMMISSION_ADJUSTMENT" || orderNo == "" || summary == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【提成冲减建议通知】\n订单：%s\n系统已为您的提成生成待处理的冲减建议（%s）。\n该建议仅供知情，实际处理由财务确认；请登录 Roncin 系统查看本人专属详情。", orderNo, summary), nil
 	default:
 		return "", fmt.Errorf("通知渠道或模板不受支持")
 	}

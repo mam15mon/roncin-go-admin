@@ -94,6 +94,9 @@ type CommissionFeeDetail struct {
 }
 
 // FinanceCommissionLine 保存逐订单提成计算快照，保证客户归属与费用构成可追溯。
+// TotalReceivableSnapshot / TotalPayableSnapshot 与 SnapshotStatus / SnapshotSource
+// 是锁后费用补录审批的历史复算输入：新生成行固定写 READY + NATIVE，存量行由
+// 迁移回填或标记 UNAVAILABLE；全空（SnapshotStatus 为空）不得参与复算。
 type FinanceCommissionLine struct {
 	ID, OrganizationID, CommissionID, OrderID, CustomerID, CustomerAssignmentID, CustomerAssignmentOrganizationID, EmployeeID uuid.UUID
 	OrderNo, OrderDate, CustomerCode, CustomerName, EmployeeName, BaseCurrency                                                string
@@ -101,10 +104,20 @@ type FinanceCommissionLine struct {
 	CalculationBasis                                                                                                          CommissionCalculationBasis
 	RealizedRevenue, AllocatedCost, RealizedProfit, CommissionBaseAmount                                                      decimal.Decimal
 	RatePercent, CommissionAmount                                                                                             decimal.Decimal
+	TotalReceivableSnapshot, TotalPayableSnapshot                                                                             decimal.Decimal
+	SnapshotStatus, SnapshotSource                                                                                            string
 	CustomerAssignedAt, CreatedAt, UpdatedAt                                                                                  time.Time
 	FeeCount                                                                                                                  int
 	Fees                                                                                                                      []*CommissionFeeDetail
 }
+
+// CommissionLineSnapshotStatus / SnapshotSource 的取值，与数据库 CHECK 同源。
+const (
+	CommissionLineSnapshotReady       = "READY"
+	CommissionLineSnapshotUnavailable = "UNAVAILABLE"
+	CommissionLineSnapshotNative      = "NATIVE"
+	CommissionLineSnapshotMigrated    = "MIGRATED"
+)
 
 // CommissionCNYRateSource 标识提成 CNY 折算率的来源口径。
 const (
