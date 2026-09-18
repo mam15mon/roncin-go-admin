@@ -258,6 +258,12 @@ func (r *orderAutoLockRepo) runGroupCheck(ctx context.Context, trigger biz.AutoO
 				unlockedMembers = append(unlockedMembers, member)
 			}
 		}
+		// 全部活动成员均已锁定：幂等结束，不重复执行组级单证加锁，
+		// 也不创建没有对应锁定记录的 MBL/运输执行版本。
+		if len(unlockedMembers) == 0 {
+			outcome.reasonCode = biz.AutoLockReasonAlreadyLocked
+			return nil
+		}
 
 		// 2. 锁 MBL → 按 ID 升序的全部活动 Link → 共享运输执行 → 各成员 HBL，
 		//    随后重验活动成员集合；已锁成员必须属于同一集合，否则整组零写入。
@@ -648,9 +654,11 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 	if len(verifications) == 0 && len(nettings) == 0 {
 		return false, biz.AutoLockReasonNoSettlement, nil
 	}
-	// 跨订单账单按订单行推导；分摊按账单级扣减，负值视为已无未结清应收。
+	// 跨订单账单的分摊是账单级事实，只能按订单行推导；无论剩余为正还是分摊
+	// 超过该订单行合计（负值），都无法据此刻定本订单已全额结清，一律 fail-closed
+	// 放弃自动锁定（漏锁由人工兜底），不得把负 unsettled 误判为已结清。
 	unsettled := lineSum.Sub(settledSum)
-	if unsettled.GreaterThan(decimal.Zero) {
+	if !unsettled.IsZero() {
 		return false, biz.AutoLockReasonUnsettledReceivable, nil
 	}
 	return true, "", nil
@@ -745,9 +753,15 @@ func autoLockFailureOutcome(err error) (reasonCode string, detail string) {
 }
 
 func autoLockAuditResult(reasonCode string) string {
-	// 审计结果只有 success/failure：资格不满足的检查本身执行成功，
-	// 原因码固定写 success，配合 reason_code 字段区分检查结论。
-	return "success"
+	// 审计结果只有 success/failure：执行失败类（结构冲突、执行异常）写 failure；
+	// 成功锁定、幂等结束与资格不满足的检查本身执行成功，写 success，
+	// 检查结论由 reason_code 字段区分。
+	switch reasonCode {
+	case biz.AutoLockReasonDocumentStructure, biz.AutoLockReasonExecutionFailed:
+		return "failure"
+	default:
+		return "success"
+	}
 }
 
 func sortOrderUUIDs(values []uuid.UUID) {

@@ -3981,7 +3981,7 @@ var (
 				Symbol:     "order_lock_records_users_order_lock_records",
 				Columns:    []*schema.Column{OrderLockRecordsColumns[23]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_unlocked_order_lock_records",
@@ -3993,7 +3993,7 @@ var (
 				Symbol:     "order_lock_records_users_auto_triggered_order_lock_records",
 				Columns:    []*schema.Column{OrderLockRecordsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{

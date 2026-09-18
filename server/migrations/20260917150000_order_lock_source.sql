@@ -79,7 +79,8 @@ ALTER TABLE "order_lock_records"
     )
   );
 
--- 触发操作人外键与生成元数据同源（SET NULL：用户删除仅清空审计引用）
+-- 触发操作人外键与生成元数据同源（NO ACTION：锁定事实不可变，删除用户不得
+-- 清空触发审计引用，与 locked_by 外键删除策略一致）
 ALTER TABLE "order_lock_records"
   ADD CONSTRAINT "order_lock_records_users_auto_triggered_order_lock_records"
-  FOREIGN KEY ("triggered_by") REFERENCES "users" ("id") ON DELETE SET NULL;
+  FOREIGN KEY ("triggered_by") REFERENCES "users" ("id") ON DELETE NO ACTION;

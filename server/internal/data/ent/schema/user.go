@@ -92,9 +92,12 @@ func (User) Edges() []ent.Edge {
 		edge.To("uploaded_attachment_assets", OrderAttachmentAsset.Type),
 		edge.To("created_order_attachments", OrderAttachment.Type),
 		edge.To("locked_orders", Order.Type),
-		edge.To("order_lock_records", OrderLockRecord.Type),
+		// 锁定历史引用必须保留：locked_by 与 triggered_by 外键显式 NO ACTION，
+		// 与正式迁移链同源；SET NULL 会把 MANUAL 锁定记录的 locked_by 置空，
+		// 违反锁定来源 CHECK 并篡改不可变锁定事实。
+		edge.To("order_lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("unlocked_order_lock_records", OrderLockRecord.Type),
-		edge.To("auto_triggered_order_lock_records", OrderLockRecord.Type),
+		edge.To("auto_triggered_order_lock_records", OrderLockRecord.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("decided_order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
