@@ -1380,3 +1380,32 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 53: 锁单后费用补录与提成冲减全栈交付
+<!-- trellis-session: v=2 fp=59f959e810e73e73 -->
+
+**Date**: 2026-09-18
+**Task**: 锁单后费用补录与提成冲减全栈交付
+**Branch**: `main`
+
+### Summary
+
+实现锁单后费用补录与提成冲减建议全栈闭环：应收结清事件驱动自动锁定（含共享 MBL 组级全有或全无门禁、反核销线性化、AUTO_SETTLEMENT 审计归属）；OrderFeeSupplementRequest 聚合与锁依据版本化证据（BUSINESS/FINANCIAL/BOTH）；补录申请/审批/撤回/专用作废全链路（幂等指纹、审批九步事务、增量边际计算、订单行+父单双封顶、钉钉通知同事务入队）；LOCKED_FEE_SUPPLEMENT 来源取消门禁与确认双层余额校验；存量提成行快照确定性回填迁移（cmd/backfill-commission-snapshots，READY/UNAVAILABLE 原因码报告）；前端订单费用补录页、提成待处理冲减视图、员工本人来源落地页与自动锁定来源展示。每阶段经独立 trellis-check 并修复全部高/中危（跨订单结清推导 fail-open、连续补录重复计入前笔影响、作废锁序倒置等）。定向集成测试真实 PostgreSQL 全 PASS；check:web/check:server 剩余失败均归因为 main 既有问题（detail-draft-lifecycle 基线即失败、grpc v1.82.1 既有漏洞）。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `923c654a` | feat: 增加应收结清自动锁定 |
+| `a113f49b` | fix: 修复自动锁定结清推导 fail-open 与外键删除策略漂移 |
+| `c77cb52d` | feat: 增加费用补录与提成快照 Schema |
+| `a81cdcf5` | fix: 补齐通知模板 CHECK 与 Ent Schema 同源 |
+| `c5a6ba8d` | feat: 增加锁单后费用补录与冲减建议后端 |
+| `a7453fd3` | fix: 修正补录边际计算基线与专用作废锁序 |
+| `de2e93a5` | feat: 完善提成调整复用与存量快照回填 |
+| `0e7370fb` | feat: 接入费用补录审批与待处理冲减页面 |
+
+### Status
+
+[OK] **Completed**

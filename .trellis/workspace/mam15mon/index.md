@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 52
-- **Last Active**: 2026-09-17
+- **Total Sessions**: 53
+- **Last Active**: 2026-09-18
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1382 | Active |
+| `journal-1.md` | ~1411 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 53 | 2026-09-18 | 锁单后费用补录与提成冲减全栈交付 | `923c654a`, `a113f49b`, `c77cb52d`, `a81cdcf5`, `c5a6ba8d`, `a7453fd3`, `de2e93a5`, `0e7370fb` | `main` |
 | 52 | 2026-09-17 | 完成往来单位角色级黑名单 | `1f626541` | `main` |
 | 51 | 2026-09-17 | 收敛经营归属并修复提成责任人丢失 | `7156ec6a` | `main` |
 | 50 | 2026-09-13 | 前端 Sentry 报错捕获与关键操作防重/订单幂等 | `200f797c`, `30898140`, `c1e6b018`, `605d02bf`, `7808fa2a` | `feat/frontend-error-idempotency` |
