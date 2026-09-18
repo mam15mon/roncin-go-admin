@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -39,6 +40,15 @@ var (
 	ErrCommissionSnapshotUnavailable           = errors.Conflict("COMMISSION_SNAPSHOT_UNAVAILABLE", "历史提成复算快照不可用，无法处理锁后费用补录")
 	ErrCommissionBaseCurrencyMismatch          = errors.Conflict("COMMISSION_BASE_CURRENCY_MISMATCH", "补录费用本位币与历史提成快照本位币不一致，不支持跨本位币换算")
 	ErrCommissionCalculationVersionUnsupported = errors.Conflict("COMMISSION_CALCULATION_VERSION_UNSUPPORTED", "提成计算版本不受支持，无法判定应付成本影响")
+	// 提成方案员工分配：名单变更、区间唯一与历史只读的稳定领域错误。
+	ErrCommissionRuleAssignmentInvalid       = errors.BadRequest("FINANCE_COMMISSION_RULE_ASSIGNMENT_INVALID", "提成方案员工分配参数不合法")
+	ErrCommissionRuleEmployeeInvalid         = errors.Conflict("FINANCE_COMMISSION_RULE_EMPLOYEE_INVALID", "所选员工不是当前组织的有效成员")
+	ErrCommissionRuleEnableNoEmployee        = errors.Conflict("FINANCE_COMMISSION_RULE_ENABLE_NO_EMPLOYEE", "启用提成方案前必须至少分配一名员工")
+	ErrCommissionRuleIntervalOverlap         = errors.Conflict("FINANCE_COMMISSION_RULE_INTERVAL_OVERLAP", "同一员工同一身份在重叠期间只能属于一个启用方案")
+	ErrCommissionRuleRetroactive             = errors.Conflict("FINANCE_COMMISSION_RULE_RETROACTIVE", "已生效方案的名单与区间变更只能选择当天或未来的生效日期")
+	ErrCommissionRuleLockedParams            = errors.Conflict("FINANCE_COMMISSION_RULE_LOCKED_PARAMS", "方案已生效，人员身份、计提口径、比例和起始日不可原地修改，也不能停用，请复制为新方案")
+	ErrCommissionRuleLegacyReadOnly          = errors.Conflict("FINANCE_COMMISSION_RULE_LEGACY_READ_ONLY", "迁移前的历史旧规则为只读，请复制为新方案后再使用")
+	ErrCommissionRuleMemberAssignmentBlocked = errors.Conflict("FINANCE_COMMISSION_RULE_MEMBER_ASSIGNMENT", "员工仍有当前或未来的提成方案分配，请先终止分配后再停用成员")
 )
 
 type CommissionStatus string
@@ -335,6 +345,20 @@ type CommissionNettingCandidateListResult struct {
 	Total          int64
 	Page, PageSize int
 }
+
+// FinanceCommissionRuleAssignment 是方案与员工之间保留审计的有效期分配段：
+// 起始日必填且创建后不可变，终止日为空表示尚未终止；未生效分配以 CancelledAt
+// 撤销，已生效分配以 EffectiveTo 终止并记录 TerminatedAt，不物理删除。
+type FinanceCommissionRuleAssignment struct {
+	ID, OrganizationID, RuleID, EmployeeID uuid.UUID
+	EffectiveFrom                          string
+	EffectiveTo                            *string
+	CancelledAt, TerminatedAt              *time.Time
+	CancelledBy, TerminatedBy              *uuid.UUID
+	CreatedBy                              uuid.UUID
+	CreatedAt, UpdatedAt                   time.Time
+}
+
 type FinanceCommissionRule struct {
 	ID, OrganizationID               uuid.UUID
 	Name                             string
@@ -344,14 +368,22 @@ type FinanceCommissionRule struct {
 	RatePercent                      decimal.Decimal
 	EffectiveFrom, EffectiveTo, Note *string
 	Enabled                          bool
-	Version                          uint64
-	CreatedAt, UpdatedAt             time.Time
+	// LegacyReadOnly 标记迁移停用的无分配旧角色规则：历史只读，只能复制为
+	// 新方案，禁止重新启用或补挂员工。
+	LegacyReadOnly bool
+	// Assignments 是未取消分配段投影（当前/未来名单与已终止历史段），
+	// 由仓储随方案加载；多选只是批量写入的表现，不在方案上存员工 ID 数组。
+	Assignments          []*FinanceCommissionRuleAssignment
+	Version              uint64
+	CreatedAt, UpdatedAt time.Time
 }
 type CommissionRuleFilter struct {
 	Page, PageSize int
 	Keyword        string
 	PersonnelRole  CommissionPersonnelRole
 	Enabled        *bool
+	// EmployeeID 按适用员工过滤：只返回该员工存在未取消分配的方案。
+	EmployeeID uuid.UUID
 }
 type CommissionRuleListResult struct {
 	Items []*FinanceCommissionRule
@@ -364,11 +396,43 @@ type CreateCommissionRuleInput struct {
 	RatePercent                      decimal.Decimal
 	EffectiveFrom, EffectiveTo, Note *string
 	Enabled                          bool
+	// EmployeeIDs 是初始适用员工：启用方案至少一名；草稿可空。仓储在事务内
+	// 锁定成员关系后写入初始分配段（起始日等于方案起始日，终止日跟随方案）。
+	EmployeeIDs []uuid.UUID
+	// Today 是服务端统一财务业务日期（YYYY-MM-DD）；为空时由用例按当前时刻
+	// 换算，保证「当天或未来」判定不依赖浏览器时区。
+	Today string
 }
 type UpdateCommissionRuleInput struct {
 	ID uuid.UUID
 	CreateCommissionRuleInput
 	ExpectedVersion uint64
+}
+
+// CommissionRuleEmployeeChange 描述方案名单的批量增删：ExpectedVersion 防并发
+// 覆盖；ChangeEffectiveDate 对已生效方案必填且只允许当天或未来，未生效方案可
+// 省略（新增默认从方案起始日或当天开始，移除默认从当天起算）。
+type CommissionRuleEmployeeChange struct {
+	RuleID              uuid.UUID
+	EmployeeIDs         []uuid.UUID
+	ExpectedVersion     uint64
+	ChangeEffectiveDate string
+	Today               string
+}
+
+// CopyCommissionRuleInput 描述【复制为新方案】：新方案以当天或未来日期生效，
+// 可同时调整身份、口径、比例与名单；源方案终止日在同一事务内衔接为新方案
+// 生效日前一日，保证新旧区间无缝不重叠。
+type CopyCommissionRuleInput struct {
+	SourceRuleID      uuid.UUID
+	Name              string
+	PersonnelRole     CommissionPersonnelRole
+	CalculationBasis  CommissionCalculationBasis
+	RatePercent       decimal.Decimal
+	EffectiveFrom     string
+	EffectiveTo, Note *string
+	EmployeeIDs       []uuid.UUID
+	Today             string
 }
 
 // CreateCommissionInput 的来源二选一：VerificationID 与 NettingID 恰好一个非空。
@@ -479,8 +543,18 @@ type CommissionRepo interface {
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	ListRulesScoped(context.Context, []uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	GetRuleScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionRule, error)
-	CreateRule(context.Context, uuid.UUID, *FinanceCommissionRule, *AuditEvent) (*FinanceCommissionRule, error)
+	// CreateRule 在事务内按 Membership → Rule 固定锁序先锁员工成员关系，
+	// 再创建方案与初始分配段，并在锁内校验跨方案实际区间重叠。
+	CreateRule(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionRule, *AuditEvent) (*FinanceCommissionRule, error)
 	UpdateRule(context.Context, uuid.UUID, UpdateCommissionRuleInput, *AuditEvent) (*FinanceCommissionRule, error)
+	// AssignRuleEmployees / RemoveRuleEmployees 在同一锁序下批量新增或终止
+	// 员工分配：已生效名单只允许当天或未来的变更生效日，不物理删除历史分配，
+	// 写入成功后递增方案版本。
+	AssignRuleEmployees(context.Context, uuid.UUID, uuid.UUID, CommissionRuleEmployeeChange, *AuditEvent) (*FinanceCommissionRule, error)
+	RemoveRuleEmployees(context.Context, uuid.UUID, uuid.UUID, CommissionRuleEmployeeChange, *AuditEvent) (*FinanceCommissionRule, error)
+	// CopyRule 实现【复制为新方案】：新方案与初始分配在锁定源方案后创建，
+	// 源方案终止日衔接为新方案生效日前一并递增版本。
+	CopyRule(context.Context, uuid.UUID, uuid.UUID, CopyCommissionRuleInput, *FinanceCommissionRule, *AuditEvent, *AuditEvent) (*FinanceCommissionRule, error)
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceCommission, error)
 	Create(context.Context, uuid.UUID, *FinanceCommission, *CommissionCNYSnapshot, *AuditEvent) error
 	Transition(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommission, error)
@@ -711,28 +785,245 @@ func (u *CommissionUsecase) GetRuleScoped(ctx context.Context, organizationIDs [
 	}
 	return u.repo.GetRuleScoped(ctx, organizationIDs, id)
 }
+
+// FinanceBusinessDate 返回服务端统一财务业务日期（YYYY-MM-DD）：与订单列表、
+// 汇率督办同口径（Asia/Shanghai），不使用浏览器本地时区。
+func FinanceBusinessDate(now time.Time) string {
+	return now.In(financeBusinessLocation).Format("2006-01-02")
+}
+
+// FinanceDateBefore 返回指定业务日期的前一日（YYYY-MM-DD）；输入必须合法。
+func FinanceDateBefore(date string) string {
+	parsed, err := time.ParseInLocation("2006-01-02", date, time.UTC)
+	if err != nil {
+		return date
+	}
+	return parsed.AddDate(0, 0, -1).Format("2006-01-02")
+}
+
+// CommissionClosedIntervalsOverlap 判断两个 YYYY-MM-DD 闭区间是否相交；
+// 终点为空串视为正无穷。方案员工分配的实际有效区间唯一性由该纯函数与
+// Membership 父行锁共同保证。
+func CommissionClosedIntervalsOverlap(fromA, toA, fromB, toB string) bool {
+	if toA != "" && fromB > toA {
+		return false
+	}
+	if toB != "" && fromA > toB {
+		return false
+	}
+	return true
+}
+
+// financeBusinessLocation 统一财务业务日期时区（Asia/Shanghai，UTC+8 固定偏移）。
+var financeBusinessLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
+
+// normalizeCommissionRuleEmployeeIDs 去重并按 UUID 升序整理员工集合；批量
+// 多选上限与列表分页上限一致（200），空集合合法（草稿可无员工）。
+func normalizeCommissionRuleEmployeeIDs(ids []uuid.UUID) ([]uuid.UUID, bool) {
+	if len(ids) > MaxListPageSize {
+		return nil, false
+	}
+	seen := make(map[uuid.UUID]struct{}, len(ids))
+	result := make([]uuid.UUID, 0, len(ids))
+	for _, id := range ids {
+		if id == uuid.Nil {
+			return nil, false
+		}
+		if _, exists := seen[id]; exists {
+			continue
+		}
+		seen[id] = struct{}{}
+		result = append(result, id)
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].String() < result[j].String() })
+	return result, true
+}
+
 func (u *CommissionUsecase) CreateRule(ctx context.Context, org, actor uuid.UUID, in CreateCommissionRuleInput) (*FinanceCommissionRule, error) {
 	normalized, err := normalizeCommissionRuleInput(in)
 	if err != nil || org == uuid.Nil || actor == uuid.Nil {
 		return nil, ErrCommissionRuleInvalid
 	}
-	rule := &FinanceCommissionRule{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, Name: normalized.Name, PersonnelRole: normalized.PersonnelRole, CalculationBasis: normalized.CalculationBasis, RatePercent: normalized.RatePercent, EffectiveFrom: normalized.EffectiveFrom, EffectiveTo: normalized.EffectiveTo, Note: normalized.Note, Enabled: normalized.Enabled, Version: 1}
-	return u.repo.CreateRule(ctx, org, rule, commissionRuleAudit(org, actor, rule.ID, "finance.commission_rule.create"))
+	if normalized.Enabled && len(normalized.EmployeeIDs) == 0 {
+		return nil, ErrCommissionRuleEnableNoEmployee
+	}
+	rule := &FinanceCommissionRule{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, Name: normalized.Name, PersonnelRole: normalized.PersonnelRole, CalculationBasis: normalized.CalculationBasis, RatePercent: normalized.RatePercent, EffectiveFrom: normalized.EffectiveFrom, EffectiveTo: normalized.EffectiveTo, Note: normalized.Note, Enabled: normalized.Enabled, LegacyReadOnly: false, Version: 1}
+	if len(normalized.EmployeeIDs) > 0 {
+		// 初始分配：起始日等于方案起始日，终止日跟随方案终止日。
+		if rule.EffectiveFrom == nil {
+			return nil, ErrCommissionRuleInvalid
+		}
+		rule.Assignments = make([]*FinanceCommissionRuleAssignment, 0, len(normalized.EmployeeIDs))
+		for _, employeeID := range normalized.EmployeeIDs {
+			rule.Assignments = append(rule.Assignments, &FinanceCommissionRuleAssignment{
+				ID: uuid.Must(uuid.NewV7()), OrganizationID: org, RuleID: rule.ID,
+				EmployeeID: employeeID, EffectiveFrom: *rule.EffectiveFrom, EffectiveTo: rule.EffectiveTo, CreatedBy: actor,
+			})
+		}
+	}
+	return u.repo.CreateRule(ctx, org, actor, rule, commissionRuleAudit(org, actor, rule.ID, "finance.commission_rule.create"))
 }
+
 func (u *CommissionUsecase) UpdateRule(ctx context.Context, org, actor uuid.UUID, in UpdateCommissionRuleInput) (*FinanceCommissionRule, error) {
 	normalized, err := normalizeCommissionRuleInput(in.CreateCommissionRuleInput)
 	if err != nil || org == uuid.Nil || actor == uuid.Nil || in.ID == uuid.Nil || in.ExpectedVersion == 0 {
 		return nil, ErrCommissionRuleInvalid
 	}
 	in.CreateCommissionRuleInput = normalized
+	// 名单变更只经 Assign/RemoveRuleEmployees 专属路径，更新入口忽略员工集合。
+	in.CreateCommissionRuleInput.EmployeeIDs = nil
 	return u.repo.UpdateRule(ctx, org, in, commissionRuleAudit(org, actor, in.ID, "finance.commission_rule.update"))
 }
+
+func (u *CommissionUsecase) AssignRuleEmployees(ctx context.Context, org, actor uuid.UUID, in CommissionRuleEmployeeChange) (*FinanceCommissionRule, error) {
+	change, err := validCommissionRuleEmployeeChange(in)
+	if err != nil {
+		return nil, err
+	}
+	audit := commissionRuleEmployeeChangeAudit(org, actor, change, "finance.commission_rule.assign_employees")
+	return u.repo.AssignRuleEmployees(ctx, org, actor, change, audit)
+}
+
+func (u *CommissionUsecase) RemoveRuleEmployees(ctx context.Context, org, actor uuid.UUID, in CommissionRuleEmployeeChange) (*FinanceCommissionRule, error) {
+	change, err := validCommissionRuleEmployeeChange(in)
+	if err != nil {
+		return nil, err
+	}
+	audit := commissionRuleEmployeeChangeAudit(org, actor, change, "finance.commission_rule.remove_employees")
+	return u.repo.RemoveRuleEmployees(ctx, org, actor, change, audit)
+}
+
+func (u *CommissionUsecase) CopyRule(ctx context.Context, org, actor uuid.UUID, in CopyCommissionRuleInput) (*FinanceCommissionRule, error) {
+	normalized, err := normalizeCopyCommissionRuleInput(in)
+	if err != nil || org == uuid.Nil || actor == uuid.Nil {
+		return nil, ErrCommissionRuleInvalid
+	}
+	plan := &FinanceCommissionRule{
+		ID: uuid.Must(uuid.NewV7()), OrganizationID: org, Name: normalized.Name,
+		PersonnelRole: normalized.PersonnelRole, CalculationBasis: normalized.CalculationBasis,
+		RatePercent: normalized.RatePercent, EffectiveFrom: &normalized.EffectiveFrom,
+		EffectiveTo: normalized.EffectiveTo, Note: normalized.Note, Enabled: true, LegacyReadOnly: false, Version: 1,
+	}
+	plan.Assignments = make([]*FinanceCommissionRuleAssignment, 0, len(normalized.EmployeeIDs))
+	for _, employeeID := range normalized.EmployeeIDs {
+		plan.Assignments = append(plan.Assignments, &FinanceCommissionRuleAssignment{
+			ID: uuid.Must(uuid.NewV7()), OrganizationID: org, RuleID: plan.ID,
+			EmployeeID: employeeID, EffectiveFrom: normalized.EffectiveFrom, EffectiveTo: normalized.EffectiveTo, CreatedBy: actor,
+		})
+	}
+	sourceAdjustAudit := commissionRuleAudit(org, actor, normalized.SourceRuleID, "finance.commission_rule.copy_terminate_source")
+	sourceAdjustAudit.Details = map[string]string{
+		"copy.effective_from": normalized.EffectiveFrom,
+		"copy.rule_id":        plan.ID.String(),
+	}
+	createAudit := commissionRuleAudit(org, actor, plan.ID, "finance.commission_rule.copy")
+	createAudit.Details = map[string]string{
+		"copy.source_rule_id": normalized.SourceRuleID.String(),
+		"employee_ids":        commissionEmployeeIDList(normalized.EmployeeIDs),
+	}
+	return u.repo.CopyRule(ctx, org, actor, normalized, plan, sourceAdjustAudit, createAudit)
+}
+
+// validCommissionRuleEmployeeChange 归一化名单增删输入：员工集合非空且不超过
+// 分页上限，变更生效日期必须是合法财务日期。
+func validCommissionRuleEmployeeChange(in CommissionRuleEmployeeChange) (CommissionRuleEmployeeChange, error) {
+	in.Today = strings.TrimSpace(in.Today)
+	if in.Today == "" {
+		in.Today = FinanceBusinessDate(time.Now())
+	}
+	in.ChangeEffectiveDate = strings.TrimSpace(in.ChangeEffectiveDate)
+	employees, ok := normalizeCommissionRuleEmployeeIDs(in.EmployeeIDs)
+	if !ok {
+		return CommissionRuleEmployeeChange{}, ErrCommissionRuleAssignmentInvalid
+	}
+	in.EmployeeIDs = employees
+	if in.RuleID == uuid.Nil || in.ExpectedVersion == 0 || len(in.EmployeeIDs) == 0 {
+		return CommissionRuleEmployeeChange{}, ErrCommissionRuleAssignmentInvalid
+	}
+	if in.ChangeEffectiveDate != "" && !validFinanceDate(in.ChangeEffectiveDate) {
+		return CommissionRuleEmployeeChange{}, ErrCommissionRuleAssignmentInvalid
+	}
+	return in, nil
+}
+
+// normalizeCopyCommissionRuleInput 归一化【复制为新方案】输入：新方案必须以
+// 当天或未来日期生效、至少一名真实员工，计算参数全部显式提供。
+func normalizeCopyCommissionRuleInput(in CopyCommissionRuleInput) (CopyCommissionRuleInput, error) {
+	in.Today = strings.TrimSpace(in.Today)
+	if in.Today == "" {
+		in.Today = FinanceBusinessDate(time.Now())
+	}
+	in.Name = strings.TrimSpace(in.Name)
+	in.EffectiveFrom = strings.TrimSpace(in.EffectiveFrom)
+	in.EffectiveTo = normalizedOptionalFinanceString(in.EffectiveTo)
+	in.Note = normalizedOptionalFinanceString(in.Note)
+	employees, ok := normalizeCommissionRuleEmployeeIDs(in.EmployeeIDs)
+	if !ok || len(employees) == 0 {
+		return CopyCommissionRuleInput{}, ErrCommissionRuleInvalid
+	}
+	in.EmployeeIDs = employees
+	if in.SourceRuleID == uuid.Nil || in.Name == "" || utf8.RuneCountInString(in.Name) > 100 ||
+		!validCommissionPersonnelRole(in.PersonnelRole) ||
+		(in.CalculationBasis != CommissionBasisRealizedProfit && in.CalculationBasis != CommissionBasisRealizedRevenue) ||
+		!in.RatePercent.IsPositive() || in.RatePercent.GreaterThan(decimal.NewFromInt(100)) ||
+		!validFinanceDate(in.EffectiveFrom) || in.EffectiveFrom < in.Today ||
+		(in.EffectiveTo != nil && (!validFinanceDate(*in.EffectiveTo) || in.EffectiveFrom > *in.EffectiveTo)) ||
+		(in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
+		return CopyCommissionRuleInput{}, ErrCommissionRuleInvalid
+	}
+	return in, nil
+}
+
+// NewCommissionRuleMemberAssignmentBlocked 构造成员停用阻断错误：列出需先以
+// 当天或未来日期终止分配的方案名，管理员先处理方案名单再停用成员。
+func NewCommissionRuleMemberAssignmentBlocked(ruleNames []string) error {
+	if len(ruleNames) == 0 {
+		return ErrCommissionRuleMemberAssignmentBlocked
+	}
+	return errors.Conflict("FINANCE_COMMISSION_RULE_MEMBER_ASSIGNMENT", fmt.Sprintf("员工仍有当前或未来的提成方案分配（%s），请先以当天或未来的日期终止分配后再停用成员", strings.Join(ruleNames, "、")))
+}
+
+func commissionEmployeeIDList(ids []uuid.UUID) string {
+	parts := make([]string, 0, len(ids))
+	for _, id := range ids {
+		parts = append(parts, id.String())
+	}
+	return strings.Join(parts, ",")
+}
+
+func commissionRuleEmployeeChangeAudit(org, actor uuid.UUID, change CommissionRuleEmployeeChange, action string) *AuditEvent {
+	event := commissionRuleAudit(org, actor, change.RuleID, action)
+	details := map[string]string{
+		"employee_ids":     commissionEmployeeIDList(change.EmployeeIDs),
+		"expected_version": strconv.FormatUint(change.ExpectedVersion, 10),
+		"today":            change.Today,
+	}
+	if change.ChangeEffectiveDate != "" {
+		details["change_effective_date"] = change.ChangeEffectiveDate
+	}
+	event.Details = details
+	return event
+}
+
 func normalizeCommissionRuleInput(in CreateCommissionRuleInput) (CreateCommissionRuleInput, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.EffectiveFrom = normalizedOptionalFinanceString(in.EffectiveFrom)
 	in.EffectiveTo = normalizedOptionalFinanceString(in.EffectiveTo)
 	in.Note = normalizedOptionalFinanceString(in.Note)
+	in.Today = strings.TrimSpace(in.Today)
+	if in.Today == "" {
+		in.Today = FinanceBusinessDate(time.Now())
+	}
+	employees, ok := normalizeCommissionRuleEmployeeIDs(in.EmployeeIDs)
+	if !ok {
+		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
+	}
+	in.EmployeeIDs = employees
 	if in.Name == "" || utf8.RuneCountInString(in.Name) > 100 || !validCommissionPersonnelRole(in.PersonnelRole) || (in.CalculationBasis != CommissionBasisRealizedProfit && in.CalculationBasis != CommissionBasisRealizedRevenue) || !in.RatePercent.IsPositive() || in.RatePercent.GreaterThan(decimal.NewFromInt(100)) || (in.EffectiveFrom != nil && !validFinanceDate(*in.EffectiveFrom)) || (in.EffectiveTo != nil && !validFinanceDate(*in.EffectiveTo)) || (in.EffectiveFrom != nil && in.EffectiveTo != nil && *in.EffectiveFrom > *in.EffectiveTo) || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
+		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
+	}
+	// 新启用方案必须有当天或未来的生效起始日；未启用草稿可暂不设起始日。
+	if in.Enabled && (in.EffectiveFrom == nil || *in.EffectiveFrom < in.Today) {
 		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
 	}
 	return in, nil

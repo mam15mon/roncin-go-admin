@@ -261,6 +261,7 @@ func TestNormalizeCommissionRuleInputSupportsCustomerRoles(t *testing.T) {
 			input, err := normalizeCommissionRuleInput(CreateCommissionRuleInput{
 				Name: "客户角色提成", PersonnelRole: role, CalculationBasis: CommissionBasisRealizedProfit,
 				RatePercent: decimal.RequireFromString("12.5"), Enabled: true,
+				EffectiveFrom: stringPtr("2030-01-01"), Today: "2026-09-18",
 			})
 			if err != nil {
 				t.Fatalf("normalizeCommissionRuleInput() error = %v", err)
@@ -274,9 +275,30 @@ func TestNormalizeCommissionRuleInputSupportsCustomerRoles(t *testing.T) {
 	if _, err := normalizeCommissionRuleInput(CreateCommissionRuleInput{
 		Name: "不支持角色", PersonnelRole: "FINANCE", CalculationBasis: CommissionBasisRealizedProfit,
 		RatePercent: decimal.NewFromInt(10), Enabled: true,
+		EffectiveFrom: stringPtr("2030-01-01"), Today: "2026-09-18",
 	}); err != ErrCommissionRuleInvalid {
 		t.Fatalf("财务角色当前不应参与提成，error = %v", err)
 	}
+
+	t.Run("新启用方案必须有当天或未来的起始日", func(t *testing.T) {
+		base := CreateCommissionRuleInput{
+			Name: "启用缺起始日", PersonnelRole: CommissionRoleSales, CalculationBasis: CommissionBasisRealizedProfit,
+			RatePercent: decimal.NewFromInt(10), Enabled: true, Today: "2026-09-18",
+		}
+		if _, err := normalizeCommissionRuleInput(base); err != ErrCommissionRuleInvalid {
+			t.Fatalf("缺起始日的启用方案应被拒绝，error = %v", err)
+		}
+		past := base
+		past.EffectiveFrom = stringPtr("2026-09-17")
+		if _, err := normalizeCommissionRuleInput(past); err != ErrCommissionRuleInvalid {
+			t.Fatalf("起始日早于业务日期的启用方案应被拒绝，error = %v", err)
+		}
+		future := base
+		future.EffectiveFrom = stringPtr("2026-09-18")
+		if _, err := normalizeCommissionRuleInput(future); err != nil {
+			t.Fatalf("当天起始日的启用方案应放行，error = %v", err)
+		}
+	})
 }
 
 func TestCreateCommissionAdjustment(t *testing.T) {

@@ -110,6 +110,7 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 		}
 		current, queryErr = tx.Membership.Query().
 			Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID)).
+			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserMembershipNotFound, nil)
@@ -121,6 +122,16 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 			}
 			if activeCount <= 1 {
 				return biz.ErrAdminUserLastMembership
+			}
+			// 停用成员前检查当前/未来提成方案分配：存在未结束分配时拒绝停用，
+			// 管理员须先以当天或未来的离开日期终止分配；成员行锁与方案写入
+			// 共用串行化点，禁止静默保留无限期资格或直接删除历史分配。
+			names, namesErr := activeCommissionAssignmentRuleNames(ctx, tx, current.OrganizationID, input.UserID, biz.FinanceBusinessDate(time.Now()))
+			if namesErr != nil {
+				return namesErr
+			}
+			if len(names) > 0 {
+				return biz.NewCommissionRuleMemberAssignmentBlocked(names)
 			}
 		}
 		roles, rolesErr := rolesForOrganization(ctx, tx.Client(), current.OrganizationID, roleIDs)
@@ -164,6 +175,7 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 		}
 		current, queryErr := tx.Membership.Query().
 			Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
+			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserMembershipNotFound, nil)
@@ -175,6 +187,15 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 			}
 			if activeCount <= 1 {
 				return biz.ErrAdminUserLastMembership
+			}
+			// 删除成员同样走停用语义：仍有当前/未来方案分配时拒绝并返回需先
+			// 处理的方案清单，不删除或截断历史分配。
+			names, namesErr := activeCommissionAssignmentRuleNames(ctx, tx, current.OrganizationID, userID, biz.FinanceBusinessDate(time.Now()))
+			if namesErr != nil {
+				return namesErr
+			}
+			if len(names) > 0 {
+				return biz.NewCommissionRuleMemberAssignmentBlocked(names)
 			}
 		}
 		if _, deleteErr := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(current.ID)).Exec(ctx); deleteErr != nil {

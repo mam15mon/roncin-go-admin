@@ -64,7 +64,7 @@ func TestCommissionRuleAssignmentSchemaPostgres(t *testing.T) {
 
 	t.Run("历史引用外键删除策略", func(t *testing.T) {
 		cases := []struct {
-			column    string
+			column     string
 			deleteRule string
 		}{
 			{column: "rule_id", deleteRule: "NO ACTION"},
