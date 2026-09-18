@@ -75,13 +75,19 @@ func (r *workbenchRepo) GetOverview(ctx context.Context, scope biz.WorkbenchScop
 	overview.Eligible = eligible
 	overview.NextEffectiveDate = nextEffectiveDate
 
-	recentOrders, err := r.workbenchRecentOrders(ctx, client, scope, biz.WorkbenchOverviewRecentOrderLimit)
+	// 近期订单与作业待办共享同一个「本人协作 ∩ 当前组织」订单 ID 集合，一次
+	// 解析后分别按订单主键与 order_id 索引驱动查询。
+	myOrderIDs, err := r.workbenchMyOrderIDs(ctx, client, scope)
+	if err != nil {
+		return nil, err
+	}
+	recentOrders, err := r.workbenchRecentOrders(ctx, client, scope, myOrderIDs, biz.WorkbenchOverviewRecentOrderLimit)
 	if err != nil {
 		return nil, err
 	}
 	overview.RecentOrders = recentOrders
 
-	todos, err := r.workbenchTodoSummary(ctx, client, scope)
+	todos, err := r.workbenchTodoSummary(ctx, client, scope, myOrderIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -432,9 +438,62 @@ func workbenchHasActiveCommission(ctx context.Context, client *ent.Client, scope
 	return client.FinanceCommission.Query().Where(predicates...).Exist(ctx)
 }
 
+// workbenchMyOrderIDs 解析「本人真实协作 ∩ 当前组织」的订单 ID 集合：先按
+// user_id + organization_id 索引取协作人员行的 order_id，再以订单主键批量定位
+// 组织内订单。两步均为 order_id / 主键驱动的精确扫描，等价于原先
+// `orders ⨝ order_personnels` 半连接的语义；不依赖统计信息即可避免半连接在
+// 基数误估（估计数行、实际数百行）下退化成十万次量级的 Join Filter 拒绝。
+// 返回 ID 已按协作人员行去重，顺序不稳定，调用方须显式排序。
+func (r *workbenchRepo) workbenchMyOrderIDs(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope) ([]uuid.UUID, error) {
+	var rawIDs []string
+	if err := client.OrderPersonnel.Query().
+		Where(
+			orderpersonnelent.UserIDEQ(scope.UserID),
+			orderpersonnelent.OrganizationIDEQ(scope.OrganizationID),
+		).
+		Select(orderpersonnelent.FieldOrderID).
+		Scan(ctx, &rawIDs); err != nil {
+		return nil, err
+	}
+	if len(rawIDs) == 0 {
+		return []uuid.UUID{}, nil
+	}
+	seen := make(map[uuid.UUID]struct{}, len(rawIDs))
+	collaborated := make([]uuid.UUID, 0, len(rawIDs))
+	for _, raw := range rawIDs {
+		parsed, parseErr := uuid.Parse(raw)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		if _, exists := seen[parsed]; exists {
+			continue
+		}
+		seen[parsed] = struct{}{}
+		collaborated = append(collaborated, parsed)
+	}
+	orders, err := client.Order.Query().
+		Where(orderent.IDIn(collaborated...), orderent.OrganizationIDEQ(scope.OrganizationID)).
+		Select(orderent.FieldID).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(orders) == 0 {
+		return []uuid.UUID{}, nil
+	}
+	orderIDs := make([]uuid.UUID, 0, len(orders))
+	for _, item := range orders {
+		orderIDs = append(orderIDs, item.ID)
+	}
+	return orderIDs, nil
+}
+
 // workbenchRecentOrders 查询本人真实协作的近期海运出口订单（OrderPersonnel 归属）。
-func (r *workbenchRepo) workbenchRecentOrders(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, limit int) ([]*biz.WorkbenchRecentOrder, error) {
-	items, err := r.workbenchRecentOrderQuery(ctx, client, scope).Limit(limit).All(ctx)
+func (r *workbenchRepo) workbenchRecentOrders(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID, limit int) ([]*biz.WorkbenchRecentOrder, error) {
+	if len(myOrderIDs) == 0 {
+		return []*biz.WorkbenchRecentOrder{}, nil
+	}
+	items, err := r.workbenchRecentOrderQuery(client, scope, myOrderIDs).Limit(limit).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -445,13 +504,13 @@ func (r *workbenchRepo) workbenchRecentOrders(ctx context.Context, client *ent.C
 	return result, nil
 }
 
-// workbenchRecentOrderQuery 是本人海运出口订单的基础查询：当前组织、SE 业务
-// 类型、本人存在于订单协作人员；按创建时间倒序稳定排序。
-func (r *workbenchRepo) workbenchRecentOrderQuery(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope) *ent.OrderQuery {
+// workbenchRecentOrderQuery 是本人海运出口订单的基础查询：本人协作订单 ID 集合
+// 内的当前组织 SE 订单；按创建时间倒序稳定排序。
+func (r *workbenchRepo) workbenchRecentOrderQuery(client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID) *ent.OrderQuery {
 	return client.Order.Query().Where(
+		orderent.IDIn(myOrderIDs...),
 		orderent.OrganizationIDEQ(scope.OrganizationID),
 		orderent.BusinessTypeEQ(orderent.BusinessTypeSE),
-		orderent.HasPersonnelWith(orderpersonnelent.UserIDEQ(scope.UserID)),
 	).WithCustomer(func(query *ent.PartnerQuery) {
 		query.Select(partnerent.FieldID, partnerent.FieldLegalName)
 	}).Order(orderent.ByCreatedAt(entsql.OrderDesc()), orderent.ByID(entsql.OrderDesc()))
@@ -475,14 +534,16 @@ func workbenchRecentOrderToBiz(item *ent.Order) *biz.WorkbenchRecentOrder {
 }
 
 // workbenchTodoSummary 统计本人协作订单上的可靠作业待办：草稿费用与未解决异常。
-func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope) (*biz.WorkbenchTodoSummary, error) {
+// 两条计数均由 order_id + status 复合索引驱动，语义等价于「订单在当前组织且
+// 本人存在于协作人员」，order_id 集合由 workbenchMyOrderIDs 统一解析。
+func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID) (*biz.WorkbenchTodoSummary, error) {
 	summary := &biz.WorkbenchTodoSummary{}
+	if len(myOrderIDs) == 0 {
+		return summary, nil
+	}
 	draftFeeCount, err := client.OrderFee.Query().Where(
 		fee.StatusEQ(fee.StatusDRAFT),
-		fee.HasOrderWith(
-			orderent.OrganizationIDEQ(scope.OrganizationID),
-			orderent.HasPersonnelWith(orderpersonnelent.UserIDEQ(scope.UserID)),
-		),
+		fee.OrderIDIn(myOrderIDs...),
 	).Count(ctx)
 	if err != nil {
 		return nil, err
@@ -490,10 +551,7 @@ func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Cl
 	summary.DraftFeeCount = draftFeeCount
 	openAbnormalCount, err := client.OrderAbnormalCase.Query().Where(
 		orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE),
-		orderabnormalcaseent.HasOrderWith(
-			orderent.OrganizationIDEQ(scope.OrganizationID),
-			orderent.HasPersonnelWith(orderpersonnelent.UserIDEQ(scope.UserID)),
-		),
+		orderabnormalcaseent.OrderIDIn(myOrderIDs...),
 	).Count(ctx)
 	if err != nil {
 		return nil, err
@@ -747,9 +805,20 @@ func (r *workbenchRepo) ListMyRecentOrders(ctx context.Context, scope biz.Workbe
 	if err != nil {
 		return nil, err
 	}
-	query := r.workbenchRecentOrderQuery(ctx, client, scope)
+	myOrderIDs, err := r.workbenchMyOrderIDs(ctx, client, scope)
+	if err != nil {
+		return nil, err
+	}
+	if len(myOrderIDs) == 0 {
+		return &biz.PagedList[*biz.WorkbenchRecentOrder]{Items: []*biz.WorkbenchRecentOrder{}, Page: f.Page, PageSize: f.PageSize}, nil
+	}
+	query := r.workbenchRecentOrderQuery(client, scope, myOrderIDs)
 	return paginate(ctx, func(ctx context.Context) (int, error) {
-		return query.Clone().Count(ctx)
+		return client.Order.Query().Where(
+			orderent.IDIn(myOrderIDs...),
+			orderent.OrganizationIDEQ(scope.OrganizationID),
+			orderent.BusinessTypeEQ(orderent.BusinessTypeSE),
+		).Count(ctx)
 	}, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
 		return query.Offset(offset).Limit(limit).All(ctx)
 	}, f.Page, f.PageSize, infalliblePageConverter(workbenchRecentOrderToBiz))

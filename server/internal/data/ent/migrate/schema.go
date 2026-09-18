@@ -2035,6 +2035,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{FinanceCommissionLinesColumns[32]},
 			},
+			{
+				Name:    "financecommissionline_order_id_employee_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[32], FinanceCommissionLinesColumns[13]},
+			},
 		},
 	}
 	// FinanceCommissionRulesColumns holds the columns for the "finance_commission_rules" table.

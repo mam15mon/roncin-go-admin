@@ -2283,25 +2283,49 @@ func appendOrderCommissionSummaries(ctx context.Context, client *ent.Client, sco
 	}
 	aggregates := make(map[uuid.UUID]*orderSummaryAggregate, len(scope.OrderIDs))
 
-	// 1. 提成单事实：普通员工的 employee_id 过滤在 SQL 条件内完成，聚合结果
-	// 从源头就不包含同事数据。
+	// 1. 提成单事实：先按页面订单定位提成行（EMPLOYEE 视图叠加本人谓词，
+	//    本人过滤始终在 SQL 条件内，聚合结果从源头就不包含同事数据），再以
+	//    父提成单主键批量取当前组织内非取消状态，Go 侧取交集。与单条 JOIN
+	//    语义完全一致；拆分后两条查询分别由 (order_id, employee_id) 复合索引
+	//    与父单主键驱动，避免统计信息缺失时 employee_id 位图命中组织全量行、
+	//    再与父提成单做无哈希 Join Filter 的退化计划。取消的提成与调整不参与
+	//    任何事实桶。
 	linePredicates := []predicate.FinanceCommissionLine{
 		commissionline.OrderIDIn(scope.OrderIDs...),
-		commissionline.HasCommissionWith(
-			commission.OrganizationIDEQ(scope.OrganizationID),
-			commission.StatusNEQ(commission.StatusCANCELLED),
-		),
 	}
 	if employeeOnly {
 		linePredicates = append(linePredicates, commissionline.EmployeeIDEQ(scope.EmployeeID))
 	}
-	lines, err := client.FinanceCommissionLine.Query().Where(linePredicates...).WithCommission().All(ctx)
+	lines, err := client.FinanceCommissionLine.Query().Where(linePredicates...).All(ctx)
 	if err != nil {
 		return err
 	}
+	parentStatus := map[uuid.UUID]string{}
+	if len(lines) > 0 {
+		commissionIDs := make([]uuid.UUID, 0, len(lines))
+		seenCommission := make(map[uuid.UUID]struct{}, len(lines))
+		for _, line := range lines {
+			if _, exists := seenCommission[line.CommissionID]; exists {
+				continue
+			}
+			seenCommission[line.CommissionID] = struct{}{}
+			commissionIDs = append(commissionIDs, line.CommissionID)
+		}
+		parents, parentErr := client.FinanceCommission.Query().Where(
+			commission.OrganizationIDEQ(scope.OrganizationID),
+			commission.StatusNEQ(commission.StatusCANCELLED),
+			commission.IDIn(commissionIDs...),
+		).All(ctx)
+		if parentErr != nil {
+			return parentErr
+		}
+		for _, parent := range parents {
+			parentStatus[parent.ID] = string(parent.Status)
+		}
+	}
 	for _, line := range lines {
-		parent := line.Edges.Commission
-		if parent == nil {
+		status, exists := parentStatus[line.CommissionID]
+		if !exists {
 			continue
 		}
 		amount, parseErr := decimalOf(line.CommissionAmount)
@@ -2312,7 +2336,7 @@ func appendOrderCommissionSummaries(ctx context.Context, client *ent.Client, sco
 		if currencyErr := aggregate.setCurrency(line.BaseCurrency); currencyErr != nil {
 			return currencyErr
 		}
-		switch biz.CommissionStatus(parent.Status) {
+		switch biz.CommissionStatus(status) {
 		case biz.CommissionDraft:
 			aggregate.draft.add(amount)
 		case biz.CommissionConfirmed:

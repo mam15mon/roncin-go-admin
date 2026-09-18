@@ -80,5 +80,8 @@ func (FinanceCommissionLine) Indexes() []ent.Index {
 		index.Fields("commission_id", "order_id").Unique(),
 		index.Fields("organization_id", "employee_id"),
 		index.Fields("order_id"),
+		// 订单列表提成摘要：按「页面订单 + 员工」精确定位提成行，避免统计信息
+		// 缺失时退化为 employee_id 前导索引命中组织全量行的扫描。
+		index.Fields("order_id", "employee_id"),
 	}
 }
