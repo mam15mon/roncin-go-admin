@@ -1,6 +1,6 @@
 {"file":"AGENTS.md","reason":"核验生成流程、权限边界、事务并发、最小检查和最终门禁"}
 {"file":".trellis/spec/server/backend/database-guidelines.md","reason":"核验 Ent/迁移约束同源、固定锁序、版本冲突和 PostgreSQL 并发测试"}
-{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"核验员工规则改造未破坏来源、快照、冲减和财务锁口径"}
+{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"核验方案员工分配改造未破坏来源、快照、冲减和财务锁口径"}
 {"file":".trellis/spec/server/backend/operating-company-commission-attribution.md","reason":"核验组织、成员、员工身份与订单归属未跨公司错配"}
 {"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核验 Proto 到 UI 的字段消费、权限过滤和状态语义完整闭环"}
 {"file":".trellis/spec/web/frontend/type-safety.md","reason":"核验生成客户端、枚举、optional bool 与 TypeScript 类型安全"}
