@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -58,66 +59,70 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                                       *QueryContext
-	order                                     []user.OrderOption
-	inters                                    []Interceptor
-	predicates                                []predicate.User
-	withMemberships                           *MembershipQuery
-	withSessions                              *SessionQuery
-	withOrderPersonnel                        *OrderPersonnelQuery
-	withNotificationDeliveries                *NotificationDeliveryQuery
-	withPartnerAssignments                    *PartnerAssignmentQuery
-	withCancelledOrderFees                    *OrderFeeQuery
-	withConfirmedFinanceBills                 *FinanceBillQuery
-	withCancelledFinanceBills                 *FinanceBillQuery
-	withCreatedFinanceBillBatches             *FinanceBillBatchQuery
-	withIssuedFinanceInvoices                 *FinanceInvoiceQuery
-	withCancelledFinanceInvoices              *FinanceInvoiceQuery
-	withRedFlushedFinanceInvoices             *FinanceInvoiceQuery
-	withConfirmedFinanceCashflows             *FinanceCashflowQuery
-	withCancelledFinanceCashflows             *FinanceCashflowQuery
-	withReversedFinanceVerifications          *FinanceVerificationQuery
-	withConfirmedFinanceNettings              *FinanceNettingQuery
-	withCancelledFinanceNettings              *FinanceNettingQuery
-	withReversedFinanceNettings               *FinanceNettingQuery
-	withFinanceCommissions                    *FinanceCommissionQuery
-	withConfirmedFinanceCommissions           *FinanceCommissionQuery
-	withPaidFinanceCommissions                *FinanceCommissionQuery
-	withCancelledFinanceCommissions           *FinanceCommissionQuery
-	withFinanceCommissionAdjustments          *FinanceCommissionAdjustmentQuery
-	withOrderCommissionAttributions           *OrderCommissionAttributionQuery
-	withConfirmedFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
-	withPaidFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
-	withCancelledFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
-	withFinanceFeeLedgerPreferences           *FinanceFeeLedgerPreferenceQuery
-	withUpdatedFinanceCustomSettings          *FinanceCustomSettingQuery
-	withCreatedEnterpriseResources            *EnterpriseResourceQuery
-	withUpdatedEnterpriseResources            *EnterpriseResourceQuery
-	withUploadedEnterpriseResourceImages      *EnterpriseResourceImageQuery
-	withEnterpriseResourceAssignments         *EnterpriseResourceAssigneeQuery
-	withCreatedSeaOrderSplitEvents            *SeaOrderSplitEventQuery
-	withCreatedSeaOrderReassignmentEvents     *SeaOrderReassignmentEventQuery
-	withUploadedAttachmentAssets              *OrderAttachmentAssetQuery
-	withCreatedOrderAttachments               *OrderAttachmentQuery
-	withLockedOrders                          *OrderQuery
-	withOrderLockRecords                      *OrderLockRecordQuery
-	withUnlockedOrderLockRecords              *OrderLockRecordQuery
-	withAutoTriggeredOrderLockRecords         *OrderLockRecordQuery
-	withOrderUnlockRequests                   *OrderUnlockRequestQuery
-	withDecidedOrderUnlockRequests            *OrderUnlockRequestQuery
-	withOrderUnlockApproverCandidates         *OrderUnlockApproverCandidateQuery
-	withRequestedOrderFeeSupplementRequests   *OrderFeeSupplementRequestQuery
-	withDecidedOrderFeeSupplementRequests     *OrderFeeSupplementRequestQuery
-	withCreatedSeaMasterBillVersions          *SeaMasterBillVersionQuery
-	withCreatedSeaHouseBillVersions           *SeaHouseBillVersionQuery
-	withCreatedSeaDocumentVoidEvents          *SeaDocumentVoidEventQuery
-	withCreatedSeaTransportExecutionVersions  *SeaTransportExecutionVersionQuery
-	withCreatedSeaDocumentModeChangeEvents    *SeaDocumentModeChangeEventQuery
-	withConfirmedSeaSharedContainers          *SeaSharedContainerQuery
-	withCreatedDingtalkInvitations            *DingTalkInvitationQuery
-	withConsumedDingtalkInvitations           *DingTalkInvitationQuery
-	withDingtalkRequestedOrganization         *OrganizationQuery
-	modifiers                                 []func(*sql.Selector)
+	ctx                                            *QueryContext
+	order                                          []user.OrderOption
+	inters                                         []Interceptor
+	predicates                                     []predicate.User
+	withMemberships                                *MembershipQuery
+	withSessions                                   *SessionQuery
+	withOrderPersonnel                             *OrderPersonnelQuery
+	withNotificationDeliveries                     *NotificationDeliveryQuery
+	withPartnerAssignments                         *PartnerAssignmentQuery
+	withCancelledOrderFees                         *OrderFeeQuery
+	withConfirmedFinanceBills                      *FinanceBillQuery
+	withCancelledFinanceBills                      *FinanceBillQuery
+	withCreatedFinanceBillBatches                  *FinanceBillBatchQuery
+	withIssuedFinanceInvoices                      *FinanceInvoiceQuery
+	withCancelledFinanceInvoices                   *FinanceInvoiceQuery
+	withRedFlushedFinanceInvoices                  *FinanceInvoiceQuery
+	withConfirmedFinanceCashflows                  *FinanceCashflowQuery
+	withCancelledFinanceCashflows                  *FinanceCashflowQuery
+	withReversedFinanceVerifications               *FinanceVerificationQuery
+	withConfirmedFinanceNettings                   *FinanceNettingQuery
+	withCancelledFinanceNettings                   *FinanceNettingQuery
+	withReversedFinanceNettings                    *FinanceNettingQuery
+	withFinanceCommissions                         *FinanceCommissionQuery
+	withConfirmedFinanceCommissions                *FinanceCommissionQuery
+	withPaidFinanceCommissions                     *FinanceCommissionQuery
+	withCancelledFinanceCommissions                *FinanceCommissionQuery
+	withFinanceCommissionAdjustments               *FinanceCommissionAdjustmentQuery
+	withOrderCommissionAttributions                *OrderCommissionAttributionQuery
+	withConfirmedFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
+	withPaidFinanceCommissionAdjustments           *FinanceCommissionAdjustmentQuery
+	withCancelledFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
+	withFinanceFeeLedgerPreferences                *FinanceFeeLedgerPreferenceQuery
+	withUpdatedFinanceCustomSettings               *FinanceCustomSettingQuery
+	withCreatedEnterpriseResources                 *EnterpriseResourceQuery
+	withUpdatedEnterpriseResources                 *EnterpriseResourceQuery
+	withUploadedEnterpriseResourceImages           *EnterpriseResourceImageQuery
+	withEnterpriseResourceAssignments              *EnterpriseResourceAssigneeQuery
+	withCreatedSeaOrderSplitEvents                 *SeaOrderSplitEventQuery
+	withCreatedSeaOrderReassignmentEvents          *SeaOrderReassignmentEventQuery
+	withUploadedAttachmentAssets                   *OrderAttachmentAssetQuery
+	withCreatedOrderAttachments                    *OrderAttachmentQuery
+	withLockedOrders                               *OrderQuery
+	withOrderLockRecords                           *OrderLockRecordQuery
+	withUnlockedOrderLockRecords                   *OrderLockRecordQuery
+	withAutoTriggeredOrderLockRecords              *OrderLockRecordQuery
+	withOrderUnlockRequests                        *OrderUnlockRequestQuery
+	withDecidedOrderUnlockRequests                 *OrderUnlockRequestQuery
+	withOrderUnlockApproverCandidates              *OrderUnlockApproverCandidateQuery
+	withRequestedOrderFeeSupplementRequests        *OrderFeeSupplementRequestQuery
+	withDecidedOrderFeeSupplementRequests          *OrderFeeSupplementRequestQuery
+	withFinanceCommissionRuleAssignments           *FinanceCommissionRuleAssignmentQuery
+	withCreatedFinanceCommissionRuleAssignments    *FinanceCommissionRuleAssignmentQuery
+	withCancelledFinanceCommissionRuleAssignments  *FinanceCommissionRuleAssignmentQuery
+	withTerminatedFinanceCommissionRuleAssignments *FinanceCommissionRuleAssignmentQuery
+	withCreatedSeaMasterBillVersions               *SeaMasterBillVersionQuery
+	withCreatedSeaHouseBillVersions                *SeaHouseBillVersionQuery
+	withCreatedSeaDocumentVoidEvents               *SeaDocumentVoidEventQuery
+	withCreatedSeaTransportExecutionVersions       *SeaTransportExecutionVersionQuery
+	withCreatedSeaDocumentModeChangeEvents         *SeaDocumentModeChangeEventQuery
+	withConfirmedSeaSharedContainers               *SeaSharedContainerQuery
+	withCreatedDingtalkInvitations                 *DingTalkInvitationQuery
+	withConsumedDingtalkInvitations                *DingTalkInvitationQuery
+	withDingtalkRequestedOrganization              *OrganizationQuery
+	modifiers                                      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -1166,6 +1171,94 @@ func (_q *UserQuery) QueryDecidedOrderFeeSupplementRequests() *OrderFeeSupplemen
 	return query
 }
 
+// QueryFinanceCommissionRuleAssignments chains the current query on the "finance_commission_rule_assignments" edge.
+func (_q *UserQuery) QueryFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceCommissionRuleAssignmentsTable, user.FinanceCommissionRuleAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedFinanceCommissionRuleAssignments chains the current query on the "created_finance_commission_rule_assignments" edge.
+func (_q *UserQuery) QueryCreatedFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedFinanceCommissionRuleAssignmentsTable, user.CreatedFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceCommissionRuleAssignments chains the current query on the "cancelled_finance_commission_rule_assignments" edge.
+func (_q *UserQuery) QueryCancelledFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceCommissionRuleAssignmentsTable, user.CancelledFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTerminatedFinanceCommissionRuleAssignments chains the current query on the "terminated_finance_commission_rule_assignments" edge.
+func (_q *UserQuery) QueryTerminatedFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TerminatedFinanceCommissionRuleAssignmentsTable, user.TerminatedFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryCreatedSeaMasterBillVersions chains the current query on the "created_sea_master_bill_versions" edge.
 func (_q *UserQuery) QueryCreatedSeaMasterBillVersions() *SeaMasterBillVersionQuery {
 	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
@@ -1551,66 +1644,70 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                                    _q.config,
-		ctx:                                       _q.ctx.Clone(),
-		order:                                     append([]user.OrderOption{}, _q.order...),
-		inters:                                    append([]Interceptor{}, _q.inters...),
-		predicates:                                append([]predicate.User{}, _q.predicates...),
-		withMemberships:                           _q.withMemberships.Clone(),
-		withSessions:                              _q.withSessions.Clone(),
-		withOrderPersonnel:                        _q.withOrderPersonnel.Clone(),
-		withNotificationDeliveries:                _q.withNotificationDeliveries.Clone(),
-		withPartnerAssignments:                    _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees:                    _q.withCancelledOrderFees.Clone(),
-		withConfirmedFinanceBills:                 _q.withConfirmedFinanceBills.Clone(),
-		withCancelledFinanceBills:                 _q.withCancelledFinanceBills.Clone(),
-		withCreatedFinanceBillBatches:             _q.withCreatedFinanceBillBatches.Clone(),
-		withIssuedFinanceInvoices:                 _q.withIssuedFinanceInvoices.Clone(),
-		withCancelledFinanceInvoices:              _q.withCancelledFinanceInvoices.Clone(),
-		withRedFlushedFinanceInvoices:             _q.withRedFlushedFinanceInvoices.Clone(),
-		withConfirmedFinanceCashflows:             _q.withConfirmedFinanceCashflows.Clone(),
-		withCancelledFinanceCashflows:             _q.withCancelledFinanceCashflows.Clone(),
-		withReversedFinanceVerifications:          _q.withReversedFinanceVerifications.Clone(),
-		withConfirmedFinanceNettings:              _q.withConfirmedFinanceNettings.Clone(),
-		withCancelledFinanceNettings:              _q.withCancelledFinanceNettings.Clone(),
-		withReversedFinanceNettings:               _q.withReversedFinanceNettings.Clone(),
-		withFinanceCommissions:                    _q.withFinanceCommissions.Clone(),
-		withConfirmedFinanceCommissions:           _q.withConfirmedFinanceCommissions.Clone(),
-		withPaidFinanceCommissions:                _q.withPaidFinanceCommissions.Clone(),
-		withCancelledFinanceCommissions:           _q.withCancelledFinanceCommissions.Clone(),
-		withFinanceCommissionAdjustments:          _q.withFinanceCommissionAdjustments.Clone(),
-		withOrderCommissionAttributions:           _q.withOrderCommissionAttributions.Clone(),
-		withConfirmedFinanceCommissionAdjustments: _q.withConfirmedFinanceCommissionAdjustments.Clone(),
-		withPaidFinanceCommissionAdjustments:      _q.withPaidFinanceCommissionAdjustments.Clone(),
-		withCancelledFinanceCommissionAdjustments: _q.withCancelledFinanceCommissionAdjustments.Clone(),
-		withFinanceFeeLedgerPreferences:           _q.withFinanceFeeLedgerPreferences.Clone(),
-		withUpdatedFinanceCustomSettings:          _q.withUpdatedFinanceCustomSettings.Clone(),
-		withCreatedEnterpriseResources:            _q.withCreatedEnterpriseResources.Clone(),
-		withUpdatedEnterpriseResources:            _q.withUpdatedEnterpriseResources.Clone(),
-		withUploadedEnterpriseResourceImages:      _q.withUploadedEnterpriseResourceImages.Clone(),
-		withEnterpriseResourceAssignments:         _q.withEnterpriseResourceAssignments.Clone(),
-		withCreatedSeaOrderSplitEvents:            _q.withCreatedSeaOrderSplitEvents.Clone(),
-		withCreatedSeaOrderReassignmentEvents:     _q.withCreatedSeaOrderReassignmentEvents.Clone(),
-		withUploadedAttachmentAssets:              _q.withUploadedAttachmentAssets.Clone(),
-		withCreatedOrderAttachments:               _q.withCreatedOrderAttachments.Clone(),
-		withLockedOrders:                          _q.withLockedOrders.Clone(),
-		withOrderLockRecords:                      _q.withOrderLockRecords.Clone(),
-		withUnlockedOrderLockRecords:              _q.withUnlockedOrderLockRecords.Clone(),
-		withAutoTriggeredOrderLockRecords:         _q.withAutoTriggeredOrderLockRecords.Clone(),
-		withOrderUnlockRequests:                   _q.withOrderUnlockRequests.Clone(),
-		withDecidedOrderUnlockRequests:            _q.withDecidedOrderUnlockRequests.Clone(),
-		withOrderUnlockApproverCandidates:         _q.withOrderUnlockApproverCandidates.Clone(),
-		withRequestedOrderFeeSupplementRequests:   _q.withRequestedOrderFeeSupplementRequests.Clone(),
-		withDecidedOrderFeeSupplementRequests:     _q.withDecidedOrderFeeSupplementRequests.Clone(),
-		withCreatedSeaMasterBillVersions:          _q.withCreatedSeaMasterBillVersions.Clone(),
-		withCreatedSeaHouseBillVersions:           _q.withCreatedSeaHouseBillVersions.Clone(),
-		withCreatedSeaDocumentVoidEvents:          _q.withCreatedSeaDocumentVoidEvents.Clone(),
-		withCreatedSeaTransportExecutionVersions:  _q.withCreatedSeaTransportExecutionVersions.Clone(),
-		withCreatedSeaDocumentModeChangeEvents:    _q.withCreatedSeaDocumentModeChangeEvents.Clone(),
-		withConfirmedSeaSharedContainers:          _q.withConfirmedSeaSharedContainers.Clone(),
-		withCreatedDingtalkInvitations:            _q.withCreatedDingtalkInvitations.Clone(),
-		withConsumedDingtalkInvitations:           _q.withConsumedDingtalkInvitations.Clone(),
-		withDingtalkRequestedOrganization:         _q.withDingtalkRequestedOrganization.Clone(),
+		config:                                         _q.config,
+		ctx:                                            _q.ctx.Clone(),
+		order:                                          append([]user.OrderOption{}, _q.order...),
+		inters:                                         append([]Interceptor{}, _q.inters...),
+		predicates:                                     append([]predicate.User{}, _q.predicates...),
+		withMemberships:                                _q.withMemberships.Clone(),
+		withSessions:                                   _q.withSessions.Clone(),
+		withOrderPersonnel:                             _q.withOrderPersonnel.Clone(),
+		withNotificationDeliveries:                     _q.withNotificationDeliveries.Clone(),
+		withPartnerAssignments:                         _q.withPartnerAssignments.Clone(),
+		withCancelledOrderFees:                         _q.withCancelledOrderFees.Clone(),
+		withConfirmedFinanceBills:                      _q.withConfirmedFinanceBills.Clone(),
+		withCancelledFinanceBills:                      _q.withCancelledFinanceBills.Clone(),
+		withCreatedFinanceBillBatches:                  _q.withCreatedFinanceBillBatches.Clone(),
+		withIssuedFinanceInvoices:                      _q.withIssuedFinanceInvoices.Clone(),
+		withCancelledFinanceInvoices:                   _q.withCancelledFinanceInvoices.Clone(),
+		withRedFlushedFinanceInvoices:                  _q.withRedFlushedFinanceInvoices.Clone(),
+		withConfirmedFinanceCashflows:                  _q.withConfirmedFinanceCashflows.Clone(),
+		withCancelledFinanceCashflows:                  _q.withCancelledFinanceCashflows.Clone(),
+		withReversedFinanceVerifications:               _q.withReversedFinanceVerifications.Clone(),
+		withConfirmedFinanceNettings:                   _q.withConfirmedFinanceNettings.Clone(),
+		withCancelledFinanceNettings:                   _q.withCancelledFinanceNettings.Clone(),
+		withReversedFinanceNettings:                    _q.withReversedFinanceNettings.Clone(),
+		withFinanceCommissions:                         _q.withFinanceCommissions.Clone(),
+		withConfirmedFinanceCommissions:                _q.withConfirmedFinanceCommissions.Clone(),
+		withPaidFinanceCommissions:                     _q.withPaidFinanceCommissions.Clone(),
+		withCancelledFinanceCommissions:                _q.withCancelledFinanceCommissions.Clone(),
+		withFinanceCommissionAdjustments:               _q.withFinanceCommissionAdjustments.Clone(),
+		withOrderCommissionAttributions:                _q.withOrderCommissionAttributions.Clone(),
+		withConfirmedFinanceCommissionAdjustments:      _q.withConfirmedFinanceCommissionAdjustments.Clone(),
+		withPaidFinanceCommissionAdjustments:           _q.withPaidFinanceCommissionAdjustments.Clone(),
+		withCancelledFinanceCommissionAdjustments:      _q.withCancelledFinanceCommissionAdjustments.Clone(),
+		withFinanceFeeLedgerPreferences:                _q.withFinanceFeeLedgerPreferences.Clone(),
+		withUpdatedFinanceCustomSettings:               _q.withUpdatedFinanceCustomSettings.Clone(),
+		withCreatedEnterpriseResources:                 _q.withCreatedEnterpriseResources.Clone(),
+		withUpdatedEnterpriseResources:                 _q.withUpdatedEnterpriseResources.Clone(),
+		withUploadedEnterpriseResourceImages:           _q.withUploadedEnterpriseResourceImages.Clone(),
+		withEnterpriseResourceAssignments:              _q.withEnterpriseResourceAssignments.Clone(),
+		withCreatedSeaOrderSplitEvents:                 _q.withCreatedSeaOrderSplitEvents.Clone(),
+		withCreatedSeaOrderReassignmentEvents:          _q.withCreatedSeaOrderReassignmentEvents.Clone(),
+		withUploadedAttachmentAssets:                   _q.withUploadedAttachmentAssets.Clone(),
+		withCreatedOrderAttachments:                    _q.withCreatedOrderAttachments.Clone(),
+		withLockedOrders:                               _q.withLockedOrders.Clone(),
+		withOrderLockRecords:                           _q.withOrderLockRecords.Clone(),
+		withUnlockedOrderLockRecords:                   _q.withUnlockedOrderLockRecords.Clone(),
+		withAutoTriggeredOrderLockRecords:              _q.withAutoTriggeredOrderLockRecords.Clone(),
+		withOrderUnlockRequests:                        _q.withOrderUnlockRequests.Clone(),
+		withDecidedOrderUnlockRequests:                 _q.withDecidedOrderUnlockRequests.Clone(),
+		withOrderUnlockApproverCandidates:              _q.withOrderUnlockApproverCandidates.Clone(),
+		withRequestedOrderFeeSupplementRequests:        _q.withRequestedOrderFeeSupplementRequests.Clone(),
+		withDecidedOrderFeeSupplementRequests:          _q.withDecidedOrderFeeSupplementRequests.Clone(),
+		withFinanceCommissionRuleAssignments:           _q.withFinanceCommissionRuleAssignments.Clone(),
+		withCreatedFinanceCommissionRuleAssignments:    _q.withCreatedFinanceCommissionRuleAssignments.Clone(),
+		withCancelledFinanceCommissionRuleAssignments:  _q.withCancelledFinanceCommissionRuleAssignments.Clone(),
+		withTerminatedFinanceCommissionRuleAssignments: _q.withTerminatedFinanceCommissionRuleAssignments.Clone(),
+		withCreatedSeaMasterBillVersions:               _q.withCreatedSeaMasterBillVersions.Clone(),
+		withCreatedSeaHouseBillVersions:                _q.withCreatedSeaHouseBillVersions.Clone(),
+		withCreatedSeaDocumentVoidEvents:               _q.withCreatedSeaDocumentVoidEvents.Clone(),
+		withCreatedSeaTransportExecutionVersions:       _q.withCreatedSeaTransportExecutionVersions.Clone(),
+		withCreatedSeaDocumentModeChangeEvents:         _q.withCreatedSeaDocumentModeChangeEvents.Clone(),
+		withConfirmedSeaSharedContainers:               _q.withConfirmedSeaSharedContainers.Clone(),
+		withCreatedDingtalkInvitations:                 _q.withCreatedDingtalkInvitations.Clone(),
+		withConsumedDingtalkInvitations:                _q.withConsumedDingtalkInvitations.Clone(),
+		withDingtalkRequestedOrganization:              _q.withDingtalkRequestedOrganization.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -2123,6 +2220,50 @@ func (_q *UserQuery) WithDecidedOrderFeeSupplementRequests(opts ...func(*OrderFe
 	return _q
 }
 
+// WithFinanceCommissionRuleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_rule_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFinanceCommissionRuleAssignments(opts ...func(*FinanceCommissionRuleAssignmentQuery)) *UserQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionRuleAssignments = query
+	return _q
+}
+
+// WithCreatedFinanceCommissionRuleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "created_finance_commission_rule_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedFinanceCommissionRuleAssignments(opts ...func(*FinanceCommissionRuleAssignmentQuery)) *UserQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedFinanceCommissionRuleAssignments = query
+	return _q
+}
+
+// WithCancelledFinanceCommissionRuleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "cancelled_finance_commission_rule_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCancelledFinanceCommissionRuleAssignments(opts ...func(*FinanceCommissionRuleAssignmentQuery)) *UserQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCancelledFinanceCommissionRuleAssignments = query
+	return _q
+}
+
+// WithTerminatedFinanceCommissionRuleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "terminated_finance_commission_rule_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithTerminatedFinanceCommissionRuleAssignments(opts ...func(*FinanceCommissionRuleAssignmentQuery)) *UserQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTerminatedFinanceCommissionRuleAssignments = query
+	return _q
+}
+
 // WithCreatedSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
 // the "created_sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithCreatedSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *UserQuery {
@@ -2300,7 +2441,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [55]bool{
+		loadedTypes = [59]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2347,6 +2488,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withOrderUnlockApproverCandidates != nil,
 			_q.withRequestedOrderFeeSupplementRequests != nil,
 			_q.withDecidedOrderFeeSupplementRequests != nil,
+			_q.withFinanceCommissionRuleAssignments != nil,
+			_q.withCreatedFinanceCommissionRuleAssignments != nil,
+			_q.withCancelledFinanceCommissionRuleAssignments != nil,
+			_q.withTerminatedFinanceCommissionRuleAssignments != nil,
 			_q.withCreatedSeaMasterBillVersions != nil,
 			_q.withCreatedSeaHouseBillVersions != nil,
 			_q.withCreatedSeaDocumentVoidEvents != nil,
@@ -2777,6 +2922,46 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.DecidedOrderFeeSupplementRequests = []*OrderFeeSupplementRequest{} },
 			func(n *User, e *OrderFeeSupplementRequest) {
 				n.Edges.DecidedOrderFeeSupplementRequests = append(n.Edges.DecidedOrderFeeSupplementRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionRuleAssignments; query != nil {
+		if err := _q.loadFinanceCommissionRuleAssignments(ctx, query, nodes,
+			func(n *User) { n.Edges.FinanceCommissionRuleAssignments = []*FinanceCommissionRuleAssignment{} },
+			func(n *User, e *FinanceCommissionRuleAssignment) {
+				n.Edges.FinanceCommissionRuleAssignments = append(n.Edges.FinanceCommissionRuleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedFinanceCommissionRuleAssignments; query != nil {
+		if err := _q.loadCreatedFinanceCommissionRuleAssignments(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedFinanceCommissionRuleAssignments = []*FinanceCommissionRuleAssignment{} },
+			func(n *User, e *FinanceCommissionRuleAssignment) {
+				n.Edges.CreatedFinanceCommissionRuleAssignments = append(n.Edges.CreatedFinanceCommissionRuleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCancelledFinanceCommissionRuleAssignments; query != nil {
+		if err := _q.loadCancelledFinanceCommissionRuleAssignments(ctx, query, nodes,
+			func(n *User) {
+				n.Edges.CancelledFinanceCommissionRuleAssignments = []*FinanceCommissionRuleAssignment{}
+			},
+			func(n *User, e *FinanceCommissionRuleAssignment) {
+				n.Edges.CancelledFinanceCommissionRuleAssignments = append(n.Edges.CancelledFinanceCommissionRuleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTerminatedFinanceCommissionRuleAssignments; query != nil {
+		if err := _q.loadTerminatedFinanceCommissionRuleAssignments(ctx, query, nodes,
+			func(n *User) {
+				n.Edges.TerminatedFinanceCommissionRuleAssignments = []*FinanceCommissionRuleAssignment{}
+			},
+			func(n *User, e *FinanceCommissionRuleAssignment) {
+				n.Edges.TerminatedFinanceCommissionRuleAssignments = append(n.Edges.TerminatedFinanceCommissionRuleAssignments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4327,6 +4512,132 @@ func (_q *UserQuery) loadDecidedOrderFeeSupplementRequests(ctx context.Context, 
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "decided_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadFinanceCommissionRuleAssignments(ctx context.Context, query *FinanceCommissionRuleAssignmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionRuleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionruleassignment.FieldEmployeeID)
+	}
+	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.FinanceCommissionRuleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EmployeeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "employee_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedFinanceCommissionRuleAssignments(ctx context.Context, query *FinanceCommissionRuleAssignmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionRuleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionruleassignment.FieldCreatedBy)
+	}
+	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedFinanceCommissionRuleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCancelledFinanceCommissionRuleAssignments(ctx context.Context, query *FinanceCommissionRuleAssignmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionRuleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionruleassignment.FieldCancelledBy)
+	}
+	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CancelledFinanceCommissionRuleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CancelledBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadTerminatedFinanceCommissionRuleAssignments(ctx context.Context, query *FinanceCommissionRuleAssignmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionRuleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionruleassignment.FieldTerminatedBy)
+	}
+	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.TerminatedFinanceCommissionRuleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TerminatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "terminated_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "terminated_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

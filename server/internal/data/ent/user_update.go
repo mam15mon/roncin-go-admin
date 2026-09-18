@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -1002,6 +1003,66 @@ func (_u *UserUpdate) AddDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupplem
 		ids[i] = v[i].ID
 	}
 	return _u.AddDecidedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// AddFinanceCommissionRuleAssignmentIDs adds the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdate) AddFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionRuleAssignments adds the "finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) AddFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddCreatedFinanceCommissionRuleAssignmentIDs adds the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdate) AddCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddCreatedFinanceCommissionRuleAssignments adds the "created_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) AddCreatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddCancelledFinanceCommissionRuleAssignmentIDs adds the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdate) AddCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceCommissionRuleAssignments adds the "cancelled_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) AddCancelledFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddTerminatedFinanceCommissionRuleAssignmentIDs adds the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdate) AddTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddTerminatedFinanceCommissionRuleAssignments adds the "terminated_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) AddTerminatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
 }
 
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
@@ -2098,6 +2159,90 @@ func (_u *UserUpdate) RemoveDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearFinanceCommissionRuleAssignments clears all "finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) ClearFinanceCommissionRuleAssignments() *UserUpdate {
+	_u.mutation.ClearFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveFinanceCommissionRuleAssignmentIDs removes the "finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdate) RemoveFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionRuleAssignments removes "finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdate) RemoveFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearCreatedFinanceCommissionRuleAssignments clears all "created_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) ClearCreatedFinanceCommissionRuleAssignments() *UserUpdate {
+	_u.mutation.ClearCreatedFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveCreatedFinanceCommissionRuleAssignmentIDs removes the "created_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdate) RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedFinanceCommissionRuleAssignments removes "created_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdate) RemoveCreatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearCancelledFinanceCommissionRuleAssignments clears all "cancelled_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) ClearCancelledFinanceCommissionRuleAssignments() *UserUpdate {
+	_u.mutation.ClearCancelledFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionRuleAssignmentIDs removes the "cancelled_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdate) RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionRuleAssignments removes "cancelled_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdate) RemoveCancelledFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearTerminatedFinanceCommissionRuleAssignments clears all "terminated_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdate) ClearTerminatedFinanceCommissionRuleAssignments() *UserUpdate {
+	_u.mutation.ClearTerminatedFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveTerminatedFinanceCommissionRuleAssignmentIDs removes the "terminated_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdate) RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveTerminatedFinanceCommissionRuleAssignments removes "terminated_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdate) RemoveTerminatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
 }
 
 // ClearCreatedSeaMasterBillVersions clears all "created_sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
@@ -4514,6 +4659,186 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.CreatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TerminatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTerminatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.TerminatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TerminatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.CreatedSeaMasterBillVersionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5861,6 +6186,66 @@ func (_u *UserUpdateOne) AddDecidedOrderFeeSupplementRequests(v ...*OrderFeeSupp
 	return _u.AddDecidedOrderFeeSupplementRequestIDs(ids...)
 }
 
+// AddFinanceCommissionRuleAssignmentIDs adds the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdateOne) AddFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionRuleAssignments adds the "finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) AddFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddCreatedFinanceCommissionRuleAssignmentIDs adds the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdateOne) AddCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddCreatedFinanceCommissionRuleAssignments adds the "created_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) AddCreatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddCancelledFinanceCommissionRuleAssignmentIDs adds the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdateOne) AddCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceCommissionRuleAssignments adds the "cancelled_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) AddCancelledFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddTerminatedFinanceCommissionRuleAssignmentIDs adds the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *UserUpdateOne) AddTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddTerminatedFinanceCommissionRuleAssignments adds the "terminated_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) AddTerminatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
 func (_u *UserUpdateOne) AddCreatedSeaMasterBillVersionIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddCreatedSeaMasterBillVersionIDs(ids...)
@@ -6955,6 +7340,90 @@ func (_u *UserUpdateOne) RemoveDecidedOrderFeeSupplementRequests(v ...*OrderFeeS
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDecidedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearFinanceCommissionRuleAssignments clears all "finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) ClearFinanceCommissionRuleAssignments() *UserUpdateOne {
+	_u.mutation.ClearFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveFinanceCommissionRuleAssignmentIDs removes the "finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdateOne) RemoveFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionRuleAssignments removes "finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdateOne) RemoveFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearCreatedFinanceCommissionRuleAssignments clears all "created_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) ClearCreatedFinanceCommissionRuleAssignments() *UserUpdateOne {
+	_u.mutation.ClearCreatedFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveCreatedFinanceCommissionRuleAssignmentIDs removes the "created_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdateOne) RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedFinanceCommissionRuleAssignments removes "created_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdateOne) RemoveCreatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearCancelledFinanceCommissionRuleAssignments clears all "cancelled_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) ClearCancelledFinanceCommissionRuleAssignments() *UserUpdateOne {
+	_u.mutation.ClearCancelledFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionRuleAssignmentIDs removes the "cancelled_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdateOne) RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionRuleAssignments removes "cancelled_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdateOne) RemoveCancelledFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearTerminatedFinanceCommissionRuleAssignments clears all "terminated_finance_commission_rule_assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *UserUpdateOne) ClearTerminatedFinanceCommissionRuleAssignments() *UserUpdateOne {
+	_u.mutation.ClearTerminatedFinanceCommissionRuleAssignments()
+	return _u
+}
+
+// RemoveTerminatedFinanceCommissionRuleAssignmentIDs removes the "terminated_finance_commission_rule_assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *UserUpdateOne) RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveTerminatedFinanceCommissionRuleAssignments removes "terminated_finance_commission_rule_assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *UserUpdateOne) RemoveTerminatedFinanceCommissionRuleAssignments(v ...*FinanceCommissionRuleAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
 }
 
 // ClearCreatedSeaMasterBillVersions clears all "created_sea_master_bill_versions" edges to the SeaMasterBillVersion entity.
@@ -9394,6 +9863,186 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.FinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.CreatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CreatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TerminatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTerminatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.TerminatedFinanceCommissionRuleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TerminatedFinanceCommissionRuleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TerminatedFinanceCommissionRuleAssignmentsTable,
+			Columns: []string{user.TerminatedFinanceCommissionRuleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

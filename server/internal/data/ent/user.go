@@ -151,6 +151,14 @@ type UserEdges struct {
 	RequestedOrderFeeSupplementRequests []*OrderFeeSupplementRequest `json:"requested_order_fee_supplement_requests,omitempty"`
 	// DecidedOrderFeeSupplementRequests holds the value of the decided_order_fee_supplement_requests edge.
 	DecidedOrderFeeSupplementRequests []*OrderFeeSupplementRequest `json:"decided_order_fee_supplement_requests,omitempty"`
+	// FinanceCommissionRuleAssignments holds the value of the finance_commission_rule_assignments edge.
+	FinanceCommissionRuleAssignments []*FinanceCommissionRuleAssignment `json:"finance_commission_rule_assignments,omitempty"`
+	// CreatedFinanceCommissionRuleAssignments holds the value of the created_finance_commission_rule_assignments edge.
+	CreatedFinanceCommissionRuleAssignments []*FinanceCommissionRuleAssignment `json:"created_finance_commission_rule_assignments,omitempty"`
+	// CancelledFinanceCommissionRuleAssignments holds the value of the cancelled_finance_commission_rule_assignments edge.
+	CancelledFinanceCommissionRuleAssignments []*FinanceCommissionRuleAssignment `json:"cancelled_finance_commission_rule_assignments,omitempty"`
+	// TerminatedFinanceCommissionRuleAssignments holds the value of the terminated_finance_commission_rule_assignments edge.
+	TerminatedFinanceCommissionRuleAssignments []*FinanceCommissionRuleAssignment `json:"terminated_finance_commission_rule_assignments,omitempty"`
 	// CreatedSeaMasterBillVersions holds the value of the created_sea_master_bill_versions edge.
 	CreatedSeaMasterBillVersions []*SeaMasterBillVersion `json:"created_sea_master_bill_versions,omitempty"`
 	// CreatedSeaHouseBillVersions holds the value of the created_sea_house_bill_versions edge.
@@ -171,7 +179,7 @@ type UserEdges struct {
 	DingtalkRequestedOrganization *Organization `json:"dingtalk_requested_organization,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [55]bool
+	loadedTypes [59]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -588,10 +596,46 @@ func (e UserEdges) DecidedOrderFeeSupplementRequestsOrErr() ([]*OrderFeeSuppleme
 	return nil, &NotLoadedError{edge: "decided_order_fee_supplement_requests"}
 }
 
+// FinanceCommissionRuleAssignmentsOrErr returns the FinanceCommissionRuleAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FinanceCommissionRuleAssignmentsOrErr() ([]*FinanceCommissionRuleAssignment, error) {
+	if e.loadedTypes[46] {
+		return e.FinanceCommissionRuleAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_commission_rule_assignments"}
+}
+
+// CreatedFinanceCommissionRuleAssignmentsOrErr returns the CreatedFinanceCommissionRuleAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedFinanceCommissionRuleAssignmentsOrErr() ([]*FinanceCommissionRuleAssignment, error) {
+	if e.loadedTypes[47] {
+		return e.CreatedFinanceCommissionRuleAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "created_finance_commission_rule_assignments"}
+}
+
+// CancelledFinanceCommissionRuleAssignmentsOrErr returns the CancelledFinanceCommissionRuleAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CancelledFinanceCommissionRuleAssignmentsOrErr() ([]*FinanceCommissionRuleAssignment, error) {
+	if e.loadedTypes[48] {
+		return e.CancelledFinanceCommissionRuleAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "cancelled_finance_commission_rule_assignments"}
+}
+
+// TerminatedFinanceCommissionRuleAssignmentsOrErr returns the TerminatedFinanceCommissionRuleAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TerminatedFinanceCommissionRuleAssignmentsOrErr() ([]*FinanceCommissionRuleAssignment, error) {
+	if e.loadedTypes[49] {
+		return e.TerminatedFinanceCommissionRuleAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "terminated_finance_commission_rule_assignments"}
+}
+
 // CreatedSeaMasterBillVersionsOrErr returns the CreatedSeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[46] {
+	if e.loadedTypes[50] {
 		return e.CreatedSeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_master_bill_versions"}
@@ -600,7 +644,7 @@ func (e UserEdges) CreatedSeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion,
 // CreatedSeaHouseBillVersionsOrErr returns the CreatedSeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[47] {
+	if e.loadedTypes[51] {
 		return e.CreatedSeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_house_bill_versions"}
@@ -609,7 +653,7 @@ func (e UserEdges) CreatedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, e
 // CreatedSeaDocumentVoidEventsOrErr returns the CreatedSeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[48] {
+	if e.loadedTypes[52] {
 		return e.CreatedSeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_void_events"}
@@ -618,7 +662,7 @@ func (e UserEdges) CreatedSeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent,
 // CreatedSeaTransportExecutionVersionsOrErr returns the CreatedSeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
-	if e.loadedTypes[49] {
+	if e.loadedTypes[53] {
 		return e.CreatedSeaTransportExecutionVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_transport_execution_versions"}
@@ -627,7 +671,7 @@ func (e UserEdges) CreatedSeaTransportExecutionVersionsOrErr() ([]*SeaTransportE
 // CreatedSeaDocumentModeChangeEventsOrErr returns the CreatedSeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
-	if e.loadedTypes[50] {
+	if e.loadedTypes[54] {
 		return e.CreatedSeaDocumentModeChangeEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "created_sea_document_mode_change_events"}
@@ -636,7 +680,7 @@ func (e UserEdges) CreatedSeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentMode
 // ConfirmedSeaSharedContainersOrErr returns the ConfirmedSeaSharedContainers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, error) {
-	if e.loadedTypes[51] {
+	if e.loadedTypes[55] {
 		return e.ConfirmedSeaSharedContainers, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_sea_shared_containers"}
@@ -645,7 +689,7 @@ func (e UserEdges) ConfirmedSeaSharedContainersOrErr() ([]*SeaSharedContainer, e
 // CreatedDingtalkInvitationsOrErr returns the CreatedDingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[52] {
+	if e.loadedTypes[56] {
 		return e.CreatedDingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "created_dingtalk_invitations"}
@@ -654,7 +698,7 @@ func (e UserEdges) CreatedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, err
 // ConsumedDingtalkInvitationsOrErr returns the ConsumedDingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConsumedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[53] {
+	if e.loadedTypes[57] {
 		return e.ConsumedDingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "consumed_dingtalk_invitations"}
@@ -665,7 +709,7 @@ func (e UserEdges) ConsumedDingtalkInvitationsOrErr() ([]*DingTalkInvitation, er
 func (e UserEdges) DingtalkRequestedOrganizationOrErr() (*Organization, error) {
 	if e.DingtalkRequestedOrganization != nil {
 		return e.DingtalkRequestedOrganization, nil
-	} else if e.loadedTypes[54] {
+	} else if e.loadedTypes[58] {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_requested_organization"}
@@ -1053,6 +1097,26 @@ func (_m *User) QueryRequestedOrderFeeSupplementRequests() *OrderFeeSupplementRe
 // QueryDecidedOrderFeeSupplementRequests queries the "decided_order_fee_supplement_requests" edge of the User entity.
 func (_m *User) QueryDecidedOrderFeeSupplementRequests() *OrderFeeSupplementRequestQuery {
 	return NewUserClient(_m.config).QueryDecidedOrderFeeSupplementRequests(_m)
+}
+
+// QueryFinanceCommissionRuleAssignments queries the "finance_commission_rule_assignments" edge of the User entity.
+func (_m *User) QueryFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	return NewUserClient(_m.config).QueryFinanceCommissionRuleAssignments(_m)
+}
+
+// QueryCreatedFinanceCommissionRuleAssignments queries the "created_finance_commission_rule_assignments" edge of the User entity.
+func (_m *User) QueryCreatedFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	return NewUserClient(_m.config).QueryCreatedFinanceCommissionRuleAssignments(_m)
+}
+
+// QueryCancelledFinanceCommissionRuleAssignments queries the "cancelled_finance_commission_rule_assignments" edge of the User entity.
+func (_m *User) QueryCancelledFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	return NewUserClient(_m.config).QueryCancelledFinanceCommissionRuleAssignments(_m)
+}
+
+// QueryTerminatedFinanceCommissionRuleAssignments queries the "terminated_finance_commission_rule_assignments" edge of the User entity.
+func (_m *User) QueryTerminatedFinanceCommissionRuleAssignments() *FinanceCommissionRuleAssignmentQuery {
+	return NewUserClient(_m.config).QueryTerminatedFinanceCommissionRuleAssignments(_m)
 }
 
 // QueryCreatedSeaMasterBillVersions queries the "created_sea_master_bill_versions" edge of the User entity.

@@ -103,6 +103,8 @@ const (
 	EdgeFinanceCommissionAdjustments = "finance_commission_adjustments"
 	// EdgeFinanceCommissionRules holds the string denoting the finance_commission_rules edge name in mutations.
 	EdgeFinanceCommissionRules = "finance_commission_rules"
+	// EdgeFinanceCommissionRuleAssignments holds the string denoting the finance_commission_rule_assignments edge name in mutations.
+	EdgeFinanceCommissionRuleAssignments = "finance_commission_rule_assignments"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
@@ -384,6 +386,13 @@ const (
 	FinanceCommissionRulesInverseTable = "finance_commission_rules"
 	// FinanceCommissionRulesColumn is the table column denoting the finance_commission_rules relation/edge.
 	FinanceCommissionRulesColumn = "organization_id"
+	// FinanceCommissionRuleAssignmentsTable is the table that holds the finance_commission_rule_assignments relation/edge.
+	FinanceCommissionRuleAssignmentsTable = "finance_commission_rule_assignments"
+	// FinanceCommissionRuleAssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	FinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
+	// FinanceCommissionRuleAssignmentsColumn is the table column denoting the finance_commission_rule_assignments relation/edge.
+	FinanceCommissionRuleAssignmentsColumn = "organization_id"
 	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsTable = "order_commission_attributions"
 	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
@@ -1160,6 +1169,20 @@ func ByFinanceCommissionRules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 	}
 }
 
+// ByFinanceCommissionRuleAssignmentsCount orders the results by finance_commission_rule_assignments count.
+func ByFinanceCommissionRuleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionRuleAssignmentsStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionRuleAssignments orders the results by finance_commission_rule_assignments terms.
+func ByFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionRuleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
 func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1766,6 +1789,13 @@ func newFinanceCommissionRulesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCommissionRulesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionRulesTable, FinanceCommissionRulesColumn),
+	)
+}
+func newFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionRuleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionRuleAssignmentsTable, FinanceCommissionRuleAssignmentsColumn),
 	)
 }
 func newOrderCommissionAttributionsStep() *sqlgraph.Step {

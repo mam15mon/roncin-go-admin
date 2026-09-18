@@ -2049,6 +2049,7 @@ var (
 		{Name: "effective_from", Type: field.TypeString, Nullable: true, Size: 10},
 		{Name: "effective_to", Type: field.TypeString, Nullable: true, Size: 10},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "legacy_readonly", Type: field.TypeBool, Default: false},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -2061,7 +2062,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commission_rules_organizations_finance_commission_rules",
-				Columns:    []*schema.Column{FinanceCommissionRulesColumns[12]},
+				Columns:    []*schema.Column{FinanceCommissionRulesColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2075,12 +2076,94 @@ var (
 			{
 				Name:    "financecommissionrule_organization_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionRulesColumns[12], FinanceCommissionRulesColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionRulesColumns[13], FinanceCommissionRulesColumns[3]},
 			},
 			{
 				Name:    "financecommissionrule_organization_id_enabled_personnel_role",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionRulesColumns[12], FinanceCommissionRulesColumns[9], FinanceCommissionRulesColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionRulesColumns[13], FinanceCommissionRulesColumns[9], FinanceCommissionRulesColumns[4]},
+			},
+		},
+	}
+	// FinanceCommissionRuleAssignmentsColumns holds the columns for the "finance_commission_rule_assignments" table.
+	FinanceCommissionRuleAssignmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "effective_from", Type: field.TypeString, Size: 10},
+		{Name: "effective_to", Type: field.TypeString, Nullable: true, Size: 10},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "terminated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "rule_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "terminated_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceCommissionRuleAssignmentsTable holds the schema information for the "finance_commission_rule_assignments" table.
+	FinanceCommissionRuleAssignmentsTable = &schema.Table{
+		Name:       "finance_commission_rule_assignments",
+		Columns:    FinanceCommissionRuleAssignmentsColumns,
+		PrimaryKey: []*schema.Column{FinanceCommissionRuleAssignmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_commission_rule_assignments_finance_commission_rules_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[7]},
+				RefColumns: []*schema.Column{FinanceCommissionRulesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_rule_assignments_organizations_finance_commission_rule_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_rule_assignments_users_finance_commission_rule_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_rule_assignments_users_created_finance_commission_rule_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_rule_assignments_users_cancelled_finance_commission_rule_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_commission_rule_assignments_users_terminated_finance_commission_rule_assignments",
+				Columns:    []*schema.Column{FinanceCommissionRuleAssignmentsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecommissionruleassignment_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionRuleAssignmentsColumns[2]},
+			},
+			{
+				Name:    "financecommissionruleassignment_organization_id_rule_id_employee_id_effective_from",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionRuleAssignmentsColumns[8], FinanceCommissionRuleAssignmentsColumns[7], FinanceCommissionRuleAssignmentsColumns[9], FinanceCommissionRuleAssignmentsColumns[3]},
+			},
+			{
+				Name:    "financecommissionruleassignment_organization_id_employee_id_effective_to",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionRuleAssignmentsColumns[8], FinanceCommissionRuleAssignmentsColumns[9], FinanceCommissionRuleAssignmentsColumns[4]},
+			},
+			{
+				Name:    "financecommissionruleassignment_rule_id_effective_to",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionRuleAssignmentsColumns[7], FinanceCommissionRuleAssignmentsColumns[4]},
 			},
 		},
 	}
@@ -6897,6 +6980,7 @@ var (
 		FinanceCommissionAdjustmentsTable,
 		FinanceCommissionLinesTable,
 		FinanceCommissionRulesTable,
+		FinanceCommissionRuleAssignmentsTable,
 		FinanceCustomSettingsTable,
 		FinanceFeeLedgerPreferencesTable,
 		FinanceInvoicesTable,
@@ -7074,6 +7158,18 @@ func init() {
 		"finance_commission_lines_snapshot_consistency_check": "(snapshot_status IS NULL AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NULL) OR (snapshot_status = 'READY' AND total_receivable_snapshot IS NOT NULL AND total_payable_snapshot IS NOT NULL AND snapshot_unavailable_reason_code IS NULL AND snapshot_source IS NOT NULL AND ((snapshot_source = 'NATIVE' AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL) OR (snapshot_source = 'MIGRATED' AND snapshot_backfill_version IS NOT NULL AND snapshot_evidence_hash IS NOT NULL))) OR (snapshot_status = 'UNAVAILABLE' AND total_receivable_snapshot IS NULL AND total_payable_snapshot IS NULL AND snapshot_source IS NULL AND snapshot_backfill_version IS NULL AND snapshot_evidence_hash IS NULL AND snapshot_unavailable_reason_code IS NOT NULL)",
 	}
 	FinanceCommissionRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[0].RefTable = FinanceCommissionRulesTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceCommissionRuleAssignmentsTable.ForeignKeys[5].RefTable = UsersTable
+	FinanceCommissionRuleAssignmentsTable.Annotation = &entsql.Annotation{}
+	FinanceCommissionRuleAssignmentsTable.Annotation.Checks = map[string]string{
+		"finance_commission_rule_assignments_cancel_audit_check":     "(cancelled_at IS NULL AND cancelled_by IS NULL) OR (cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL)",
+		"finance_commission_rule_assignments_effective_period_check": "effective_to IS NULL OR effective_from <= effective_to",
+		"finance_commission_rule_assignments_terminate_audit_check":  "(terminated_at IS NULL AND terminated_by IS NULL) OR (terminated_at IS NOT NULL AND terminated_by IS NOT NULL)",
+	}
 	FinanceCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FinanceFeeLedgerPreferencesTable.ForeignKeys[0].RefTable = OrganizationsTable

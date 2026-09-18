@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -146,6 +147,20 @@ func (_u *FinanceCommissionRuleUpdate) SetNillableEnabled(v *bool) *FinanceCommi
 	return _u
 }
 
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (_u *FinanceCommissionRuleUpdate) SetLegacyReadonly(v bool) *FinanceCommissionRuleUpdate {
+	_u.mutation.SetLegacyReadonly(v)
+	return _u
+}
+
+// SetNillableLegacyReadonly sets the "legacy_readonly" field if the given value is not nil.
+func (_u *FinanceCommissionRuleUpdate) SetNillableLegacyReadonly(v *bool) *FinanceCommissionRuleUpdate {
+	if v != nil {
+		_u.SetLegacyReadonly(*v)
+	}
+	return _u
+}
+
 // SetNote sets the "note" field.
 func (_u *FinanceCommissionRuleUpdate) SetNote(v string) *FinanceCommissionRuleUpdate {
 	_u.mutation.SetNote(v)
@@ -202,6 +217,21 @@ func (_u *FinanceCommissionRuleUpdate) AddCommissions(v ...*FinanceCommission) *
 	return _u.AddCommissionIDs(ids...)
 }
 
+// AddAssignmentIDs adds the "assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *FinanceCommissionRuleUpdate) AddAssignmentIDs(ids ...uuid.UUID) *FinanceCommissionRuleUpdate {
+	_u.mutation.AddAssignmentIDs(ids...)
+	return _u
+}
+
+// AddAssignments adds the "assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *FinanceCommissionRuleUpdate) AddAssignments(v ...*FinanceCommissionRuleAssignment) *FinanceCommissionRuleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAssignmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionRuleMutation object of the builder.
 func (_u *FinanceCommissionRuleUpdate) Mutation() *FinanceCommissionRuleMutation {
 	return _u.mutation
@@ -226,6 +256,27 @@ func (_u *FinanceCommissionRuleUpdate) RemoveCommissions(v ...*FinanceCommission
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionIDs(ids...)
+}
+
+// ClearAssignments clears all "assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *FinanceCommissionRuleUpdate) ClearAssignments() *FinanceCommissionRuleUpdate {
+	_u.mutation.ClearAssignments()
+	return _u
+}
+
+// RemoveAssignmentIDs removes the "assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *FinanceCommissionRuleUpdate) RemoveAssignmentIDs(ids ...uuid.UUID) *FinanceCommissionRuleUpdate {
+	_u.mutation.RemoveAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveAssignments removes "assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *FinanceCommissionRuleUpdate) RemoveAssignments(v ...*FinanceCommissionRuleAssignment) *FinanceCommissionRuleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAssignmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -344,6 +395,9 @@ func (_u *FinanceCommissionRuleUpdate) sqlSave(ctx context.Context) (_node int, 
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(financecommissionrule.FieldEnabled, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.LegacyReadonly(); ok {
+		_spec.SetField(financecommissionrule.FieldLegacyReadonly, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financecommissionrule.FieldNote, field.TypeString, value)
 	}
@@ -394,6 +448,51 @@ func (_u *FinanceCommissionRuleUpdate) sqlSave(ctx context.Context) (_node int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -537,6 +636,20 @@ func (_u *FinanceCommissionRuleUpdateOne) SetNillableEnabled(v *bool) *FinanceCo
 	return _u
 }
 
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (_u *FinanceCommissionRuleUpdateOne) SetLegacyReadonly(v bool) *FinanceCommissionRuleUpdateOne {
+	_u.mutation.SetLegacyReadonly(v)
+	return _u
+}
+
+// SetNillableLegacyReadonly sets the "legacy_readonly" field if the given value is not nil.
+func (_u *FinanceCommissionRuleUpdateOne) SetNillableLegacyReadonly(v *bool) *FinanceCommissionRuleUpdateOne {
+	if v != nil {
+		_u.SetLegacyReadonly(*v)
+	}
+	return _u
+}
+
 // SetNote sets the "note" field.
 func (_u *FinanceCommissionRuleUpdateOne) SetNote(v string) *FinanceCommissionRuleUpdateOne {
 	_u.mutation.SetNote(v)
@@ -593,6 +706,21 @@ func (_u *FinanceCommissionRuleUpdateOne) AddCommissions(v ...*FinanceCommission
 	return _u.AddCommissionIDs(ids...)
 }
 
+// AddAssignmentIDs adds the "assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_u *FinanceCommissionRuleUpdateOne) AddAssignmentIDs(ids ...uuid.UUID) *FinanceCommissionRuleUpdateOne {
+	_u.mutation.AddAssignmentIDs(ids...)
+	return _u
+}
+
+// AddAssignments adds the "assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *FinanceCommissionRuleUpdateOne) AddAssignments(v ...*FinanceCommissionRuleAssignment) *FinanceCommissionRuleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAssignmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionRuleMutation object of the builder.
 func (_u *FinanceCommissionRuleUpdateOne) Mutation() *FinanceCommissionRuleMutation {
 	return _u.mutation
@@ -617,6 +745,27 @@ func (_u *FinanceCommissionRuleUpdateOne) RemoveCommissions(v ...*FinanceCommiss
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionIDs(ids...)
+}
+
+// ClearAssignments clears all "assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_u *FinanceCommissionRuleUpdateOne) ClearAssignments() *FinanceCommissionRuleUpdateOne {
+	_u.mutation.ClearAssignments()
+	return _u
+}
+
+// RemoveAssignmentIDs removes the "assignments" edge to FinanceCommissionRuleAssignment entities by IDs.
+func (_u *FinanceCommissionRuleUpdateOne) RemoveAssignmentIDs(ids ...uuid.UUID) *FinanceCommissionRuleUpdateOne {
+	_u.mutation.RemoveAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveAssignments removes "assignments" edges to FinanceCommissionRuleAssignment entities.
+func (_u *FinanceCommissionRuleUpdateOne) RemoveAssignments(v ...*FinanceCommissionRuleAssignment) *FinanceCommissionRuleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAssignmentIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceCommissionRuleUpdate builder.
@@ -765,6 +914,9 @@ func (_u *FinanceCommissionRuleUpdateOne) sqlSave(ctx context.Context) (_node *F
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(financecommissionrule.FieldEnabled, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.LegacyReadonly(); ok {
+		_spec.SetField(financecommissionrule.FieldLegacyReadonly, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financecommissionrule.FieldNote, field.TypeString, value)
 	}
@@ -815,6 +967,51 @@ func (_u *FinanceCommissionRuleUpdateOne) sqlSave(ctx context.Context) (_node *F
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

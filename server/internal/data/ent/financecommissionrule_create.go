@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -126,6 +127,20 @@ func (_c *FinanceCommissionRuleCreate) SetNillableEnabled(v *bool) *FinanceCommi
 	return _c
 }
 
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (_c *FinanceCommissionRuleCreate) SetLegacyReadonly(v bool) *FinanceCommissionRuleCreate {
+	_c.mutation.SetLegacyReadonly(v)
+	return _c
+}
+
+// SetNillableLegacyReadonly sets the "legacy_readonly" field if the given value is not nil.
+func (_c *FinanceCommissionRuleCreate) SetNillableLegacyReadonly(v *bool) *FinanceCommissionRuleCreate {
+	if v != nil {
+		_c.SetLegacyReadonly(*v)
+	}
+	return _c
+}
+
 // SetNote sets the "note" field.
 func (_c *FinanceCommissionRuleCreate) SetNote(v string) *FinanceCommissionRuleCreate {
 	_c.mutation.SetNote(v)
@@ -188,6 +203,21 @@ func (_c *FinanceCommissionRuleCreate) AddCommissions(v ...*FinanceCommission) *
 	return _c.AddCommissionIDs(ids...)
 }
 
+// AddAssignmentIDs adds the "assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (_c *FinanceCommissionRuleCreate) AddAssignmentIDs(ids ...uuid.UUID) *FinanceCommissionRuleCreate {
+	_c.mutation.AddAssignmentIDs(ids...)
+	return _c
+}
+
+// AddAssignments adds the "assignments" edges to the FinanceCommissionRuleAssignment entity.
+func (_c *FinanceCommissionRuleCreate) AddAssignments(v ...*FinanceCommissionRuleAssignment) *FinanceCommissionRuleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAssignmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionRuleMutation object of the builder.
 func (_c *FinanceCommissionRuleCreate) Mutation() *FinanceCommissionRuleMutation {
 	return _c.mutation
@@ -234,6 +264,10 @@ func (_c *FinanceCommissionRuleCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := financecommissionrule.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.LegacyReadonly(); !ok {
+		v := financecommissionrule.DefaultLegacyReadonly
+		_c.mutation.SetLegacyReadonly(v)
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := financecommissionrule.DefaultVersion
@@ -295,6 +329,9 @@ func (_c *FinanceCommissionRuleCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "FinanceCommissionRule.enabled"`)}
+	}
+	if _, ok := _c.mutation.LegacyReadonly(); !ok {
+		return &ValidationError{Name: "legacy_readonly", err: errors.New(`ent: missing required field "FinanceCommissionRule.legacy_readonly"`)}
 	}
 	if v, ok := _c.mutation.Note(); ok {
 		if err := financecommissionrule.NoteValidator(v); err != nil {
@@ -379,6 +416,10 @@ func (_c *FinanceCommissionRuleCreate) createSpec() (*FinanceCommissionRule, *sq
 		_spec.SetField(financecommissionrule.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
 	}
+	if value, ok := _c.mutation.LegacyReadonly(); ok {
+		_spec.SetField(financecommissionrule.FieldLegacyReadonly, field.TypeBool, value)
+		_node.LegacyReadonly = value
+	}
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(financecommissionrule.FieldNote, field.TypeString, value)
 		_node.Note = &value
@@ -413,6 +454,22 @@ func (_c *FinanceCommissionRuleCreate) createSpec() (*FinanceCommissionRule, *sq
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommissionrule.AssignmentsTable,
+			Columns: []string{financecommissionrule.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -577,6 +634,18 @@ func (u *FinanceCommissionRuleUpsert) SetEnabled(v bool) *FinanceCommissionRuleU
 // UpdateEnabled sets the "enabled" field to the value that was provided on create.
 func (u *FinanceCommissionRuleUpsert) UpdateEnabled() *FinanceCommissionRuleUpsert {
 	u.SetExcluded(financecommissionrule.FieldEnabled)
+	return u
+}
+
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (u *FinanceCommissionRuleUpsert) SetLegacyReadonly(v bool) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldLegacyReadonly, v)
+	return u
+}
+
+// UpdateLegacyReadonly sets the "legacy_readonly" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateLegacyReadonly() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldLegacyReadonly)
 	return u
 }
 
@@ -793,6 +862,20 @@ func (u *FinanceCommissionRuleUpsertOne) SetEnabled(v bool) *FinanceCommissionRu
 func (u *FinanceCommissionRuleUpsertOne) UpdateEnabled() *FinanceCommissionRuleUpsertOne {
 	return u.Update(func(s *FinanceCommissionRuleUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (u *FinanceCommissionRuleUpsertOne) SetLegacyReadonly(v bool) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetLegacyReadonly(v)
+	})
+}
+
+// UpdateLegacyReadonly sets the "legacy_readonly" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateLegacyReadonly() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateLegacyReadonly()
 	})
 }
 
@@ -1182,6 +1265,20 @@ func (u *FinanceCommissionRuleUpsertBulk) SetEnabled(v bool) *FinanceCommissionR
 func (u *FinanceCommissionRuleUpsertBulk) UpdateEnabled() *FinanceCommissionRuleUpsertBulk {
 	return u.Update(func(s *FinanceCommissionRuleUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetLegacyReadonly(v bool) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetLegacyReadonly(v)
+	})
+}
+
+// UpdateLegacyReadonly sets the "legacy_readonly" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateLegacyReadonly() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateLegacyReadonly()
 	})
 }
 

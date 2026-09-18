@@ -49,6 +49,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -196,6 +197,8 @@ type Client struct {
 	FinanceCommissionLine *FinanceCommissionLineClient
 	// FinanceCommissionRule is the client for interacting with the FinanceCommissionRule builders.
 	FinanceCommissionRule *FinanceCommissionRuleClient
+	// FinanceCommissionRuleAssignment is the client for interacting with the FinanceCommissionRuleAssignment builders.
+	FinanceCommissionRuleAssignment *FinanceCommissionRuleAssignmentClient
 	// FinanceCustomSetting is the client for interacting with the FinanceCustomSetting builders.
 	FinanceCustomSetting *FinanceCustomSettingClient
 	// FinanceFeeLedgerPreference is the client for interacting with the FinanceFeeLedgerPreference builders.
@@ -388,6 +391,7 @@ func (c *Client) init() {
 	c.FinanceCommissionAdjustment = NewFinanceCommissionAdjustmentClient(c.config)
 	c.FinanceCommissionLine = NewFinanceCommissionLineClient(c.config)
 	c.FinanceCommissionRule = NewFinanceCommissionRuleClient(c.config)
+	c.FinanceCommissionRuleAssignment = NewFinanceCommissionRuleAssignmentClient(c.config)
 	c.FinanceCustomSetting = NewFinanceCustomSettingClient(c.config)
 	c.FinanceFeeLedgerPreference = NewFinanceFeeLedgerPreferenceClient(c.config)
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
@@ -552,115 +556,116 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                            ctx,
-		config:                         cfg,
-		AdministrativeRegion:           NewAdministrativeRegionClient(cfg),
-		Airline:                        NewAirlineClient(cfg),
-		Airport:                        NewAirportClient(cfg),
-		AuditLog:                       NewAuditLogClient(cfg),
-		BackgroundTask:                 NewBackgroundTaskClient(cfg),
-		BillingUnit:                    NewBillingUnitClient(cfg),
-		Currency:                       NewCurrencyClient(cfg),
-		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
-		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
-		DingTalkInvitation:             NewDingTalkInvitationClient(cfg),
-		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
-		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
-		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
-		EnterpriseResourceAssignee:     NewEnterpriseResourceAssigneeClient(cfg),
-		EnterpriseResourceImage:        NewEnterpriseResourceImageClient(cfg),
-		EnterpriseResourcePartner:      NewEnterpriseResourcePartnerClient(cfg),
-		EnterpriseResourceParty:        NewEnterpriseResourcePartyClient(cfg),
-		EnterpriseResourceRemark:       NewEnterpriseResourceRemarkClient(cfg),
-		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
-		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
-		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
-		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
-		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
-		FeeSetting:                     NewFeeSettingClient(cfg),
-		FinanceBill:                    NewFinanceBillClient(cfg),
-		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
-		FinanceBillEnterpriseTag:       NewFinanceBillEnterpriseTagClient(cfg),
-		FinanceBillLine:                NewFinanceBillLineClient(cfg),
-		FinanceCashflow:                NewFinanceCashflowClient(cfg),
-		FinanceCommission:              NewFinanceCommissionClient(cfg),
-		FinanceCommissionAdjustment:    NewFinanceCommissionAdjustmentClient(cfg),
-		FinanceCommissionLine:          NewFinanceCommissionLineClient(cfg),
-		FinanceCommissionRule:          NewFinanceCommissionRuleClient(cfg),
-		FinanceCustomSetting:           NewFinanceCustomSettingClient(cfg),
-		FinanceFeeLedgerPreference:     NewFinanceFeeLedgerPreferenceClient(cfg),
-		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
-		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
-		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
-		FinanceNetting:                 NewFinanceNettingClient(cfg),
-		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
-		FinanceVerification:            NewFinanceVerificationClient(cfg),
-		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
-		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
-		MasterDataItem:                 NewMasterDataItemClient(cfg),
-		Membership:                     NewMembershipClient(cfg),
-		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
-		NumberRule:                     NewNumberRuleClient(cfg),
-		NumberSequence:                 NewNumberSequenceClient(cfg),
-		ObjectStorageDeletion:          NewObjectStorageDeletionClient(cfg),
-		Order:                          NewOrderClient(cfg),
-		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:                NewOrderAttachmentClient(cfg),
-		OrderAttachmentAsset:           NewOrderAttachmentAssetClient(cfg),
-		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
-		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
-		OrderContainer:                 NewOrderContainerClient(cfg),
-		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
-		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
-		OrderFee:                       NewOrderFeeClient(cfg),
-		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
-		OrderFeeSupplementRequest:      NewOrderFeeSupplementRequestClient(cfg),
-		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
-		OrderLockHouseBillSnapshot:     NewOrderLockHouseBillSnapshotClient(cfg),
-		OrderLockRecord:                NewOrderLockRecordClient(cfg),
-		OrderMilestone:                 NewOrderMilestoneClient(cfg),
-		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
-		OrderReleasePod:                NewOrderReleasePodClient(cfg),
-		OrderServiceType:               NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
-		OrderUnlockApproverCandidate:   NewOrderUnlockApproverCandidateClient(cfg),
-		OrderUnlockRequest:             NewOrderUnlockRequestClient(cfg),
-		Organization:                   NewOrganizationClient(cfg),
-		Partner:                        NewPartnerClient(cfg),
-		PartnerAccount:                 NewPartnerAccountClient(cfg),
-		PartnerAlias:                   NewPartnerAliasClient(cfg),
-		PartnerAssignment:              NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:              NewPartnerAttachmentClient(cfg),
-		PartnerContact:                 NewPartnerContactClient(cfg),
-		PartnerContract:                NewPartnerContractClient(cfg),
-		PartnerInvoiceProfile:          NewPartnerInvoiceProfileClient(cfg),
-		PartnerProfile:                 NewPartnerProfileClient(cfg),
-		PartnerRole:                    NewPartnerRoleClient(cfg),
-		PartnerSettlementRule:          NewPartnerSettlementRuleClient(cfg),
-		Permission:                     NewPermissionClient(cfg),
-		Port:                           NewPortClient(cfg),
-		Role:                           NewRoleClient(cfg),
-		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
-		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
-		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
-		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
-		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
-		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
-		SeaMasterBillVersion:           NewSeaMasterBillVersionClient(cfg),
-		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
-		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
-		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
-		SeaSharedContainer:             NewSeaSharedContainerClient(cfg),
-		SeaSharedContainerAllocation:   NewSeaSharedContainerAllocationClient(cfg),
-		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
-		SeaTransportExecutionVersion:   NewSeaTransportExecutionVersionClient(cfg),
-		Session:                        NewSessionClient(cfg),
-		ShippingLine:                   NewShippingLineClient(cfg),
-		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
-		TaxableService:                 NewTaxableServiceClient(cfg),
-		User:                           NewUserClient(cfg),
+		ctx:                             ctx,
+		config:                          cfg,
+		AdministrativeRegion:            NewAdministrativeRegionClient(cfg),
+		Airline:                         NewAirlineClient(cfg),
+		Airport:                         NewAirportClient(cfg),
+		AuditLog:                        NewAuditLogClient(cfg),
+		BackgroundTask:                  NewBackgroundTaskClient(cfg),
+		BillingUnit:                     NewBillingUnitClient(cfg),
+		Currency:                        NewCurrencyClient(cfg),
+		DingTalkApprovalDispatch:        NewDingTalkApprovalDispatchClient(cfg),
+		DingTalkApprovalInboxEvent:      NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkInvitation:              NewDingTalkInvitationClient(cfg),
+		EnterpriseResource:              NewEnterpriseResourceClient(cfg),
+		EnterpriseResourceAddress:       NewEnterpriseResourceAddressClient(cfg),
+		EnterpriseResourceAddressType:   NewEnterpriseResourceAddressTypeClient(cfg),
+		EnterpriseResourceAssignee:      NewEnterpriseResourceAssigneeClient(cfg),
+		EnterpriseResourceImage:         NewEnterpriseResourceImageClient(cfg),
+		EnterpriseResourcePartner:       NewEnterpriseResourcePartnerClient(cfg),
+		EnterpriseResourceParty:         NewEnterpriseResourcePartyClient(cfg),
+		EnterpriseResourceRemark:        NewEnterpriseResourceRemarkClient(cfg),
+		EnterpriseResourceShippingText:  NewEnterpriseResourceShippingTextClient(cfg),
+		EnterpriseTag:                   NewEnterpriseTagClient(cfg),
+		EnterpriseTagGroup:              NewEnterpriseTagGroupClient(cfg),
+		ExchangeRateImportBatch:         NewExchangeRateImportBatchClient(cfg),
+		ExchangeRateSetting:             NewExchangeRateSettingClient(cfg),
+		FeeSetting:                      NewFeeSettingClient(cfg),
+		FinanceBill:                     NewFinanceBillClient(cfg),
+		FinanceBillBatch:                NewFinanceBillBatchClient(cfg),
+		FinanceBillEnterpriseTag:        NewFinanceBillEnterpriseTagClient(cfg),
+		FinanceBillLine:                 NewFinanceBillLineClient(cfg),
+		FinanceCashflow:                 NewFinanceCashflowClient(cfg),
+		FinanceCommission:               NewFinanceCommissionClient(cfg),
+		FinanceCommissionAdjustment:     NewFinanceCommissionAdjustmentClient(cfg),
+		FinanceCommissionLine:           NewFinanceCommissionLineClient(cfg),
+		FinanceCommissionRule:           NewFinanceCommissionRuleClient(cfg),
+		FinanceCommissionRuleAssignment: NewFinanceCommissionRuleAssignmentClient(cfg),
+		FinanceCustomSetting:            NewFinanceCustomSettingClient(cfg),
+		FinanceFeeLedgerPreference:      NewFinanceFeeLedgerPreferenceClient(cfg),
+		FinanceInvoice:                  NewFinanceInvoiceClient(cfg),
+		FinanceInvoiceBill:              NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:              NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                  NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:        NewFinanceNettingAllocationClient(cfg),
+		FinanceVerification:             NewFinanceVerificationClient(cfg),
+		FinanceVerificationAllocation:   NewFinanceVerificationAllocationClient(cfg),
+		LoginRateLimitBucket:            NewLoginRateLimitBucketClient(cfg),
+		MasterDataItem:                  NewMasterDataItemClient(cfg),
+		Membership:                      NewMembershipClient(cfg),
+		NotificationDelivery:            NewNotificationDeliveryClient(cfg),
+		NumberRule:                      NewNumberRuleClient(cfg),
+		NumberSequence:                  NewNumberSequenceClient(cfg),
+		ObjectStorageDeletion:           NewObjectStorageDeletionClient(cfg),
+		Order:                           NewOrderClient(cfg),
+		OrderAbnormalCase:               NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:                 NewOrderAttachmentClient(cfg),
+		OrderAttachmentAsset:            NewOrderAttachmentAssetClient(cfg),
+		OrderCargoCategory:              NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:                  NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:      NewOrderCommissionAttributionClient(cfg),
+		OrderContainer:                  NewOrderContainerClient(cfg),
+		OrderContainerRequest:           NewOrderContainerRequestClient(cfg),
+		OrderEnterpriseTag:              NewOrderEnterpriseTagClient(cfg),
+		OrderFee:                        NewOrderFeeClient(cfg),
+		OrderFeeEnterpriseTag:           NewOrderFeeEnterpriseTagClient(cfg),
+		OrderFeeSupplementRequest:       NewOrderFeeSupplementRequestClient(cfg),
+		OrderLifecycleEvent:             NewOrderLifecycleEventClient(cfg),
+		OrderLockHouseBillSnapshot:      NewOrderLockHouseBillSnapshotClient(cfg),
+		OrderLockRecord:                 NewOrderLockRecordClient(cfg),
+		OrderMilestone:                  NewOrderMilestoneClient(cfg),
+		OrderPersonnel:                  NewOrderPersonnelClient(cfg),
+		OrderReleasePod:                 NewOrderReleasePodClient(cfg),
+		OrderServiceType:                NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:           NewOrderShippingDocumentClient(cfg),
+		OrderUnlockApproverCandidate:    NewOrderUnlockApproverCandidateClient(cfg),
+		OrderUnlockRequest:              NewOrderUnlockRequestClient(cfg),
+		Organization:                    NewOrganizationClient(cfg),
+		Partner:                         NewPartnerClient(cfg),
+		PartnerAccount:                  NewPartnerAccountClient(cfg),
+		PartnerAlias:                    NewPartnerAliasClient(cfg),
+		PartnerAssignment:               NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:               NewPartnerAttachmentClient(cfg),
+		PartnerContact:                  NewPartnerContactClient(cfg),
+		PartnerContract:                 NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:           NewPartnerInvoiceProfileClient(cfg),
+		PartnerProfile:                  NewPartnerProfileClient(cfg),
+		PartnerRole:                     NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:           NewPartnerSettlementRuleClient(cfg),
+		Permission:                      NewPermissionClient(cfg),
+		Port:                            NewPortClient(cfg),
+		Role:                            NewRoleClient(cfg),
+		RoleAssignment:                  NewRoleAssignmentClient(cfg),
+		SeaDocumentModeChangeEvent:      NewSeaDocumentModeChangeEventClient(cfg),
+		SeaDocumentVoidEvent:            NewSeaDocumentVoidEventClient(cfg),
+		SeaHouseBill:                    NewSeaHouseBillClient(cfg),
+		SeaHouseBillVersion:             NewSeaHouseBillVersionClient(cfg),
+		SeaMasterBill:                   NewSeaMasterBillClient(cfg),
+		SeaMasterBillOrderLink:          NewSeaMasterBillOrderLinkClient(cfg),
+		SeaMasterBillVersion:            NewSeaMasterBillVersionClient(cfg),
+		SeaOrderReassignmentEvent:       NewSeaOrderReassignmentEventClient(cfg),
+		SeaOrderSplitEvent:              NewSeaOrderSplitEventClient(cfg),
+		SeaOrderSplitResult:             NewSeaOrderSplitResultClient(cfg),
+		SeaSharedContainer:              NewSeaSharedContainerClient(cfg),
+		SeaSharedContainerAllocation:    NewSeaSharedContainerAllocationClient(cfg),
+		SeaTransportExecution:           NewSeaTransportExecutionClient(cfg),
+		SeaTransportExecutionVersion:    NewSeaTransportExecutionVersionClient(cfg),
+		Session:                         NewSessionClient(cfg),
+		ShippingLine:                    NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix:     NewShippingLineContainerPrefixClient(cfg),
+		TaxableService:                  NewTaxableServiceClient(cfg),
+		User:                            NewUserClient(cfg),
 	}, nil
 }
 
@@ -678,115 +683,116 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                            ctx,
-		config:                         cfg,
-		AdministrativeRegion:           NewAdministrativeRegionClient(cfg),
-		Airline:                        NewAirlineClient(cfg),
-		Airport:                        NewAirportClient(cfg),
-		AuditLog:                       NewAuditLogClient(cfg),
-		BackgroundTask:                 NewBackgroundTaskClient(cfg),
-		BillingUnit:                    NewBillingUnitClient(cfg),
-		Currency:                       NewCurrencyClient(cfg),
-		DingTalkApprovalDispatch:       NewDingTalkApprovalDispatchClient(cfg),
-		DingTalkApprovalInboxEvent:     NewDingTalkApprovalInboxEventClient(cfg),
-		DingTalkInvitation:             NewDingTalkInvitationClient(cfg),
-		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
-		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
-		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
-		EnterpriseResourceAssignee:     NewEnterpriseResourceAssigneeClient(cfg),
-		EnterpriseResourceImage:        NewEnterpriseResourceImageClient(cfg),
-		EnterpriseResourcePartner:      NewEnterpriseResourcePartnerClient(cfg),
-		EnterpriseResourceParty:        NewEnterpriseResourcePartyClient(cfg),
-		EnterpriseResourceRemark:       NewEnterpriseResourceRemarkClient(cfg),
-		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
-		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
-		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
-		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
-		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
-		FeeSetting:                     NewFeeSettingClient(cfg),
-		FinanceBill:                    NewFinanceBillClient(cfg),
-		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
-		FinanceBillEnterpriseTag:       NewFinanceBillEnterpriseTagClient(cfg),
-		FinanceBillLine:                NewFinanceBillLineClient(cfg),
-		FinanceCashflow:                NewFinanceCashflowClient(cfg),
-		FinanceCommission:              NewFinanceCommissionClient(cfg),
-		FinanceCommissionAdjustment:    NewFinanceCommissionAdjustmentClient(cfg),
-		FinanceCommissionLine:          NewFinanceCommissionLineClient(cfg),
-		FinanceCommissionRule:          NewFinanceCommissionRuleClient(cfg),
-		FinanceCustomSetting:           NewFinanceCustomSettingClient(cfg),
-		FinanceFeeLedgerPreference:     NewFinanceFeeLedgerPreferenceClient(cfg),
-		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
-		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
-		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
-		FinanceNetting:                 NewFinanceNettingClient(cfg),
-		FinanceNettingAllocation:       NewFinanceNettingAllocationClient(cfg),
-		FinanceVerification:            NewFinanceVerificationClient(cfg),
-		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
-		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
-		MasterDataItem:                 NewMasterDataItemClient(cfg),
-		Membership:                     NewMembershipClient(cfg),
-		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
-		NumberRule:                     NewNumberRuleClient(cfg),
-		NumberSequence:                 NewNumberSequenceClient(cfg),
-		ObjectStorageDeletion:          NewObjectStorageDeletionClient(cfg),
-		Order:                          NewOrderClient(cfg),
-		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:                NewOrderAttachmentClient(cfg),
-		OrderAttachmentAsset:           NewOrderAttachmentAssetClient(cfg),
-		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
-		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
-		OrderContainer:                 NewOrderContainerClient(cfg),
-		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
-		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
-		OrderFee:                       NewOrderFeeClient(cfg),
-		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
-		OrderFeeSupplementRequest:      NewOrderFeeSupplementRequestClient(cfg),
-		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
-		OrderLockHouseBillSnapshot:     NewOrderLockHouseBillSnapshotClient(cfg),
-		OrderLockRecord:                NewOrderLockRecordClient(cfg),
-		OrderMilestone:                 NewOrderMilestoneClient(cfg),
-		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
-		OrderReleasePod:                NewOrderReleasePodClient(cfg),
-		OrderServiceType:               NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
-		OrderUnlockApproverCandidate:   NewOrderUnlockApproverCandidateClient(cfg),
-		OrderUnlockRequest:             NewOrderUnlockRequestClient(cfg),
-		Organization:                   NewOrganizationClient(cfg),
-		Partner:                        NewPartnerClient(cfg),
-		PartnerAccount:                 NewPartnerAccountClient(cfg),
-		PartnerAlias:                   NewPartnerAliasClient(cfg),
-		PartnerAssignment:              NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:              NewPartnerAttachmentClient(cfg),
-		PartnerContact:                 NewPartnerContactClient(cfg),
-		PartnerContract:                NewPartnerContractClient(cfg),
-		PartnerInvoiceProfile:          NewPartnerInvoiceProfileClient(cfg),
-		PartnerProfile:                 NewPartnerProfileClient(cfg),
-		PartnerRole:                    NewPartnerRoleClient(cfg),
-		PartnerSettlementRule:          NewPartnerSettlementRuleClient(cfg),
-		Permission:                     NewPermissionClient(cfg),
-		Port:                           NewPortClient(cfg),
-		Role:                           NewRoleClient(cfg),
-		RoleAssignment:                 NewRoleAssignmentClient(cfg),
-		SeaDocumentModeChangeEvent:     NewSeaDocumentModeChangeEventClient(cfg),
-		SeaDocumentVoidEvent:           NewSeaDocumentVoidEventClient(cfg),
-		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
-		SeaHouseBillVersion:            NewSeaHouseBillVersionClient(cfg),
-		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
-		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
-		SeaMasterBillVersion:           NewSeaMasterBillVersionClient(cfg),
-		SeaOrderReassignmentEvent:      NewSeaOrderReassignmentEventClient(cfg),
-		SeaOrderSplitEvent:             NewSeaOrderSplitEventClient(cfg),
-		SeaOrderSplitResult:            NewSeaOrderSplitResultClient(cfg),
-		SeaSharedContainer:             NewSeaSharedContainerClient(cfg),
-		SeaSharedContainerAllocation:   NewSeaSharedContainerAllocationClient(cfg),
-		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
-		SeaTransportExecutionVersion:   NewSeaTransportExecutionVersionClient(cfg),
-		Session:                        NewSessionClient(cfg),
-		ShippingLine:                   NewShippingLineClient(cfg),
-		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
-		TaxableService:                 NewTaxableServiceClient(cfg),
-		User:                           NewUserClient(cfg),
+		ctx:                             ctx,
+		config:                          cfg,
+		AdministrativeRegion:            NewAdministrativeRegionClient(cfg),
+		Airline:                         NewAirlineClient(cfg),
+		Airport:                         NewAirportClient(cfg),
+		AuditLog:                        NewAuditLogClient(cfg),
+		BackgroundTask:                  NewBackgroundTaskClient(cfg),
+		BillingUnit:                     NewBillingUnitClient(cfg),
+		Currency:                        NewCurrencyClient(cfg),
+		DingTalkApprovalDispatch:        NewDingTalkApprovalDispatchClient(cfg),
+		DingTalkApprovalInboxEvent:      NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkInvitation:              NewDingTalkInvitationClient(cfg),
+		EnterpriseResource:              NewEnterpriseResourceClient(cfg),
+		EnterpriseResourceAddress:       NewEnterpriseResourceAddressClient(cfg),
+		EnterpriseResourceAddressType:   NewEnterpriseResourceAddressTypeClient(cfg),
+		EnterpriseResourceAssignee:      NewEnterpriseResourceAssigneeClient(cfg),
+		EnterpriseResourceImage:         NewEnterpriseResourceImageClient(cfg),
+		EnterpriseResourcePartner:       NewEnterpriseResourcePartnerClient(cfg),
+		EnterpriseResourceParty:         NewEnterpriseResourcePartyClient(cfg),
+		EnterpriseResourceRemark:        NewEnterpriseResourceRemarkClient(cfg),
+		EnterpriseResourceShippingText:  NewEnterpriseResourceShippingTextClient(cfg),
+		EnterpriseTag:                   NewEnterpriseTagClient(cfg),
+		EnterpriseTagGroup:              NewEnterpriseTagGroupClient(cfg),
+		ExchangeRateImportBatch:         NewExchangeRateImportBatchClient(cfg),
+		ExchangeRateSetting:             NewExchangeRateSettingClient(cfg),
+		FeeSetting:                      NewFeeSettingClient(cfg),
+		FinanceBill:                     NewFinanceBillClient(cfg),
+		FinanceBillBatch:                NewFinanceBillBatchClient(cfg),
+		FinanceBillEnterpriseTag:        NewFinanceBillEnterpriseTagClient(cfg),
+		FinanceBillLine:                 NewFinanceBillLineClient(cfg),
+		FinanceCashflow:                 NewFinanceCashflowClient(cfg),
+		FinanceCommission:               NewFinanceCommissionClient(cfg),
+		FinanceCommissionAdjustment:     NewFinanceCommissionAdjustmentClient(cfg),
+		FinanceCommissionLine:           NewFinanceCommissionLineClient(cfg),
+		FinanceCommissionRule:           NewFinanceCommissionRuleClient(cfg),
+		FinanceCommissionRuleAssignment: NewFinanceCommissionRuleAssignmentClient(cfg),
+		FinanceCustomSetting:            NewFinanceCustomSettingClient(cfg),
+		FinanceFeeLedgerPreference:      NewFinanceFeeLedgerPreferenceClient(cfg),
+		FinanceInvoice:                  NewFinanceInvoiceClient(cfg),
+		FinanceInvoiceBill:              NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:              NewFinanceInvoiceLineClient(cfg),
+		FinanceNetting:                  NewFinanceNettingClient(cfg),
+		FinanceNettingAllocation:        NewFinanceNettingAllocationClient(cfg),
+		FinanceVerification:             NewFinanceVerificationClient(cfg),
+		FinanceVerificationAllocation:   NewFinanceVerificationAllocationClient(cfg),
+		LoginRateLimitBucket:            NewLoginRateLimitBucketClient(cfg),
+		MasterDataItem:                  NewMasterDataItemClient(cfg),
+		Membership:                      NewMembershipClient(cfg),
+		NotificationDelivery:            NewNotificationDeliveryClient(cfg),
+		NumberRule:                      NewNumberRuleClient(cfg),
+		NumberSequence:                  NewNumberSequenceClient(cfg),
+		ObjectStorageDeletion:           NewObjectStorageDeletionClient(cfg),
+		Order:                           NewOrderClient(cfg),
+		OrderAbnormalCase:               NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:                 NewOrderAttachmentClient(cfg),
+		OrderAttachmentAsset:            NewOrderAttachmentAssetClient(cfg),
+		OrderCargoCategory:              NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:                  NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:      NewOrderCommissionAttributionClient(cfg),
+		OrderContainer:                  NewOrderContainerClient(cfg),
+		OrderContainerRequest:           NewOrderContainerRequestClient(cfg),
+		OrderEnterpriseTag:              NewOrderEnterpriseTagClient(cfg),
+		OrderFee:                        NewOrderFeeClient(cfg),
+		OrderFeeEnterpriseTag:           NewOrderFeeEnterpriseTagClient(cfg),
+		OrderFeeSupplementRequest:       NewOrderFeeSupplementRequestClient(cfg),
+		OrderLifecycleEvent:             NewOrderLifecycleEventClient(cfg),
+		OrderLockHouseBillSnapshot:      NewOrderLockHouseBillSnapshotClient(cfg),
+		OrderLockRecord:                 NewOrderLockRecordClient(cfg),
+		OrderMilestone:                  NewOrderMilestoneClient(cfg),
+		OrderPersonnel:                  NewOrderPersonnelClient(cfg),
+		OrderReleasePod:                 NewOrderReleasePodClient(cfg),
+		OrderServiceType:                NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:           NewOrderShippingDocumentClient(cfg),
+		OrderUnlockApproverCandidate:    NewOrderUnlockApproverCandidateClient(cfg),
+		OrderUnlockRequest:              NewOrderUnlockRequestClient(cfg),
+		Organization:                    NewOrganizationClient(cfg),
+		Partner:                         NewPartnerClient(cfg),
+		PartnerAccount:                  NewPartnerAccountClient(cfg),
+		PartnerAlias:                    NewPartnerAliasClient(cfg),
+		PartnerAssignment:               NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:               NewPartnerAttachmentClient(cfg),
+		PartnerContact:                  NewPartnerContactClient(cfg),
+		PartnerContract:                 NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:           NewPartnerInvoiceProfileClient(cfg),
+		PartnerProfile:                  NewPartnerProfileClient(cfg),
+		PartnerRole:                     NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:           NewPartnerSettlementRuleClient(cfg),
+		Permission:                      NewPermissionClient(cfg),
+		Port:                            NewPortClient(cfg),
+		Role:                            NewRoleClient(cfg),
+		RoleAssignment:                  NewRoleAssignmentClient(cfg),
+		SeaDocumentModeChangeEvent:      NewSeaDocumentModeChangeEventClient(cfg),
+		SeaDocumentVoidEvent:            NewSeaDocumentVoidEventClient(cfg),
+		SeaHouseBill:                    NewSeaHouseBillClient(cfg),
+		SeaHouseBillVersion:             NewSeaHouseBillVersionClient(cfg),
+		SeaMasterBill:                   NewSeaMasterBillClient(cfg),
+		SeaMasterBillOrderLink:          NewSeaMasterBillOrderLinkClient(cfg),
+		SeaMasterBillVersion:            NewSeaMasterBillVersionClient(cfg),
+		SeaOrderReassignmentEvent:       NewSeaOrderReassignmentEventClient(cfg),
+		SeaOrderSplitEvent:              NewSeaOrderSplitEventClient(cfg),
+		SeaOrderSplitResult:             NewSeaOrderSplitResultClient(cfg),
+		SeaSharedContainer:              NewSeaSharedContainerClient(cfg),
+		SeaSharedContainerAllocation:    NewSeaSharedContainerAllocationClient(cfg),
+		SeaTransportExecution:           NewSeaTransportExecutionClient(cfg),
+		SeaTransportExecutionVersion:    NewSeaTransportExecutionVersionClient(cfg),
+		Session:                         NewSessionClient(cfg),
+		ShippingLine:                    NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix:     NewShippingLineContainerPrefixClient(cfg),
+		TaxableService:                  NewTaxableServiceClient(cfg),
+		User:                            NewUserClient(cfg),
 	}, nil
 }
 
@@ -827,8 +833,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
 		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
 		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
+		c.FinanceCustomSetting, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
 		c.FinanceNettingAllocation, c.FinanceVerification,
 		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
 		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
@@ -870,8 +877,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
 		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
 		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
+		c.FinanceCustomSetting, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
 		c.FinanceNettingAllocation, c.FinanceVerification,
 		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
 		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
@@ -967,6 +975,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceCommissionLine.mutate(ctx, m)
 	case *FinanceCommissionRuleMutation:
 		return c.FinanceCommissionRule.mutate(ctx, m)
+	case *FinanceCommissionRuleAssignmentMutation:
+		return c.FinanceCommissionRuleAssignment.mutate(ctx, m)
 	case *FinanceCustomSettingMutation:
 		return c.FinanceCustomSetting.mutate(ctx, m)
 	case *FinanceFeeLedgerPreferenceMutation:
@@ -7076,6 +7086,22 @@ func (c *FinanceCommissionRuleClient) QueryCommissions(_m *FinanceCommissionRule
 	return query
 }
 
+// QueryAssignments queries the assignments edge of a FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) QueryAssignments(_m *FinanceCommissionRule) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionrule.Table, financecommissionrule.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financecommissionrule.AssignmentsTable, financecommissionrule.AssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FinanceCommissionRuleClient) Hooks() []Hook {
 	return c.hooks.FinanceCommissionRule
@@ -7098,6 +7124,235 @@ func (c *FinanceCommissionRuleClient) mutate(ctx context.Context, m *FinanceComm
 		return (&FinanceCommissionRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceCommissionRule mutation op: %q", m.Op())
+	}
+}
+
+// FinanceCommissionRuleAssignmentClient is a client for the FinanceCommissionRuleAssignment schema.
+type FinanceCommissionRuleAssignmentClient struct {
+	config
+}
+
+// NewFinanceCommissionRuleAssignmentClient returns a client for the FinanceCommissionRuleAssignment from the given config.
+func NewFinanceCommissionRuleAssignmentClient(c config) *FinanceCommissionRuleAssignmentClient {
+	return &FinanceCommissionRuleAssignmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financecommissionruleassignment.Hooks(f(g(h())))`.
+func (c *FinanceCommissionRuleAssignmentClient) Use(hooks ...Hook) {
+	c.hooks.FinanceCommissionRuleAssignment = append(c.hooks.FinanceCommissionRuleAssignment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financecommissionruleassignment.Intercept(f(g(h())))`.
+func (c *FinanceCommissionRuleAssignmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceCommissionRuleAssignment = append(c.inters.FinanceCommissionRuleAssignment, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceCommissionRuleAssignment entity.
+func (c *FinanceCommissionRuleAssignmentClient) Create() *FinanceCommissionRuleAssignmentCreate {
+	mutation := newFinanceCommissionRuleAssignmentMutation(c.config, OpCreate)
+	return &FinanceCommissionRuleAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceCommissionRuleAssignment entities.
+func (c *FinanceCommissionRuleAssignmentClient) CreateBulk(builders ...*FinanceCommissionRuleAssignmentCreate) *FinanceCommissionRuleAssignmentCreateBulk {
+	return &FinanceCommissionRuleAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceCommissionRuleAssignmentClient) MapCreateBulk(slice any, setFunc func(*FinanceCommissionRuleAssignmentCreate, int)) *FinanceCommissionRuleAssignmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceCommissionRuleAssignmentCreateBulk{err: fmt.Errorf("calling to FinanceCommissionRuleAssignmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceCommissionRuleAssignmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceCommissionRuleAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) Update() *FinanceCommissionRuleAssignmentUpdate {
+	mutation := newFinanceCommissionRuleAssignmentMutation(c.config, OpUpdate)
+	return &FinanceCommissionRuleAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceCommissionRuleAssignmentClient) UpdateOne(_m *FinanceCommissionRuleAssignment) *FinanceCommissionRuleAssignmentUpdateOne {
+	mutation := newFinanceCommissionRuleAssignmentMutation(c.config, OpUpdateOne, withFinanceCommissionRuleAssignment(_m))
+	return &FinanceCommissionRuleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceCommissionRuleAssignmentClient) UpdateOneID(id uuid.UUID) *FinanceCommissionRuleAssignmentUpdateOne {
+	mutation := newFinanceCommissionRuleAssignmentMutation(c.config, OpUpdateOne, withFinanceCommissionRuleAssignmentID(id))
+	return &FinanceCommissionRuleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) Delete() *FinanceCommissionRuleAssignmentDelete {
+	mutation := newFinanceCommissionRuleAssignmentMutation(c.config, OpDelete)
+	return &FinanceCommissionRuleAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceCommissionRuleAssignmentClient) DeleteOne(_m *FinanceCommissionRuleAssignment) *FinanceCommissionRuleAssignmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceCommissionRuleAssignmentClient) DeleteOneID(id uuid.UUID) *FinanceCommissionRuleAssignmentDeleteOne {
+	builder := c.Delete().Where(financecommissionruleassignment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceCommissionRuleAssignmentDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) Query() *FinanceCommissionRuleAssignmentQuery {
+	return &FinanceCommissionRuleAssignmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceCommissionRuleAssignment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceCommissionRuleAssignment entity by its id.
+func (c *FinanceCommissionRuleAssignmentClient) Get(ctx context.Context, id uuid.UUID) (*FinanceCommissionRuleAssignment, error) {
+	return c.Query().Where(financecommissionruleassignment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceCommissionRuleAssignmentClient) GetX(ctx context.Context, id uuid.UUID) *FinanceCommissionRuleAssignment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryOrganization(_m *FinanceCommissionRuleAssignment) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.OrganizationTable, financecommissionruleassignment.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRule queries the rule edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryRule(_m *FinanceCommissionRuleAssignment) *FinanceCommissionRuleQuery {
+	query := (&FinanceCommissionRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(financecommissionrule.Table, financecommissionrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.RuleTable, financecommissionruleassignment.RuleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmployee queries the employee edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryEmployee(_m *FinanceCommissionRuleAssignment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.EmployeeTable, financecommissionruleassignment.EmployeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedByUser queries the created_by_user edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryCreatedByUser(_m *FinanceCommissionRuleAssignment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.CreatedByUserTable, financecommissionruleassignment.CreatedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledByUser queries the cancelled_by_user edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryCancelledByUser(_m *FinanceCommissionRuleAssignment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.CancelledByUserTable, financecommissionruleassignment.CancelledByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTerminatedByUser queries the terminated_by_user edge of a FinanceCommissionRuleAssignment.
+func (c *FinanceCommissionRuleAssignmentClient) QueryTerminatedByUser(_m *FinanceCommissionRuleAssignment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionruleassignment.TerminatedByUserTable, financecommissionruleassignment.TerminatedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceCommissionRuleAssignmentClient) Hooks() []Hook {
+	return c.hooks.FinanceCommissionRuleAssignment
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceCommissionRuleAssignmentClient) Interceptors() []Interceptor {
+	return c.inters.FinanceCommissionRuleAssignment
+}
+
+func (c *FinanceCommissionRuleAssignmentClient) mutate(ctx context.Context, m *FinanceCommissionRuleAssignmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceCommissionRuleAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceCommissionRuleAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceCommissionRuleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceCommissionRuleAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceCommissionRuleAssignment mutation op: %q", m.Op())
 	}
 }
 
@@ -15565,6 +15820,22 @@ func (c *OrganizationClient) QueryFinanceCommissionRules(_m *Organization) *Fina
 	return query
 }
 
+// QueryFinanceCommissionRuleAssignments queries the finance_commission_rule_assignments edge of a Organization.
+func (c *OrganizationClient) QueryFinanceCommissionRuleAssignments(_m *Organization) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionRuleAssignmentsTable, organization.FinanceCommissionRuleAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrderCommissionAttributions queries the order_commission_attributions edge of a Organization.
 func (c *OrganizationClient) QueryOrderCommissionAttributions(_m *Organization) *OrderCommissionAttributionQuery {
 	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
@@ -23965,6 +24236,70 @@ func (c *UserClient) QueryDecidedOrderFeeSupplementRequests(_m *User) *OrderFeeS
 	return query
 }
 
+// QueryFinanceCommissionRuleAssignments queries the finance_commission_rule_assignments edge of a User.
+func (c *UserClient) QueryFinanceCommissionRuleAssignments(_m *User) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceCommissionRuleAssignmentsTable, user.FinanceCommissionRuleAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedFinanceCommissionRuleAssignments queries the created_finance_commission_rule_assignments edge of a User.
+func (c *UserClient) QueryCreatedFinanceCommissionRuleAssignments(_m *User) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedFinanceCommissionRuleAssignmentsTable, user.CreatedFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceCommissionRuleAssignments queries the cancelled_finance_commission_rule_assignments edge of a User.
+func (c *UserClient) QueryCancelledFinanceCommissionRuleAssignments(_m *User) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceCommissionRuleAssignmentsTable, user.CancelledFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTerminatedFinanceCommissionRuleAssignments queries the terminated_finance_commission_rule_assignments edge of a User.
+func (c *UserClient) QueryTerminatedFinanceCommissionRuleAssignments(_m *User) *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TerminatedFinanceCommissionRuleAssignmentsTable, user.TerminatedFinanceCommissionRuleAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCreatedSeaMasterBillVersions queries the created_sea_master_bill_versions edge of a User.
 func (c *UserClient) QueryCreatedSeaMasterBillVersions(_m *User) *SeaMasterBillVersionQuery {
 	query := (&SeaMasterBillVersionClient{config: c.config}).Query()
@@ -24147,13 +24482,13 @@ type (
 		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
 		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
 		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCustomSetting,
-		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
-		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
-		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
-		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
+		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
@@ -24179,13 +24514,13 @@ type (
 		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
 		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
 		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCustomSetting,
-		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
-		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
-		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
-		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
+		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,

@@ -103,6 +103,12 @@ func (User) Edges() []ent.Edge {
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
 		edge.To("requested_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
 		edge.To("decided_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
+		// 提成方案员工分配：员工作为分配对象与创建人是永久审计事实（NO ACTION，
+		// 删除用户不得清空分配历史）；撤销/终止操作者是可逆审计引用（SET NULL）。
+		edge.To("finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("created_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("cancelled_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type),
+		edge.To("terminated_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type),
 		edge.To("created_sea_master_bill_versions", SeaMasterBillVersion.Type),
 		edge.To("created_sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("created_sea_document_void_events", SeaDocumentVoidEvent.Type),

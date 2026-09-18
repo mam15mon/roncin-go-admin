@@ -405,6 +405,18 @@ func (f FinanceCommissionRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCommissionRuleMutation", m)
 }
 
+// The FinanceCommissionRuleAssignmentFunc type is an adapter to allow the use of ordinary
+// function as FinanceCommissionRuleAssignment mutator.
+type FinanceCommissionRuleAssignmentFunc func(context.Context, *ent.FinanceCommissionRuleAssignmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceCommissionRuleAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceCommissionRuleAssignmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCommissionRuleAssignmentMutation", m)
+}
+
 // The FinanceCustomSettingFunc type is an adapter to allow the use of ordinary
 // function as FinanceCustomSetting mutator.
 type FinanceCustomSettingFunc func(context.Context, *ent.FinanceCustomSettingMutation) (ent.Value, error)

@@ -140,6 +140,14 @@ const (
 	EdgeRequestedOrderFeeSupplementRequests = "requested_order_fee_supplement_requests"
 	// EdgeDecidedOrderFeeSupplementRequests holds the string denoting the decided_order_fee_supplement_requests edge name in mutations.
 	EdgeDecidedOrderFeeSupplementRequests = "decided_order_fee_supplement_requests"
+	// EdgeFinanceCommissionRuleAssignments holds the string denoting the finance_commission_rule_assignments edge name in mutations.
+	EdgeFinanceCommissionRuleAssignments = "finance_commission_rule_assignments"
+	// EdgeCreatedFinanceCommissionRuleAssignments holds the string denoting the created_finance_commission_rule_assignments edge name in mutations.
+	EdgeCreatedFinanceCommissionRuleAssignments = "created_finance_commission_rule_assignments"
+	// EdgeCancelledFinanceCommissionRuleAssignments holds the string denoting the cancelled_finance_commission_rule_assignments edge name in mutations.
+	EdgeCancelledFinanceCommissionRuleAssignments = "cancelled_finance_commission_rule_assignments"
+	// EdgeTerminatedFinanceCommissionRuleAssignments holds the string denoting the terminated_finance_commission_rule_assignments edge name in mutations.
+	EdgeTerminatedFinanceCommissionRuleAssignments = "terminated_finance_commission_rule_assignments"
 	// EdgeCreatedSeaMasterBillVersions holds the string denoting the created_sea_master_bill_versions edge name in mutations.
 	EdgeCreatedSeaMasterBillVersions = "created_sea_master_bill_versions"
 	// EdgeCreatedSeaHouseBillVersions holds the string denoting the created_sea_house_bill_versions edge name in mutations.
@@ -482,6 +490,34 @@ const (
 	DecidedOrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
 	// DecidedOrderFeeSupplementRequestsColumn is the table column denoting the decided_order_fee_supplement_requests relation/edge.
 	DecidedOrderFeeSupplementRequestsColumn = "decided_by"
+	// FinanceCommissionRuleAssignmentsTable is the table that holds the finance_commission_rule_assignments relation/edge.
+	FinanceCommissionRuleAssignmentsTable = "finance_commission_rule_assignments"
+	// FinanceCommissionRuleAssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	FinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
+	// FinanceCommissionRuleAssignmentsColumn is the table column denoting the finance_commission_rule_assignments relation/edge.
+	FinanceCommissionRuleAssignmentsColumn = "employee_id"
+	// CreatedFinanceCommissionRuleAssignmentsTable is the table that holds the created_finance_commission_rule_assignments relation/edge.
+	CreatedFinanceCommissionRuleAssignmentsTable = "finance_commission_rule_assignments"
+	// CreatedFinanceCommissionRuleAssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	CreatedFinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
+	// CreatedFinanceCommissionRuleAssignmentsColumn is the table column denoting the created_finance_commission_rule_assignments relation/edge.
+	CreatedFinanceCommissionRuleAssignmentsColumn = "created_by"
+	// CancelledFinanceCommissionRuleAssignmentsTable is the table that holds the cancelled_finance_commission_rule_assignments relation/edge.
+	CancelledFinanceCommissionRuleAssignmentsTable = "finance_commission_rule_assignments"
+	// CancelledFinanceCommissionRuleAssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	CancelledFinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
+	// CancelledFinanceCommissionRuleAssignmentsColumn is the table column denoting the cancelled_finance_commission_rule_assignments relation/edge.
+	CancelledFinanceCommissionRuleAssignmentsColumn = "cancelled_by"
+	// TerminatedFinanceCommissionRuleAssignmentsTable is the table that holds the terminated_finance_commission_rule_assignments relation/edge.
+	TerminatedFinanceCommissionRuleAssignmentsTable = "finance_commission_rule_assignments"
+	// TerminatedFinanceCommissionRuleAssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	TerminatedFinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
+	// TerminatedFinanceCommissionRuleAssignmentsColumn is the table column denoting the terminated_finance_commission_rule_assignments relation/edge.
+	TerminatedFinanceCommissionRuleAssignmentsColumn = "terminated_by"
 	// CreatedSeaMasterBillVersionsTable is the table that holds the created_sea_master_bill_versions relation/edge.
 	CreatedSeaMasterBillVersionsTable = "sea_master_bill_versions"
 	// CreatedSeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
@@ -1351,6 +1387,62 @@ func ByDecidedOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderT
 	}
 }
 
+// ByFinanceCommissionRuleAssignmentsCount orders the results by finance_commission_rule_assignments count.
+func ByFinanceCommissionRuleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionRuleAssignmentsStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionRuleAssignments orders the results by finance_commission_rule_assignments terms.
+func ByFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionRuleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCreatedFinanceCommissionRuleAssignmentsCount orders the results by created_finance_commission_rule_assignments count.
+func ByCreatedFinanceCommissionRuleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedFinanceCommissionRuleAssignmentsStep(), opts...)
+	}
+}
+
+// ByCreatedFinanceCommissionRuleAssignments orders the results by created_finance_commission_rule_assignments terms.
+func ByCreatedFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedFinanceCommissionRuleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCancelledFinanceCommissionRuleAssignmentsCount orders the results by cancelled_finance_commission_rule_assignments count.
+func ByCancelledFinanceCommissionRuleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledFinanceCommissionRuleAssignmentsStep(), opts...)
+	}
+}
+
+// ByCancelledFinanceCommissionRuleAssignments orders the results by cancelled_finance_commission_rule_assignments terms.
+func ByCancelledFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceCommissionRuleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTerminatedFinanceCommissionRuleAssignmentsCount orders the results by terminated_finance_commission_rule_assignments count.
+func ByTerminatedFinanceCommissionRuleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTerminatedFinanceCommissionRuleAssignmentsStep(), opts...)
+	}
+}
+
+// ByTerminatedFinanceCommissionRuleAssignments orders the results by terminated_finance_commission_rule_assignments terms.
+func ByTerminatedFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTerminatedFinanceCommissionRuleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCreatedSeaMasterBillVersionsCount orders the results by created_sea_master_bill_versions count.
 func ByCreatedSeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1789,6 +1881,34 @@ func newDecidedOrderFeeSupplementRequestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DecidedOrderFeeSupplementRequestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, DecidedOrderFeeSupplementRequestsTable, DecidedOrderFeeSupplementRequestsColumn),
+	)
+}
+func newFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionRuleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionRuleAssignmentsTable, FinanceCommissionRuleAssignmentsColumn),
+	)
+}
+func newCreatedFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedFinanceCommissionRuleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedFinanceCommissionRuleAssignmentsTable, CreatedFinanceCommissionRuleAssignmentsColumn),
+	)
+}
+func newCancelledFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledFinanceCommissionRuleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionRuleAssignmentsTable, CancelledFinanceCommissionRuleAssignmentsColumn),
+	)
+}
+func newTerminatedFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TerminatedFinanceCommissionRuleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TerminatedFinanceCommissionRuleAssignmentsTable, TerminatedFinanceCommissionRuleAssignmentsColumn),
 	)
 }
 func newCreatedSeaMasterBillVersionsStep() *sqlgraph.Step {

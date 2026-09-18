@@ -39,6 +39,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -3332,18 +3333,80 @@ func init() {
 	financecommissionruleDescEnabled := financecommissionruleFields[7].Descriptor()
 	// financecommissionrule.DefaultEnabled holds the default value on creation for the enabled field.
 	financecommissionrule.DefaultEnabled = financecommissionruleDescEnabled.Default.(bool)
+	// financecommissionruleDescLegacyReadonly is the schema descriptor for legacy_readonly field.
+	financecommissionruleDescLegacyReadonly := financecommissionruleFields[8].Descriptor()
+	// financecommissionrule.DefaultLegacyReadonly holds the default value on creation for the legacy_readonly field.
+	financecommissionrule.DefaultLegacyReadonly = financecommissionruleDescLegacyReadonly.Default.(bool)
 	// financecommissionruleDescNote is the schema descriptor for note field.
-	financecommissionruleDescNote := financecommissionruleFields[8].Descriptor()
+	financecommissionruleDescNote := financecommissionruleFields[9].Descriptor()
 	// financecommissionrule.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommissionrule.NoteValidator = financecommissionruleDescNote.Validators[0].(func(string) error)
 	// financecommissionruleDescVersion is the schema descriptor for version field.
-	financecommissionruleDescVersion := financecommissionruleFields[9].Descriptor()
+	financecommissionruleDescVersion := financecommissionruleFields[10].Descriptor()
 	// financecommissionrule.DefaultVersion holds the default value on creation for the version field.
 	financecommissionrule.DefaultVersion = financecommissionruleDescVersion.Default.(uint64)
 	// financecommissionruleDescID is the schema descriptor for id field.
 	financecommissionruleDescID := financecommissionruleMixinFields0[0].Descriptor()
 	// financecommissionrule.DefaultID holds the default value on creation for the id field.
 	financecommissionrule.DefaultID = financecommissionruleDescID.Default.(func() uuid.UUID)
+	financecommissionruleassignmentMixin := schema.FinanceCommissionRuleAssignment{}.Mixin()
+	financecommissionruleassignmentMixinFields0 := financecommissionruleassignmentMixin[0].Fields()
+	_ = financecommissionruleassignmentMixinFields0
+	financecommissionruleassignmentMixinFields1 := financecommissionruleassignmentMixin[1].Fields()
+	_ = financecommissionruleassignmentMixinFields1
+	financecommissionruleassignmentFields := schema.FinanceCommissionRuleAssignment{}.Fields()
+	_ = financecommissionruleassignmentFields
+	// financecommissionruleassignmentDescCreatedAt is the schema descriptor for created_at field.
+	financecommissionruleassignmentDescCreatedAt := financecommissionruleassignmentMixinFields1[0].Descriptor()
+	// financecommissionruleassignment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financecommissionruleassignment.DefaultCreatedAt = financecommissionruleassignmentDescCreatedAt.Default.(func() time.Time)
+	// financecommissionruleassignmentDescUpdatedAt is the schema descriptor for updated_at field.
+	financecommissionruleassignmentDescUpdatedAt := financecommissionruleassignmentMixinFields1[1].Descriptor()
+	// financecommissionruleassignment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financecommissionruleassignment.DefaultUpdatedAt = financecommissionruleassignmentDescUpdatedAt.Default.(func() time.Time)
+	// financecommissionruleassignment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financecommissionruleassignment.UpdateDefaultUpdatedAt = financecommissionruleassignmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financecommissionruleassignmentDescEffectiveFrom is the schema descriptor for effective_from field.
+	financecommissionruleassignmentDescEffectiveFrom := financecommissionruleassignmentFields[3].Descriptor()
+	// financecommissionruleassignment.EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
+	financecommissionruleassignment.EffectiveFromValidator = func() func(string) error {
+		validators := financecommissionruleassignmentDescEffectiveFrom.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(effective_from string) error {
+			for _, fn := range fns {
+				if err := fn(effective_from); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionruleassignmentDescEffectiveTo is the schema descriptor for effective_to field.
+	financecommissionruleassignmentDescEffectiveTo := financecommissionruleassignmentFields[4].Descriptor()
+	// financecommissionruleassignment.EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
+	financecommissionruleassignment.EffectiveToValidator = func() func(string) error {
+		validators := financecommissionruleassignmentDescEffectiveTo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(effective_to string) error {
+			for _, fn := range fns {
+				if err := fn(effective_to); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionruleassignmentDescID is the schema descriptor for id field.
+	financecommissionruleassignmentDescID := financecommissionruleassignmentMixinFields0[0].Descriptor()
+	// financecommissionruleassignment.DefaultID holds the default value on creation for the id field.
+	financecommissionruleassignment.DefaultID = financecommissionruleassignmentDescID.Default.(func() uuid.UUID)
 	financecustomsettingMixin := schema.FinanceCustomSetting{}.Mixin()
 	financecustomsettingMixinFields0 := financecustomsettingMixin[0].Fields()
 	_ = financecustomsettingMixinFields0

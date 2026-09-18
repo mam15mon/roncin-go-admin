@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -29,6 +30,7 @@ type FinanceCommissionRuleQuery struct {
 	predicates       []predicate.FinanceCommissionRule
 	withOrganization *OrganizationQuery
 	withCommissions  *FinanceCommissionQuery
+	withAssignments  *FinanceCommissionRuleAssignmentQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -103,6 +105,28 @@ func (_q *FinanceCommissionRuleQuery) QueryCommissions() *FinanceCommissionQuery
 			sqlgraph.From(financecommissionrule.Table, financecommissionrule.FieldID, selector),
 			sqlgraph.To(financecommission.Table, financecommission.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financecommissionrule.CommissionsTable, financecommissionrule.CommissionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAssignments chains the current query on the "assignments" edge.
+func (_q *FinanceCommissionRuleQuery) QueryAssignments() *FinanceCommissionRuleAssignmentQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionrule.Table, financecommissionrule.FieldID, selector),
+			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financecommissionrule.AssignmentsTable, financecommissionrule.AssignmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -304,6 +328,7 @@ func (_q *FinanceCommissionRuleQuery) Clone() *FinanceCommissionRuleQuery {
 		predicates:       append([]predicate.FinanceCommissionRule{}, _q.predicates...),
 		withOrganization: _q.withOrganization.Clone(),
 		withCommissions:  _q.withCommissions.Clone(),
+		withAssignments:  _q.withAssignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *FinanceCommissionRuleQuery) WithCommissions(opts ...func(*FinanceCommi
 		opt(query)
 	}
 	_q.withCommissions = query
+	return _q
+}
+
+// WithAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionRuleQuery) WithAssignments(opts ...func(*FinanceCommissionRuleAssignmentQuery)) *FinanceCommissionRuleQuery {
+	query := (&FinanceCommissionRuleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAssignments = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *FinanceCommissionRuleQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*FinanceCommissionRule{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withCommissions != nil,
+			_q.withAssignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -447,6 +484,15 @@ func (_q *FinanceCommissionRuleQuery) sqlAll(ctx context.Context, hooks ...query
 			func(n *FinanceCommissionRule) { n.Edges.Commissions = []*FinanceCommission{} },
 			func(n *FinanceCommissionRule, e *FinanceCommission) {
 				n.Edges.Commissions = append(n.Edges.Commissions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAssignments; query != nil {
+		if err := _q.loadAssignments(ctx, query, nodes,
+			func(n *FinanceCommissionRule) { n.Edges.Assignments = []*FinanceCommissionRuleAssignment{} },
+			func(n *FinanceCommissionRule, e *FinanceCommissionRuleAssignment) {
+				n.Edges.Assignments = append(n.Edges.Assignments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -511,6 +557,36 @@ func (_q *FinanceCommissionRuleQuery) loadCommissions(ctx context.Context, query
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "rule_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceCommissionRuleQuery) loadAssignments(ctx context.Context, query *FinanceCommissionRuleAssignmentQuery, nodes []*FinanceCommissionRule, init func(*FinanceCommissionRule), assign func(*FinanceCommissionRule, *FinanceCommissionRuleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceCommissionRule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionruleassignment.FieldRuleID)
+	}
+	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financecommissionrule.AssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RuleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "rule_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

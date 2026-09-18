@@ -39,6 +39,8 @@ type FinanceCommissionRule struct {
 	EffectiveTo *string `json:"effective_to,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// LegacyReadonly holds the value of the "legacy_readonly" field.
+	LegacyReadonly bool `json:"legacy_readonly,omitempty"`
 	// Note holds the value of the "note" field.
 	Note *string `json:"note,omitempty"`
 	// Version holds the value of the "version" field.
@@ -55,9 +57,11 @@ type FinanceCommissionRuleEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// Commissions holds the value of the commissions edge.
 	Commissions []*FinanceCommission `json:"commissions,omitempty"`
+	// Assignments holds the value of the assignments edge.
+	Assignments []*FinanceCommissionRuleAssignment `json:"assignments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -80,12 +84,21 @@ func (e FinanceCommissionRuleEdges) CommissionsOrErr() ([]*FinanceCommission, er
 	return nil, &NotLoadedError{edge: "commissions"}
 }
 
+// AssignmentsOrErr returns the Assignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceCommissionRuleEdges) AssignmentsOrErr() ([]*FinanceCommissionRuleAssignment, error) {
+	if e.loadedTypes[2] {
+		return e.Assignments, nil
+	}
+	return nil, &NotLoadedError{edge: "assignments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FinanceCommissionRule) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionrule.FieldEnabled:
+		case financecommissionrule.FieldEnabled, financecommissionrule.FieldLegacyReadonly:
 			values[i] = new(sql.NullBool)
 		case financecommissionrule.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -178,6 +191,12 @@ func (_m *FinanceCommissionRule) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case financecommissionrule.FieldLegacyReadonly:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field legacy_readonly", values[i])
+			} else if value.Valid {
+				_m.LegacyReadonly = value.Bool
+			}
 		case financecommissionrule.FieldNote:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field note", values[i])
@@ -212,6 +231,11 @@ func (_m *FinanceCommissionRule) QueryOrganization() *OrganizationQuery {
 // QueryCommissions queries the "commissions" edge of the FinanceCommissionRule entity.
 func (_m *FinanceCommissionRule) QueryCommissions() *FinanceCommissionQuery {
 	return NewFinanceCommissionRuleClient(_m.config).QueryCommissions(_m)
+}
+
+// QueryAssignments queries the "assignments" edge of the FinanceCommissionRule entity.
+func (_m *FinanceCommissionRule) QueryAssignments() *FinanceCommissionRuleAssignmentQuery {
+	return NewFinanceCommissionRuleClient(_m.config).QueryAssignments(_m)
 }
 
 // Update returns a builder for updating this FinanceCommissionRule.
@@ -270,6 +294,9 @@ func (_m *FinanceCommissionRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("legacy_readonly=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LegacyReadonly))
 	builder.WriteString(", ")
 	if v := _m.Note; v != nil {
 		builder.WriteString("note=")

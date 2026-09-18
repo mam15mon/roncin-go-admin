@@ -46,6 +46,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -133,113 +134,114 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdministrativeRegion           = "AdministrativeRegion"
-	TypeAirline                        = "Airline"
-	TypeAirport                        = "Airport"
-	TypeAuditLog                       = "AuditLog"
-	TypeBackgroundTask                 = "BackgroundTask"
-	TypeBillingUnit                    = "BillingUnit"
-	TypeCurrency                       = "Currency"
-	TypeDingTalkApprovalDispatch       = "DingTalkApprovalDispatch"
-	TypeDingTalkApprovalInboxEvent     = "DingTalkApprovalInboxEvent"
-	TypeDingTalkInvitation             = "DingTalkInvitation"
-	TypeEnterpriseResource             = "EnterpriseResource"
-	TypeEnterpriseResourceAddress      = "EnterpriseResourceAddress"
-	TypeEnterpriseResourceAddressType  = "EnterpriseResourceAddressType"
-	TypeEnterpriseResourceAssignee     = "EnterpriseResourceAssignee"
-	TypeEnterpriseResourceImage        = "EnterpriseResourceImage"
-	TypeEnterpriseResourcePartner      = "EnterpriseResourcePartner"
-	TypeEnterpriseResourceParty        = "EnterpriseResourceParty"
-	TypeEnterpriseResourceRemark       = "EnterpriseResourceRemark"
-	TypeEnterpriseResourceShippingText = "EnterpriseResourceShippingText"
-	TypeEnterpriseTag                  = "EnterpriseTag"
-	TypeEnterpriseTagGroup             = "EnterpriseTagGroup"
-	TypeExchangeRateImportBatch        = "ExchangeRateImportBatch"
-	TypeExchangeRateSetting            = "ExchangeRateSetting"
-	TypeFeeSetting                     = "FeeSetting"
-	TypeFinanceBill                    = "FinanceBill"
-	TypeFinanceBillBatch               = "FinanceBillBatch"
-	TypeFinanceBillEnterpriseTag       = "FinanceBillEnterpriseTag"
-	TypeFinanceBillLine                = "FinanceBillLine"
-	TypeFinanceCashflow                = "FinanceCashflow"
-	TypeFinanceCommission              = "FinanceCommission"
-	TypeFinanceCommissionAdjustment    = "FinanceCommissionAdjustment"
-	TypeFinanceCommissionLine          = "FinanceCommissionLine"
-	TypeFinanceCommissionRule          = "FinanceCommissionRule"
-	TypeFinanceCustomSetting           = "FinanceCustomSetting"
-	TypeFinanceFeeLedgerPreference     = "FinanceFeeLedgerPreference"
-	TypeFinanceInvoice                 = "FinanceInvoice"
-	TypeFinanceInvoiceBill             = "FinanceInvoiceBill"
-	TypeFinanceInvoiceLine             = "FinanceInvoiceLine"
-	TypeFinanceNetting                 = "FinanceNetting"
-	TypeFinanceNettingAllocation       = "FinanceNettingAllocation"
-	TypeFinanceVerification            = "FinanceVerification"
-	TypeFinanceVerificationAllocation  = "FinanceVerificationAllocation"
-	TypeLoginRateLimitBucket           = "LoginRateLimitBucket"
-	TypeMasterDataItem                 = "MasterDataItem"
-	TypeMembership                     = "Membership"
-	TypeNotificationDelivery           = "NotificationDelivery"
-	TypeNumberRule                     = "NumberRule"
-	TypeNumberSequence                 = "NumberSequence"
-	TypeObjectStorageDeletion          = "ObjectStorageDeletion"
-	TypeOrder                          = "Order"
-	TypeOrderAbnormalCase              = "OrderAbnormalCase"
-	TypeOrderAttachment                = "OrderAttachment"
-	TypeOrderAttachmentAsset           = "OrderAttachmentAsset"
-	TypeOrderCargoCategory             = "OrderCargoCategory"
-	TypeOrderCargoItem                 = "OrderCargoItem"
-	TypeOrderCommissionAttribution     = "OrderCommissionAttribution"
-	TypeOrderContainer                 = "OrderContainer"
-	TypeOrderContainerRequest          = "OrderContainerRequest"
-	TypeOrderEnterpriseTag             = "OrderEnterpriseTag"
-	TypeOrderFee                       = "OrderFee"
-	TypeOrderFeeEnterpriseTag          = "OrderFeeEnterpriseTag"
-	TypeOrderFeeSupplementRequest      = "OrderFeeSupplementRequest"
-	TypeOrderLifecycleEvent            = "OrderLifecycleEvent"
-	TypeOrderLockHouseBillSnapshot     = "OrderLockHouseBillSnapshot"
-	TypeOrderLockRecord                = "OrderLockRecord"
-	TypeOrderMilestone                 = "OrderMilestone"
-	TypeOrderPersonnel                 = "OrderPersonnel"
-	TypeOrderReleasePod                = "OrderReleasePod"
-	TypeOrderServiceType               = "OrderServiceType"
-	TypeOrderShippingDocument          = "OrderShippingDocument"
-	TypeOrderUnlockApproverCandidate   = "OrderUnlockApproverCandidate"
-	TypeOrderUnlockRequest             = "OrderUnlockRequest"
-	TypeOrganization                   = "Organization"
-	TypePartner                        = "Partner"
-	TypePartnerAccount                 = "PartnerAccount"
-	TypePartnerAlias                   = "PartnerAlias"
-	TypePartnerAssignment              = "PartnerAssignment"
-	TypePartnerAttachment              = "PartnerAttachment"
-	TypePartnerContact                 = "PartnerContact"
-	TypePartnerContract                = "PartnerContract"
-	TypePartnerInvoiceProfile          = "PartnerInvoiceProfile"
-	TypePartnerProfile                 = "PartnerProfile"
-	TypePartnerRole                    = "PartnerRole"
-	TypePartnerSettlementRule          = "PartnerSettlementRule"
-	TypePermission                     = "Permission"
-	TypePort                           = "Port"
-	TypeRole                           = "Role"
-	TypeRoleAssignment                 = "RoleAssignment"
-	TypeSeaDocumentModeChangeEvent     = "SeaDocumentModeChangeEvent"
-	TypeSeaDocumentVoidEvent           = "SeaDocumentVoidEvent"
-	TypeSeaHouseBill                   = "SeaHouseBill"
-	TypeSeaHouseBillVersion            = "SeaHouseBillVersion"
-	TypeSeaMasterBill                  = "SeaMasterBill"
-	TypeSeaMasterBillOrderLink         = "SeaMasterBillOrderLink"
-	TypeSeaMasterBillVersion           = "SeaMasterBillVersion"
-	TypeSeaOrderReassignmentEvent      = "SeaOrderReassignmentEvent"
-	TypeSeaOrderSplitEvent             = "SeaOrderSplitEvent"
-	TypeSeaOrderSplitResult            = "SeaOrderSplitResult"
-	TypeSeaSharedContainer             = "SeaSharedContainer"
-	TypeSeaSharedContainerAllocation   = "SeaSharedContainerAllocation"
-	TypeSeaTransportExecution          = "SeaTransportExecution"
-	TypeSeaTransportExecutionVersion   = "SeaTransportExecutionVersion"
-	TypeSession                        = "Session"
-	TypeShippingLine                   = "ShippingLine"
-	TypeShippingLineContainerPrefix    = "ShippingLineContainerPrefix"
-	TypeTaxableService                 = "TaxableService"
-	TypeUser                           = "User"
+	TypeAdministrativeRegion            = "AdministrativeRegion"
+	TypeAirline                         = "Airline"
+	TypeAirport                         = "Airport"
+	TypeAuditLog                        = "AuditLog"
+	TypeBackgroundTask                  = "BackgroundTask"
+	TypeBillingUnit                     = "BillingUnit"
+	TypeCurrency                        = "Currency"
+	TypeDingTalkApprovalDispatch        = "DingTalkApprovalDispatch"
+	TypeDingTalkApprovalInboxEvent      = "DingTalkApprovalInboxEvent"
+	TypeDingTalkInvitation              = "DingTalkInvitation"
+	TypeEnterpriseResource              = "EnterpriseResource"
+	TypeEnterpriseResourceAddress       = "EnterpriseResourceAddress"
+	TypeEnterpriseResourceAddressType   = "EnterpriseResourceAddressType"
+	TypeEnterpriseResourceAssignee      = "EnterpriseResourceAssignee"
+	TypeEnterpriseResourceImage         = "EnterpriseResourceImage"
+	TypeEnterpriseResourcePartner       = "EnterpriseResourcePartner"
+	TypeEnterpriseResourceParty         = "EnterpriseResourceParty"
+	TypeEnterpriseResourceRemark        = "EnterpriseResourceRemark"
+	TypeEnterpriseResourceShippingText  = "EnterpriseResourceShippingText"
+	TypeEnterpriseTag                   = "EnterpriseTag"
+	TypeEnterpriseTagGroup              = "EnterpriseTagGroup"
+	TypeExchangeRateImportBatch         = "ExchangeRateImportBatch"
+	TypeExchangeRateSetting             = "ExchangeRateSetting"
+	TypeFeeSetting                      = "FeeSetting"
+	TypeFinanceBill                     = "FinanceBill"
+	TypeFinanceBillBatch                = "FinanceBillBatch"
+	TypeFinanceBillEnterpriseTag        = "FinanceBillEnterpriseTag"
+	TypeFinanceBillLine                 = "FinanceBillLine"
+	TypeFinanceCashflow                 = "FinanceCashflow"
+	TypeFinanceCommission               = "FinanceCommission"
+	TypeFinanceCommissionAdjustment     = "FinanceCommissionAdjustment"
+	TypeFinanceCommissionLine           = "FinanceCommissionLine"
+	TypeFinanceCommissionRule           = "FinanceCommissionRule"
+	TypeFinanceCommissionRuleAssignment = "FinanceCommissionRuleAssignment"
+	TypeFinanceCustomSetting            = "FinanceCustomSetting"
+	TypeFinanceFeeLedgerPreference      = "FinanceFeeLedgerPreference"
+	TypeFinanceInvoice                  = "FinanceInvoice"
+	TypeFinanceInvoiceBill              = "FinanceInvoiceBill"
+	TypeFinanceInvoiceLine              = "FinanceInvoiceLine"
+	TypeFinanceNetting                  = "FinanceNetting"
+	TypeFinanceNettingAllocation        = "FinanceNettingAllocation"
+	TypeFinanceVerification             = "FinanceVerification"
+	TypeFinanceVerificationAllocation   = "FinanceVerificationAllocation"
+	TypeLoginRateLimitBucket            = "LoginRateLimitBucket"
+	TypeMasterDataItem                  = "MasterDataItem"
+	TypeMembership                      = "Membership"
+	TypeNotificationDelivery            = "NotificationDelivery"
+	TypeNumberRule                      = "NumberRule"
+	TypeNumberSequence                  = "NumberSequence"
+	TypeObjectStorageDeletion           = "ObjectStorageDeletion"
+	TypeOrder                           = "Order"
+	TypeOrderAbnormalCase               = "OrderAbnormalCase"
+	TypeOrderAttachment                 = "OrderAttachment"
+	TypeOrderAttachmentAsset            = "OrderAttachmentAsset"
+	TypeOrderCargoCategory              = "OrderCargoCategory"
+	TypeOrderCargoItem                  = "OrderCargoItem"
+	TypeOrderCommissionAttribution      = "OrderCommissionAttribution"
+	TypeOrderContainer                  = "OrderContainer"
+	TypeOrderContainerRequest           = "OrderContainerRequest"
+	TypeOrderEnterpriseTag              = "OrderEnterpriseTag"
+	TypeOrderFee                        = "OrderFee"
+	TypeOrderFeeEnterpriseTag           = "OrderFeeEnterpriseTag"
+	TypeOrderFeeSupplementRequest       = "OrderFeeSupplementRequest"
+	TypeOrderLifecycleEvent             = "OrderLifecycleEvent"
+	TypeOrderLockHouseBillSnapshot      = "OrderLockHouseBillSnapshot"
+	TypeOrderLockRecord                 = "OrderLockRecord"
+	TypeOrderMilestone                  = "OrderMilestone"
+	TypeOrderPersonnel                  = "OrderPersonnel"
+	TypeOrderReleasePod                 = "OrderReleasePod"
+	TypeOrderServiceType                = "OrderServiceType"
+	TypeOrderShippingDocument           = "OrderShippingDocument"
+	TypeOrderUnlockApproverCandidate    = "OrderUnlockApproverCandidate"
+	TypeOrderUnlockRequest              = "OrderUnlockRequest"
+	TypeOrganization                    = "Organization"
+	TypePartner                         = "Partner"
+	TypePartnerAccount                  = "PartnerAccount"
+	TypePartnerAlias                    = "PartnerAlias"
+	TypePartnerAssignment               = "PartnerAssignment"
+	TypePartnerAttachment               = "PartnerAttachment"
+	TypePartnerContact                  = "PartnerContact"
+	TypePartnerContract                 = "PartnerContract"
+	TypePartnerInvoiceProfile           = "PartnerInvoiceProfile"
+	TypePartnerProfile                  = "PartnerProfile"
+	TypePartnerRole                     = "PartnerRole"
+	TypePartnerSettlementRule           = "PartnerSettlementRule"
+	TypePermission                      = "Permission"
+	TypePort                            = "Port"
+	TypeRole                            = "Role"
+	TypeRoleAssignment                  = "RoleAssignment"
+	TypeSeaDocumentModeChangeEvent      = "SeaDocumentModeChangeEvent"
+	TypeSeaDocumentVoidEvent            = "SeaDocumentVoidEvent"
+	TypeSeaHouseBill                    = "SeaHouseBill"
+	TypeSeaHouseBillVersion             = "SeaHouseBillVersion"
+	TypeSeaMasterBill                   = "SeaMasterBill"
+	TypeSeaMasterBillOrderLink          = "SeaMasterBillOrderLink"
+	TypeSeaMasterBillVersion            = "SeaMasterBillVersion"
+	TypeSeaOrderReassignmentEvent       = "SeaOrderReassignmentEvent"
+	TypeSeaOrderSplitEvent              = "SeaOrderSplitEvent"
+	TypeSeaOrderSplitResult             = "SeaOrderSplitResult"
+	TypeSeaSharedContainer              = "SeaSharedContainer"
+	TypeSeaSharedContainerAllocation    = "SeaSharedContainerAllocation"
+	TypeSeaTransportExecution           = "SeaTransportExecution"
+	TypeSeaTransportExecutionVersion    = "SeaTransportExecutionVersion"
+	TypeSession                         = "Session"
+	TypeShippingLine                    = "ShippingLine"
+	TypeShippingLineContainerPrefix     = "ShippingLineContainerPrefix"
+	TypeTaxableService                  = "TaxableService"
+	TypeUser                            = "User"
 )
 
 // AdministrativeRegionMutation represents an operation that mutates the AdministrativeRegion nodes in the graph.
@@ -44468,6 +44470,7 @@ type FinanceCommissionRuleMutation struct {
 	effective_from      *string
 	effective_to        *string
 	enabled             *bool
+	legacy_readonly     *bool
 	note                *string
 	version             *uint64
 	addversion          *int64
@@ -44477,6 +44480,9 @@ type FinanceCommissionRuleMutation struct {
 	commissions         map[uuid.UUID]struct{}
 	removedcommissions  map[uuid.UUID]struct{}
 	clearedcommissions  bool
+	assignments         map[uuid.UUID]struct{}
+	removedassignments  map[uuid.UUID]struct{}
+	clearedassignments  bool
 	done                bool
 	oldValue            func(context.Context) (*FinanceCommissionRule, error)
 	predicates          []predicate.FinanceCommissionRule
@@ -44972,6 +44978,42 @@ func (m *FinanceCommissionRuleMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetLegacyReadonly sets the "legacy_readonly" field.
+func (m *FinanceCommissionRuleMutation) SetLegacyReadonly(b bool) {
+	m.legacy_readonly = &b
+}
+
+// LegacyReadonly returns the value of the "legacy_readonly" field in the mutation.
+func (m *FinanceCommissionRuleMutation) LegacyReadonly() (r bool, exists bool) {
+	v := m.legacy_readonly
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLegacyReadonly returns the old "legacy_readonly" field's value of the FinanceCommissionRule entity.
+// If the FinanceCommissionRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleMutation) OldLegacyReadonly(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLegacyReadonly is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLegacyReadonly requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLegacyReadonly: %w", err)
+	}
+	return oldValue.LegacyReadonly, nil
+}
+
+// ResetLegacyReadonly resets all changes to the "legacy_readonly" field.
+func (m *FinanceCommissionRuleMutation) ResetLegacyReadonly() {
+	m.legacy_readonly = nil
+}
+
 // SetNote sets the "note" field.
 func (m *FinanceCommissionRuleMutation) SetNote(s string) {
 	m.note = &s
@@ -45158,6 +45200,60 @@ func (m *FinanceCommissionRuleMutation) ResetCommissions() {
 	m.removedcommissions = nil
 }
 
+// AddAssignmentIDs adds the "assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *FinanceCommissionRuleMutation) AddAssignmentIDs(ids ...uuid.UUID) {
+	if m.assignments == nil {
+		m.assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAssignments clears the "assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *FinanceCommissionRuleMutation) ClearAssignments() {
+	m.clearedassignments = true
+}
+
+// AssignmentsCleared reports if the "assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *FinanceCommissionRuleMutation) AssignmentsCleared() bool {
+	return m.clearedassignments
+}
+
+// RemoveAssignmentIDs removes the "assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *FinanceCommissionRuleMutation) RemoveAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedassignments == nil {
+		m.removedassignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.assignments, ids[i])
+		m.removedassignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAssignments returns the removed IDs of the "assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *FinanceCommissionRuleMutation) RemovedAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedassignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AssignmentsIDs returns the "assignments" edge IDs in the mutation.
+func (m *FinanceCommissionRuleMutation) AssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAssignments resets all changes to the "assignments" edge.
+func (m *FinanceCommissionRuleMutation) ResetAssignments() {
+	m.assignments = nil
+	m.clearedassignments = false
+	m.removedassignments = nil
+}
+
 // Where appends a list predicates to the FinanceCommissionRuleMutation builder.
 func (m *FinanceCommissionRuleMutation) Where(ps ...predicate.FinanceCommissionRule) {
 	m.predicates = append(m.predicates, ps...)
@@ -45192,7 +45288,7 @@ func (m *FinanceCommissionRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionRuleMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionrule.FieldCreatedAt)
 	}
@@ -45222,6 +45318,9 @@ func (m *FinanceCommissionRuleMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, financecommissionrule.FieldEnabled)
+	}
+	if m.legacy_readonly != nil {
+		fields = append(fields, financecommissionrule.FieldLegacyReadonly)
 	}
 	if m.note != nil {
 		fields = append(fields, financecommissionrule.FieldNote)
@@ -45257,6 +45356,8 @@ func (m *FinanceCommissionRuleMutation) Field(name string) (ent.Value, bool) {
 		return m.EffectiveTo()
 	case financecommissionrule.FieldEnabled:
 		return m.Enabled()
+	case financecommissionrule.FieldLegacyReadonly:
+		return m.LegacyReadonly()
 	case financecommissionrule.FieldNote:
 		return m.Note()
 	case financecommissionrule.FieldVersion:
@@ -45290,6 +45391,8 @@ func (m *FinanceCommissionRuleMutation) OldField(ctx context.Context, name strin
 		return m.OldEffectiveTo(ctx)
 	case financecommissionrule.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case financecommissionrule.FieldLegacyReadonly:
+		return m.OldLegacyReadonly(ctx)
 	case financecommissionrule.FieldNote:
 		return m.OldNote(ctx)
 	case financecommissionrule.FieldVersion:
@@ -45372,6 +45475,13 @@ func (m *FinanceCommissionRuleMutation) SetField(name string, value ent.Value) e
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case financecommissionrule.FieldLegacyReadonly:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLegacyReadonly(v)
 		return nil
 	case financecommissionrule.FieldNote:
 		v, ok := value.(string)
@@ -45502,6 +45612,9 @@ func (m *FinanceCommissionRuleMutation) ResetField(name string) error {
 	case financecommissionrule.FieldEnabled:
 		m.ResetEnabled()
 		return nil
+	case financecommissionrule.FieldLegacyReadonly:
+		m.ResetLegacyReadonly()
+		return nil
 	case financecommissionrule.FieldNote:
 		m.ResetNote()
 		return nil
@@ -45514,12 +45627,15 @@ func (m *FinanceCommissionRuleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceCommissionRuleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.organization != nil {
 		edges = append(edges, financecommissionrule.EdgeOrganization)
 	}
 	if m.commissions != nil {
 		edges = append(edges, financecommissionrule.EdgeCommissions)
+	}
+	if m.assignments != nil {
+		edges = append(edges, financecommissionrule.EdgeAssignments)
 	}
 	return edges
 }
@@ -45538,15 +45654,24 @@ func (m *FinanceCommissionRuleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financecommissionrule.EdgeAssignments:
+		ids := make([]ent.Value, 0, len(m.assignments))
+		for id := range m.assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceCommissionRuleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcommissions != nil {
 		edges = append(edges, financecommissionrule.EdgeCommissions)
+	}
+	if m.removedassignments != nil {
+		edges = append(edges, financecommissionrule.EdgeAssignments)
 	}
 	return edges
 }
@@ -45561,18 +45686,27 @@ func (m *FinanceCommissionRuleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financecommissionrule.EdgeAssignments:
+		ids := make([]ent.Value, 0, len(m.removedassignments))
+		for id := range m.removedassignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceCommissionRuleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedorganization {
 		edges = append(edges, financecommissionrule.EdgeOrganization)
 	}
 	if m.clearedcommissions {
 		edges = append(edges, financecommissionrule.EdgeCommissions)
+	}
+	if m.clearedassignments {
+		edges = append(edges, financecommissionrule.EdgeAssignments)
 	}
 	return edges
 }
@@ -45585,6 +45719,8 @@ func (m *FinanceCommissionRuleMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case financecommissionrule.EdgeCommissions:
 		return m.clearedcommissions
+	case financecommissionrule.EdgeAssignments:
+		return m.clearedassignments
 	}
 	return false
 }
@@ -45610,8 +45746,1358 @@ func (m *FinanceCommissionRuleMutation) ResetEdge(name string) error {
 	case financecommissionrule.EdgeCommissions:
 		m.ResetCommissions()
 		return nil
+	case financecommissionrule.EdgeAssignments:
+		m.ResetAssignments()
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceCommissionRule edge %s", name)
+}
+
+// FinanceCommissionRuleAssignmentMutation represents an operation that mutates the FinanceCommissionRuleAssignment nodes in the graph.
+type FinanceCommissionRuleAssignmentMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	effective_from            *string
+	effective_to              *string
+	cancelled_at              *time.Time
+	terminated_at             *time.Time
+	clearedFields             map[string]struct{}
+	organization              *uuid.UUID
+	clearedorganization       bool
+	rule                      *uuid.UUID
+	clearedrule               bool
+	employee                  *uuid.UUID
+	clearedemployee           bool
+	created_by_user           *uuid.UUID
+	clearedcreated_by_user    bool
+	cancelled_by_user         *uuid.UUID
+	clearedcancelled_by_user  bool
+	terminated_by_user        *uuid.UUID
+	clearedterminated_by_user bool
+	done                      bool
+	oldValue                  func(context.Context) (*FinanceCommissionRuleAssignment, error)
+	predicates                []predicate.FinanceCommissionRuleAssignment
+}
+
+var _ ent.Mutation = (*FinanceCommissionRuleAssignmentMutation)(nil)
+
+// financecommissionruleassignmentOption allows management of the mutation configuration using functional options.
+type financecommissionruleassignmentOption func(*FinanceCommissionRuleAssignmentMutation)
+
+// newFinanceCommissionRuleAssignmentMutation creates new mutation for the FinanceCommissionRuleAssignment entity.
+func newFinanceCommissionRuleAssignmentMutation(c config, op Op, opts ...financecommissionruleassignmentOption) *FinanceCommissionRuleAssignmentMutation {
+	m := &FinanceCommissionRuleAssignmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceCommissionRuleAssignment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceCommissionRuleAssignmentID sets the ID field of the mutation.
+func withFinanceCommissionRuleAssignmentID(id uuid.UUID) financecommissionruleassignmentOption {
+	return func(m *FinanceCommissionRuleAssignmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceCommissionRuleAssignment
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceCommissionRuleAssignment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceCommissionRuleAssignment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceCommissionRuleAssignment sets the old FinanceCommissionRuleAssignment of the mutation.
+func withFinanceCommissionRuleAssignment(node *FinanceCommissionRuleAssignment) financecommissionruleassignmentOption {
+	return func(m *FinanceCommissionRuleAssignmentMutation) {
+		m.oldValue = func(context.Context) (*FinanceCommissionRuleAssignment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceCommissionRuleAssignmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceCommissionRuleAssignmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceCommissionRuleAssignment entities.
+func (m *FinanceCommissionRuleAssignmentMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceCommissionRuleAssignmentMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceCommissionRuleAssignment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetRuleID sets the "rule_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetRuleID(u uuid.UUID) {
+	m.rule = &u
+}
+
+// RuleID returns the value of the "rule_id" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) RuleID() (r uuid.UUID, exists bool) {
+	v := m.rule
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRuleID returns the old "rule_id" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldRuleID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRuleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRuleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRuleID: %w", err)
+	}
+	return oldValue.RuleID, nil
+}
+
+// ResetRuleID resets all changes to the "rule_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetRuleID() {
+	m.rule = nil
+}
+
+// SetEmployeeID sets the "employee_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetEmployeeID(u uuid.UUID) {
+	m.employee = &u
+}
+
+// EmployeeID returns the value of the "employee_id" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) EmployeeID() (r uuid.UUID, exists bool) {
+	v := m.employee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmployeeID returns the old "employee_id" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldEmployeeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmployeeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmployeeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmployeeID: %w", err)
+	}
+	return oldValue.EmployeeID, nil
+}
+
+// ResetEmployeeID resets all changes to the "employee_id" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetEmployeeID() {
+	m.employee = nil
+}
+
+// SetEffectiveFrom sets the "effective_from" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetEffectiveFrom(s string) {
+	m.effective_from = &s
+}
+
+// EffectiveFrom returns the value of the "effective_from" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) EffectiveFrom() (r string, exists bool) {
+	v := m.effective_from
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectiveFrom returns the old "effective_from" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldEffectiveFrom(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectiveFrom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectiveFrom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectiveFrom: %w", err)
+	}
+	return oldValue.EffectiveFrom, nil
+}
+
+// ResetEffectiveFrom resets all changes to the "effective_from" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetEffectiveFrom() {
+	m.effective_from = nil
+}
+
+// SetEffectiveTo sets the "effective_to" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetEffectiveTo(s string) {
+	m.effective_to = &s
+}
+
+// EffectiveTo returns the value of the "effective_to" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) EffectiveTo() (r string, exists bool) {
+	v := m.effective_to
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectiveTo returns the old "effective_to" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldEffectiveTo(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectiveTo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectiveTo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectiveTo: %w", err)
+	}
+	return oldValue.EffectiveTo, nil
+}
+
+// ClearEffectiveTo clears the value of the "effective_to" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearEffectiveTo() {
+	m.effective_to = nil
+	m.clearedFields[financecommissionruleassignment.FieldEffectiveTo] = struct{}{}
+}
+
+// EffectiveToCleared returns if the "effective_to" field was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) EffectiveToCleared() bool {
+	_, ok := m.clearedFields[financecommissionruleassignment.FieldEffectiveTo]
+	return ok
+}
+
+// ResetEffectiveTo resets all changes to the "effective_to" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetEffectiveTo() {
+	m.effective_to = nil
+	delete(m.clearedFields, financecommissionruleassignment.FieldEffectiveTo)
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCancelledAt(t time.Time) {
+	m.cancelled_at = &t
+}
+
+// CancelledAt returns the value of the "cancelled_at" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledAt() (r time.Time, exists bool) {
+	v := m.cancelled_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCancelledAt returns the old "cancelled_at" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldCancelledAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCancelledAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCancelledAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCancelledAt: %w", err)
+	}
+	return oldValue.CancelledAt, nil
+}
+
+// ClearCancelledAt clears the value of the "cancelled_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearCancelledAt() {
+	m.cancelled_at = nil
+	m.clearedFields[financecommissionruleassignment.FieldCancelledAt] = struct{}{}
+}
+
+// CancelledAtCleared returns if the "cancelled_at" field was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledAtCleared() bool {
+	_, ok := m.clearedFields[financecommissionruleassignment.FieldCancelledAt]
+	return ok
+}
+
+// ResetCancelledAt resets all changes to the "cancelled_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCancelledAt() {
+	m.cancelled_at = nil
+	delete(m.clearedFields, financecommissionruleassignment.FieldCancelledAt)
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCancelledBy(u uuid.UUID) {
+	m.cancelled_by_user = &u
+}
+
+// CancelledBy returns the value of the "cancelled_by" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledBy() (r uuid.UUID, exists bool) {
+	v := m.cancelled_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCancelledBy returns the old "cancelled_by" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldCancelledBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCancelledBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCancelledBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCancelledBy: %w", err)
+	}
+	return oldValue.CancelledBy, nil
+}
+
+// ClearCancelledBy clears the value of the "cancelled_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearCancelledBy() {
+	m.cancelled_by_user = nil
+	m.clearedFields[financecommissionruleassignment.FieldCancelledBy] = struct{}{}
+}
+
+// CancelledByCleared returns if the "cancelled_by" field was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledByCleared() bool {
+	_, ok := m.clearedFields[financecommissionruleassignment.FieldCancelledBy]
+	return ok
+}
+
+// ResetCancelledBy resets all changes to the "cancelled_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCancelledBy() {
+	m.cancelled_by_user = nil
+	delete(m.clearedFields, financecommissionruleassignment.FieldCancelledBy)
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetTerminatedAt(t time.Time) {
+	m.terminated_at = &t
+}
+
+// TerminatedAt returns the value of the "terminated_at" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedAt() (r time.Time, exists bool) {
+	v := m.terminated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminatedAt returns the old "terminated_at" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldTerminatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminatedAt: %w", err)
+	}
+	return oldValue.TerminatedAt, nil
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearTerminatedAt() {
+	m.terminated_at = nil
+	m.clearedFields[financecommissionruleassignment.FieldTerminatedAt] = struct{}{}
+}
+
+// TerminatedAtCleared returns if the "terminated_at" field was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedAtCleared() bool {
+	_, ok := m.clearedFields[financecommissionruleassignment.FieldTerminatedAt]
+	return ok
+}
+
+// ResetTerminatedAt resets all changes to the "terminated_at" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetTerminatedAt() {
+	m.terminated_at = nil
+	delete(m.clearedFields, financecommissionruleassignment.FieldTerminatedAt)
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetTerminatedBy(u uuid.UUID) {
+	m.terminated_by_user = &u
+}
+
+// TerminatedBy returns the value of the "terminated_by" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedBy() (r uuid.UUID, exists bool) {
+	v := m.terminated_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminatedBy returns the old "terminated_by" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldTerminatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminatedBy: %w", err)
+	}
+	return oldValue.TerminatedBy, nil
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearTerminatedBy() {
+	m.terminated_by_user = nil
+	m.clearedFields[financecommissionruleassignment.FieldTerminatedBy] = struct{}{}
+}
+
+// TerminatedByCleared returns if the "terminated_by" field was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedByCleared() bool {
+	_, ok := m.clearedFields[financecommissionruleassignment.FieldTerminatedBy]
+	return ok
+}
+
+// ResetTerminatedBy resets all changes to the "terminated_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetTerminatedBy() {
+	m.terminated_by_user = nil
+	delete(m.clearedFields, financecommissionruleassignment.FieldTerminatedBy)
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCreatedBy(u uuid.UUID) {
+	m.created_by_user = &u
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.created_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the FinanceCommissionRuleAssignment entity.
+// If the FinanceCommissionRuleAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleAssignmentMutation) OldCreatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCreatedBy() {
+	m.created_by_user = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[financecommissionruleassignment.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearRule clears the "rule" edge to the FinanceCommissionRule entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearRule() {
+	m.clearedrule = true
+	m.clearedFields[financecommissionruleassignment.FieldRuleID] = struct{}{}
+}
+
+// RuleCleared reports if the "rule" edge to the FinanceCommissionRule entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) RuleCleared() bool {
+	return m.clearedrule
+}
+
+// RuleIDs returns the "rule" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RuleID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) RuleIDs() (ids []uuid.UUID) {
+	if id := m.rule; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRule resets all changes to the "rule" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetRule() {
+	m.rule = nil
+	m.clearedrule = false
+}
+
+// ClearEmployee clears the "employee" edge to the User entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearEmployee() {
+	m.clearedemployee = true
+	m.clearedFields[financecommissionruleassignment.FieldEmployeeID] = struct{}{}
+}
+
+// EmployeeCleared reports if the "employee" edge to the User entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) EmployeeCleared() bool {
+	return m.clearedemployee
+}
+
+// EmployeeIDs returns the "employee" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EmployeeID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) EmployeeIDs() (ids []uuid.UUID) {
+	if id := m.employee; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEmployee resets all changes to the "employee" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetEmployee() {
+	m.employee = nil
+	m.clearedemployee = false
+}
+
+// SetCreatedByUserID sets the "created_by_user" edge to the User entity by id.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCreatedByUserID(id uuid.UUID) {
+	m.created_by_user = &id
+}
+
+// ClearCreatedByUser clears the "created_by_user" edge to the User entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearCreatedByUser() {
+	m.clearedcreated_by_user = true
+	m.clearedFields[financecommissionruleassignment.FieldCreatedBy] = struct{}{}
+}
+
+// CreatedByUserCleared reports if the "created_by_user" edge to the User entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) CreatedByUserCleared() bool {
+	return m.clearedcreated_by_user
+}
+
+// CreatedByUserID returns the "created_by_user" edge ID in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CreatedByUserID() (id uuid.UUID, exists bool) {
+	if m.created_by_user != nil {
+		return *m.created_by_user, true
+	}
+	return
+}
+
+// CreatedByUserIDs returns the "created_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatedByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) CreatedByUserIDs() (ids []uuid.UUID) {
+	if id := m.created_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreatedByUser resets all changes to the "created_by_user" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCreatedByUser() {
+	m.created_by_user = nil
+	m.clearedcreated_by_user = false
+}
+
+// SetCancelledByUserID sets the "cancelled_by_user" edge to the User entity by id.
+func (m *FinanceCommissionRuleAssignmentMutation) SetCancelledByUserID(id uuid.UUID) {
+	m.cancelled_by_user = &id
+}
+
+// ClearCancelledByUser clears the "cancelled_by_user" edge to the User entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearCancelledByUser() {
+	m.clearedcancelled_by_user = true
+	m.clearedFields[financecommissionruleassignment.FieldCancelledBy] = struct{}{}
+}
+
+// CancelledByUserCleared reports if the "cancelled_by_user" edge to the User entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledByUserCleared() bool {
+	return m.CancelledByCleared() || m.clearedcancelled_by_user
+}
+
+// CancelledByUserID returns the "cancelled_by_user" edge ID in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledByUserID() (id uuid.UUID, exists bool) {
+	if m.cancelled_by_user != nil {
+		return *m.cancelled_by_user, true
+	}
+	return
+}
+
+// CancelledByUserIDs returns the "cancelled_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CancelledByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) CancelledByUserIDs() (ids []uuid.UUID) {
+	if id := m.cancelled_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCancelledByUser resets all changes to the "cancelled_by_user" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetCancelledByUser() {
+	m.cancelled_by_user = nil
+	m.clearedcancelled_by_user = false
+}
+
+// SetTerminatedByUserID sets the "terminated_by_user" edge to the User entity by id.
+func (m *FinanceCommissionRuleAssignmentMutation) SetTerminatedByUserID(id uuid.UUID) {
+	m.terminated_by_user = &id
+}
+
+// ClearTerminatedByUser clears the "terminated_by_user" edge to the User entity.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearTerminatedByUser() {
+	m.clearedterminated_by_user = true
+	m.clearedFields[financecommissionruleassignment.FieldTerminatedBy] = struct{}{}
+}
+
+// TerminatedByUserCleared reports if the "terminated_by_user" edge to the User entity was cleared.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedByUserCleared() bool {
+	return m.TerminatedByCleared() || m.clearedterminated_by_user
+}
+
+// TerminatedByUserID returns the "terminated_by_user" edge ID in the mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedByUserID() (id uuid.UUID, exists bool) {
+	if m.terminated_by_user != nil {
+		return *m.terminated_by_user, true
+	}
+	return
+}
+
+// TerminatedByUserIDs returns the "terminated_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TerminatedByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceCommissionRuleAssignmentMutation) TerminatedByUserIDs() (ids []uuid.UUID) {
+	if id := m.terminated_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTerminatedByUser resets all changes to the "terminated_by_user" edge.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetTerminatedByUser() {
+	m.terminated_by_user = nil
+	m.clearedterminated_by_user = false
+}
+
+// Where appends a list predicates to the FinanceCommissionRuleAssignmentMutation builder.
+func (m *FinanceCommissionRuleAssignmentMutation) Where(ps ...predicate.FinanceCommissionRuleAssignment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceCommissionRuleAssignmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceCommissionRuleAssignmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceCommissionRuleAssignment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceCommissionRuleAssignmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceCommissionRuleAssignmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceCommissionRuleAssignment).
+func (m *FinanceCommissionRuleAssignmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceCommissionRuleAssignmentMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, financecommissionruleassignment.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financecommissionruleassignment.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, financecommissionruleassignment.FieldOrganizationID)
+	}
+	if m.rule != nil {
+		fields = append(fields, financecommissionruleassignment.FieldRuleID)
+	}
+	if m.employee != nil {
+		fields = append(fields, financecommissionruleassignment.FieldEmployeeID)
+	}
+	if m.effective_from != nil {
+		fields = append(fields, financecommissionruleassignment.FieldEffectiveFrom)
+	}
+	if m.effective_to != nil {
+		fields = append(fields, financecommissionruleassignment.FieldEffectiveTo)
+	}
+	if m.cancelled_at != nil {
+		fields = append(fields, financecommissionruleassignment.FieldCancelledAt)
+	}
+	if m.cancelled_by_user != nil {
+		fields = append(fields, financecommissionruleassignment.FieldCancelledBy)
+	}
+	if m.terminated_at != nil {
+		fields = append(fields, financecommissionruleassignment.FieldTerminatedAt)
+	}
+	if m.terminated_by_user != nil {
+		fields = append(fields, financecommissionruleassignment.FieldTerminatedBy)
+	}
+	if m.created_by_user != nil {
+		fields = append(fields, financecommissionruleassignment.FieldCreatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceCommissionRuleAssignmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financecommissionruleassignment.FieldCreatedAt:
+		return m.CreatedAt()
+	case financecommissionruleassignment.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financecommissionruleassignment.FieldOrganizationID:
+		return m.OrganizationID()
+	case financecommissionruleassignment.FieldRuleID:
+		return m.RuleID()
+	case financecommissionruleassignment.FieldEmployeeID:
+		return m.EmployeeID()
+	case financecommissionruleassignment.FieldEffectiveFrom:
+		return m.EffectiveFrom()
+	case financecommissionruleassignment.FieldEffectiveTo:
+		return m.EffectiveTo()
+	case financecommissionruleassignment.FieldCancelledAt:
+		return m.CancelledAt()
+	case financecommissionruleassignment.FieldCancelledBy:
+		return m.CancelledBy()
+	case financecommissionruleassignment.FieldTerminatedAt:
+		return m.TerminatedAt()
+	case financecommissionruleassignment.FieldTerminatedBy:
+		return m.TerminatedBy()
+	case financecommissionruleassignment.FieldCreatedBy:
+		return m.CreatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceCommissionRuleAssignmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financecommissionruleassignment.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financecommissionruleassignment.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financecommissionruleassignment.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case financecommissionruleassignment.FieldRuleID:
+		return m.OldRuleID(ctx)
+	case financecommissionruleassignment.FieldEmployeeID:
+		return m.OldEmployeeID(ctx)
+	case financecommissionruleassignment.FieldEffectiveFrom:
+		return m.OldEffectiveFrom(ctx)
+	case financecommissionruleassignment.FieldEffectiveTo:
+		return m.OldEffectiveTo(ctx)
+	case financecommissionruleassignment.FieldCancelledAt:
+		return m.OldCancelledAt(ctx)
+	case financecommissionruleassignment.FieldCancelledBy:
+		return m.OldCancelledBy(ctx)
+	case financecommissionruleassignment.FieldTerminatedAt:
+		return m.OldTerminatedAt(ctx)
+	case financecommissionruleassignment.FieldTerminatedBy:
+		return m.OldTerminatedBy(ctx)
+	case financecommissionruleassignment.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceCommissionRuleAssignment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceCommissionRuleAssignmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financecommissionruleassignment.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financecommissionruleassignment.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financecommissionruleassignment.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case financecommissionruleassignment.FieldRuleID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRuleID(v)
+		return nil
+	case financecommissionruleassignment.FieldEmployeeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmployeeID(v)
+		return nil
+	case financecommissionruleassignment.FieldEffectiveFrom:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectiveFrom(v)
+		return nil
+	case financecommissionruleassignment.FieldEffectiveTo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectiveTo(v)
+		return nil
+	case financecommissionruleassignment.FieldCancelledAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCancelledAt(v)
+		return nil
+	case financecommissionruleassignment.FieldCancelledBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCancelledBy(v)
+		return nil
+	case financecommissionruleassignment.FieldTerminatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTerminatedAt(v)
+		return nil
+	case financecommissionruleassignment.FieldTerminatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTerminatedBy(v)
+		return nil
+	case financecommissionruleassignment.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceCommissionRuleAssignmentMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceCommissionRuleAssignmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(financecommissionruleassignment.FieldEffectiveTo) {
+		fields = append(fields, financecommissionruleassignment.FieldEffectiveTo)
+	}
+	if m.FieldCleared(financecommissionruleassignment.FieldCancelledAt) {
+		fields = append(fields, financecommissionruleassignment.FieldCancelledAt)
+	}
+	if m.FieldCleared(financecommissionruleassignment.FieldCancelledBy) {
+		fields = append(fields, financecommissionruleassignment.FieldCancelledBy)
+	}
+	if m.FieldCleared(financecommissionruleassignment.FieldTerminatedAt) {
+		fields = append(fields, financecommissionruleassignment.FieldTerminatedAt)
+	}
+	if m.FieldCleared(financecommissionruleassignment.FieldTerminatedBy) {
+		fields = append(fields, financecommissionruleassignment.FieldTerminatedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearField(name string) error {
+	switch name {
+	case financecommissionruleassignment.FieldEffectiveTo:
+		m.ClearEffectiveTo()
+		return nil
+	case financecommissionruleassignment.FieldCancelledAt:
+		m.ClearCancelledAt()
+		return nil
+	case financecommissionruleassignment.FieldCancelledBy:
+		m.ClearCancelledBy()
+		return nil
+	case financecommissionruleassignment.FieldTerminatedAt:
+		m.ClearTerminatedAt()
+		return nil
+	case financecommissionruleassignment.FieldTerminatedBy:
+		m.ClearTerminatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetField(name string) error {
+	switch name {
+	case financecommissionruleassignment.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financecommissionruleassignment.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financecommissionruleassignment.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case financecommissionruleassignment.FieldRuleID:
+		m.ResetRuleID()
+		return nil
+	case financecommissionruleassignment.FieldEmployeeID:
+		m.ResetEmployeeID()
+		return nil
+	case financecommissionruleassignment.FieldEffectiveFrom:
+		m.ResetEffectiveFrom()
+		return nil
+	case financecommissionruleassignment.FieldEffectiveTo:
+		m.ResetEffectiveTo()
+		return nil
+	case financecommissionruleassignment.FieldCancelledAt:
+		m.ResetCancelledAt()
+		return nil
+	case financecommissionruleassignment.FieldCancelledBy:
+		m.ResetCancelledBy()
+		return nil
+	case financecommissionruleassignment.FieldTerminatedAt:
+		m.ResetTerminatedAt()
+		return nil
+	case financecommissionruleassignment.FieldTerminatedBy:
+		m.ResetTerminatedBy()
+		return nil
+	case financecommissionruleassignment.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.organization != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeOrganization)
+	}
+	if m.rule != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeRule)
+	}
+	if m.employee != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeEmployee)
+	}
+	if m.created_by_user != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeCreatedByUser)
+	}
+	if m.cancelled_by_user != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeCancelledByUser)
+	}
+	if m.terminated_by_user != nil {
+		edges = append(edges, financecommissionruleassignment.EdgeTerminatedByUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financecommissionruleassignment.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommissionruleassignment.EdgeRule:
+		if id := m.rule; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommissionruleassignment.EdgeEmployee:
+		if id := m.employee; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommissionruleassignment.EdgeCreatedByUser:
+		if id := m.created_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommissionruleassignment.EdgeCancelledByUser:
+		if id := m.cancelled_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecommissionruleassignment.EdgeTerminatedByUser:
+		if id := m.terminated_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 6)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 6)
+	if m.clearedorganization {
+		edges = append(edges, financecommissionruleassignment.EdgeOrganization)
+	}
+	if m.clearedrule {
+		edges = append(edges, financecommissionruleassignment.EdgeRule)
+	}
+	if m.clearedemployee {
+		edges = append(edges, financecommissionruleassignment.EdgeEmployee)
+	}
+	if m.clearedcreated_by_user {
+		edges = append(edges, financecommissionruleassignment.EdgeCreatedByUser)
+	}
+	if m.clearedcancelled_by_user {
+		edges = append(edges, financecommissionruleassignment.EdgeCancelledByUser)
+	}
+	if m.clearedterminated_by_user {
+		edges = append(edges, financecommissionruleassignment.EdgeTerminatedByUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceCommissionRuleAssignmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financecommissionruleassignment.EdgeOrganization:
+		return m.clearedorganization
+	case financecommissionruleassignment.EdgeRule:
+		return m.clearedrule
+	case financecommissionruleassignment.EdgeEmployee:
+		return m.clearedemployee
+	case financecommissionruleassignment.EdgeCreatedByUser:
+		return m.clearedcreated_by_user
+	case financecommissionruleassignment.EdgeCancelledByUser:
+		return m.clearedcancelled_by_user
+	case financecommissionruleassignment.EdgeTerminatedByUser:
+		return m.clearedterminated_by_user
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceCommissionRuleAssignmentMutation) ClearEdge(name string) error {
+	switch name {
+	case financecommissionruleassignment.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case financecommissionruleassignment.EdgeRule:
+		m.ClearRule()
+		return nil
+	case financecommissionruleassignment.EdgeEmployee:
+		m.ClearEmployee()
+		return nil
+	case financecommissionruleassignment.EdgeCreatedByUser:
+		m.ClearCreatedByUser()
+		return nil
+	case financecommissionruleassignment.EdgeCancelledByUser:
+		m.ClearCancelledByUser()
+		return nil
+	case financecommissionruleassignment.EdgeTerminatedByUser:
+		m.ClearTerminatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceCommissionRuleAssignmentMutation) ResetEdge(name string) error {
+	switch name {
+	case financecommissionruleassignment.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case financecommissionruleassignment.EdgeRule:
+		m.ResetRule()
+		return nil
+	case financecommissionruleassignment.EdgeEmployee:
+		m.ResetEmployee()
+		return nil
+	case financecommissionruleassignment.EdgeCreatedByUser:
+		m.ResetCreatedByUser()
+		return nil
+	case financecommissionruleassignment.EdgeCancelledByUser:
+		m.ResetCancelledByUser()
+		return nil
+	case financecommissionruleassignment.EdgeTerminatedByUser:
+		m.ResetTerminatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCommissionRuleAssignment edge %s", name)
 }
 
 // FinanceCustomSettingMutation represents an operation that mutates the FinanceCustomSetting nodes in the graph.
@@ -101385,202 +102871,205 @@ func (m *OrderUnlockRequestMutation) ResetEdge(name string) error {
 // OrganizationMutation represents an operation that mutates the Organization nodes in the graph.
 type OrganizationMutation struct {
 	config
-	op                                      Op
-	typ                                     string
-	id                                      *uuid.UUID
-	created_at                              *time.Time
-	updated_at                              *time.Time
-	code                                    *string
-	name                                    *string
-	kind                                    *organization.Kind
-	enabled                                 *bool
-	base_currency                           *string
-	enabled_currencies                      *[]string
-	appendenabled_currencies                []string
-	search_keywords                         *string
-	clearedFields                           map[string]struct{}
-	parent                                  *uuid.UUID
-	clearedparent                           bool
-	children                                map[uuid.UUID]struct{}
-	removedchildren                         map[uuid.UUID]struct{}
-	clearedchildren                         bool
-	memberships                             map[uuid.UUID]struct{}
-	removedmemberships                      map[uuid.UUID]struct{}
-	clearedmemberships                      bool
-	roles                                   map[uuid.UUID]struct{}
-	removedroles                            map[uuid.UUID]struct{}
-	clearedroles                            bool
-	sessions                                map[uuid.UUID]struct{}
-	removedsessions                         map[uuid.UUID]struct{}
-	clearedsessions                         bool
-	partners                                map[uuid.UUID]struct{}
-	removedpartners                         map[uuid.UUID]struct{}
-	clearedpartners                         bool
-	partner_assignments                     map[uuid.UUID]struct{}
-	removedpartner_assignments              map[uuid.UUID]struct{}
-	clearedpartner_assignments              bool
-	taxable_services                        map[uuid.UUID]struct{}
-	removedtaxable_services                 map[uuid.UUID]struct{}
-	clearedtaxable_services                 bool
-	fee_settings                            map[uuid.UUID]struct{}
-	removedfee_settings                     map[uuid.UUID]struct{}
-	clearedfee_settings                     bool
-	ports                                   map[uuid.UUID]struct{}
-	removedports                            map[uuid.UUID]struct{}
-	clearedports                            bool
-	airports                                map[uuid.UUID]struct{}
-	removedairports                         map[uuid.UUID]struct{}
-	clearedairports                         bool
-	number_rules                            map[uuid.UUID]struct{}
-	removednumber_rules                     map[uuid.UUID]struct{}
-	clearednumber_rules                     bool
-	orders                                  map[uuid.UUID]struct{}
-	removedorders                           map[uuid.UUID]struct{}
-	clearedorders                           bool
-	sea_transport_executions                map[uuid.UUID]struct{}
-	removedsea_transport_executions         map[uuid.UUID]struct{}
-	clearedsea_transport_executions         bool
-	sea_master_bills                        map[uuid.UUID]struct{}
-	removedsea_master_bills                 map[uuid.UUID]struct{}
-	clearedsea_master_bills                 bool
-	sea_master_bill_order_links             map[uuid.UUID]struct{}
-	removedsea_master_bill_order_links      map[uuid.UUID]struct{}
-	clearedsea_master_bill_order_links      bool
-	sea_house_bills                         map[uuid.UUID]struct{}
-	removedsea_house_bills                  map[uuid.UUID]struct{}
-	clearedsea_house_bills                  bool
-	issued_sea_house_bills                  map[uuid.UUID]struct{}
-	removedissued_sea_house_bills           map[uuid.UUID]struct{}
-	clearedissued_sea_house_bills           bool
-	order_cargo_items                       map[uuid.UUID]struct{}
-	removedorder_cargo_items                map[uuid.UUID]struct{}
-	clearedorder_cargo_items                bool
-	order_containers                        map[uuid.UUID]struct{}
-	removedorder_containers                 map[uuid.UUID]struct{}
-	clearedorder_containers                 bool
-	order_personnel                         map[uuid.UUID]struct{}
-	removedorder_personnel                  map[uuid.UUID]struct{}
-	clearedorder_personnel                  bool
-	background_tasks                        map[uuid.UUID]struct{}
-	removedbackground_tasks                 map[uuid.UUID]struct{}
-	clearedbackground_tasks                 bool
-	finance_bills                           map[uuid.UUID]struct{}
-	removedfinance_bills                    map[uuid.UUID]struct{}
-	clearedfinance_bills                    bool
-	finance_bill_batches                    map[uuid.UUID]struct{}
-	removedfinance_bill_batches             map[uuid.UUID]struct{}
-	clearedfinance_bill_batches             bool
-	partner_invoice_profiles                map[uuid.UUID]struct{}
-	removedpartner_invoice_profiles         map[uuid.UUID]struct{}
-	clearedpartner_invoice_profiles         bool
-	finance_invoices                        map[uuid.UUID]struct{}
-	removedfinance_invoices                 map[uuid.UUID]struct{}
-	clearedfinance_invoices                 bool
-	finance_cashflows                       map[uuid.UUID]struct{}
-	removedfinance_cashflows                map[uuid.UUID]struct{}
-	clearedfinance_cashflows                bool
-	finance_verifications                   map[uuid.UUID]struct{}
-	removedfinance_verifications            map[uuid.UUID]struct{}
-	clearedfinance_verifications            bool
-	finance_nettings                        map[uuid.UUID]struct{}
-	removedfinance_nettings                 map[uuid.UUID]struct{}
-	clearedfinance_nettings                 bool
-	finance_commissions                     map[uuid.UUID]struct{}
-	removedfinance_commissions              map[uuid.UUID]struct{}
-	clearedfinance_commissions              bool
-	finance_commission_lines                map[uuid.UUID]struct{}
-	removedfinance_commission_lines         map[uuid.UUID]struct{}
-	clearedfinance_commission_lines         bool
-	finance_commission_adjustments          map[uuid.UUID]struct{}
-	removedfinance_commission_adjustments   map[uuid.UUID]struct{}
-	clearedfinance_commission_adjustments   bool
-	finance_commission_rules                map[uuid.UUID]struct{}
-	removedfinance_commission_rules         map[uuid.UUID]struct{}
-	clearedfinance_commission_rules         bool
-	order_commission_attributions           map[uuid.UUID]struct{}
-	removedorder_commission_attributions    map[uuid.UUID]struct{}
-	clearedorder_commission_attributions    bool
-	finance_fee_ledger_preferences          map[uuid.UUID]struct{}
-	removedfinance_fee_ledger_preferences   map[uuid.UUID]struct{}
-	clearedfinance_fee_ledger_preferences   bool
-	finance_custom_setting                  map[uuid.UUID]struct{}
-	removedfinance_custom_setting           map[uuid.UUID]struct{}
-	clearedfinance_custom_setting           bool
-	enterprise_resources                    map[uuid.UUID]struct{}
-	removedenterprise_resources             map[uuid.UUID]struct{}
-	clearedenterprise_resources             bool
-	enterprise_tag_groups                   map[uuid.UUID]struct{}
-	removedenterprise_tag_groups            map[uuid.UUID]struct{}
-	clearedenterprise_tag_groups            bool
-	order_enterprise_tags                   map[uuid.UUID]struct{}
-	removedorder_enterprise_tags            map[uuid.UUID]struct{}
-	clearedorder_enterprise_tags            bool
-	order_fee_enterprise_tags               map[uuid.UUID]struct{}
-	removedorder_fee_enterprise_tags        map[uuid.UUID]struct{}
-	clearedorder_fee_enterprise_tags        bool
-	finance_bill_enterprise_tags            map[uuid.UUID]struct{}
-	removedfinance_bill_enterprise_tags     map[uuid.UUID]struct{}
-	clearedfinance_bill_enterprise_tags     bool
-	attachment_assets                       map[uuid.UUID]struct{}
-	removedattachment_assets                map[uuid.UUID]struct{}
-	clearedattachment_assets                bool
-	sea_order_split_events                  map[uuid.UUID]struct{}
-	removedsea_order_split_events           map[uuid.UUID]struct{}
-	clearedsea_order_split_events           bool
-	sea_order_split_results                 map[uuid.UUID]struct{}
-	removedsea_order_split_results          map[uuid.UUID]struct{}
-	clearedsea_order_split_results          bool
-	sea_order_reassignment_events           map[uuid.UUID]struct{}
-	removedsea_order_reassignment_events    map[uuid.UUID]struct{}
-	clearedsea_order_reassignment_events    bool
-	order_lock_records                      map[uuid.UUID]struct{}
-	removedorder_lock_records               map[uuid.UUID]struct{}
-	clearedorder_lock_records               bool
-	order_fee_supplement_requests           map[uuid.UUID]struct{}
-	removedorder_fee_supplement_requests    map[uuid.UUID]struct{}
-	clearedorder_fee_supplement_requests    bool
-	order_lock_house_bill_snapshots         map[uuid.UUID]struct{}
-	removedorder_lock_house_bill_snapshots  map[uuid.UUID]struct{}
-	clearedorder_lock_house_bill_snapshots  bool
-	order_unlock_requests                   map[uuid.UUID]struct{}
-	removedorder_unlock_requests            map[uuid.UUID]struct{}
-	clearedorder_unlock_requests            bool
-	sea_master_bill_versions                map[uuid.UUID]struct{}
-	removedsea_master_bill_versions         map[uuid.UUID]struct{}
-	clearedsea_master_bill_versions         bool
-	sea_house_bill_versions                 map[uuid.UUID]struct{}
-	removedsea_house_bill_versions          map[uuid.UUID]struct{}
-	clearedsea_house_bill_versions          bool
-	issued_sea_house_bill_versions          map[uuid.UUID]struct{}
-	removedissued_sea_house_bill_versions   map[uuid.UUID]struct{}
-	clearedissued_sea_house_bill_versions   bool
-	dingtalk_approval_dispatches            map[uuid.UUID]struct{}
-	removeddingtalk_approval_dispatches     map[uuid.UUID]struct{}
-	cleareddingtalk_approval_dispatches     bool
-	sea_document_void_events                map[uuid.UUID]struct{}
-	removedsea_document_void_events         map[uuid.UUID]struct{}
-	clearedsea_document_void_events         bool
-	sea_transport_execution_versions        map[uuid.UUID]struct{}
-	removedsea_transport_execution_versions map[uuid.UUID]struct{}
-	clearedsea_transport_execution_versions bool
-	sea_document_mode_change_events         map[uuid.UUID]struct{}
-	removedsea_document_mode_change_events  map[uuid.UUID]struct{}
-	clearedsea_document_mode_change_events  bool
-	sea_shared_containers                   map[uuid.UUID]struct{}
-	removedsea_shared_containers            map[uuid.UUID]struct{}
-	clearedsea_shared_containers            bool
-	sea_shared_container_allocations        map[uuid.UUID]struct{}
-	removedsea_shared_container_allocations map[uuid.UUID]struct{}
-	clearedsea_shared_container_allocations bool
-	dingtalk_invitations                    map[uuid.UUID]struct{}
-	removeddingtalk_invitations             map[uuid.UUID]struct{}
-	cleareddingtalk_invitations             bool
-	dingtalk_registration_requests          map[uuid.UUID]struct{}
-	removeddingtalk_registration_requests   map[uuid.UUID]struct{}
-	cleareddingtalk_registration_requests   bool
-	done                                    bool
-	oldValue                                func(context.Context) (*Organization, error)
-	predicates                              []predicate.Organization
+	op                                         Op
+	typ                                        string
+	id                                         *uuid.UUID
+	created_at                                 *time.Time
+	updated_at                                 *time.Time
+	code                                       *string
+	name                                       *string
+	kind                                       *organization.Kind
+	enabled                                    *bool
+	base_currency                              *string
+	enabled_currencies                         *[]string
+	appendenabled_currencies                   []string
+	search_keywords                            *string
+	clearedFields                              map[string]struct{}
+	parent                                     *uuid.UUID
+	clearedparent                              bool
+	children                                   map[uuid.UUID]struct{}
+	removedchildren                            map[uuid.UUID]struct{}
+	clearedchildren                            bool
+	memberships                                map[uuid.UUID]struct{}
+	removedmemberships                         map[uuid.UUID]struct{}
+	clearedmemberships                         bool
+	roles                                      map[uuid.UUID]struct{}
+	removedroles                               map[uuid.UUID]struct{}
+	clearedroles                               bool
+	sessions                                   map[uuid.UUID]struct{}
+	removedsessions                            map[uuid.UUID]struct{}
+	clearedsessions                            bool
+	partners                                   map[uuid.UUID]struct{}
+	removedpartners                            map[uuid.UUID]struct{}
+	clearedpartners                            bool
+	partner_assignments                        map[uuid.UUID]struct{}
+	removedpartner_assignments                 map[uuid.UUID]struct{}
+	clearedpartner_assignments                 bool
+	taxable_services                           map[uuid.UUID]struct{}
+	removedtaxable_services                    map[uuid.UUID]struct{}
+	clearedtaxable_services                    bool
+	fee_settings                               map[uuid.UUID]struct{}
+	removedfee_settings                        map[uuid.UUID]struct{}
+	clearedfee_settings                        bool
+	ports                                      map[uuid.UUID]struct{}
+	removedports                               map[uuid.UUID]struct{}
+	clearedports                               bool
+	airports                                   map[uuid.UUID]struct{}
+	removedairports                            map[uuid.UUID]struct{}
+	clearedairports                            bool
+	number_rules                               map[uuid.UUID]struct{}
+	removednumber_rules                        map[uuid.UUID]struct{}
+	clearednumber_rules                        bool
+	orders                                     map[uuid.UUID]struct{}
+	removedorders                              map[uuid.UUID]struct{}
+	clearedorders                              bool
+	sea_transport_executions                   map[uuid.UUID]struct{}
+	removedsea_transport_executions            map[uuid.UUID]struct{}
+	clearedsea_transport_executions            bool
+	sea_master_bills                           map[uuid.UUID]struct{}
+	removedsea_master_bills                    map[uuid.UUID]struct{}
+	clearedsea_master_bills                    bool
+	sea_master_bill_order_links                map[uuid.UUID]struct{}
+	removedsea_master_bill_order_links         map[uuid.UUID]struct{}
+	clearedsea_master_bill_order_links         bool
+	sea_house_bills                            map[uuid.UUID]struct{}
+	removedsea_house_bills                     map[uuid.UUID]struct{}
+	clearedsea_house_bills                     bool
+	issued_sea_house_bills                     map[uuid.UUID]struct{}
+	removedissued_sea_house_bills              map[uuid.UUID]struct{}
+	clearedissued_sea_house_bills              bool
+	order_cargo_items                          map[uuid.UUID]struct{}
+	removedorder_cargo_items                   map[uuid.UUID]struct{}
+	clearedorder_cargo_items                   bool
+	order_containers                           map[uuid.UUID]struct{}
+	removedorder_containers                    map[uuid.UUID]struct{}
+	clearedorder_containers                    bool
+	order_personnel                            map[uuid.UUID]struct{}
+	removedorder_personnel                     map[uuid.UUID]struct{}
+	clearedorder_personnel                     bool
+	background_tasks                           map[uuid.UUID]struct{}
+	removedbackground_tasks                    map[uuid.UUID]struct{}
+	clearedbackground_tasks                    bool
+	finance_bills                              map[uuid.UUID]struct{}
+	removedfinance_bills                       map[uuid.UUID]struct{}
+	clearedfinance_bills                       bool
+	finance_bill_batches                       map[uuid.UUID]struct{}
+	removedfinance_bill_batches                map[uuid.UUID]struct{}
+	clearedfinance_bill_batches                bool
+	partner_invoice_profiles                   map[uuid.UUID]struct{}
+	removedpartner_invoice_profiles            map[uuid.UUID]struct{}
+	clearedpartner_invoice_profiles            bool
+	finance_invoices                           map[uuid.UUID]struct{}
+	removedfinance_invoices                    map[uuid.UUID]struct{}
+	clearedfinance_invoices                    bool
+	finance_cashflows                          map[uuid.UUID]struct{}
+	removedfinance_cashflows                   map[uuid.UUID]struct{}
+	clearedfinance_cashflows                   bool
+	finance_verifications                      map[uuid.UUID]struct{}
+	removedfinance_verifications               map[uuid.UUID]struct{}
+	clearedfinance_verifications               bool
+	finance_nettings                           map[uuid.UUID]struct{}
+	removedfinance_nettings                    map[uuid.UUID]struct{}
+	clearedfinance_nettings                    bool
+	finance_commissions                        map[uuid.UUID]struct{}
+	removedfinance_commissions                 map[uuid.UUID]struct{}
+	clearedfinance_commissions                 bool
+	finance_commission_lines                   map[uuid.UUID]struct{}
+	removedfinance_commission_lines            map[uuid.UUID]struct{}
+	clearedfinance_commission_lines            bool
+	finance_commission_adjustments             map[uuid.UUID]struct{}
+	removedfinance_commission_adjustments      map[uuid.UUID]struct{}
+	clearedfinance_commission_adjustments      bool
+	finance_commission_rules                   map[uuid.UUID]struct{}
+	removedfinance_commission_rules            map[uuid.UUID]struct{}
+	clearedfinance_commission_rules            bool
+	finance_commission_rule_assignments        map[uuid.UUID]struct{}
+	removedfinance_commission_rule_assignments map[uuid.UUID]struct{}
+	clearedfinance_commission_rule_assignments bool
+	order_commission_attributions              map[uuid.UUID]struct{}
+	removedorder_commission_attributions       map[uuid.UUID]struct{}
+	clearedorder_commission_attributions       bool
+	finance_fee_ledger_preferences             map[uuid.UUID]struct{}
+	removedfinance_fee_ledger_preferences      map[uuid.UUID]struct{}
+	clearedfinance_fee_ledger_preferences      bool
+	finance_custom_setting                     map[uuid.UUID]struct{}
+	removedfinance_custom_setting              map[uuid.UUID]struct{}
+	clearedfinance_custom_setting              bool
+	enterprise_resources                       map[uuid.UUID]struct{}
+	removedenterprise_resources                map[uuid.UUID]struct{}
+	clearedenterprise_resources                bool
+	enterprise_tag_groups                      map[uuid.UUID]struct{}
+	removedenterprise_tag_groups               map[uuid.UUID]struct{}
+	clearedenterprise_tag_groups               bool
+	order_enterprise_tags                      map[uuid.UUID]struct{}
+	removedorder_enterprise_tags               map[uuid.UUID]struct{}
+	clearedorder_enterprise_tags               bool
+	order_fee_enterprise_tags                  map[uuid.UUID]struct{}
+	removedorder_fee_enterprise_tags           map[uuid.UUID]struct{}
+	clearedorder_fee_enterprise_tags           bool
+	finance_bill_enterprise_tags               map[uuid.UUID]struct{}
+	removedfinance_bill_enterprise_tags        map[uuid.UUID]struct{}
+	clearedfinance_bill_enterprise_tags        bool
+	attachment_assets                          map[uuid.UUID]struct{}
+	removedattachment_assets                   map[uuid.UUID]struct{}
+	clearedattachment_assets                   bool
+	sea_order_split_events                     map[uuid.UUID]struct{}
+	removedsea_order_split_events              map[uuid.UUID]struct{}
+	clearedsea_order_split_events              bool
+	sea_order_split_results                    map[uuid.UUID]struct{}
+	removedsea_order_split_results             map[uuid.UUID]struct{}
+	clearedsea_order_split_results             bool
+	sea_order_reassignment_events              map[uuid.UUID]struct{}
+	removedsea_order_reassignment_events       map[uuid.UUID]struct{}
+	clearedsea_order_reassignment_events       bool
+	order_lock_records                         map[uuid.UUID]struct{}
+	removedorder_lock_records                  map[uuid.UUID]struct{}
+	clearedorder_lock_records                  bool
+	order_fee_supplement_requests              map[uuid.UUID]struct{}
+	removedorder_fee_supplement_requests       map[uuid.UUID]struct{}
+	clearedorder_fee_supplement_requests       bool
+	order_lock_house_bill_snapshots            map[uuid.UUID]struct{}
+	removedorder_lock_house_bill_snapshots     map[uuid.UUID]struct{}
+	clearedorder_lock_house_bill_snapshots     bool
+	order_unlock_requests                      map[uuid.UUID]struct{}
+	removedorder_unlock_requests               map[uuid.UUID]struct{}
+	clearedorder_unlock_requests               bool
+	sea_master_bill_versions                   map[uuid.UUID]struct{}
+	removedsea_master_bill_versions            map[uuid.UUID]struct{}
+	clearedsea_master_bill_versions            bool
+	sea_house_bill_versions                    map[uuid.UUID]struct{}
+	removedsea_house_bill_versions             map[uuid.UUID]struct{}
+	clearedsea_house_bill_versions             bool
+	issued_sea_house_bill_versions             map[uuid.UUID]struct{}
+	removedissued_sea_house_bill_versions      map[uuid.UUID]struct{}
+	clearedissued_sea_house_bill_versions      bool
+	dingtalk_approval_dispatches               map[uuid.UUID]struct{}
+	removeddingtalk_approval_dispatches        map[uuid.UUID]struct{}
+	cleareddingtalk_approval_dispatches        bool
+	sea_document_void_events                   map[uuid.UUID]struct{}
+	removedsea_document_void_events            map[uuid.UUID]struct{}
+	clearedsea_document_void_events            bool
+	sea_transport_execution_versions           map[uuid.UUID]struct{}
+	removedsea_transport_execution_versions    map[uuid.UUID]struct{}
+	clearedsea_transport_execution_versions    bool
+	sea_document_mode_change_events            map[uuid.UUID]struct{}
+	removedsea_document_mode_change_events     map[uuid.UUID]struct{}
+	clearedsea_document_mode_change_events     bool
+	sea_shared_containers                      map[uuid.UUID]struct{}
+	removedsea_shared_containers               map[uuid.UUID]struct{}
+	clearedsea_shared_containers               bool
+	sea_shared_container_allocations           map[uuid.UUID]struct{}
+	removedsea_shared_container_allocations    map[uuid.UUID]struct{}
+	clearedsea_shared_container_allocations    bool
+	dingtalk_invitations                       map[uuid.UUID]struct{}
+	removeddingtalk_invitations                map[uuid.UUID]struct{}
+	cleareddingtalk_invitations                bool
+	dingtalk_registration_requests             map[uuid.UUID]struct{}
+	removeddingtalk_registration_requests      map[uuid.UUID]struct{}
+	cleareddingtalk_registration_requests      bool
+	done                                       bool
+	oldValue                                   func(context.Context) (*Organization, error)
+	predicates                                 []predicate.Organization
 }
 
 var _ ent.Mutation = (*OrganizationMutation)(nil)
@@ -103857,6 +105346,60 @@ func (m *OrganizationMutation) ResetFinanceCommissionRules() {
 	m.removedfinance_commission_rules = nil
 }
 
+// AddFinanceCommissionRuleAssignmentIDs adds the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *OrganizationMutation) AddFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.finance_commission_rule_assignments == nil {
+		m.finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceCommissionRuleAssignments clears the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *OrganizationMutation) ClearFinanceCommissionRuleAssignments() {
+	m.clearedfinance_commission_rule_assignments = true
+}
+
+// FinanceCommissionRuleAssignmentsCleared reports if the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *OrganizationMutation) FinanceCommissionRuleAssignmentsCleared() bool {
+	return m.clearedfinance_commission_rule_assignments
+}
+
+// RemoveFinanceCommissionRuleAssignmentIDs removes the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *OrganizationMutation) RemoveFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedfinance_commission_rule_assignments == nil {
+		m.removedfinance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_commission_rule_assignments, ids[i])
+		m.removedfinance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceCommissionRuleAssignments returns the removed IDs of the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *OrganizationMutation) RemovedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceCommissionRuleAssignmentsIDs returns the "finance_commission_rule_assignments" edge IDs in the mutation.
+func (m *OrganizationMutation) FinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceCommissionRuleAssignments resets all changes to the "finance_commission_rule_assignments" edge.
+func (m *OrganizationMutation) ResetFinanceCommissionRuleAssignments() {
+	m.finance_commission_rule_assignments = nil
+	m.clearedfinance_commission_rule_assignments = false
+	m.removedfinance_commission_rule_assignments = nil
+}
+
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by ids.
 func (m *OrganizationMutation) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) {
 	if m.order_commission_attributions == nil {
@@ -105622,7 +107165,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 60)
+	edges := make([]string, 0, 61)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -105721,6 +107264,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_commission_rules != nil {
 		edges = append(edges, organization.EdgeFinanceCommissionRules)
+	}
+	if m.finance_commission_rule_assignments != nil {
+		edges = append(edges, organization.EdgeFinanceCommissionRuleAssignments)
 	}
 	if m.order_commission_attributions != nil {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
@@ -106006,6 +107552,12 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.finance_commission_rule_assignments))
+		for id := range m.finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderCommissionAttributions:
 		ids := make([]ent.Value, 0, len(m.order_commission_attributions))
 		for id := range m.order_commission_attributions {
@@ -106174,7 +107726,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 60)
+	edges := make([]string, 0, 61)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -106270,6 +107822,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_commission_rules != nil {
 		edges = append(edges, organization.EdgeFinanceCommissionRules)
+	}
+	if m.removedfinance_commission_rule_assignments != nil {
+		edges = append(edges, organization.EdgeFinanceCommissionRuleAssignments)
 	}
 	if m.removedorder_commission_attributions != nil {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
@@ -106551,6 +108106,12 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.removedfinance_commission_rule_assignments))
+		for id := range m.removedfinance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderCommissionAttributions:
 		ids := make([]ent.Value, 0, len(m.removedorder_commission_attributions))
 		for id := range m.removedorder_commission_attributions {
@@ -106719,7 +108280,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 60)
+	edges := make([]string, 0, 61)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -106818,6 +108379,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedfinance_commission_rules {
 		edges = append(edges, organization.EdgeFinanceCommissionRules)
+	}
+	if m.clearedfinance_commission_rule_assignments {
+		edges = append(edges, organization.EdgeFinanceCommissionRuleAssignments)
 	}
 	if m.clearedorder_commission_attributions {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
@@ -106973,6 +108537,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_commission_adjustments
 	case organization.EdgeFinanceCommissionRules:
 		return m.clearedfinance_commission_rules
+	case organization.EdgeFinanceCommissionRuleAssignments:
+		return m.clearedfinance_commission_rule_assignments
 	case organization.EdgeOrderCommissionAttributions:
 		return m.clearedorder_commission_attributions
 	case organization.EdgeFinanceFeeLedgerPreferences:
@@ -107144,6 +108710,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeFinanceCommissionRules:
 		m.ResetFinanceCommissionRules()
+		return nil
+	case organization.EdgeFinanceCommissionRuleAssignments:
+		m.ResetFinanceCommissionRuleAssignments()
 		return nil
 	case organization.EdgeOrderCommissionAttributions:
 		m.ResetOrderCommissionAttributions()
@@ -158230,192 +159799,204 @@ func (m *TaxableServiceMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                                              Op
-	typ                                             string
-	id                                              *uuid.UUID
-	created_at                                      *time.Time
-	updated_at                                      *time.Time
-	username                                        *string
-	display_name                                    *string
-	email                                           *string
-	avatar_url                                      *string
-	password_hash                                   *string
-	wecom_userid                                    *string
-	wecom_name                                      *string
-	dingtalk_unionid                                *string
-	dingtalk_userid                                 *string
-	dingtalk_name                                   *string
-	is_bootstrap_admin                              *bool
-	enabled                                         *bool
-	search_keywords                                 *string
-	clearedFields                                   map[string]struct{}
-	memberships                                     map[uuid.UUID]struct{}
-	removedmemberships                              map[uuid.UUID]struct{}
-	clearedmemberships                              bool
-	sessions                                        map[uuid.UUID]struct{}
-	removedsessions                                 map[uuid.UUID]struct{}
-	clearedsessions                                 bool
-	order_personnel                                 map[uuid.UUID]struct{}
-	removedorder_personnel                          map[uuid.UUID]struct{}
-	clearedorder_personnel                          bool
-	notification_deliveries                         map[uuid.UUID]struct{}
-	removednotification_deliveries                  map[uuid.UUID]struct{}
-	clearednotification_deliveries                  bool
-	partner_assignments                             map[uuid.UUID]struct{}
-	removedpartner_assignments                      map[uuid.UUID]struct{}
-	clearedpartner_assignments                      bool
-	cancelled_order_fees                            map[uuid.UUID]struct{}
-	removedcancelled_order_fees                     map[uuid.UUID]struct{}
-	clearedcancelled_order_fees                     bool
-	confirmed_finance_bills                         map[uuid.UUID]struct{}
-	removedconfirmed_finance_bills                  map[uuid.UUID]struct{}
-	clearedconfirmed_finance_bills                  bool
-	cancelled_finance_bills                         map[uuid.UUID]struct{}
-	removedcancelled_finance_bills                  map[uuid.UUID]struct{}
-	clearedcancelled_finance_bills                  bool
-	created_finance_bill_batches                    map[uuid.UUID]struct{}
-	removedcreated_finance_bill_batches             map[uuid.UUID]struct{}
-	clearedcreated_finance_bill_batches             bool
-	issued_finance_invoices                         map[uuid.UUID]struct{}
-	removedissued_finance_invoices                  map[uuid.UUID]struct{}
-	clearedissued_finance_invoices                  bool
-	cancelled_finance_invoices                      map[uuid.UUID]struct{}
-	removedcancelled_finance_invoices               map[uuid.UUID]struct{}
-	clearedcancelled_finance_invoices               bool
-	red_flushed_finance_invoices                    map[uuid.UUID]struct{}
-	removedred_flushed_finance_invoices             map[uuid.UUID]struct{}
-	clearedred_flushed_finance_invoices             bool
-	confirmed_finance_cashflows                     map[uuid.UUID]struct{}
-	removedconfirmed_finance_cashflows              map[uuid.UUID]struct{}
-	clearedconfirmed_finance_cashflows              bool
-	cancelled_finance_cashflows                     map[uuid.UUID]struct{}
-	removedcancelled_finance_cashflows              map[uuid.UUID]struct{}
-	clearedcancelled_finance_cashflows              bool
-	reversed_finance_verifications                  map[uuid.UUID]struct{}
-	removedreversed_finance_verifications           map[uuid.UUID]struct{}
-	clearedreversed_finance_verifications           bool
-	confirmed_finance_nettings                      map[uuid.UUID]struct{}
-	removedconfirmed_finance_nettings               map[uuid.UUID]struct{}
-	clearedconfirmed_finance_nettings               bool
-	cancelled_finance_nettings                      map[uuid.UUID]struct{}
-	removedcancelled_finance_nettings               map[uuid.UUID]struct{}
-	clearedcancelled_finance_nettings               bool
-	reversed_finance_nettings                       map[uuid.UUID]struct{}
-	removedreversed_finance_nettings                map[uuid.UUID]struct{}
-	clearedreversed_finance_nettings                bool
-	finance_commissions                             map[uuid.UUID]struct{}
-	removedfinance_commissions                      map[uuid.UUID]struct{}
-	clearedfinance_commissions                      bool
-	confirmed_finance_commissions                   map[uuid.UUID]struct{}
-	removedconfirmed_finance_commissions            map[uuid.UUID]struct{}
-	clearedconfirmed_finance_commissions            bool
-	paid_finance_commissions                        map[uuid.UUID]struct{}
-	removedpaid_finance_commissions                 map[uuid.UUID]struct{}
-	clearedpaid_finance_commissions                 bool
-	cancelled_finance_commissions                   map[uuid.UUID]struct{}
-	removedcancelled_finance_commissions            map[uuid.UUID]struct{}
-	clearedcancelled_finance_commissions            bool
-	finance_commission_adjustments                  map[uuid.UUID]struct{}
-	removedfinance_commission_adjustments           map[uuid.UUID]struct{}
-	clearedfinance_commission_adjustments           bool
-	order_commission_attributions                   map[uuid.UUID]struct{}
-	removedorder_commission_attributions            map[uuid.UUID]struct{}
-	clearedorder_commission_attributions            bool
-	confirmed_finance_commission_adjustments        map[uuid.UUID]struct{}
-	removedconfirmed_finance_commission_adjustments map[uuid.UUID]struct{}
-	clearedconfirmed_finance_commission_adjustments bool
-	paid_finance_commission_adjustments             map[uuid.UUID]struct{}
-	removedpaid_finance_commission_adjustments      map[uuid.UUID]struct{}
-	clearedpaid_finance_commission_adjustments      bool
-	cancelled_finance_commission_adjustments        map[uuid.UUID]struct{}
-	removedcancelled_finance_commission_adjustments map[uuid.UUID]struct{}
-	clearedcancelled_finance_commission_adjustments bool
-	finance_fee_ledger_preferences                  map[uuid.UUID]struct{}
-	removedfinance_fee_ledger_preferences           map[uuid.UUID]struct{}
-	clearedfinance_fee_ledger_preferences           bool
-	updated_finance_custom_settings                 map[uuid.UUID]struct{}
-	removedupdated_finance_custom_settings          map[uuid.UUID]struct{}
-	clearedupdated_finance_custom_settings          bool
-	created_enterprise_resources                    map[uuid.UUID]struct{}
-	removedcreated_enterprise_resources             map[uuid.UUID]struct{}
-	clearedcreated_enterprise_resources             bool
-	updated_enterprise_resources                    map[uuid.UUID]struct{}
-	removedupdated_enterprise_resources             map[uuid.UUID]struct{}
-	clearedupdated_enterprise_resources             bool
-	uploaded_enterprise_resource_images             map[uuid.UUID]struct{}
-	removeduploaded_enterprise_resource_images      map[uuid.UUID]struct{}
-	cleareduploaded_enterprise_resource_images      bool
-	enterprise_resource_assignments                 map[uuid.UUID]struct{}
-	removedenterprise_resource_assignments          map[uuid.UUID]struct{}
-	clearedenterprise_resource_assignments          bool
-	created_sea_order_split_events                  map[uuid.UUID]struct{}
-	removedcreated_sea_order_split_events           map[uuid.UUID]struct{}
-	clearedcreated_sea_order_split_events           bool
-	created_sea_order_reassignment_events           map[uuid.UUID]struct{}
-	removedcreated_sea_order_reassignment_events    map[uuid.UUID]struct{}
-	clearedcreated_sea_order_reassignment_events    bool
-	uploaded_attachment_assets                      map[uuid.UUID]struct{}
-	removeduploaded_attachment_assets               map[uuid.UUID]struct{}
-	cleareduploaded_attachment_assets               bool
-	created_order_attachments                       map[uuid.UUID]struct{}
-	removedcreated_order_attachments                map[uuid.UUID]struct{}
-	clearedcreated_order_attachments                bool
-	locked_orders                                   map[uuid.UUID]struct{}
-	removedlocked_orders                            map[uuid.UUID]struct{}
-	clearedlocked_orders                            bool
-	order_lock_records                              map[uuid.UUID]struct{}
-	removedorder_lock_records                       map[uuid.UUID]struct{}
-	clearedorder_lock_records                       bool
-	unlocked_order_lock_records                     map[uuid.UUID]struct{}
-	removedunlocked_order_lock_records              map[uuid.UUID]struct{}
-	clearedunlocked_order_lock_records              bool
-	auto_triggered_order_lock_records               map[uuid.UUID]struct{}
-	removedauto_triggered_order_lock_records        map[uuid.UUID]struct{}
-	clearedauto_triggered_order_lock_records        bool
-	order_unlock_requests                           map[uuid.UUID]struct{}
-	removedorder_unlock_requests                    map[uuid.UUID]struct{}
-	clearedorder_unlock_requests                    bool
-	decided_order_unlock_requests                   map[uuid.UUID]struct{}
-	removeddecided_order_unlock_requests            map[uuid.UUID]struct{}
-	cleareddecided_order_unlock_requests            bool
-	order_unlock_approver_candidates                map[uuid.UUID]struct{}
-	removedorder_unlock_approver_candidates         map[uuid.UUID]struct{}
-	clearedorder_unlock_approver_candidates         bool
-	requested_order_fee_supplement_requests         map[uuid.UUID]struct{}
-	removedrequested_order_fee_supplement_requests  map[uuid.UUID]struct{}
-	clearedrequested_order_fee_supplement_requests  bool
-	decided_order_fee_supplement_requests           map[uuid.UUID]struct{}
-	removeddecided_order_fee_supplement_requests    map[uuid.UUID]struct{}
-	cleareddecided_order_fee_supplement_requests    bool
-	created_sea_master_bill_versions                map[uuid.UUID]struct{}
-	removedcreated_sea_master_bill_versions         map[uuid.UUID]struct{}
-	clearedcreated_sea_master_bill_versions         bool
-	created_sea_house_bill_versions                 map[uuid.UUID]struct{}
-	removedcreated_sea_house_bill_versions          map[uuid.UUID]struct{}
-	clearedcreated_sea_house_bill_versions          bool
-	created_sea_document_void_events                map[uuid.UUID]struct{}
-	removedcreated_sea_document_void_events         map[uuid.UUID]struct{}
-	clearedcreated_sea_document_void_events         bool
-	created_sea_transport_execution_versions        map[uuid.UUID]struct{}
-	removedcreated_sea_transport_execution_versions map[uuid.UUID]struct{}
-	clearedcreated_sea_transport_execution_versions bool
-	created_sea_document_mode_change_events         map[uuid.UUID]struct{}
-	removedcreated_sea_document_mode_change_events  map[uuid.UUID]struct{}
-	clearedcreated_sea_document_mode_change_events  bool
-	confirmed_sea_shared_containers                 map[uuid.UUID]struct{}
-	removedconfirmed_sea_shared_containers          map[uuid.UUID]struct{}
-	clearedconfirmed_sea_shared_containers          bool
-	created_dingtalk_invitations                    map[uuid.UUID]struct{}
-	removedcreated_dingtalk_invitations             map[uuid.UUID]struct{}
-	clearedcreated_dingtalk_invitations             bool
-	consumed_dingtalk_invitations                   map[uuid.UUID]struct{}
-	removedconsumed_dingtalk_invitations            map[uuid.UUID]struct{}
-	clearedconsumed_dingtalk_invitations            bool
-	dingtalk_requested_organization                 *uuid.UUID
-	cleareddingtalk_requested_organization          bool
-	done                                            bool
-	oldValue                                        func(context.Context) (*User, error)
-	predicates                                      []predicate.User
+	op                                                    Op
+	typ                                                   string
+	id                                                    *uuid.UUID
+	created_at                                            *time.Time
+	updated_at                                            *time.Time
+	username                                              *string
+	display_name                                          *string
+	email                                                 *string
+	avatar_url                                            *string
+	password_hash                                         *string
+	wecom_userid                                          *string
+	wecom_name                                            *string
+	dingtalk_unionid                                      *string
+	dingtalk_userid                                       *string
+	dingtalk_name                                         *string
+	is_bootstrap_admin                                    *bool
+	enabled                                               *bool
+	search_keywords                                       *string
+	clearedFields                                         map[string]struct{}
+	memberships                                           map[uuid.UUID]struct{}
+	removedmemberships                                    map[uuid.UUID]struct{}
+	clearedmemberships                                    bool
+	sessions                                              map[uuid.UUID]struct{}
+	removedsessions                                       map[uuid.UUID]struct{}
+	clearedsessions                                       bool
+	order_personnel                                       map[uuid.UUID]struct{}
+	removedorder_personnel                                map[uuid.UUID]struct{}
+	clearedorder_personnel                                bool
+	notification_deliveries                               map[uuid.UUID]struct{}
+	removednotification_deliveries                        map[uuid.UUID]struct{}
+	clearednotification_deliveries                        bool
+	partner_assignments                                   map[uuid.UUID]struct{}
+	removedpartner_assignments                            map[uuid.UUID]struct{}
+	clearedpartner_assignments                            bool
+	cancelled_order_fees                                  map[uuid.UUID]struct{}
+	removedcancelled_order_fees                           map[uuid.UUID]struct{}
+	clearedcancelled_order_fees                           bool
+	confirmed_finance_bills                               map[uuid.UUID]struct{}
+	removedconfirmed_finance_bills                        map[uuid.UUID]struct{}
+	clearedconfirmed_finance_bills                        bool
+	cancelled_finance_bills                               map[uuid.UUID]struct{}
+	removedcancelled_finance_bills                        map[uuid.UUID]struct{}
+	clearedcancelled_finance_bills                        bool
+	created_finance_bill_batches                          map[uuid.UUID]struct{}
+	removedcreated_finance_bill_batches                   map[uuid.UUID]struct{}
+	clearedcreated_finance_bill_batches                   bool
+	issued_finance_invoices                               map[uuid.UUID]struct{}
+	removedissued_finance_invoices                        map[uuid.UUID]struct{}
+	clearedissued_finance_invoices                        bool
+	cancelled_finance_invoices                            map[uuid.UUID]struct{}
+	removedcancelled_finance_invoices                     map[uuid.UUID]struct{}
+	clearedcancelled_finance_invoices                     bool
+	red_flushed_finance_invoices                          map[uuid.UUID]struct{}
+	removedred_flushed_finance_invoices                   map[uuid.UUID]struct{}
+	clearedred_flushed_finance_invoices                   bool
+	confirmed_finance_cashflows                           map[uuid.UUID]struct{}
+	removedconfirmed_finance_cashflows                    map[uuid.UUID]struct{}
+	clearedconfirmed_finance_cashflows                    bool
+	cancelled_finance_cashflows                           map[uuid.UUID]struct{}
+	removedcancelled_finance_cashflows                    map[uuid.UUID]struct{}
+	clearedcancelled_finance_cashflows                    bool
+	reversed_finance_verifications                        map[uuid.UUID]struct{}
+	removedreversed_finance_verifications                 map[uuid.UUID]struct{}
+	clearedreversed_finance_verifications                 bool
+	confirmed_finance_nettings                            map[uuid.UUID]struct{}
+	removedconfirmed_finance_nettings                     map[uuid.UUID]struct{}
+	clearedconfirmed_finance_nettings                     bool
+	cancelled_finance_nettings                            map[uuid.UUID]struct{}
+	removedcancelled_finance_nettings                     map[uuid.UUID]struct{}
+	clearedcancelled_finance_nettings                     bool
+	reversed_finance_nettings                             map[uuid.UUID]struct{}
+	removedreversed_finance_nettings                      map[uuid.UUID]struct{}
+	clearedreversed_finance_nettings                      bool
+	finance_commissions                                   map[uuid.UUID]struct{}
+	removedfinance_commissions                            map[uuid.UUID]struct{}
+	clearedfinance_commissions                            bool
+	confirmed_finance_commissions                         map[uuid.UUID]struct{}
+	removedconfirmed_finance_commissions                  map[uuid.UUID]struct{}
+	clearedconfirmed_finance_commissions                  bool
+	paid_finance_commissions                              map[uuid.UUID]struct{}
+	removedpaid_finance_commissions                       map[uuid.UUID]struct{}
+	clearedpaid_finance_commissions                       bool
+	cancelled_finance_commissions                         map[uuid.UUID]struct{}
+	removedcancelled_finance_commissions                  map[uuid.UUID]struct{}
+	clearedcancelled_finance_commissions                  bool
+	finance_commission_adjustments                        map[uuid.UUID]struct{}
+	removedfinance_commission_adjustments                 map[uuid.UUID]struct{}
+	clearedfinance_commission_adjustments                 bool
+	order_commission_attributions                         map[uuid.UUID]struct{}
+	removedorder_commission_attributions                  map[uuid.UUID]struct{}
+	clearedorder_commission_attributions                  bool
+	confirmed_finance_commission_adjustments              map[uuid.UUID]struct{}
+	removedconfirmed_finance_commission_adjustments       map[uuid.UUID]struct{}
+	clearedconfirmed_finance_commission_adjustments       bool
+	paid_finance_commission_adjustments                   map[uuid.UUID]struct{}
+	removedpaid_finance_commission_adjustments            map[uuid.UUID]struct{}
+	clearedpaid_finance_commission_adjustments            bool
+	cancelled_finance_commission_adjustments              map[uuid.UUID]struct{}
+	removedcancelled_finance_commission_adjustments       map[uuid.UUID]struct{}
+	clearedcancelled_finance_commission_adjustments       bool
+	finance_fee_ledger_preferences                        map[uuid.UUID]struct{}
+	removedfinance_fee_ledger_preferences                 map[uuid.UUID]struct{}
+	clearedfinance_fee_ledger_preferences                 bool
+	updated_finance_custom_settings                       map[uuid.UUID]struct{}
+	removedupdated_finance_custom_settings                map[uuid.UUID]struct{}
+	clearedupdated_finance_custom_settings                bool
+	created_enterprise_resources                          map[uuid.UUID]struct{}
+	removedcreated_enterprise_resources                   map[uuid.UUID]struct{}
+	clearedcreated_enterprise_resources                   bool
+	updated_enterprise_resources                          map[uuid.UUID]struct{}
+	removedupdated_enterprise_resources                   map[uuid.UUID]struct{}
+	clearedupdated_enterprise_resources                   bool
+	uploaded_enterprise_resource_images                   map[uuid.UUID]struct{}
+	removeduploaded_enterprise_resource_images            map[uuid.UUID]struct{}
+	cleareduploaded_enterprise_resource_images            bool
+	enterprise_resource_assignments                       map[uuid.UUID]struct{}
+	removedenterprise_resource_assignments                map[uuid.UUID]struct{}
+	clearedenterprise_resource_assignments                bool
+	created_sea_order_split_events                        map[uuid.UUID]struct{}
+	removedcreated_sea_order_split_events                 map[uuid.UUID]struct{}
+	clearedcreated_sea_order_split_events                 bool
+	created_sea_order_reassignment_events                 map[uuid.UUID]struct{}
+	removedcreated_sea_order_reassignment_events          map[uuid.UUID]struct{}
+	clearedcreated_sea_order_reassignment_events          bool
+	uploaded_attachment_assets                            map[uuid.UUID]struct{}
+	removeduploaded_attachment_assets                     map[uuid.UUID]struct{}
+	cleareduploaded_attachment_assets                     bool
+	created_order_attachments                             map[uuid.UUID]struct{}
+	removedcreated_order_attachments                      map[uuid.UUID]struct{}
+	clearedcreated_order_attachments                      bool
+	locked_orders                                         map[uuid.UUID]struct{}
+	removedlocked_orders                                  map[uuid.UUID]struct{}
+	clearedlocked_orders                                  bool
+	order_lock_records                                    map[uuid.UUID]struct{}
+	removedorder_lock_records                             map[uuid.UUID]struct{}
+	clearedorder_lock_records                             bool
+	unlocked_order_lock_records                           map[uuid.UUID]struct{}
+	removedunlocked_order_lock_records                    map[uuid.UUID]struct{}
+	clearedunlocked_order_lock_records                    bool
+	auto_triggered_order_lock_records                     map[uuid.UUID]struct{}
+	removedauto_triggered_order_lock_records              map[uuid.UUID]struct{}
+	clearedauto_triggered_order_lock_records              bool
+	order_unlock_requests                                 map[uuid.UUID]struct{}
+	removedorder_unlock_requests                          map[uuid.UUID]struct{}
+	clearedorder_unlock_requests                          bool
+	decided_order_unlock_requests                         map[uuid.UUID]struct{}
+	removeddecided_order_unlock_requests                  map[uuid.UUID]struct{}
+	cleareddecided_order_unlock_requests                  bool
+	order_unlock_approver_candidates                      map[uuid.UUID]struct{}
+	removedorder_unlock_approver_candidates               map[uuid.UUID]struct{}
+	clearedorder_unlock_approver_candidates               bool
+	requested_order_fee_supplement_requests               map[uuid.UUID]struct{}
+	removedrequested_order_fee_supplement_requests        map[uuid.UUID]struct{}
+	clearedrequested_order_fee_supplement_requests        bool
+	decided_order_fee_supplement_requests                 map[uuid.UUID]struct{}
+	removeddecided_order_fee_supplement_requests          map[uuid.UUID]struct{}
+	cleareddecided_order_fee_supplement_requests          bool
+	finance_commission_rule_assignments                   map[uuid.UUID]struct{}
+	removedfinance_commission_rule_assignments            map[uuid.UUID]struct{}
+	clearedfinance_commission_rule_assignments            bool
+	created_finance_commission_rule_assignments           map[uuid.UUID]struct{}
+	removedcreated_finance_commission_rule_assignments    map[uuid.UUID]struct{}
+	clearedcreated_finance_commission_rule_assignments    bool
+	cancelled_finance_commission_rule_assignments         map[uuid.UUID]struct{}
+	removedcancelled_finance_commission_rule_assignments  map[uuid.UUID]struct{}
+	clearedcancelled_finance_commission_rule_assignments  bool
+	terminated_finance_commission_rule_assignments        map[uuid.UUID]struct{}
+	removedterminated_finance_commission_rule_assignments map[uuid.UUID]struct{}
+	clearedterminated_finance_commission_rule_assignments bool
+	created_sea_master_bill_versions                      map[uuid.UUID]struct{}
+	removedcreated_sea_master_bill_versions               map[uuid.UUID]struct{}
+	clearedcreated_sea_master_bill_versions               bool
+	created_sea_house_bill_versions                       map[uuid.UUID]struct{}
+	removedcreated_sea_house_bill_versions                map[uuid.UUID]struct{}
+	clearedcreated_sea_house_bill_versions                bool
+	created_sea_document_void_events                      map[uuid.UUID]struct{}
+	removedcreated_sea_document_void_events               map[uuid.UUID]struct{}
+	clearedcreated_sea_document_void_events               bool
+	created_sea_transport_execution_versions              map[uuid.UUID]struct{}
+	removedcreated_sea_transport_execution_versions       map[uuid.UUID]struct{}
+	clearedcreated_sea_transport_execution_versions       bool
+	created_sea_document_mode_change_events               map[uuid.UUID]struct{}
+	removedcreated_sea_document_mode_change_events        map[uuid.UUID]struct{}
+	clearedcreated_sea_document_mode_change_events        bool
+	confirmed_sea_shared_containers                       map[uuid.UUID]struct{}
+	removedconfirmed_sea_shared_containers                map[uuid.UUID]struct{}
+	clearedconfirmed_sea_shared_containers                bool
+	created_dingtalk_invitations                          map[uuid.UUID]struct{}
+	removedcreated_dingtalk_invitations                   map[uuid.UUID]struct{}
+	clearedcreated_dingtalk_invitations                   bool
+	consumed_dingtalk_invitations                         map[uuid.UUID]struct{}
+	removedconsumed_dingtalk_invitations                  map[uuid.UUID]struct{}
+	clearedconsumed_dingtalk_invitations                  bool
+	dingtalk_requested_organization                       *uuid.UUID
+	cleareddingtalk_requested_organization                bool
+	done                                                  bool
+	oldValue                                              func(context.Context) (*User, error)
+	predicates                                            []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -161712,6 +163293,222 @@ func (m *UserMutation) ResetDecidedOrderFeeSupplementRequests() {
 	m.removeddecided_order_fee_supplement_requests = nil
 }
 
+// AddFinanceCommissionRuleAssignmentIDs adds the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *UserMutation) AddFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.finance_commission_rule_assignments == nil {
+		m.finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceCommissionRuleAssignments clears the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) ClearFinanceCommissionRuleAssignments() {
+	m.clearedfinance_commission_rule_assignments = true
+}
+
+// FinanceCommissionRuleAssignmentsCleared reports if the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *UserMutation) FinanceCommissionRuleAssignmentsCleared() bool {
+	return m.clearedfinance_commission_rule_assignments
+}
+
+// RemoveFinanceCommissionRuleAssignmentIDs removes the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *UserMutation) RemoveFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedfinance_commission_rule_assignments == nil {
+		m.removedfinance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_commission_rule_assignments, ids[i])
+		m.removedfinance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceCommissionRuleAssignments returns the removed IDs of the "finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) RemovedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceCommissionRuleAssignmentsIDs returns the "finance_commission_rule_assignments" edge IDs in the mutation.
+func (m *UserMutation) FinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceCommissionRuleAssignments resets all changes to the "finance_commission_rule_assignments" edge.
+func (m *UserMutation) ResetFinanceCommissionRuleAssignments() {
+	m.finance_commission_rule_assignments = nil
+	m.clearedfinance_commission_rule_assignments = false
+	m.removedfinance_commission_rule_assignments = nil
+}
+
+// AddCreatedFinanceCommissionRuleAssignmentIDs adds the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *UserMutation) AddCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.created_finance_commission_rule_assignments == nil {
+		m.created_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedFinanceCommissionRuleAssignments clears the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) ClearCreatedFinanceCommissionRuleAssignments() {
+	m.clearedcreated_finance_commission_rule_assignments = true
+}
+
+// CreatedFinanceCommissionRuleAssignmentsCleared reports if the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *UserMutation) CreatedFinanceCommissionRuleAssignmentsCleared() bool {
+	return m.clearedcreated_finance_commission_rule_assignments
+}
+
+// RemoveCreatedFinanceCommissionRuleAssignmentIDs removes the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *UserMutation) RemoveCreatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedcreated_finance_commission_rule_assignments == nil {
+		m.removedcreated_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_finance_commission_rule_assignments, ids[i])
+		m.removedcreated_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedFinanceCommissionRuleAssignments returns the removed IDs of the "created_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) RemovedCreatedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedFinanceCommissionRuleAssignmentsIDs returns the "created_finance_commission_rule_assignments" edge IDs in the mutation.
+func (m *UserMutation) CreatedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.created_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedFinanceCommissionRuleAssignments resets all changes to the "created_finance_commission_rule_assignments" edge.
+func (m *UserMutation) ResetCreatedFinanceCommissionRuleAssignments() {
+	m.created_finance_commission_rule_assignments = nil
+	m.clearedcreated_finance_commission_rule_assignments = false
+	m.removedcreated_finance_commission_rule_assignments = nil
+}
+
+// AddCancelledFinanceCommissionRuleAssignmentIDs adds the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *UserMutation) AddCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.cancelled_finance_commission_rule_assignments == nil {
+		m.cancelled_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cancelled_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCancelledFinanceCommissionRuleAssignments clears the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) ClearCancelledFinanceCommissionRuleAssignments() {
+	m.clearedcancelled_finance_commission_rule_assignments = true
+}
+
+// CancelledFinanceCommissionRuleAssignmentsCleared reports if the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *UserMutation) CancelledFinanceCommissionRuleAssignmentsCleared() bool {
+	return m.clearedcancelled_finance_commission_rule_assignments
+}
+
+// RemoveCancelledFinanceCommissionRuleAssignmentIDs removes the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *UserMutation) RemoveCancelledFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedcancelled_finance_commission_rule_assignments == nil {
+		m.removedcancelled_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cancelled_finance_commission_rule_assignments, ids[i])
+		m.removedcancelled_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCancelledFinanceCommissionRuleAssignments returns the removed IDs of the "cancelled_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) RemovedCancelledFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcancelled_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CancelledFinanceCommissionRuleAssignmentsIDs returns the "cancelled_finance_commission_rule_assignments" edge IDs in the mutation.
+func (m *UserMutation) CancelledFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.cancelled_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCancelledFinanceCommissionRuleAssignments resets all changes to the "cancelled_finance_commission_rule_assignments" edge.
+func (m *UserMutation) ResetCancelledFinanceCommissionRuleAssignments() {
+	m.cancelled_finance_commission_rule_assignments = nil
+	m.clearedcancelled_finance_commission_rule_assignments = false
+	m.removedcancelled_finance_commission_rule_assignments = nil
+}
+
+// AddTerminatedFinanceCommissionRuleAssignmentIDs adds the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by ids.
+func (m *UserMutation) AddTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.terminated_finance_commission_rule_assignments == nil {
+		m.terminated_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.terminated_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTerminatedFinanceCommissionRuleAssignments clears the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) ClearTerminatedFinanceCommissionRuleAssignments() {
+	m.clearedterminated_finance_commission_rule_assignments = true
+}
+
+// TerminatedFinanceCommissionRuleAssignmentsCleared reports if the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity was cleared.
+func (m *UserMutation) TerminatedFinanceCommissionRuleAssignmentsCleared() bool {
+	return m.clearedterminated_finance_commission_rule_assignments
+}
+
+// RemoveTerminatedFinanceCommissionRuleAssignmentIDs removes the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity by IDs.
+func (m *UserMutation) RemoveTerminatedFinanceCommissionRuleAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedterminated_finance_commission_rule_assignments == nil {
+		m.removedterminated_finance_commission_rule_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.terminated_finance_commission_rule_assignments, ids[i])
+		m.removedterminated_finance_commission_rule_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTerminatedFinanceCommissionRuleAssignments returns the removed IDs of the "terminated_finance_commission_rule_assignments" edge to the FinanceCommissionRuleAssignment entity.
+func (m *UserMutation) RemovedTerminatedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedterminated_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TerminatedFinanceCommissionRuleAssignmentsIDs returns the "terminated_finance_commission_rule_assignments" edge IDs in the mutation.
+func (m *UserMutation) TerminatedFinanceCommissionRuleAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.terminated_finance_commission_rule_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTerminatedFinanceCommissionRuleAssignments resets all changes to the "terminated_finance_commission_rule_assignments" edge.
+func (m *UserMutation) ResetTerminatedFinanceCommissionRuleAssignments() {
+	m.terminated_finance_commission_rule_assignments = nil
+	m.clearedterminated_finance_commission_rule_assignments = false
+	m.removedterminated_finance_commission_rule_assignments = nil
+}
+
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by ids.
 func (m *UserMutation) AddCreatedSeaMasterBillVersionIDs(ids ...uuid.UUID) {
 	if m.created_sea_master_bill_versions == nil {
@@ -162622,7 +164419,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 55)
+	edges := make([]string, 0, 59)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -162760,6 +164557,18 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.decided_order_fee_supplement_requests != nil {
 		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
+	}
+	if m.finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeFinanceCommissionRuleAssignments)
+	}
+	if m.created_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeCreatedFinanceCommissionRuleAssignments)
+	}
+	if m.cancelled_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeCancelledFinanceCommissionRuleAssignments)
+	}
+	if m.terminated_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeTerminatedFinanceCommissionRuleAssignments)
 	}
 	if m.created_sea_master_bill_versions != nil {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
@@ -163071,6 +164880,30 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.finance_commission_rule_assignments))
+		for id := range m.finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.created_finance_commission_rule_assignments))
+		for id := range m.created_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCancelledFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.cancelled_finance_commission_rule_assignments))
+		for id := range m.cancelled_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeTerminatedFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.terminated_finance_commission_rule_assignments))
+		for id := range m.terminated_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCreatedSeaMasterBillVersions:
 		ids := make([]ent.Value, 0, len(m.created_sea_master_bill_versions))
 		for id := range m.created_sea_master_bill_versions {
@@ -163129,7 +164962,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 55)
+	edges := make([]string, 0, 59)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -163267,6 +165100,18 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removeddecided_order_fee_supplement_requests != nil {
 		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
+	}
+	if m.removedfinance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeFinanceCommissionRuleAssignments)
+	}
+	if m.removedcreated_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeCreatedFinanceCommissionRuleAssignments)
+	}
+	if m.removedcancelled_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeCancelledFinanceCommissionRuleAssignments)
+	}
+	if m.removedterminated_finance_commission_rule_assignments != nil {
+		edges = append(edges, user.EdgeTerminatedFinanceCommissionRuleAssignments)
 	}
 	if m.removedcreated_sea_master_bill_versions != nil {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
@@ -163575,6 +165420,30 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.removedfinance_commission_rule_assignments))
+		for id := range m.removedfinance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.removedcreated_finance_commission_rule_assignments))
+		for id := range m.removedcreated_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCancelledFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.removedcancelled_finance_commission_rule_assignments))
+		for id := range m.removedcancelled_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeTerminatedFinanceCommissionRuleAssignments:
+		ids := make([]ent.Value, 0, len(m.removedterminated_finance_commission_rule_assignments))
+		for id := range m.removedterminated_finance_commission_rule_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeCreatedSeaMasterBillVersions:
 		ids := make([]ent.Value, 0, len(m.removedcreated_sea_master_bill_versions))
 		for id := range m.removedcreated_sea_master_bill_versions {
@@ -163629,7 +165498,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 55)
+	edges := make([]string, 0, 59)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -163768,6 +165637,18 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.cleareddecided_order_fee_supplement_requests {
 		edges = append(edges, user.EdgeDecidedOrderFeeSupplementRequests)
 	}
+	if m.clearedfinance_commission_rule_assignments {
+		edges = append(edges, user.EdgeFinanceCommissionRuleAssignments)
+	}
+	if m.clearedcreated_finance_commission_rule_assignments {
+		edges = append(edges, user.EdgeCreatedFinanceCommissionRuleAssignments)
+	}
+	if m.clearedcancelled_finance_commission_rule_assignments {
+		edges = append(edges, user.EdgeCancelledFinanceCommissionRuleAssignments)
+	}
+	if m.clearedterminated_finance_commission_rule_assignments {
+		edges = append(edges, user.EdgeTerminatedFinanceCommissionRuleAssignments)
+	}
 	if m.clearedcreated_sea_master_bill_versions {
 		edges = append(edges, user.EdgeCreatedSeaMasterBillVersions)
 	}
@@ -163894,6 +165775,14 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedrequested_order_fee_supplement_requests
 	case user.EdgeDecidedOrderFeeSupplementRequests:
 		return m.cleareddecided_order_fee_supplement_requests
+	case user.EdgeFinanceCommissionRuleAssignments:
+		return m.clearedfinance_commission_rule_assignments
+	case user.EdgeCreatedFinanceCommissionRuleAssignments:
+		return m.clearedcreated_finance_commission_rule_assignments
+	case user.EdgeCancelledFinanceCommissionRuleAssignments:
+		return m.clearedcancelled_finance_commission_rule_assignments
+	case user.EdgeTerminatedFinanceCommissionRuleAssignments:
+		return m.clearedterminated_finance_commission_rule_assignments
 	case user.EdgeCreatedSeaMasterBillVersions:
 		return m.clearedcreated_sea_master_bill_versions
 	case user.EdgeCreatedSeaHouseBillVersions:
@@ -164068,6 +165957,18 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeDecidedOrderFeeSupplementRequests:
 		m.ResetDecidedOrderFeeSupplementRequests()
+		return nil
+	case user.EdgeFinanceCommissionRuleAssignments:
+		m.ResetFinanceCommissionRuleAssignments()
+		return nil
+	case user.EdgeCreatedFinanceCommissionRuleAssignments:
+		m.ResetCreatedFinanceCommissionRuleAssignments()
+		return nil
+	case user.EdgeCancelledFinanceCommissionRuleAssignments:
+		m.ResetCancelledFinanceCommissionRuleAssignments()
+		return nil
+	case user.EdgeTerminatedFinanceCommissionRuleAssignments:
+		m.ResetTerminatedFinanceCommissionRuleAssignments()
 		return nil
 	case user.EdgeCreatedSeaMasterBillVersions:
 		m.ResetCreatedSeaMasterBillVersions()

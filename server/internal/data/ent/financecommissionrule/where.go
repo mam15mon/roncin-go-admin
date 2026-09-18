@@ -96,6 +96,11 @@ func Enabled(v bool) predicate.FinanceCommissionRule {
 	return predicate.FinanceCommissionRule(sql.FieldEQ(FieldEnabled, v))
 }
 
+// LegacyReadonly applies equality check predicate on the "legacy_readonly" field. It's identical to LegacyReadonlyEQ.
+func LegacyReadonly(v bool) predicate.FinanceCommissionRule {
+	return predicate.FinanceCommissionRule(sql.FieldEQ(FieldLegacyReadonly, v))
+}
+
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.FinanceCommissionRule {
 	return predicate.FinanceCommissionRule(sql.FieldEQ(FieldNote, v))
@@ -536,6 +541,16 @@ func EnabledNEQ(v bool) predicate.FinanceCommissionRule {
 	return predicate.FinanceCommissionRule(sql.FieldNEQ(FieldEnabled, v))
 }
 
+// LegacyReadonlyEQ applies the EQ predicate on the "legacy_readonly" field.
+func LegacyReadonlyEQ(v bool) predicate.FinanceCommissionRule {
+	return predicate.FinanceCommissionRule(sql.FieldEQ(FieldLegacyReadonly, v))
+}
+
+// LegacyReadonlyNEQ applies the NEQ predicate on the "legacy_readonly" field.
+func LegacyReadonlyNEQ(v bool) predicate.FinanceCommissionRule {
+	return predicate.FinanceCommissionRule(sql.FieldNEQ(FieldLegacyReadonly, v))
+}
+
 // NoteEQ applies the EQ predicate on the "note" field.
 func NoteEQ(v string) predicate.FinanceCommissionRule {
 	return predicate.FinanceCommissionRule(sql.FieldEQ(FieldNote, v))
@@ -689,6 +704,29 @@ func HasCommissions() predicate.FinanceCommissionRule {
 func HasCommissionsWith(preds ...predicate.FinanceCommission) predicate.FinanceCommissionRule {
 	return predicate.FinanceCommissionRule(func(s *sql.Selector) {
 		step := newCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAssignments applies the HasEdge predicate on the "assignments" edge.
+func HasAssignments() predicate.FinanceCommissionRule {
+	return predicate.FinanceCommissionRule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAssignmentsWith applies the HasEdge predicate on the "assignments" edge with a given conditions (other predicates).
+func HasAssignmentsWith(preds ...predicate.FinanceCommissionRuleAssignment) predicate.FinanceCommissionRule {
+	return predicate.FinanceCommissionRule(func(s *sql.Selector) {
+		step := newAssignmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -106,6 +106,15 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "finance_commission_rule_assignments",
+			table:     FinanceCommissionRuleAssignmentsTable,
+			expectedChecks: map[string]string{
+				"finance_commission_rule_assignments_effective_period_check": "effective_to IS NULL OR effective_from <= effective_to",
+				"finance_commission_rule_assignments_cancel_audit_check":     "(cancelled_at IS NULL AND cancelled_by IS NULL) OR (cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL)",
+				"finance_commission_rule_assignments_terminate_audit_check":  "(terminated_at IS NULL AND terminated_by IS NULL) OR (terminated_at IS NOT NULL AND terminated_by IS NOT NULL)",
+			},
+		},
+		{
 			tableName: "order_fee_supplement_requests",
 			table:     OrderFeeSupplementRequestsTable,
 			expectedChecks: map[string]string{

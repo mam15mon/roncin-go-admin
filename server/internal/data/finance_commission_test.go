@@ -459,7 +459,7 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		// 3. 提成规则查询 (lock=true -> FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_commission_rules" WHERE .* FOR UPDATE$`).
 			WillReturnRows(sqlmock.NewRows(financecommissionrule.Columns).AddRow(
-				ruleID, now, now, org, "销售提成", "SALES", "REALIZED_PROFIT", "10.0000", nil, nil, true, nil, 1,
+				ruleID, now, now, org, "销售提成", "SALES", "REALIZED_PROFIT", "10.0000", nil, nil, true, false, nil, 1,
 			))
 		// 4. 账单批量查询 (要求 ORDER BY "finance_bills"."id" FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id" FOR UPDATE$`).

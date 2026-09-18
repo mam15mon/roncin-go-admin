@@ -36,6 +36,8 @@ const (
 	FieldEffectiveTo = "effective_to"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldLegacyReadonly holds the string denoting the legacy_readonly field in the database.
+	FieldLegacyReadonly = "legacy_readonly"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -44,6 +46,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeCommissions holds the string denoting the commissions edge name in mutations.
 	EdgeCommissions = "commissions"
+	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
+	EdgeAssignments = "assignments"
 	// Table holds the table name of the financecommissionrule in the database.
 	Table = "finance_commission_rules"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -60,6 +64,13 @@ const (
 	CommissionsInverseTable = "finance_commissions"
 	// CommissionsColumn is the table column denoting the commissions relation/edge.
 	CommissionsColumn = "rule_id"
+	// AssignmentsTable is the table that holds the assignments relation/edge.
+	AssignmentsTable = "finance_commission_rule_assignments"
+	// AssignmentsInverseTable is the table name for the FinanceCommissionRuleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionruleassignment" package.
+	AssignmentsInverseTable = "finance_commission_rule_assignments"
+	// AssignmentsColumn is the table column denoting the assignments relation/edge.
+	AssignmentsColumn = "rule_id"
 )
 
 // Columns holds all SQL columns for financecommissionrule fields.
@@ -75,6 +86,7 @@ var Columns = []string{
 	FieldEffectiveFrom,
 	FieldEffectiveTo,
 	FieldEnabled,
+	FieldLegacyReadonly,
 	FieldNote,
 	FieldVersion,
 }
@@ -104,6 +116,8 @@ var (
 	EffectiveToValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// DefaultLegacyReadonly holds the default value on creation for the "legacy_readonly" field.
+	DefaultLegacyReadonly bool
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
@@ -217,6 +231,11 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
 }
 
+// ByLegacyReadonly orders the results by the legacy_readonly field.
+func ByLegacyReadonly(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLegacyReadonly, opts...).ToFunc()
+}
+
 // ByNote orders the results by the note field.
 func ByNote(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNote, opts...).ToFunc()
@@ -247,6 +266,20 @@ func ByCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAssignmentsCount orders the results by assignments count.
+func ByAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAssignmentsStep(), opts...)
+	}
+}
+
+// ByAssignments orders the results by assignments terms.
+func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -259,5 +292,12 @@ func newCommissionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CommissionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CommissionsTable, CommissionsColumn),
+	)
+}
+func newAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
 	)
 }
