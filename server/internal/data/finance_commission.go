@@ -28,6 +28,8 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 	"github.com/shopspring/decimal"
@@ -1287,6 +1289,113 @@ func (r *commissionRepo) GetAdjustmentScoped(ctx context.Context, organizationID
 	return commissionAdjustmentToBiz(x)
 }
 
+// commissionAdjustmentListPredicates 构造调整列表筛选谓词：关键字覆盖订单号、
+// 提成号与调整号；状态、来源与员工过滤显式命中。
+func commissionAdjustmentListPredicates(organizationIDs []uuid.UUID, f biz.CommissionAdjustmentFilter) []predicate.FinanceCommissionAdjustment {
+	p := []predicate.FinanceCommissionAdjustment{adjustment.OrganizationIDIn(organizationIDs...)}
+	if f.Keyword != "" {
+		p = append(p, adjustment.Or(
+			adjustment.OrderNoContainsFold(f.Keyword),
+			adjustment.CommissionNoContainsFold(f.Keyword),
+			adjustment.AdjustmentNoContainsFold(f.Keyword),
+		))
+	}
+	if f.Status != "" {
+		p = append(p, adjustment.StatusEQ(adjustment.Status(f.Status)))
+	}
+	if f.SourceType != "" {
+		p = append(p, adjustment.SourceTypeEQ(adjustment.SourceType(f.SourceType)))
+	}
+	if f.EmployeeID != uuid.Nil {
+		p = append(p, adjustment.EmployeeIDEQ(f.EmployeeID))
+	}
+	return p
+}
+
+// ListAdjustmentsScoped 服务端分页读取提成调整，默认 created_at 倒序、主键倒序
+// 兜底稳定排序；组织范围显式传入，由调用方按 commission.read 权限解析。
+func (r *commissionRepo) ListAdjustmentsScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionAdjustmentFilter) (*biz.CommissionAdjustmentListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	q := client.FinanceCommissionAdjustment.Query().Where(commissionAdjustmentListPredicates(organizationIDs, f)...)
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	xs, err := q.WithOrganization().
+		Order(adjustment.ByCreatedAt(entsql.OrderDesc()), adjustment.ByID(entsql.OrderDesc())).
+		Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.CommissionAdjustmentListResult{Items: make([]*biz.FinanceCommissionAdjustment, 0, len(xs)), Total: int64(total), Page: f.Page, PageSize: f.PageSize}
+	for _, x := range xs {
+		converted, convertErr := commissionAdjustmentToBiz(x)
+		if convertErr != nil {
+			return nil, convertErr
+		}
+		result.Items = append(result.Items, converted)
+	}
+	return result, nil
+}
+
+// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情。查询谓词同时
+// 限定调整 ID、employee_id = 当前用户、LOCKED_FEE_SUPPLEMENT 来源，以及「调整
+// 所属组织启用且当前用户存在启用成员关系」；任一不满足统一映射为调整不存在，
+// 不泄露他人调整的记录事实。
+func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context, userID, id uuid.UUID) (*biz.MyFeeSupplementAdjustmentSource, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommissionAdjustment.Query().Where(
+		adjustment.IDEQ(id),
+		adjustment.EmployeeIDEQ(userID),
+		adjustment.SourceTypeEQ(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT),
+		adjustment.HasOrganizationWith(
+			organizationent.EnabledEQ(true),
+			organizationent.HasMembershipsWith(membership.UserIDEQ(userID), membership.EnabledEQ(true)),
+		),
+	).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
+	}
+	requestID := uuid.Nil
+	if x.SourceFeeSupplementRequestID != nil {
+		requestID = *x.SourceFeeSupplementRequestID
+	}
+	if requestID == uuid.Nil {
+		return nil, biz.ErrCommissionAdjustmentNotFound
+	}
+	request, requestErr := client.OrderFeeSupplementRequest.Query().
+		Where(orderfeesupplementent.IDEQ(requestID)).
+		Only(ctx)
+	if requestErr != nil {
+		return nil, biz.ErrCommissionAdjustmentNotFound
+	}
+	amount, parseErr := decimalOf(x.Amount)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	feeTotal, parseErr := decimalOf(request.TotalAmount)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	feeBase, parseErr := decimalOf(request.BaseCurrencyAmount)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	return &biz.MyFeeSupplementAdjustmentSource{
+		AdjustmentID: x.ID, AdjustmentNo: x.AdjustmentNo, OrderNo: x.OrderNo, CommissionNo: x.CommissionNo,
+		Status: biz.CommissionStatus(x.Status), SuggestedAmount: amount, BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt,
+		FeeCode: request.FeeCode, FeeName: request.FeeName, FeeCurrency: request.Currency, FeeTotalAmount: feeTotal,
+		FeeBaseCurrency: request.BaseCurrency, FeeBaseCurrencyAmount: feeBase, FeeExpenseDate: request.ExpenseDate,
+		SupplementReason: request.Reason,
+	}, nil
+}
+
 func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.UUID, item *biz.FinanceCommissionAdjustment, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
 	var created *ent.FinanceCommissionAdjustment
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -1359,6 +1468,49 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 				return biz.ErrCommissionAdjustmentTransition
 			}
 			if x.Direction == adjustment.DirectionDECREASE {
+				currentAmount, parseErr := decimalOf(x.Amount)
+				if parseErr != nil {
+					return parseErr
+				}
+				// 订单行层有效余额：以 FinanceCommissionLine.commission_amount 为起点，
+				// 只汇总同 commission_id + order_id 的 CONFIRMED/PAID 符号化调整
+				//（不含其他 DRAFT）。确认在锁内重算，不静默缩小建议金额；
+				// 同父单其他订单行的正余额不得替当前订单行兜底。
+				line, lineErr := tx.FinanceCommissionLine.Query().
+					Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(x.OrderID)).
+					Only(ctx)
+				if lineErr != nil {
+					return mapEntError(lineErr, biz.ErrCommissionAdjustmentInvalid, nil)
+				}
+				lineEffective, parseErr := decimalOf(line.CommissionAmount)
+				if parseErr != nil {
+					return parseErr
+				}
+				lineAdjustments, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
+					adjustment.CommissionIDEQ(parent.ID),
+					adjustment.OrderIDEQ(x.OrderID),
+					adjustment.IDNEQ(x.ID),
+					adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
+				).All(ctx)
+				if queryErr != nil {
+					return queryErr
+				}
+				for _, old := range lineAdjustments {
+					amount, amountErr := decimalOf(old.Amount)
+					if amountErr != nil {
+						return amountErr
+					}
+					if old.Direction == adjustment.DirectionDECREASE {
+						lineEffective = lineEffective.Sub(amount)
+					} else {
+						lineEffective = lineEffective.Add(amount)
+					}
+				}
+				if lineEffective.Sub(currentAmount).IsNegative() {
+					return biz.ErrCommissionAdjustmentExceeds
+				}
+				// 父单层有效余额：以 FinanceCommission.commission_amount 为起点，
+				// 汇总父单全部 CONFIRMED/PAID 符号化调整（不含其他 DRAFT）。
 				active, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
 					adjustment.CommissionIDEQ(parent.ID), adjustment.IDNEQ(x.ID),
 					adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
@@ -1381,10 +1533,6 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 						effective = effective.Add(amount)
 					}
 				}
-				currentAmount, parseErr := decimalOf(x.Amount)
-				if parseErr != nil {
-					return parseErr
-				}
 				if effective.Sub(currentAmount).IsNegative() {
 					return biz.ErrCommissionAdjustmentExceeds
 				}
@@ -1396,7 +1544,14 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 			}
 			update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
 		case biz.CommissionCancelled:
-			if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
+			if x.SourceType == adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT {
+				// 来源专属取消门禁：锁后费用补录冲减建议只有 DRAFT 可经通用取消
+				// 接口忽略；CONFIRMED/PAID 即使绕过页面直接调用也稳定拒绝，
+				// 防止经通用取消把已确认冲减洗白为已取消。
+				if x.Status != adjustment.StatusDRAFT {
+					return biz.ErrCommissionAdjustmentCancelNotAllowed
+				}
+			} else if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
 				return biz.ErrCommissionAdjustmentTransition
 			}
 			update.SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)

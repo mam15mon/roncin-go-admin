@@ -3134,6 +3134,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetMyFeeSupplementAdjustmentSourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MyFeeSupplementAdjustmentSource;
+    traceId?: string;
+  };
+
   type GetNettingResponse = {
     success?: boolean;
     code?: number;
@@ -3410,6 +3418,17 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceCashflowSummary;
+  };
+
+  type ListCommissionAdjustmentsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment[];
+    total?: string;
+    traceId?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListCommissionCandidatesResponse = {
@@ -4282,6 +4301,25 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
+  };
+
+  type MyFeeSupplementAdjustmentSource = {
+    adjustmentId?: string;
+    adjustmentNo?: string;
+    orderNo?: string;
+    commissionNo?: string;
+    status?: number;
+    suggestedAmount?: string;
+    baseCurrency?: string;
+    createdAt?: string;
+    feeCode?: string;
+    feeName?: string;
+    feeCurrency?: string;
+    feeTotalAmount?: string;
+    feeBaseCurrency?: string;
+    feeBaseCurrencyAmount?: string;
+    feeExpenseDate?: string;
+    supplementReason?: string;
   };
 
   type NettingBillExpectedVersion = {
@@ -7166,6 +7204,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceGetMyFeeSupplementAdjustmentSourceParams = {
+    id: string;
+  };
+
   type SettlementServiceGetNettingParams = {
     id: string;
   };
@@ -7219,6 +7261,16 @@ declare namespace API {
     status?: number;
     settlementPartyId?: string;
     currency?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionAdjustmentsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: number;
+    sourceType?: string;
+    employeeId?: string;
     organizationId?: string;
   };
 

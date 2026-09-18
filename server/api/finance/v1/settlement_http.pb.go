@@ -50,6 +50,7 @@ const OperationSettlementServiceGetCreditLimitControlPolicy = "/finance.v1.Settl
 const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
 const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
+const OperationSettlementServiceGetMyFeeSupplementAdjustmentSource = "/finance.v1.SettlementService/GetMyFeeSupplementAdjustmentSource"
 const OperationSettlementServiceGetNetting = "/finance.v1.SettlementService/GetNetting"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBillCreationCandidates = "/finance.v1.SettlementService/ListBillCreationCandidates"
@@ -57,6 +58,7 @@ const OperationSettlementServiceListBillSettlementAccountCandidates = "/finance.
 const OperationSettlementServiceListBillSettlementAccountUpdateCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountUpdateCandidates"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
+const OperationSettlementServiceListCommissionAdjustments = "/finance.v1.SettlementService/ListCommissionAdjustments"
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
 const OperationSettlementServiceListCommissionEmployees = "/finance.v1.SettlementService/ListCommissionEmployees"
 const OperationSettlementServiceListCommissionNettingCandidates = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
@@ -129,6 +131,11 @@ type SettlementServiceHTTPServer interface {
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
+	// GetMyFeeSupplementAdjustmentSource GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+	// 查询他人调整稳定返回不存在，不泄露记录事实。
+	GetMyFeeSupplementAdjustmentSource(context.Context, *GetMyFeeSupplementAdjustmentSourceRequest) (*GetMyFeeSupplementAdjustmentSourceResponse, error)
 	GetNetting(context.Context, *GetNettingRequest) (*GetNettingResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
@@ -136,6 +143,9 @@ type SettlementServiceHTTPServer interface {
 	ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
+	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+	ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
 	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
@@ -258,6 +268,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/confirm", _SettlementService_ConfirmCommissionAdjustment0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/paid", _SettlementService_MarkCommissionAdjustmentPaid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/cancel", _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commission-adjustments", _SettlementService_ListCommissionAdjustments0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commission-adjustments/{id}/my-supplement-source", _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv))
 }
 
 func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
@@ -1744,6 +1756,47 @@ func _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv SettlementS
 	}
 }
 
+func _SettlementService_ListCommissionAdjustments0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCommissionAdjustmentsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCommissionAdjustments)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCommissionAdjustments(ctx, req.(*ListCommissionAdjustmentsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCommissionAdjustmentsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetMyFeeSupplementAdjustmentSourceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetMyFeeSupplementAdjustmentSource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetMyFeeSupplementAdjustmentSource(ctx, req.(*GetMyFeeSupplementAdjustmentSourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetMyFeeSupplementAdjustmentSourceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SettlementServiceHTTPClient interface {
 	BatchAssignFinanceBillTags(ctx context.Context, req *BatchAssignFinanceBillTagsRequest, opts ...http.CallOption) (rsp *BatchAssignFinanceBillTagsResponse, err error)
 	BatchAssignFinanceFeeTags(ctx context.Context, req *BatchAssignFinanceFeeTagsRequest, opts ...http.CallOption) (rsp *BatchAssignFinanceFeeTagsResponse, err error)
@@ -1781,6 +1834,11 @@ type SettlementServiceHTTPClient interface {
 	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
 	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
+	// GetMyFeeSupplementAdjustmentSource GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+	// 查询他人调整稳定返回不存在，不泄露记录事实。
+	GetMyFeeSupplementAdjustmentSource(ctx context.Context, req *GetMyFeeSupplementAdjustmentSourceRequest, opts ...http.CallOption) (rsp *GetMyFeeSupplementAdjustmentSourceResponse, err error)
 	GetNetting(ctx context.Context, req *GetNettingRequest, opts ...http.CallOption) (rsp *GetNettingResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBillCreationCandidates(ctx context.Context, req *ListBillCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListBillCreationCandidatesResponse, err error)
@@ -1788,6 +1846,9 @@ type SettlementServiceHTTPClient interface {
 	ListBillSettlementAccountUpdateCandidates(ctx context.Context, req *ListBillSettlementAccountUpdateCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountUpdateCandidatesResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
 	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
+	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+	ListCommissionAdjustments(ctx context.Context, req *ListCommissionAdjustmentsRequest, opts ...http.CallOption) (rsp *ListCommissionAdjustmentsResponse, err error)
 	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidatesResponse, err error)
 	ListCommissionEmployees(ctx context.Context, req *ListCommissionEmployeesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
 	// ListCommissionNettingCandidates ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
@@ -2398,6 +2459,26 @@ func (c *SettlementServiceHTTPClientImpl) GetInvoice(ctx context.Context, in *Ge
 	return &out, nil
 }
 
+// GetMyFeeSupplementAdjustmentSource GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+// 查询他人调整稳定返回不存在，不泄露记录事实。
+func (c *SettlementServiceHTTPClientImpl) GetMyFeeSupplementAdjustmentSource(ctx context.Context, in *GetMyFeeSupplementAdjustmentSourceRequest, opts ...http.CallOption) (*GetMyFeeSupplementAdjustmentSourceResponse, error) {
+	var out GetMyFeeSupplementAdjustmentSourceResponse
+	pattern := "/api/v1/finance/commission-adjustments/{id}/my-supplement-source"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetMyFeeSupplementAdjustmentSource),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) GetNetting(ctx context.Context, in *GetNettingRequest, opts ...http.CallOption) (*GetNettingResponse, error) {
 	var out GetNettingResponse
 	pattern := "/api/v1/finance/nettings/{id}"
@@ -2502,6 +2583,24 @@ func (c *SettlementServiceHTTPClientImpl) ListCashflows(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListCashflows),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+func (c *SettlementServiceHTTPClientImpl) ListCommissionAdjustments(ctx context.Context, in *ListCommissionAdjustmentsRequest, opts ...http.CallOption) (*ListCommissionAdjustmentsResponse, error) {
+	var out ListCommissionAdjustmentsResponse
+	pattern := "/api/v1/finance/commission-adjustments"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCommissionAdjustments),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

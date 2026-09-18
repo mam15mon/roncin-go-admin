@@ -364,6 +364,25 @@ export async function settlementServiceConfirmCashflow(
   );
 }
 
+/** ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+ 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。 GET /api/v1/finance/commission-adjustments */
+export async function settlementServiceListCommissionAdjustments(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCommissionAdjustmentsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCommissionAdjustmentsResponse>(
+    "/api/v1/finance/commission-adjustments",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/finance/commission-adjustments/${param0}/cancel */
 export async function settlementServiceCancelCommissionAdjustment(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -403,6 +422,26 @@ export async function settlementServiceConfirmCommissionAdjustment(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+ employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+ 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+ 查询他人调整稳定返回不存在，不泄露记录事实。 GET /api/v1/finance/commission-adjustments/${param0}/my-supplement-source */
+export async function settlementServiceGetMyFeeSupplementAdjustmentSource(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceGetMyFeeSupplementAdjustmentSourceParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.GetMyFeeSupplementAdjustmentSourceResponse>(
+    `/api/v1/finance/commission-adjustments/${param0}/my-supplement-source`,
+    {
+      method: "GET",
+      params: { ...queryParams },
       ...(options || {}),
     }
   );

@@ -204,6 +204,14 @@ service SettlementService {
   rpc ConfirmCommissionAdjustment(ConfirmCommissionAdjustmentRequest) returns (ConfirmCommissionAdjustmentResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-adjustments/{id}/confirm" body: "*"}; }
   rpc MarkCommissionAdjustmentPaid(MarkCommissionAdjustmentPaidRequest) returns (MarkCommissionAdjustmentPaidResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-adjustments/{id}/paid" body: "*"}; }
   rpc CancelCommissionAdjustment(CancelCommissionAdjustmentRequest) returns (CancelCommissionAdjustmentResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-adjustments/{id}/cancel" body: "*"}; }
+  // ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+  // 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+  rpc ListCommissionAdjustments(ListCommissionAdjustmentsRequest) returns (ListCommissionAdjustmentsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-adjustments"}; }
+  // GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+  // employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+  // 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+  // 查询他人调整稳定返回不存在，不泄露记录事实。
+  rpc GetMyFeeSupplementAdjustmentSource(GetMyFeeSupplementAdjustmentSourceRequest) returns (GetMyFeeSupplementAdjustmentSourceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED}; option (google.api.http) = {get: "/api/v1/finance/commission-adjustments/{id}/my-supplement-source"}; }
 }
 
 enum FinanceBillStatus {
@@ -952,6 +960,8 @@ message CreateCommissionAdjustmentRequest { string commission_id=1 [(google.api.
 message ConfirmCommissionAdjustmentRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
 message MarkCommissionAdjustmentPaidRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
 message CancelCommissionAdjustmentRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message ListCommissionAdjustmentsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceCommissionStatus status=4; optional string source_type=5; optional string employee_id=6; optional string organization_id=7; }
+message MyFeeSupplementAdjustmentSource { string adjustment_id=1; string adjustment_no=2; string order_no=3; string commission_no=4; FinanceCommissionStatus status=5; string suggested_amount=6; string base_currency=7; string created_at=8; string fee_code=9; string fee_name=10; string fee_currency=11; string fee_total_amount=12; string fee_base_currency=13; string fee_base_currency_amount=14; string fee_expense_date=15; string supplement_reason=16; }
 message CommissionFeeDetail { string fee_id=1; string direction=2; string fee_code=3; string fee_name=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string total_amount=8; string exchange_rate=9; string base_currency=10; string base_currency_amount=11; string expense_date=12; order.v1.OrderFeeStatus status=13; }
 message FinanceCommissionLine { string id=1; string order_id=2; string order_no=3; string employee_id=4; string employee_name=5; string personnel_role=6; string calculation_basis=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; string personnel_organization_id=14; string personnel_assigned_at=15; string order_date=16; string customer_id=17; string customer_code=18; string customer_name=19; string commission_base_amount=20; string customer_assignment_id=21; string customer_assignment_organization_id=22; string customer_assigned_at=23; int32 fee_count=24; repeated CommissionFeeDetail fees=25; }
 message CommissionCalculation { optional string verification_id=1; optional string verification_no=2; string employee_id=3; string employee_name=4; string rule_id=5; string rule_name=6; string personnel_role=7; string calculation_basis=8; uint64 rule_version=9; string calculation_version=10; string base_currency=11; string realized_revenue=12; string allocated_cost=13; string realized_profit=14; string rate_percent=15; string commission_amount=16; repeated FinanceCommissionLine lines=17; int32 customer_count=18; int32 order_count=19; int32 fee_count=20; string commission_base_amount=21; string cny_exchange_rate=22; string cny_exchange_rate_source=23; string cny_exchange_rate_date=24; optional string cny_exchange_rate_setting_id=25; string cny_commission_amount=26; optional string netting_id=27; optional string netting_no=28; }
@@ -997,6 +1007,9 @@ message CreateCommissionAdjustmentResponse { bool success=1; int32 code=2; strin
 message ConfirmCommissionAdjustmentResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
 message MarkCommissionAdjustmentPaidResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
 message CancelCommissionAdjustmentResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
+message ListCommissionAdjustmentsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommissionAdjustment data=4; int64 total=5; string trace_id=6; int32 page=7; int32 page_size=8; }
+message GetMyFeeSupplementAdjustmentSourceRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
+message GetMyFeeSupplementAdjustmentSourceResponse { bool success=1; int32 code=2; string message=3; MyFeeSupplementAdjustmentSource data=4; string trace_id=5; }
 
 message BusinessTagSummary {
   string id = 1;

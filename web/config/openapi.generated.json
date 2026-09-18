@@ -3358,6 +3358,81 @@
         }
       }
     },
+    "/api/v1/finance/commission-adjustments": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与\n 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。",
+        "operationId": "SettlementService_ListCommissionAdjustments",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "sourceType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionAdjustmentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/commission-adjustments/{id}/cancel": {
       "post": {
         "tags": [
@@ -3431,6 +3506,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ConfirmCommissionAdjustmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commission-adjustments/{id}/my-supplement-source": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回\n employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、\n 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，\n 查询他人调整稳定返回不存在，不泄露记录事实。",
+        "operationId": "SettlementService_GetMyFeeSupplementAdjustmentSource",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetMyFeeSupplementAdjustmentSourceResponse"
                 }
               }
             }
@@ -20054,6 +20160,27 @@
           }
         }
       },
+      "finance.v1.GetMyFeeSupplementAdjustmentSourceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.MyFeeSupplementAdjustmentSource"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.GetNettingResponse": {
         "type": "object",
         "properties": {
@@ -20287,6 +20414,41 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceCashflowSummary"
+          }
+        }
+      },
+      "finance.v1.ListCommissionAdjustmentsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -20973,6 +21135,60 @@
             "$ref": "#/components/schemas/finance.v1.FinanceCommission"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.MyFeeSupplementAdjustmentSource": {
+        "type": "object",
+        "properties": {
+          "adjustmentId": {
+            "type": "string"
+          },
+          "adjustmentNo": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "commissionNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "suggestedAmount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "feeCurrency": {
+            "type": "string"
+          },
+          "feeTotalAmount": {
+            "type": "string"
+          },
+          "feeBaseCurrency": {
+            "type": "string"
+          },
+          "feeBaseCurrencyAmount": {
+            "type": "string"
+          },
+          "feeExpenseDate": {
+            "type": "string"
+          },
+          "supplementReason": {
             "type": "string"
           }
         }

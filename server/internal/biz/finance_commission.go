@@ -30,7 +30,11 @@ var (
 	ErrCommissionAdjustmentInvalid    = errors.BadRequest("FINANCE_COMMISSION_ADJUSTMENT_INVALID", "提成调整参数不合法")
 	ErrCommissionAdjustmentTransition = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_TRANSITION), "当前提成调整状态不允许该操作")
 	ErrCommissionAdjustmentExceeds    = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS), "冲减后的有效提成金额不能小于零")
-	ErrCommissionExportLimit          = errors.BadRequest("FINANCE_COMMISSION_EXPORT_LIMIT", "提成导出行数超过单次上限，请缩小筛选范围后重试")
+	// ErrCommissionAdjustmentCancelNotAllowed 来源专属取消门禁：LOCKED_FEE_SUPPLEMENT
+	// 的冲减建议只有 DRAFT 可经通用取消忽略；CONFIRMED/PAID 即使绕过页面直接调用
+	// 通用取消接口也稳定拒绝，防止状态洗白。
+	ErrCommissionAdjustmentCancelNotAllowed = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED), "系统冲减建议确认或扣回后不允许取消")
+	ErrCommissionExportLimit                = errors.BadRequest("FINANCE_COMMISSION_EXPORT_LIMIT", "提成导出行数超过单次上限，请缩小筛选范围后重试")
 	// 锁后费用补录审批对历史提成复算快照的稳定阻断错误码。
 	ErrCommissionSnapshotUnavailable           = errors.Conflict("COMMISSION_SNAPSHOT_UNAVAILABLE", "历史提成复算快照不可用，无法处理锁后费用补录")
 	ErrCommissionBaseCurrencyMismatch          = errors.Conflict("COMMISSION_BASE_CURRENCY_MISMATCH", "补录费用本位币与历史提成快照本位币不一致，不支持跨本位币换算")
@@ -383,6 +387,73 @@ type CreateCommissionAdjustmentInput struct {
 	IdempotencyKey        string
 }
 
+// CommissionAdjustmentFilter 是财务调整列表的服务端分页筛选：状态、来源、员工
+// 与订单号/提成号/调整号关键字；组织范围由调用方按权限显式传入。
+type CommissionAdjustmentFilter struct {
+	Page, PageSize int
+	Keyword        string
+	Status         CommissionStatus
+	SourceType     CommissionAdjustmentSourceType
+	EmployeeID     uuid.UUID
+}
+
+// CommissionAdjustmentListResult 是财务调整列表的分页结果，默认按 created_at 倒序。
+type CommissionAdjustmentListResult struct {
+	Items          []*FinanceCommissionAdjustment
+	Total          int64
+	Page, PageSize int
+}
+
+// MyFeeSupplementAdjustmentSource 是员工本人专属的冲减来源最小详情：只暴露订单号、
+// 原提成号、补录费用摘要、建议金额、调整状态与生成时间，不包含父单其他订单行、
+// 其他员工数据或财务明细。
+type MyFeeSupplementAdjustmentSource struct {
+	AdjustmentID          uuid.UUID
+	AdjustmentNo          string
+	OrderNo               string
+	CommissionNo          string
+	Status                CommissionStatus
+	SuggestedAmount       decimal.Decimal
+	BaseCurrency          string
+	CreatedAt             time.Time
+	FeeCode               string
+	FeeName               string
+	FeeCurrency           string
+	FeeTotalAmount        decimal.Decimal
+	FeeBaseCurrency       string
+	FeeBaseCurrencyAmount decimal.Decimal
+	FeeExpenseDate        string
+	SupplementReason      string
+}
+
+// validCommissionAdjustmentSourceType 判断来源类型取值是否已登记。
+func validCommissionAdjustmentSourceType(source CommissionAdjustmentSourceType) bool {
+	switch source {
+	case CommissionAdjustmentSourceManual,
+		CommissionAdjustmentSourceVerificationReversal,
+		CommissionAdjustmentSourceNettingReversal,
+		CommissionAdjustmentSourceLockedFeeSupplement:
+		return true
+	default:
+		return false
+	}
+}
+
+// validCommissionAdjustmentFilter 校验调整列表筛选：组织范围、分页、状态、来源、
+// 员工与关键字长度。
+func validCommissionAdjustmentFilter(organizationIDs []uuid.UUID, f CommissionAdjustmentFilter) bool {
+	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 {
+		return false
+	}
+	if f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled {
+		return false
+	}
+	if f.SourceType != "" && !validCommissionAdjustmentSourceType(f.SourceType) {
+		return false
+	}
+	return true
+}
+
 // CommissionGenerationContext 是生成提成前从核销单读取的 CNY 折算上下文。
 type CommissionGenerationContext struct {
 	CommissionDate string // 归属日期，等于核销单 verification_date，同时作为 CNY 汇率解析日
@@ -415,6 +486,13 @@ type CommissionRepo interface {
 	Transition(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommission, error)
 	GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error)
 	GetAdjustmentScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionAdjustment, error)
+	// ListAdjustmentsScoped 服务端分页读取组织范围内的提成调整，默认 created_at
+	// 倒序；筛选与关键字匹配在数据库内完成。
+	ListAdjustmentsScoped(context.Context, []uuid.UUID, CommissionAdjustmentFilter) (*CommissionAdjustmentListResult, error)
+	// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：仓储查询
+	// 同时限定调整 ID、employee_id = 当前用户、LOCKED_FEE_SUPPLEMENT 来源和组织
+	// 成员关系；任一不满足时按不存在处理，不泄露记录事实。
+	GetMyFeeSupplementAdjustmentSource(context.Context, uuid.UUID, uuid.UUID) (*MyFeeSupplementAdjustmentSource, error)
 	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
 	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }
@@ -572,6 +650,27 @@ func (u *CommissionUsecase) GetAdjustmentScoped(ctx context.Context, organizatio
 		return nil, ErrCommissionAdjustmentInvalid
 	}
 	return u.repo.GetAdjustmentScoped(ctx, organizationIDs, id)
+}
+
+// ListAdjustmentsScoped 财务调整列表：服务端分页与筛选校验后委托仓储；权限与
+// 组织范围由 Service 按 commission.read 显式解析。
+func (u *CommissionUsecase) ListAdjustmentsScoped(ctx context.Context, organizationIDs []uuid.UUID, f CommissionAdjustmentFilter) (*CommissionAdjustmentListResult, error) {
+	f.Keyword = strings.TrimSpace(f.Keyword)
+	f.SourceType = CommissionAdjustmentSourceType(strings.ToUpper(strings.TrimSpace(string(f.SourceType))))
+	if !validCommissionAdjustmentFilter(organizationIDs, f) {
+		return nil, ErrCommissionAdjustmentInvalid
+	}
+	return u.repo.ListAdjustmentsScoped(ctx, organizationIDs, f)
+}
+
+// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源详情：不要求组织级
+// commission.read，授权（employee_id = 当前用户 + 组织成员关系）在领域与仓储
+// 查询中执行；参数缺失与他人调整一律按不存在处理，不泄露记录事实。
+func (u *CommissionUsecase) GetMyFeeSupplementAdjustmentSource(ctx context.Context, caller *Principal, id uuid.UUID) (*MyFeeSupplementAdjustmentSource, error) {
+	if caller == nil || caller.UserID == uuid.Nil || id == uuid.Nil {
+		return nil, ErrCommissionAdjustmentNotFound
+	}
+	return u.repo.GetMyFeeSupplementAdjustmentSource(ctx, caller.UserID, id)
 }
 
 // Preview 按核销或对冲来源二选一预览提成计算，并按生成日固化 CNY 快照（原币记账口径）。

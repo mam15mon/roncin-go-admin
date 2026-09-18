@@ -579,6 +579,76 @@ func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v
 	return ok(ctx, &v1.CancelCommissionAdjustmentResponse{Data: commissionAdjustmentToAPI(item)}), nil
 }
 
+// ListCommissionAdjustments 财务调整列表：服务端分页，按 commission.read 解析
+// 组织范围；状态、来源、员工与关键字过滤由领域层校验后下推数据库。
+func (s *SettlementService) ListCommissionAdjustments(ctx context.Context, r *v1.ListCommissionAdjustmentsRequest) (*v1.ListCommissionAdjustmentsResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionAdjustmentInvalid)
+	if err != nil {
+		return nil, err
+	}
+	f := biz.CommissionAdjustmentFilter{
+		Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword),
+		Status:     financeCommissionStatusFromAPI(r.Status),
+		SourceType: biz.CommissionAdjustmentSourceType(strings.ToUpper(financeOptionalString(r.SourceType))),
+	}
+	if rawEmployeeID := strings.TrimSpace(r.GetEmployeeId()); rawEmployeeID != "" {
+		employeeID, parseErr := uuid.Parse(rawEmployeeID)
+		if parseErr != nil {
+			return nil, biz.ErrCommissionAdjustmentInvalid
+		}
+		f.EmployeeID = employeeID
+	}
+	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(p, access.FinanceCommissionRead, false, r.OrganizationId)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
+	result, err := s.commissionUsecase.ListAdjustmentsScoped(ctx, organizationIDs, f)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceCommissionAdjustment, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, commissionAdjustmentToAPI(item))
+	}
+	return okList(ctx, &v1.ListCommissionAdjustmentsResponse{
+		Data: data, Total: result.Total,
+		Page: int32(result.Page), PageSize: int32(result.PageSize),
+	}), nil
+}
+
+// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只要求登录，
+// 授权（employee_id = 当前用户 + 组织成员关系）在领域与仓储层执行；不要求组织级
+// commission.read，他人调整稳定返回不存在。
+func (s *SettlementService) GetMyFeeSupplementAdjustmentSource(ctx context.Context, r *v1.GetMyFeeSupplementAdjustmentSourceRequest) (*v1.GetMyFeeSupplementAdjustmentSourceResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	id, parseErr := uuid.Parse(strings.TrimSpace(r.GetId()))
+	if parseErr != nil {
+		// 参数非法与他人数据一样按不存在处理，不泄露记录事实。
+		return nil, biz.ErrCommissionAdjustmentNotFound
+	}
+	source, err := s.commissionUsecase.GetMyFeeSupplementAdjustmentSource(ctx, p, id)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.GetMyFeeSupplementAdjustmentSourceResponse{Data: &v1.MyFeeSupplementAdjustmentSource{
+		AdjustmentId: source.AdjustmentID.String(), AdjustmentNo: source.AdjustmentNo,
+		OrderNo: source.OrderNo, CommissionNo: source.CommissionNo,
+		Status: financeCommissionStatusToAPI(source.Status), SuggestedAmount: source.SuggestedAmount.StringFixed(8),
+		BaseCurrency: source.BaseCurrency, CreatedAt: source.CreatedAt.UTC().Format(time.RFC3339),
+		FeeCode: source.FeeCode, FeeName: source.FeeName, FeeCurrency: source.FeeCurrency,
+		FeeTotalAmount: source.FeeTotalAmount.StringFixed(8), FeeBaseCurrency: source.FeeBaseCurrency,
+		FeeBaseCurrencyAmount: source.FeeBaseCurrencyAmount.StringFixed(8), FeeExpenseDate: source.FeeExpenseDate,
+		SupplementReason: source.SupplementReason,
+	}}), nil
+}
+
 func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	if x == nil {
 		return nil

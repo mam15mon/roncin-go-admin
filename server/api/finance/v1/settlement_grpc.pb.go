@@ -93,6 +93,8 @@ const (
 	SettlementService_ConfirmCommissionAdjustment_FullMethodName               = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
 	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName              = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 	SettlementService_CancelCommissionAdjustment_FullMethodName                = "/finance.v1.SettlementService/CancelCommissionAdjustment"
+	SettlementService_ListCommissionAdjustments_FullMethodName                 = "/finance.v1.SettlementService/ListCommissionAdjustments"
+	SettlementService_GetMyFeeSupplementAdjustmentSource_FullMethodName        = "/finance.v1.SettlementService/GetMyFeeSupplementAdjustmentSource"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -188,6 +190,14 @@ type SettlementServiceClient interface {
 	ConfirmCommissionAdjustment(ctx context.Context, in *ConfirmCommissionAdjustmentRequest, opts ...grpc.CallOption) (*ConfirmCommissionAdjustmentResponse, error)
 	MarkCommissionAdjustmentPaid(ctx context.Context, in *MarkCommissionAdjustmentPaidRequest, opts ...grpc.CallOption) (*MarkCommissionAdjustmentPaidResponse, error)
 	CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CancelCommissionAdjustmentResponse, error)
+	// ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+	ListCommissionAdjustments(ctx context.Context, in *ListCommissionAdjustmentsRequest, opts ...grpc.CallOption) (*ListCommissionAdjustmentsResponse, error)
+	// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+	// 查询他人调整稳定返回不存在，不泄露记录事实。
+	GetMyFeeSupplementAdjustmentSource(ctx context.Context, in *GetMyFeeSupplementAdjustmentSourceRequest, opts ...grpc.CallOption) (*GetMyFeeSupplementAdjustmentSourceResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -938,6 +948,26 @@ func (c *settlementServiceClient) CancelCommissionAdjustment(ctx context.Context
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListCommissionAdjustments(ctx context.Context, in *ListCommissionAdjustmentsRequest, opts ...grpc.CallOption) (*ListCommissionAdjustmentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionAdjustmentsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionAdjustments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetMyFeeSupplementAdjustmentSource(ctx context.Context, in *GetMyFeeSupplementAdjustmentSourceRequest, opts ...grpc.CallOption) (*GetMyFeeSupplementAdjustmentSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyFeeSupplementAdjustmentSourceResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetMyFeeSupplementAdjustmentSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -1031,6 +1061,14 @@ type SettlementServiceServer interface {
 	ConfirmCommissionAdjustment(context.Context, *ConfirmCommissionAdjustmentRequest) (*ConfirmCommissionAdjustmentResponse, error)
 	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
 	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CancelCommissionAdjustmentResponse, error)
+	// ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
+	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
+	ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error)
+	// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
+	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
+	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
+	// 查询他人调整稳定返回不存在，不泄露记录事实。
+	GetMyFeeSupplementAdjustmentSource(context.Context, *GetMyFeeSupplementAdjustmentSourceRequest) (*GetMyFeeSupplementAdjustmentSourceResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -1262,6 +1300,12 @@ func (UnimplementedSettlementServiceServer) MarkCommissionAdjustmentPaid(context
 }
 func (UnimplementedSettlementServiceServer) CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CancelCommissionAdjustmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCommissionAdjustment not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionAdjustments not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetMyFeeSupplementAdjustmentSource(context.Context, *GetMyFeeSupplementAdjustmentSourceRequest) (*GetMyFeeSupplementAdjustmentSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyFeeSupplementAdjustmentSource not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -2616,6 +2660,42 @@ func _SettlementService_CancelCommissionAdjustment_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListCommissionAdjustments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionAdjustmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionAdjustments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionAdjustments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionAdjustments(ctx, req.(*ListCommissionAdjustmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetMyFeeSupplementAdjustmentSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyFeeSupplementAdjustmentSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetMyFeeSupplementAdjustmentSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetMyFeeSupplementAdjustmentSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetMyFeeSupplementAdjustmentSource(ctx, req.(*GetMyFeeSupplementAdjustmentSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2918,6 +2998,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelCommissionAdjustment",
 			Handler:    _SettlementService_CancelCommissionAdjustment_Handler,
+		},
+		{
+			MethodName: "ListCommissionAdjustments",
+			Handler:    _SettlementService_ListCommissionAdjustments_Handler,
+		},
+		{
+			MethodName: "GetMyFeeSupplementAdjustmentSource",
+			Handler:    _SettlementService_GetMyFeeSupplementAdjustmentSource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
