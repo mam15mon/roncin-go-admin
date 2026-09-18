@@ -169,8 +169,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	feeLedgerPreferenceRepo := data.NewFeeLedgerPreferenceRepo(dataData)
 	feeLedgerPreferenceUsecase := biz.NewFeeLedgerPreferenceUsecase(feeLedgerPreferenceRepo)
 	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, financeNettingUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase, businessTagUsecase, partnerAccountUsecase)
+	workbenchRepo := data.NewWorkbenchRepo(dataData)
+	workbenchUsecase := biz.NewWorkbenchUsecase(workbenchRepo)
+	workbenchService := service.NewWorkbenchService(workbenchUsecase)
 	orderTagService := service.NewOrderTagService(businessTagUsecase)
-	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, partnerUsecase, sessionPolicy, logger, orderTagService)
+	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, sessionPolicy, logger, orderTagService)
 	dingTalkApprovalRepo := data.NewDingTalkApprovalRepo(dataData)
 	dingTalkApprovalGateway := data.NewDingTalkApprovalGateway(dingTalkIdentityProvider)
 	dingTalkApprovalCallbackCodec, err := data.NewDingTalkApprovalCallbackCodec(security)
@@ -179,7 +182,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		return nil, nil, err
 	}
 	dingTalkApprovalUsecase := biz.NewDingTalkApprovalUsecase(backgroundTaskUsecase, dingTalkApprovalRepo, dingTalkApprovalGateway, dingTalkApprovalCallbackCodec)
-	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderTagService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, partnerUsecase, dingTalkApprovalUsecase, sessionPolicy, dataData, logger)
+	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderLockService, orderTagService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, dingTalkApprovalUsecase, sessionPolicy, dataData, logger)
 	notificationRepo := data.NewNotificationRepo(dataData)
 	notificationUsecase := biz.NewNotificationUsecase(backgroundTaskUsecase, notificationRepo, dingTalkIdentityProvider)
 	notificationWorker := server.NewNotificationWorker(notificationUsecase, logger)

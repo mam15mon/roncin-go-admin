@@ -324,4 +324,8 @@ var operationAccessRules = map[string]accessRule{
 	"/task.v1.BackgroundTaskService/GetBackgroundTask":                                          {mode: accessModePermission, permission: "system.task.read", scope: biz.DataScopeOrganization},
 	"/task.v1.BackgroundTaskService/ListBackgroundTasks":                                        {mode: accessModePermission, permission: "system.task.read", scope: biz.DataScopeOrganization},
 	"/task.v1.BackgroundTaskService/RequeueBackgroundTask":                                      {mode: accessModePermission, permission: "system.task.requeue", scope: biz.DataScopeOrganization},
+	"/workbench.v1.WorkbenchService/GetWorkbenchOverview":                                       {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ListMyCommissions":                                          {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ListMyReceivables":                                          {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ListMyRecentOrders":                                         {mode: accessModeAuthenticated},
 }

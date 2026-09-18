@@ -14,6 +14,7 @@ import (
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	taskv1 "github.com/roncin/roncin-go-admin/server/api/task/v1"
+	workbenchv1 "github.com/roncin/roncin-go-admin/server/api/workbench/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
@@ -22,7 +23,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, workbench *service.WorkbenchService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
@@ -70,6 +71,7 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	financev1.RegisterFeeCatalogServiceHTTPServer(srv, feeCatalog)
 	orderv1.RegisterOrderFeeServiceHTTPServer(srv, orderFee)
 	financev1.RegisterSettlementServiceHTTPServer(srv, settlement)
+	workbenchv1.RegisterWorkbenchServiceHTTPServer(srv, workbench)
 	registerDingTalkApprovalCallback(srv, approvalUsecase, logger)
 	registerHealthHandlers(srv, readiness)
 	srv.Handle("/metrics", promhttp.Handler())
