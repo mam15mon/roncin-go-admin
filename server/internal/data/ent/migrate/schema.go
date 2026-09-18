@@ -7117,6 +7117,10 @@ func init() {
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	NotificationDeliveriesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	NotificationDeliveriesTable.ForeignKeys[1].RefTable = UsersTable
+	NotificationDeliveriesTable.Annotation = &entsql.Annotation{}
+	NotificationDeliveriesTable.Annotation.Checks = map[string]string{
+		"notification_deliveries_template_check": "template IN ('ORDER_PERSONNEL_ASSIGNED', 'USER_AUTHORIZED', 'DINGTALK_REGISTRATION_PENDING', 'DINGTALK_REGISTRATION_REJECTED', 'DINGTALK_INVITATION_ACTIVATED', 'EXCHANGE_RATE_WEEKLY_REMINDER', 'FEE_SUPPLEMENT_APPROVAL_PENDING', 'COMMISSION_DECREASE_SUGGESTED')",
+	}
 	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	ObjectStorageDeletionsTable.ForeignKeys[0].RefTable = BackgroundTasksTable

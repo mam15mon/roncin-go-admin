@@ -48,11 +48,11 @@ func (OrderFee) Fields() []ent.Field {
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("expense_date").NotEmpty().MinLen(10).MaxLen(10),
-	field.String("note").Optional().MaxLen(500),
-	// 补录申请来源：审批通过时由专用事务反向关联生成的费用；一对一且创建后
-	// 不可变，普通费用入口不得携带该来源。
-	field.UUID("supplement_request_id", uuid.Nil).Optional().Nillable().Immutable(),
-	field.Uint64("version").Default(1),
+		field.String("note").Optional().MaxLen(500),
+		// 补录申请来源：审批通过时由专用事务反向关联生成的费用；一对一且创建后
+		// 不可变，普通费用入口不得携带该来源。
+		field.UUID("supplement_request_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.Uint64("version").Default(1),
 		field.Time("cancelled_at").Optional().Nillable(),
 		field.UUID("cancelled_by", uuid.Nil).Optional().Nillable(),
 		field.String("cancellation_reason").Optional().Nillable().MaxLen(500),

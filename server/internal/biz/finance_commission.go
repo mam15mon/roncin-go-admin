@@ -62,7 +62,7 @@ const (
 	// CommissionAdjustmentSourceLockedFeeSupplement 锁后费用补录的系统冲减建议
 	// 来源，必须携带补录申请关联并由数据库 CHECK 强制双向对应。
 	CommissionAdjustmentSourceLockedFeeSupplement CommissionAdjustmentSourceType = "LOCKED_FEE_SUPPLEMENT"
-	cnyCurrency                                                                   = "CNY"
+	cnyCurrency                                                                  = "CNY"
 )
 
 // FinanceCommissionAdjustment 以独立单据记录原始提成确认后的增提或冲减。

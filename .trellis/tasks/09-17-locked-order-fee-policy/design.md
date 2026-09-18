@@ -80,7 +80,7 @@
 - source_fee_supplement_request_id 关联补录申请；
 - commission_id、order_id、employee_id 继续使用现有字段；
 - commission_id + order_id + source_type + source_fee_supplement_request_id 唯一。
-- 数据库 CHECK 强制 LOCKED_FEE_SUPPLEMENT 与非空 source_fee_supplement_request_id 双向对应，其他来源必须为空；外键使用 RESTRICT，禁止删除申请造成孤儿调整；
+- 数据库 CHECK 强制 LOCKED_FEE_SUPPLEMENT 与非空 source_fee_supplement_request_id 双向对应，其他来源必须为空；外键删除策略为 NO ACTION（与 RESTRICT 语义等价，按仓库 database-guidelines 惯例声明），禁止删除申请造成孤儿调整；
 - LOCKED_FEE_SUPPLEMENT 的 DRAFT 调整允许财务复用 CancelCommissionAdjustment 忽略，必填 cancellation_reason 并保留 cancelled_by/cancelled_at；TransitionAdjustment 必须按 source_type 增加状态门禁，LOCKED_FEE_SUPPLEMENT 的 CONFIRMED/PAID 即使直接调用通用取消接口也拒绝转为 CANCELLED；页面文案为【忽略建议】，不删除记录。
 
 页面文案与状态严格对应：

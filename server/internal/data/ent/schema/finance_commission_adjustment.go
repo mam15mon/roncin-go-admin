@@ -19,10 +19,10 @@ func (FinanceCommissionAdjustment) Mixin() []ent.Mixin { return []ent.Mixin{IDMi
 func (FinanceCommissionAdjustment) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Checks(map[string]string{
-			"commission_adjustment_direction_check":       "direction IN ('INCREASE', 'DECREASE')",
-			"commission_adjustment_status_check":          "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
-			"commission_adjustment_amount_positive":       "amount > 0",
-			"commission_adjustment_source_type_check":     "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
+			"commission_adjustment_direction_check":   "direction IN ('INCREASE', 'DECREASE')",
+			"commission_adjustment_status_check":      "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+			"commission_adjustment_amount_positive":   "amount > 0",
+			"commission_adjustment_source_type_check": "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
 			// 来源关联互斥：仅锁后费用补录来源允许且必须携带补录申请关联；
 			// 人工与核销/对冲冲减来源不得携带该关联，防止来源错配绕过唯一键。
 			"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",

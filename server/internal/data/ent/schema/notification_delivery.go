@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -12,6 +14,14 @@ import (
 type NotificationDelivery struct{ ent.Schema }
 
 func (NotificationDelivery) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
+
+func (NotificationDelivery) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Checks(map[string]string{
+			"notification_deliveries_template_check": "template IN ('ORDER_PERSONNEL_ASSIGNED', 'USER_AUTHORIZED', 'DINGTALK_REGISTRATION_PENDING', 'DINGTALK_REGISTRATION_REJECTED', 'DINGTALK_INVITATION_ACTIVATED', 'EXCHANGE_RATE_WEEKLY_REMINDER', 'FEE_SUPPLEMENT_APPROVAL_PENDING', 'COMMISSION_DECREASE_SUGGESTED')",
+		}),
+	}
+}
 
 func (NotificationDelivery) Fields() []ent.Field {
 	return []ent.Field{
