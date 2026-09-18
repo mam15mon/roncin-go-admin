@@ -1,4 +1,4 @@
-import { FinanceCommissionStatus } from '@/enums.generated';
+import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 
 /**
@@ -9,19 +9,19 @@ export const workbenchCommissionStatusMeta: Record<
   number,
   { text: string; color: string }
 > = {
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT]: {
     text: '待财务确认',
     color: 'processing',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CONFIRMED]: {
     text: '已确认待发',
     color: 'warning',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_PAID]: {
     text: '已发放',
     color: 'blue',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CANCELLED]: {
     text: '已取消',
     color: 'default',
   },
@@ -35,19 +35,19 @@ export const workbenchDecreaseStatusMeta: Record<
   number,
   { text: string; color: string }
 > = {
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT]: {
     text: '待处理（尚未扣回）',
     color: 'processing',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CONFIRMED]: {
     text: '已确认（尚未实际扣回）',
     color: 'warning',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_PAID]: {
     text: '已扣回',
     color: 'purple',
   },
-  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: {
+  [WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CANCELLED]: {
     text: '已取消',
     color: 'default',
   },

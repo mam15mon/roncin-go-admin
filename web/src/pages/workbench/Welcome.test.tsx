@@ -8,7 +8,7 @@ import {
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceCommissionStatus } from '@/enums.generated';
+import { WorkbenchCommissionStatus } from '@/enums.generated';
 
 const serviceMocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
@@ -277,7 +277,8 @@ describe('工作台提成分桶与冲减语义', () => {
         {
           id: 'c-1',
           commissionNo: 'FC2026090001',
-          status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+          status:
+            WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CONFIRMED,
           personnelRole: 'SALES',
           ruleName: '销售方案A',
           calculationBasis: 'REALIZED_PROFIT',
@@ -290,7 +291,8 @@ describe('工作台提成分桶与冲减语义', () => {
               id: 'adj-1',
               adjustmentNo: 'ADJ-001',
               direction: 'DECREASE',
-              status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+              status:
+                WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT,
               amount: '100.00',
               reason: '锁后补录',
             },
@@ -317,7 +319,7 @@ describe('工作台提成分桶与冲减语义', () => {
     expect(serviceMocks.listMyCommissions).toHaveBeenLastCalledWith({
       page: 1,
       pageSize: 20,
-      status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+      status: WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT,
     });
     filtered.resolve({ success: true, total: '45', data: [] } as never);
     await waitFor(() => expect(filtered.promise).resolves.toBeTruthy());
@@ -326,23 +328,11 @@ describe('工作台提成分桶与冲减语义', () => {
     const page2 = deferred<API.ListMyCommissionsResponse>();
     serviceMocks.listMyCommissions.mockReturnValueOnce(page2.promise);
     const pager = screen.getByTitle('2');
-    // eslint-disable-next-line no-console
-    console.log(
-      'PAGER:',
-      pager.tagName,
-      pager.className,
-      pager.outerHTML.slice(0, 200),
-    );
     fireEvent.click(pager);
-    // eslint-disable-next-line no-console
-    console.log(
-      'CALLS:',
-      JSON.stringify(serviceMocks.listMyCommissions.mock.calls),
-    );
     expect(serviceMocks.listMyCommissions).toHaveBeenLastCalledWith({
       page: 2,
       pageSize: 20,
-      status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+      status: WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT,
     });
     page2.resolve({ success: true, total: '45', data: [] } as never);
     await waitFor(() =>

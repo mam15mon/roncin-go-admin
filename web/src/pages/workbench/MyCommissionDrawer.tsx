@@ -2,7 +2,7 @@ import { Link } from '@umijs/max';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import { FinanceCommissionStatus } from '@/enums.generated';
+import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { workbenchServiceListMyCommissions } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import {
@@ -29,22 +29,22 @@ const DEFAULT_PAGE_SIZE = 20;
 const STATUS_FILTER_OPTIONS = [
   {
     label: '待财务确认',
-    value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+    value: WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT,
   },
   {
     label: '已确认待发',
-    value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+    value: WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_CONFIRMED,
   },
   {
     label: '已发放',
-    value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+    value: WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_PAID,
   },
 ];
 
 function adjustmentStatusTag(status?: number) {
   const meta =
     workbenchDecreaseStatusMeta[
-      status ?? FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+      status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT
     ];
   return <Tag color={meta?.color || 'default'}>{meta?.text || '-'}</Tag>;
 }
