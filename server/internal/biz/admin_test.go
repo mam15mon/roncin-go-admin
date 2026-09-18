@@ -845,3 +845,52 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
+
+func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
+	orgID := uuid.New()
+	userID := uuid.New()
+	repo := &adminRepoStub{
+		organization: &AdminOrganization{
+			ID:           orgID,
+			Code:         "TEST_ORG",
+			Name:         "测试公司",
+			Kind:         OrganizationKindCompany,
+			Enabled:      true,
+			BaseCurrency: "CNY",
+		},
+	}
+	usecase := NewAdminUsecase(repo)
+
+	// 1. 尝试修改为不同的本币 -> 必须被拦截并返回 ErrAdminOrganizationBaseCurrencyImmutable
+	_, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "USD")
+	if err != ErrAdminOrganizationBaseCurrencyImmutable {
+		t.Fatalf("UpdateOrganization() error = %v, want %v", err, ErrAdminOrganizationBaseCurrencyImmutable)
+	}
+
+	// 2. 保持原有本币更新 -> 成功
+	updated, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "CNY")
+	if err != nil {
+		t.Fatalf("UpdateOrganization() with same currency error = %v", err)
+	}
+	if updated.Name != "更新名称" || updated.BaseCurrency != "CNY" {
+		t.Fatalf("updated org = %#v", updated)
+	}
+
+	// 3. 原本币为空时允许首次设定本币
+	uninitOrgID := uuid.New()
+	repo.organization = &AdminOrganization{
+		ID:           uninitOrgID,
+		Code:         "UNINIT_ORG",
+		Name:         "未设定本币组织",
+		Kind:         OrganizationKindCompany,
+		Enabled:      true,
+		BaseCurrency: "",
+	}
+	updated, err = usecase.UpdateOrganization(context.Background(), userID, uninitOrgID, uninitOrgID, "未设定本币组织", true, "USD")
+	if err != nil {
+		t.Fatalf("UpdateOrganization() setting initial currency error = %v", err)
+	}
+	if updated.BaseCurrency != "USD" {
+		t.Fatalf("updated org baseCurrency = %q, want USD", updated.BaseCurrency)
+	}
+}

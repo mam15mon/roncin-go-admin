@@ -13,7 +13,8 @@ var (
 	ErrAdminOrganizationCodeExists     = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
 	ErrAdminOrganizationParentRequired = errors.BadRequest("ADMIN_ORGANIZATION_PARENT_REQUIRED", "新建组织必须指定上级组织")
 	ErrAdminOrganizationHierarchy      = errors.BadRequest("ADMIN_ORGANIZATION_HIERARCHY_INVALID", "组织层级不合法")
-	ErrAdminOrganizationCurrency       = errors.BadRequest("ADMIN_ORGANIZATION_CURRENCY_INVALID", "组织本币必须是启用的 ISO 币种")
+	ErrAdminOrganizationCurrency               = errors.BadRequest("ADMIN_ORGANIZATION_CURRENCY_INVALID", "组织本币必须是启用的 ISO 币种")
+	ErrAdminOrganizationBaseCurrencyImmutable   = errors.BadRequest("ADMIN_ORGANIZATION_BASE_CURRENCY_IMMUTABLE", "组织本币一旦设定不可变更")
 )
 
 type OrganizationKind string
@@ -93,6 +94,9 @@ func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organiza
 	if current.Kind == OrganizationKindHeadquarters || current.Kind == OrganizationKindCompany {
 		if !validOrganizationCurrency(baseCurrency) {
 			return nil, ErrAdminOrganizationCurrency
+		}
+		if current.BaseCurrency != "" && current.BaseCurrency != baseCurrency {
+			return nil, ErrAdminOrganizationBaseCurrencyImmutable
 		}
 	} else if baseCurrency != "" {
 		return nil, ErrAdminOrganizationCurrency

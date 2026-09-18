@@ -99,7 +99,12 @@ export default function OrgEditModal({
           showSearch
           request={getCurrencyOptions}
           rules={[{ required: true, message: '请选择组织本币' }]}
-          extra="修改本币不会改变已保存费用的汇率快照"
+          disabled={Boolean(editingOrg?.baseCurrency)}
+          extra={
+            editingOrg?.baseCurrency
+              ? '组织本币已设定，锁定不可变更'
+              : '请选择组织本币，设定后不可更改'
+          }
         />
       )}
     </ModalForm>
