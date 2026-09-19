@@ -110,3 +110,17 @@ process.on('uncaughtException', (err) => {
   }
   throw err;
 });
+
+// Disable animations and transitions for instant DOM updates in happy-dom tests
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    *, *::before, *::after {
+      transition: none !important;
+      animation: none !important;
+      animation-duration: 0s !important;
+      transition-duration: 0s !important;
+    }
+  `;
+  document.head.appendChild(style);
+}

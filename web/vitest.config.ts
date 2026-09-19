@@ -14,6 +14,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setupTests.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    fileParallelism: true,
+    maxConcurrency: 32,
     // Exclude Umi integration tests that depend on @umijs/max test infrastructure
     // These require Umi's Jest runner and cannot be used with Vitest directly
     exclude: [
@@ -35,5 +37,8 @@ export default defineConfig({
     },
     passWithNoTests: true,
     testTimeout: 30000,
+    cache: {
+      dir: '/dev/shm/roncin-vitest-cache',
+    },
   },
 });

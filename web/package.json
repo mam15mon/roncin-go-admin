@@ -24,6 +24,7 @@
     "start:pre": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=pre MOCK=none max dev",
     "start:test": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=test MOCK=none max dev",
     "test": "vitest run",
+    "test:changed": "vitest run --changed",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

@@ -204,6 +204,7 @@ pnpm run migrate:dev
 pnpm run sync:all
 pnpm run generate:web-client
 pnpm run generate:permission-keys
+pnpm run check:fast
 pnpm run check:web
 pnpm run check:server
 pnpm run check
@@ -213,7 +214,7 @@ pnpm run build
 服务端生成与局部校验：
 
 ```bash
-go -C server test ./...
+go -C server test -p 32 ./...
 go -C server vet ./...
 go -C server generate
 make -C server api
@@ -226,27 +227,35 @@ make -C server all
 ```bash
 pnpm --dir web lint
 pnpm --dir web test
+pnpm --dir web test:changed
 pnpm --dir web tsc
 pnpm --dir web biome:lint
 ```
 
-前端验证必须区分阶段：
+前端验证与全栈门禁加速规范：
 
-- 开发过程中只运行受影响的定向测试和修改文件的 Biome 检查。Vitest 单文件或
-  少量文件测试统一使用
-  `pnpm --dir web exec vitest run <test-file> [more-test-files...]`；禁止使用
-  `pnpm --dir web test -- <test-file>` 冒充定向测试，因为当前脚本会运行全量套件。
+- 开发过程中只运行受影响的定向测试和修改文件的 Biome 检查。
+  - 定向单文件/少量文件测试：`pnpm --dir web exec vitest run <test-file> [more-test-files...]`（路径必须相对 `web/` 目录，如 `src/pages/...`；禁止使用 `pnpm --dir web test -- <test-file>` 冒充定向测试，它会触发全量执行）。
+  - Git 改动文件增量测试：`pnpm --dir web test:changed`（利用 Vitest 仅测试受当前改动影响的用例）。
+- 全量门禁极速验证：全栈验收时推荐优先运行 `pnpm run check:fast`。该脚本由 `scripts/check-parallel.mjs` 调度：
+  - 前端门禁（`check:web`）与后端门禁（`check:server`）**全并发并行执行**，告别串行等待；
+  - 自动挂载系统 `/dev/shm` 内存虚拟盘（tmpfs），将 `GOCACHE`、`GOTMPDIR` 与 Vitest 转换缓存全部内存化，消除磁盘写放大与 IOPS 瓶颈；
+  - 后端单元测试统一指定 `-p 32` 充分发挥多核性能。
+- 测试长尾效应防护（Longest Processing Time 约束）：
+  - Vitest 按测试文件（Suite）粒度分发给 Worker 进程并发。**严禁在单个测试文件中堆砌超过 10 个重型业务组件/深层级树渲染用例**（如批量建账、复杂单据大表单）。
+  - 当单测试文件执行耗时超过 20 秒时，必须按功能维度拆分文件（例如常规流程放 `*.test.tsx`，超大批量/规模压测放 `*.scale.test.tsx`），以便被调度器分配到不同的 CPU 核心并发执行，杜绝「1 个核心跑长尾、其他几十核围观」的 CPU 饥饿。
+  - 前端单元测试已全局注入无动画规则（`setupTests.ts` 中置空过渡与关键帧时间），禁止在用例中写无意义的 `setTimeout` 帧等待。
 - 一组代码准备普通本地提交时，运行相关测试、`git diff --check`，并根据类型影响
   决定是否运行 `pnpm --dir web tsc`。提交动作本身不要求运行全量测试、
   `check:web` 或构建。
-- 整个任务或批准阶段完成、准备最终验收/归档/推送时，才执行一次风险匹配的完整
-  前端门禁。`pnpm run build` 仅用于构建配置、依赖、生产入口等相关变更，或发布
+- 整个任务或批准阶段完成、准备最终验收/归档/推送时，执行 `pnpm run check:fast`
+  或风险匹配的前端门禁。`pnpm run build` 仅用于构建配置、依赖、生产入口等相关变更，或发布
   前验收及用户明确要求；不作为普通 UI 修改的固定步骤。
 - 契约、权限、生成物、跨领域公共组件或大范围状态管理等高风险变更，可以提前或
   增加完整检查，但必须说明风险依据。
 
 始终优先运行与改动直接相关的最小检查，再根据上述阶段与风险选择
-`pnpm run check:web`、`pnpm run check` 或 `pnpm run build`。不要为了通过检查而
+`pnpm run check:fast`、`pnpm run check:web`、`pnpm run check` 或 `pnpm run build`。不要为了通过检查而
 关闭规则、跳过类型错误或提交临时产物。
 
 ## 配置、数据与部署

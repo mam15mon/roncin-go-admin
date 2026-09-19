@@ -12,7 +12,13 @@
 只验证当前改动，不重复运行完整前端门禁：
 
 ```bash
+# 单文件/少量文件定向测试（必须相对 web/ 目录）
 pnpm --dir web exec vitest run <test-file> [more-test-files...]
+
+# 智能增量测试：仅测试受 Git 当前改动影响的用例
+pnpm --dir web test:changed
+
+# 修改文件代码规范检查
 pnpm --dir web exec biome check <changed-file> [more-changed-files...]
 ```
 
@@ -33,6 +39,13 @@ pnpm --dir web exec vitest run web/src/pages/foo/bar.test.tsx
 # 正确
 pnpm --dir web exec vitest run src/pages/foo/bar.test.tsx
 ```
+
+### 测试并发与长尾效应防护（LPT 调度原则）
+
+- **测试文件长尾约束**：Vitest 采用文件级并发（`fileParallelism: true`）。严禁在单个测试文件中堆砌超过 10 个重型业务组件/深层级树渲染用例（如批量建账、多分节大表单）。
+- **拆分规约**：单测试文件耗时超过 20 秒时，必须按功能拆分为多文件（如常规流程为 `*.test.tsx`，超大批量或压测为 `*.scale.test.tsx`），以便让多核 CPU 调度器能分发到不同核心并发跑，杜绝「一核有难、几十核围观」。
+- **动画禁用**：`setupTests.ts` 已全局注入零动画样式，彻底消除 300ms 帧延迟，测试用例中禁止添加无意义的 `sleep` 等待动画。
+- **极速全量门禁**：全量验收推荐优先执行 `pnpm run check:fast`，自动并行执行前后端门禁，并挂载系统 `/dev/shm` tmpfs 内存虚拟盘消除磁盘 I/O 瓶颈。
 
 ### 2. 普通本地提交
 
