@@ -1,0 +1,2 @@
+{"file": "server/internal/data/sea_order_change.go", "reason": "被拆分的 5185 行主文件，全部函数按职责段拆出"}
+{"file": "server/internal/data/sea_order_change_test.go", "reason": "拆分后必须保持全绿的单元测试，且直接引用 makeDiff/sortAndDeduplicateUUIDs 同包符号"}
