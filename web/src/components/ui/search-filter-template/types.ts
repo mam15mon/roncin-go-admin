@@ -34,8 +34,11 @@ export interface SearchFilterFieldItem {
   initialValue?: unknown;
   /** 是否允许清除，默认 true */
   allowClear?: boolean;
-  /** 附加组件属性 */
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
+  /** 附加组件属性（透传展开到 Input/Select/DatePicker 等受控组件上） */
+  // 保留 any：该对象会被原样展开注入 antd 组件 props，antd 组件 props 本身以
+  // Record<string, any> 为边界；收紧为 unknown 会使索引签名覆盖具名 props 导致
+  // 五处展开注入全部编译失败，属于透传边界的必要宽松度。
+  // biome-ignore lint/suspicious/noExplicitAny: antd 组件 props 透传展开边界，见上方注释
   fieldProps?: Record<string, any>;
 }
 
@@ -57,8 +60,7 @@ export interface QuickFilterOption {
   initialValue?: unknown;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export interface SearchFilterTemplateProps<TValues = any> {
+export interface SearchFilterTemplateProps<TValues = Record<string, unknown>> {
   /** 模式：'bar' 快捷单行搜索栏 | 'grid' 配置化网格表单 | 'custom' 自由插槽，默认 'grid' */
   layout?: 'bar' | 'grid' | 'custom';
   /** 表单排布方式：'horizontal' 水平行内紧凑 | 'vertical' 垂直上下 | 'inline' 行内，默认 'horizontal' */

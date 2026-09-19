@@ -15,8 +15,9 @@ import React, {
 } from 'react';
 import { toTableRequest } from '@/utils/api';
 
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export type SubEntityDrawerRef<TParent = any> = {
+export type SubEntityDrawerRef<
+  TParent extends { id?: string | number } = { id?: string | number },
+> = {
   open: (parent: TParent) => void;
   close: () => void;
   reload: () => void;
@@ -24,10 +25,8 @@ export type SubEntityDrawerRef<TParent = any> = {
 
 export interface SubEntityDrawerTemplateProps<
   TItem extends { id?: string | number },
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TParent extends { id?: string | number } = any,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TFormValues = any,
+  TParent extends { id?: string | number } = { id?: string | number },
+  TFormValues = Record<string, unknown>,
 > {
   entityName: string;
   drawerTitle?: string | ((parent?: TParent) => ReactNode);
@@ -41,16 +40,13 @@ export interface SubEntityDrawerTemplateProps<
   fetchList: (
     parent: TParent,
   ) => Promise<{ data?: TItem[]; success?: boolean }>;
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  createItem?: (values: TFormValues, parent: TParent) => Promise<any>;
+  createItem?: (values: TFormValues, parent: TParent) => Promise<unknown>;
   updateItem?: (
     item: TItem,
     values: TFormValues,
     parent: TParent,
-    // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  ) => Promise<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  removeItem?: (item: TItem, parent: TParent) => Promise<any>;
+  ) => Promise<unknown>;
+  removeItem?: (item: TItem, parent: TParent) => Promise<unknown>;
   initialValues?: (
     item?: TItem,
     parent?: TParent,
@@ -70,10 +66,8 @@ export interface SubEntityDrawerTemplateProps<
 
 export function SubEntityDrawerTemplateInner<
   TItem extends { id?: string | number },
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TParent extends { id?: string | number } = any,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TFormValues = any,
+  TParent extends { id?: string | number } = { id?: string | number },
+  TFormValues = Record<string, unknown>,
 >(
   {
     entityName,
@@ -282,10 +276,8 @@ export const SubEntityDrawerTemplate = forwardRef(
   SubEntityDrawerTemplateInner,
 ) as <
   TItem extends { id?: string | number },
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TParent extends { id?: string | number } = any,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TFormValues = any,
+  TParent extends { id?: string | number } = { id?: string | number },
+  TFormValues = Record<string, unknown>,
 >(
   props: SubEntityDrawerTemplateProps<TItem, TParent, TFormValues> & {
     ref?: React.ForwardedRef<SubEntityDrawerRef<TParent>>;

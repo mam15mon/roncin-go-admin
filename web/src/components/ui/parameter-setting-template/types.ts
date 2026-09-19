@@ -72,11 +72,9 @@ export interface SettingTableTemplateProps<
     total?: number;
   }>;
   /** 异步创建数据 */
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  createItem?: (values: TFormValues) => Promise<any>;
+  createItem?: (values: TFormValues) => Promise<unknown>;
   /** 异步更新数据 */
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  updateItem?: (record: TRecord, values: TFormValues) => Promise<any>;
+  updateItem?: (record: TRecord, values: TFormValues) => Promise<unknown>;
   /** 是否具备创建权限，默认 true */
   canCreate?: boolean;
   /** 是否具备编辑权限，默认 true */
@@ -86,8 +84,7 @@ export interface SettingTableTemplateProps<
   /** 初始表单值生成函数或对象 */
   initialValues?: (editingRecord?: TRecord) => Partial<TFormValues>;
   /** 提交前数据转换钩子 */
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  beforeSubmit?: (values: TFormValues, editingRecord?: TRecord) => any;
+  beforeSubmit?: (values: TFormValues, editingRecord?: TRecord) => TFormValues;
   /** 弹窗宽度，默认 520 */
   modalWidth?: number;
   /** 是否开启 ModalForm Grid 栅格布局，默认 false */

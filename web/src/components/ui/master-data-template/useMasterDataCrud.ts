@@ -4,16 +4,15 @@ import { unwrapPage } from '@/utils/api';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
 /**
- * TFormValues 默认保留 any 的权衡：各主数据面板的 createItem/updateItem 回调
- * 直接读取 `values.code.toUpperCase()` 等未声明的表单字段，收紧为
- * Record<string, unknown> 会迫使每个面板补断言；需要强类型的调用方可显式
- * 传入 TFormValues。
+ * TFormValues 默认保留 any 的权衡：主数据面板的表单存在「表单选填但服务端
+ * 契约标记必填」的存量缺口（如机场 cityNameZh、港口 nameZh），收紧为
+ * Record<string, unknown> 会在这些提交点暴露契约不一致，需先对齐契约才能收紧；
+ * 需要强类型的调用方可显式传入 TFormValues。
  */
 export interface UseMasterDataCrudOptions<
   TItem extends BaseMasterDataItem,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TApiItem = any,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
+  TApiItem = unknown,
+  // biome-ignore lint/suspicious/noExplicitAny: 表单选填与服务端必填契约存在存量缺口，见上方注释
   TFormValues = any,
 > {
   entityName: string;
@@ -32,9 +31,8 @@ export interface UseMasterDataCrudOptions<
 
 export function useMasterDataCrud<
   TItem extends BaseMasterDataItem,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TApiItem = any,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
+  TApiItem = unknown,
+  // biome-ignore lint/suspicious/noExplicitAny: 表单选填与服务端必填契约存在存量缺口，见上方注释
   TFormValues = any,
 >({
   entityName,

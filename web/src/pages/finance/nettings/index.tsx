@@ -31,6 +31,12 @@ import { toTableRequest, unwrapPage } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 
+/** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
+type NettingLedgerFilterParams = {
+  status?: string;
+  currency?: string;
+};
+
 function nettingStatusTag(status?: number) {
   switch (status) {
     case FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT:
@@ -375,7 +381,7 @@ export default function FinanceNettingsPage() {
           />
         </Space>
       </Card>
-      <FinanceLedgerTemplate<API.FinanceNetting>
+      <FinanceLedgerTemplate<API.FinanceNetting, NettingLedgerFilterParams>
         pageTitle="对冲管理"
         pageSubTitle="往来单位双向费用对冲结算台账"
         headerTitle="对冲结算单列表"

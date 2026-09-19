@@ -116,6 +116,13 @@ function roleTags(roles?: API.PartnerRole[]) {
   });
 }
 
+/** 快捷搜索栏提交并暂存于页面状态的往来单位查询参数 */
+type PartnerSearchParams = {
+  keyword?: string;
+  enabled?: boolean;
+  isCasual?: boolean;
+};
+
 export default function Partners() {
   const { message } = App.useApp();
   const location = useLocation();
@@ -416,11 +423,7 @@ export default function Partners() {
     },
   ];
 
-  const [searchParams, setSearchParams] = useState<{
-    keyword?: string;
-    enabled?: boolean;
-    isCasual?: boolean;
-  }>({});
+  const [searchParams, setSearchParams] = useState<PartnerSearchParams>({});
 
   return (
     <PageContainer
@@ -433,7 +436,7 @@ export default function Partners() {
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
-      <SearchFilterTemplate
+      <SearchFilterTemplate<PartnerSearchParams>
         layout="bar"
         keywordPlaceholder={`搜索单位编码、名称、拼音或税号...`}
         quickFilters={[

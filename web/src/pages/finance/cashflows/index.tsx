@@ -42,6 +42,12 @@ import {
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
+/** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
+type CashflowLedgerFilterParams = {
+  direction?: string;
+  status?: string;
+};
+
 type Values = {
   organizationId: string;
   direction: string;
@@ -434,7 +440,7 @@ export default function FinanceCashflowsPage() {
           />
         </Space>
       </Card>
-      <FinanceLedgerTemplate<API.FinanceCashflow>
+      <FinanceLedgerTemplate<API.FinanceCashflow, CashflowLedgerFilterParams>
         pageTitle="收付管理"
         pageSubTitle="银行流水认领、资金收付流水台账及状态跟踪"
         headerTitle="资金流水列表"

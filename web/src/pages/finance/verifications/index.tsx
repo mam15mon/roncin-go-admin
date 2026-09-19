@@ -30,6 +30,11 @@ import { formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import VerificationWorkbench from './VerificationWorkbench';
 
+/** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
+type VerificationLedgerFilterParams = {
+  status?: string;
+};
+
 export default function FinanceVerificationsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
@@ -309,7 +314,10 @@ export default function FinanceVerificationsPage() {
           />
         </Space>
       </Card>
-      <FinanceLedgerTemplate<API.FinanceVerification>
+      <FinanceLedgerTemplate<
+        API.FinanceVerification,
+        VerificationLedgerFilterParams
+      >
         pageTitle="核销管理"
         pageSubTitle="应收/应付账单对账核销与多币种汇差结算"
         headerTitle="核销记录列表"

@@ -2,15 +2,17 @@ import { Alert, App, Button, Form, type FormInstance, Modal } from 'antd';
 import React, { type ReactNode, useRef, useState } from 'react';
 
 /** 可选附加底部动作：点击不触发表单校验或提交，可读取当前表单实例。 */
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export interface QuickCreateModalExtraAction<TFormValues = any> {
+export interface QuickCreateModalExtraAction<
+  TFormValues = Record<string, unknown>,
+> {
   text: ReactNode;
   onClick: (form: FormInstance<TFormValues>) => void;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export interface QuickCreateModalProps<TFormValues = any, TResult = any> {
+export interface QuickCreateModalProps<
+  TFormValues = Record<string, unknown>,
+  TResult = unknown,
+> {
   title: string | ReactNode;
   open: boolean;
   onCancel: () => void;
@@ -30,8 +32,10 @@ export interface QuickCreateModalProps<TFormValues = any, TResult = any> {
   children: ReactNode | ((form: FormInstance<TFormValues>) => ReactNode);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export function QuickCreateModal<TFormValues = any, TResult = any>({
+export function QuickCreateModal<
+  TFormValues = Record<string, unknown>,
+  TResult = unknown,
+>({
   title,
   open,
   onCancel,
