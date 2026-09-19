@@ -19,7 +19,7 @@ export function buildOrderAuditTimelineSection(
             items={[
               {
                 color: 'green',
-                children: (
+                content: (
                   <div>
                     <Space>
                       <Text strong>初始建单成功</Text>
@@ -39,7 +39,7 @@ export function buildOrderAuditTimelineSection(
               },
               {
                 color: 'blue',
-                children: (
+                content: (
                   <div>
                     <Space>
                       <Text strong>业务信息与配舱已录入</Text>

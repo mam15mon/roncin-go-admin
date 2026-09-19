@@ -414,7 +414,7 @@ export default function CommissionRulesDrawer({
     <>
       <Drawer
         title="提成方案"
-        width={DRAWER_SIZE.LG}
+        size={DRAWER_SIZE.LG}
         open={open}
         onClose={onClose}
       >
@@ -435,14 +435,15 @@ export default function CommissionRulesDrawer({
           />
           <Select
             allowClear
-            showSearch
+            showSearch={{
+              filterOption: false,
+              onSearch: (value) => void searchEmployeeFilter(value),
+            }}
             placeholder="适用员工"
             style={{ minWidth: 200 }}
             value={employeeFilter}
             options={employeeFilterOptions}
-            filterOption={false}
-            onSearch={(value) => void searchEmployeeFilter(value)}
-            onDropdownVisibleChange={(visible) => {
+            onOpenChange={(visible) => {
               if (visible) void searchEmployeeFilter();
             }}
             onChange={(value) => {

@@ -146,7 +146,7 @@ export function FeeItemsPanel() {
           type="info"
           showIcon
           style={{ marginBottom: 12 }}
-          message="集团基线科目由总部统一维护（只读），本组织可新增本地科目，同码本地科目仅本组织可见并覆盖基线科目"
+          title="集团基线科目由总部统一维护（只读），本组织可新增本地科目，同码本地科目仅本组织可见并覆盖基线科目"
         />
       )}
       <SettingTableTemplate<API.FeeSetting, FeeSettingFormValues>

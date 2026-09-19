@@ -404,8 +404,8 @@ export default function ContractCardList({
         onOpenChange={setModalOpen}
         onFinish={handleSave}
         modalProps={{
-          destroyOnClose: true,
-          maskClosable: false,
+          destroyOnHidden: true,
+          mask: { closable: false },
           width: 560,
         }}
         layout="horizontal"

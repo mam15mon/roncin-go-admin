@@ -38,7 +38,7 @@ export default function SeaSharedContainerCreateModal({
       onCancel={onCancel}
       onOk={() => form.submit()}
       confirmLoading={submitting}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

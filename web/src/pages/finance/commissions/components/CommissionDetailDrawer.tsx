@@ -162,7 +162,7 @@ export default function CommissionDetailDrawer({
   return (
     <Drawer
       title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
-      width={DRAWER_SIZE.LG}
+      size={DRAWER_SIZE.LG}
       open={open}
       loading={loading}
       extra={

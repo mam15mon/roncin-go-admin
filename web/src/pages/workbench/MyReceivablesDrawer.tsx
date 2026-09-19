@@ -123,14 +123,14 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
       open={open}
       onClose={onClose}
       title="在途回款"
-      width={1080}
+      size={1080}
       destroyOnHidden
     >
       <Space orientation="vertical" size={12} style={{ width: '100%' }}>
         <Alert
           type="info"
           showIcon
-          message="未核销余额按账单原币展示，不同币种不合并计算；对应潜在提成仅为预计，非应发承诺，尚未回款核销、费用或规则变化都会影响结果。"
+          title="未核销余额按账单原币展示，不同币种不合并计算；对应潜在提成仅为预计，非应发承诺，尚未回款核销、费用或规则变化都会影响结果。"
         />
         <Table<MyReceivable>
           rowKey={(record) => record.billId || record.billNo || ''}

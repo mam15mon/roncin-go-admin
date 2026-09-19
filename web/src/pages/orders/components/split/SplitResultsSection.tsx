@@ -314,17 +314,18 @@ export default function SplitResultsSection({
                 >
                   <Space style={{ width: '100%' }}>
                     <Select
-                      showSearch
+                      showSearch={{
+                        filterOption: false,
+                        onSearch: async (keyword) => {
+                          const options =
+                            await searchShippingLineOptions(keyword);
+                          setCarrierOptions(options);
+                        },
+                      }}
                       placeholder="选择船公司"
                       style={{ width: 220 }}
                       value={res.shippingLineId}
                       options={carrierOptions}
-                      filterOption={false}
-                      onSearch={async (keyword) => {
-                        const options =
-                          await searchShippingLineOptions(keyword);
-                        setCarrierOptions(options);
-                      }}
                       onChange={(value) => {
                         const updated = [...results];
                         updated[index] = {
@@ -468,16 +469,18 @@ export default function SplitResultsSection({
                     </Col>
                     <Col span={6}>
                       <Select
-                        showSearch
+                        showSearch={{
+                          filterOption: false,
+                          onSearch: async (keyword) => {
+                            const opts =
+                              await searchShippingLineOptions(keyword);
+                            setCarrierOptions(opts);
+                          },
+                        }}
                         placeholder="选择船公司"
                         style={{ width: '100%' }}
                         value={res.shippingLineId}
                         options={carrierOptions}
-                        filterOption={false}
-                        onSearch={async (keyword) => {
-                          const opts = await searchShippingLineOptions(keyword);
-                          setCarrierOptions(opts);
-                        }}
                         onChange={(val) => {
                           const updated = [...results];
                           updated[index] = {

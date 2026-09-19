@@ -175,7 +175,7 @@ export default function MyCommissionDrawer({
       open={open}
       onClose={onClose}
       title="我的提成明细"
-      width={960}
+      size={960}
       destroyOnHidden
     >
       <Space orientation="vertical" size={12} style={{ width: '100%' }}>

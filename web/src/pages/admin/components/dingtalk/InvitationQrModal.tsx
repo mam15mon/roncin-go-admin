@@ -98,7 +98,7 @@ export default function InvitationQrModal({
         </Button>,
       ]}
       width={MODAL_SIZE.SM}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <div
@@ -157,23 +157,20 @@ export default function InvitationQrModal({
           )}
         </div>
 
-        <div style={{ width: '100%', marginTop: 4 }}>
-          <Input
-            value={fullUrl}
-            readOnly
-            addonAfter={
-              <Button
-                type="link"
-                size="small"
-                icon={<CopyOutlined />}
-                onClick={handleCopy}
-                style={{ padding: '0 4px', height: 'auto' }}
-              >
-                复制
-              </Button>
-            }
-          />
-        </div>
+        <Space.Compact block style={{ marginTop: 4 }}>
+          <Input value={fullUrl} readOnly />
+          <Space.Addon>
+            <Button
+              type="link"
+              size="small"
+              icon={<CopyOutlined />}
+              onClick={handleCopy}
+              style={{ padding: '0 4px', height: 'auto' }}
+            >
+              复制
+            </Button>
+          </Space.Addon>
+        </Space.Compact>
       </div>
     </Modal>
   );

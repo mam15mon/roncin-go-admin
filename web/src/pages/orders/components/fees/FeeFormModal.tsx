@@ -104,7 +104,7 @@ export default function FeeFormModal({
       onFinish={onSubmit}
       onValuesChange={onValuesChange}
       width={680}
-      modalProps={{ destroyOnClose: true }}
+      modalProps={{ destroyOnHidden: true }}
     >
       <Row gutter={16}>
         <Col span={12}>

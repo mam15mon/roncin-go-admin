@@ -94,7 +94,7 @@ export default function InvitationFormModal({
         expiresInHours: INVITATION_DEFAULT_TTL_HOURS,
       }}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}

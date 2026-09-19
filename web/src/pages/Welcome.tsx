@@ -87,7 +87,7 @@ export default function Welcome() {
           <Alert
             type="error"
             showIcon
-            message="工作台数据加载失败"
+            title="工作台数据加载失败"
             description="稍后重试；失败不会展示任何组织的旧数据。"
             action={
               <Button size="small" danger onClick={reload}>

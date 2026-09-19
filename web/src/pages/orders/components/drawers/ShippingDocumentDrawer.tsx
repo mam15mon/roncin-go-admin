@@ -267,13 +267,13 @@ const ShippingDocumentDrawer = forwardRef<
         title="分单管理 (HBL)"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        width={DRAWER_SIZE.MD}
+        size={DRAWER_SIZE.MD}
       >
         {isUnimplementedTransportMode(transportMode) && (
           <Alert
             type="warning"
             showIcon
-            message="陆运与铁路订单的分单管理尚未开放"
+            title="陆运与铁路订单的分单管理尚未开放"
           />
         )}
 
@@ -282,7 +282,7 @@ const ShippingDocumentDrawer = forwardRef<
             <Alert
               type="info"
               showIcon
-              message={
+              title={
                 <span>
                   当前订单关联海运主单 (MBL)：
                   <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>

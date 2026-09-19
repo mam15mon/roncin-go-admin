@@ -131,7 +131,7 @@ export default function SplitAllocationSection({
         <Text strong style={{ marginBottom: 8, display: 'block' }}>
           货物明细与件重尺分配：
         </Text>
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space orientation="vertical" style={{ width: '100%' }} size="middle">
           {(splitContext?.cargoItems || []).map((ci) => {
             if (!ci.id) return null;
             const currentAllocMap = cargoAllocations[ci.id] || {};
@@ -360,7 +360,7 @@ export default function SplitAllocationSection({
             <Text strong style={{ marginBottom: 8, display: 'block' }}>
               跨订单共享箱分配切分：
             </Text>
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Space orientation="vertical" style={{ width: '100%' }} size="middle">
               {splitContext.sharedContainerAllocations.map((sa) => {
                 if (!sa.allocationId) return null;
                 const currentAllocMap =

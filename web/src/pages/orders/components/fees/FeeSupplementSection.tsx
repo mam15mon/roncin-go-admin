@@ -426,7 +426,7 @@ export default function FeeSupplementSection({
       dataIndex: 'feeName',
       width: 230,
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <span>{record.feeName || record.feeCode || '-'}</span>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {`${record.quantity || '-'} × ${record.unitPrice || '-'} = ${record.totalAmount || '-'} ${record.currency || ''} · 发生日期 ${record.expenseDate || '-'}`}
@@ -446,7 +446,7 @@ export default function FeeSupplementSection({
       dataIndex: 'requestedAt',
       width: 180,
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Typography.Text style={{ fontSize: 12 }} ellipsis>
             {record.requestedBy || '-'}
           </Typography.Text>
@@ -473,7 +473,7 @@ export default function FeeSupplementSection({
           );
         }
         return (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             <Typography.Text style={{ fontSize: 12 }} ellipsis>
               {record.decidedBy || '-'}
             </Typography.Text>

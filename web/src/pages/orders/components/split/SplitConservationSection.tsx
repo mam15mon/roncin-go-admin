@@ -40,7 +40,7 @@ export default function SplitConservationSection({
           <Alert
             type="error"
             showIcon
-            message="阻断原因提示"
+            title="阻断原因提示"
             description={
               <div>
                 {previewData.validationErrors.map((err) => (

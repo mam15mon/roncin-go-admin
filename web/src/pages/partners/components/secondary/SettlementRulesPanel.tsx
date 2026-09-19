@@ -477,7 +477,8 @@ export default function SettlementRulesPanel({
           label="信用额度（元）"
           tooltip="超出该额度的应收未核销金额将触发信用预警；按管控策略可能被直接拦截"
           min={0}
-          fieldProps={{ precision: 2, addonAfter: '元' }}
+          addonAfter="元"
+          fieldProps={{ precision: 2 }}
         />
         <ProFormText
           name="settlementCurrency"

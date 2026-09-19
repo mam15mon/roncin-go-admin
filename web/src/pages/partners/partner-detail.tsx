@@ -686,7 +686,7 @@ export default function PartnerDetailPage() {
         style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
       >
         <div style={{ padding: 48, textAlign: 'center' }}>
-          <Spin tip="无效的档案标识，正在返回列表..." />
+          <Spin description="无效的档案标识，正在返回列表..." />
         </div>
       </PageContainer>
     );

@@ -339,7 +339,7 @@ export default function PartnerExcelImportModal({
       open={open}
       onCancel={handleClose}
       width={780}
-      destroyOnClose
+      destroyOnHidden
       footer={[
         <Button key="cancel" onClick={handleClose} disabled={importing}>
           取消
@@ -434,7 +434,7 @@ export default function PartnerExcelImportModal({
           <Alert
             type="warning"
             showIcon
-            message={`解析提示 (${parseErrors.length} 条)`}
+            title={`解析提示 (${parseErrors.length} 条)`}
             description={
               <div style={{ maxHeight: 80, overflowY: 'auto' }}>
                 {parseErrors.slice(0, 10).map((err) => (

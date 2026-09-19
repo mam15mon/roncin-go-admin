@@ -260,7 +260,7 @@ export default function Login() {
                 <Alert
                   type="info"
                   showIcon
-                  message={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
+                  title={`【${invitationInfo.organizationName || '专属通道'}】专属邀请`}
                   description={
                     <div style={{ fontSize: 13, marginTop: 4 }}>
                       <div>
@@ -278,7 +278,7 @@ export default function Login() {
                 <Alert
                   type="warning"
                   showIcon
-                  message="加入前请确认所属分公司"
+                  title="加入前请确认所属分公司"
                   description={
                     <div style={{ fontSize: 13 }}>
                       若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码
@@ -293,7 +293,7 @@ export default function Login() {
               <Alert
                 type="warning"
                 showIcon
-                message="邀请链接已失效"
+                title="邀请链接已失效"
                 description={invitationError}
                 style={{ marginBottom: 20 }}
               />

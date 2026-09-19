@@ -821,7 +821,7 @@ export default function SeaOrderSplitPage() {
                 lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
               }
               showIcon
-              message="拆票操作当前不可用"
+              title="拆票操作当前不可用"
               description={lockWritePolicy.reason}
               action={
                 <Button size="small" onClick={() => void refreshLockState()}>
@@ -839,12 +839,12 @@ export default function SeaOrderSplitPage() {
                 : undefined
             }
           >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
               {previewError && (
                 <Alert
                   type="error"
                   showIcon
-                  message="拆票校验未通过"
+                  title="拆票校验未通过"
                   description={previewError}
                 />
               )}

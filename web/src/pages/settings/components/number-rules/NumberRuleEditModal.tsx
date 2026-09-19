@@ -42,8 +42,8 @@ export default function NumberRuleEditModal({
       onOpenChange={onOpenChange}
       onFinish={onFinish}
       modalProps={{
-        destroyOnClose: true,
-        maskClosable: false,
+        destroyOnHidden: true,
+        mask: { closable: false },
         width: 520,
       }}
       layout="horizontal"

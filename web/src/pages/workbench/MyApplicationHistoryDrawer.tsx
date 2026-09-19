@@ -308,7 +308,7 @@ export default function MyApplicationHistoryDrawer({
       open={open}
       onClose={onClose}
       title="我的月度申请历史"
-      width={960}
+      size={960}
       destroyOnHidden
     >
       {detail ? (

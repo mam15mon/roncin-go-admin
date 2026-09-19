@@ -110,7 +110,7 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
   const differences = preview.differences ?? [];
   const impacts = preview.impacts ?? [];
   return (
-    <Space direction="vertical" size={12} style={{ width: '100%' }}>
+    <Space orientation="vertical" size={12} style={{ width: '100%' }}>
       <Alert
         showIcon
         type={preview.executable ? 'success' : 'error'}

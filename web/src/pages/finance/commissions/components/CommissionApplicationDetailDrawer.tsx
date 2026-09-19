@@ -135,7 +135,7 @@ export default function CommissionApplicationDetailDrawer({
       open={open}
       onClose={onClose}
       title="申请批次明细"
-      width={DRAWER_SIZE.LG}
+      size={DRAWER_SIZE.LG}
       destroyOnHidden
       footer={
         canDecide ? (

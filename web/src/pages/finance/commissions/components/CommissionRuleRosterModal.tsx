@@ -196,13 +196,14 @@ function RosterChangeForms({
         <Form.Item name="employeeIds" label="加入员工">
           <Select
             mode="multiple"
-            showSearch
+            showSearch={{
+              filterOption: false,
+              onSearch: (value) => searchEmployees(value),
+            }}
             placeholder="搜索当前组织员工"
             style={{ minWidth: 260 }}
             options={employeeOptions}
-            filterOption={false}
-            onSearch={(value) => searchEmployees(value)}
-            onDropdownVisibleChange={(visible) => {
+            onOpenChange={(visible) => {
               if (visible) searchEmployees();
             }}
           />

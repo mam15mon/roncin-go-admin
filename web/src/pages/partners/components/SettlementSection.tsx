@@ -250,9 +250,9 @@ export default function SettlementSection({
                 placeholder="输入信用额度"
                 min={0}
                 formItemProps={{ style: { marginBottom: 0 } }}
+                addonAfter="元"
                 fieldProps={{
                   precision: 2,
-                  addonAfter: '元',
                 }}
               />
             </Col>

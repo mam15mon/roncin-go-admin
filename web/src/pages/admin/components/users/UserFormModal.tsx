@@ -175,7 +175,7 @@ export default function UserFormModal({
           : undefined
       }
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         width:
           editing && !pendingProvider && canReadAllUserMemberships ? 880 : 560,
         onCancel: () => onOpenChange(false),

@@ -77,7 +77,7 @@ export default function RegistrationApproveModal({
       open={open}
       formRef={formRef}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}

@@ -486,7 +486,7 @@ export const SeaOrderReassignmentModal: React.FC<
       open={open}
       onCancel={onClose}
       width={900}
-      destroyOnClose={false}
+      destroyOnHidden={false}
       confirmLoading={submitting}
       onOk={handleExecute}
       okButtonProps={{ disabled }}
@@ -496,7 +496,7 @@ export const SeaOrderReassignmentModal: React.FC<
       <Alert
         type="info"
         showIcon
-        message="改配说明"
+        title="改配说明"
         description="改配操作将把当前订单完整切换到新航程或目标母单，同步更新船名航次、起运港/卸货港等航程要素。若目标母单已存在，将自动加入共享母单组。"
         style={{ marginBottom: 16 }}
       />
@@ -505,7 +505,7 @@ export const SeaOrderReassignmentModal: React.FC<
         <Alert
           type="error"
           showIcon
-          message="改配校验未通过"
+          title="改配校验未通过"
           description={previewError}
           style={{ marginBottom: 16 }}
         />
@@ -566,13 +566,13 @@ export const SeaOrderReassignmentModal: React.FC<
 
         {candidateMatched && (
           <Space
-            direction="vertical"
+            orientation="vertical"
             style={{ width: '100%', marginBottom: 16 }}
           >
             <Alert
               type="success"
               showIcon
-              message={`已匹配现有共享母单：${candidateMatched.masterNo}`}
+              title={`已匹配现有共享母单：${candidateMatched.masterNo}`}
               description={`当前已有 ${candidateMatched.memberCount} 票成员订单。请明确选择本票要关联的实际航次。`}
             />
             <Select
@@ -623,19 +623,20 @@ export const SeaOrderReassignmentModal: React.FC<
               rules={[{ required: true, message: '请选择船公司' }]}
             >
               <Select
-                showSearch
                 placeholder="搜索选择船公司"
-                filterOption={false}
+                showSearch={{
+                  filterOption: false,
+                  onSearch: async (k) => {
+                    if (searchShippingLines) {
+                      const opts = await searchShippingLines(k);
+                      setCarrierOptions(opts);
+                    }
+                  },
+                }}
                 options={carrierOptions}
                 onChange={() => {
                   setCandidateMatched(null);
                   setCandidateTe(null);
-                }}
-                onSearch={async (k) => {
-                  if (searchShippingLines) {
-                    const opts = await searchShippingLines(k);
-                    setCarrierOptions(opts);
-                  }
                 }}
               />
             </Form.Item>
@@ -656,51 +657,54 @@ export const SeaOrderReassignmentModal: React.FC<
           <Col span={8}>
             <Form.Item name="originLocationId" label="起运港 (POL)">
               <Select
-                showSearch
                 allowClear
                 placeholder="搜索起运港"
-                filterOption={false}
-                options={originPortOptions}
-                onSearch={async (k) => {
-                  if (searchLocations) {
-                    const opts = await searchLocations(k);
-                    setOriginPortOptions(opts);
-                  }
+                showSearch={{
+                  filterOption: false,
+                  onSearch: async (k) => {
+                    if (searchLocations) {
+                      const opts = await searchLocations(k);
+                      setOriginPortOptions(opts);
+                    }
+                  },
                 }}
+                options={originPortOptions}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="dischargeLocationId" label="卸货港 (POD)">
               <Select
-                showSearch
                 allowClear
                 placeholder="搜索卸货港"
-                filterOption={false}
-                options={dischargePortOptions}
-                onSearch={async (k) => {
-                  if (searchLocations) {
-                    const opts = await searchLocations(k);
-                    setDischargePortOptions(opts);
-                  }
+                showSearch={{
+                  filterOption: false,
+                  onSearch: async (k) => {
+                    if (searchLocations) {
+                      const opts = await searchLocations(k);
+                      setDischargePortOptions(opts);
+                    }
+                  },
                 }}
+                options={dischargePortOptions}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="transitLocationId" label="中转港">
               <Select
-                showSearch
                 allowClear
                 placeholder="搜索中转港"
-                filterOption={false}
-                options={transitPortOptions}
-                onSearch={async (k) => {
-                  if (searchLocations) {
-                    const opts = await searchLocations(k);
-                    setTransitPortOptions(opts);
-                  }
+                showSearch={{
+                  filterOption: false,
+                  onSearch: async (k) => {
+                    if (searchLocations) {
+                      const opts = await searchLocations(k);
+                      setTransitPortOptions(opts);
+                    }
+                  },
                 }}
+                options={transitPortOptions}
               />
             </Form.Item>
           </Col>

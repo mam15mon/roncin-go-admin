@@ -149,8 +149,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
         ]}
       >
         <Select
-          showSearch={showSearch}
-          filterOption={filterOption}
+          showSearch={showSearch ? { filterOption } : false}
           style={{ width: currencyWidth }}
           placeholder={currencyPlaceholder}
           options={currencyOptions}

@@ -289,8 +289,7 @@ export function OrderContainerRequestFields({
               <Select
                 placeholder="请选择"
                 options={options}
-                showSearch
-                optionFilterProp="label"
+                showSearch={{ optionFilterProp: 'label' }}
                 style={{ width: 140 }}
                 onChange={(val) => {
                   form?.setFieldValue('containerRequests', [
@@ -334,8 +333,7 @@ export function OrderContainerRequestFields({
                     value={req.containerSpecId || undefined}
                     placeholder="请选择"
                     options={options}
-                    showSearch
-                    optionFilterProp="label"
+                    showSearch={{ optionFilterProp: 'label' }}
                     style={{ width: 130 }}
                     onChange={(val) =>
                       handleChange(idx, 'containerSpecId', val)

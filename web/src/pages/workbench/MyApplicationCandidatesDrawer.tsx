@@ -136,7 +136,7 @@ export default function MyApplicationCandidatesDrawer({
       open={open}
       onClose={onClose}
       title="可申请提成明细"
-      width={920}
+      size={920}
       destroyOnHidden
     >
       <Space orientation="vertical" size={12} style={{ width: '100%' }}>

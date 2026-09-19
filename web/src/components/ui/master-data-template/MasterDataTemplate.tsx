@@ -472,7 +472,7 @@ export function MasterDataTemplate<
           type="info"
           showIcon
           style={{ marginBottom: 12 }}
-          message={notice}
+          title={notice}
         />
       )}
       {/* 1. Stats Grid: 现代 CSS Grid 消除 Row gutter 负外边距外凸，确保与 Tab 卡片和表格卡片 100% 垂直平齐 */}

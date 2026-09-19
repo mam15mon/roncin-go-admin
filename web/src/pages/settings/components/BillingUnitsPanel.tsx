@@ -61,7 +61,7 @@ export function BillingUnitsPanel() {
           type="info"
           showIcon
           style={{ marginBottom: 12 }}
-          message="计费单位为集团全局基础资料，由总部统一维护与共享，本组织只读"
+          title="计费单位为集团全局基础资料，由总部统一维护与共享，本组织只读"
         />
       )}
       <SettingTableTemplate<API.BillingUnit, BillingUnitFormValues>

@@ -134,7 +134,7 @@ export default function CommissionSummaryCard({
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message={`您的提成方案自 ${data.nextEffectiveDate} 起生效；生效后将自动开始按方案累计提成，当前空缺不代表金额为零。`}
+          title={`您的提成方案自 ${data.nextEffectiveDate} 起生效；生效后将自动开始按方案累计提成，当前空缺不代表金额为零。`}
         />
       ) : null}
 

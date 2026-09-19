@@ -188,11 +188,12 @@ export default function SeaTransportExecutionUpdateModal({
     <Form.Item name={name} label={label}>
       <Select
         allowClear
-        showSearch
-        filterOption={false}
+        showSearch={{
+          filterOption: false,
+          onSearch: (keyword) => void loadLocations(keyword),
+        }}
         options={locationOptions}
         onFocus={() => void loadLocations()}
-        onSearch={(keyword) => void loadLocations(keyword)}
       />
     </Form.Item>
   );
@@ -270,7 +271,7 @@ export default function SeaTransportExecutionUpdateModal({
       </Form>
 
       {preview ? (
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+        <Space orientation="vertical" size={12} style={{ width: '100%' }}>
           <Text strong>
             本次将影响 {preview.memberOrderIds?.length ?? 0} 张关联订单
           </Text>
