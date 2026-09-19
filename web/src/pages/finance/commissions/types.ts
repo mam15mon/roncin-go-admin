@@ -48,19 +48,19 @@ export const commissionStatusMeta: Record<
 > = {
   [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: {
     text: '草稿',
-    color: 'processing',
+    color: 'default',
   },
   [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: {
     text: '已确认',
-    color: 'success',
+    color: 'blue',
   },
   [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: {
     text: '已发放',
-    color: 'blue',
+    color: 'green',
   },
   [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: {
     text: '已取消',
-    color: 'default',
+    color: 'red',
   },
 };
 

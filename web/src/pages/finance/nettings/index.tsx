@@ -40,13 +40,13 @@ type NettingLedgerFilterParams = {
 function nettingStatusTag(status?: number) {
   switch (status) {
     case FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT:
-      return <Tag color="gold">草稿</Tag>;
+      return <Tag color="default">草稿</Tag>;
     case FinanceNettingStatus.FINANCE_NETTING_STATUS_CONFIRMED:
-      return <Tag color="green">已确认</Tag>;
+      return <Tag color="blue">已确认</Tag>;
     case FinanceNettingStatus.FINANCE_NETTING_STATUS_CANCELLED:
-      return <Tag color="default">已取消</Tag>;
+      return <Tag color="red">已取消</Tag>;
     case FinanceNettingStatus.FINANCE_NETTING_STATUS_REVERSED:
-      return <Tag color="default">已反转</Tag>;
+      return <Tag color="volcano">已反转</Tag>;
     default:
       return <Tag color="default">未知</Tag>;
   }

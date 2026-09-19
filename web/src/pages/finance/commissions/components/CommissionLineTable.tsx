@@ -31,7 +31,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       key: 'direction',
       width: 90,
       render: (dir: string) => (
-        <Tag color={dir === 'RECEIVABLE' ? 'blue' : 'orange'}>
+        <Tag color={dir === 'RECEIVABLE' ? 'green' : 'volcano'}>
           {dir === 'RECEIVABLE' ? '应收' : '应付'}
         </Tag>
       ),

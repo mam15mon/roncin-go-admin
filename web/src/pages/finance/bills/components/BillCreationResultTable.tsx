@@ -93,9 +93,9 @@ export default function BillCreationResultTable({
             width: 90,
             render: (value) =>
               value === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED ? (
-                <Tag color="green">已确认</Tag>
+                <Tag color="blue">已确认</Tag>
               ) : (
-                <Tag color="gold">草稿</Tag>
+                <Tag color="default">草稿</Tag>
               ),
           },
           {
@@ -137,7 +137,7 @@ export default function BillCreationResultTable({
                 title: '状态',
                 dataIndex: 'status',
                 width: 90,
-                render: () => <Tag color="gold">草稿</Tag>,
+                render: () => <Tag color="default">草稿</Tag>,
               },
               { title: '结算单位', dataIndex: 'settlementPartyName' },
               { title: '币种', dataIndex: 'currency', width: 80 },

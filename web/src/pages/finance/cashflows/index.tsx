@@ -66,15 +66,15 @@ type Values = {
 const states: Record<number, { text: string; color: string }> = {
   [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: {
     text: '草稿',
-    color: 'gold',
+    color: 'default',
   },
   [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED]: {
     text: '已确认',
-    color: 'green',
+    color: 'blue',
   },
   [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED]: {
     text: '已取消',
-    color: 'default',
+    color: 'red',
   },
 };
 const decimalRule = {

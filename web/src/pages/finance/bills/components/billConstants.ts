@@ -4,7 +4,7 @@ import { FinanceBillStatus } from '@/enums.generated';
 export const statusOptions: Record<number, { text: string; color: string }> = {
   [FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT]: {
     text: '草稿',
-    color: 'gold',
+    color: 'default',
   },
   [FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED]: {
     text: '已确认',
@@ -12,7 +12,7 @@ export const statusOptions: Record<number, { text: string; color: string }> = {
   },
   [FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED]: {
     text: '已取消',
-    color: 'default',
+    color: 'red',
   },
 };
 
